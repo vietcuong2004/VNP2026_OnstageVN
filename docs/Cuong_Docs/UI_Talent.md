@@ -322,93 +322,51 @@ Thu nhập tháng này
 
 ---
 
-## 8. Talent Profile / Portfolio
+## 8. Giao diện Talent Profile / Portfolio & Dịch vụ Gia tăng Doanh thu B2C
 
-### 8.1. Mục tiêu
+### 8.1. Mục tiêu và Cấu trúc 3 Tab Chính
 
-Đây là hồ sơ công khai để Brand xem và booking. Profile phải vừa đẹp, vừa đủ dữ liệu để ra quyết định.
+Trang hồ sơ cá nhân của Talent được thiết kế tinh giản và phân chia trực quan thành **3 Tab chính** để quản lý hồ sơ, theo dõi hoạt động kinh doanh và mua sắm các gói dịch vụ bổ trợ. **Tab 2: Thông tin cá nhân** được chọn làm Tab mặc định khi truy cập.
 
-### 8.2. Cấu trúc profile
+---
 
-#### Header profile
+### 8.2. Chi tiết Cấu trúc 3 Tab
 
-```text
-[Ảnh cover]
-[Avatar]
-Nguyễn Mai Anh  [Huy hiệu Phân hạng Mạng xã hội - ví dụ: 💎 Star]
-Tier A | Verified Talent
-KOL Beauty • MC • Event Guest
-Location: Hà Nội | 🟢 Đang Rảnh (Lịch trống tuần này)
-Profile Score: 82/100 (Tăng +200% khả năng nhận job)
-[Book Talent] [Message] [Share]
-```
+#### 1. Tab 1: Cập nhật thông tin
+Tab này cho phép Talent cập nhật và sửa đổi toàn bộ dữ liệu cấu thành hồ sơ cá nhân và tài sản hình ảnh:
+- **Cập nhật thông tin cá nhân:** Họ tên, Chiều cao, Cân nặng, Số đo 3 vòng (Ngực - Eo - Mông), Học vấn, Ngoại ngữ, Quê quán, Tình trạng hôn nhân và Phẫu thuật thẩm mỹ.
+- **Cấu hình Bảng giá (Rate Card):** Chỉnh sửa khoảng giá tối thiểu cho từng hạng mục công việc (Instagram Post, TikTok Video, Livestream 2h, Event Appearance, Catwalk Show).
+- **Ảnh Căn cước công dân (CCCD):** Tải lên ảnh mặt trước, mặt sau CCCD và ảnh Selfie xác thực danh tính để xin cấp các cấp độ tích bảo chứng (Basic, Pro, Elite Verified).
+- **Bộ ảnh nghệ thuật (Tối đa 10 ảnh):** Kho lưu trữ hình ảnh nghệ thuật của Talent. Hệ thống giới hạn tải lên tối đa 10 ảnh chất lượng cao để đảm bảo dung lượng và tính thẩm mỹ tinh tuyển.
+- **Tải lên Video:** Tải lên các tệp video Catwalk (Polaroid), Video Giới thiệu bản thân (Intro - bắt buộc với Elite), và Video Demo MC / Livestream.
 
-- **Huy hiệu Phân hạng MXH (Social Badges):** Hiển thị dựa trên lượng follower được sync tự động hàng tuần (như 🥉 Micro, 🥈 Rising, 🥇 Influencer, 💎 Star, 👑 Celebrity).
-- **Trạng thái lịch rảnh (Availability Badge):** Hiển thị trạng thái hoạt động tức thời (🟢 Rảnh / 🔴 Bận) giúp nhà tuyển dụng ra quyết định book nhanh mà không cần nhắn tin hỏi trước.
+#### 2. Tab 2: Thông tin cá nhân (Tab Mặc định)
+Giao diện trung tâm tổng hợp kết quả hoạt động hiển thị và tài sản hình ảnh thực tế của Talent:
+- **Báo cáo hiệu quả hiển thị:** Thống kê số lượt xem profile theo tuần, số đề xuất booking nhận được và tỷ lệ nhận việc thực tế.
+- **Báo cáo doanh thu:** Thống kê thu nhập tháng này, số dư ví hiện tại và tiền cọc booking đang chờ giải ngân.
+- **Lịch rảnh, lịch bận (Availability Calendar):** Ô lịch tháng trực quan, cho phép Talent click trực tiếp vào từng ngày để toggle trạng thái Rảnh (🟢) hoặc Bận (🔴). Trạng thái này đồng bộ ngay lập tức để Brand quan sát đặt lịch.
+- **Thông tin ảnh 1, ảnh 2, ảnh 3, ảnh 4 mới chụp:** Hiển thị nổi bật bộ 4 ảnh Lookbook nghệ thuật mới nhất của Talent (Ảnh 1: Beauty Portrait, Ảnh 2: Runway Pose, Ảnh 3: Close-up, Ảnh 4: Streetwear) với hiệu ứng luxury high-fashion.
+- **Bản đồ năng lực AI & Định hướng nghề nghiệp:** Hiển thị biểu đồ mạng nhện Radar Chart 8 trục (Catwalk, Pose, MC, Live, Diễn xuất, Social content, Safety, Reliability) và bảng xếp hạng 20 vị trí việc làm tương thích nhất.
 
-#### Section 1: Key Metrics
+#### 3. Tab 3: Chợ dịch vụ bổ trợ
+Nơi tích hợp các dịch vụ trả phí thúc đẩy doanh thu B2C cho Talent:
+- **Trung tâm đẩy Top Profile (Boosting):**
+  - Mua các gói đẩy top hiển thị tìm kiếm: Trial Boost (3 ngày - 49k), Weekly Boost (7 ngày - 149k), Monthly Boost (30 ngày - 499k), Premium Boost (30 ngày - 799k - Badge Hot), Super Boost (30 ngày - 1.199k - Banner nổi bật).
+  - Tự động tính toán điểm xếp hạng: `Score = (Boost_Level × 100) + (Profile_Quality × 50) + (Response_Rate × 30) + (Rating × 20)`.
+  - Tích hợp tuỳ chọn Tự động gia hạn (Giảm giá 10%).
+- **Dịch vụ sản xuất & Hỗ trợ chuyên nghiệp:**
+  - *Professional Photoshoot (Gói chụp ảnh liên kết studio):* Basic (1.990.000đ), Premium (3.990.000đ), Elite (6.990.000đ).
+  - *Profile Optimization Service (Tối ưu hồ sơ):* Viết mô tả, tư vấn Rate Card giá 299.000đ/lần.
+  - *Priority Support (Hỗ trợ định hướng sự nghiệp 1-1):* Hotline riêng cùng cựu siêu mẫu/chuyên gia giá 99.000đ/tháng.
 
-- Chiều cao.
-- Cân nặng.
-- Số đo.
-- Độ tuổi.
-- Khu vực.
-- Follower.
-- Engagement Rate.
-- Job hoàn thành.
-- Rating.
+---
 
-#### Section 2: Portfolio Media
+### 8.3. Thiết kế UX & Kỹ thuật
 
-- Ảnh beauty.
-- Ảnh lookbook.
-- Ảnh event.
-- Video catwalk.
-- Video giới thiệu.
-- Video livestream/demo MC.
-
-#### Section 3: Skill Radar
-
-Các trục gợi ý:
-
-- Catwalk.
-- Pose dáng.
-- MC.
-- Livestream.
-- Diễn xuất.
-- Social content.
-- Brand safety.
-- Reliability.
-
-#### Section 4: Rate Card
-
-```text
-Instagram Post: từ 3.000.000đ
-TikTok Video: từ 5.000.000đ
-Livestream 2h: từ 8.000.000đ
-Event Appearance: từ 10.000.000đ
-Catwalk Show: từ 15.000.000đ
-```
-
-#### Section 5: Availability Calendar
-
-Hiển thị lịch trống theo tuần/tháng.
-
-Brand có thể xem nhanh ngày nào book được.
-
-#### Section 6: Reviews
-
-- Đánh giá từ Brand.
-- Điểm đúng giờ.
-- Tỷ lệ hoàn thành job.
-- Lịch sử hủy show.
-
-### 8.3. UX quan trọng
-
-- Brand phải đọc được hồ sơ trong 5 giây.
-- Các con số quan trọng phải nằm trên đầu.
-- Media phải đẹp, nhưng không được che mất dữ liệu.
-- CTA “Book Talent” luôn hiển thị rõ.
+- **Thời gian phản hồi tức thời:** Mọi thay đổi thông tin cá nhân và tải lên ảnh nghệ thuật từ Tab 1 phải được đồng bộ và render lập tức lên Tab 2 và Header Profile.
+- **Giới hạn nghiêm ngặt:** Chặn nút upload khi bộ ảnh đạt đủ 10 tấm, hiển thị thông báo rõ ràng để Talent tối ưu hoá chất lượng bộ ảnh của mình.
+- **Khả năng điều phối lịch linh hoạt:** Lịch biểu diễn tại Tab 2 đóng vai trò là bảng trạng thái thực giúp nhãn hàng xem nhanh và gửi cọc ngay tại ngày rảnh.
+- **ROI minh bạch:** Hiển thị ROI tăng thêm tại các gói dịch vụ bổ trợ để khuyến khích Talent đăng ký.
 
 ---
 

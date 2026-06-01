@@ -3,42 +3,113 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Shield, Sparkles, MapPin, Eye, Star, Share2,
-  Award, Calendar, DollarSign, BookOpen, GraduationCap,
-  Users, Check, ArrowUpRight, ShieldCheck, Heart, User, Crown, ShieldAlert
+  MapPin, Star, Share2, Crown, ShieldCheck, User, Edit3, Sparkles, X,
+  MessageSquare, HeartHandshake, CheckCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import RadarChart from "@/components/ui/RadarChart";
-
-const JOBS_LIST = [
-  { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
-  { id: 2, title: "KOLs/Influencer quảng cáo", desc: "Sáng tạo nội dung video ngắn", weights: { pageant: 0.1, runway: 0.1, kol: 0.8 } },
-  { id: 3, title: "KOC Livestream bán hàng", desc: "Thực hiện livestream bán hàng trực tiếp", weights: { pageant: 0.05, runway: 0.05, kol: 0.9 } },
-  { id: 4, title: "Gương mặt trang bìa", desc: "Chụp ảnh bìa tạp chí, lookbook, ảnh PR", weights: { pageant: 0.3, runway: 0.5, kol: 0.2 } },
-  { id: 5, title: "Người mẫu sàn diễn (Runway)", desc: "Trình diễn các bộ sưu tập thời trang cao cấp", weights: { pageant: 0.1, runway: 0.8, kol: 0.1 } },
-  { id: 6, title: "Người mẫu quảng cáo", desc: "Diễn xuất trong các TVC quảng cáo", weights: { pageant: 0.2, runway: 0.3, kol: 0.5 } },
-  { id: 7, title: "Diễn viên MV ca nhạc", desc: "Đóng vai nữ chính/nam chính MV ca nhạc", weights: { pageant: 0.2, runway: 0.2, kol: 0.6 } },
-  { id: 8, title: "KOL sự kiện / Khách mời VIP", desc: "Tham dự thảm đỏ và sự kiện thương hiệu", weights: { pageant: 0.6, runway: 0.2, kol: 0.2 } },
-  { id: 9, title: "Người dẫn chương trình (MC)", desc: "Dẫn dắt các sự kiện và chương trình giải trí", weights: { pageant: 0.7, runway: 0.1, kol: 0.2 } },
-  { id: 10, title: "VIP Promotion Girl (PG)", desc: "Lễ tân đón tiếp khách tại sự kiện lớn", weights: { pageant: 0.4, runway: 0.3, kol: 0.3 } },
-  { id: 11, title: "Huấn luyện viên Catwalk", desc: "Đào tạo kỹ thuật đi catwalk cho học viên", weights: { pageant: 0.1, runway: 0.8, kol: 0.1 } },
-  { id: 12, title: "CEO thương hiệu riêng", desc: "Kinh doanh nhãn hàng thời trang, mỹ phẩm", weights: { pageant: 0.5, runway: 0.2, kol: 0.3 } },
-  { id: 13, title: "Giám khảo cuộc thi sắc đẹp", desc: "Chấm điểm các cuộc thi hoa hậu, hoa khôi", weights: { pageant: 0.7, runway: 0.2, kol: 0.1 } },
-  { id: 14, title: "Giám đốc hình ảnh / Stylist", desc: "Cố vấn định hình phong cách và trang phục", weights: { pageant: 0.1, runway: 0.6, kol: 0.3 } },
-  { id: 15, title: "Sứ giả chiến dịch cộng đồng", desc: "Lan tỏa các giá trị nhân văn và dự án từ thiện", weights: { pageant: 0.8, runway: 0.1, kol: 0.1 } },
-  { id: 16, title: "Vlogger du lịch & trải nghiệm", desc: "Quảng bá điểm đến, khách sạn, resort cao cấp", weights: { pageant: 0.2, runway: 0.1, kol: 0.7 } },
-  { id: 17, title: "Người mẫu ảnh nghệ thuật", desc: "Hợp tác chụp ảnh thời trang Fine-art", weights: { pageant: 0.2, runway: 0.6, kol: 0.2 } },
-  { id: 18, title: "Nhà sáng tạo nội dung tri thức", desc: "Chia sẻ kỹ năng mềm, kiến thức làm đẹp", weights: { pageant: 0.4, runway: 0.1, kol: 0.5 } },
-  { id: 19, title: "Đại sứ Game / Esports", desc: "Hình ảnh đại diện cho các dự án game lớn", weights: { pageant: 0.1, runway: 0.1, kol: 0.8 } },
-  { id: 20, title: "Người mẫu ảo / Metaverse", desc: "Scan 3D hình ảnh số để làm mẫu ảo", weights: { pageant: 0.1, runway: 0.6, kol: 0.3 } }
-];
+import PersonalInfoTab from "./PersonalInfoTab";
+import EditInfoTab from "./EditInfoTab";
+import AddonServicesTab from "./AddonServicesTab";
 
 export default function PortfolioPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
 
+  // Exactly 3 main tabs: 'personal-info' (default), 'edit-info', 'addon-services'
+  const [activeTab, setActiveTab] = useState<"edit-info" | "personal-info" | "addon-services">("personal-info");
+
+  const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
+
+  // Modals for Brand interactions preview
+  const [showBookModal, setShowBookModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+
+  // Form states for booking preview
+  const [bookingForm, setBookingForm] = useState({
+    brandName: "",
+    jobType: "Instagram Post",
+    date: "",
+    budget: "",
+    note: ""
+  });
+
+  // Chat preview state
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatHistory, setChatHistory] = useState<any[]>([
+    { sender: "brand", text: "Chào Mai Anh, bên mình là nhãn hàng L'Oréal Paris. Bên mình rất ấn tượng với profile của bạn và muốn book bạn cho buổi livestream ngày 24/06 tới." },
+    { sender: "talent", text: "Dạ em chào anh/chị ạ! Rất vui nhận được lời mời từ L'Oréal Paris. Ngày 24/06 lịch của em hiện đang trống. Anh/chị gửi giúp em brief chi tiết qua đây nhé!" }
+  ]);
+
+  const addToast = (message: string, type: "success" | "info" = "success") => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4000);
+  };
+
   useEffect(() => {
     const stored = localStorage.getItem("vnp_talent_profile");
+    const defaultMock = {
+      name: "Nguyễn Mai Anh",
+      birthYear: 2002,
+      location: "Hà Nội",
+      hometown: "Nam Định",
+      phone: "0912345678",
+      email: "maianh.nguyen@beautyapp.vn",
+      avatar: "/avatar.png",
+      height: 172,
+      weight: 51,
+      bust: 85,
+      waist: 60,
+      hips: 90,
+      plasticSurgery: "false",
+      maritalStatus: "Độc thân",
+      education: "Cử nhân Học viện Ngoại giao",
+      languages: ["Tiếng Việt", "Tiếng Anh (IELTS 7.5)"],
+      skills: ["Catwalk", "MC song ngữ", "Social Content", "Pose dáng lookbook"],
+      followersCount: 520000,
+      engagementRate: 4.8,
+      profileScore: 82,
+      tier: "A",
+      rateCard: {
+        "Instagram Post": 3000000,
+        "TikTok Video": 5000000,
+        "Livestream 2h": 8000000,
+        "Event Appearance": 10000000,
+        "Catwalk Show": 15000000
+      },
+      availabilityCalendar: ["2026-06-24", "2026-06-25", "2026-06-28"],
+      reliability: 96,
+      reviewsCount: 18,
+      averageRating: 4.9,
+      surveyScores: { pageant: 50, runway: 45, kol: 95 },
+      skillsScores: {
+        catwalk: 85,
+        pose: 90,
+        mc: 75,
+        livestream: 80,
+        acting: 70,
+        social: 95,
+        safety: 90,
+        reliability: 96
+      },
+      mainCategory: "KOL / Người mẫu ảnh / Giải trí thế hệ mới",
+      verifiedLevel: "Elite",
+      isAvailable: true,
+      isSuperBoosted: false,
+      isPremiumBoosted: false,
+      photos: [
+        "/fullbody_model.png",
+        "/cover_image.png",
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
+        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600"
+      ],
+      hasUploadedCatwalk: true,
+      hasUploadedIntro: true,
+      hasUploadedMC: true
+    };
+
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -46,562 +117,460 @@ export default function PortfolioPage() {
           parsed.avatar = "/avatar.png";
         }
         if (parsed) {
-          if (parsed.name === "Nguyễn Mai Anh") {
-            parsed.surveyScores = { pageant: 50, runway: 45, kol: 95 };
-            parsed.mainCategory = "KOL / Người mẫu ảnh / Giải trí thế hệ mới";
-          }
+          if (!parsed.skillsScores) parsed.skillsScores = defaultMock.skillsScores;
+          if (!parsed.followersCount || parsed.followersCount === 120000) parsed.followersCount = 520000;
+          if (parsed.isAvailable === undefined) parsed.isAvailable = true;
+          if (!parsed.verifiedLevel) parsed.verifiedLevel = "Elite";
+          if (!parsed.rateCard["Event Appearance"]) parsed.rateCard["Event Appearance"] = 10000000;
+          if (!parsed.photos) parsed.photos = defaultMock.photos;
+          if (parsed.hasUploadedCatwalk === undefined) parsed.hasUploadedCatwalk = true;
+          if (parsed.hasUploadedIntro === undefined) parsed.hasUploadedIntro = true;
+          if (parsed.hasUploadedMC === undefined) parsed.hasUploadedMC = true;
         }
         localStorage.setItem("vnp_talent_profile", JSON.stringify(parsed));
         setProfile(parsed);
       } catch (e) {
         console.error(e);
+        setProfile(defaultMock);
       }
     } else {
-      // Mock seed data if not onboarded
-      setProfile({
-        name: "Nguyễn Mai Anh",
-        birthYear: 2002,
-        location: "Hà Nội",
-        hometown: "Nam Định",
-        phone: "0912345678",
-        email: "maianh.nguyen@beautyapp.vn",
-        avatar: "/avatar.png",
-        height: 172,
-        weight: 51,
-        bust: 85,
-        waist: 60,
-        hips: 90,
-        plasticSurgery: "false",
-        maritalStatus: "Độc thân",
-        education: "Cử nhân Học viện Ngoại giao",
-        languages: ["Tiếng Việt", "Tiếng Anh (IELTS 7.5)"],
-        skills: ["Catwalk", "MC song ngữ", "Social Content", "Pose dáng lookbook"],
-        followersCount: 120000,
-        engagementRate: 4.8,
-        profileScore: 82,
-        tier: "A",
-        rateCard: {
-          "Instagram Post": 3000000,
-          "TikTok Video": 5000000,
-          "Livestream 2h": 8000000,
-          "Catwalk Show": 15000000
-        },
-        availabilityCalendar: ["2026-06-24", "2026-06-25", "2026-06-28"],
-        reliability: 96,
-        reviewsCount: 18,
-        averageRating: 4.9,
-        surveyScores: { pageant: 50, runway: 45, kol: 95 },
-        mainCategory: "KOL / Người mẫu ảnh / Giải trí thế hệ mới"
-      });
+      localStorage.setItem("vnp_talent_profile", JSON.stringify(defaultMock));
+      setProfile(defaultMock);
     }
   }, []);
 
   if (!profile) return null;
 
+  // Social Badge computation
+  const getSocialBadge = (count: number) => {
+    if (count >= 1000000) return { text: "👑 Celebrity", color: "text-rose-400 bg-rose-500/10 border-rose-500/20" };
+    if (count >= 500000) return { text: "💎 Star", color: "text-amber-400 bg-amber-400/10 border-amber-400/20" };
+    if (count >= 100000) return { text: "🥇 Influencer", color: "text-purple-400 bg-purple-500/10 border-purple-500/20" };
+    if (count >= 10000) return { text: "🥈 Rising", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" };
+    return { text: "🥉 Micro", color: "text-slate-400 bg-slate-500/10 border-slate-500/20" };
+  };
 
+  const socialBadge = getSocialBadge(profile.followersCount || 120000);
+
+  // Search ranking score calculation
+  const getBoostLevel = (p: any) => {
+    if (p.isSuperBoosted) return 5;
+    if (p.isPremiumBoosted) return 4;
+    return 0;
+  };
+
+  const currentBoostLevel = getBoostLevel(profile);
+  const rankingScore = Math.round((currentBoostLevel * 100) + (profile.profileScore || 82) * 0.5 + 95 * 0.3 + (profile.averageRating || 4.9) * 2);
+
+  // Handler for booking form submit preview
+  const handleBookingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    addToast(`Đề xuất Booking từ Brand ${bookingForm.brandName || "Ẩn danh"} đã được gửi thành công!`, "success");
+    setShowBookModal(false);
+    setBookingForm({ brandName: "", jobType: "Instagram Post", date: "", budget: "", note: "" });
+  };
+
+  // Handler for chat send preview
+  const handleSendChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatMessage.trim()) return;
+    setChatHistory(prev => [...prev, { sender: "talent", text: chatMessage }]);
+    const currentMsg = chatMessage;
+    setChatMessage("");
+    setTimeout(() => {
+      setChatHistory(prev => [...prev, { sender: "brand", text: `Cảm ơn bạn đã phản hồi: "${currentMsg}". Bên mình sẽ check lại budget và liên hệ lại nha.` }]);
+    }, 1500);
+  };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-300">
 
-      {/* Cover Banner Header - Premium styling */}
-      <div className="relative rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 shadow-xl">
+      {/* Cover Banner Header - Dynamic & Responsive */}
+      <div className="relative rounded-2xl border border-[#151b2d] bg-[#08090f] p-3 md:p-5 shadow-xl overflow-hidden">
+
         {/* Cover Background */}
-        <div className="h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-white/5 bg-slate-950">
-          <img
-            src="/cover_image.png"
-            alt="Cover banner"
-            className="h-full w-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80" />
-        </div>
+        {profile.isSuperBoosted ? (
+          <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-amber-400/40 bg-gradient-to-r from-slate-950 via-[#2d220f] to-slate-950 animate-pulse">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.18),transparent_60%)]" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="font-display font-black text-amber-300/40 tracking-[0.25em] md:tracking-[0.35em] text-xs sm:text-lg md:text-3xl uppercase">FEATURED SUPER MODEL</span>
+            </div>
+            <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-amber-400 text-slate-950 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+              <Crown className="h-3 w-3 animate-pulse" /> SUPER BOOSTED
+            </div>
+          </div>
+        ) : (
+          <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-white/5 bg-slate-950">
+            <img
+              src="/cover_image.png"
+              alt="Cover banner"
+              className="h-full w-full object-cover opacity-60"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80" />
+          </div>
+        )}
 
         {/* Profile Info Row */}
-        <div className="relative px-6 pt-3 flex flex-col sm:flex-row gap-5 sm:items-end justify-between">
-          <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-end">
-            {/* Shift avatar upwards */}
-            <div className="relative -mt-14 sm:-mt-20 h-28 w-28 shrink-0 rounded-full border-4 border-[#08090f] bg-slate-900 p-0.5 shadow-2xl">
+        <div className="relative px-3 sm:px-6 pt-3 flex flex-col md:flex-row gap-4 md:items-end justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+
+            {/* Avatar block */}
+            <div className={cn(
+              "relative -mt-12 sm:-mt-16 md:-mt-20 h-24 w-24 sm:h-28 sm:w-28 shrink-0 rounded-full border-4 bg-slate-900 p-0.5 shadow-2xl transition-all duration-300",
+              (profile.isSuperBoosted || profile.isPremiumBoosted)
+                ? "border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+                : "border-[#08090f]"
+            )}>
               <img
                 src={profile.avatar}
                 alt={profile.name}
                 className="h-full w-full rounded-full object-cover"
               />
-              <span className="absolute bottom-1 right-1 h-5 w-5 bg-emerald-500 border-4 border-[#08090f] rounded-full" />
+              <span className={cn(
+                "absolute bottom-1 right-1 h-4 w-4 border-2 border-[#08090f] rounded-full",
+                profile.isAvailable ? "bg-emerald-500" : "bg-red-500"
+              )} />
+
+              {(profile.isSuperBoosted || profile.isPremiumBoosted) && (
+                <span className="absolute -top-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-gradient-to-r from-red-500 to-amber-500 text-white text-[7px] font-black uppercase px-2 py-0.5 rounded-full shadow-[0_2px_8px_rgba(239,68,68,0.4)] animate-bounce" style={{ animationDuration: '2s' }}>
+                  🔥 HOT
+                </span>
+              )}
             </div>
 
-            <div className="space-y-1.5 pb-1">
-              <div className="flex items-center gap-2.5">
-                <h2 className="font-display font-black text-white text-xl md:text-2xl tracking-wide">Nguyễn Mai Anh</h2>
-                <ShieldCheck className="h-6 w-6 text-amber-400 shrink-0" />
+            <div className="space-y-2 pb-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-display font-black text-white text-lg sm:text-xl md:text-2xl tracking-wide">{profile.name}</h2>
+
+                {/* Social Followers Class Badge */}
+                <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider border", socialBadge.color)}>
+                  {socialBadge.text}
+                </span>
+
+                {/* Verified Badge */}
+                {profile.verifiedLevel === "Elite" && (
+                  <span className="flex items-center gap-0.5 rounded bg-amber-400/10 border border-amber-400/30 px-2 py-0.5 text-[8px] font-black text-amber-400 uppercase tracking-wider shadow-[0_0_8px_rgba(245,158,11,0.1)]">
+                    <Crown className="h-2.5 w-2.5" /> Elite Verified
+                  </span>
+                )}
+                {profile.verifiedLevel === "Pro" && (
+                  <span className="flex items-center gap-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 text-[8px] font-black text-cyan-400 uppercase tracking-wider">
+                    <ShieldCheck className="h-2.5 w-2.5" /> Pro Verified
+                  </span>
+                )}
+                {profile.verifiedLevel === "Basic" && (
+                  <span className="flex items-center gap-0.5 rounded bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 text-[8px] font-black text-blue-400 uppercase tracking-wider">
+                    <ShieldCheck className="h-2.5 w-2.5" /> Basic Verified
+                  </span>
+                )}
+                {profile.verifiedLevel === "Agency" && (
+                  <span className="flex items-center gap-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[8px] font-black text-emerald-400 uppercase tracking-wider">
+                    <ShieldCheck className="h-2.5 w-2.5" /> Agency Verified
+                  </span>
+                )}
               </div>
-              <p className="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
-                <MapPin className="h-4 w-4 text-slate-500" /> {profile.location} • Quê quán: {profile.hometown || "Chưa cập nhật"}
-              </p>
+
+              {/* Location & Availability Badge */}
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-slate-400 font-medium">
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5 text-slate-500" /> {profile.location}
+                </span>
+                <span className="text-slate-600">•</span>
+                <span>KOL Beauty • MC • Event Guest</span>
+                <span className="text-slate-600">•</span>
+                <span className={cn(
+                  "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border",
+                  profile.isAvailable
+                    ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
+                    : "bg-red-500/10 border-red-500/25 text-red-400"
+                )}>
+                  <span className={cn("h-1.5 w-1.5 rounded-full", profile.isAvailable ? "bg-emerald-400" : "bg-red-400")} />
+                  {profile.isAvailable ? "Đang Rảnh (Lịch trống tuần này)" : "Đang Bận"}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="flex gap-2 pb-1 relative z-10">
-            <button className="flex h-10 px-4 items-center justify-center gap-1.5 rounded-xl bg-white/5 border border-white/5 text-slate-300 hover:text-white hover:bg-white/10 text-xs font-semibold transition-all">
-              <Share2 className="h-4 w-4" /> Chia sẻ hồ sơ
+          {/* Action Buttons for Brand View */}
+          <div className="flex flex-wrap gap-2 pb-1 relative z-10">
+            <button
+              onClick={() => setShowBookModal(true)}
+              className="flex-1 sm:flex-initial flex h-9 md:h-10 px-4 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-600 text-slate-950 hover:brightness-105 text-xs font-black uppercase tracking-wider shadow-lg shadow-amber-500/10 transition-all cursor-pointer"
+            >
+              <HeartHandshake className="h-4 w-4" /> Book Talent
             </button>
-            <span className={cn(
-              "flex h-10 items-center gap-1.5 rounded-xl border px-4 font-display text-xs font-black uppercase tracking-widest shadow-md transition-all duration-300",
-              profile.tier === "S" && "border-amber-400 bg-gradient-to-r from-amber-500/25 to-[#221a0a]/90 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]",
-              profile.tier === "A" && "border-slate-300/60 bg-gradient-to-r from-slate-400/10 to-[#171922]/90 text-slate-200 shadow-[0_0_15px_rgba(203,213,225,0.1)]",
-              profile.tier === "B" && "border-purple-400 bg-purple-500/10 text-purple-300",
-              profile.tier === "C" && "border-teal-400 bg-teal-500/10 text-teal-300",
-              profile.tier === "Potential" && "border-rose-500 bg-rose-500/10 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.15)]"
-            )}>
-              {profile.tier === "S" && <Crown className="h-4 w-4 text-amber-400 animate-pulse" />}
-              {profile.tier === "A" && <Award className="h-4 w-4 text-slate-300" />}
-              {profile.tier === "B" && <Star className="h-4 w-4 text-purple-400" />}
-              {profile.tier === "C" && <Award className="h-4 w-4 text-teal-400" />}
-              {profile.tier === "Potential" && <ShieldAlert className="h-4 w-4 text-rose-400" />}
-              {profile.tier === "Potential" ? "Dự bị / Chờ cập nhật" : `Hạng ${profile.tier}`}
-            </span>
+            <button
+              onClick={() => setShowMessageModal(true)}
+              className="flex-1 sm:flex-initial flex h-9 md:h-10 px-4 items-center justify-center gap-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+            >
+              <MessageSquare className="h-4 w-4" /> Nhắn tin
+            </button>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                addToast("Đã sao chép link hồ sơ cá nhân!", "success");
+              }}
+              className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              title="Chia sẻ profile"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Main Grid: 2 columns on Desktop (1/3 and 2/3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main 3 Tab Navigation */}
+      <div className="flex border-b border-[#151b2d] gap-6 overflow-x-auto scrollbar-none whitespace-nowrap">
+        <button
+          onClick={() => setActiveTab("personal-info")}
+          className={cn(
+            "pb-4 text-xs font-black uppercase tracking-wider transition-all relative cursor-pointer flex items-center gap-1.5 shrink-0",
+            activeTab === "personal-info" ? "text-amber-400" : "text-slate-400 hover:text-white"
+          )}
+        >
+          <User className="h-4 w-4" />
+          1. Thông tin cá nhân
+          {activeTab === "personal-info" && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400 rounded-full" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("edit-info")}
+          className={cn(
+            "pb-4 text-xs font-black uppercase tracking-wider transition-all relative cursor-pointer flex items-center gap-1.5 shrink-0",
+            activeTab === "edit-info" ? "text-[#f4c430]" : "text-slate-400 hover:text-white"
+          )}
+        >
+          <Edit3 className="h-4 w-4" />
+          2. Cập nhật thông tin
+          {activeTab === "edit-info" && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f4c430] rounded-full" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("addon-services")}
+          className={cn(
+            "pb-4 text-xs font-black uppercase tracking-wider transition-all relative cursor-pointer flex items-center gap-1.5 shrink-0",
+            activeTab === "addon-services" ? "text-purple-400" : "text-slate-400 hover:text-white"
+          )}
+        >
+          <Sparkles className="h-4 w-4 text-purple-400 animate-pulse" />
+          3. Chợ dịch vụ bổ trợ
+          {activeTab === "addon-services" && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-400 rounded-full" />
+          )}
+        </button>
+      </div>
 
-        {/* LEFT COLUMN: Profile Bio, Photo & Measurements (1/3 width) */}
-        <div className="space-y-8">
+      {/* Main Content Area based on Tab */}
+      <div>
+        {activeTab === "personal-info" && (
+          <PersonalInfoTab
+            profile={profile}
+            setProfile={setProfile}
+            addToast={addToast}
+            setShowBookModal={setShowBookModal}
+            setBookingForm={setBookingForm}
+          />
+        )}
 
-          {/* Model Full-Body Photo Card */}
-          <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-              <Award className="h-4.5 w-4.5 text-amber-400" /> Ảnh Người Mẫu (Full-body)
-            </h3>
+        {activeTab === "edit-info" && (
+          <EditInfoTab
+            profile={profile}
+            setProfile={setProfile}
+            addToast={addToast}
+          />
+        )}
 
-            <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-inner">
-              <img
-                src="/fullbody_model.png"
-                alt="Model Full-body portrait"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-102"
-              />
-              {/* Subtle luxury gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80" />
+        {activeTab === "addon-services" && (
+          <AddonServicesTab
+            profile={profile}
+            setProfile={setProfile}
+            addToast={addToast}
+            rankingScore={rankingScore}
+          />
+        )}
+      </div>
 
-              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                <div>
-                  <span className="text-[8px] font-mono tracking-widest text-[#f4c430] font-bold uppercase">POLAROID BOOK</span>
-                  <h4 className="text-xs font-black text-white mt-0.5">NGUYỄN MAI ANH</h4>
-                </div>
-                <div className="text-[8px] font-mono bg-black/40 border border-white/10 px-2 py-0.5 rounded text-slate-300">
-                  Ratio: 3:4
-                </div>
-              </div>
-            </div>
+      {/* Floating Toast Notification System */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={cn(
+              "glass-panel border-l-4 px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom duration-300 min-w-[280px] max-w-[400px] bg-[#0c0d14]/90 backdrop-blur-md border border-white/5",
+              toast.type === "success" ? "border-l-emerald-500" : "border-l-amber-500"
+            )}
+          >
+            {toast.type === "success" ? (
+              <CheckCircle className="h-4.5 w-4.5 text-emerald-400 shrink-0" />
+            ) : (
+              <Sparkles className="h-4.5 w-4.5 text-amber-400 shrink-0" />
+            )}
+            <p className="text-xs font-semibold text-white leading-snug">{toast.message}</p>
           </div>
+        ))}
+      </div>
 
-          {/* Physical Measurements Card - Silver border style */}
-          <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-              <User className="h-4.5 w-4.5 text-slate-400" /> Ngoại Hình
-            </h3>
+      {/* MODAL 1: BRAND BOOKING PREVIEW */}
+      {showBookModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-md rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setShowBookModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-xl bg-slate-950 p-3.5 text-center border border-white/2">
-                <span className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Chiều Cao</span>
-                <span className="text-sm font-extrabold text-white mt-1 block">{profile.height} cm</span>
-              </div>
-              <div className="rounded-xl bg-slate-950 p-3.5 text-center border border-white/2">
-                <span className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Cân Nặng</span>
-                <span className="text-sm font-extrabold text-white mt-1 block">{profile.weight} kg</span>
-              </div>
+            <div className="space-y-1 text-xs">
+              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                <HeartHandshake className="h-5 w-5 text-amber-400" /> Book Talent (Nhãn Hàng Đặt Lịch)
+              </h3>
+              <p className="text-[10px] text-slate-400 leading-normal">
+                Xem trước giao diện Form Đăng Ký Book gửi đề xuất công việc tới <strong>{profile.name}</strong>.
+              </p>
             </div>
 
-            <div className="space-y-3.5 border-t border-[#151b2d] pt-4">
-              <div className="flex justify-between items-center text-xs text-slate-300">
-                <span className="font-medium text-slate-400">Số đo Vòng 1 (Ngực)</span>
-                <span className="font-bold text-white font-mono">{profile.bust} cm</span>
+            <form onSubmit={handleBookingSubmit} className="space-y-4 text-xs">
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Tên Thương Hiệu/Nhãn Hàng</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: L'Oréal Paris, Gucci Beauty..."
+                  value={bookingForm.brandName}
+                  onChange={(e) => setBookingForm(prev => ({ ...prev, brandName: e.target.value }))}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors"
+                />
               </div>
-              <div className="flex justify-between items-center text-xs text-slate-300">
-                <span className="font-medium text-slate-400">Số đo Vòng 2 (Eo)</span>
-                <span className="font-bold text-white font-mono">{profile.waist} cm</span>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Loại Hình Công Việc</label>
+                  <select
+                    value={bookingForm.jobType}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, jobType: e.target.value }))}
+                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  >
+                    <option value="Instagram Post">Instagram Post</option>
+                    <option value="TikTok Video">TikTok Video</option>
+                    <option value="Livestream 2h">Livestream 2h</option>
+                    <option value="Event Appearance">Event Appearance</option>
+                    <option value="Catwalk Show">Catwalk Show</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Ngày Diễn Ra (June)</label>
+                  <input
+                    type="date"
+                    value={bookingForm.date}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  />
+                </div>
               </div>
-              <div className="flex justify-between items-center text-xs text-slate-300">
-                <span className="font-medium text-slate-400">Số đo Vòng 3 (Mông)</span>
-                <span className="font-bold text-white font-mono">{profile.hips} cm</span>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Budget Đề Xuất (VND)</label>
+                <input
+                  type="number"
+                  placeholder="Ví dụ: 8000000"
+                  value={bookingForm.budget}
+                  onChange={(e) => setBookingForm(prev => ({ ...prev, budget: e.target.value }))}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors"
+                />
               </div>
-              <div className="flex justify-between items-center text-xs text-slate-300 border-t border-[#151b2d] pt-3.5">
-                <span className="font-medium text-slate-400">Phẫu thuật thẩm mỹ</span>
-                <span className="font-bold text-white">{profile.plasticSurgery === "true" ? "Đã can thiệp" : "Tự nhiên 100%"}</span>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Brief & Yêu Cầu Chi Tiết</label>
+                <textarea
+                  rows={3}
+                  placeholder="Mô tả công việc, quyền lợi và yêu cầu trang phục, concept..."
+                  value={bookingForm.note}
+                  onChange={(e) => setBookingForm(prev => ({ ...prev, note: e.target.value }))}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors resize-none"
+                />
               </div>
-              <div className="flex justify-between items-center text-xs text-slate-300">
-                <span className="font-medium text-slate-400">Tình trạng kết hôn</span>
-                <span className="font-bold text-white">{profile.maritalStatus}</span>
+
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowBookModal(false)}
+                  className="flex-1 h-9 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-all font-bold cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 h-9 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-600 text-slate-950 font-black uppercase tracking-wider hover:brightness-105 active:scale-98 transition-all cursor-pointer"
+                >
+                  Gửi Yêu Cầu
+                </button>
               </div>
-            </div>
+            </form>
           </div>
-
-          {/* Education & Languages */}
-          <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-              <GraduationCap className="h-4.5 w-4.5 text-slate-400" /> Học Vấn & Ngôn Ngữ
-            </h3>
-
-            <div className="space-y-4 text-xs text-slate-300">
-              <div className="flex gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/10 text-amber-400">
-                  <GraduationCap className="h-4.5 w-4.5" />
-                </div>
-                <div>
-                  <span className="block font-bold text-white">Học vấn hiện tại</span>
-                  <span className="block text-[10px] text-slate-400 mt-1">{profile.education}</span>
-                </div>
-              </div>
-
-              <div className="flex gap-3 border-t border-[#151b2d] pt-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400">
-                  <BookOpen className="h-4.5 w-4.5" />
-                </div>
-                <div>
-                  <span className="block font-bold text-white">Ngoại ngữ: Tiếng Anh</span>
-                  <span className="block text-[10px] text-slate-400 mt-1 leading-normal">
-                    {Array.isArray(profile.languages) ? profile.languages.join(", ") : profile.languages}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
+      )}
 
-        {/* RIGHT COLUMN: Rate card, Availability and radar chart (2/3 width) */}
-        <div className="lg:col-span-2 space-y-8">
+      {/* MODAL 2: BRAND MESSAGING PREVIEW */}
+      {showMessageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-md rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4 shadow-2xl flex flex-col h-[500px]">
+            <button
+              type="button"
+              onClick={() => setShowMessageModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
 
-          {/* Top statistics grid - Glowing stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="space-y-1 shrink-0 border-b border-[#151b2d] pb-3 text-xs">
+              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-cyan-400" /> Nhắn Tin Trực Tiếp (Brand Chat Room)
+              </h3>
+              <p className="text-[10px] text-slate-400">
+                Thảo luận về hợp đồng và thỏa thuận giá rate trực tiếp.
+              </p>
+            </div>
 
-            {/* Card 1: Thứ Hạng Người Mẫu - Dynamic theme based on Tier */}
-            {(() => {
-              const t = profile.tier || "A";
-              const tierConfig: Record<string, any> = {
-                S: {
-                  border: "border-amber-400/80",
-                  bg: "bg-gradient-to-br from-amber-500/20 via-[#221a0a]/95 to-[#070913]/98",
-                  shadow: "shadow-[0_0_20px_rgba(245,158,11,0.25)]",
-                  hoverShadow: "hover:shadow-[0_0_30px_rgba(245,158,11,0.4)]",
-                  glow: "bg-amber-500/30",
-                  icon: <Crown className="h-4.5 w-4.5 text-amber-400 fill-amber-400/25 animate-bounce" style={{ animationDuration: '3s' }} />,
-                  label: "CELEB / SUPER VIP",
-                  labelColor: "text-amber-400",
-                  badge: "bg-amber-400/25 text-amber-300 border-amber-400/30",
-                  badgeText: "90 - 100 ĐIỂM",
-                  titleGradient: "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500",
-                  titleText: "HẠNG S",
-                  subtitleColor: "text-amber-300",
-                  desc: "Hoa hậu Quốc gia, Ngôi sao hạng S."
-                },
-                A: {
-                  border: "border-slate-300/60",
-                  bg: "bg-gradient-to-br from-slate-400/10 via-[#171922]/90 to-[#070913]/95",
-                  shadow: "shadow-[0_0_20px_rgba(203,213,225,0.08)]",
-                  hoverShadow: "hover:shadow-[0_0_25px_rgba(203,213,225,0.18)]",
-                  glow: "bg-slate-400/20",
-                  icon: <Award className="h-4.5 w-4.5 text-slate-300" />,
-                  label: "HIGH-END PRO",
-                  labelColor: "text-slate-300",
-                  badge: "bg-slate-400/20 text-slate-200 border-slate-400/30",
-                  badgeText: "70 - 89 ĐIỂM",
-                  titleGradient: "bg-gradient-to-r from-slate-100 via-slate-300 to-slate-400",
-                  titleText: "HẠNG A",
-                  subtitleColor: "text-slate-300",
-                  desc: "Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP."
-                },
-                B: {
-                  border: "border-purple-500/40",
-                  bg: "bg-gradient-to-br from-purple-500/10 via-[#1a1128]/90 to-[#070913]/95",
-                  shadow: "shadow-[0_0_20px_rgba(168,85,247,0.08)]",
-                  hoverShadow: "hover:shadow-[0_0_25px_rgba(168,85,247,0.18)]",
-                  glow: "bg-purple-500/20",
-                  icon: <Star className="h-4.5 w-4.5 text-purple-400" />,
-                  label: "MID FREELANCE",
-                  labelColor: "text-purple-400",
-                  badge: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-                  badgeText: "45 - 69 ĐIỂM",
-                  titleGradient: "bg-gradient-to-r from-purple-200 to-pink-500",
-                  titleText: "HẠNG B",
-                  subtitleColor: "text-purple-300",
-                  desc: "Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp."
-                },
-                C: {
-                  border: "border-teal-500/30",
-                  bg: "bg-gradient-to-br from-teal-500/10 via-[#0e1f1e]/90 to-[#070913]/95",
-                  shadow: "shadow-[0_0_20px_rgba(20,184,166,0.08)]",
-                  hoverShadow: "hover:shadow-[0_0_25px_rgba(20,184,166,0.18)]",
-                  glow: "bg-teal-500/20",
-                  icon: <Award className="h-4.5 w-4.5 text-teal-400" />,
-                  label: "ENTRY / NEWBIE",
-                  labelColor: "text-teal-400",
-                  badge: "bg-teal-500/20 text-teal-300 border-teal-500/30",
-                  badgeText: "20 - 44 ĐIỂM",
-                  titleGradient: "bg-gradient-to-r from-teal-200 to-emerald-400",
-                  titleText: "HẠNG C",
-                  subtitleColor: "text-teal-300",
-                  desc: "Người mẫu tự do mới vào nghề, diễn viên phụ, PG sự kiện đại trà."
-                },
-                Potential: {
-                  border: "border-rose-500/40",
-                  bg: "bg-gradient-to-br from-rose-500/20 via-[#260f12]/95 to-[#070913]/98",
-                  shadow: "shadow-[0_0_20px_rgba(244,63,94,0.15)]",
-                  hoverShadow: "hover:shadow-[0_0_30px_rgba(244,63,94,0.3)]",
-                  glow: "bg-rose-500/30",
-                  icon: <ShieldAlert className="h-4.5 w-4.5 text-rose-400 animate-pulse" />,
-                  label: "POTENTIAL PROFILE",
-                  labelColor: "text-rose-400",
-                  badge: "bg-rose-500/20 text-rose-300 border-rose-500/30",
-                  badgeText: "< 20 ĐIỂM",
-                  titleGradient: "bg-gradient-to-r from-rose-200 via-rose-300 to-red-500",
-                  titleText: "DỰ BỊ",
-                  subtitleColor: "text-rose-300",
-                  desc: "Dự bị / Chờ cập nhật hồ sơ."
-                }
-              };
-              const cfg = tierConfig[t] || tierConfig["A"];
-
-              return (
-                <div className={cn(
-                  "relative overflow-hidden rounded-2xl border-2 p-4 text-left transition-all duration-300 hover:scale-[1.02]",
-                  cfg.border, cfg.bg, cfg.shadow, cfg.hoverShadow
+            {/* Chat message logs */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-2 custom-scrollbar text-xs">
+              {chatHistory.map((chat, idx) => (
+                <div key={idx} className={cn("flex flex-col max-w-[80%] rounded-xl p-3",
+                  chat.sender === "brand"
+                    ? "self-start bg-slate-950 border border-white/5 text-slate-300"
+                    : "self-end bg-[#f4c430]/10 border border-[#f4c430]/20 text-[#f4c430] ml-auto"
                 )}>
-                  <div className={cn("absolute -right-4 -top-4 h-16 w-16 rounded-full blur-xl pointer-events-none", cfg.glow)}></div>
-
-                  <div className="flex items-center justify-between mb-2.5">
-                    <div className="flex items-center gap-1.5">
-                      {cfg.icon}
-                      <span className={cn("text-[8px] font-black uppercase tracking-widest", cfg.labelColor)}>
-                        {cfg.label}
-                      </span>
-                    </div>
-                    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[7px] font-black uppercase tracking-wider border", cfg.badge)}>
-                      {cfg.badgeText}
-                    </span>
-                  </div>
-                  <span className={cn("block text-2xl font-black tracking-wide font-display bg-clip-text text-transparent", cfg.titleGradient)}>
-                    {cfg.titleText}
+                  <span className="text-[8px] font-black uppercase text-slate-500 block mb-1">
+                    {chat.sender === "brand" ? "L'Oréal Brand Manager" : "Nguyễn Mai Anh"}
                   </span>
-                  <span className={cn("mt-0.5 block text-[9.5px] font-bold", cfg.subtitleColor)}>
-                    {cfg.desc}
-                  </span>
-                </div>
-              );
-            })()}
-
-            {/* Card 2: MXH Interaction - Cyan */}
-            <div className="rounded-2xl bg-[#08090f] border border-[#143d4d] shadow-[0_0_15px_rgba(34,211,238,0.02)] p-4 hover:border-cyan-400/30 transition-colors">
-              <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block">Tương Tác MXH</span>
-              <h4 className="text-lg font-extrabold text-white mt-1.5">{(profile.engagementRate || 4.8)}% ER</h4>
-              <span className="text-[9px] text-cyan-400 block mt-1 font-semibold">{(Number(profile.followersCount || 120000) / 1000).toFixed(0)}k Followers</span>
-            </div>
-
-            {/* Card 3: Độ Tin Cậy - Purple */}
-            <div className="rounded-2xl bg-[#08090f] border border-[#2f1c4f] shadow-[0_0_15px_rgba(168,85,247,0.02)] p-4 hover:border-purple-400/30 transition-colors">
-              <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block">Độ Tin Cậy</span>
-              <h4 className="text-lg font-extrabold text-white mt-1.5">{(profile.reliability || 96)}%</h4>
-              <span className="text-[9px] text-[#a855f7] block mt-1 font-semibold">{(profile.reviewsCount || 18)} Shows thành công</span>
-            </div>
-
-            {/* Card 4: Average Rating - Gold */}
-            <div className="rounded-2xl bg-[#08090f] border border-[#3e3415] shadow-[0_0_15px_rgba(234,179,8,0.02)] p-4 hover:border-amber-400/30 transition-colors">
-              <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block">Đánh Giá TB</span>
-              <h4 className="text-lg font-extrabold text-white mt-1.5 flex items-center gap-1">
-                {(profile.averageRating || 4.9).toFixed(1)} <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
-              </h4>
-              <span className="text-[9px] text-amber-400 block mt-1 font-semibold">Xếp hạng 5 sao tuyệt đối</span>
-            </div>
-
-          </div>
-
-          {/* Rate card section - Gold theme (finance) */}
-          <div className="rounded-2xl border border-[#3e3415] bg-[#08090f] shadow-[0_0_15px_rgba(244,196,48,0.02)] p-6 space-y-4">
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-              <DollarSign className="h-4.5 w-4.5 text-amber-400" /> Bảng Giá Dịch Vụ Cố Định (Rate Card)
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3.5">
-              {Object.entries(profile.rateCard || {
-                "Instagram Post": 3000000,
-                "TikTok Video": 5000000,
-                "Livestream 2h": 8000000,
-                "Catwalk Show": 15000000
-              }).map(([key, value]: any) => (
-                <div key={key} className="flex justify-between py-2 text-xs border-b border-[#151b2d] md:border-b-0">
-                  <span className="font-semibold text-slate-400">{key}</span>
-                  <span className="font-extrabold text-amber-400 font-mono">từ {value.toLocaleString()}đ</span>
+                  <span className="leading-relaxed">{chat.text}</span>
                 </div>
               ))}
             </div>
+
+            {/* Input field */}
+            <form onSubmit={handleSendChat} className="flex gap-2 shrink-0 pt-3 border-t border-[#151b2d]">
+              <input
+                type="text"
+                placeholder="Nhập tin nhắn phản hồi..."
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 transition-colors"
+              />
+              <button
+                type="submit"
+                className="h-8 px-4 rounded-xl bg-cyan-500 text-slate-950 font-black uppercase text-[10px] tracking-wider hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+              >
+                Gửi
+              </button>
+            </form>
           </div>
-
-          {/* Availability Calendar */}
-          <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-              <Calendar className="h-4.5 w-4.5 text-slate-400" /> Lịch Trình Nhận Show Tháng 6
-            </h3>
-
-            <div className="grid grid-cols-5 gap-2.5">
-              {["24/06", "25/06", "26/06", "27/06", "28/06"].map((date) => {
-                const day = date.split("/")[0];
-                const isAvailable = profile.availabilityCalendar?.some((d: string) => d.endsWith(day));
-
-                return (
-                  <div
-                    key={date}
-                    className={cn(
-                      "flex flex-col items-center justify-center h-14 w-full rounded-xl border text-center transition-all",
-                      isAvailable
-                        ? "border-amber-400/40 bg-amber-400/5 text-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.1)]"
-                        : "border-white/5 bg-slate-950/40 text-slate-600"
-                    )}
-                  >
-                    <span className="text-xs uppercase font-bold">{day}</span>
-                    <span className="text-[9px] font-semibold mt-0.5">{isAvailable ? "Rảnh" : "Bận"}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-[9px] text-slate-500 leading-normal">
-              * Nhãn hàng có thể chọn ngày trống trên và ấn "Book" để gửi đề nghị đặt cọc.
-            </p>
-          </div>
-
-          {/* AI Career Diagnostic Group: Radar Chart & 20 Recommended Roles */}
-          <div className="rounded-2xl border border-[#2f1c4f] bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
-            <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
-                <div>
-                  <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
-                    Định Hướng Sự Nghiệp
-                  </h3>
-                  <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                    Chẩn đoán năng lực & Tương thích việc làm
-                  </span>
-                </div>
-              </div>
-              <div className="text-[9px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 uppercase">
-                AI Powered
-              </div>
-            </div>
-
-            {profile.tier === "Potential" ? (
-              <div className="flex flex-col items-center justify-center text-center p-8 py-12 rounded-xl border border-white/5 bg-slate-950/40 max-w-xl mx-auto space-y-5">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400">
-                  <Sparkles className="h-6 w-6 animate-pulse" />
-                </div>
-                <div className="space-y-2">
-                  <h4 className="text-sm font-black text-white uppercase tracking-wider">Kích Hoạt Định Hướng Sự Nghiệp AI</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-                    Thực hiện bài khảo sát định hướng gồm 20 câu hỏi định tính để mở khóa bản đồ năng lực AI, biểu đồ radar & danh sách 20 vị trí tương thích nhất với bạn.
-                  </p>
-                </div>
-                <button
-                  onClick={() => router.push("/talent/survey?start=true")}
-                  className="h-10 px-6 rounded-xl bg-gradient-to-r from-purple-400 to-purple-600 text-xs font-black text-white hover:brightness-105 shadow-lg shadow-purple-500/15 hover:shadow-purple-500/25 active:scale-98 transition-all uppercase tracking-wider cursor-pointer flex items-center gap-1.5"
-                >
-                  Làm Khảo Sát Ngay <ArrowUpRight className="h-4.5 w-4.5" />
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-                {/* Radar Chart Summary Column */}
-                <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
-                  <div className="space-y-2">
-                    <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-black">Đề xuất phù hợp nhất</span>
-                    <h4 className="text-xs font-bold text-white leading-relaxed">
-                      {profile.mainCategory}
-                    </h4>
-                    <p className="text-[9px] text-slate-400 leading-normal">
-                      Hệ thống đề xuất hướng đi chuyên nghiệp dựa trên nhân trắc học và phản hồi khảo sát định tính.
-                    </p>
-                  </div>
-
-                  {/* SVG Radar */}
-                  <div className="h-32 w-32 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner">
-                    <RadarChart
-                      scores={profile.surveyScores}
-                      fillColor="rgba(244,196,48,0.2)"
-                      strokeColor="#f4c430"
-                      strokeWidth={2.5}
-                      labelFontSize={11}
-                      labelFontWeight="bold"
-                    />
-                  </div>
-
-                  <div className="flex justify-between items-center text-[9px] text-slate-500 border-t border-white/5 pt-2 mt-2">
-                    <span>P: Pageant</span>
-                    <span>R: Runway</span>
-                    <span>K: KOL</span>
-                  </div>
-                </div>
-
-                {/* 20 Recommended Roles Column */}
-                <div className="md:col-span-7 space-y-3">
-                  <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-black text-left">Bảng xếp hạng 20 vị trí tương thích</span>
-
-                  <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                    {(() => {
-                      const scores = profile.surveyScores || { pageant: 50, runway: 50, kol: 50 };
-                      const calculatedJobs = JOBS_LIST.map((job) => {
-                        const matchScore = Math.round(
-                          scores.pageant * job.weights.pageant +
-                          scores.runway * job.weights.runway +
-                          scores.kol * job.weights.kol
-                        );
-                        return { ...job, matchScore };
-                      }).sort((a, b) => b.matchScore - a.matchScore);
-
-                      return calculatedJobs.map((job, idx) => {
-                        const isHigh = job.matchScore >= 80;
-                        const isMid = job.matchScore >= 50 && job.matchScore < 80;
-
-                        return (
-                          <div
-                            key={job.id}
-                            className="flex items-center gap-3.5 rounded-xl border border-white/5 bg-slate-950 p-3 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
-                          >
-                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
-                              {idx + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-center">
-                                <h4 className="text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
-                                  {job.title}
-                                </h4>
-                                <span className={cn(
-                                  "font-display text-[9px] font-extrabold",
-                                  isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
-                                )}>
-                                  {job.matchScore}% Match
-                                </span>
-                              </div>
-                              <p className="text-[8px] text-slate-500 truncate mt-0.5">{job.desc}</p>
-                              <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1.5">
-                                <div
-                                  className={cn(
-                                    "h-full rounded-full transition-all duration-500",
-                                    isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
-                                  )}
-                                  style={{ width: `${job.matchScore}%` }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
         </div>
-
-      </div>
+      )}
     </div>
   );
 }
