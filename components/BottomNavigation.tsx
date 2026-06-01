@@ -44,9 +44,9 @@ export default function BottomNavigation() {
   // Active items for the primary bottom row (4 core items + More menu button)
   const talentPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
-    { label: "Khám phá", icon: Sparkles, href: "/talent/survey" },
     { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
-    { label: "Cuộc thi", icon: Trophy, href: "/talent/contests" },
+    { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
+    { label: "Khám phá", icon: Sparkles, href: "/talent/survey" },
   ];
 
   return (

@@ -242,10 +242,6 @@ export default function PortfolioPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="font-display font-black text-white text-lg sm:text-xl md:text-2xl tracking-wide">{profile.name}</h2>
 
-                {/* Social Followers Class Badge */}
-                <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider border", socialBadge.color)}>
-                  {socialBadge.text}
-                </span>
 
                 {/* Verified Badge */}
                 {profile.verifiedLevel === "Elite" && (
@@ -285,7 +281,7 @@ export default function PortfolioPage() {
                     : "bg-red-500/10 border-red-500/25 text-red-400"
                 )}>
                   <span className={cn("h-1.5 w-1.5 rounded-full", profile.isAvailable ? "bg-emerald-400" : "bg-red-400")} />
-                  {profile.isAvailable ? "Đang Rảnh (Lịch trống tuần này)" : "Đang Bận"}
+                  {profile.isAvailable ? "Đang Rảnh (Trống lịch hôm nay)" : "Đang Bận"}
                 </span>
               </div>
             </div>
@@ -394,18 +390,6 @@ export default function PortfolioPage() {
               }
               return null;
             })()}
-
-            {/* Share Button */}
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                addToast("Đã sao chép link hồ sơ cá nhân!", "success");
-              }}
-              className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center shrink-0 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
-              title="Chia sẻ profile"
-            >
-              <Share2 className="h-4 w-4" />
-            </button>
           </div>
         </div>
       </div>

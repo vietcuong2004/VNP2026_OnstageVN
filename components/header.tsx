@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, ChevronDown, Crown, LogOut, Search, UserCircle } from "lucide-react";
+import { Bell, Calendar, ChevronDown, Crown, LogOut, Search, UserCircle } from "lucide-react";
 
 type AuthUser = {
   name: string;
@@ -130,7 +130,7 @@ export default function Header() {
 
           {open && (
             <div className="absolute right-0 top-12 w-64 rounded-xl border border-white/10 bg-[#080b16] p-2 shadow-2xl">
-              <div className="flex items-center gap-3 rounded-lg px-3 py-3">
+              <div className="flex items-center gap-3 rounded-lg px-3 py-3 border-b border-white/5 mb-1.5">
                 <UserCircle className="h-9 w-9 text-amber-300" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-white">{label.name}</p>
@@ -138,12 +138,67 @@ export default function Header() {
                 </div>
               </div>
 
+              {/* Navigation Links based on user role */}
+              {(!user || user.type === "talent") ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push("/talent/portfolio");
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    <UserCircle className="h-4 w-4 text-slate-400" />
+                    Hồ sơ cá nhân
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push("/talent/calendar");
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    <Calendar className="h-4 w-4 text-slate-400" />
+                    Lịch trình
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push("/brand/settings");
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    <UserCircle className="h-4 w-4 text-slate-400" />
+                    Hồ sơ đối tác
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push("/brand/dashboard");
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    <Calendar className="h-4 w-4 text-slate-400" />
+                    Tổng quan
+                  </button>
+                </>
+              )}
+
+              <div className="border-t border-white/5 my-1.5" />
+
               <button
                 type="button"
                 onClick={handleLogout}
-                className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-red-200 transition-colors hover:bg-red-500/10 hover:text-red-100"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-red-200 transition-colors hover:bg-red-500/10 hover:text-red-100"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-4 w-4 text-red-400" />
                 Đăng xuất
               </button>
             </div>

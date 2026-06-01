@@ -12,10 +12,10 @@ const talentMenuItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
   { label: "Khám phá bản thân", icon: Sparkles, href: "/talent/survey" },
   { label: "Hồ sơ cá nhân", icon: User, href: "/talent/portfolio" },
+  { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   { label: "Danh sách cuộc thi", icon: Trophy, href: "/talent/contests" },
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Quỹ vương miện", icon: Crown, href: "/talent/crown" },
-  { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },
   { label: "Thu nhập", icon: Wallet, href: "/talent/wallet" },
 ];

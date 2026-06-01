@@ -5,7 +5,7 @@
 Hệ thống số hóa quy trình quản trị, tự động chấm điểm xếp hạng tài năng (Talent Tiering), và tạo kênh kết nối trực tiếp (Match-making) giữa nhãn hàng (Brands) và người đẹp bằng các hợp đồng đặt cọc an toàn (Escrow Payment).
 
 ## Link deploy UI web: 
-https://vnp-beuty-talent-cuong.vercel.app
+https://vnp-2026-beuty-talent.vercel.app/
 ---
 
 ## 💎 Các Giai Đoạn Vòng Đời Hệ Thống (Lifecycle Phases)
@@ -60,7 +60,6 @@ Ngân sách thanh toán của nhãn hàng được chuyển vào ví trung gian 
 
 ```text
 ├── app/
-│   ├── admin/             # Portal dành cho Ban quản trị hệ thống
 │   ├── brand/             # Portal dành cho Nhãn hàng & Agency
 │   ├── talent/            # Portal dành cho Thí sinh & Người mẫu (giao diện chính)
 │   │   ├── dashboard/     # Bảng điều khiển phân tích số liệu

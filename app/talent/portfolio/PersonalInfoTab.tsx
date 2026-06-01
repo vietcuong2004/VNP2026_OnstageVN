@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Award, User, GraduationCap, BookOpen, DollarSign,
-  TrendingUp, Wallet, ShieldCheck, Calendar, Image, Sparkles, Star, Crown
+  TrendingUp, Wallet, ShieldCheck, Calendar, Image, Sparkles, Star, Crown, Video,
+  ChevronLeft, ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
@@ -91,18 +92,75 @@ export default function PersonalInfoTab({
     }
   ];
 
-  // Toggle calendar days availability
-  const handleCalendarDayClick = (dayStr: string) => {
-    const updatedCalendar = [...(profile.availabilityCalendar || [])];
-    const index = updatedCalendar.indexOf(dayStr);
-    if (index > -1) {
-      updatedCalendar.splice(index, 1);
-      addToast(`Đã chuyển ngày ${dayStr.split("-")[2]}/06 thành trạng thái BẬN`, "info");
+  // State for Month-switching Calendar
+  const [currentYear, setCurrentYear] = useState(2026);
+  const [currentMonth, setCurrentMonth] = useState(6); // Default June 2026
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 1) {
+      setCurrentMonth(12);
+      setCurrentYear(prev => prev - 1);
     } else {
-      updatedCalendar.push(dayStr);
-      addToast(`Đã cập nhật ngày ${dayStr.split("-")[2]}/06 thành trạng thái RẢNH`, "success");
+      setCurrentMonth(prev => prev - 1);
     }
-    const updatedProfile = { ...profile, availabilityCalendar: updatedCalendar };
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 12) {
+      setCurrentMonth(1);
+      setCurrentYear(prev => prev + 1);
+    } else {
+      setCurrentMonth(prev => prev + 1);
+    }
+  };
+
+  const getDaysInMonth = (year: number, month: number) => {
+    return new Date(year, month, 0).getDate();
+  };
+
+  const getFirstDayPad = (year: number, month: number) => {
+    const firstDayIndex = new Date(year, month - 1, 1).getDay();
+    // Monday start:
+    // Sunday (0) -> pad 6, Monday (1) -> pad 0, Tuesday (2) -> pad 1...
+    return firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+  };
+
+  const getDayStatus = (dateStr: string) => {
+    const calendar = profile.availabilityCalendar || [];
+    if (calendar.includes(dateStr) || calendar.includes(`${dateStr}:available`)) {
+      return "available";
+    }
+    if (calendar.includes(`${dateStr}:maybe`)) {
+      return "maybe";
+    }
+    return "busy";
+  };
+
+  // Toggle calendar days availability cyclic: busy -> available -> maybe -> busy
+  const handleCalendarDayClick = (dateStr: string) => {
+    const calendar = [...(profile.availabilityCalendar || [])];
+    const status = getDayStatus(dateStr);
+    const dayNum = dateStr.split("-")[2];
+
+    const cleanedCalendar = calendar.filter((d: string) => 
+      d !== dateStr && 
+      d !== `${dateStr}:available` && 
+      d !== `${dateStr}:maybe` && 
+      d !== `${dateStr}:busy`
+    );
+
+    if (status === "busy") {
+      cleanedCalendar.push(dateStr); // Busy -> Available (stored as YYYY-MM-DD for backwards compatibility)
+      addToast(`Đã chuyển ngày ${dayNum}/${currentMonth} thành trạng thái RẢNH (🟢)`, "success");
+    } else if (status === "available") {
+      cleanedCalendar.push(`${dateStr}:maybe`); // Available -> Chưa có lịch (Maybe)
+      addToast(`Đã chuyển ngày ${dayNum}/${currentMonth} thành trạng thái CHƯA CÓ LỊCH (🟡)`, "info");
+    } else {
+      cleanedCalendar.push(`${dateStr}:busy`); // Chưa có lịch -> Busy
+      addToast(`Đã chuyển ngày ${dayNum}/${currentMonth} thành trạng thái BẬN (🔴)`, "info");
+    }
+
+    const updatedProfile = { ...profile, availabilityCalendar: cleanedCalendar };
     setProfile(updatedProfile);
     localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
   };
@@ -155,8 +213,16 @@ export default function PersonalInfoTab({
             </div>
           </div>
 
-          <div className="space-y-3.5 border-t border-[#151b2d] pt-4">
+          <div className="space-y-3.5 border-t border-[#151b2d] pt-4 text-left">
             <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Giới tính</span>
+              <span className="font-bold text-white">{profile.gender || "Nữ"}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Ngày sinh</span>
+              <span className="font-bold text-white font-mono">{profile.dob || "15/05/2002"}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300 border-t border-dashed border-[#151b2d]/50 pt-2">
               <span className="font-medium text-slate-400">Số đo Vòng 1 (Ngực)</span>
               <span className="font-bold text-white font-mono">{profile.bust} cm</span>
             </div>
@@ -167,6 +233,24 @@ export default function PersonalInfoTab({
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Số đo Vòng 3 (Mông)</span>
               <span className="font-bold text-white font-mono">{profile.hips} cm</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300 border-t border-dashed border-[#151b2d]/50 pt-2">
+              <span className="font-medium text-slate-400">Màu da</span>
+              <span className="font-bold text-white">{profile.skinColor || "Sáng"}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Màu tóc</span>
+              <span className="font-bold text-white">{profile.hairColor || "Nâu"}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Hình xăm</span>
+              <span className="font-bold text-white truncate max-w-[120px] text-right" title={profile.tattoo === "Có" ? `Có (${profile.tattooDesc || "Không mô tả"})` : "Không"}>
+                {profile.tattoo === "Có" ? `Có (${profile.tattooDesc || "Không mô tả"})` : "Không"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Kinh nghiệm</span>
+              <span className="font-bold text-white">{profile.experience !== undefined ? `${profile.experience} năm` : "3 năm"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300 border-t border-[#151b2d] pt-3.5">
               <span className="font-medium text-slate-400">Phẫu thuật thẩm mỹ</span>
@@ -179,13 +263,13 @@ export default function PersonalInfoTab({
           </div>
         </div>
 
-        {/* Education & Languages */}
+        {/* Education, Languages & Special Skills */}
         <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-            <GraduationCap className="h-4.5 w-4.5 text-slate-400" /> Học Vấn & Ngôn Ngữ
+            <GraduationCap className="h-4.5 w-4.5 text-slate-400" /> Học Vấn, Ngôn Ngữ & Kỹ Năng
           </h3>
 
-          <div className="space-y-4 text-xs text-slate-300">
+          <div className="space-y-4 text-xs text-slate-300 text-left">
             <div className="flex gap-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/10 text-amber-400">
                 <GraduationCap className="h-4.5 w-4.5" />
@@ -205,6 +289,22 @@ export default function PersonalInfoTab({
                 <span className="block text-[10px] text-slate-400 mt-1 leading-normal">
                   {Array.isArray(profile.languages) ? profile.languages.join(", ") : profile.languages}
                 </span>
+              </div>
+            </div>
+
+            <div className="flex gap-3 border-t border-[#151b2d] pt-4">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400">
+                <Award className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <span className="block font-bold text-white">Kỹ năng đặc biệt</span>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {(profile.specialSkills || profile.skills || ["Catwalk", "MC song ngữ", "Pose dáng lookbook"]).map((skill: string, sIdx: number) => (
+                    <span key={sIdx} className="bg-white/5 border border-white/10 text-slate-300 text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -300,10 +400,30 @@ export default function PersonalInfoTab({
         {/* SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
         <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-              <Calendar className="h-4.5 w-4.5 text-slate-400" /> Lịch Làm Việc (Tháng 06/2026)
-            </h3>
-            <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Nhấp chọn ngày để đổi trạng thái làm việc</span>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4.5 w-4.5 text-slate-400" /> 
+              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
+                Lịch Làm Việc (Tháng {currentMonth < 10 ? `0${currentMonth}` : currentMonth}/{currentYear})
+              </h3>
+            </div>
+            <div className="flex items-center gap-2 z-10">
+              <button
+                type="button"
+                onClick={handlePrevMonth}
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
+                title="Tháng trước"
+              >
+                <ChevronLeft className="h-4.5 w-4.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
+                title="Tháng sau"
+              >
+                <ChevronRight className="h-4.5 w-4.5" />
+              </button>
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -312,11 +432,18 @@ export default function PersonalInfoTab({
             </div>
 
             <div className="grid grid-cols-7 gap-1.5">
-              {Array.from({ length: 30 }).map((_, idx) => {
+              {/* Pad empty days */}
+              {Array.from({ length: getFirstDayPad(currentYear, currentMonth) }).map((_, pIdx) => (
+                <div key={`pad-${pIdx}`} className="h-12 border border-transparent" />
+              ))}
+
+              {/* Real days */}
+              {Array.from({ length: getDaysInMonth(currentYear, currentMonth) }).map((_, idx) => {
                 const dayNumber = idx + 1;
                 const dayStr = dayNumber < 10 ? `0${dayNumber}` : `${dayNumber}`;
-                const dateKey = `2026-06-${dayStr}`;
-                const isAvailable = profile.availabilityCalendar?.includes(dateKey);
+                const monthStr = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
+                const dateKey = `${currentYear}-${monthStr}-${dayStr}`;
+                const status = getDayStatus(dateKey);
 
                 return (
                   <button
@@ -324,70 +451,167 @@ export default function PersonalInfoTab({
                     onClick={() => handleCalendarDayClick(dateKey)}
                     className={cn(
                       "flex flex-col items-center justify-between p-1.5 h-12 rounded-xl border text-center transition-all cursor-pointer hover:scale-102",
-                      isAvailable
-                        ? "border-emerald-400/40 bg-emerald-400/5 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.1)] hover:border-emerald-400"
-                        : "border-white/5 bg-slate-950/40 text-slate-600 hover:border-white/10"
+                      status === "available" && "border-emerald-400/40 bg-emerald-400/5 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.1)] hover:border-emerald-400",
+                      status === "maybe" && "border-yellow-500/30 bg-yellow-500/5 text-yellow-300 shadow-[0_0_8px_rgba(234,179,8,0.1)] hover:border-yellow-400",
+                      status === "busy" && "border-red-500/40 bg-red-500/5 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.1)] hover:border-red-500"
                     )}
                   >
                     <span className="text-[9px] font-mono font-bold block">{dayStr}</span>
-                    <span className="text-[7.5px] font-black uppercase tracking-wider scale-90">
-                      {isAvailable ? "Rảnh" : "Bận"}
+                    <span className="text-[6.5px] font-black uppercase tracking-wider scale-90">
+                      {status === "available" ? "Rảnh" : status === "maybe" ? "Chưa có lịch" : "Bận"}
                     </span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="flex items-center gap-4 text-[9px] text-slate-500 border-t border-white/5 pt-2 mt-1">
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded bg-emerald-400" /> Ngày rảnh (Có thể book ngay)
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded bg-slate-800" /> Ngày bận / đã có show
-              </span>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[9.5px] text-slate-400 border-t border-white/5 pt-3 mt-1">
+              <span>🟢 Rảnh</span>
+              <span>🔴 Bận</span>
+              <span>🟡 Chưa có lịch</span>
             </div>
           </div>
         </div>
 
-        {/* SECTION D: LOOKBOOK PHOTOS DISPLAY (Ảnh 1, Ảnh 2, Ảnh 3, Ảnh 4) */}
-        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
-          <div className="border-b border-[#151b2d] pb-3">
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-              <Image className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ Ảnh Lookbook Nghệ Thuật Vừa Chụp
-            </h3>
-            <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-              Hiển thị 4 bức ảnh Lookbook vừa thực hiện cùng các studio liên kết
-            </span>
+        {/* SECTION D: LOOKBOOK PHOTOS & VIDEOS DISPLAY */}
+        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+          <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
+                <Image className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ Ảnh Lookbook & Video
+              </h3>
+              <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                Hiển thị bộ ảnh Lookbook nghệ thuật và các video giới thiệu, trình diễn thực tế của Talent
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {lookbookPhotos.map((img) => (
-              <div
-                key={img.id}
-                className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md"
-              >
-                <img
-                  src={img.url}
-                  alt={img.title}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85" />
+          {/* Sub-grid 1: 4 Lookbook Photos */}
+          <div className="space-y-3">
+            <span className="block text-[9px] text-[#f4c430] font-black uppercase tracking-wider">
+              📸 Bộ Ảnh Lookbook Nghệ Thuật (4 Ảnh)
+            </span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {lookbookPhotos.map((img) => (
+                <div
+                  key={img.id}
+                  className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md"
+                >
+                  <img
+                    src={img.url}
+                    alt={img.title}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85" />
 
-                {/* Labeled overlay info */}
-                <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1">
-                  <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                    {img.label}
-                  </span>
-                  <h4 className="text-[10px] font-black text-white">{img.title}</h4>
-                  <div className="text-[7.5px] text-slate-400 space-y-0.5 leading-normal opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <p>📷 {img.photographer}</p>
-                    <p>👗 Concept: {img.concept}</p>
-                    <p>⚙️ {img.device}</p>
-                    <p>📅 Ngày chụp: {img.date}</p>
+                  {/* Labeled overlay info */}
+                  <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1">
+                    <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                      {img.label}
+                    </span>
+                    <h4 className="text-[10px] font-black text-white">{img.title}</h4>
+                    <div className="text-[7.5px] text-slate-400 space-y-0.5 leading-normal opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <p>📷 {img.photographer}</p>
+                      <p>👗 Concept: {img.concept}</p>
+                      <p>⚙️ {img.device}</p>
+                      <p>📅 Ngày chụp: {img.date}</p>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Sub-grid 2: 3 Videos (Intro, Catwalk, MC/Live Demo) */}
+          <div className="space-y-3 border-t border-[#151b2d] pt-4">
+            <span className="block text-[9px] text-cyan-400 font-black uppercase tracking-wider">
+              🎥 Video Giới Thiệu & Demo Thực Tế (3 Videos)
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Video 1: Intro */}
+              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
+                {profile.hasUploadedIntro ? (
+                  <div className="h-full w-full relative">
+                    <video
+                      src="https://assets.mixkit.co/videos/preview/mixkit-beautiful-woman-smiling-at-the-camera-40898-large.mp4"
+                      className="h-full w-full object-cover"
+                      playsInline
+                      loop
+                      muted
+                      autoPlay
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
+                  </div>
+                ) : (
+                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Chưa tải lên</span>
+                  </div>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1">
+                  <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                    INTRO VIDEO
+                  </span>
+                  <h4 className="text-[10px] font-black text-white">Video Giới Thiệu Bản Thân</h4>
+                  <p className="text-[7.5px] text-slate-400">Độ phân giải: 1080p • Định dạng: Vertical</p>
+                </div>
               </div>
-            ))}
+
+              {/* Video 2: Catwalk */}
+              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
+                {profile.hasUploadedCatwalk ? (
+                  <div className="h-full w-full relative">
+                    <video
+                      src="https://assets.mixkit.co/videos/preview/mixkit-fashion-model-walking-on-a-runway-show-39871-large.mp4"
+                      className="h-full w-full object-cover"
+                      playsInline
+                      loop
+                      muted
+                      autoPlay
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
+                  </div>
+                ) : (
+                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Chưa tải lên</span>
+                  </div>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1">
+                  <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                    CATWALK POLAROID
+                  </span>
+                  <h4 className="text-[10px] font-black text-white">Video Trình Diễn Sàn Runway</h4>
+                  <p className="text-[7.5px] text-slate-400">Độ phân giải: 1080p • Định dạng: Vertical</p>
+                </div>
+              </div>
+
+              {/* Video 3: MC/Livestream */}
+              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
+                {profile.hasUploadedMC ? (
+                  <div className="h-full w-full relative">
+                    <video
+                      src="https://assets.mixkit.co/videos/preview/mixkit-young-woman-talking-to-camera-in-interview-42358-large.mp4"
+                      className="h-full w-full object-cover"
+                      playsInline
+                      loop
+                      muted
+                      autoPlay
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
+                  </div>
+                ) : (
+                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Chưa tải lên</span>
+                  </div>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1">
+                  <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                    DEMO MC / LIVE
+                  </span>
+                  <h4 className="text-[10px] font-black text-white">Dẫn Chương Trình / Live Bán Hàng</h4>
+                  <p className="text-[7.5px] text-slate-400">Độ phân giải: 1080p • Định dạng: Vertical</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

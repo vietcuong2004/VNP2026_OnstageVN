@@ -2,9 +2,33 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Edit3, ShieldCheck, CheckCircle, Camera, X, Plus, Info, Upload, Video
+  Edit3, ShieldCheck, CheckCircle, Camera, X, Plus, Info, Upload, Video, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const convertToInputDate = (dateStr: string) => {
+  if (!dateStr) return "2002-05-15";
+  if (dateStr.includes("/")) {
+    const parts = dateStr.split("/");
+    if (parts.length === 3) {
+      const [d, m, y] = parts;
+      return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+  }
+  return dateStr;
+};
+
+const convertToDisplayDate = (dateStr: string) => {
+  if (!dateStr) return "15/05/2002";
+  if (dateStr.includes("-")) {
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      const [y, m, d] = parts;
+      return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+    }
+  }
+  return dateStr;
+};
 
 interface EditInfoTabProps {
   profile: any;
@@ -38,7 +62,22 @@ export default function EditInfoTab({
     languages: "",
     rateCard: {},
     plasticSurgery: "false",
-    maritalStatus: "Độc thân"
+    maritalStatus: "Độc thân",
+    gender: "Nữ",
+    dob: "2002-05-15",
+    skinColor: "Sáng",
+    hairColor: "Nâu",
+    tattoo: "Không",
+    tattooDesc: "",
+    experience: 3,
+    specialSkills: ""
+  });
+
+  // Video upload state simulator
+  const [videoForm, setVideoForm] = useState({
+    hasUploadedIntro: false,
+    hasUploadedCatwalk: false,
+    hasUploadedMC: false
   });
 
   // Upload simulation states
@@ -61,7 +100,20 @@ export default function EditInfoTab({
         languages: Array.isArray(profile.languages) ? profile.languages.join(", ") : (profile.languages || ""),
         rateCard: { ...(profile.rateCard || {}) },
         plasticSurgery: profile.plasticSurgery || "false",
-        maritalStatus: profile.maritalStatus || "Độc thân"
+        maritalStatus: profile.maritalStatus || "Độc thân",
+        gender: profile.gender || "Nữ",
+        dob: convertToInputDate(profile.dob),
+        skinColor: profile.skinColor || "Sáng",
+        hairColor: profile.hairColor || "Nâu",
+        tattoo: profile.tattoo || "Không",
+        tattooDesc: profile.tattooDesc || "",
+        experience: profile.experience !== undefined ? profile.experience : 3,
+        specialSkills: Array.isArray(profile.specialSkills) ? profile.specialSkills.join(", ") : (Array.isArray(profile.skills) ? profile.skills.join(", ") : "Catwalk, MC song ngữ, Pose dáng lookbook")
+      });
+      setVideoForm({
+        hasUploadedIntro: profile.hasUploadedIntro || false,
+        hasUploadedCatwalk: profile.hasUploadedCatwalk || false,
+        hasUploadedMC: profile.hasUploadedMC || false
       });
       if (profile.verifiedLevel === "Elite" || profile.verifiedLevel === "Pro" || profile.verifiedLevel === "Basic") {
         setVerificationStatus("verified");
@@ -92,6 +144,42 @@ export default function EditInfoTab({
         }, 100);
       }
     }, 100);
+  };
+
+  // Simulated video uploaders
+  const startVideoUpload = (type: "intro" | "catwalk" | "mc") => {
+    if (uploadingType) return;
+    setUploadingType(type);
+    setUploadProgress(0);
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      setUploadProgress(progress);
+      if (progress >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setVideoForm(prev => ({
+            ...prev,
+            [type === "intro" ? "hasUploadedIntro" : type === "catwalk" ? "hasUploadedCatwalk" : "hasUploadedMC"]: true
+          }));
+          setUploadingType(null);
+          addToast(`Tải lên video thành công! Vui lòng nhấn "Lưu thay đổi" ở góc dưới để áp dụng.`, "success");
+        }, 100);
+      }
+    }, 100);
+  };
+
+  // Submit Video changes
+  const handleSaveVideos = () => {
+    const updated = {
+      ...profile,
+      hasUploadedIntro: videoForm.hasUploadedIntro,
+      hasUploadedCatwalk: videoForm.hasUploadedCatwalk,
+      hasUploadedMC: videoForm.hasUploadedMC
+    };
+    setProfile(updated);
+    localStorage.setItem("vnp_talent_profile", JSON.stringify(updated));
+    addToast("Đã lưu các thay đổi video thành công!", "success");
   };
 
   // Submit Identity Verification Request
@@ -134,7 +222,16 @@ export default function EditInfoTab({
             languages: editForm.languages.split(",").map((s: string) => s.trim()),
             rateCard: { ...editForm.rateCard },
             plasticSurgery: editForm.plasticSurgery,
-            maritalStatus: editForm.maritalStatus
+            maritalStatus: editForm.maritalStatus,
+            gender: editForm.gender,
+            dob: convertToDisplayDate(editForm.dob),
+            skinColor: editForm.skinColor,
+            hairColor: editForm.hairColor,
+            tattoo: editForm.tattoo,
+            tattooDesc: editForm.tattoo === "Có" ? editForm.tattooDesc : "",
+            experience: Number(editForm.experience),
+            specialSkills: editForm.specialSkills.split(",").map((s: string) => s.trim()),
+            skills: editForm.specialSkills.split(",").map((s: string) => s.trim())
           };
           setProfile(updated);
           localStorage.setItem("vnp_talent_profile", JSON.stringify(updated));
@@ -258,8 +355,102 @@ export default function EditInfoTab({
             </div>
           </div>
 
-          {/* Row 5: Languages & Marriage */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* New Row: Giới tính, Ngày sinh, Kinh nghiệm */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Giới tính</label>
+              <select
+                value={editForm.gender}
+                onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              >
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+                <option value="Khác">Khác</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngày sinh</label>
+              <input
+                type="date"
+                required
+                value={editForm.dob}
+                onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Kinh nghiệm (năm)</label>
+              <input
+                type="number"
+                required
+                min={0}
+                max={20}
+                value={editForm.experience}
+                onChange={(e) => setEditForm({ ...editForm, experience: Number(e.target.value) })}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* New Row: Màu da, Màu tóc, Hình xăm */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Màu da</label>
+              <select
+                value={editForm.skinColor}
+                onChange={(e) => setEditForm({ ...editForm, skinColor: e.target.value })}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              >
+                <option value="Sáng">Sáng</option>
+                <option value="Trung bình">Trung bình</option>
+                <option value="Ngăm">Ngăm</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Màu tóc</label>
+              <select
+                value={editForm.hairColor}
+                onChange={(e) => setEditForm({ ...editForm, hairColor: e.target.value })}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              >
+                <option value="Đen">Đen</option>
+                <option value="Nâu">Nâu</option>
+                <option value="Vàng">Vàng</option>
+                <option value="Đỏ">Đỏ</option>
+                <option value="Khác">Khác</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Hình xăm</label>
+              <select
+                value={editForm.tattoo}
+                onChange={(e) => setEditForm({ ...editForm, tattoo: e.target.value })}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              >
+                <option value="Không">Không</option>
+                <option value="Có">Có</option>
+              </select>
+            </div>
+          </div>
+
+          {/* New Row: Mô tả hình xăm (chỉ hiện khi có hình xăm) */}
+          {editForm.tattoo === "Có" && (
+            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Mô tả hình xăm (vị trí, kích thước, hình dạng)</label>
+              <input
+                type="text"
+                required
+                value={editForm.tattooDesc}
+                onChange={(e) => setEditForm({ ...editForm, tattooDesc: e.target.value })}
+                placeholder="Ví dụ: Hình xăm hoa hồng nhỏ ở cổ tay phải"
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+          )}
+
+          {/* Row 5: Languages, Marriage & Special Skills */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngôn ngữ (ngăn cách bằng dấu phẩy)</label>
               <input
@@ -277,6 +468,16 @@ export default function EditInfoTab({
                 required
                 value={editForm.maritalStatus}
                 onChange={(e) => setEditForm({ ...editForm, maritalStatus: e.target.value })}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Kỹ năng đặc biệt (phân tách dấu phẩy)</label>
+              <input
+                type="text"
+                required
+                value={editForm.specialSkills}
+                onChange={(e) => setEditForm({ ...editForm, specialSkills: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
@@ -310,7 +511,7 @@ export default function EditInfoTab({
               type="submit"
               className="w-full h-10 rounded-xl bg-[#f4c430] text-slate-950 font-black uppercase tracking-wider hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-lg"
             >
-              Lưu thay đổi hồ sơ & Bảng giá
+              Lưu thay đổi
             </button>
           </div>
         </form>
@@ -441,7 +642,7 @@ export default function EditInfoTab({
               <Camera className="h-4.5 w-4.5 text-purple-400" /> Bộ Sưu Tập Ảnh Nghệ Thuật (Art Portfolio)
             </h3>
             <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-              Lưu trữ tối đa 10 bức ảnh tinh tuyển. Tải ảnh mới sẽ cập nhật trực tiếp vào Hồ Sơ cá nhân.
+              Lưu trữ tối đa 10 bức ảnh. Tải ảnh mới hoặc xóa ảnh cũ sẽ cập nhật trực tiếp vào Hồ Sơ cá nhân.
             </span>
           </div>
           <span className={cn(
@@ -565,51 +766,72 @@ export default function EditInfoTab({
           </div>
         )}
 
-        <div className="space-y-3.5 text-xs text-slate-300">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { id: "intro", label: "Video Giới thiệu bản thân (Intro video - Bắt buộc với Elite)", key: "hasUploadedIntro" },
-            { id: "catwalk", label: "Video trình diễn Catwalk thời trang (Polaroid)", key: "hasUploadedCatwalk" },
-            { id: "mc", label: "Video Demo MC chương trình / Livestream bán hàng", key: "hasUploadedMC" }
+            { id: "intro", label: "Video Giới thiệu bản thân (Intro video)", key: "hasUploadedIntro", url: "https://assets.mixkit.co/videos/preview/mixkit-beautiful-woman-smiling-at-the-camera-40898-large.mp4" },
+            { id: "catwalk", label: "Video trình diễn Catwalk thời trang (Polaroid)", key: "hasUploadedCatwalk", url: "https://assets.mixkit.co/videos/preview/mixkit-fashion-model-walking-on-a-runway-show-39871-large.mp4" },
+            { id: "mc", label: "Video Demo MC chương trình / Livestream bán hàng", key: "hasUploadedMC", url: "https://assets.mixkit.co/videos/preview/mixkit-young-woman-talking-to-camera-in-interview-42358-large.mp4" }
           ].map((vid) => {
-            const isUploaded = profile[vid.key] || false;
+            const isUploaded = (videoForm as any)[vid.key];
             return (
-              <div key={vid.id} className="flex justify-between items-center bg-slate-950 p-3.5 rounded-xl border border-white/5">
-                <div className="space-y-1">
-                  <span className="font-bold text-white block">{vid.label}</span>
+              <div key={vid.id} className="rounded-xl border border-white/5 bg-slate-950 p-4 flex flex-col justify-between space-y-4 shadow-lg">
+                <div className="space-y-1 text-left">
+                  <span className="block font-bold text-white text-[11px] truncate" title={vid.label}>{vid.label}</span>
                   <span className="text-[8px] text-slate-500 block">
-                    Trạng thái: <span className={isUploaded ? "text-emerald-400 font-bold" : "text-slate-500"}>{isUploaded ? "🟢 Đã tải lên thành công" : "⚪ Chưa tải lên"}</span>
+                    Trạng thái: <span className={isUploaded ? "text-emerald-400 font-bold" : "text-slate-500"}>{isUploaded ? "🟢 Đã tải lên" : "⚪ Chưa tải lên"}</span>
                   </span>
                 </div>
-                <button
-                  type="button"
-                  disabled={!!uploadingType}
-                  onClick={() => {
-                    if (uploadingType) return;
-                    setUploadingType(vid.id as any);
-                    setUploadProgress(0);
-                    let progress = 0;
-                    const interval = setInterval(() => {
-                      progress += 10;
-                      setUploadProgress(progress);
-                      if (progress >= 100) {
-                        clearInterval(interval);
-                        setTimeout(() => {
-                          const updated = { ...profile, [vid.key]: true };
-                          setProfile(updated);
-                          localStorage.setItem("vnp_talent_profile", JSON.stringify(updated));
-                          setUploadingType(null);
-                          addToast(`Tải lên thành công ${vid.label}!`, "success");
-                        }, 100);
-                      }
-                    }, 100);
-                  }}
-                  className="bg-white text-slate-950 hover:bg-[#f4c430] hover:text-slate-950 text-[8px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition-all"
-                >
-                  {isUploaded ? "Cập nhật video" : "Tải video"}
-                </button>
+
+                {/* Video Preview / Upload zone */}
+                <div className="relative aspect-[3/4] w-full rounded-lg overflow-hidden bg-slate-900 border border-white/5 flex items-center justify-center group">
+                  {isUploaded ? (
+                    <div className="h-full w-full relative">
+                      <video
+                        src={vid.url}
+                        controls
+                        playsInline
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVideoForm(prev => ({ ...prev, [vid.key]: false }));
+                          addToast(`Đã gỡ video. Hãy nhớ nhấn "Lưu thay đổi" để hoàn tất!`, "info");
+                        }}
+                        className="absolute top-2 right-2 h-6 w-6 bg-red-600/90 text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors shadow-md z-10 cursor-pointer"
+                        title="Xóa video"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={!!uploadingType}
+                      onClick={() => startVideoUpload(vid.id as any)}
+                      className="h-full w-full border-2 border-dashed border-white/10 hover:border-cyan-500/40 bg-slate-950/40 flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-cyan-400 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Upload className="h-6 w-6 animate-pulse" />
+                      <span className="text-[9px] font-black uppercase tracking-wider text-center px-4 leading-normal">
+                        Bấm để tải video lên
+                      </span>
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}
+        </div>
+
+        {/* Save button for Videos */}
+        <div className="pt-2 border-t border-[#151b2d]">
+          <button
+            type="button"
+            onClick={handleSaveVideos}
+            className="w-full h-10 rounded-xl bg-cyan-500 text-slate-950 font-black uppercase tracking-wider hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-lg"
+          >
+            Lưu thay đổi
+          </button>
         </div>
       </div>
 

@@ -1,5 +1,319 @@
-# Ý tưởng chính về nguồn thu từ người đẹp:
+# I. Yêu cầu: 
+## **1\. Phía Người đẹp (Profiles) – Quản lý Hồ sơ năng lực**
 
+**Target Users:** KOLs, Models, PG (Promotion Girls), MC, Dancers, Performers  
+**Primary Device:** Mobile (iOS/Android)  
+**Key Goal:** Tạo profile hấp dẫn và nhận được nhiều job offers
+
+Đối với đối tượng này, giao diện phải **gọn gàng, ưu tiên hình ảnh/video trực quan** và thao tác nhanh trên điện thoại.
+
+### **1.1. Quy trình Đăng ký & Onboarding**
+
+#### **Step-by-Step User Journey:**
+
+```
+Bước 1: Landing Page
+  ↓ [Tap "Đăng ký ngay"]
+Bước 2: Chọn phương thức đăng ký
+  - Số điện thoại (OTP)
+  - Email
+  - Google
+  - Facebook
+  ↓
+Bước 3: Xác thực (OTP 6 số, hết hạn sau 5 phút)
+  ↓
+Bước 4: Thông tin cơ bản (30 giây)
+  - Họ tên
+  - Giới tính
+  - Ngày sinh
+  - Thành phố
+  ↓
+Bước 5: Chọn loại hình (Multi-select)
+  - Model
+  - KOL/Influencer
+  - PG/Event Staff
+  - MC/Host
+  - Dancer/Performer
+  ↓
+Bước 6: Upload ảnh đại diện (Bắt buộc)
+  - Hướng dẫn: "Ảnh chân dung rõ mặt, ánh sáng tốt"
+  - AI check: Phát hiện mặt người, chất lượng ảnh
+  ↓
+Bước 7: Hoàn thành! 🎉
+  - Hiển thị % hoàn thiện profile: 30%
+  - Gợi ý: "Thêm 5 ảnh nữa để tăng lên 60%"
+```
+
+**Conversion Optimization:**
+- Cho phép skip các bước không bắt buộc
+- Progress bar hiển thị tiến độ
+- Ước tính thời gian: "Còn 2 phút nữa"
+- Social proof: "1.234 người đã đăng ký hôm nay"
+
+#### **Onboarding Metrics:**
+
+| Metric | Target | Industry Benchmark |
+|--------|--------|-------------------|
+| Registration completion rate | >70% | 50-60% |
+| Time to complete | <3 minutes | 5-7 minutes |
+| Profile completion (first session) | >50% | 30-40% |
+| Day 1 retention | >60% | 40-50% |
+| Day 7 retention | >40% | 25-35% |
+
+#### **B. Quản lý Portfolio (Bộ ảnh)**
+
+**Yêu cầu Kỹ thuật:**
+
+| Tiêu chí | Quy định | Lý do |
+|----------|----------|-------|
+| **Số lượng ảnh** | Tối thiểu: 3 ảnh<br>Tối đa: 30 ảnh | Đủ để đánh giá, không quá tải |
+| **Định dạng** | JPG, PNG, HEIC | Phổ biến nhất |
+| **Kích thước file** | Tối đa 10MB/ảnh | Cân bằng chất lượng & tốc độ |
+| **Resolution** | Tối thiểu: 800x800px<br>Khuyến nghị: 1200x1600px | Đủ rõ cho xem trên desktop |
+| **Tỷ lệ khung hình** | Portrait (3:4) hoặc Square (1:1) | Phù hợp với mobile display |
+
+**Tính năng Xử lý Ảnh:**
+
+1. **Auto-compression:**
+   - Original: Lưu trên S3 (backup)
+   - Display: Resize + compress (WebP format, 80% quality)
+   - Thumbnail: 300x400px (cho danh sách)
+   - Tiết kiệm: 70-80% bandwidth
+
+2. **AI-powered Features:**
+   - **Face Detection:** Đảm bảo có mặt người trong ảnh
+   - **Quality Check:** Phát hiện ảnh mờ, tối, bị che
+   - **NSFW Filter:** Tự động reject ảnh không phù hợp
+   - **Auto-tagging:** Gắn tag tự động (outdoor, studio, fashion, etc.)
+
+3. **Phân loại Ảnh:**
+   - **Polaroid (Ảnh chân dung):** Ảnh cận mặt, rõ nét
+   - **Portfolio (Ảnh nghệ thuật):** Ảnh chụp chuyên nghiệp
+   - **Work Samples (Ảnh dự án):** Ảnh từ các job đã làm
+   - **Behind the Scenes:** Ảnh hậu trường, candid
+
+**User Experience:**
+```
+Upload Flow:
+1. Tap "Thêm ảnh"
+2. Chọn từ thư viện hoặc chụp mới
+3. Crop & adjust (built-in editor)
+4. Chọn category
+5. Upload (progress bar)
+6. AI processing (2-3 giây)
+7. Hiển thị kết quả + suggestions
+```
+
+#### **C. Thông tin Chỉ số Cơ bản**
+
+**Profile Data Structure:**
+
+| Field | Type | Required | Validation | Example |
+|-------|------|----------|------------|---------|
+| **Họ tên** | String | ✅ | 2-50 ký tự | Nguyễn Thị Lan |
+| **Giới tính** | Enum | ✅ | Nam/Nữ/Khác | Nữ |
+| **Ngày sinh** | Date | ✅ | 16-45 tuổi | 15/03/1998 |
+| **Chiều cao** | Integer | ✅ | 150-200 cm | 168 cm |
+| **Cân nặng** | Integer | ⚪ | 40-100 kg | 52 kg |
+| **Số đo 3 vòng** | String | ⚪ | Format: XX-XX-XX | 86-62-90 |
+| **Màu da** | Enum | ⚪ | Sáng/Trung bình/Ngăm | Sáng |
+| **Màu tóc** | Enum | ⚪ | Đen/Nâu/Vàng/Đỏ/Khác | Đen |
+| **Hình xăm** | Boolean + Text | ⚪ | Có/Không + Mô tả | Không |
+| **Kỹ năng đặc biệt** | Multi-select | ⚪ | Max 10 items | Catwalk, MC, Dance |
+| **Ngôn ngữ** | Multi-select | ⚪ | - | Tiếng Việt, English |
+| **Kinh nghiệm** | Integer | ⚪ | 0-20 năm | 3 năm |
+
+**Profile Completion Score:**
+
+```
+Calculation:
+- Basic info (30%): Name, gender, DOB, city, height
+- Photos (30%): Minimum 5 photos
+- Detailed info (20%): Weight, measurements, skills
+- Social links (10%): Instagram, TikTok, Facebook
+- Work history (10%): At least 1 completed job
+
+Total: 100%
+```
+
+**Impact of Completion Rate:**
+
+| Completion % | Visibility Boost | Avg. Job Offers/Month |
+|--------------|------------------|----------------------|
+| 0-30% | 0% | 0-1 |
+| 31-50% | +20% | 2-3 |
+| 51-70% | +50% | 4-6 |
+| 71-90% | +100% | 8-12 |
+| 91-100% | +200% | 15-25 |
+
+#### **D. Định vị & Khu vực Làm việc**
+
+**Location Management:**
+
+1. **Primary Location (Bắt buộc):**
+   - Thành phố hiện tại
+   - Quận/Huyện
+   - Auto-detect via GPS (với permission)
+
+2. **Work Radius (Bán kính làm việc):**
+   - Trong thành phố (0-20km)
+   - Toàn tỉnh/thành (20-50km)
+   - Liên tỉnh (50-200km)
+   - Toàn quốc (200km+)
+
+3. **Preferred Cities (Thành phố ưu tiên):**
+   - Multi-select
+   - Ví dụ: "Sống tại TP.HCM, sẵn sàng đi Hà Nội, Đà Nẵng"
+
+**Pricing by Distance:**
+
+| Distance | Travel Fee | Accommodation | Typical Rate Increase |
+|----------|-----------|---------------|----------------------|
+| 0-10km | Không | Không cần | 0% |
+| 10-30km | 200-500k | Không cần | +10-20% |
+| 30-100km | 500k-1tr | Có thể cần | +30-50% |
+| 100km+ | 1-2tr | Bắt buộc | +50-100% |
+
+### **1.3. Tính năng nâng cao (Tạo lợi thế cạnh tranh)**
+
+#### **A. Tích hợp API Mạng xã hội**
+
+**Supported Platforms:**
+
+| Platform | Data Synced | Update Frequency | API Cost |
+|----------|-------------|------------------|----------|
+| **Instagram** | Followers, Posts, Engagement Rate | Weekly | Free (Graph API) |
+| **TikTok** | Followers, Videos, Views, Likes | Weekly | Free (Creator API) |
+| **Facebook** | Page Likes, Followers | Weekly | Free (Graph API) |
+| **YouTube** | Subscribers, Views | Monthly | Free (Data API) |
+
+**Technical Implementation:**
+
+```javascript
+// Example: Instagram Integration
+1. User clicks "Connect Instagram"
+2. OAuth flow → Instagram login
+3. Request permissions: basic_profile, follower_count
+4. Store access_token (encrypted)
+5. Cron job runs weekly:
+   - Fetch follower_count
+   - Calculate engagement_rate
+   - Update profile
+   - Log history for trend analysis
+```
+
+**Verification Badge:**
+
+| Follower Count | Badge | Visibility Boost |
+|----------------|-------|------------------|
+| 1K - 10K | 🥉 Micro | +10% |
+| 10K - 50K | 🥈 Rising | +25% |
+| 50K - 100K | 🥇 Influencer | +50% |
+| 100K - 500K | 💎 Star | +100% |
+| 500K+ | 👑 Celebrity | +200% |
+
+**Anti-fraud Measures:**
+- Detect fake followers (engagement rate < 1%)
+- Cross-check with multiple platforms
+- Manual review for suspicious accounts
+- Penalty: Remove badge + lower ranking
+
+#### **B. Video Short/Reels**
+
+**Video Specifications:**
+
+| Attribute | Requirement | Reason |
+|-----------|-------------|--------|
+| **Duration** | 15-60 seconds | Attention span optimization |
+| **Format** | MP4, MOV | Universal compatibility |
+| **Max file size** | 50MB | Balance quality & upload speed |
+| **Resolution** | Min 720p, Recommended 1080p | Clear on all devices |
+| **Aspect ratio** | 9:16 (vertical) or 1:1 (square) | Mobile-optimized |
+
+**Video Types:**
+
+1. **Introduction Video (Giới thiệu bản thân):**
+   - Script template: "Xin chào, mình là [Tên], [Tuổi], đến từ [Thành phố]..."
+   - Duration: 30-45 seconds
+   - Impact: +150% profile views
+
+2. **Skill Showcase:**
+   - Catwalk demo
+   - MC hosting sample
+   - Dance performance
+   - Product presentation
+
+3. **Behind the Scenes:**
+   - Makeup process
+   - Photoshoot BTS
+   - Event preparation
+
+**Video Processing Pipeline:**
+
+```
+Upload → Transcode (H.264) → Generate thumbnail → 
+Extract audio → NSFW check → Store on CDN → 
+Update profile → Notify user
+```
+
+**ROI of Video:**
+
+| Profile Type | With Video | Without Video | Difference |
+|--------------|-----------|---------------|------------|
+| Profile views | 250/month | 80/month | +212% |
+| Job applications | 15/month | 5/month | +200% |
+| Booking rate | 8% | 3% | +167% |
+
+#### **C. Lịch rảnh (Calendar Integration)**
+
+**Calendar Features:**
+
+1. **Availability Marking:**
+   - Rảnh (Available)
+   - Bận (Busy)
+   - Có thể thương lượng (Maybe)
+   - Block dates in advance
+
+2. **Sync with External Calendars:**
+   - Google Calendar (2-way sync)
+   - Apple Calendar (import only)
+   - Outlook Calendar (import only)
+
+3. **Smart Scheduling:**
+   - Auto-block dates when job confirmed
+   - Buffer time between jobs (travel time)
+   - Recurring unavailability (every Monday, etc.)
+
+4. **Booking Requests:**
+   - Partners can request specific dates
+   - KOL receives notification
+   - Accept/Decline/Propose alternative
+
+**Calendar View:**
+
+```
+Month View:
+┌─────────────────────────────────────┐
+│  May 2026                           │
+├─────┬─────┬─────┬─────┬─────┬─────┤
+│ Mon │ Tue │ Wed │ Thu │ Fri │ Sat │
+├─────┼─────┼─────┼─────┼─────┼─────┤
+│  1  │  2  │  3🟢│  4🟢│  5🔴│  6🔴│
+│  8🟢│  9🟢│ 10🟡│ 11🟢│ 12🟢│ 13🔴│
+│ 15🟢│ 16🟢│ 17🟢│ 18🔴│ 19🔴│ 20🟢│
+└─────┴─────┴─────┴─────┴─────┴─────┘
+
+🟢 Available  🔴 Busy  🟡 Maybe
+```
+
+**Impact on Booking Rate:**
+
+- With calendar: 12% booking rate
+- Without calendar: 6% booking rate
+- **Improvement: +100%**
+
+Reason: Partners prefer KOLs who clearly show availability
+# Ý tưởng chính về nguồn thu từ người đẹp:
 **Tỷ trọng dự kiến:** 20-25% tổng doanh thu  
 **Độ ưu tiên:** ⭐⭐⭐⭐ (Cao)  
 **Thời gian triển khai:** Tháng 4-5 (song song với B2B)
