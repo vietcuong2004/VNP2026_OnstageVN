@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   MapPin, Star, Share2, Crown, ShieldCheck, User, Edit3, Sparkles, X,
-  MessageSquare, HeartHandshake, CheckCircle
+  MessageSquare, HeartHandshake, CheckCircle, Trophy, Award
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
@@ -291,26 +291,117 @@ export default function PortfolioPage() {
             </div>
           </div>
 
-          {/* Action Buttons for Brand View */}
-          <div className="flex flex-wrap gap-2 pb-1 relative z-10">
-            <button
-              onClick={() => setShowBookModal(true)}
-              className="flex-1 sm:flex-initial flex h-9 md:h-10 px-4 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-600 text-slate-950 hover:brightness-105 text-xs font-black uppercase tracking-wider shadow-lg shadow-amber-500/10 transition-all cursor-pointer"
-            >
-              <HeartHandshake className="h-4 w-4" /> Book Talent
-            </button>
-            <button
-              onClick={() => setShowMessageModal(true)}
-              className="flex-1 sm:flex-initial flex h-9 md:h-10 px-4 items-center justify-center gap-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
-            >
-              <MessageSquare className="h-4 w-4" /> Nhắn tin
-            </button>
+          {/* Action Area: Model Tier Card & Share Button */}
+          <div className="flex items-center gap-3 pb-1 relative z-10 shrink-0">
+            {/* Model Tier Card */}
+            {profile.tier && (() => {
+              const tier = profile.tier.toUpperCase();
+              if (tier === "S") {
+                return (
+                  <div className="relative overflow-hidden rounded-2xl border border-amber-400/80 bg-gradient-to-br from-amber-500/20 via-[#221a0a]/95 to-[#070913]/98 p-3 text-left shadow-[0_0_15px_rgba(245,158,11,0.15)] w-64 md:w-72 transition-all duration-300">
+                    <div className="absolute -right-4 -top-4 h-12 w-12 rounded-full bg-amber-500/15 blur-lg pointer-events-none"></div>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1">
+                        <Crown className="h-3.5 w-3.5 text-amber-400 fill-amber-400/10 animate-bounce" style={{ animationDuration: '3s' }} />
+                        <span className="text-[7px] font-black uppercase tracking-widest text-amber-400">
+                          CELEB / SUPER VIP
+                        </span>
+                      </div>
+                      <span className="inline-flex items-center rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-amber-300 border border-amber-400/30">
+                        90 - 100 ĐIỂM
+                      </span>
+                    </div>
+                    <span className="block text-base font-black tracking-wide font-display bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
+                      HẠNG S
+                    </span>
+                    <p className="mt-0.5 text-[9px] text-slate-300 leading-normal">
+                      Hoa hậu Quốc gia, Ngôi sao hạng S.
+                    </p>
+                  </div>
+                );
+              }
+              if (tier === "A") {
+                return (
+                  <div className="relative overflow-hidden rounded-2xl border border-slate-300/60 bg-gradient-to-br from-slate-400/10 via-[#171922]/90 to-[#070913]/95 p-3 text-left shadow-[0_0_15px_rgba(203,213,225,0.06)] w-64 md:w-72 transition-all duration-300">
+                    <div className="absolute -right-4 -top-4 h-12 w-12 rounded-full bg-slate-400/10 blur-lg pointer-events-none"></div>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1">
+                        <Trophy className="h-3.5 w-3.5 text-slate-300" />
+                        <span className="text-[7px] font-black uppercase tracking-widest text-slate-300">
+                          HIGH-END PRO
+                        </span>
+                      </div>
+                      <span className="inline-flex items-center rounded-full bg-slate-400/20 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-slate-200 border border-slate-400/30">
+                        70 - 89 ĐIỂM
+                      </span>
+                    </div>
+                    <span className="block text-base font-black tracking-wide font-display bg-gradient-to-r from-slate-100 via-slate-300 to-slate-400 bg-clip-text text-transparent">
+                      HẠNG A
+                    </span>
+                    <p className="mt-0.5 text-[9px] text-slate-300 leading-normal">
+                      Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP.
+                    </p>
+                  </div>
+                );
+              }
+              if (tier === "B") {
+                return (
+                  <div className="relative overflow-hidden rounded-2xl border border-purple-500/40 bg-gradient-to-br from-purple-500/10 via-[#1a1128]/90 to-[#070913]/95 p-3 text-left shadow-[0_0_15px_rgba(168,85,247,0.06)] w-64 md:w-72 transition-all duration-300">
+                    <div className="absolute -right-4 -top-4 h-12 w-12 rounded-full bg-purple-500/10 blur-lg pointer-events-none"></div>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3.5 w-3.5 text-purple-400" />
+                        <span className="text-[7px] font-black uppercase tracking-widest text-purple-400">
+                          MID FREELANCE
+                        </span>
+                      </div>
+                      <span className="inline-flex items-center rounded-full bg-purple-500/20 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-purple-300 border border-purple-500/30">
+                        45 - 69 ĐIỂM
+                      </span>
+                    </div>
+                    <span className="block text-base font-black tracking-wide font-display bg-gradient-to-r from-purple-200 to-pink-500 bg-clip-text text-transparent">
+                      HẠNG B
+                    </span>
+                    <p className="mt-0.5 text-[9px] text-slate-300 leading-normal">
+                      Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp.
+                    </p>
+                  </div>
+                );
+              }
+              if (tier === "C") {
+                return (
+                  <div className="relative overflow-hidden rounded-2xl border border-teal-500/30 bg-gradient-to-br from-teal-500/10 via-[#0e1f1e]/90 to-[#070913]/95 p-3 text-left shadow-[0_0_15px_rgba(20,184,166,0.06)] w-64 md:w-72 transition-all duration-300">
+                    <div className="absolute -right-4 -top-4 h-12 w-12 rounded-full bg-teal-500/10 blur-lg pointer-events-none"></div>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1">
+                        <Award className="h-3.5 w-3.5 text-teal-400" />
+                        <span className="text-[7px] font-black uppercase tracking-widest text-teal-400">
+                          ENTRY / NEWBIE
+                        </span>
+                      </div>
+                      <span className="inline-flex items-center rounded-full bg-teal-500/20 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-teal-300 border border-teal-500/30">
+                        20 - 44 ĐIỂM
+                      </span>
+                    </div>
+                    <span className="block text-base font-black tracking-wide font-display bg-gradient-to-r from-teal-200 to-emerald-400 bg-clip-text text-transparent">
+                      HẠNG C
+                    </span>
+                    <p className="mt-0.5 text-[9px] text-slate-300 leading-normal">
+                      Người mẫu tự do mới vào nghề, diễn viên phụ, PG sự kiện đại trà.
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
+            {/* Share Button */}
             <button
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href);
                 addToast("Đã sao chép link hồ sơ cá nhân!", "success");
               }}
-              className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center shrink-0 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
               title="Chia sẻ profile"
             >
               <Share2 className="h-4 w-4" />

@@ -17,7 +17,7 @@ export default function EditInfoTab({
   setProfile,
   addToast
 }: EditInfoTabProps) {
-  
+
   // Identity card (CCCD) upload state simulators
   const [cccdFrontUploaded, setCccdFrontUploaded] = useState(false);
   const [cccdBackUploaded, setCccdBackUploaded] = useState(false);
@@ -106,7 +106,7 @@ export default function EditInfoTab({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-300">
-      
+
       {/* SUB-SECTION 1: PERSONAL INFORMATION & METRICS FORM */}
       <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
         <div className="border-b border-[#151b2d] pb-4">
@@ -140,25 +140,25 @@ export default function EditInfoTab({
           localStorage.setItem("vnp_talent_profile", JSON.stringify(updated));
           addToast("Cập nhật thông tin cá nhân và ngoại hình thành công!", "success");
         }} className="space-y-4 text-xs">
-          
+
           {/* Row 1: Name & Location */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Họ tên nghệ danh</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 required
-                value={editForm.name} 
+                value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Khu vực hoạt động</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 required
-                value={editForm.location} 
+                value={editForm.location}
                 onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
@@ -169,20 +169,20 @@ export default function EditInfoTab({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Quê quán</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 required
-                value={editForm.hometown} 
+                value={editForm.hometown}
                 onChange={(e) => setEditForm({ ...editForm, hometown: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Học vấn</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 required
-                value={editForm.education} 
+                value={editForm.education}
                 onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
@@ -193,28 +193,28 @@ export default function EditInfoTab({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Chiều cao (cm)</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 required
-                value={editForm.height} 
+                value={editForm.height}
                 onChange={(e) => setEditForm({ ...editForm, height: Number(e.target.value) })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Cân nặng (kg)</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 required
-                value={editForm.weight} 
+                value={editForm.weight}
                 onChange={(e) => setEditForm({ ...editForm, weight: Number(e.target.value) })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Phẫu thuật thẩm mỹ</label>
-              <select 
-                value={editForm.plasticSurgery} 
+              <select
+                value={editForm.plasticSurgery}
                 onChange={(e) => setEditForm({ ...editForm, plasticSurgery: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               >
@@ -228,30 +228,30 @@ export default function EditInfoTab({
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Vòng 1 (cm)</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 required
-                value={editForm.bust} 
+                value={editForm.bust}
                 onChange={(e) => setEditForm({ ...editForm, bust: Number(e.target.value) })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Vòng 2 (cm)</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 required
-                value={editForm.waist} 
+                value={editForm.waist}
                 onChange={(e) => setEditForm({ ...editForm, waist: Number(e.target.value) })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Vòng 3 (cm)</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 required
-                value={editForm.hips} 
+                value={editForm.hips}
                 onChange={(e) => setEditForm({ ...editForm, hips: Number(e.target.value) })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
@@ -262,20 +262,20 @@ export default function EditInfoTab({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngôn ngữ (ngăn cách bằng dấu phẩy)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 required
-                value={editForm.languages} 
+                value={editForm.languages}
                 onChange={(e) => setEditForm({ ...editForm, languages: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Tình trạng hôn nhân</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 required
-                value={editForm.maritalStatus} 
+                value={editForm.maritalStatus}
                 onChange={(e) => setEditForm({ ...editForm, maritalStatus: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
@@ -284,15 +284,15 @@ export default function EditInfoTab({
 
           {/* Rate card config editing */}
           <div className="border-t border-[#151b2d] pt-4 space-y-3">
-            <span className="block font-bold text-slate-300 uppercase tracking-wider text-[8px]">Cấu hình bảng giá Rate Card tối thiểu (VND)</span>
+            <span className="block font-bold text-slate-300 uppercase tracking-wider text-[8px]">Cấu hình bảng giá dịch vụ (VND)</span>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.keys(editForm.rateCard).map((key) => (
                 <div key={key} className="space-y-1.5">
                   <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">{key}</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     required
-                    value={editForm.rateCard[key]} 
+                    value={editForm.rateCard[key]}
                     onChange={(e) => {
                       const updatedRates = { ...editForm.rateCard, [key]: Number(e.target.value) };
                       setEditForm({ ...editForm, rateCard: updatedRates });
@@ -306,7 +306,7 @@ export default function EditInfoTab({
 
           {/* Submit Button */}
           <div className="pt-2">
-            <button 
+            <button
               type="submit"
               className="w-full h-10 rounded-xl bg-[#f4c430] text-slate-950 font-black uppercase tracking-wider hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-lg"
             >
@@ -340,7 +340,7 @@ export default function EditInfoTab({
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300">
-          
+
           {/* Front CCCD */}
           <div className="rounded-xl bg-slate-950 p-4 border border-white/5 flex flex-col justify-between items-center text-center space-y-3">
             <span className="font-bold block uppercase text-[8px] text-slate-400">CCCD Mặt trước</span>
@@ -446,8 +446,8 @@ export default function EditInfoTab({
           </div>
           <span className={cn(
             "text-[10px] font-black px-2 py-0.5 rounded border font-mono",
-            (profile.photos || []).length >= 10 
-              ? "border-red-500/30 text-red-400 bg-red-500/10 animate-pulse" 
+            (profile.photos || []).length >= 10
+              ? "border-red-500/30 text-red-400 bg-red-500/10 animate-pulse"
               : "border-purple-500/30 text-purple-400 bg-purple-500/10"
           )}>
             {(profile.photos || []).length} / 10 Ảnh
@@ -470,7 +470,7 @@ export default function EditInfoTab({
           {(profile.photos || []).map((imgUrl: string, idx: number) => (
             <div key={idx} className="relative aspect-[3/4] rounded-lg overflow-hidden border border-white/5 bg-slate-900 group shadow-md">
               <img src={imgUrl} className="h-full w-full object-cover" />
-              <button 
+              <button
                 type="button"
                 onClick={() => {
                   const updatedPhotos = [...(profile.photos || [])];
@@ -488,7 +488,7 @@ export default function EditInfoTab({
           ))}
 
           {/* Add photos trigger block (strictly limit <= 10) */}
-          <button 
+          <button
             disabled={!!uploadingType || (profile.photos || []).length >= 10}
             onClick={() => {
               if (uploadingType || (profile.photos || []).length >= 10) return;

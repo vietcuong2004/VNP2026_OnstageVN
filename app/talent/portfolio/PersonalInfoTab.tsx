@@ -46,7 +46,7 @@ export default function PersonalInfoTab({
   setShowBookModal,
   setBookingForm
 }: PersonalInfoTabProps) {
-  
+
   // Lookbook photos metadata (labeled exactly "Ảnh 1", "Ảnh 2", "Ảnh 3", "Ảnh 4")
   const lookbookPhotos = [
     {
@@ -109,7 +109,7 @@ export default function PersonalInfoTab({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-300">
-      
+
       {/* LEFT COLUMN: Sidebar Physical Parameters & General Metrics (Shown only here, and displays FIRST on mobile) */}
       <div className="space-y-6 md:space-y-8 order-1">
 
@@ -229,7 +229,7 @@ export default function PersonalInfoTab({
 
       {/* RIGHT COLUMN: Tab main content */}
       <div className="lg:col-span-2 space-y-6 md:space-y-8 order-2">
-        
+
         {/* SECTION A: DISPLAY PERFORMANCE ANALYTICS */}
         <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
@@ -301,7 +301,7 @@ export default function PersonalInfoTab({
         <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
             <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-              <Calendar className="h-4.5 w-4.5 text-slate-400" /> Lịch Rảnh / Lịch Bận (Tháng 06/2026)
+              <Calendar className="h-4.5 w-4.5 text-slate-400" /> Lịch Làm Việc (Tháng 06/2026)
             </h3>
             <span className="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Nhấp chọn ngày để đổi trạng thái làm việc</span>
           </div>
@@ -362,17 +362,17 @@ export default function PersonalInfoTab({
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {lookbookPhotos.map((img) => (
-              <div 
+              <div
                 key={img.id}
                 className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md"
               >
-                <img 
-                  src={img.url} 
-                  alt={img.title} 
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                <img
+                  src={img.url}
+                  alt={img.title}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85" />
-                
+
                 {/* Labeled overlay info */}
                 <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1">
                   <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
@@ -492,11 +492,11 @@ export default function PersonalInfoTab({
                             <p className="text-[8px] text-slate-500 truncate mt-0.5">{job.desc}</p>
                             <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
                               <div
-                                  className={cn(
-                                    "h-full rounded-full transition-all duration-500",
-                                    isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
-                                  )}
-                                  style={{ width: `${job.matchScore}%` }}
+                                className={cn(
+                                  "h-full rounded-full transition-all duration-500",
+                                  isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
+                                )}
+                                style={{ width: `${job.matchScore}%` }}
                               />
                             </div>
                           </div>
