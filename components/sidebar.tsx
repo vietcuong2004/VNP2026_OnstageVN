@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home, User, Briefcase, Crown, MessageSquare, Calendar, Wallet, Settings,
-  Sparkles, BookmarkCheck, LogOut, LayoutDashboard, ChevronRight, Trophy
+  Sparkles, BookmarkCheck, LogOut, LayoutDashboard, ChevronRight, Trophy,
+  Search, BarChart3, Users, Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,10 +23,15 @@ const talentMenuItems = [
 
 const brandMenuItems = [
   { label: "Tổng quan", icon: LayoutDashboard, href: "/brand/dashboard" },
-  { label: "Tìm tài năng", icon: Sparkles, href: "/brand/discover" },
-  { label: "Shortlist", icon: BookmarkCheck, href: "/brand/shortlists" },
-  { label: "Campaign", icon: Briefcase, href: "/brand/campaigns" },
-  { label: "Hồ sơ đối tác", icon: Settings, href: "/brand/settings" },
+  { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
+  { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
+  { label: "Chiến dịch tuyển dụng", icon: Briefcase, href: "/brand/campaigns" },
+  { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
+  { label: "Báo cáo & Phân tích", icon: BarChart3, href: "/brand/analytics" },
+  { label: "Quản lý thành viên", icon: Users, href: "/brand/team" },
+  { label: "Quản lý thanh toán", icon: Wallet, href: "/brand/billing" },
+  { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
+  { label: "Cài đặt doanh nghiệp", icon: Settings, href: "/brand/settings" },
 ];
 
 export default function Sidebar() {

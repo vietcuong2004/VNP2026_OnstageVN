@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home, Briefcase, BookmarkCheck, Crown, Search, User,
-  Sparkles, Trophy, Calendar, MessageSquare, Wallet, Menu, X, LogOut
+  Sparkles, Trophy, Calendar, MessageSquare, Wallet, Menu, X, LogOut,
+  BarChart3, Users, Bell, Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,20 @@ const talentAllItems = [
   { label: "Đăng xuất", icon: LogOut, href: "/" },
 ];
 
+const brandAllItems = [
+  { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
+  { label: "Tìm kiếm", icon: Search, href: "/brand/search" },
+  { label: "Shortlist", icon: BookmarkCheck, href: "/brand/shortlists" },
+  { label: "Campaign", icon: Briefcase, href: "/brand/campaigns" },
+  { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
+  { label: "Báo cáo", icon: BarChart3, href: "/brand/analytics" },
+  { label: "Thành viên", icon: Users, href: "/brand/team" },
+  { label: "Thanh toán", icon: Wallet, href: "/brand/billing" },
+  { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
+  { label: "Cài đặt", icon: Settings, href: "/brand/settings" },
+  { label: "Đăng xuất", icon: LogOut, href: "/" },
+];
+
 export default function BottomNavigation() {
   const pathname = usePathname();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -33,21 +48,22 @@ export default function BottomNavigation() {
 
   const isBrand = pathname.startsWith("/brand");
 
-  const brandItems = [
+  const brandPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
-    { label: "Tìm kiếm", icon: Search, href: "/brand/discover" },
+    { label: "Tìm kiếm", icon: Search, href: "/brand/search" },
     { label: "Shortlist", icon: BookmarkCheck, href: "/brand/shortlists" },
     { label: "Campaign", icon: Briefcase, href: "/brand/campaigns" },
-    { label: "Hồ sơ", icon: User, href: "/brand/settings" },
   ];
 
-  // Active items for the primary bottom row (4 core items + More menu button)
   const talentPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
     { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
     { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
     { label: "Khám phá", icon: Sparkles, href: "/talent/survey" },
   ];
+
+  const primaryItems = isBrand ? brandPrimaryItems : talentPrimaryItems;
+  const allItems = isBrand ? brandAllItems : talentAllItems;
 
   return (
     <>
@@ -77,7 +93,7 @@ export default function BottomNavigation() {
           </h3>
           <button
             onClick={() => setShowMoreMenu(false)}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-slate-400 hover:text-white"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-slate-400 hover:text-white cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -85,27 +101,31 @@ export default function BottomNavigation() {
 
         {/* Grid of all items */}
         <div className="grid grid-cols-4 gap-y-5 gap-x-2.5 max-h-[60vh] overflow-y-auto pr-1">
-          {talentAllItems.map((item) => {
+          {allItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isLogout = item.label === "Đăng xuất";
+            const isActive = !isLogout && (pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href)));
             return (
               <Link
                 key={item.label}
                 href={item.href}
                 onClick={() => setShowMoreMenu(false)}
-                className="flex flex-col items-center text-center group"
+                className="flex flex-col items-center text-center group cursor-pointer"
               >
                 <div className={cn(
                   "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300",
                   isActive
                     ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
+                    : isLogout
+                    ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.08)]"
                     : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
                 )}>
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-5 w-5 animate-none" />
                 </div>
                 <span className={cn(
-                  "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider text-slate-400 group-hover:text-white transition-colors block max-w-[70px] truncate",
-                  isActive && "text-amber-400 font-extrabold"
+                  "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
+                  isActive && "text-amber-400 font-extrabold",
+                  isLogout ? "text-red-400 group-hover:text-red-300 font-black" : "text-slate-400 group-hover:text-white"
                 )}>
                   {item.label}
                 </span>
@@ -118,101 +138,63 @@ export default function BottomNavigation() {
       {/* Main Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center px-4 pb-4 md:hidden">
         <nav className="flex h-16 w-full max-w-md items-center justify-around rounded-2xl border border-white/10 bg-slate-950/75 px-2 shadow-2xl backdrop-blur-xl">
-          {isBrand ? (
-            // Brand Layout: 5 items directly on bottom row
-            brandItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/brand/dashboard" && pathname.startsWith(item.href));
-              const Icon = item.icon;
+          {primaryItems.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href));
+            const Icon = item.icon;
 
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="group flex flex-col items-center justify-center gap-1 py-1"
-                >
-                  <div
-                    className={cn(
-                      "relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
-                      isActive
-                        ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
-                        : "text-slate-400 hover:bg-white/5 hover:text-white"
-                    )}
-                  >
-                    <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                  </div>
-                  <span
-                    className={cn(
-                      "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
-                      isActive ? "text-amber-400 font-black" : "text-slate-500"
-                    )}
-                  >
-                    {item.label}
-                  </span>
-                </Link>
-              );
-            })
-          ) : (
-            // Talent Layout: 4 core items + 1 Menu button
-            <>
-              {talentPrimaryItems.map((item) => {
-                const isActive = pathname === item.href || (item.href !== "/talent/dashboard" && pathname.startsWith(item.href));
-                const Icon = item.icon;
-
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="group flex flex-col items-center justify-center gap-1 py-1"
-                  >
-                    <div
-                      className={cn(
-                        "relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
-                        isActive
-                          ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
-                          : "text-slate-400 hover:bg-white/5 hover:text-white"
-                      )}
-                    >
-                      <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                    </div>
-                    <span
-                      className={cn(
-                        "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
-                        isActive ? "text-amber-400 font-black" : "text-slate-500"
-                      )}
-                    >
-                      {item.label}
-                    </span>
-                  </Link>
-                );
-              })}
-
-              {/* More Menu Action Button */}
-              <button
-                type="button"
-                onClick={() => setShowMoreMenu(true)}
-                className="group flex flex-col items-center justify-center gap-1 py-1 focus:outline-none"
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="group flex flex-col items-center justify-center gap-1 py-1 cursor-pointer"
               >
                 <div
                   className={cn(
                     "relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
-                    showMoreMenu
+                    isActive
                       ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
                       : "text-slate-400 hover:bg-white/5 hover:text-white"
                   )}
                 >
-                  <Menu className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                  <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                 </div>
                 <span
                   className={cn(
                     "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
-                    showMoreMenu ? "text-amber-400 font-black" : "text-slate-500"
+                    isActive ? "text-amber-400 font-black" : "text-slate-500"
                   )}
                 >
-                  Thêm
+                  {item.label}
                 </span>
-              </button>
-            </>
-          )}
+              </Link>
+            );
+          })}
+
+          {/* More Menu Action Button */}
+          <button
+            type="button"
+            onClick={() => setShowMoreMenu(true)}
+            className="group flex flex-col items-center justify-center gap-1 py-1 focus:outline-none cursor-pointer"
+          >
+            <div
+              className={cn(
+                "relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
+                showMoreMenu
+                  ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+              )}
+            >
+              <Menu className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+            </div>
+            <span
+              className={cn(
+                "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
+                showMoreMenu ? "text-amber-400 font-black" : "text-slate-500"
+              )}
+            >
+              Thêm
+            </span>
+          </button>
         </nav>
       </div>
     </>

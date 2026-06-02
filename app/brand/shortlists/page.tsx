@@ -116,7 +116,7 @@ export default function BrandShortlistsPage() {
                       <div className="mb-2 flex flex-wrap items-center gap-2">
                         <h3 className="text-base font-black text-white">{talent.name}</h3>
                         <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-400">{talent.type}</span>
-                        <span className="rounded bg-amber-400 px-2 py-0.5 text-[9px] font-black uppercase text-slate-950">Tier {talent.tier}</span>
+                        <span className="rounded bg-amber-400 px-2 py-0.5 text-[9px] font-black uppercase text-slate-950">Hạng {talent.tier}</span>
                       </div>
                       <p className="text-xs leading-relaxed text-slate-400">{talent.experience}</p>
                       <div className="mt-3 flex flex-wrap gap-2">

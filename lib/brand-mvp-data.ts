@@ -14,7 +14,7 @@ export type TalentProfile = {
   skinTone: string;
   hairColor: string;
   yearsOfExperience: number;
-  tier: "A" | "B" | "C";
+  tier: "S" | "A" | "B" | "C";
   verified: boolean;
   rating: number;
   completedJobs: number;
@@ -101,7 +101,7 @@ export const talents: TalentProfile[] = [
     skinTone: "Sáng",
     hairColor: "Nâu đen",
     yearsOfExperience: 3,
-    tier: "A",
+    tier: "S",
     verified: true,
     rating: 4.9,
     completedJobs: 18,

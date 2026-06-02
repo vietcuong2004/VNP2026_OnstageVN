@@ -1,0 +1,10 @@
+apps:
+  - name: 'onstage-web'
+    script: 'npm'
+    args: 'start'
+    instances: 1
+    exec_mode: fork
+    cwd: /var/www/manager-kol-model/web-main/current
+    autorestart: true
+    restart_delay: 30000
+    log_date_format: MM.DD.HH.mm
