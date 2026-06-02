@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import {
   Award, User, GraduationCap, BookOpen, DollarSign,
   TrendingUp, Wallet, ShieldCheck, Calendar, Image, Sparkles, Star, Crown, Video,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Upload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
@@ -47,6 +47,35 @@ export default function PersonalInfoTab({
   setShowBookModal,
   setBookingForm
 }: PersonalInfoTabProps) {
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover" | "fullBody") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Enforce size limit of 1.5MB to avoid localStorage quota exceeded (max 5MB)
+    if (file.size > 1.5 * 1024 * 1024) {
+      addToast("Kích thước ảnh phải nhỏ hơn 1.5MB để tối ưu dung lượng lưu trữ", "info");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64String = event.target?.result as string;
+      if (base64String) {
+        const updatedProfile = { ...profile, [type]: base64String };
+        setProfile(updatedProfile);
+        localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
+
+        let typeName = "";
+        if (type === "avatar") typeName = "Ảnh đại diện";
+        else if (type === "cover") typeName = "Ảnh bìa";
+        else if (type === "fullBody") typeName = "Ảnh toàn thân (Full-body)";
+
+        addToast(`Cập nhật ${typeName} thành công!`, "success");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Lookbook photos metadata (labeled exactly "Ảnh 1", "Ảnh 2", "Ảnh 3", "Ảnh 4")
   const lookbookPhotos = [
@@ -142,10 +171,10 @@ export default function PersonalInfoTab({
     const status = getDayStatus(dateStr);
     const dayNum = dateStr.split("-")[2];
 
-    const cleanedCalendar = calendar.filter((d: string) => 
-      d !== dateStr && 
-      d !== `${dateStr}:available` && 
-      d !== `${dateStr}:maybe` && 
+    const cleanedCalendar = calendar.filter((d: string) =>
+      d !== dateStr &&
+      d !== `${dateStr}:available` &&
+      d !== `${dateStr}:maybe` &&
       d !== `${dateStr}:busy`
     );
 
@@ -179,12 +208,27 @@ export default function PersonalInfoTab({
 
           <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-inner">
             <img
-              src="/fullbody_model.png"
+              src={profile.fullBody || "/fullbody_model.png"}
               alt="Model Full-body portrait"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80" />
-            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+
+            {/* Desktop Hover Overlay upload trigger */}
+            <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-amber-400/80 rounded-xl px-4 py-3 text-white text-xs font-bold cursor-pointer transition-all">
+                <Upload className="h-5 w-5 text-amber-400" />
+                <span>Đổi ảnh toàn thân</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleImageUpload(e, "fullBody")}
+                />
+              </label>
+            </div>
+
+            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end group-hover:opacity-20 transition-opacity duration-300">
               <div>
                 <span className="text-[8px] font-mono tracking-widest text-[#f4c430] font-bold uppercase">POLAROID BOOK</span>
                 <h4 className="text-xs font-black text-white mt-0.5">{profile.name.toUpperCase()}</h4>
@@ -193,6 +237,20 @@ export default function PersonalInfoTab({
                 Ratio: 3:4
               </div>
             </div>
+          </div>
+
+          {/* Mobile visible upload button */}
+          <div className="pt-1 text-center">
+            <label className="inline-flex items-center gap-1.5 w-full justify-center bg-amber-400/5 hover:bg-amber-400/10 border border-amber-400/20 hover:border-amber-400 text-amber-400 text-[10px] font-bold px-3 py-2.5 rounded-xl cursor-pointer transition-all">
+              <Upload className="h-3.5 w-3.5" />
+              Tải lên ảnh Full-body mới
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleImageUpload(e, "fullBody")}
+              />
+            </label>
           </div>
         </div>
 
@@ -223,15 +281,15 @@ export default function PersonalInfoTab({
               <span className="font-bold text-white font-mono">{profile.dob || "15/05/2002"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300 border-t border-dashed border-[#151b2d]/50 pt-2">
-              <span className="font-medium text-slate-400">Số đo Vòng 1 (Ngực)</span>
+              <span className="font-medium text-slate-400">Số đo Vòng 1</span>
               <span className="font-bold text-white font-mono">{profile.bust} cm</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Số đo Vòng 2 (Eo)</span>
+              <span className="font-medium text-slate-400">Số đo Vòng 2</span>
               <span className="font-bold text-white font-mono">{profile.waist} cm</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Số đo Vòng 3 (Mông)</span>
+              <span className="font-medium text-slate-400">Số đo Vòng 3</span>
               <span className="font-bold text-white font-mono">{profile.hips} cm</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300 border-t border-dashed border-[#151b2d]/50 pt-2">
@@ -401,7 +459,7 @@ export default function PersonalInfoTab({
         <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4.5 w-4.5 text-slate-400" /> 
+              <Calendar className="h-4.5 w-4.5 text-slate-400" />
               <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
                 Lịch Làm Việc (Tháng {currentMonth < 10 ? `0${currentMonth}` : currentMonth}/{currentYear})
               </h3>

@@ -25,7 +25,7 @@ export default function BrandSettingsPage() {
 
   function saveProfile(event: React.FormEvent) {
     event.preventDefault();
-    window.alert("Đã lưu hồ sơ đối tác demo. Khi nối backend, form này sẽ gọi PUT /api/partner/profile.");
+    window.alert("Đã lưu hồ sơ.");
   }
 
   return (
@@ -34,15 +34,15 @@ export default function BrandSettingsPage() {
         <div>
           <div className="mb-2 flex items-center gap-2">
             <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-              Partner Profile
+              HỒ SƠ DOANH NGHIỆP
             </span>
             <span className="text-[10px] font-semibold text-slate-500">Brand / Agency / Recruiter</span>
           </div>
           <h1 className="font-display text-2xl font-black tracking-tight text-white">
-            Hồ sơ <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent">đối tác</span>
+            THÔNG TIN CHI TIẾT <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent">DOANH NGHIỆP</span>
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
-            Phase 1 dùng một loại tài khoản đăng nhập là brand. Nếu là agency hoặc nhà tuyển dụng, hệ thống phân biệt bằng loại tổ chức trong hồ sơ này.
+            Thông tin liên hệ của doanh nghiệp. Có thể thay đổi nhưng phải được Admin kiểm duyệt
           </p>
         </div>
 
@@ -91,7 +91,7 @@ export default function BrandSettingsPage() {
           </div>
 
           <div className="mt-5 rounded-xl border border-white/5 bg-white/[0.03] p-3 text-xs leading-relaxed text-slate-500">
-            Các trường này tương ứng bảng `partner_profiles` trong tài liệu Phase 1. Hiện tại mới là form frontend demo, chưa gọi backend.
+            Thông tin liên hệ của doanh nghiệp. Vui lòng cập nhật đầy đủ thông tin để tăng tính xác thực với các KOL, Model, MC, PG
           </div>
         </aside>
 
@@ -160,7 +160,7 @@ export default function BrandSettingsPage() {
           <div className="mt-6 flex justify-end border-t border-white/5 pt-5">
             <button type="submit" className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-5 text-xs font-black text-slate-950">
               <Save className="mr-2 h-4 w-4" />
-              Lưu hồ sơ đối tác
+              Lưu hồ sơ
             </button>
           </div>
         </main>

@@ -25,13 +25,12 @@ const brandMenuItems = [
   { label: "Tổng quan", icon: LayoutDashboard, href: "/brand/dashboard" },
   { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
   { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
-  { label: "Chiến dịch tuyển dụng", icon: Briefcase, href: "/brand/campaigns" },
+  { label: "Chiến dịch", icon: Briefcase, href: "/brand/campaigns" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   { label: "Báo cáo & Phân tích", icon: BarChart3, href: "/brand/analytics" },
-  { label: "Quản lý thành viên", icon: Users, href: "/brand/team" },
   { label: "Quản lý thanh toán", icon: Wallet, href: "/brand/billing" },
   { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
-  { label: "Cài đặt doanh nghiệp", icon: Settings, href: "/brand/settings" },
+  { label: "Cài đặt", icon: Settings, href: "/brand/settings" },
 ];
 
 export default function Sidebar() {

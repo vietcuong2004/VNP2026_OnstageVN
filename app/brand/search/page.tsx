@@ -31,7 +31,7 @@ export default function DiscoverTalentsPage() {
   const [selectedType, setSelectedType] = useState(allValue);
   const [selectedCity, setSelectedCity] = useState(allValue);
   const [selectedPlatform, setSelectedPlatform] = useState(allValue);
-  
+
   const [minAge, setMinAge] = useState(18);
   const [maxAge, setMaxAge] = useState(40);
   const [minHeight, setMinHeight] = useState(150);
@@ -83,7 +83,7 @@ export default function DiscoverTalentsPage() {
         const matchesType = selectedType === allValue || talent.type === selectedType;
         const matchesCity = selectedCity === allValue || talent.city === selectedCity;
         const matchesPlatform = selectedPlatform === allValue || talent.platforms.includes(selectedPlatform);
-        
+
         const matchesAge = talent.age >= minAge && talent.age <= maxAge;
         const matchesHeight = talent.height >= minHeight && talent.height <= maxHeight;
         const matchesWeight = talent.weight >= minWeight && talent.weight <= maxWeight;
@@ -91,7 +91,7 @@ export default function DiscoverTalentsPage() {
         const matchesBust = !minBust || talent.bust >= minBust;
         const matchesWaist = !minWaist || talent.waist >= minWaist;
         const matchesHips = !minHips || talent.hips >= minHips;
-        
+
         let matchesExperience = true;
         if (selectedExperience !== allValue) {
           if (selectedExperience === "under_1") matchesExperience = talent.yearsOfExperience < 1;
@@ -191,12 +191,11 @@ export default function DiscoverTalentsPage() {
       <section className="border-b border-[#2B313D] pb-5">
         <div className="mb-2 flex items-center gap-2">
           <span className="rounded-md border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
-            Tìm kiếm chủ động
+            TÌM KIẾM TÀI NĂNG
           </span>
-          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Advanced filters</span>
         </div>
         <h1 className="font-display text-2xl font-black tracking-tight text-white uppercase">
-          TÌM KIẾM TALENT CHUYÊN NGHIỆP
+          DANH SÁCH TÀI NĂNG NỔI BẬT
         </h1>
         <p className="mt-2 max-w-3xl text-xs font-semibold leading-relaxed text-slate-400 uppercase tracking-wide">
           Hệ thống tìm kiếm kết hợp các bộ lọc chi tiết từ nhân khẩu học, ngoại hình đến chỉ số mạng xã hội.
@@ -220,14 +219,14 @@ export default function DiscoverTalentsPage() {
           <div className="space-y-3">
             {/* 1. THÔNG TIN CƠ BẢN */}
             <div className="border-b border-white/5 pb-3">
-              <button 
-                onClick={() => toggleSection("basic")} 
+              <button
+                onClick={() => toggleSection("basic")}
                 className="flex w-full items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white py-1 cursor-pointer"
               >
                 <span>Thông tin cơ bản</span>
                 {expandedSection.basic ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
               </button>
-              
+
               {expandedSection.basic && (
                 <div className="space-y-3 mt-3 animate-in slide-in-from-top-1 duration-200">
                   <label className="block space-y-1">
@@ -279,8 +278,8 @@ export default function DiscoverTalentsPage() {
 
             {/* 2. NGOẠI HÌNH & CHỈ SỐ */}
             <div className="border-b border-white/5 pb-3">
-              <button 
-                onClick={() => toggleSection("physical")} 
+              <button
+                onClick={() => toggleSection("physical")}
                 className="flex w-full items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white py-1 cursor-pointer"
               >
                 <span>Ngoại hình & Chỉ số</span>
@@ -311,7 +310,7 @@ export default function DiscoverTalentsPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  {/* <div className="space-y-1.5">
                     <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Số đo tối thiểu</span>
                     <div className="grid grid-cols-3 gap-1.5">
                       <label className="block space-y-1">
@@ -327,15 +326,15 @@ export default function DiscoverTalentsPage() {
                         <input type="number" placeholder="Hips" value={minHips || ""} onChange={(e) => setMinHips(Number(e.target.value))} className="w-full rounded-xl border border-white/5 bg-slate-950/50 px-2 py-1 text-[11px] text-white outline-none focus:border-[#C9A86A]/60 text-center" />
                       </label>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               )}
             </div>
 
             {/* 3. NGHỀ NGHIỆP & KINH NGHIỆM */}
             <div className="border-b border-white/5 pb-3">
-              <button 
-                onClick={() => toggleSection("professional")} 
+              <button
+                onClick={() => toggleSection("professional")}
                 className="flex w-full items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white py-1 cursor-pointer"
               >
                 <span>Nghề nghiệp & Kỹ năng</span>
@@ -372,8 +371,8 @@ export default function DiscoverTalentsPage() {
 
             {/* 4. MẠNG XÃ HỘI */}
             <div className="border-b border-white/5 pb-3">
-              <button 
-                onClick={() => toggleSection("social")} 
+              <button
+                onClick={() => toggleSection("social")}
                 className="flex w-full items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white py-1 cursor-pointer"
               >
                 <span>Mạng xã hội & Social</span>
@@ -410,14 +409,14 @@ export default function DiscoverTalentsPage() {
                         {minFollowers >= 1000 ? `${(minFollowers / 1000).toFixed(0)}K` : minFollowers}
                       </span>
                     </div>
-                    <input 
-                      type="range" 
-                      min={0} 
-                      max={250000} 
-                      step={10000} 
-                      value={minFollowers} 
-                      onChange={(e) => setMinFollowers(Number(e.target.value))} 
-                      className="w-full accent-[#C9A86A]" 
+                    <input
+                      type="range"
+                      min={0}
+                      max={250000}
+                      step={10000}
+                      value={minFollowers}
+                      onChange={(e) => setMinFollowers(Number(e.target.value))}
+                      className="w-full accent-[#C9A86A]"
                     />
                   </label>
                 </div>
@@ -426,8 +425,8 @@ export default function DiscoverTalentsPage() {
 
             {/* 5. CHẤT LƯỢNG & ĐÁNH GIÁ */}
             <div>
-              <button 
-                onClick={() => toggleSection("quality")} 
+              <button
+                onClick={() => toggleSection("quality")}
                 className="flex w-full items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white py-1 cursor-pointer"
               >
                 <span>Chất lượng & Đánh giá</span>
@@ -477,10 +476,10 @@ export default function DiscoverTalentsPage() {
           <div className="flex flex-col gap-3 border-b border-[#2B313D] pb-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="flex items-center gap-2 text-xs text-slate-400">
               <Filter className="h-4 w-4 text-[#C9A86A]" />
-              Tìm thấy <b className="text-white">{filteredTalents.length}</b> talent phù hợp sắp xếp theo điểm match.
+              Tìm thấy <b className="text-white">{filteredTalents.length}</b> talent phù hợp.
             </span>
             <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono shrink-0">
-              ĐÃ LƯU Shortlist: {savedIds.length}
+              ĐÃ LƯU <b className="text-white">{savedIds.length}</b> talent vào danh sách yêu thích
             </span>
           </div>
 
@@ -503,7 +502,7 @@ export default function DiscoverTalentsPage() {
                       {/* Image Top Area */}
                       <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-900 border border-white/5 mb-3.5">
                         <img src={talent.avatar} alt={talent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        
+
                         {/* Overlay top badges */}
                         <div className="absolute top-2 left-2 flex flex-col gap-1.5">
                           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-md">
@@ -516,8 +515,8 @@ export default function DiscoverTalentsPage() {
                           onClick={() => toggleSaved(talent.id)}
                           className={cn(
                             "absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full border shadow-lg backdrop-blur-sm transition active:scale-90 cursor-pointer",
-                            isSaved 
-                              ? "border-red-500 bg-red-500 text-white" 
+                            isSaved
+                              ? "border-red-500 bg-red-500 text-white"
                               : "border-white/10 bg-[#0F1115]/60 text-slate-300 hover:text-white"
                           )}
                           title={isSaved ? "Bỏ lưu" : "Lưu vào shortlist"}
@@ -550,7 +549,7 @@ export default function DiscoverTalentsPage() {
                           <h3 className="text-xs font-black text-white truncate flex-1">{talent.name}</h3>
                           {talent.verified && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />}
                         </div>
-                        
+
                         <div className="flex items-center gap-1 text-[9px] text-slate-500 font-bold uppercase tracking-wider">
                           <MapPin className="h-3 w-3 shrink-0" />
                           <span className="truncate">{talent.district}, {talent.city}</span>
@@ -618,12 +617,12 @@ export default function DiscoverTalentsPage() {
               </div>
               <button onClick={() => setSelectedInviteTalent(null)} className="text-slate-400 hover:text-white cursor-pointer"><X className="h-4.5 w-4.5" /></button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <label className="block space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Chọn chiến dịch tuyển dụng</span>
-                <select 
-                  value={selectedCampaignForInvite} 
+                <select
+                  value={selectedCampaignForInvite}
                   onChange={(e) => setSelectedCampaignForInvite(e.target.value)}
                   className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60"
                 >
@@ -637,7 +636,7 @@ export default function DiscoverTalentsPage() {
 
             <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
               <button onClick={() => setSelectedInviteTalent(null)} className="px-4 py-2 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Hủy</button>
-              <button 
+              <button
                 onClick={() => {
                   if (!selectedCampaignForInvite) {
                     window.alert("Vui lòng chọn chiến dịch!");

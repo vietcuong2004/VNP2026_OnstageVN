@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Bell, Calendar, ChevronDown, Crown, LogOut, Search, UserCircle } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { Bell, Calendar, ChevronDown, Crown, LogOut, Search, UserCircle, Building2 } from "lucide-react";
 
 type AuthUser = {
   name: string;
@@ -15,22 +15,10 @@ function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api").replace(/\/$/, "");
 }
 
-function getUserLabel(user: AuthUser | null) {
-  if (!user) {
-    return {
-      name: "Nguyễn Mai Anh",
-      subtitle: "Tier A",
-    };
-  }
-
-  return {
-    name: user.name,
-    subtitle: user.type === "talent" ? "Talent" : "Brand",
-  };
-}
-
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isBrandPath = pathname.startsWith("/brand");
   const [open, setOpen] = useState(false);
   const [user] = useState<AuthUser | null>(() => {
     if (typeof window === "undefined") {
@@ -49,7 +37,12 @@ export default function Header() {
       return null;
     }
   });
-  const label = getUserLabel(user);
+
+  const label = user
+    ? { name: user.name, subtitle: user.type === "talent" ? "Talent" : "Đối tác" }
+    : isBrandPath
+      ? { name: "L'Oréal Vietnam", subtitle: "Doanh nghiệp" }
+      : { name: "Nguyễn Mai Anh", subtitle: "Hạng S" };
 
   async function handleLogout() {
     const token = localStorage.getItem("onstagevn_auth_token");
@@ -117,9 +110,9 @@ export default function Header() {
             className="flex items-center gap-3 rounded-xl px-2 py-1 text-left transition-colors hover:bg-white/5"
           >
             <img
-              src="/avatar.png"
+              src={isBrandPath ? "/logo_icon.png" : "/avatar.png"}
               alt="Profile avatar"
-              className="h-9 w-9 rounded-full border border-amber-400/30 object-cover"
+              className="h-9 w-9 rounded-full border border-amber-400/30 object-cover bg-slate-950"
             />
             <div className="hidden sm:block">
               <span className="block text-xs font-bold text-white">{label.name}</span>
@@ -131,15 +124,40 @@ export default function Header() {
           {open && (
             <div className="absolute right-0 top-12 w-64 rounded-xl border border-white/10 bg-[#080b16] p-2 shadow-2xl">
               <div className="flex items-center gap-3 rounded-lg px-3 py-3 border-b border-white/5 mb-1.5">
-                <UserCircle className="h-9 w-9 text-amber-300" />
+                {isBrandPath ? <Building2 className="h-9 w-9 text-amber-300" /> : <UserCircle className="h-9 w-9 text-amber-300" />}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-white">{label.name}</p>
-                  <p className="truncate text-xs text-slate-500">{user?.email ?? "Tài khoản demo"}</p>
+                  <p className="truncate text-xs text-slate-500">{user?.email ?? (isBrandPath ? "partner@loreal.com" : "maianh@onstage.vn")}</p>
                 </div>
               </div>
 
               {/* Navigation Links based on user role */}
-              {(!user || user.type === "talent") ? (
+              {isBrandPath ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push("/brand/settings");
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    <Building2 className="h-4 w-4 text-slate-400" />
+                    Cài đặt
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push("/brand/dashboard");
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    <Calendar className="h-4 w-4 text-slate-400" />
+                    Tổng quan
+                  </button>
+                </>
+              ) : (
                 <>
                   <button
                     type="button"
@@ -162,31 +180,6 @@ export default function Header() {
                   >
                     <Calendar className="h-4 w-4 text-slate-400" />
                     Lịch trình
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      router.push("/brand/settings");
-                      setOpen(false);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                  >
-                    <UserCircle className="h-4 w-4 text-slate-400" />
-                    Hồ sơ đối tác
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      router.push("/brand/dashboard");
-                      setOpen(false);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                  >
-                    <Calendar className="h-4 w-4 text-slate-400" />
-                    Tổng quan
                   </button>
                 </>
               )}
