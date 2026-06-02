@@ -108,13 +108,17 @@ Ngân sách thanh toán của nhãn hàng được chuyển vào ví trung gian 
 **1. Truy cập vào server:**
 ```bash
 ssh ssh_code@118.70.132.119 -p 4522
-
 ```
-**2.Chạy script:**
+**2. Truy cập thư mục code trên server:**
+```bash
+cd /var/www/manager-kol-model/web-main/current
+```
+
+**3.Chạy script:**
 ```bash
 ./deploy.sh
-
 ```
+
 ### Cách thủ công:
 **1. Truy cập vào server:**
 ```bash
