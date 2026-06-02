@@ -66,6 +66,19 @@ function buildHeaders(defaultHeaders: Record<string, string>, extraHeaders?: Hea
   return headers;
 }
 
+async function parseApiResponse<T>(response: Response) {
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return undefined as T;
+  }
+
+  return JSON.parse(text) as T;
+}
+
 export async function apiJson<T>(path: string, init: RequestInit = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
@@ -80,7 +93,7 @@ export async function apiJson<T>(path: string, init: RequestInit = {}) {
     throw new Error(await parseApiError(response));
   }
 
-  return (await response.json()) as T;
+  return parseApiResponse<T>(response);
 }
 
 export async function apiForm<T>(path: string, formData: FormData, init: RequestInit = {}) {
@@ -98,5 +111,5 @@ export async function apiForm<T>(path: string, formData: FormData, init: Request
     throw new Error(await parseApiError(response));
   }
 
-  return (await response.json()) as T;
+  return parseApiResponse<T>(response);
 }
