@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Edit3, ShieldCheck, CheckCircle, Camera, X, Plus, Info, Upload, Video, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { deleteTalentPhoto, saveTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 
 const convertToInputDate = (dateStr: string) => {
   if (!dateStr) return "2002-05-15";
@@ -41,6 +42,7 @@ export default function EditInfoTab({
   setProfile,
   addToast
 }: EditInfoTabProps) {
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
 
   // Identity card (CCCD) upload state simulators
   const [cccdFrontUploaded, setCccdFrontUploaded] = useState(false);
@@ -192,6 +194,110 @@ export default function EditInfoTab({
     addToast("Đã gửi hồ sơ xác minh CCCD lên hệ thống! Tiến trình xét duyệt từ 1-2 tiếng.", "success");
   };
 
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const updated = {
+      ...profile,
+      name: editForm.name,
+      height: Number(editForm.height),
+      weight: Number(editForm.weight),
+      bust: Number(editForm.bust),
+      waist: Number(editForm.waist),
+      hips: Number(editForm.hips),
+      location: editForm.location,
+      hometown: editForm.hometown,
+      education: editForm.education,
+      languages: editForm.languages.split(",").map((s: string) => s.trim()),
+      rateCard: { ...editForm.rateCard },
+      plasticSurgery: editForm.plasticSurgery,
+      maritalStatus: editForm.maritalStatus,
+      gender: editForm.gender,
+      dob: convertToDisplayDate(editForm.dob),
+      skinColor: editForm.skinColor,
+      hairColor: editForm.hairColor,
+      tattoo: editForm.tattoo,
+      tattooDesc: editForm.tattoo === "Có" ? editForm.tattooDesc : "",
+      experience: Number(editForm.experience),
+      specialSkills: editForm.specialSkills.split(",").map((s: string) => s.trim()),
+      skills: editForm.specialSkills.split(",").map((s: string) => s.trim())
+    };
+
+    const saved = await saveTalentProfile(updated);
+    setProfile(saved);
+    localStorage.setItem("vnp_talent_profile", JSON.stringify(saved));
+    addToast("Đã lưu thông tin cá nhân lên hệ thống!", "success");
+  };
+
+  const simulateLocalPhotoUpload = () => {
+    const unsplashPhotos = [
+      "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=600",
+      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=600",
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600"
+    ];
+    const randomPhoto = unsplashPhotos[Math.floor(Math.random() * unsplashPhotos.length)];
+    const updatedProfile = { ...profile, photos: [...(profile.photos || []), randomPhoto] };
+    setProfile(updatedProfile);
+    localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
+  };
+
+  const handlePhotoFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || uploadingType || (profile.photos || []).length >= 10) return;
+
+    setUploadingType("photos");
+    setUploadProgress(20);
+
+    try {
+      if (!profile.backendProfileId) {
+        simulateLocalPhotoUpload();
+        return;
+      }
+
+      setUploadProgress(60);
+      const photo = await uploadTalentPhoto(profile.backendProfileId, file);
+      const photoUrl = photo.url || photo.path;
+      const updatedProfile = {
+        ...profile,
+        photos: photoUrl ? [...(profile.photos || []), photoUrl] : profile.photos || [],
+        photoRecords: [...(profile.photoRecords || []), photo],
+      };
+      setProfile(updatedProfile);
+      localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
+    } catch (error) {
+      console.error(error);
+      addToast("Không tải được ảnh lên backend, vui lòng thử lại.", "info");
+    } finally {
+      setUploadProgress(100);
+      setTimeout(() => setUploadingType(null), 120);
+    }
+  };
+
+  const handleRemovePhoto = async (idx: number) => {
+    const photoRecord = profile.photoRecords?.[idx];
+
+    try {
+      if (profile.backendProfileId && photoRecord?.id) {
+        await deleteTalentPhoto(profile.backendProfileId, photoRecord.id);
+      }
+    } catch (error) {
+      console.error(error);
+      addToast("Không xóa được ảnh trên backend, vui lòng thử lại.", "info");
+      return;
+    }
+
+    const updatedPhotos = [...(profile.photos || [])];
+    const updatedRecords = [...(profile.photoRecords || [])];
+    updatedPhotos.splice(idx, 1);
+    updatedRecords.splice(idx, 1);
+    const updatedProfile = { ...profile, photos: updatedPhotos, photoRecords: updatedRecords };
+    setProfile(updatedProfile);
+    localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
+    addToast("Đã xóa ảnh khỏi bộ ảnh nghệ thuật", "info");
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-300">
 
@@ -206,37 +312,7 @@ export default function EditInfoTab({
           </span>
         </div>
 
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          const updated = {
-            ...profile,
-            name: editForm.name,
-            height: Number(editForm.height),
-            weight: Number(editForm.weight),
-            bust: Number(editForm.bust),
-            waist: Number(editForm.waist),
-            hips: Number(editForm.hips),
-            location: editForm.location,
-            hometown: editForm.hometown,
-            education: editForm.education,
-            languages: editForm.languages.split(",").map((s: string) => s.trim()),
-            rateCard: { ...editForm.rateCard },
-            plasticSurgery: editForm.plasticSurgery,
-            maritalStatus: editForm.maritalStatus,
-            gender: editForm.gender,
-            dob: convertToDisplayDate(editForm.dob),
-            skinColor: editForm.skinColor,
-            hairColor: editForm.hairColor,
-            tattoo: editForm.tattoo,
-            tattooDesc: editForm.tattoo === "Có" ? editForm.tattooDesc : "",
-            experience: Number(editForm.experience),
-            specialSkills: editForm.specialSkills.split(",").map((s: string) => s.trim()),
-            skills: editForm.specialSkills.split(",").map((s: string) => s.trim())
-          };
-          setProfile(updated);
-          localStorage.setItem("vnp_talent_profile", JSON.stringify(updated));
-          addToast("Cập nhật thông tin cá nhân và ngoại hình thành công!", "success");
-        }} className="space-y-4 text-xs">
+        <form onSubmit={handleProfileSubmit} className="space-y-4 text-xs">
 
           {/* Row 1: Name & Location */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -667,20 +743,21 @@ export default function EditInfoTab({
           </div>
         )}
 
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={handlePhotoFileChange}
+        />
+
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {(profile.photos || []).map((imgUrl: string, idx: number) => (
             <div key={idx} className="relative aspect-[3/4] rounded-lg overflow-hidden border border-white/5 bg-slate-900 group shadow-md">
               <img src={imgUrl} className="h-full w-full object-cover" />
               <button
                 type="button"
-                onClick={() => {
-                  const updatedPhotos = [...(profile.photos || [])];
-                  updatedPhotos.splice(idx, 1);
-                  const updatedProfile = { ...profile, photos: updatedPhotos };
-                  setProfile(updatedProfile);
-                  localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
-                  addToast("Đã xóa ảnh khỏi bộ ảnh nghệ thuật", "info");
-                }}
+                onClick={() => handleRemovePhoto(idx)}
                 className="absolute top-1.5 right-1.5 h-5 w-5 bg-red-600/90 text-white rounded-full flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer shadow-md"
               >
                 <X className="h-3 w-3" />
@@ -693,33 +770,7 @@ export default function EditInfoTab({
             disabled={!!uploadingType || (profile.photos || []).length >= 10}
             onClick={() => {
               if (uploadingType || (profile.photos || []).length >= 10) return;
-              setUploadingType("photos");
-              setUploadProgress(0);
-              let progress = 0;
-              const interval = setInterval(() => {
-                progress += 10;
-                setUploadProgress(progress);
-                if (progress >= 100) {
-                  clearInterval(interval);
-                  setTimeout(() => {
-                    const unsplashPhotos = [
-                      "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
-                      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
-                      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=600",
-                      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=600",
-                      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600"
-                    ];
-                    const randomPhoto = unsplashPhotos[Math.floor(Math.random() * unsplashPhotos.length)];
-                    const currentPhotos = [...(profile.photos || [])];
-                    currentPhotos.push(randomPhoto);
-                    const updatedProfile = { ...profile, photos: currentPhotos };
-                    setProfile(updatedProfile);
-                    localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
-                    setUploadingType(null);
-                    addToast("Đã tải ảnh mới lên Art Portfolio!", "success");
-                  }, 100);
-                }
-              }, 100);
+              photoInputRef.current?.click();
             }}
             className={cn(
               "aspect-[3/4] rounded-lg border border-dashed flex flex-col items-center justify-center gap-1.5 transition-all text-xs",

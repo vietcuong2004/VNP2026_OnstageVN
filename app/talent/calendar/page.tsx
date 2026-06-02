@@ -8,6 +8,7 @@ import {
   Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createTalentCalendarEvent, loadTalentCalendar, loadTalentProfile } from "@/lib/talent-api";
 
 // Contest data for the calendar page detail modal
 const CALENDAR_CONTESTS = [
@@ -338,8 +339,27 @@ export default function CalendarPage() {
   };
 
   useEffect(() => {
+    let active = true;
     const today = new Date();
     setTodayDateStr(`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`);
+
+    loadTalentProfile().then(async (loadedProfile) => {
+      if (!active) return;
+      setProfile(loadedProfile);
+
+      const calendar = await loadTalentCalendar(loadedProfile);
+      if (!active || !calendar) return;
+
+      setTodoLists((current: Record<string, unknown[]>) => {
+        const merged = { ...current, ...calendar.todoLists };
+        localStorage.setItem("vnp_talent_todos", JSON.stringify(merged));
+        return merged;
+      });
+
+      const updatedProfile = { ...loadedProfile, availabilityCalendar: calendar.availabilityCalendar };
+      setProfile(updatedProfile);
+      localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
+    });
 
     // Load Profile
     const stored = localStorage.getItem("vnp_talent_profile");
@@ -360,6 +380,9 @@ export default function CalendarPage() {
         console.error(e);
       }
     }
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handlePrevMonth = () => {
@@ -428,17 +451,32 @@ export default function CalendarPage() {
     localStorage.setItem("vnp_talent_todos", JSON.stringify(newTodoLists));
   };
 
-  const handleAddTask = (e: React.FormEvent) => {
+  const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.title.trim()) return;
 
-    const taskItem = {
+    let taskItem = {
       id: `task-${Date.now()}`,
       time: newTask.time || "Cả ngày",
       title: newTask.title,
       desc: newTask.desc || "",
       status: "pending"
     };
+
+    if (profile?.backendProfileId) {
+      try {
+        const event = await createTalentCalendarEvent(profile.backendProfileId, selectedDate, newTask);
+        taskItem = {
+          id: event.id,
+          time: event.starts_at && event.ends_at ? `${event.starts_at.slice(11, 16)} - ${event.ends_at.slice(11, 16)}` : taskItem.time,
+          title: event.title || taskItem.title,
+          desc: event.description || taskItem.desc,
+          status: event.status || "pending"
+        };
+      } catch (error) {
+        console.error(error);
+      }
+    }
 
     const dateTodos = getTasksForDate(selectedDate);
     const newTodoLists = {

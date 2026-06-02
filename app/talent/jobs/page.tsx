@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { 
   Search, MapPin, DollarSign, Sparkles, Filter, ShieldCheck, CheckCircle,
   Eye, X, Info, Clock, Phone, Mail, Globe, MapPinned, Trophy, AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { applyTalentCampaign, loadTalentCampaigns, mapCampaignToTalentJob } from "@/lib/talent-api";
 
 export default function JobsPage() {
   const [selectedTag, setSelectedTag] = useState("Tất cả");
@@ -250,19 +251,44 @@ export default function JobsPage() {
     }
   ];
 
-  const handleApply = (id: string, title: string) => {
-    if (appliedJobs.includes(id)) return;
-    setAppliedJobs((prev) => [...prev, id]);
-    addToast(`Ứng tuyển thành công công việc "${title}"!`);
+  const [campaigns, setCampaigns] = useState<any[]>(mockCampaigns);
+
+  useEffect(() => {
+    let active = true;
+
+    loadTalentCampaigns().then((items) => {
+      if (!active || !items?.length) return;
+      const mapped = items.map(mapCampaignToTalentJob);
+      setCampaigns(mapped);
+      setAppliedJobs(mapped.filter((item) => item.hasApplied).map((item) => String(item.id)));
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleApply = async (id: string, title: string) => {
+    if (appliedJobs.includes(String(id))) return;
+
+    try {
+      await applyTalentCampaign(id);
+      setCampaigns((prev) => prev.map((campaign) => String(campaign.id) === String(id) ? { ...campaign, hasApplied: true, application: { status: "new" } } : campaign));
+      setAppliedJobs((prev) => [...prev, String(id)]);
+      addToast(`\u1ee8ng tuy\u1ec3n th\u00e0nh c\u00f4ng c\u00f4ng vi\u1ec7c "${title}"!`);
+    } catch (error) {
+      console.error(error);
+      addToast("Kh\u00f4ng g\u1eedi \u0111\u01b0\u1ee3c \u1ee9ng tuy\u1ec3n l\u00ean backend. Vui l\u00f2ng \u0111\u0103ng nh\u1eadp Talent v\u00e0 th\u1eed l\u1ea1i.", "info");
+    }
   };
 
-  const filteredCampaigns = selectedTag === "Tất cả"
-    ? mockCampaigns
-    : selectedTag === "Đã ứng tuyển"
-    ? mockCampaigns.filter(c => appliedJobs.includes(c.id))
-    : mockCampaigns.filter(c => !appliedJobs.includes(c.id)); // "Đang tuyển"
+  const tags = ["T\u1ea5t c\u1ea3", "\u0110\u00e3 \u1ee9ng tuy\u1ec3n", "\u0110ang tuy\u1ec3n"];
 
-  const tags = ["Tất cả", "Đã ứng tuyển", "Đang tuyển"];
+  const filteredCampaigns = selectedTag === tags[0]
+    ? campaigns
+    : selectedTag === tags[1]
+    ? campaigns.filter(c => appliedJobs.includes(String(c.id)))
+    : campaigns.filter(c => !appliedJobs.includes(String(c.id)));
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -294,7 +320,7 @@ export default function JobsPage() {
       {/* Campaigns Listing - Premium grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredCampaigns.map((camp) => {
-          const isApplied = appliedJobs.includes(camp.id);
+          const isApplied = appliedJobs.includes(String(camp.id));
           
           return (
             <div
@@ -395,7 +421,7 @@ export default function JobsPage() {
                       <ShieldCheck className="h-3 w-3" /> Đã ký quỹ Escrow
                     </span>
                   )}
-                  {appliedJobs.includes(selectedJob.id) && (
+                  {appliedJobs.includes(String(selectedJob.id)) && (
                     <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[8px] text-emerald-400 font-extrabold border border-emerald-500/20 uppercase tracking-wider">
                       <CheckCircle className="h-3 w-3" /> Đã ứng tuyển
                     </span>
@@ -559,15 +585,15 @@ export default function JobsPage() {
                 onClick={() => {
                   handleApply(selectedJob.id, selectedJob.title);
                 }}
-                disabled={appliedJobs.includes(selectedJob.id)}
+                disabled={appliedJobs.includes(String(selectedJob.id))}
                 className={cn(
                   "px-6 py-2.5 rounded-xl font-display text-xs font-bold transition-all duration-300 cursor-pointer",
-                  appliedJobs.includes(selectedJob.id)
+                  appliedJobs.includes(String(selectedJob.id))
                     ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 cursor-not-allowed"
                     : "bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98]"
                 )}
               >
-                {appliedJobs.includes(selectedJob.id) ? "Đã ứng tuyển" : "Ứng tuyển ngay"}
+                {appliedJobs.includes(String(selectedJob.id)) ? "Đã ứng tuyển" : "Ứng tuyển ngay"}
               </button>
             </div>
 

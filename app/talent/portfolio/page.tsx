@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
 import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
+import { loadTalentProfile } from "@/lib/talent-api";
 
 export default function PortfolioPage() {
   const router = useRouter();
@@ -49,94 +50,15 @@ export default function PortfolioPage() {
   };
 
   useEffect(() => {
-    const stored = localStorage.getItem("vnp_talent_profile");
-    const defaultMock = {
-      name: "Nguyễn Mai Anh",
-      birthYear: 2002,
-      location: "Hà Nội",
-      hometown: "Nam Định",
-      phone: "0912345678",
-      email: "maianh.nguyen@beautyapp.vn",
-      avatar: "/avatar.png",
-      height: 172,
-      weight: 51,
-      bust: 85,
-      waist: 60,
-      hips: 90,
-      plasticSurgery: "false",
-      maritalStatus: "Độc thân",
-      education: "Cử nhân Học viện Ngoại giao",
-      languages: ["Tiếng Việt", "Tiếng Anh (IELTS 7.5)"],
-      skills: ["Catwalk", "MC song ngữ", "Social Content", "Pose dáng lookbook"],
-      followersCount: 520000,
-      engagementRate: 4.8,
-      profileScore: 82,
-      tier: "A",
-      rateCard: {
-        "Instagram Post": 3000000,
-        "TikTok Video": 5000000,
-        "Livestream 2h": 8000000,
-        "Event Appearance": 10000000,
-        "Catwalk Show": 15000000
-      },
-      availabilityCalendar: ["2026-06-24", "2026-06-25", "2026-06-28"],
-      reliability: 96,
-      reviewsCount: 18,
-      averageRating: 4.9,
-      surveyScores: { pageant: 50, runway: 45, kol: 95 },
-      skillsScores: {
-        catwalk: 85,
-        pose: 90,
-        mc: 75,
-        livestream: 80,
-        acting: 70,
-        social: 95,
-        safety: 90,
-        reliability: 96
-      },
-      mainCategory: "KOL / Người mẫu ảnh / Giải trí thế hệ mới",
-      verifiedLevel: "Elite",
-      isAvailable: true,
-      isSuperBoosted: false,
-      isPremiumBoosted: false,
-      photos: [
-        "/fullbody_model.png",
-        "/cover_image.png",
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
-        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600"
-      ],
-      hasUploadedCatwalk: true,
-      hasUploadedIntro: true,
-      hasUploadedMC: true
-    };
+    let active = true;
 
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (parsed && (parsed.avatar?.includes("unsplash.com") || !parsed.avatar)) {
-          parsed.avatar = "/avatar.png";
-        }
-        if (parsed) {
-          if (!parsed.skillsScores) parsed.skillsScores = defaultMock.skillsScores;
-          if (!parsed.followersCount || parsed.followersCount === 120000) parsed.followersCount = 520000;
-          if (parsed.isAvailable === undefined) parsed.isAvailable = true;
-          if (!parsed.verifiedLevel) parsed.verifiedLevel = "Elite";
-          if (!parsed.rateCard["Event Appearance"]) parsed.rateCard["Event Appearance"] = 10000000;
-          if (!parsed.photos) parsed.photos = defaultMock.photos;
-          if (parsed.hasUploadedCatwalk === undefined) parsed.hasUploadedCatwalk = true;
-          if (parsed.hasUploadedIntro === undefined) parsed.hasUploadedIntro = true;
-          if (parsed.hasUploadedMC === undefined) parsed.hasUploadedMC = true;
-        }
-        localStorage.setItem("vnp_talent_profile", JSON.stringify(parsed));
-        setProfile(parsed);
-      } catch (e) {
-        console.error(e);
-        setProfile(defaultMock);
-      }
-    } else {
-      localStorage.setItem("vnp_talent_profile", JSON.stringify(defaultMock));
-      setProfile(defaultMock);
-    }
+    loadTalentProfile().then((loadedProfile) => {
+      if (active) setProfile(loadedProfile);
+    });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   if (!profile) return null;

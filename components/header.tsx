@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, Calendar, ChevronDown, Crown, LogOut, Search, UserCircle } from "lucide-react";
 
@@ -12,7 +12,7 @@ type AuthUser = {
 };
 
 function getApiBaseUrl() {
-  return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
 }
 
 function getUserLabel(user: AuthUser | null) {
@@ -32,23 +32,21 @@ function getUserLabel(user: AuthUser | null) {
 export default function Header() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [user] = useState<AuthUser | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
+  const [user, setUser] = useState<AuthUser | null>(null);
 
+  useEffect(() => {
     const stored = window.localStorage.getItem("onstagevn_auth_user");
     if (!stored) {
-      return null;
+      return;
     }
 
     try {
-      return JSON.parse(stored) as AuthUser;
+      setUser(JSON.parse(stored) as AuthUser);
     } catch {
       window.localStorage.removeItem("onstagevn_auth_user");
-      return null;
     }
-  });
+  }, []);
+
   const label = getUserLabel(user);
 
   async function handleLogout() {

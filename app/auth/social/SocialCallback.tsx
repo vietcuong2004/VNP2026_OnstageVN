@@ -17,11 +17,11 @@ type MeResponse = {
 };
 
 function getApiBaseUrl() {
-  return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
 }
 
 function getRedirectPath(type: AccountType | null) {
-  return type === "talent" ? "/talent" : "/brand";
+  return type === "talent" ? "/talent/dashboard" : "/brand/dashboard";
 }
 
 export default function SocialCallback() {

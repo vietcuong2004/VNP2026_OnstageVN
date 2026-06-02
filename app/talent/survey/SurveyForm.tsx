@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
+import { calculateTalentSurvey, saveTalentProfile, submitTalentSurvey } from "@/lib/talent-api";
 
 // Custom SVG Icons to avoid import errors from old lucide version
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -271,7 +272,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     setRegisteredComp(prev => ({ ...prev, [compName]: true }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isStepValid()) return;
 
@@ -410,7 +411,42 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       languages: formData.languages.split(",").map(s => s.trim()),
       mediaUploads
     };
-    localStorage.setItem("vnp_talent_profile", JSON.stringify(userProfile));
+    const savedProfile = await saveTalentProfile(userProfile);
+
+    const surveyQuestionAnswers = SURVEY_QUESTIONS
+      .map((question) => {
+        const answerIdx = surveyAnswers[question.id];
+        const option = answerIdx !== undefined ? question.options[answerIdx] : null;
+
+        return option
+          ? {
+              question_code: `Q${question.id}`,
+              answer_value: {
+                option_index: answerIdx,
+                group: option.group,
+                text: option.text,
+              },
+            }
+          : null;
+      })
+      .filter(Boolean) as { question_code: string; answer_value: unknown }[];
+
+    const experienceYears = parseInt(formData.experience.match(/\d+/)?.[0] || "0", 10);
+
+    await submitTalentSurvey("A", [
+      { question_code: "A1", answer_value: parseFloat(formData.height) || 0 },
+      { question_code: "B1", answer_value: experienceYears },
+      { question_code: "C1", answer_value: getTotalFollowers() },
+      { question_code: "D1", answer_value: mainCategory },
+    ]);
+    await submitTalentSurvey("S", surveyQuestionAnswers);
+    const backendSurveyResult = await calculateTalentSurvey();
+
+    if (backendSurveyResult?.tier) {
+      userProfile.tier = backendSurveyResult.tier as typeof userProfile.tier;
+    }
+
+    localStorage.setItem("vnp_talent_profile", JSON.stringify({ ...savedProfile, ...userProfile }));
 
     setIsSubmitted(true);
   };

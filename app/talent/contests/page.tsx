@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Trophy, Calendar, Award, CheckCircle, Clock, X,
@@ -8,6 +8,7 @@ import {
   Phone, Mail, Globe, MapPinned, Info, Crown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { loadTalentRecommendations } from "@/lib/talent-api";
 
 interface ContestDetail {
   organizerName: string;
@@ -853,6 +854,35 @@ export default function ContestsPage() {
       funding: FUNDING_DATA[c.id]
     }));
   });
+
+  useEffect(() => {
+    let active = true;
+
+    loadTalentRecommendations().then((pageants) => {
+      if (!active || !pageants?.length) return;
+
+      setContests((prev) => {
+        const mapped = pageants.map((pageant, index) => {
+          const base = prev[index % prev.length];
+
+          return {
+            ...base,
+            id: `backend-pageant-${index + 1}`,
+            name: pageant.name || base.name,
+            organizer: "Backend recommendation",
+            suitability: Math.round(Number(pageant.match_score || base.suitability)),
+            description: pageant.reasoning || base.description,
+          };
+        });
+
+        return [...mapped, ...prev.slice(mapped.length)];
+      });
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const addToast = (message: string, type: "success" | "info" = "success") => {
     const id = Date.now();
