@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   MapPin, Star, Share2, Crown, ShieldCheck, User, Edit3, Sparkles, X,
-  MessageSquare, HeartHandshake, CheckCircle, Trophy, Award
+  MessageSquare, HeartHandshake, CheckCircle, Trophy, Award, Camera
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
@@ -84,6 +84,29 @@ export default function PortfolioPage() {
   const currentBoostLevel = getBoostLevel(profile);
   const rankingScore = Math.round((currentBoostLevel * 100) + (profile.profileScore || 82) * 0.5 + 95 * 0.3 + (profile.averageRating || 4.9) * 2);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Enforce size limit of 1.5MB to avoid localStorage quota exceeded (max 5MB)
+    if (file.size > 1.5 * 1024 * 1024) {
+      addToast("Kích thước ảnh phải nhỏ hơn 1.5MB để tối ưu dung lượng lưu trữ", "info");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64String = event.target?.result as string;
+      if (base64String) {
+        const updatedProfile = { ...profile, [type]: base64String };
+        setProfile(updatedProfile);
+        localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
+        addToast(`Cập nhật ${type === "avatar" ? "Ảnh đại diện" : "Ảnh bìa"} thành công!`, "success");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Handler for booking form submit preview
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +135,7 @@ export default function PortfolioPage() {
 
         {/* Cover Background */}
         {profile.isSuperBoosted ? (
-          <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-amber-400/40 bg-gradient-to-r from-slate-950 via-[#2d220f] to-slate-950 animate-pulse">
+          <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-amber-400/40 bg-gradient-to-r from-slate-950 via-[#2d220f] to-slate-950 animate-pulse group">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.18),transparent_60%)]" />
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="font-display font-black text-amber-300/40 tracking-[0.25em] md:tracking-[0.35em] text-xs sm:text-lg md:text-3xl uppercase">FEATURED SUPER MODEL</span>
@@ -120,15 +143,41 @@ export default function PortfolioPage() {
             <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-amber-400 text-slate-950 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.5)]">
               <Crown className="h-3 w-3 animate-pulse" /> SUPER BOOSTED
             </div>
+            {/* Cover Hover Overlay upload trigger for Super Boosted */}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <label className="flex items-center gap-2 bg-black/60 hover:bg-black/80 border border-white/10 hover:border-amber-400/80 rounded-xl px-4 py-2.5 text-white text-xs font-bold cursor-pointer transition-all">
+                <Camera className="h-4.5 w-4.5 text-amber-400" />
+                <span>Thay đổi ảnh bìa</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleImageUpload(e, "cover")}
+                />
+              </label>
+            </div>
           </div>
         ) : (
-          <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-white/5 bg-slate-950">
+          <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-white/5 bg-slate-950 group">
             <img
-              src="/cover_image.png"
+              src={profile.cover || "/cover_image.png"}
               alt="Cover banner"
-              className="h-full w-full object-cover opacity-60"
+              className="h-full w-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-[1.01]"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80" />
+            {/* Cover Hover Overlay upload trigger */}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <label className="flex items-center gap-2 bg-black/60 hover:bg-black/80 border border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-2.5 text-white text-xs font-bold cursor-pointer transition-all">
+                <Camera className="h-4.5 w-4.5 text-cyan-400" />
+                <span>Thay đổi ảnh bìa</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleImageUpload(e, "cover")}
+                />
+              </label>
+            </div>
           </div>
         )}
 
@@ -138,7 +187,7 @@ export default function PortfolioPage() {
 
             {/* Avatar block */}
             <div className={cn(
-              "relative -mt-12 sm:-mt-16 md:-mt-20 h-24 w-24 sm:h-28 sm:w-28 shrink-0 rounded-full border-4 bg-slate-900 p-0.5 shadow-2xl transition-all duration-300",
+              "relative -mt-12 sm:-mt-16 md:-mt-20 h-24 w-24 sm:h-28 sm:w-28 shrink-0 rounded-full border-4 bg-slate-900 p-0.5 shadow-2xl transition-all duration-300 group/avatar",
               (profile.isSuperBoosted || profile.isPremiumBoosted)
                 ? "border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
                 : "border-[#08090f]"
@@ -148,8 +197,23 @@ export default function PortfolioPage() {
                 alt={profile.name}
                 className="h-full w-full rounded-full object-cover"
               />
+              
+              {/* Avatar Hover Overlay upload trigger */}
+              <div className="absolute inset-0.5 rounded-full bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 cursor-pointer">
+                <label className="flex flex-col items-center justify-center h-full w-full cursor-pointer text-white text-[9px] font-bold text-center p-1">
+                  <Camera className="h-5 w-5 text-amber-400 mb-0.5" />
+                  <span>Đổi ảnh</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(e, "avatar")}
+                  />
+                </label>
+              </div>
+
               <span className={cn(
-                "absolute bottom-1 right-1 h-4 w-4 border-2 border-[#08090f] rounded-full",
+                "absolute bottom-1 right-1 h-4 w-4 border-2 border-[#08090f] rounded-full z-10",
                 profile.isAvailable ? "bg-emerald-500" : "bg-red-500"
               )} />
 

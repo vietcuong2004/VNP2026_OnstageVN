@@ -37,8 +37,8 @@ export default function RootLayout({
               {/* MAIN APP CONTENT */}
               <div className="flex-1 flex flex-col min-h-0 min-w-0 w-full">
                 {/* Main scrollable body */}
-                <main className="flex-1 overflow-y-auto px-6 py-6 md:px-10 md:py-8 pb-24 md:pb-8">
-                  <div className="mx-auto w-full max-w-6xl">
+                <main className={`flex-1 overflow-y-auto ${isPublic ? "px-4 md:px-6 py-0" : "px-6 py-6 md:px-10 md:py-8 pb-24 md:pb-8"}`}>
+                  <div className={`mx-auto w-full ${isPublic ? "max-w-[1600px]" : "max-w-6xl"}`}>
                     {children}
                   </div>
                 </main>

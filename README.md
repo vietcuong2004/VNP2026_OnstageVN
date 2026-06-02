@@ -60,11 +60,18 @@ Ngân sách thanh toán của nhãn hàng được chuyển vào ví trung gian 
 
 ```text
 ├── app/
-│   ├── brand/             # Portal dành cho Nhãn hàng & Agency
+│   ├── brand/             # Portal dành cho Nhãn hàng & Agency (Brand Portal)
+│   │   ├── dashboard/     # Bảng điều khiển phân tích tổng quan
+│   │   ├── search/        # Tìm kiếm, lọc và phân loại tài năng (Hạng S/A/B/C)
+│   │   ├── talents/       # Trang chi tiết tài năng, xem hồ sơ, chat trực tiếp, thêm vào chiến dịch
+│   │   ├── campaigns/     # Quản lý chiến dịch tuyển chọn & booking của brand
+│   │   ├── shortlists/    # Danh sách lưu trữ tài năng theo phân hạng Hạng S/A/B/C
+│   │   ├── messages/      # Kênh chat trao đổi trực tiếp với Talent
+│   │   └── notifications/ # Nhận thông báo hoạt động của nhãn hàng
 │   ├── talent/            # Portal dành cho Thí sinh & Người mẫu (giao diện chính)
 │   │   ├── dashboard/     # Bảng điều khiển phân tích số liệu
 │   │   ├── onboarding/    # Bộ câu hỏi khảo sát & Thiết lập hồ sơ số
-│   │   ├── portfolio/     # Trang hồ sơ điện tử công khai
+│   │   ├── portfolio/     # Trang hồ sơ điện tử công khai (PersonalInfoTab.tsx)
 │   │   ├── jobs/          # Sàn nhận việc và ứng tuyển chiến dịch nhãn hàng
 │   │   └── crown/         # Trang gây quỹ dự án nhân ái (Quỹ Vương Miện)
 │   ├── layout.tsx         # Khung giao diện responsive chung (Sidebar & Bottom Navigation)
@@ -96,14 +103,117 @@ Ngân sách thanh toán của nhãn hàng được chuyển vào ví trung gian 
    ```
 
 ---
+## 💻 Hướng dẫn cập nhật code mới (push code lên main rồi chạy các lệnh dưới đây)
+### Cách nhanh:
+**1. Truy cập vào server:**
+```bash
+ssh ssh_code@118.70.132.119 -p 4522
 
-## 🌐 Quản lý CI/CD & Deploy trên Vercel
+```
+**2.Chạy script:**
+```bash
+./deploy.sh
 
-Dự án được thiết lập quy trình tích hợp và triển khai liên tục (CI/CD) tự động hóa thông qua liên kết giữa repository GitHub và tài khoản Vercel.
+```
+### Cách thủ công:
+**1. Truy cập vào server:**
+```bash
+ssh ssh_code@118.70.132.119 -p 4522
+```
+**2. Truy cập thư mục code trên server:**
+```bash
+cd /var/www/manager-kol-model/web-main/current
+```
 
+**3. Kéo code mới nhất từ nhánh main trên GitHub về server:**
+```bash
+git pull origin main
+```
+
+**4. Cài đặt thư viện mới (nếu có cập nhật package.json):**
+```bash
+npm install
+```
+
+**5. Xây dựng (Build) lại dự án Next.js:**
+```bash
+npm run build
+```
+
+### 5. Khởi động lại tiến trình PM2 để áp dụng code mới
+```bash
+pm2 restart onstage-web --update-env
+```
+
+## 🌐 Hướng Dẫn Deploy & Vận Hành Hệ Thống
+
+Dự án hỗ trợ song song hai môi trường triển khai:
+
+### 1. Triển khai Preview/UI trên Vercel (Môi trường test nhanh)
+Quy trình tích hợp và triển khai liên tục (CI/CD) tự động hóa thông qua liên kết giữa repository GitHub và tài khoản Vercel.
 * **Link quản lý dự án trên Vercel:** [VNP 2026 Beauty Talent Deployment](https://vercel.com/vietcuong2004s-projects/vnp-2026-beuty-talent)
-* **Luồng hoạt động CI/CD:**
-  1. Khi nhà phát triển đẩy (push) code mới lên nhánh phát triển/nhánh chính (`cuong` hoặc `main`) trên GitHub.
-  2. Vercel sẽ tự động phát hiện thay đổi và kích hoạt tiến trình build kiểm tra lỗi TypeScript/Next.js.
-  3. Nếu quá trình kiểm tra thành công, bản dựng mới nhất sẽ tự động được deploy lên môi trường live (môi trường sản phẩm hoặc preview) trong vòng dưới 1 phút.
-  4. Trạng thái build và log chi tiết có thể được quản lý trực tiếp trên dashboard của link Vercel phía trên.
+* **Link ứng dụng Vercel:** [https://vnp-2026-beuty-talent.vercel.app/](https://vnp-2026-beuty-talent.vercel.app/)
+* **Luồng hoạt động:**
+  1. Khi đẩy (push) code mới lên nhánh chính (`cuong` hoặc `main`) trên GitHub.
+  2. Vercel tự động phát hiện, chạy tiến trình build và kiểm tra lỗi Next.js/TypeScript.
+  3. Bản dựng mới sẽ tự động cập nhật lên link môi trường live trong vòng dưới 1 phút.
+
+### 2. Triển khai Production trên Server riêng (Self-Hosted VPS với PM2 & Nginx)
+Ứng dụng chính thức chạy trên máy chủ VPS tự quản lý, cấu hình tại tên miền: **[https://onstage.freeroute.store/](https://onstage.freeroute.store/)**
+
+#### 📄 Các File Cấu Hình Quan Trọng
+* **`pm2.yml`**: Định nghĩa tiến trình PM2 chạy Next.js (tên tiến trình: `onstage-web`, chạy ở `fork` mode).
+* **`.env.production`**: Cấu hình địa chỉ API Backend Production:
+  ```env
+  NEXT_PUBLIC_API_URL=https://onstage.freeroute.store/api
+  ```
+
+#### 🛠️ Các Bước Triển Khai trên VPS
+Khi SSH vào máy chủ VPS (`ssh ssh_code@118.70.132.119 -p 4522`), thực hiện các bước sau để cập nhật ứng dụng:
+
+1. **Truy cập thư mục chứa mã nguồn:**
+   ```bash
+   cd /var/www/manager-kol-model/web-main/current
+   ```
+2. **Cập nhật mã nguồn mới nhất:**
+   ```bash
+   git pull origin dev # Hoặc main tùy thuộc vào nhánh deploy
+   ```
+3. **Cài đặt thư viện & chuẩn bị Node.js:**
+   * *Yêu cầu*: Node.js >= v20.9.0 (Có thể dùng NVM: `nvm use 20` để nâng cấp/chuyển đổi phiên bản).
+   ```bash
+   npm install
+   ```
+4. **Build ứng dụng:**
+   ```bash
+   npm run build
+   ```
+5. **Khởi chạy hoặc khởi động lại bằng PM2:**
+   * Nếu khởi chạy lần đầu:
+     ```bash
+     npm install -g pm2
+     pm2 start pm2.yml
+     ```
+   * Nếu cập nhật phiên bản mới:
+     ```bash
+     pm2 restart onstage-web --update-env
+     ```
+
+#### 🔀 Cấu Hình Nginx Reverse Proxy (Tham khảo)
+Để ánh xạ tên miền `onstage.freeroute.store` vào cổng `3000` của Next.js, sử dụng cấu hình block server sau:
+```nginx
+server {
+    listen 80;
+    server_name onstage.freeroute.store;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+

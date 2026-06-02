@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   ArrowRight,
   BookmarkCheck,
@@ -16,6 +16,9 @@ import {
   Eye,
   Star,
   X,
+  Heart,
+  MapPin,
+  MessageSquare
 } from "lucide-react";
 import { campaigns, contactRequests, partnerProfile, savedTalentIds, talents } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
@@ -177,6 +180,29 @@ const RECOMMENDED_TALENTS = [
 
 export default function BrandDashboard() {
   const router = useRouter();
+  const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
+
+  const [campaignsList] = useState<any[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("onstagevn_campaigns");
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {}
+      }
+    }
+    return campaigns;
+  });
+
+  const openCampaigns = useMemo(() => {
+    return campaignsList.filter((c) => c.status === "published");
+  }, [campaignsList]);
+
+  const toggleSaved = (id: string) => {
+    setSavedIds((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    );
+  };
 
   return (
     <div className="space-y-8 pb-16 animate-in fade-in duration-500">
@@ -185,15 +211,14 @@ export default function BrandDashboard() {
         <div>
           <div className="mb-2 flex items-center gap-2">
             <span className="rounded-md border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
-              Gói Gold • Verified
+              Onstage VN - Model Management System
             </span>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Workspace đối tác</span>
           </div>
-          <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-4xl">
-            TỔNG QUAN <span className="bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 bg-clip-text text-transparent">ĐỐI TÁC</span>
+          <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-4xl uppercase">
+            CHÀO MỪNG QUAY LẠI, <span className="bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 bg-clip-text text-transparent">L'ORÉAL VIETNAM</span>!
           </h1>
           <p className="mt-2 max-w-2xl text-xs font-semibold leading-relaxed text-slate-400 uppercase tracking-wide">
-            Hệ thống kết hợp tìm kiếm tài năng chủ động và quản lý phễu ứng tuyển chiến dịch thông minh.
+            Chào mừng bạn đến với hệ thống quản trị, kết nối và vận hành chiến dịch tuyển chọn tài năng thông minh.
           </p>
         </div>
 
@@ -316,94 +341,191 @@ export default function BrandDashboard() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {RECOMMENDED_TALENTS.map((talent) => {
-              const tier = talents.find(t => t.id === talent.id)?.tier ?? "A";
+              const fullTalent = talents.find(t => t.id === talent.id);
+              const tier = fullTalent?.tier ?? (talent.matchScore >= 95 ? "S" : talent.matchScore >= 90 ? "A" : talent.matchScore >= 85 ? "B" : "C");
+              const district = fullTalent?.district ?? "Quận 1";
+              const city = fullTalent?.city ?? talent.city;
+              const type = fullTalent?.type ?? talent.type;
+              const age = fullTalent?.age ?? 23;
+              const height = fullTalent?.height ?? 170;
+              const weight = fullTalent?.weight ?? 50;
+              const followers = fullTalent?.followers ?? talent.followers;
+              const engagementRate = fullTalent?.engagementRate ?? 4.5;
+              const experience = fullTalent?.experience ?? "Đã có kinh nghiệm làm việc với nhiều nhãn hàng lớn nhỏ.";
+              const verified = fullTalent?.verified ?? talent.verified;
+              const status = talent.id === "tal-1" || talent.id === "tal-2" ? "available" : talent.id === "tal-3" ? "busy" : "maybe";
+              const isSaved = savedIds.includes(talent.id);
+
               return (
-                <div key={talent.id} className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-3 shadow-md hover:border-[#C9A86A]/30 transition-all duration-300 group flex flex-col justify-between min-w-0">
+                <article key={talent.id} className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg hover:border-[#C9A86A]/30 transition-all duration-300 group flex flex-col justify-between min-w-0">
                   <div>
-                    <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-900 border border-white/5 mb-3">
+                    {/* Image Top Area */}
+                    <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-900 border border-white/5 mb-3.5">
                       <img src={talent.avatar} alt={talent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <span className="absolute top-2 left-2 rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-lg">
-                        Hạng {tier}
-                      </span>
+
+                      {/* Overlay top badges */}
+                      <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+                        <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-md">
+                          Hạng {tier}
+                        </span>
+                      </div>
+
+                      {/* Floating Wishlist Heart */}
+                      <button
+                        onClick={() => toggleSaved(talent.id)}
+                        className={cn(
+                          "absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full border shadow-lg backdrop-blur-sm transition active:scale-90 cursor-pointer",
+                          isSaved
+                            ? "border-red-500 bg-red-500 text-white"
+                            : "border-white/10 bg-[#0F1115]/60 text-slate-300 hover:text-white"
+                        )}
+                        title={isSaved ? "Bỏ lưu" : "Lưu vào shortlist"}
+                      >
+                        <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} />
+                      </button>
+
+                      {/* Floating calendar status at bottom of image */}
+                      <div className="absolute bottom-2 left-2">
+                        <span className={cn(
+                          "inline-flex items-center gap-1 rounded bg-[#0F1115]/80 border backdrop-blur-sm px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white",
+                          status === "available" && "border-emerald-500/30 text-emerald-400",
+                          status === "busy" && "border-red-500/30 text-red-400",
+                          status === "maybe" && "border-yellow-500/30 text-yellow-400"
+                        )}>
+                          <span className={cn(
+                            "h-1 w-1 rounded-full",
+                            status === "available" && "bg-emerald-400",
+                            status === "busy" && "bg-red-400",
+                            status === "maybe" && "bg-yellow-400"
+                          )} />
+                          {status === "available" ? "Rảnh" : status === "busy" ? "Bận" : "Chưa có lịch"}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <h4 className="text-xs font-black text-white truncate flex-1">{talent.name}</h4>
-                      {talent.verified && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />}
+                    {/* Header details */}
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <h3 className="text-xs font-black text-white truncate flex-1">{talent.name}</h3>
+                        {verified && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />}
+                      </div>
+
+                      <div className="flex items-center gap-1 text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{district}, {city}</span>
+                      </div>
                     </div>
-                    <p className="text-[9px] text-slate-500 font-bold mt-0.5 uppercase tracking-wider truncate">{talent.type} · {talent.city}</p>
+
+                    {/* Info badges row */}
+                    <div className="my-2.5 flex flex-wrap gap-1">
+                      <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{type}</span>
+                      <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{age} tuổi</span>
+                      <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{height}cm</span>
+                      <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{weight}kg</span>
+                    </div>
+
+                    {/* Social stats row */}
+                    <div className="grid grid-cols-2 gap-2 bg-[#0F1115]/50 border border-white/5 rounded-xl p-2 text-center text-[10px] my-3">
+                      <div>
+                        <span className="block text-[7px] font-bold uppercase text-slate-500 tracking-wider">Followers</span>
+                        <span className="font-mono font-black text-amber-300 mt-0.5 block">{followers}</span>
+                      </div>
+                      <div className="border-l border-white/5">
+                        <span className="block text-[7px] font-bold uppercase text-slate-500 tracking-wider">Engagement</span>
+                        <span className="font-mono font-black text-cyan-300 mt-0.5 block">{engagementRate}%</span>
+                      </div>
+                    </div>
+
+                    {/* Bio brief */}
+                    <p className="line-clamp-2 text-[10px] leading-relaxed text-slate-400 mt-2 min-h-7">{experience}</p>
                   </div>
 
-                <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-2">
-                  <div className="text-left">
-                    <span className="block text-[7px] font-bold text-slate-500 uppercase tracking-widest">Followers</span>
-                    <span className="text-[10px] font-black text-amber-300">{talent.followers}</span>
+                  {/* Action Buttons */}
+                  <div className="mt-4 pt-3.5 border-t border-white/5 flex gap-2">
+                    <button
+                      onClick={() => router.push(`/brand/talents/${talent.id}`)}
+                      className="flex h-10 px-4 items-center justify-center gap-1.5 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:text-white transition active:scale-90 cursor-pointer text-[10px] font-black uppercase tracking-wider"
+                      title="Xem hồ sơ chi tiết"
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span>Xem</span>
+                    </button>
+                    <button
+                      onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
+                      className="flex-1 flex h-10 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-[10px] uppercase tracking-wider transition active:scale-95 cursor-pointer"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Nhắn tin
+                    </button>
                   </div>
-                  <button onClick={() => router.push(`/brand/search`)} className="bg-[#C9A86A] hover:bg-[#bba061] text-slate-950 font-black text-[9px] uppercase tracking-wider px-2.5 py-1.5 rounded-lg active:scale-95 transition-all cursor-pointer">
-                    Xem profile
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                </article>
+              );
+            })}
           </div>
         </div>
 
-        {/* Newest Applications Table */}
+        {/* Active Campaigns */}
         <div className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-6 shadow-[0_12px_36px_rgba(0,0,0,0.28)]">
           <div className="flex items-center justify-between mb-5 border-b border-[#2B313D] pb-3">
-            <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">Ứng Viên Mới Nhất Trong Các Chiến Dịch</h3>
+            <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">Chiến Dịch Đang Hoạt Động (Đang Mở)</h3>
             <button onClick={() => router.push("/brand/campaigns")} className="text-[10px] font-black uppercase text-[#C9A86A] hover:underline">
-              Xem tất cả chiến dịch &rarr;
+              Xem tất cả &rarr;
             </button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-[#2B313D] text-[10px] font-black uppercase text-slate-500 tracking-wider">
-                  <th className="pb-3">Talent</th>
-                  <th className="pb-3">Chiến dịch</th>
-                  <th className="pb-3 text-center">Điểm phù hợp</th>
-                  <th className="pb-3">Trạng thái</th>
-                  <th className="pb-3 text-right">Ngày ứng tuyển</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {[
-                  { name: "Nguyễn Mai Anh", avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=100&h=100&q=80", campaign: "Beauty Mega Live 06/2026", score: 98, status: "shortlisted", date: "28/05/2026" },
-                  { name: "Lê Ngọc Hân", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=100&h=100&q=80", campaign: "Beauty Mega Live 06/2026", score: 92, status: "interview", date: "27/05/2026" },
-                  { name: "Trần Thu Thảo", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&h=100&q=80", campaign: "PG Event Khai Trương", score: 86, status: "new", date: "20/05/2026" },
-                  { name: "Khánh Linh", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80", campaign: "Lookbook Summer Fashion", score: 95, status: "shortlisted", date: "29/05/2026" }
-                ].map((app, i) => (
-                  <tr key={i} className="hover:bg-white/[0.01] transition-colors whitespace-nowrap">
-                    <td className="py-3 flex items-center gap-2.5">
-                      <img src={app.avatar} alt={app.name} className="h-8 w-8 rounded-lg object-cover" />
-                      <span className="font-extrabold text-white">{app.name}</span>
-                    </td>
-                    <td className="py-3 text-slate-300 font-medium">{app.campaign}</td>
-                    <td className="py-3 text-center">
-                      <span className="inline-flex items-center rounded bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[9px] font-black text-amber-300">
-                        {app.score}% match
+          
+          {openCampaigns.length === 0 ? (
+            <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-10 text-center">
+              <Briefcase className="mx-auto mb-3 h-8 w-8 text-slate-600" />
+              <h3 className="text-sm font-black text-white">Chưa có chiến dịch nào đang hoạt động</h3>
+              <p className="mt-2 text-xs text-slate-500">Hãy tạo chiến dịch mới hoặc xuất bản chiến dịch nháp.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {openCampaigns.map((campaign) => (
+                <article key={campaign.id} className="flex flex-col justify-between rounded-2xl border border-[#2B313D] bg-[#171A21] p-5 shadow-md hover:border-[#C9A86A]/30 transition-all duration-300 group">
+                  <div>
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-400">{campaign.jobType}</span>
+                      <span className="rounded bg-emerald-500/10 text-emerald-350 border border-emerald-500/20 px-2 py-0.5 text-[9px] font-black uppercase">
+                        Đang mở
                       </span>
-                    </td>
-                    <td className="py-3">
-                      <span className={cn(
-                        "rounded px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider",
-                        app.status === "new" && "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20",
-                        app.status === "shortlisted" && "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
-                        app.status === "interview" && "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                      )}>
-                        {app.status === "new" ? "Chờ duyệt" : app.status === "shortlisted" ? "Đã chọn lọc" : "Phỏng vấn"}
-                      </span>
-                    </td>
-                    <td className="py-3 text-right text-slate-500 font-mono font-medium">{app.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                    <h3 className="line-clamp-1 text-base font-black text-white group-hover:text-[#C9A86A] transition-colors">{campaign.title}</h3>
+                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-450">{campaign.description}</p>
+                  </div>
+
+                  <div className="mt-5 border-t border-white/5 pt-4">
+                    <div className="mb-4 grid grid-cols-4 gap-2 text-center text-xs">
+                      <div>
+                        <span className="block text-[8px] font-bold uppercase text-slate-500">Views</span>
+                        <span className="font-mono font-bold text-white mt-0.5 block">{campaign.views}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[8px] font-bold uppercase text-slate-500">Ứng viên</span>
+                        <span className="font-mono font-bold text-white mt-0.5 block">{campaign.applicants?.length ?? 0}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[8px] font-bold uppercase text-slate-500">Shortlist</span>
+                        <span className="font-mono font-bold text-amber-300 mt-0.5 block">{campaign.shortlistedTalentIds?.length ?? 0}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[8px] font-bold uppercase text-slate-500">Liên hệ</span>
+                        <span className="font-mono font-bold text-emerald-300 mt-0.5 block">{campaign.contactRequests ?? 0}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => router.push(`/brand/campaigns/${campaign.id}`)}
+                      className="flex h-10 w-full items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-wider text-white hover:bg-white/10 transition active:scale-95 cursor-pointer"
+                    >
+                      Xem ATS & brief &rarr;
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
 
       </section>
