@@ -184,6 +184,43 @@ function splitCsv(value: string | string[] | undefined) {
     .filter(Boolean);
 }
 
+function normalizeLanguages(value: string | string[] | undefined) {
+  const labels = splitCsv(value).map((item) => {
+    const lowered = item.toLowerCase();
+
+    if (
+      lowered.includes("english") ||
+      lowered.includes("tiếng anh") ||
+      lowered.includes("ielts") ||
+      lowered.includes("toeic") ||
+      lowered.includes("thành thạo") ||
+      lowered.includes("lưu loát")
+    ) {
+      return "Tiếng Anh";
+    }
+
+    if (lowered.includes("vietnamese") || lowered.includes("tiếng việt")) {
+      return "Tiếng Việt";
+    }
+
+    if (lowered.includes("korean") || lowered.includes("tiếng hàn")) {
+      return "Tiếng Hàn";
+    }
+
+    if (lowered.includes("japanese") || lowered.includes("tiếng nhật")) {
+      return "Tiếng Nhật";
+    }
+
+    if (lowered.includes("chinese") || lowered.includes("tiếng trung")) {
+      return "Tiếng Trung";
+    }
+
+    return item.length > 50 ? item.slice(0, 50).trim() : item;
+  });
+
+  return Array.from(new Set(labels)).filter(Boolean);
+}
+
 function sumFollowers(profile: BackendProfile) {
   const accounts = profile.social_accounts || [];
   if (!accounts.length) return undefined;
@@ -296,7 +333,7 @@ export function buildBackendProfilePayload(profile: any) {
     hair_color: profile.hairColor || undefined,
     has_tattoo: profile.tattoo === "Có",
     tattoo_description: profile.tattoo === "Có" ? profile.tattooDesc || undefined : undefined,
-    languages: splitCsv(profile.languages),
+    languages: normalizeLanguages(profile.languages),
     experience: profile.bio || profile.education || undefined,
     skills: splitCsv(profile.specialSkills?.length ? profile.specialSkills : profile.skills),
     experience_years: Number(profile.experience || 0) || 0,
@@ -442,6 +479,43 @@ export async function submitTalentSurvey(section: string, answers: { question_co
       answers,
     }),
   });
+}
+
+export type TalentSurveyProgress = {
+  current_step: number;
+  status?: "draft" | "completed" | "analyzed";
+  answered_questions?: number;
+  completed_sections?: string[];
+  last_saved_at?: string | null;
+  completed_at?: string | null;
+};
+
+export async function loadTalentSurveyProgress() {
+  if (!getAuthToken()) return null;
+
+  try {
+    return await apiJson<TalentSurveyProgress>("/survey/progress");
+  } catch (error) {
+    console.warn(error);
+    return null;
+  }
+}
+
+export async function saveTalentSurveyProgress(currentStep: number, status: TalentSurveyProgress["status"] = "draft") {
+  if (!getAuthToken()) return null;
+
+  try {
+    return await apiJson<TalentSurveyProgress>("/survey/progress", {
+      method: "PUT",
+      body: JSON.stringify({
+        current_step: currentStep,
+        status,
+      }),
+    });
+  } catch (error) {
+    console.warn(error);
+    return null;
+  }
 }
 
 export async function calculateTalentSurvey() {

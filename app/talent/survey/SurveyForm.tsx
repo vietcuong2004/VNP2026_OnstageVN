@@ -9,7 +9,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
-import { analyzeTalentSurvey, saveTalentProfile, submitTalentSurvey, type TalentSurveyAnalysis } from "@/lib/talent-api";
+import {
+  analyzeTalentSurvey,
+  loadTalentSurveyProgress,
+  saveTalentProfile,
+  saveTalentSurveyProgress,
+  submitTalentSurvey,
+  type TalentSurveyAnalysis,
+} from "@/lib/talent-api";
 
 // Custom SVG Icons to avoid import errors from old lucide version
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -38,6 +45,13 @@ const TiktokIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
   </svg>
 );
+
+function clampSurveyStep(value: unknown) {
+  const step = Number(value);
+  if (!Number.isFinite(step)) return 1;
+  return Math.min(5, Math.max(1, Math.trunc(step)));
+}
+
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
   { id: 2, title: "KOLs/Influencer quảng cáo", desc: "Sáng tạo nội dung video ngắn", weights: { pageant: 0.1, runway: 0.1, kol: 0.8 } },
@@ -171,6 +185,24 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     }
   }, [initialHistoryEntry]);
 
+  React.useEffect(() => {
+    if (initialHistoryEntry) return;
+
+    let cancelled = false;
+
+    loadTalentSurveyProgress().then((progress) => {
+      if (cancelled || !progress) return;
+
+      const savedStep = clampSurveyStep(progress.current_step);
+      setStep(savedStep);
+      setMaxStep((prev) => Math.max(prev, savedStep));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialHistoryEntry]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -255,15 +287,22 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     return true;
   };
 
+  const goToStep = (nextStep: number, status: "draft" | "completed" | "analyzed" = "draft") => {
+    const savedStep = clampSurveyStep(nextStep);
+    setStep(savedStep);
+    setMaxStep((prev) => Math.max(prev, savedStep));
+    void saveTalentSurveyProgress(savedStep, status);
+  };
+
   const nextStep = () => {
     if (step < 5 && isStepValid()) {
-      setStep((prev) => prev + 1);
+      goToStep(step + 1);
     }
   };
 
   const prevStep = () => {
     if (step > 1) {
-      setStep((prev) => prev - 1);
+      goToStep(step - 1);
     }
   };
 
@@ -487,6 +526,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
     localStorage.setItem("vnp_talent_profile", JSON.stringify({ ...savedProfile, ...userProfile }));
 
+    void saveTalentSurveyProgress(5, "analyzed");
     setIsSubmitted(true);
   };
 
@@ -772,7 +812,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   onClick={() => {
                     setAiAnalysis(null);
                     setIsSubmitted(false);
-                    setStep(1);
+                    goToStep(1);
                     setMaxStep(1);
                     setActiveSurveyQIdx(0);
                     setSurveyAnswers({});
@@ -973,7 +1013,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   type="button"
                   key={s}
                   disabled={!isClickable}
-                  onClick={() => setStep(s)}
+                  onClick={() => goToStep(s)}
                   className={cn(
                     "flex flex-col items-center transition-all duration-300 relative group focus:outline-none",
                     isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-60"
@@ -1603,7 +1643,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       setActiveSurveyQIdx(prev => prev - 1);
                     } else {
                       // Go back to Step 4
-                      setStep(4);
+                      goToStep(4);
                     }
                   }}
                   className="flex h-9 items-center justify-center rounded-lg border border-white/20 px-4 text-[10px] font-bold text-slate-200 hover:text-amber-300 hover:border-amber-400/50 hover:bg-white/5 transition-all gap-1 cursor-pointer"
