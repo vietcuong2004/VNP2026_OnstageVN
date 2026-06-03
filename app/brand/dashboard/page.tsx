@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   ArrowRight,
   BookmarkCheck,
@@ -21,6 +21,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import { campaigns, contactRequests, partnerProfile, savedTalentIds, talents } from "@/lib/brand-mvp-data";
+import { loadBrandCampaigns } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 const stats = [
@@ -182,17 +183,19 @@ export default function BrandDashboard() {
   const router = useRouter();
   const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
 
-  const [campaignsList] = useState<any[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch (e) {}
-      }
-    }
-    return campaigns;
-  });
+  const [campaignsList, setCampaignsList] = useState<any[]>(campaigns);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    loadBrandCampaigns(campaigns).then((items) => {
+      if (isMounted) setCampaignsList(items);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const openCampaigns = useMemo(() => {
     return campaignsList.filter((c) => c.status === "published");

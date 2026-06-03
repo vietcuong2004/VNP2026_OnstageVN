@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Briefcase,
@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { campaigns as initialCampaigns, type Campaign } from "@/lib/brand-mvp-data";
+import { createBrandCampaign, loadBrandCampaigns } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 type CampaignStatusTab = "all" | Campaign["status"];
@@ -51,13 +52,36 @@ export default function CampaignsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    loadBrandCampaigns(campaigns).then((items) => {
+      if (isMounted) setCampaigns(items);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const filteredCampaigns = useMemo(() => {
     if (activeTab === "all") return campaigns;
     return campaigns.filter((campaign) => campaign.status === activeTab);
   }, [activeTab, campaigns]);
 
-  function handleCreateCampaign(event: React.FormEvent) {
+  async function handleCreateCampaign(event: React.FormEvent) {
     event.preventDefault();
+
+    try {
+      const createdCampaign = await createBrandCampaign(form);
+      setCampaigns((current) => [createdCampaign, ...current]);
+      setIsCreating(false);
+      setForm(emptyForm);
+      router.push(`/brand/campaigns/${createdCampaign.id}`);
+      return;
+    } catch (error) {
+      console.warn("Cannot create campaign from API, using local fallback", error);
+    }
 
     const newCampaign: Campaign = {
       id: `camp-${Date.now()}`,

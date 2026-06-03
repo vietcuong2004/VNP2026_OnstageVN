@@ -452,6 +452,37 @@ export async function calculateTalentSurvey() {
   });
 }
 
+export type TalentSurveyAnalysis = {
+  model?: string;
+  tier?: "S" | "A" | "B" | "C" | "Potential";
+  overall_score?: number;
+  scores?: {
+    pageant?: number;
+    runway?: number;
+    kol?: number;
+  };
+  summary?: string;
+  pageants?: Array<{
+    name?: string;
+    match_score?: number;
+    reasoning?: string;
+  }>;
+  career_trends?: Array<{
+    title?: string;
+    match_score?: number;
+    reasoning?: string;
+    next_steps?: string[];
+  }>;
+};
+
+export async function analyzeTalentSurvey() {
+  if (!getAuthToken()) return null;
+
+  return apiJson<TalentSurveyAnalysis>("/survey/analyze", {
+    method: "POST",
+  });
+}
+
 function moneyRange(min?: number | null, max?: number | null) {
   const format = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
   if (min && max) return `${format(min)} - ${format(max)}`;

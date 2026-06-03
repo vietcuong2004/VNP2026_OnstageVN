@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -11,7 +11,8 @@ import {
   MapPin,
   Users,
 } from "lucide-react";
-import { campaigns as initialCampaigns, talents, type Campaign, type CampaignStage } from "@/lib/brand-mvp-data";
+import { campaigns as initialCampaigns, talents, type Campaign, type CampaignStage, type TalentProfile } from "@/lib/brand-mvp-data";
+import { closeBrandCampaign, loadBrandCampaign, publishBrandCampaign } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 const stageLabels: Record<CampaignStage, string> = {
@@ -67,7 +68,38 @@ export default function CampaignDetailPage() {
     return campaigns.find((c) => c.id === params.id);
   }, [campaigns, params.id]);
 
-  function updateCampaignStatus(id: string, status: Campaign["status"]) {
+  useEffect(() => {
+    let isMounted = true;
+
+    loadBrandCampaign(params.id, campaigns).then((campaign) => {
+      if (!isMounted || !campaign) return;
+      setCampaigns((current) => [campaign, ...current.filter((item) => item.id !== campaign.id)]);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [params.id]);
+
+  async function updateCampaignStatus(id: string, status: Campaign["status"]) {
+    try {
+      const updatedCampaign =
+        status === "published"
+          ? await publishBrandCampaign(id)
+          : status === "closed"
+            ? await closeBrandCampaign(id)
+            : null;
+
+      if (updatedCampaign) {
+        setCampaigns((current) => current.map((campaign) =>
+          campaign.id === id ? updatedCampaign : campaign
+        ));
+        return;
+      }
+    } catch (error) {
+      console.warn("Cannot update campaign status from API, using local fallback", error);
+    }
+
     const nextCampaigns = campaigns.map((campaign) =>
       campaign.id === id ? { ...campaign, status } : campaign
     );
@@ -223,7 +255,8 @@ export default function CampaignDetailPage() {
                   </div>
                   <div className="space-y-2">
                     {items.map((item) => {
-                      const talent = talents.find((candidate) => candidate.id === item.talentId);
+                      const backendTalent = (item as { talent?: Pick<TalentProfile, "id" | "name" | "type" | "avatar" | "matchScore"> }).talent;
+                      const talent = backendTalent ?? talents.find((candidate) => candidate.id === item.talentId);
                       if (!talent) return null;
                       const requestKey = `${selectedCampaign.id}-${talent.id}`;
                       return (

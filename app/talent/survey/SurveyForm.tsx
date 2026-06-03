@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
-import { calculateTalentSurvey, saveTalentProfile, submitTalentSurvey } from "@/lib/talent-api";
+import { analyzeTalentSurvey, saveTalentProfile, submitTalentSurvey, type TalentSurveyAnalysis } from "@/lib/talent-api";
 
 // Custom SVG Icons to avoid import errors from old lucide version
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -126,6 +126,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const [surveyAnswers, setSurveyAnswers] = useState<Record<number, number>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [registeredComp, setRegisteredComp] = useState<Record<string, boolean>>({});
+  const [aiAnalysis, setAiAnalysis] = useState<TalentSurveyAnalysis | null>(null);
 
   const [results, setResults] = useState({
     pageant: 0,
@@ -158,8 +159,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           hasLanguagePriority: initialHistoryEntry.pageant >= 70
         }
       });
+      setAiAnalysis(initialHistoryEntry.aiSurveyAnalysis || null);
       setIsSubmitted(true);
     } else {
+      setAiAnalysis(null);
       setIsSubmitted(false);
       setStep(1);
       setMaxStep(1);
@@ -275,6 +278,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isStepValid()) return;
+    setAiAnalysis(null);
 
     // Hard Rules checks (Q1 - Q10)
     // Rule 1: Married or Major Surgery -> Excluded from strict national pageants
@@ -394,7 +398,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     localStorage.setItem("vnp_talent_survey_history", JSON.stringify(updatedHistory));
 
     // Save to local storage for other views in the application
-    const userProfile = {
+    const userProfile: Record<string, unknown> = {
       ...formData,
       followersCount: getTotalFollowers().toString(),
       surveyScores: {
@@ -440,10 +444,45 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       { question_code: "D1", answer_value: mainCategory },
     ]);
     await submitTalentSurvey("S", surveyQuestionAnswers);
-    const backendSurveyResult = await calculateTalentSurvey();
+    const aiResult = await analyzeTalentSurvey().catch((error) => {
+      console.warn(error);
+      return null;
+    });
 
-    if (backendSurveyResult?.tier) {
-      userProfile.tier = backendSurveyResult.tier as typeof userProfile.tier;
+    setAiAnalysis(aiResult);
+
+    const finalResults = computedResults;
+
+    if (aiResult) {
+      userProfile.aiSurveyAnalysis = aiResult;
+      userProfile.recommendedPageants = aiResult.pageants || [];
+      userProfile.careerTrends = aiResult.career_trends || [];
+    }
+
+    if (aiResult) {
+      setResults(finalResults);
+      userProfile.surveyScores = {
+        pageant: finalResults.pageant,
+        runway: finalResults.runway,
+        kol: finalResults.kol
+      };
+      userProfile.profileScore = finalResults.profileScore;
+      userProfile.tier = finalResults.tier;
+
+      updatedHistory = updatedHistory.map((entry) =>
+        entry.id === newHistoryEntry.id
+          ? {
+              ...entry,
+              pageant: finalResults.pageant,
+              runway: finalResults.runway,
+              kol: finalResults.kol,
+              profileScore: finalResults.profileScore,
+              tier: finalResults.tier,
+              aiSurveyAnalysis: aiResult || undefined,
+            }
+          : entry
+      );
+      localStorage.setItem("vnp_talent_survey_history", JSON.stringify(updatedHistory));
     }
 
     localStorage.setItem("vnp_talent_profile", JSON.stringify({ ...savedProfile, ...userProfile }));
@@ -547,16 +586,40 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   }
 
   if (isSubmitted) {
-    const sortedJobs = JOBS_LIST.map((job) => {
+    const fallbackJobs = JOBS_LIST.map((job) => {
       const matchScore = Math.round(
         results.pageant * job.weights.pageant +
-        results.runway * job.weights.runway +
-        results.kol * job.weights.kol
+          results.runway * job.weights.runway +
+          results.kol * job.weights.kol
       );
       return { ...job, matchScore };
     }).sort((a, b) => b.matchScore - a.matchScore);
+    const aiJobs = (aiAnalysis?.career_trends || [])
+      .filter((job) => job.title)
+      .map((job, index) => ({
+        id: `ai-${index}`,
+        title: String(job.title),
+        desc: job.reasoning || "",
+        weights: { pageant: 0, runway: 0, kol: 0 },
+        matchScore: Math.round(Number(job.match_score || 0)),
+      }));
+    const sortedJobs = aiJobs.length
+      ? [
+          ...aiJobs,
+          ...fallbackJobs.filter((job) => !aiJobs.some((aiJob) => aiJob.title === job.title)),
+        ].slice(0, 20)
+      : fallbackJobs;
 
-    const suggestedComps = getSuggestedCompetitions();
+    const aiComps = (aiAnalysis?.pageants || [])
+      .filter((comp) => comp.name)
+      .slice(0, 3)
+      .map((comp) => ({
+        name: String(comp.name),
+        type: comp.reasoning || "AI đề xuất",
+        deadline: "Đang cập nhật",
+        status: `${Math.round(Number(comp.match_score || 0))}% match`,
+      }));
+    const suggestedComps = aiComps.length ? aiComps : getSuggestedCompetitions();
 
     return (
       <div className={cn(
@@ -707,6 +770,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 <button
                   type="button"
                   onClick={() => {
+                    setAiAnalysis(null);
                     setIsSubmitted(false);
                     setStep(1);
                     setMaxStep(1);
