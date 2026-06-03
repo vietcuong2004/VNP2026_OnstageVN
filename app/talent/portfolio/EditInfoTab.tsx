@@ -5,7 +5,7 @@ import {
   Edit3, ShieldCheck, CheckCircle, Camera, X, Plus, Info, Upload, Video, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { deleteTalentPhoto, saveTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
+import { deleteTalentPhoto, ensureTalentProfile, persistTalentProfile, saveTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 
 const convertToInputDate = (dateStr: string) => {
   if (!dateStr) return "2002-05-15";
@@ -228,20 +228,6 @@ export default function EditInfoTab({
     addToast("Đã lưu thông tin cá nhân lên hệ thống!", "success");
   };
 
-  const simulateLocalPhotoUpload = () => {
-    const unsplashPhotos = [
-      "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=600",
-      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=600",
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600"
-    ];
-    const randomPhoto = unsplashPhotos[Math.floor(Math.random() * unsplashPhotos.length)];
-    const updatedProfile = { ...profile, photos: [...(profile.photos || []), randomPhoto] };
-    setProfile(updatedProfile);
-    localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
-  };
-
   const handlePhotoFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -251,21 +237,23 @@ export default function EditInfoTab({
     setUploadProgress(20);
 
     try {
-      if (!profile.backendProfileId) {
-        simulateLocalPhotoUpload();
+      const syncedProfile = await ensureTalentProfile(profile);
+      setProfile(syncedProfile);
+
+      if (!syncedProfile.backendProfileId) {
+        addToast("Vui lòng đăng nhập để tải ảnh lên S3.", "info");
         return;
       }
 
       setUploadProgress(60);
-      const photo = await uploadTalentPhoto(profile.backendProfileId, file);
+      const photo = await uploadTalentPhoto(syncedProfile.backendProfileId, file, "portfolio");
       const photoUrl = photo.url || photo.path;
-      const updatedProfile = {
-        ...profile,
-        photos: photoUrl ? [...(profile.photos || []), photoUrl] : profile.photos || [],
-        photoRecords: [...(profile.photoRecords || []), photo],
-      };
+      const updatedProfile = persistTalentProfile({
+        ...syncedProfile,
+        photos: photoUrl ? [...(syncedProfile.photos || []), photoUrl] : syncedProfile.photos || [],
+        photoRecords: [...(syncedProfile.photoRecords || []), photo],
+      });
       setProfile(updatedProfile);
-      localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
     } catch (error) {
       console.error(error);
       addToast("Không tải được ảnh lên backend, vui lòng thử lại.", "info");
@@ -292,9 +280,8 @@ export default function EditInfoTab({
     const updatedRecords = [...(profile.photoRecords || [])];
     updatedPhotos.splice(idx, 1);
     updatedRecords.splice(idx, 1);
-    const updatedProfile = { ...profile, photos: updatedPhotos, photoRecords: updatedRecords };
+    const updatedProfile = persistTalentProfile({ ...profile, photos: updatedPhotos, photoRecords: updatedRecords });
     setProfile(updatedProfile);
-    localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
     addToast("Đã xóa ảnh khỏi bộ ảnh nghệ thuật", "info");
   };
 

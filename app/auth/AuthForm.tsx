@@ -18,6 +18,7 @@ type AuthResponse = {
     email: string;
     type: AccountType;
     status: string;
+    external_avatar_url?: string | null;
   };
 };
 
@@ -69,7 +70,6 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   const [loading, setLoading] = useState(false);
 
   const apiUrl = useMemo(() => getApiBaseUrl(), []);
-  const socialType = isRegister ? accountType : "talent";
 
   useEffect(() => {
     if (isRegister) return;
@@ -262,14 +262,14 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <a
-            href={`${apiUrl}/auth/social/google/redirect?type=${socialType}`}
+            href={`${apiUrl}/auth/social/google/redirect`}
             className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-xs font-bold uppercase tracking-wider text-slate-200 transition-colors hover:border-amber-400/40 hover:text-amber-300"
           >
             <span className="text-base font-black">G</span>
             Google
           </a>
           <a
-            href={`${apiUrl}/auth/social/facebook/redirect?type=${socialType}`}
+            href={`${apiUrl}/auth/social/facebook/redirect`}
             className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-xs font-bold uppercase tracking-wider text-slate-200 transition-colors hover:border-blue-400/40 hover:text-blue-300"
           >
             <span className="text-base font-black">f</span>

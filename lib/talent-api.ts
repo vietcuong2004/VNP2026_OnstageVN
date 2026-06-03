@@ -25,7 +25,7 @@ type BackendProfile = {
   birth_date?: string | null;
   height_cm?: number | null;
   weight_kg?: number | null;
-  measurements?: Record<string, number | null> | null;
+  measurements?: Record<string, number | null> | string | null;
   skin_tone?: string | null;
   hair_color?: string | null;
   has_tattoo?: boolean | null;
@@ -40,11 +40,11 @@ type BackendProfile = {
   photos?: BackendPhoto[] | null;
   social_accounts?: Array<{ followers_count?: number | null; engagement_rate?: number | null }> | null;
   calendar_events?: any[] | null;
-  user?: { name?: string | null; email?: string | null; avatar?: string | null } | null;
+  user?: { name?: string | null; email?: string | null; external_avatar_url?: string | null } | null;
 };
 
 export function getDefaultTalentProfile() {
-  const user = getStoredAuthUser<{ name?: string; email?: string }>();
+  const user = getStoredAuthUser<{ name?: string; email?: string; external_avatar_url?: string | null; avatar?: string | null }>();
 
   return {
     name: user?.name || "Nguyễn Mai Anh",
@@ -53,7 +53,7 @@ export function getDefaultTalentProfile() {
     hometown: "Nam Định",
     phone: "0912345678",
     email: user?.email || "maianh.nguyen@beautyapp.vn",
-    avatar: "/avatar.png",
+    avatar: user?.external_avatar_url || user?.avatar || "/avatar.png",
     height: 172,
     weight: 51,
     bust: 85,
@@ -104,6 +104,25 @@ export function getDefaultTalentProfile() {
   };
 }
 
+export function sanitizeTalentProfile(profile: any) {
+  const photos = Array.isArray(profile?.photos)
+    ? profile.photos.filter(isPortablePhotoUrl)
+    : profile?.photos;
+  const photoRecords = Array.isArray(profile?.photoRecords)
+    ? profile.photoRecords.filter((photo: BackendPhoto) => isPortablePhotoUrl(photo.url || photo.path))
+    : profile?.photoRecords;
+  const avatar = isPortablePhotoUrl(profile?.avatar) ? profile.avatar : "/avatar.png";
+  const cover = isPortablePhotoUrl(profile?.cover) ? profile.cover : "/cover_image.png";
+
+  return {
+    ...profile,
+    avatar,
+    cover,
+    photos,
+    photoRecords,
+  };
+}
+
 function readLocalProfile() {
   const fallback = getDefaultTalentProfile();
 
@@ -113,17 +132,19 @@ function readLocalProfile() {
   if (!stored) return fallback;
 
   try {
-    return { ...fallback, ...JSON.parse(stored) };
+    return sanitizeTalentProfile({ ...fallback, ...JSON.parse(stored) });
   } catch {
     return fallback;
   }
 }
 
 export function persistTalentProfile(profile: any) {
+  const sanitizedProfile = sanitizeTalentProfile(profile);
+
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+    window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(sanitizedProfile));
   }
-  return profile;
+  return sanitizedProfile;
 }
 
 function displayDate(isoDate?: string | null) {
@@ -178,29 +199,54 @@ function averageEngagement(profile: BackendProfile) {
   return Number((rates.reduce((total, rate) => total + rate, 0) / rates.length).toFixed(1));
 }
 
+function isPortablePhotoUrl(value: unknown) {
+  const url = String(value || "");
+  return Boolean(url) && !url.startsWith("/storage/") && !url.startsWith("data:") && !url.startsWith("blob:");
+}
+
+function photoUrl(photo?: BackendPhoto | null) {
+  const url = photo?.url || photo?.path || "";
+  return isPortablePhotoUrl(url) ? url : "";
+}
+
+function parseMeasurements(value: BackendProfile["measurements"] | string | null | undefined) {
+  if (!value) return {};
+  if (typeof value === "object") return value;
+
+  const [bust, waist, hips] = value.split("-").map((item) => Number(item.trim()) || null);
+  return { bust, waist, hips };
+}
+
 export function mapBackendProfile(profile: BackendProfile | null) {
   const local = readLocalProfile();
   if (!profile) return persistTalentProfile(local);
 
-  const photos = (profile.photos || [])
-    .map((photo) => photo.url || photo.path)
-    .filter(Boolean) as string[];
+  const backendPhotos = profile.photos || [];
+  const portfolioPhotoRecords = backendPhotos.filter((photo) => !photo.category || photo.category === "portfolio");
+  const photos = portfolioPhotoRecords
+    .map(photoUrl)
+    .filter(isPortablePhotoUrl) as string[];
+  const avatarUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "avatar"));
+  const coverUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cover"));
+  const localPhotos = (Array.isArray(local.photos) ? local.photos : []).filter(isPortablePhotoUrl);
+  const measurements = parseMeasurements(profile.measurements);
 
   const mapped = {
     ...local,
     backendProfileId: profile.id,
     name: profile.display_name || profile.user?.name || local.name,
     email: profile.user?.email || local.email,
-    avatar: profile.user?.avatar || local.avatar || "/avatar.png",
+    avatar: avatarUrl || profile.user?.external_avatar_url || local.avatar || "/avatar.png",
+    cover: coverUrl || local.cover || "/cover_image.png",
     location: profile.city || local.location,
     hometown: profile.district || local.hometown,
     gender: displayGender(profile.gender) || local.gender,
     dob: displayDate(profile.birth_date) || local.dob,
     height: profile.height_cm ?? local.height,
     weight: profile.weight_kg ?? local.weight,
-    bust: profile.measurements?.bust ?? local.bust,
-    waist: profile.measurements?.waist ?? local.waist,
-    hips: profile.measurements?.hips ?? local.hips,
+    bust: measurements.bust ?? local.bust,
+    waist: measurements.waist ?? local.waist,
+    hips: measurements.hips ?? local.hips,
     skinColor: profile.skin_tone || local.skinColor,
     hairColor: profile.hair_color || local.hairColor,
     tattoo: profile.has_tattoo ? "Có" : "Không",
@@ -212,8 +258,8 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     bio: profile.bio || local.bio,
     followersCount: sumFollowers(profile) ?? local.followersCount,
     engagementRate: averageEngagement(profile) ?? local.engagementRate,
-    photos: photos.length ? photos : local.photos,
-    photoRecords: profile.photos || [],
+    photos: photos.length ? photos : localPhotos.length ? localPhotos : ["/fullbody_model.png", "/cover_image.png"],
+    photoRecords: portfolioPhotoRecords,
   };
 
   return persistTalentProfile(mapped);
@@ -232,6 +278,10 @@ export async function loadTalentProfile() {
 }
 
 export function buildBackendProfilePayload(profile: any) {
+  const bust = Number(profile.bust || 0) || null;
+  const waist = Number(profile.waist || 0) || null;
+  const hips = Number(profile.hips || 0) || null;
+
   return {
     display_name: profile.name || "Talent",
     talent_types: profile.talentTypes?.length ? profile.talentTypes : ["kol", "model"],
@@ -241,11 +291,7 @@ export function buildBackendProfilePayload(profile: any) {
     birth_date: inputDate(profile.dob),
     height_cm: Number(profile.height || 0) || undefined,
     weight_kg: Number(profile.weight || 0) || undefined,
-    measurements: {
-      bust: Number(profile.bust || 0) || null,
-      waist: Number(profile.waist || 0) || null,
-      hips: Number(profile.hips || 0) || null,
-    },
+    measurements: [bust, waist, hips].filter(Boolean).join("-") || undefined,
     skin_tone: profile.skinColor || undefined,
     hair_color: profile.hairColor || undefined,
     has_tattoo: profile.tattoo === "Có",
@@ -259,6 +305,17 @@ export function buildBackendProfilePayload(profile: any) {
     budget_max: profile.rateCard ? Math.max(...Object.values(profile.rateCard).map(Number).filter(Boolean)) : undefined,
     is_public: true,
   };
+}
+
+export async function ensureTalentProfile(profile: any) {
+  if (profile?.backendProfileId || !getAuthToken()) return persistTalentProfile(profile);
+
+  const response = await apiJson<{ data: BackendProfile }>("/my/profile", {
+    method: "PUT",
+    body: JSON.stringify(buildBackendProfilePayload(profile)),
+  });
+
+  return mapBackendProfile(response.data);
 }
 
 export async function saveTalentProfile(profile: any) {
@@ -276,10 +333,10 @@ export async function saveTalentProfile(profile: any) {
   }
 }
 
-export async function uploadTalentPhoto(profileId: number, file: File) {
+export async function uploadTalentPhoto(profileId: number, file: File, category = "portfolio") {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("category", "portfolio");
+  formData.append("category", category);
 
   const response = await apiForm<{ data: BackendPhoto }>(`/profiles/${profileId}/photos`, formData);
   return response.data;
@@ -346,7 +403,7 @@ export async function loadTalentCampaigns() {
   if (!getAuthToken()) return null;
 
   try {
-    const response = await apiJson<{ data: any[] }>("/talent/campaigns");
+    const response = await apiJson<{ data: any[] }>("/campaigns");
     return response.data || [];
   } catch (error) {
     console.warn(error);
@@ -355,7 +412,7 @@ export async function loadTalentCampaigns() {
 }
 
 export async function applyTalentCampaign(campaignId: number | string, notes?: string) {
-  const response = await apiJson<{ data: any }>(`/talent/campaigns/${campaignId}/apply`, {
+  const response = await apiJson<{ data: any }>(`/campaigns/${campaignId}/talents`, {
     method: "POST",
     body: JSON.stringify({ notes }),
   });

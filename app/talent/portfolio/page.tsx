@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
 import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
-import { loadTalentProfile } from "@/lib/talent-api";
+import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 
 export default function PortfolioPage() {
   const router = useRouter();
@@ -84,27 +84,42 @@ export default function PortfolioPage() {
   const currentBoostLevel = getBoostLevel(profile);
   const rankingScore = Math.round((currentBoostLevel * 100) + (profile.profileScore || 82) * 0.5 + 95 * 0.3 + (profile.averageRating || 4.9) * 2);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
 
-    // Enforce size limit of 1.5MB to avoid localStorage quota exceeded (max 5MB)
-    if (file.size > 1.5 * 1024 * 1024) {
-      addToast("Kích thước ảnh phải nhỏ hơn 1.5MB để tối ưu dung lượng lưu trữ", "info");
+    // Match backend upload limit.
+    if (file.size > 5 * 1024 * 1024) {
+      addToast("Kích thước ảnh phải nhỏ hơn 5MB.", "info");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64String = event.target?.result as string;
-      if (base64String) {
-        const updatedProfile = { ...profile, [type]: base64String };
-        setProfile(updatedProfile);
-        localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
-        addToast(`Cập nhật ${type === "avatar" ? "Ảnh đại diện" : "Ảnh bìa"} thành công!`, "success");
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+      setProfile(syncedProfile);
+
+      if (!syncedProfile.backendProfileId) {
+        addToast("Vui lòng đăng nhập để tải ảnh lên S3.", "info");
+        return;
       }
-    };
-    reader.readAsDataURL(file);
+
+      const photo = await uploadTalentPhoto(syncedProfile.backendProfileId, file, type);
+      const photoUrl = photo.url || photo.path;
+
+      if (!photoUrl) {
+        addToast("Backend chưa trả về URL ảnh.", "info");
+        return;
+      }
+
+      const updatedProfile = persistTalentProfile({ ...syncedProfile, [type]: photoUrl });
+      setProfile(updatedProfile);
+      addToast(`Cập nhật ${type === "avatar" ? "ảnh đại diện" : "ảnh bìa"} thành công!`, "success");
+    } catch (error) {
+      console.error(error);
+      addToast("Không tải được ảnh lên S3, vui lòng thử lại.", "info");
+    }
+
   };
 
   // Handler for booking form submit preview

@@ -9,6 +9,7 @@ type AuthUser = {
   email: string;
   type: "talent" | "brand";
   status: string;
+  external_avatar_url?: string | null;
 };
 
 function getApiBaseUrl() {
@@ -40,6 +41,7 @@ export default function Header() {
     : isBrandPath
       ? { name: "L'Oréal Vietnam", subtitle: "Doanh nghiệp" }
       : { name: "Nguyễn Mai Anh", subtitle: "Hạng S" };
+  const headerAvatarSrc = isBrandPath ? "/logo_icon.png" : user?.external_avatar_url || "/avatar.png";
 
   async function handleLogout() {
     const token = localStorage.getItem("onstagevn_auth_token");
@@ -107,7 +109,7 @@ export default function Header() {
             className="flex items-center gap-3 rounded-xl px-2 py-1 text-left transition-colors hover:bg-white/5"
           >
             <img
-              src={isBrandPath ? "/logo_icon.png" : "/avatar.png"}
+              src={headerAvatarSrc}
               alt="Profile avatar"
               className="h-9 w-9 rounded-full border border-amber-400/30 object-cover bg-slate-950"
             />
