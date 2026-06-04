@@ -1,6 +1,6 @@
 "use client";
 
-import { apiJson, getAuthToken } from "@/lib/api-client";
+import { apiJson, getAuthToken, getStoredAuthUser } from "@/lib/api-client";
 import type { Campaign, CampaignStage, TalentProfile } from "@/lib/brand-mvp-data";
 
 type BackendUser = {
@@ -11,12 +11,67 @@ type BackendUser = {
   external_avatar_url?: string | null;
 };
 
+type StoredAuthUser = {
+  type?: string | null;
+};
+
+export function requireBrandSession() {
+  const token = getAuthToken();
+  const user = getStoredAuthUser<StoredAuthUser>();
+
+  if (!token) {
+    throw new Error("Bạn cần đăng nhập bằng tài khoản brand để thực hiện thao tác này.");
+  }
+
+  if (user?.type && user.type !== "brand") {
+    throw new Error("Tính năng này chỉ dành cho tài khoản brand.");
+  }
+}
+
 type BackendProfile = {
   id?: number | string;
+  full_name?: string | null;
   display_name?: string | null;
+  talent_types?: string[] | null;
   city?: string | null;
+  district?: string | null;
+  gender?: string | null;
+  birth_date?: string | null;
+  height_cm?: number | string | null;
+  weight_kg?: number | string | null;
+  measurements?: Record<string, number | null> | string | null;
+  skin_tone?: string | null;
+  hair_color?: string | null;
+  experience_years?: number | string | null;
+  tier?: string | null;
+  rating?: number | string | null;
+  profile_completion?: number | string | null;
+  verification_status?: string | null;
+  skills?: string[] | null;
+  languages?: string[] | null;
+  experience?: string | null;
+  bio?: string | null;
+  budget_min?: number | string | null;
+  budget_max?: number | string | null;
   avatar_url?: string | null;
+  photos?: BackendPhoto[] | null;
+  social_accounts?: BackendSocialAccount[] | null;
+  calendar_events?: Array<{ starts_at?: string | null }> | null;
   user?: BackendUser | null;
+};
+
+type BackendPhoto = {
+  id?: number | string;
+  url?: string | null;
+  path?: string | null;
+  category?: string | null;
+  is_primary?: boolean | number | null;
+};
+
+type BackendSocialAccount = {
+  platform?: string | null;
+  followers_count?: number | string | null;
+  engagement_rate?: number | string | null;
 };
 
 type BackendCampaignTalent = {
@@ -81,6 +136,112 @@ function formatBudget(min: unknown, max: unknown) {
   if (budgetMax) return `đến ${formatMoney(budgetMax)}`;
   if (budgetMin) return `từ ${formatMoney(budgetMin)}`;
   return "Thỏa thuận";
+}
+
+function formatFollowers(value: number) {
+  if (value >= 1000000) return `${Number((value / 1000000).toFixed(1))}M`;
+  if (value >= 1000) return `${Number((value / 1000).toFixed(0))}K`;
+  return String(value);
+}
+
+function profileAge(birthDate?: string | null) {
+  if (!birthDate) return 24;
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return 24;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age -= 1;
+  return age > 0 ? age : 24;
+}
+
+function parseMeasurements(value: BackendProfile["measurements"]) {
+  if (!value) return {};
+  if (typeof value === "object") return value;
+  const [bust, waist, hips] = value.split("-").map((item) => Number(item.trim()) || 0);
+  return { bust, waist, hips };
+}
+
+function firstPhoto(profile: BackendProfile, category?: string) {
+  const photos = profile.photos ?? [];
+  const photo = category
+    ? [...photos].reverse().find((item) => item.category === category)
+    : photos[0];
+
+  return photo?.url || photo?.path || "";
+}
+
+function mapTier(value?: string | null): TalentProfile["tier"] {
+  if (value === "S" || value === "A" || value === "B" || value === "C") return value;
+  return "C";
+}
+
+function sumFollowers(profile: BackendProfile) {
+  return (profile.social_accounts ?? []).reduce((total, account) => total + (Number(account.followers_count) || 0), 0);
+}
+
+function avgEngagement(profile: BackendProfile) {
+  const rates = (profile.social_accounts ?? [])
+    .map((account) => Number(account.engagement_rate) || 0)
+    .filter((rate) => rate > 0);
+
+  if (!rates.length) return 0;
+  return Number((rates.reduce((total, rate) => total + rate, 0) / rates.length).toFixed(1));
+}
+
+function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): TalentProfile {
+  const measurements = parseMeasurements(profile.measurements);
+  const followersCount = sumFollowers(profile) || fallback?.followersCount || 0;
+  const engagementRate = avgEngagement(profile) || fallback?.engagementRate || 0;
+  const avatar = firstPhoto(profile, "avatar") || profile.avatar_url || profile.user?.external_avatar_url || fallback?.avatar || "/images/default-avatar.png";
+  const cover = firstPhoto(profile, "cover") || fallback?.cover || avatar;
+  const portfolio = (profile.photos ?? [])
+    .map((photo) => photo.url || photo.path || "")
+    .filter(Boolean);
+
+  return {
+    id: String(profile.id ?? fallback?.id ?? ""),
+    name: profile.full_name || profile.display_name || fallback?.name || profile.user?.name || "Talent",
+    type: profile.talent_types?.[0] || fallback?.type || "Talent",
+    city: profile.city || fallback?.city || "",
+    district: profile.district || fallback?.district || "",
+    gender: profile.gender === "male" ? "Nam" : profile.gender === "female" ? "Nu" : fallback?.gender || "",
+    age: profileAge(profile.birth_date) || fallback?.age || 24,
+    height: Number(profile.height_cm) || fallback?.height || 0,
+    weight: Number(profile.weight_kg) || fallback?.weight || 0,
+    bust: Number(measurements.bust) || fallback?.bust || 0,
+    waist: Number(measurements.waist) || fallback?.waist || 0,
+    hips: Number(measurements.hips) || fallback?.hips || 0,
+    skinTone: profile.skin_tone || fallback?.skinTone || "",
+    hairColor: profile.hair_color || fallback?.hairColor || "",
+    yearsOfExperience: Number(profile.experience_years) || fallback?.yearsOfExperience || 0,
+    tier: mapTier(profile.tier) || fallback?.tier || "C",
+    verified: profile.verification_status === "verified" || Boolean(profile.user?.is_verified) || fallback?.verified || false,
+    rating: Number(profile.rating) || fallback?.rating || 0,
+    completedJobs: fallback?.completedJobs || 0,
+    responseRate: fallback?.responseRate || 0,
+    followersCount,
+    followers: formatFollowers(followersCount),
+    engagementRate,
+    platforms: (profile.social_accounts ?? []).map((account) => account.platform || "").filter(Boolean),
+    rateValue: Number(profile.budget_max || profile.budget_min) || fallback?.rateValue || 0,
+    rate: formatBudget(profile.budget_min, profile.budget_max),
+    rateUnit: fallback?.rateUnit || "du an",
+    avatar,
+    cover,
+    fullBodyImage: firstPhoto(profile, "portfolio") || fallback?.fullBodyImage || avatar,
+    skills: profile.skills?.length ? profile.skills : fallback?.skills || [],
+    experience: profile.experience || profile.bio || fallback?.experience || "",
+    portfolio: portfolio.length ? portfolio : fallback?.portfolio || [],
+    availability: fallback?.availability || "Chua co lich",
+    availabilityDates: (profile.calendar_events ?? []).map((event) => String(event.starts_at || "").slice(0, 10)).filter(Boolean),
+    completion: Number(profile.profile_completion) || fallback?.completion || 0,
+    matchScore: Number(profile.profile_completion) || fallback?.matchScore || 0,
+    reliability: fallback?.reliability || 0,
+    education: fallback?.education || "",
+    languages: profile.languages?.length ? profile.languages : fallback?.languages || [],
+    rateCard: fallback?.rateCard || {},
+  };
 }
 
 function parseBudgetRange(value: string) {
@@ -203,6 +364,8 @@ export async function loadBrandCampaign(id: string, fallback: Campaign[] = []) {
 }
 
 export async function createBrandCampaign(form: CampaignForm) {
+  requireBrandSession();
+
   const response = await apiJson<{ data: BackendCampaign }>("/campaigns", {
     method: "POST",
     body: JSON.stringify(buildCampaignPayload(form)),
@@ -212,6 +375,8 @@ export async function createBrandCampaign(form: CampaignForm) {
 }
 
 export async function publishBrandCampaign(id: string) {
+  requireBrandSession();
+
   const response = await apiJson<{ data: BackendCampaign }>(`/campaigns/${id}/publish`, {
     method: "POST",
   });
@@ -220,9 +385,65 @@ export async function publishBrandCampaign(id: string) {
 }
 
 export async function closeBrandCampaign(id: string) {
+  requireBrandSession();
+
   const response = await apiJson<{ data: BackendCampaign }>(`/campaigns/${id}/close`, {
     method: "POST",
   });
 
   return mapBackendCampaign(response.data);
+}
+
+export async function loadBrandTalents(fallback: TalentProfile[] = []) {
+  if (!getAuthToken()) return fallback;
+
+  try {
+    const response = await apiJson<{ data: BackendProfile[] }>("/talents?per_page=100&sort=match");
+    return (response.data ?? []).map((profile, index) => mapBackendTalent(profile, fallback[index]));
+  } catch (error) {
+    console.warn("Cannot load brand talents", error);
+    return fallback;
+  }
+}
+
+export async function loadBrandTalent(id: string, fallback?: TalentProfile | null) {
+  if (!getAuthToken()) return fallback ?? null;
+
+  try {
+    const response = await apiJson<{ data: BackendProfile }>(`/talents/${id}`);
+    return mapBackendTalent(response.data, fallback ?? undefined);
+  } catch (error) {
+    console.warn("Cannot load brand talent", error);
+    return fallback ?? null;
+  }
+}
+
+export async function addTalentToBrandCampaign(campaignId: string, profileId: string, notes?: string) {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BackendCampaignTalent }>(`/campaigns/${campaignId}/talents`, {
+    method: "POST",
+    body: JSON.stringify({
+      profile_id: profileId,
+      status: "shortlisted",
+      notes,
+    }),
+  });
+
+  return response.data;
+}
+
+export async function createBrandContactRequest(profileId: string, campaignId?: string, message?: string) {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: unknown }>("/contact-requests", {
+    method: "POST",
+    body: JSON.stringify({
+      profile_id: profileId,
+      campaign_id: campaignId || undefined,
+      message,
+    }),
+  });
+
+  return response.data;
 }

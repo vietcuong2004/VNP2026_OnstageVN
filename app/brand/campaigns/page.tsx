@@ -35,27 +35,37 @@ function statusLabel(status: Campaign["status"]) {
   return "Nháp";
 }
 
+function readStoredCampaigns() {
+  if (typeof window === "undefined") return null;
+
+  const stored = window.localStorage.getItem("onstagevn_campaigns");
+  if (!stored) return null;
+
+  try {
+    return JSON.parse(stored) as Campaign[];
+  } catch {
+    return null;
+  }
+}
+
 export default function CampaignsPage() {
   const router = useRouter();
-  const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch (e) { }
-      }
-    }
-    return initialCampaigns;
-  });
+  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [activeTab, setActiveTab] = useState<CampaignStatusTab>("all");
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
     let isMounted = true;
+    const storedCampaigns = readStoredCampaigns();
 
-    loadBrandCampaigns(campaigns).then((items) => {
+    Promise.resolve().then(() => {
+      if (isMounted && storedCampaigns?.length) {
+        setCampaigns(storedCampaigns);
+      }
+    });
+
+    loadBrandCampaigns(storedCampaigns?.length ? storedCampaigns : initialCampaigns).then((items) => {
       if (isMounted) setCampaigns(items);
     });
 
@@ -80,6 +90,11 @@ export default function CampaignsPage() {
       router.push(`/brand/campaigns/${createdCampaign.id}`);
       return;
     } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message.includes("đăng nhập") || message.includes("brand")) {
+        window.alert(message);
+        return;
+      }
       console.warn("Cannot create campaign from API, using local fallback", error);
     }
 

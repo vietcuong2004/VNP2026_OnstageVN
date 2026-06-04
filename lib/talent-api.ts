@@ -440,7 +440,7 @@ export async function loadTalentCampaigns() {
   if (!getAuthToken()) return null;
 
   try {
-    const response = await apiJson<{ data: any[] }>("/campaigns");
+    const response = await apiJson<{ data: any[] }>("/talent/campaigns");
     return response.data || [];
   } catch (error) {
     console.warn(error);
@@ -449,7 +449,7 @@ export async function loadTalentCampaigns() {
 }
 
 export async function applyTalentCampaign(campaignId: number | string, notes?: string) {
-  const response = await apiJson<{ data: any }>(`/campaigns/${campaignId}/talents`, {
+  const response = await apiJson<{ data: any }>(`/talent/campaigns/${campaignId}/apply`, {
     method: "POST",
     body: JSON.stringify({ notes }),
   });

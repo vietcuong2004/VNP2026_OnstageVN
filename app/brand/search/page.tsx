@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
@@ -17,7 +17,8 @@ import {
   Award,
   MessageSquare
 } from "lucide-react";
-import { savedTalentIds, talents, campaigns } from "@/lib/brand-mvp-data";
+import { savedTalentIds, talents, campaigns, type TalentProfile } from "@/lib/brand-mvp-data";
+import { addTalentToBrandCampaign, loadBrandCampaigns, loadBrandTalents } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 const allValue = "all";
@@ -51,8 +52,15 @@ export default function DiscoverTalentsPage() {
   const [minJobs, setMinJobs] = useState(0);
 
   const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
-  const [selectedInviteTalent, setSelectedInviteTalent] = useState<any | null>(null);
+  const [talentList, setTalentList] = useState(talents);
+  const [campaignList, setCampaignList] = useState(campaigns);
+  const [selectedInviteTalent, setSelectedInviteTalent] = useState<TalentProfile | null>(null);
   const [selectedCampaignForInvite, setSelectedCampaignForInvite] = useState("");
+
+  useEffect(() => {
+    loadBrandTalents(talents).then(setTalentList);
+    loadBrandCampaigns(campaigns).then(setCampaignList);
+  }, []);
 
   // Accordion filters state
   const [expandedSection, setExpandedSection] = useState<Record<string, boolean>>({
@@ -71,7 +79,7 @@ export default function DiscoverTalentsPage() {
   const filteredTalents = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase();
 
-    return talents
+    return talentList
       .filter((talent) => {
         const matchesSearch =
           !keyword ||
@@ -148,6 +156,7 @@ export default function DiscoverTalentsPage() {
     verifiedOnly,
     minRating,
     minJobs,
+    talentList,
   ]);
 
   const getTalentStatus = (id: string) => {
@@ -627,7 +636,7 @@ export default function DiscoverTalentsPage() {
                   className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60"
                 >
                   <option value="">-- Chọn chiến dịch --</option>
-                  {campaigns.map(c => (
+                  {campaignList.map(c => (
                     <option key={c.id} value={c.id}>{c.title}</option>
                   ))}
                 </select>
@@ -637,13 +646,18 @@ export default function DiscoverTalentsPage() {
             <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
               <button onClick={() => setSelectedInviteTalent(null)} className="px-4 py-2 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Hủy</button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!selectedCampaignForInvite) {
                     window.alert("Vui lòng chọn chiến dịch!");
                     return;
                   }
-                  window.alert(`Đã gửi lời mời ứng tuyển tới ${selectedInviteTalent.name} tham gia chiến dịch thành công!`);
-                  setSelectedInviteTalent(null);
+                  try {
+                    await addTalentToBrandCampaign(selectedCampaignForInvite, selectedInviteTalent.id);
+                    window.alert(`Đã gửi lời mời ứng tuyển tới ${selectedInviteTalent.name} tham gia chiến dịch thành công!`);
+                    setSelectedInviteTalent(null);
+                  } catch (error) {
+                    window.alert(error instanceof Error ? error.message : "Chưa thể thêm talent vào chiến dịch. Vui lòng thử lại.");
+                  }
                 }}
                 className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer"
               >

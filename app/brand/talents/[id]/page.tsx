@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -28,7 +28,8 @@ import {
   Plus,
   X,
 } from "lucide-react";
-import { campaigns, findTalentById, savedTalentIds } from "@/lib/brand-mvp-data";
+import { campaigns, findTalentById } from "@/lib/brand-mvp-data";
+import { addTalentToBrandCampaign, loadBrandCampaigns, loadBrandTalent } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 
@@ -62,10 +63,20 @@ const JOBS_LIST = [
 export default function BrandTalentProfilePage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const talent = useMemo(() => findTalentById(params.id), [params.id]);
+  const fallbackTalent = useMemo(() => findTalentById(params.id), [params.id]);
+  const [talent, setTalent] = useState<typeof fallbackTalent | null>(fallbackTalent ?? null);
+  const [campaignList, setCampaignList] = useState(campaigns);
   const [addedCampaigns, setAddedCampaigns] = useState<string[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id ?? "");
   const [showInviteModal, setShowInviteModal] = useState(false);
+
+  useEffect(() => {
+    loadBrandTalent(params.id, fallbackTalent).then(setTalent);
+    loadBrandCampaigns(campaigns).then((items) => {
+      setCampaignList(items);
+      setSelectedCampaignId((current) => current || items[0]?.id || "");
+    });
+  }, [fallbackTalent, params.id]);
 
   // Lookbook photos metadata
   const lookbookPhotos = [
@@ -171,14 +182,21 @@ export default function BrandTalentProfilePage() {
     return "busy"; // Weekdays
   };
 
-  function handleAddToCampaign() {
+  async function handleAddToCampaign() {
     if (!selectedCampaignId) {
       window.alert("Vui lòng chọn chiến dịch!");
       return;
     }
-    const campaign = campaigns.find(c => c.id === selectedCampaignId);
+    const campaign = campaignList.find(c => c.id === selectedCampaignId);
     if (addedCampaigns.includes(selectedCampaignId)) {
       window.alert(`Ứng viên đã được thêm vào chiến dịch ${campaign?.title} trước đó!`);
+      return;
+    }
+    if (!talent) return;
+    try {
+      await addTalentToBrandCampaign(selectedCampaignId, talent.id);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể thêm talent vào chiến dịch. Vui lòng thử lại.");
       return;
     }
     setAddedCampaigns(prev => [...prev, selectedCampaignId]);
@@ -388,10 +406,10 @@ export default function BrandTalentProfilePage() {
               <DollarSign className="h-4.5 w-4.5 text-amber-400" /> Bảng Giá Tham Khảo
             </h3>
             <div className="space-y-3">
-              {Object.entries(talent.rateCard || {}).map(([key, value]: any) => (
+              {Object.entries(talent.rateCard || {}).map(([key, value]) => (
                 <div key={key} className="flex justify-between py-1.5 text-xs border-b border-[#151b2d]/50 items-center">
                   <span className="font-medium text-slate-400">{key}</span>
-                  <span className="font-extrabold text-amber-400 font-mono">từ {formatNumber(value)}đ</span>
+                  <span className="font-extrabold text-amber-400 font-mono">từ {formatNumber(Number(value))}đ</span>
                 </div>
               ))}
             </div>
@@ -707,7 +725,7 @@ export default function BrandTalentProfilePage() {
                 {/* SVG 8-axis Radar */}
                 <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
                   <RadarChart
-                    scores={(talent as any).skillsScores || {
+                    scores={(talent as { skillsScores?: Record<string, number> }).skillsScores || {
                       catwalk: 85,
                       pose: 90,
                       mc: 75,
@@ -825,7 +843,7 @@ export default function BrandTalentProfilePage() {
                     </div>
                   </div>
                   <p className="text-[10px] sm:text-xs text-slate-300 leading-relaxed italic">
-                    "{rev.comment}"
+                    &quot;{rev.comment}&quot;
                   </p>
                 </div>
               ))}
@@ -845,7 +863,7 @@ export default function BrandTalentProfilePage() {
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto]">
               <select value={selectedCampaignId} onChange={(event) => setSelectedCampaignId(event.target.value)} className="h-11 rounded-xl border border-white/5 bg-slate-950/60 px-3 text-xs text-white outline-none focus:border-amber-400/60">
-                {campaigns.map((campaign) => (
+                {campaignList.map((campaign) => (
                   <option key={campaign.id} value={campaign.id}>{campaign.title}</option>
                 ))}
               </select>
@@ -889,7 +907,7 @@ export default function BrandTalentProfilePage() {
                   className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60"
                 >
                   <option value="">-- Chọn chiến dịch --</option>
-                  {campaigns.map(c => (
+                  {campaignList.map(c => (
                     <option key={c.id} value={c.id}>{c.title}</option>
                   ))}
                 </select>

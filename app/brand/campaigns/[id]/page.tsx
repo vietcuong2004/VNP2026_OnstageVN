@@ -36,33 +36,38 @@ function nextStage(stage: CampaignStage): CampaignStage {
   return "confirmed";
 }
 
+function readStoredCampaigns() {
+  if (typeof window === "undefined") return null;
+
+  const stored = window.localStorage.getItem("onstagevn_campaigns");
+  if (!stored) return null;
+
+  try {
+    return JSON.parse(stored) as Campaign[];
+  } catch {
+    return null;
+  }
+}
+
+function readSentRequests() {
+  if (typeof window === "undefined") return {};
+
+  const stored = window.localStorage.getItem("onstagevn_sent_requests");
+  if (!stored) return {};
+
+  try {
+    return JSON.parse(stored) as Record<string, boolean>;
+  } catch {
+    return {};
+  }
+}
+
 export default function CampaignDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
 
-  const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch (e) {}
-      }
-    }
-    return initialCampaigns;
-  });
-
-  const [sentRequests, setSentRequests] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_sent_requests");
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch (e) {}
-      }
-    }
-    return {};
-  });
+  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
+  const [sentRequests, setSentRequests] = useState<Record<string, boolean>>({});
 
   const selectedCampaign = useMemo(() => {
     return campaigns.find((c) => c.id === params.id);
@@ -70,8 +75,17 @@ export default function CampaignDetailPage() {
 
   useEffect(() => {
     let isMounted = true;
+    const storedCampaigns = readStoredCampaigns();
 
-    loadBrandCampaign(params.id, campaigns).then((campaign) => {
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      if (storedCampaigns?.length) {
+        setCampaigns(storedCampaigns);
+      }
+      setSentRequests(readSentRequests());
+    });
+
+    loadBrandCampaign(params.id, storedCampaigns?.length ? storedCampaigns : initialCampaigns).then((campaign) => {
       if (!isMounted || !campaign) return;
       setCampaigns((current) => [campaign, ...current.filter((item) => item.id !== campaign.id)]);
     });
@@ -97,6 +111,11 @@ export default function CampaignDetailPage() {
         return;
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message.includes("đăng nhập") || message.includes("brand")) {
+        window.alert(message);
+        return;
+      }
       console.warn("Cannot update campaign status from API, using local fallback", error);
     }
 
