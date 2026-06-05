@@ -4,8 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookmarkCheck, Briefcase, FileText, HeartOff, Plus, Send, Eye } from "lucide-react";
 import { campaigns, savedTalentIds, talents } from "@/lib/brand-mvp-data";
-import { addTalentToBrandCampaign, createBrandContactRequest, loadBrandCampaigns, loadBrandTalents } from "@/lib/brand-api";
+import { addTalentToBrandCampaign, createBrandContactRequest, loadBrandCampaigns, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
+
+function selectExistingCampaignId(current: string, items: typeof campaigns) {
+  if (items.some((campaign) => campaign.id === current)) return current;
+  return items[0]?.id || "";
+}
 
 export default function BrandShortlistsPage() {
   const router = useRouter();
@@ -13,6 +18,8 @@ export default function BrandShortlistsPage() {
   const [talentList, setTalentList] = useState(talents);
   const [localCampaigns, setLocalCampaigns] = useState(campaigns);
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id ?? "");
+  const [wishlistId, setWishlistId] = useState<string | null>(null);
+  const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({
     "tal-1": "Phù hợp campaign beauty, ưu tiên mời lịch livestream.",
     "tal-2": "Giữ cho lookbook thời trang.",
@@ -20,24 +27,55 @@ export default function BrandShortlistsPage() {
   const [requestedIds, setRequestedIds] = useState<string[]>([]);
 
   useEffect(() => {
-    loadBrandTalents(talents).then((items) => {
+    loadBrandTalents(talents).then(async (items) => {
       setTalentList(items);
-      const hasSavedTalent = items.some((talent) => savedIds.includes(talent.id));
-      if (!hasSavedTalent) {
-        setSavedIds(items.slice(0, 3).map((talent) => talent.id));
+      const wishlists = await loadBrandWishlists(items);
+      const primaryWishlist = wishlists[0];
+
+      if (primaryWishlist) {
+        setWishlistId(primaryWishlist.id);
+        setSavedIds(primaryWishlist.savedIds);
+        setNotes((current) => ({ ...current, ...primaryWishlist.notes }));
+        setWishlistItemIds(
+          primaryWishlist.items.reduce((acc: Record<string, string>, item) => {
+            const profileId = String(item.profile_id || item.profile?.id || "");
+            if (profileId) acc[profileId] = String(item.id);
+            return acc;
+          }, {})
+        );
+      } else {
+        const hasSavedTalent = items.some((talent) => savedTalentIds.includes(talent.id));
+        if (!hasSavedTalent) {
+          setSavedIds(items.slice(0, 3).map((talent) => talent.id));
+        }
       }
     });
     loadBrandCampaigns(campaigns).then((items) => {
       setLocalCampaigns(items);
-      setSelectedCampaignId((current) => current || items[0]?.id || "");
+      setSelectedCampaignId((current) => selectExistingCampaignId(current, items));
     });
   }, []);
 
   const savedTalents = useMemo(() => talentList.filter((talent) => savedIds.includes(talent.id)), [savedIds, talentList]);
   const selectedCampaign = localCampaigns.find((campaign) => campaign.id === selectedCampaignId);
 
-  function removeTalent(id: string) {
+  async function removeTalent(id: string) {
+    const itemId = wishlistItemIds[id];
+    if (wishlistId && itemId) {
+      try {
+        await removeTalentFromWishlist(wishlistId, itemId);
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Chưa thể xóa talent khỏi danh sách lưu.");
+        return;
+      }
+    }
+
     setSavedIds((current) => current.filter((item) => item !== id));
+    setWishlistItemIds((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
   }
 
   async function addTalentToCampaign(talentId: string) {

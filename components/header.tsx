@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Bell, Calendar, ChevronDown, Crown, LogOut, Search, UserCircle, Building2 } from "lucide-react";
+import { TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
 
 type AuthUser = {
   name: string;
@@ -12,8 +13,26 @@ type AuthUser = {
   external_avatar_url?: string | null;
 };
 
+type TalentProfileStorage = {
+  avatar?: string | null;
+};
+
 function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
+}
+
+function readTalentAvatar() {
+  if (typeof window === "undefined") return null;
+
+  const stored = window.localStorage.getItem("vnp_talent_profile");
+  if (!stored) return null;
+
+  try {
+    const profile = JSON.parse(stored) as TalentProfileStorage;
+    return profile.avatar || null;
+  } catch {
+    return null;
+  }
 }
 
 export default function Header() {
@@ -22,9 +41,12 @@ export default function Header() {
   const isBrandPath = pathname.startsWith("/brand");
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [talentAvatar, setTalentAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("onstagevn_auth_user");
+    setTalentAvatar(readTalentAvatar());
+
     if (!stored) {
       return;
     }
@@ -36,12 +58,26 @@ export default function Header() {
     }
   }, []);
 
+  useEffect(() => {
+    function syncTalentAvatar() {
+      setTalentAvatar(readTalentAvatar());
+    }
+
+    window.addEventListener(TALENT_PROFILE_UPDATED_EVENT, syncTalentAvatar);
+    window.addEventListener("storage", syncTalentAvatar);
+
+    return () => {
+      window.removeEventListener(TALENT_PROFILE_UPDATED_EVENT, syncTalentAvatar);
+      window.removeEventListener("storage", syncTalentAvatar);
+    };
+  }, []);
+
   const label = user
     ? { name: user.name, subtitle: user.type === "talent" ? "Talent" : "Đối tác" }
     : isBrandPath
       ? { name: "L'Oréal Vietnam", subtitle: "Doanh nghiệp" }
       : { name: "Nguyễn Mai Anh", subtitle: "Hạng S" };
-  const headerAvatarSrc = isBrandPath ? "/logo_icon.png" : user?.external_avatar_url || "/avatar.png";
+  const headerAvatarSrc = isBrandPath ? "/logo_icon.png" : talentAvatar || user?.external_avatar_url || "/avatar.png";
 
   async function handleLogout() {
     const token = localStorage.getItem("onstagevn_auth_token");

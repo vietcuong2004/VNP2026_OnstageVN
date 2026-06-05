@@ -60,6 +60,11 @@ const JOBS_LIST = [
   { id: 20, title: "Người mẫu ảo / Metaverse", desc: "Scan 3D hình ảnh số để làm mẫu ảo", weights: { pageant: 0.1, runway: 0.6, kol: 0.3 } }
 ];
 
+function selectExistingCampaignId(current: string, items: typeof campaigns) {
+  if (items.some((campaign) => campaign.id === current)) return current;
+  return items[0]?.id || "";
+}
+
 export default function BrandTalentProfilePage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -74,7 +79,7 @@ export default function BrandTalentProfilePage() {
     loadBrandTalent(params.id, fallbackTalent).then(setTalent);
     loadBrandCampaigns(campaigns).then((items) => {
       setCampaignList(items);
-      setSelectedCampaignId((current) => current || items[0]?.id || "");
+      setSelectedCampaignId((current) => selectExistingCampaignId(current, items));
     });
   }, [fallbackTalent, params.id]);
 
@@ -916,15 +921,22 @@ export default function BrandTalentProfilePage() {
 
             <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
               <button onClick={() => setShowInviteModal(false)} className="px-4 py-2 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Hủy</button>
-              <button 
-                onClick={() => {
+              <button
+                onClick={async () => {
                   if (!selectedCampaignId) {
                     window.alert("Vui lòng chọn chiến dịch!");
                     return;
                   }
-                  const campaign = campaigns.find(c => c.id === selectedCampaignId);
+                  const campaign = campaignList.find(c => c.id === selectedCampaignId);
                   if (addedCampaigns.includes(selectedCampaignId)) {
                     window.alert(`Ứng viên đã được thêm vào chiến dịch ${campaign?.title} trước đó!`);
+                    return;
+                  }
+                  if (!talent) return;
+                  try {
+                    await addTalentToBrandCampaign(selectedCampaignId, talent.id);
+                  } catch (error) {
+                    window.alert(error instanceof Error ? error.message : "Chưa thể thêm talent vào chiến dịch. Vui lòng thử lại.");
                     return;
                   }
                   setAddedCampaigns(prev => [...prev, selectedCampaignId]);

@@ -20,8 +20,16 @@ import {
   MapPin,
   MessageSquare
 } from "lucide-react";
-import { campaigns, contactRequests, partnerProfile, savedTalentIds, talents } from "@/lib/brand-mvp-data";
-import { loadBrandCampaigns } from "@/lib/brand-api";
+import { campaigns, contactRequests, partnerProfile, savedTalentIds, talents, type TalentProfile } from "@/lib/brand-mvp-data";
+import {
+  addTalentToWishlist,
+  createBrandWishlist,
+  loadBrandCampaigns,
+  loadBrandContactRequests,
+  loadBrandTalents,
+  loadBrandWishlists,
+  removeTalentFromWishlist,
+} from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 const stats = [
@@ -182,14 +190,40 @@ const RECOMMENDED_TALENTS = [
 export default function BrandDashboard() {
   const router = useRouter();
   const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
-
+  const [wishlistId, setWishlistId] = useState<string | null>(null);
+  const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
+  const [talentList, setTalentList] = useState<TalentProfile[]>(talents);
   const [campaignsList, setCampaignsList] = useState<any[]>(campaigns);
+  const [contactRequestList, setContactRequestList] = useState<any[]>(contactRequests);
 
   useEffect(() => {
     let isMounted = true;
 
     loadBrandCampaigns(campaigns).then((items) => {
       if (isMounted) setCampaignsList(items);
+    });
+    loadBrandTalents(talents).then(async (items) => {
+      if (!isMounted) return;
+
+      setTalentList(items);
+      const wishlists = await loadBrandWishlists(items);
+      if (!isMounted) return;
+
+      const primaryWishlist = wishlists[0];
+      if (primaryWishlist) {
+        setWishlistId(primaryWishlist.id);
+        setSavedIds(primaryWishlist.savedIds);
+        setWishlistItemIds(
+          primaryWishlist.items.reduce((acc: Record<string, string>, item) => {
+            const profileId = String(item.profile_id || item.profile?.id || "");
+            if (profileId) acc[profileId] = String(item.id);
+            return acc;
+          }, {})
+        );
+      }
+    });
+    loadBrandContactRequests().then((items) => {
+      if (isMounted && items.length) setContactRequestList(items);
     });
 
     return () => {
@@ -201,10 +235,100 @@ export default function BrandDashboard() {
     return campaignsList.filter((c) => c.status === "published");
   }, [campaignsList]);
 
-  const toggleSaved = (id: string) => {
-    setSavedIds((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    );
+  const dashboardStats = useMemo(() => {
+    const applicantsCount = campaignsList.reduce((total, campaign) => total + (campaign.applicants?.length ?? 0), 0);
+    const shortlistedCount = campaignsList.reduce((total, campaign) => total + (campaign.shortlistedTalentIds?.length ?? 0), 0);
+    const confirmedCount = campaignsList.reduce((total, campaign) => {
+      const applicants = campaign.applicants ?? [];
+      return total + applicants.filter((item: any) => item.stage === "accepted" || item.stage === "confirmed").length;
+    }, 0);
+    const budgetValue = campaignsList.reduce((total, campaign) => total + (Number(campaign.budgetValue) || 0), 0);
+    const budgetText = budgetValue ? `${Number((budgetValue / 1000000).toFixed(1))}M` : "0M";
+
+    return [
+      {
+        ...stats[0],
+        value: `${openCampaigns.length} chiến dịch`,
+        hint: `${campaignsList.length} tổng campaign`,
+      },
+      {
+        ...stats[1],
+        value: `${Math.max(applicantsCount, contactRequestList.length)} ứng viên`,
+        hint: `${contactRequestList.length} yêu cầu liên hệ`,
+      },
+      {
+        ...stats[2],
+        value: `${confirmedCount} xác nhận`,
+        hint: `${shortlistedCount} talent trong shortlist campaign`,
+      },
+      {
+        ...stats[3],
+        value: budgetText,
+        hint: "Tổng ngân sách campaign",
+      },
+    ];
+  }, [campaignsList, contactRequestList.length, openCampaigns.length]);
+
+  const funnelSteps = useMemo(() => {
+    const applicantsCount = campaignsList.reduce((total, campaign) => total + (campaign.applicants?.length ?? 0), 0);
+    const shortlistedCount = campaignsList.reduce((total, campaign) => total + (campaign.shortlistedTalentIds?.length ?? 0), 0);
+    const interviewCount = campaignsList.reduce((total, campaign) => total + (campaign.applicants ?? []).filter((item: any) => item.stage === "interview").length, 0);
+    const acceptedCount = campaignsList.reduce((total, campaign) => total + (campaign.applicants ?? []).filter((item: any) => item.stage === "accepted").length, 0);
+    const confirmedCount = campaignsList.reduce((total, campaign) => total + (campaign.applicants ?? []).filter((item: any) => item.stage === "confirmed").length, 0);
+    const base = Math.max(applicantsCount, shortlistedCount, interviewCount, acceptedCount, confirmedCount, 1);
+    const percent = (value: number) => `${Math.max(4, Math.round((value / base) * 100))}%`;
+
+    return [
+      { label: "Ứng tuyển", count: applicantsCount, percentage: percent(applicantsCount), color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" },
+      { label: "Đã chọn lọc", count: shortlistedCount, percentage: percent(shortlistedCount), color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
+      { label: "Phỏng vấn", count: interviewCount, percentage: percent(interviewCount), color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
+      { label: "Đã duyệt", count: acceptedCount, percentage: percent(acceptedCount), color: "bg-pink-500/10 text-pink-400 border-pink-500/20" },
+      { label: "Đã xác nhận", count: confirmedCount, percentage: percent(confirmedCount), color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+    ];
+  }, [campaignsList]);
+
+  const recommendedTalents = useMemo(() => {
+    return (talentList.length ? talentList : talents)
+      .slice()
+      .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+      .slice(0, 10);
+  }, [talentList]);
+
+  const toggleSaved = async (id: string) => {
+    if (savedIds.includes(id)) {
+      const itemId = wishlistItemIds[id];
+      if (wishlistId && itemId) {
+        try {
+          await removeTalentFromWishlist(wishlistId, itemId);
+        } catch (error) {
+          window.alert(error instanceof Error ? error.message : "Chưa thể bỏ lưu talent. Vui lòng thử lại.");
+          return;
+        }
+      }
+
+      setSavedIds((current) => current.filter((item) => item !== id));
+      setWishlistItemIds((current) => {
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
+      return;
+    }
+
+    try {
+      let activeWishlistId = wishlistId;
+      if (!activeWishlistId) {
+        const wishlist = await createBrandWishlist();
+        activeWishlistId = wishlist.id;
+        setWishlistId(wishlist.id);
+      }
+
+      const item = await addTalentToWishlist(activeWishlistId, id);
+      setSavedIds((current) => current.includes(id) ? current : [...current, id]);
+      setWishlistItemIds((current) => ({ ...current, [id]: String(item.id) }));
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể lưu talent. Vui lòng thử lại.");
+    }
   };
 
   return (
@@ -236,7 +360,7 @@ export default function BrandDashboard() {
 
       {/* KPI Cards */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
+        {dashboardStats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div key={stat.label} className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-5 shadow-[0_12px_36px_rgba(0,0,0,0.28)]">
@@ -260,17 +384,11 @@ export default function BrandDashboard() {
           <div>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">Phễu Tuyển Dụng Campaign</h3>
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Tổng cộng: 25 ứng viên</span>
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Tổng cộng: {funnelSteps[0]?.count ?? 0} ứng viên</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {[
-                { label: "Ứng tuyển", count: 25, percentage: "100%", color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" },
-                { label: "Đã chọn lọc", count: 12, percentage: "48%", color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
-                { label: "Phỏng vấn", count: 8, percentage: "32%", color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
-                { label: "Đã duyệt", count: 10, percentage: "40%", color: "bg-pink-500/10 text-pink-400 border-pink-500/20" },
-                { label: "Đã xác nhận", count: 10, percentage: "40%", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" }
-              ].map((step, idx) => (
+              {funnelSteps.map((step, idx) => (
                 <div key={idx} className="flex flex-col items-center p-3 rounded-xl border border-white/5 bg-[#0F1115]/50 relative group">
                   <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider text-center">{step.label}</span>
                   <span className="text-2xl font-black text-white mt-2 font-mono">{step.count}</span>
@@ -284,7 +402,7 @@ export default function BrandDashboard() {
           </div>
 
           <div className="mt-5 border-t border-white/5 pt-4 flex flex-wrap items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-            <span>Hiệu quả chuyển đổi trung bình: 40%</span>
+            <span>Hiệu quả chuyển đổi trung bình: {funnelSteps[0]?.count ? Math.round(((funnelSteps[4]?.count ?? 0) / funnelSteps[0].count) * 100) : 0}%</span>
             <button onClick={() => router.push("/brand/campaigns")} className="text-[#C9A86A] hover:underline flex items-center gap-1">
               Quản lý ATS Kanban &rarr;
             </button>
@@ -345,19 +463,18 @@ export default function BrandDashboard() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {RECOMMENDED_TALENTS.map((talent) => {
-              const fullTalent = talents.find(t => t.id === talent.id);
-              const tier = fullTalent?.tier ?? (talent.matchScore >= 95 ? "S" : talent.matchScore >= 90 ? "A" : talent.matchScore >= 85 ? "B" : "C");
-              const district = fullTalent?.district ?? "Quận 1";
-              const city = fullTalent?.city ?? talent.city;
-              const type = fullTalent?.type ?? talent.type;
-              const age = fullTalent?.age ?? 23;
-              const height = fullTalent?.height ?? 170;
-              const weight = fullTalent?.weight ?? 50;
-              const followers = fullTalent?.followers ?? talent.followers;
-              const engagementRate = fullTalent?.engagementRate ?? 4.5;
-              const experience = fullTalent?.experience ?? "Đã có kinh nghiệm làm việc với nhiều nhãn hàng lớn nhỏ.";
-              const verified = fullTalent?.verified ?? talent.verified;
+            {recommendedTalents.map((talent) => {
+              const tier = talent.tier ?? (talent.matchScore >= 95 ? "S" : talent.matchScore >= 90 ? "A" : talent.matchScore >= 85 ? "B" : "C");
+              const district = talent.district || "Quận 1";
+              const city = talent.city;
+              const type = talent.type;
+              const age = talent.age ?? 23;
+              const height = talent.height ?? 170;
+              const weight = talent.weight ?? 50;
+              const followers = talent.followers;
+              const engagementRate = talent.engagementRate ?? 4.5;
+              const experience = talent.experience || "Đã có kinh nghiệm làm việc với nhiều nhãn hàng lớn nhỏ.";
+              const verified = talent.verified;
               const status = talent.id === "tal-1" || talent.id === "tal-2" ? "available" : talent.id === "tal-3" ? "busy" : "maybe";
               const isSaved = savedIds.includes(talent.id);
 

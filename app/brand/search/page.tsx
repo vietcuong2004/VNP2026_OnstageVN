@@ -18,7 +18,15 @@ import {
   MessageSquare
 } from "lucide-react";
 import { savedTalentIds, talents, campaigns, type TalentProfile } from "@/lib/brand-mvp-data";
-import { addTalentToBrandCampaign, loadBrandCampaigns, loadBrandTalents } from "@/lib/brand-api";
+import {
+  addTalentToBrandCampaign,
+  addTalentToWishlist,
+  createBrandWishlist,
+  loadBrandCampaigns,
+  loadBrandTalents,
+  loadBrandWishlists,
+  removeTalentFromWishlist,
+} from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 const allValue = "all";
@@ -52,13 +60,31 @@ export default function DiscoverTalentsPage() {
   const [minJobs, setMinJobs] = useState(0);
 
   const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
+  const [wishlistId, setWishlistId] = useState<string | null>(null);
+  const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
   const [talentList, setTalentList] = useState(talents);
   const [campaignList, setCampaignList] = useState(campaigns);
   const [selectedInviteTalent, setSelectedInviteTalent] = useState<TalentProfile | null>(null);
   const [selectedCampaignForInvite, setSelectedCampaignForInvite] = useState("");
 
   useEffect(() => {
-    loadBrandTalents(talents).then(setTalentList);
+    loadBrandTalents(talents).then(async (items) => {
+      setTalentList(items);
+      const wishlists = await loadBrandWishlists(items);
+      const primaryWishlist = wishlists[0];
+
+      if (primaryWishlist) {
+        setWishlistId(primaryWishlist.id);
+        setSavedIds(primaryWishlist.savedIds);
+        setWishlistItemIds(
+          primaryWishlist.items.reduce((acc: Record<string, string>, item) => {
+            const profileId = String(item.profile_id || item.profile?.id || "");
+            if (profileId) acc[profileId] = String(item.id);
+            return acc;
+          }, {})
+        );
+      }
+    });
     loadBrandCampaigns(campaigns).then(setCampaignList);
   }, []);
 
@@ -188,10 +214,42 @@ export default function DiscoverTalentsPage() {
     setMinJobs(0);
   }
 
-  function toggleSaved(id: string) {
-    setSavedIds((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    );
+  async function toggleSaved(id: string) {
+    if (savedIds.includes(id)) {
+      const itemId = wishlistItemIds[id];
+
+      if (wishlistId && itemId) {
+        try {
+          await removeTalentFromWishlist(wishlistId, itemId);
+        } catch (error) {
+          window.alert(error instanceof Error ? error.message : "Chưa thể bỏ lưu talent. Vui lòng thử lại.");
+          return;
+        }
+      }
+
+      setSavedIds((current) => current.filter((item) => item !== id));
+      setWishlistItemIds((current) => {
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
+      return;
+    }
+
+    try {
+      let activeWishlistId = wishlistId;
+      if (!activeWishlistId) {
+        const wishlist = await createBrandWishlist();
+        activeWishlistId = wishlist.id;
+        setWishlistId(wishlist.id);
+      }
+
+      const item = await addTalentToWishlist(activeWishlistId, id);
+      setSavedIds((current) => current.includes(id) ? current : [...current, id]);
+      setWishlistItemIds((current) => ({ ...current, [id]: String(item.id) }));
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể lưu talent. Vui lòng thử lại.");
+    }
   }
 
   return (

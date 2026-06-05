@@ -5,6 +5,7 @@
 import { apiForm, apiJson, getAuthToken, getStoredAuthUser } from "@/lib/api-client";
 
 const PROFILE_STORAGE_KEY = "vnp_talent_profile";
+export const TALENT_PROFILE_UPDATED_EVENT = "vnp_talent_profile_updated";
 
 type BackendPhoto = {
   id: number;
@@ -143,6 +144,7 @@ export function persistTalentProfile(profile: any) {
 
   if (typeof window !== "undefined") {
     window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(sanitizedProfile));
+    window.dispatchEvent(new CustomEvent(TALENT_PROFILE_UPDATED_EVENT, { detail: sanitizedProfile }));
   }
   return sanitizedProfile;
 }

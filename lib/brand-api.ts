@@ -99,6 +99,56 @@ type BackendCampaign = {
   talents?: BackendCampaignTalent[] | null;
 };
 
+type BackendPartnerProfile = {
+  organization_name?: string | null;
+  organization_type?: string | null;
+  industry?: string | null;
+  website_url?: string | null;
+  fanpage_url?: string | null;
+  contact_name?: string | null;
+  contact_phone?: string | null;
+  contact_email?: string | null;
+  city?: string | null;
+  description?: string | null;
+  verification_status?: string | null;
+};
+
+type BackendWishlistItem = {
+  id: number | string;
+  profile_id?: number | string;
+  notes?: string | null;
+  profile?: BackendProfile | null;
+};
+
+type BackendWishlist = {
+  id: number | string;
+  name?: string | null;
+  description?: string | null;
+  items?: BackendWishlistItem[] | null;
+};
+
+type BackendBooking = {
+  id: number | string;
+  campaign?: BackendCampaign | null;
+  talent?: BackendUser | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  location?: string | null;
+  compensation_amount?: number | string | null;
+  platform_commission_amount?: number | string | null;
+  status?: string | null;
+  payment_status?: string | null;
+  created_at?: string | null;
+};
+
+type BackendContactRequest = {
+  id: number | string;
+  status?: string | null;
+  talent?: BackendUser | null;
+  campaign?: BackendCampaign | null;
+  created_at?: string | null;
+};
+
 type CampaignForm = {
   title: string;
   jobType: string;
@@ -321,6 +371,81 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
   };
 }
 
+export function mapBackendPartnerProfile(profile: BackendPartnerProfile | null | undefined) {
+  return {
+    organizationName: profile?.organization_name || "",
+    organizationType: profile?.organization_type || "brand",
+    industry: profile?.industry || "",
+    websiteUrl: profile?.website_url || "",
+    fanpageUrl: profile?.fanpage_url || "",
+    contactName: profile?.contact_name || "",
+    contactPhone: profile?.contact_phone || "",
+    contactEmail: profile?.contact_email || "",
+    city: profile?.city || "",
+    description: profile?.description || "",
+    verificationStatus: profile?.verification_status || "pending",
+  };
+}
+
+function buildPartnerProfilePayload(profile: ReturnType<typeof mapBackendPartnerProfile>) {
+  return {
+    organization_name: profile.organizationName,
+    organization_type: profile.organizationType,
+    industry: profile.industry || null,
+    website_url: profile.websiteUrl || null,
+    fanpage_url: profile.fanpageUrl || null,
+    contact_name: profile.contactName,
+    contact_phone: profile.contactPhone || null,
+    contact_email: profile.contactEmail,
+    city: profile.city,
+    description: profile.description || null,
+  };
+}
+
+export function mapBackendWishlist(wishlist: BackendWishlist, fallbackTalents: TalentProfile[] = []) {
+  const items = wishlist.items ?? [];
+  const notes: Record<string, string> = {};
+  const savedIds = items
+    .map((item) => {
+      const profile = item.profile;
+      const id = String(profile?.id ?? item.profile_id ?? "");
+      if (id && item.notes) notes[id] = item.notes;
+      return id;
+    })
+    .filter(Boolean);
+
+  const talents = items
+    .map((item, index) => item.profile ? mapBackendTalent(item.profile, fallbackTalents[index]) : null)
+    .filter(Boolean) as TalentProfile[];
+
+  return {
+    id: String(wishlist.id),
+    name: wishlist.name || "Talent đã lưu",
+    description: wishlist.description || "",
+    savedIds,
+    notes,
+    talents,
+    items,
+  };
+}
+
+export function mapBackendBooking(booking: BackendBooking) {
+  const amount = numberOrNull(booking.compensation_amount);
+
+  return {
+    id: String(booking.id),
+    campaignTitle: booking.campaign?.title || "Booking không gắn campaign",
+    talentName: booking.talent?.name || "Talent",
+    startsAt: booking.starts_at || "",
+    endsAt: booking.ends_at || "",
+    location: booking.location || booking.campaign?.location || booking.campaign?.city || "",
+    amountText: amount ? formatMoney(amount) : "Thỏa thuận",
+    status: booking.status || "pending",
+    paymentStatus: booking.payment_status || "pending",
+    createdAt: booking.created_at || "",
+  };
+}
+
 function buildCampaignPayload(form: CampaignForm) {
   const budget = parseBudgetRange(form.budget);
 
@@ -415,6 +540,98 @@ export async function loadBrandTalent(id: string, fallback?: TalentProfile | nul
   } catch (error) {
     console.warn("Cannot load brand talent", error);
     return fallback ?? null;
+  }
+}
+
+export async function loadBrandPartnerProfile(fallback: ReturnType<typeof mapBackendPartnerProfile>) {
+  if (!getAuthToken()) return fallback;
+
+  try {
+    const response = await apiJson<{ data: BackendPartnerProfile | null }>("/partner/profile");
+    return mapBackendPartnerProfile(response.data) || fallback;
+  } catch (error) {
+    console.warn("Cannot load brand profile", error);
+    return fallback;
+  }
+}
+
+export async function saveBrandPartnerProfile(profile: ReturnType<typeof mapBackendPartnerProfile>) {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BackendPartnerProfile }>("/partner/profile", {
+    method: "PUT",
+    body: JSON.stringify(buildPartnerProfilePayload(profile)),
+  });
+
+  return mapBackendPartnerProfile(response.data);
+}
+
+export async function loadBrandWishlists(fallbackTalents: TalentProfile[] = []) {
+  if (!getAuthToken()) return [];
+
+  try {
+    const response = await apiJson<{ data: BackendWishlist[] }>("/wishlists");
+    return (response.data ?? []).map((wishlist) => mapBackendWishlist(wishlist, fallbackTalents));
+  } catch (error) {
+    console.warn("Cannot load brand wishlists", error);
+    return [];
+  }
+}
+
+export async function createBrandWishlist(name = "Talent đã lưu", description?: string) {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BackendWishlist }>("/wishlists", {
+    method: "POST",
+    body: JSON.stringify({ name, description }),
+  });
+
+  return mapBackendWishlist(response.data);
+}
+
+export async function addTalentToWishlist(wishlistId: string, profileId: string, notes?: string) {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BackendWishlistItem }>(`/wishlists/${wishlistId}/items`, {
+    method: "POST",
+    body: JSON.stringify({
+      profile_id: profileId,
+      notes: notes || undefined,
+    }),
+  });
+
+  return response.data;
+}
+
+export async function removeTalentFromWishlist(wishlistId: string, itemId: string) {
+  requireBrandSession();
+
+  await apiJson(`/wishlists/${wishlistId}/items/${itemId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function loadBrandBookings() {
+  if (!getAuthToken()) return [];
+
+  try {
+    const response = await apiJson<{ data: BackendBooking[] }>("/bookings");
+    return (response.data ?? []).map(mapBackendBooking);
+  } catch (error) {
+    console.warn("Cannot load brand bookings", error);
+    return [];
+  }
+}
+
+export async function loadBrandContactRequests() {
+  if (!getAuthToken()) return [];
+
+  try {
+    const response = await apiJson<{ data: BackendContactRequest[] }>("/contact-requests");
+    return response.data ?? [];
+  } catch (error) {
+    console.warn("Cannot load brand contact requests", error);
+    return [];
   }
 }
 
