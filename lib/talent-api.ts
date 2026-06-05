@@ -267,6 +267,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     .filter(isPortablePhotoUrl) as string[];
   const avatarUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "avatar"));
   const coverUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cover"));
+  const fullBodyUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "full_body"));
   const localPhotos = (Array.isArray(local.photos) ? local.photos : []).filter(isPortablePhotoUrl);
   const measurements = parseMeasurements(profile.measurements);
 
@@ -277,6 +278,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     email: profile.user?.email || local.email,
     avatar: avatarUrl || profile.user?.external_avatar_url || local.avatar || "/avatar.png",
     cover: coverUrl || local.cover || "/cover_image.png",
+    fullBody: fullBodyUrl || local.fullBody || "/fullbody_model.png",
     location: profile.city || local.location,
     hometown: profile.district || local.hometown,
     gender: displayGender(profile.gender) || local.gender,
@@ -436,6 +438,19 @@ export async function createTalentCalendarEvent(profileId: number, date: string,
   });
 
   return response.data;
+}
+
+export async function updateTalentCalendarEvent(eventId: number | string, payload: { status?: string; title?: string }) {
+  const response = await apiJson<{ data: any }>(`/calendar/events/${eventId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+
+  return response.data;
+}
+
+export async function deleteTalentCalendarEvent(eventId: number | string) {
+  await apiJson(`/calendar/events/${eventId}`, { method: "DELETE" });
 }
 
 export async function loadTalentCampaigns() {

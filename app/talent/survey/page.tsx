@@ -24,80 +24,8 @@ export default function SurveyPage() {
       }
     }
     
-    // Always seed a mock history entry if empty, so the user sees it immediately on startup
-    if (!Array.isArray(parsedHistory) || parsedHistory.length === 0) {
-      parsedHistory = [{
-        id: 1779889600000,
-        date: "20:27:06 27/05/2026",
-        mainCategory: "Người mẫu Runway chuyên nghiệp",
-        tier: "A",
-        pageant: 15,
-        runway: 80,
-        kol: 10,
-        profileScore: 100
-      }];
-      localStorage.setItem("vnp_talent_survey_history", JSON.stringify(parsedHistory));
-      
-      // Also seed the matching profile so it matches
-      const existingProfile = localStorage.getItem("vnp_talent_profile");
-      if (!existingProfile) {
-        const defaultProfile = {
-          name: "Nguyễn Mai Anh",
-          birthYear: "2002",
-          location: "Hà Nội",
-          hometown: "Nam Định",
-          phone: "0912345678",
-          email: "maianh@gmail.com",
-          height: "172",
-          weight: "51",
-          bust: "85",
-          waist: "60",
-          hips: "90",
-          plasticSurgery: "Vẻ đẹp hoàn toàn tự nhiên, chưa từng can thiệp",
-          maritalStatus: "Độc thân, chưa từng sinh con",
-          education: "Cao đẳng / Đại học",
-          languages: "Thành thạo / Lưu loát (Tương đương IELTS 6.5 trở lên)",
-          skills: "Catwalk, Diễn xuất trước ống kính, Thuyết trình",
-          experience: "Đại sứ thương hiệu VNP 2026, Top 10 Face of Vietnam",
-          tiktokUrl: "https://tiktok.com/@maianh",
-          instagramUrl: "https://instagram.com/maianh",
-          facebookUrl: "https://facebook.com/maianh",
-          youtubeUrl: "https://youtube.com/maianh",
-          tiktokFollowers: "80000",
-          instagramFollowers: "30000",
-          facebookFollowers: "10000",
-          youtubeFollowers: "0",
-          followersCount: "120000",
-          surveyScores: {
-            pageant: 15,
-            runway: 80,
-            kol: 10
-          },
-          mainCategory: "Người mẫu Runway chuyên nghiệp",
-          profileScore: 100,
-          tier: "A",
-          isOnboarded: true,
-          avatar: "/avatar.png",
-          skillsList: ["Catwalk", "Diễn xuất trước ống kính", "Thuyết trình"],
-          languagesList: ["Tiếng Việt", "Tiếng Anh (IELTS 7.5)"],
-          mediaUploads: {
-            avatar: "maianh_avatar.jpg",
-            portfolio: "portfolio_cv_maianh.pdf",
-            introVideo: "video_introduction.mp4"
-          }
-        };
-        localStorage.setItem("vnp_talent_profile", JSON.stringify(defaultProfile));
-      } else {
-        try {
-          const parsed = JSON.parse(existingProfile);
-          if (parsed && (parsed.avatar?.includes("unsplash.com") || !parsed.avatar)) {
-            parsed.avatar = "/avatar.png";
-            localStorage.setItem("vnp_talent_profile", JSON.stringify(parsed));
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
+    if (!Array.isArray(parsedHistory)) {
+      parsedHistory = [];
     }
     
     setHistoryList(parsedHistory);

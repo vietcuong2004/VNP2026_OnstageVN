@@ -8,7 +8,7 @@ import {
   Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createTalentCalendarEvent, loadTalentCalendar, loadTalentProfile } from "@/lib/talent-api";
+import { createTalentCalendarEvent, loadTalentCalendar, loadTalentProfile, updateTalentCalendarEvent } from "@/lib/talent-api";
 
 // Contest data for the calendar page detail modal
 const CALENDAR_CONTESTS = [
@@ -287,25 +287,6 @@ export default function CalendarPage() {
 
   const handleCalendarDayClick = (dateStr: string) => {
     setSelectedDate(dateStr);
-
-    // Reload state from localStorage to ensure synchronization
-    const storedTodos = localStorage.getItem("vnp_talent_todos");
-    if (storedTodos) {
-      try {
-        setTodoLists(JSON.parse(storedTodos));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    const storedProfile = localStorage.getItem("vnp_talent_profile");
-    if (storedProfile) {
-      try {
-        setProfile(JSON.parse(storedProfile));
-      } catch (e) {
-        console.error(e);
-      }
-    }
   };
 
   const handleGoToToday = () => {
@@ -318,24 +299,6 @@ export default function CalendarPage() {
     setSelectedDate(dateStr);
     setCurrentMonth(todayMonth);
     setCurrentYear(todayYear);
-
-    // Reload state from localStorage
-    const storedTodos = localStorage.getItem("vnp_talent_todos");
-    if (storedTodos) {
-      try {
-        setTodoLists(JSON.parse(storedTodos));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    const stored = localStorage.getItem("vnp_talent_profile");
-    if (stored) {
-      try {
-        setProfile(JSON.parse(stored));
-      } catch (e) {
-        console.error(e);
-      }
-    }
   };
 
   useEffect(() => {
@@ -350,36 +313,11 @@ export default function CalendarPage() {
       const calendar = await loadTalentCalendar(loadedProfile);
       if (!active || !calendar) return;
 
-      setTodoLists((current: Record<string, unknown[]>) => {
-        const merged = { ...current, ...calendar.todoLists };
-        localStorage.setItem("vnp_talent_todos", JSON.stringify(merged));
-        return merged;
-      });
+      setTodoLists(calendar.todoLists);
 
       const updatedProfile = { ...loadedProfile, availabilityCalendar: calendar.availabilityCalendar };
       setProfile(updatedProfile);
-      localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
     });
-
-    // Load Profile
-    const stored = localStorage.getItem("vnp_talent_profile");
-    if (stored) {
-      try {
-        setProfile(JSON.parse(stored));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    // Load Todos
-    const storedTodos = localStorage.getItem("vnp_talent_todos");
-    if (storedTodos) {
-      try {
-        setTodoLists(JSON.parse(storedTodos));
-      } catch (e) {
-        console.error(e);
-      }
-    }
     return () => {
       active = false;
     };
@@ -399,7 +337,7 @@ export default function CalendarPage() {
       setCurrentMonth(1);
       setCurrentYear(prev => prev + 1);
     } else {
-      setCurrentMonth(prev => prev - 1);
+      setCurrentMonth(prev => prev + 1);
     }
   };
 
@@ -414,13 +352,15 @@ export default function CalendarPage() {
   };
 
   // Todo tasks handlers
-  const cycleTaskStatus = (date: string, taskId: string) => {
+  const cycleTaskStatus = async (date: string, taskId: string) => {
     const dateTodos = getTasksForDate(date);
+    let nextStatusForBackend: string | null = null;
     const updated = dateTodos.map((todo: any) => {
       if (todo.id === taskId) {
         let nextStatus = "pending";
         if (todo.status === "pending") nextStatus = "in_progress";
         else if (todo.status === "in_progress") nextStatus = "completed";
+        nextStatusForBackend = nextStatus;
         return { ...todo, status: nextStatus };
       }
       return todo;
@@ -428,13 +368,21 @@ export default function CalendarPage() {
 
     const newTodoLists = { ...todoLists, [date]: updated };
     setTodoLists(newTodoLists);
-    localStorage.setItem("vnp_talent_todos", JSON.stringify(newTodoLists));
+
+    if (nextStatusForBackend && !String(taskId).startsWith("mock-") && !String(taskId).startsWith("task-")) {
+      try {
+        await updateTalentCalendarEvent(taskId, { status: nextStatusForBackend });
+      } catch (error) {
+        console.error(error);
+      }
+    }
   };
 
-  const completeTaskAndNext = (date: string, taskId: string) => {
+  const completeTaskAndNext = async (date: string, taskId: string) => {
     const dateTodos = getTasksForDate(date);
     const index = dateTodos.findIndex((todo: any) => todo.id === taskId);
     if (index === -1) return;
+    const nextTodo = dateTodos[index + 1];
 
     const updated = dateTodos.map((todo: any, idx: number) => {
       if (idx === index) {
@@ -448,7 +396,17 @@ export default function CalendarPage() {
 
     const newTodoLists = { ...todoLists, [date]: updated };
     setTodoLists(newTodoLists);
-    localStorage.setItem("vnp_talent_todos", JSON.stringify(newTodoLists));
+
+    try {
+      if (!String(taskId).startsWith("mock-") && !String(taskId).startsWith("task-")) {
+        await updateTalentCalendarEvent(taskId, { status: "completed" });
+      }
+      if (nextTodo && !String(nextTodo.id).startsWith("mock-") && !String(nextTodo.id).startsWith("task-")) {
+        await updateTalentCalendarEvent(nextTodo.id, { status: "in_progress" });
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleAddTask = async (e: React.FormEvent) => {
@@ -485,7 +443,6 @@ export default function CalendarPage() {
     };
 
     setTodoLists(newTodoLists);
-    localStorage.setItem("vnp_talent_todos", JSON.stringify(newTodoLists));
     setNewTask({ time: "", title: "", desc: "" });
   };
 

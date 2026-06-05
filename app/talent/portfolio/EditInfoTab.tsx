@@ -179,8 +179,7 @@ export default function EditInfoTab({
       hasUploadedCatwalk: videoForm.hasUploadedCatwalk,
       hasUploadedMC: videoForm.hasUploadedMC
     };
-    setProfile(updated);
-    localStorage.setItem("vnp_talent_profile", JSON.stringify(updated));
+    setProfile(persistTalentProfile(updated));
     addToast("Đã lưu các thay đổi video thành công!", "success");
   };
 
@@ -224,7 +223,6 @@ export default function EditInfoTab({
 
     const saved = await saveTalentProfile(updated);
     setProfile(saved);
-    localStorage.setItem("vnp_talent_profile", JSON.stringify(saved));
     addToast("Đã lưu thông tin cá nhân lên hệ thống!", "success");
   };
 

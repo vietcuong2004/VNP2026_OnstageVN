@@ -464,6 +464,10 @@ function buildCampaignPayload(form: CampaignForm) {
   };
 }
 
+function isBackendRecordId(id?: string | number | null) {
+  return /^\d+$/.test(String(id || ""));
+}
+
 export async function loadBrandCampaigns(fallback: Campaign[] = []) {
   if (!getAuthToken()) return fallback;
 
@@ -478,6 +482,7 @@ export async function loadBrandCampaigns(fallback: Campaign[] = []) {
 
 export async function loadBrandCampaign(id: string, fallback: Campaign[] = []) {
   if (!getAuthToken()) return fallback.find((campaign) => campaign.id === id) ?? null;
+  if (!isBackendRecordId(id)) return fallback.find((campaign) => campaign.id === id) ?? null;
 
   try {
     const response = await apiJson<{ data: BackendCampaign }>(`/campaigns/${id}`);
@@ -501,6 +506,7 @@ export async function createBrandCampaign(form: CampaignForm) {
 
 export async function publishBrandCampaign(id: string) {
   requireBrandSession();
+  if (!isBackendRecordId(id)) throw new Error("Campaign này đang là dữ liệu local, chưa có ID backend.");
 
   const response = await apiJson<{ data: BackendCampaign }>(`/campaigns/${id}/publish`, {
     method: "POST",
@@ -511,6 +517,7 @@ export async function publishBrandCampaign(id: string) {
 
 export async function closeBrandCampaign(id: string) {
   requireBrandSession();
+  if (!isBackendRecordId(id)) throw new Error("Campaign này đang là dữ liệu local, chưa có ID backend.");
 
   const response = await apiJson<{ data: BackendCampaign }>(`/campaigns/${id}/close`, {
     method: "POST",
@@ -638,6 +645,16 @@ export async function loadBrandContactRequests() {
 export async function addTalentToBrandCampaign(campaignId: string, profileId: string, notes?: string) {
   requireBrandSession();
 
+  if (!isBackendRecordId(campaignId) || !isBackendRecordId(profileId)) {
+    return {
+      id: `local-${campaignId}-${profileId}`,
+      campaign_id: campaignId,
+      profile_id: profileId,
+      status: "shortlisted",
+      notes,
+    } as BackendCampaignTalent;
+  }
+
   const response = await apiJson<{ data: BackendCampaignTalent }>(`/campaigns/${campaignId}/talents`, {
     method: "POST",
     body: JSON.stringify({
@@ -653,11 +670,20 @@ export async function addTalentToBrandCampaign(campaignId: string, profileId: st
 export async function createBrandContactRequest(profileId: string, campaignId?: string, message?: string) {
   requireBrandSession();
 
+  if (!isBackendRecordId(profileId)) {
+    return {
+      id: `local-contact-${profileId}`,
+      profile_id: profileId,
+      campaign_id: isBackendRecordId(campaignId) ? campaignId : undefined,
+      message,
+    };
+  }
+
   const response = await apiJson<{ data: unknown }>("/contact-requests", {
     method: "POST",
     body: JSON.stringify({
       profile_id: profileId,
-      campaign_id: campaignId || undefined,
+      campaign_id: isBackendRecordId(campaignId) ? campaignId : undefined,
       message,
     }),
   });

@@ -12,6 +12,7 @@ import { SURVEY_QUESTIONS } from "./SurveyQuestion";
 import {
   analyzeTalentSurvey,
   loadTalentSurveyProgress,
+  persistTalentProfile,
   saveTalentProfile,
   saveTalentSurveyProgress,
   submitTalentSurvey,
@@ -524,7 +525,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       localStorage.setItem("vnp_talent_survey_history", JSON.stringify(updatedHistory));
     }
 
-    localStorage.setItem("vnp_talent_profile", JSON.stringify({ ...savedProfile, ...userProfile }));
+    persistTalentProfile({ ...savedProfile, ...userProfile });
 
     void saveTalentSurveyProgress(5, "analyzed");
     setIsSubmitted(true);

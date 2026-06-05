@@ -3,6 +3,7 @@
 import React from "react";
 import { Zap, Camera, Edit3, PhoneCall, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { persistTalentProfile } from "@/lib/talent-api";
 
 interface AddonServicesTabProps {
   profile: any;
@@ -145,8 +146,7 @@ export default function AddonServicesTab({
                         updated.isSuperBoosted = false;
                         updated.isPremiumBoosted = false;
                       }
-                      setProfile(updated);
-                      localStorage.setItem("vnp_talent_profile", JSON.stringify(updated));
+                      setProfile(persistTalentProfile(updated));
                       addToast(`Kích hoạt thành công gói ${pkg.name}!`, "success");
                     }}
                     className={cn(
