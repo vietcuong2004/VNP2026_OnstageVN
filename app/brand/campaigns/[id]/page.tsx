@@ -98,7 +98,16 @@ export default function CampaignDetailPage() {
       const storedCampaigns = window.localStorage.getItem("onstagevn_campaigns");
       if (storedCampaigns) {
         try {
-          setCampaigns(JSON.parse(storedCampaigns));
+          const parsed = JSON.parse(storedCampaigns) as Campaign[];
+          const parsedIds = new Set(parsed.map(c => c.id));
+          const missing = initialCampaigns.filter(c => !parsedIds.has(c.id));
+          if (missing.length > 0) {
+            const merged = [...parsed, ...missing];
+            setCampaigns(merged);
+            window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(merged));
+          } else {
+            setCampaigns(parsed);
+          }
         } catch (e) { }
       }
       const storedRequests = window.localStorage.getItem("onstagevn_sent_requests");

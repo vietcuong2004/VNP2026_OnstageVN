@@ -488,6 +488,125 @@ export const campaigns: Campaign[] = [
     description: "Cần PG cho sự kiện khai trương, làm theo ca, ưu tiên có kinh nghiệm activation.",
     requirements: "Nữ 18-25 tuổi, giao tiếp tốt, có thể đứng booth 4-6 tiếng.",
   },
+  {
+    id: "camp-4",
+    title: "Sport Companion Golf VIP 2026",
+    jobType: "⛳ Sport Companion (Golf)",
+    city: "Hà Nội",
+    address: "Sân Golf Vân Trì, Đông Anh, Hà Nội",
+    startDate: "2026-06-15",
+    endDate: "2026-06-18",
+    deadline: "2026-06-12",
+    talentQuantity: 4,
+    budget: "45.000.000đ - 60.000.000đ",
+    budgetValue: 60000000,
+    benefits: "Bao gồm chi phí thuê sân, xe đưa đón, ăn uống tại Clubhouse",
+    status: "published",
+    shortlistedTalentIds: ["tal-1", "tal-2", "tal-3", "tal-5"],
+    applicants: [
+      { talentId: "tal-1", stage: "accepted", note: "Am hiểu luật chơi golf, ngoại giao tốt" },
+      { talentId: "tal-2", stage: "executing", note: "Phong cách thể thao sang trọng" },
+      { talentId: "tal-3", stage: "new", note: "Có kinh nghiệm dẫn chương trình giải đấu" },
+      { talentId: "tal-5", stage: "confirmed", note: "Đã sẵn sàng lịch trình di chuyển" }
+    ],
+    contactRequests: 3,
+    views: 310,
+    description: "Tìm người đẹp đồng hành tham dự giải đấu giao hữu doanh nghiệp VIP, am hiểu văn hóa ứng xử sân golf.",
+    requirements: "Nữ cao từ 168cm, gương mặt sáng, biết chơi golf hoặc có kiến thức cơ bản về golf.",
+    sponsorships: [
+      { category: "Tài trợ trang phục thể thao", details: "Gói đồ golf Luxury Adidas/Puma trị giá 15.000.000đ" },
+      { category: "Tài trợ đi lại", details: "Xe đưa đón riêng từ Hà Nội đến sân golf Vân Trì" }
+    ]
+  },
+  {
+    id: "camp-5",
+    title: "Beauty Product Review Campaign",
+    jobType: "KOC review",
+    city: "TP. Hồ Chí Minh",
+    address: "Online / Làm việc tại nhà",
+    startDate: "2026-06-20",
+    endDate: "2026-07-05",
+    deadline: "2026-06-15",
+    talentQuantity: 6,
+    budget: "20.000.000đ - 35.000.000đ",
+    budgetValue: 35000000,
+    benefits: "Được tặng trọn bộ sản phẩm dưỡng da mới nhất + Nhận hoa hồng doanh số (MLM)",
+    status: "published",
+    shortlistedTalentIds: ["tal-1", "tal-2", "tal-4", "tal-5"],
+    applicants: [
+      { talentId: "tal-1", stage: "executing", note: "Video review có kịch bản chi tiết" },
+      { talentId: "tal-2", stage: "new", note: "Thích hợp phong cách skincare tối giản" },
+      { talentId: "tal-4", stage: "accepted", note: "Kế hoạch lên bài 2 clip/tuần" },
+      { talentId: "tal-5", stage: "completed", note: "Đã hoàn thành clip review đầu tiên, đang duyệt" }
+    ],
+    contactRequests: 1,
+    views: 540,
+    description: "Chiến dịch trải nghiệm và review dòng sản phẩm tinh chất chống lão hóa thế hệ mới trên các nền tảng TikTok và Instagram.",
+    requirements: "KOC có làn da đẹp, tự tin nói trước camera, tối thiểu 20.000 followers.",
+    sponsorships: [
+      { category: "Tài trợ mỹ phẩm dưỡng da", details: "Trọn bộ mỹ phẩm skincare cao cấp trị giá 12.000.000đ" }
+    ]
+  },
+  {
+    id: "camp-6",
+    title: "L'Oréal Paris Livestream Marathon",
+    jobType: "KOL livestream",
+    city: "Hà Nội",
+    address: "Studio Cầu Giấy, Hà Nội",
+    startDate: "2026-06-25",
+    endDate: "2026-06-28",
+    deadline: "2026-06-20",
+    talentQuantity: 4,
+    budget: "80.000.000đ - 120.000.000đ",
+    budgetValue: 120000000,
+    benefits: "Chuyên gia makeup riêng, trang phục thiết kế độc quyền, quà tặng từ L'Oréal",
+    status: "published",
+    shortlistedTalentIds: ["tal-1", "tal-3", "tal-4", "tal-5"],
+    applicants: [
+      { talentId: "tal-1", stage: "confirmed", note: "Host chính ca tối 19h-21h" },
+      { talentId: "tal-3", stage: "accepted", note: "Dẫn dắt talkshow kết hợp bán hàng" },
+      { talentId: "tal-4", stage: "new", note: "Hỗ trợ đứng set và test sản phẩm trực tiếp" },
+      { talentId: "tal-5", stage: "executing", note: "Ca chiều 14h-16h, tập trung dòng son mới" }
+    ],
+    contactRequests: 4,
+    views: 680,
+    description: "Sự kiện Livestream Marathon kéo dài 72 giờ nhân ngày hội mua sắm giữa năm của L'Oréal Paris trên TikTok Shop.",
+    requirements: "KOL/MC có khả năng chốt đơn tốt, hoạt ngôn, năng lượng tích cực trước camera suốt 2 tiếng liên tục.",
+    sponsorships: [
+      { category: "Tài trợ trang điểm", details: "Đội ngũ chuyên viên trang điểm cao cấp hỗ trợ tại chỗ" },
+      { category: "Tài trợ ăn uống", details: "Cung cấp bữa ăn dưỡng chất chuẩn sạch cho ekip" }
+    ]
+  },
+  {
+    id: "camp-7",
+    title: "Luxury Lookbook Autumn Launch",
+    jobType: "Model lookbook",
+    city: "TP. Hồ Chí Minh",
+    address: "Phú Mỹ Hưng, Quận 7, TP. Hồ Chí Minh",
+    startDate: "2026-08-10",
+    endDate: "2026-08-12",
+    deadline: "2026-07-30",
+    talentQuantity: 4,
+    budget: "60.000.000đ - 90.000.000đ",
+    budgetValue: 90000000,
+    benefits: "Được giữ lại 2 bộ trang phục yêu thích trị giá 30 triệu đồng, album hình thời trang chuyên nghiệp",
+    status: "published",
+    shortlistedTalentIds: ["tal-1", "tal-2", "tal-3", "tal-5"],
+    applicants: [
+      { talentId: "tal-1", stage: "new", note: "Phù hợp BST Thu Đông sang trọng" },
+      { talentId: "tal-2", stage: "accepted", note: "Gương mặt high fashion, catwalk tốt" },
+      { talentId: "tal-3", stage: "executing", note: "Đang chụp thử mẫu trang phục tại Studio" },
+      { talentId: "tal-5", stage: "confirmed", note: "Đã hoàn thành thủ tục đo may đo riêng" }
+    ],
+    contactRequests: 2,
+    views: 290,
+    description: "Chụp ảnh quảng bá bộ sưu tập thời trang Thu Đông 'Autumn Glow' phong cách tối giản nhưng sang trọng và thanh lịch.",
+    requirements: "Nữ người mẫu chuyên nghiệp hoặc KOL lớn, cao từ 172cm trở lên, thần thái sang trọng.",
+    sponsorships: [
+      { category: "Tài trợ trang phục dạ hội", details: "Bảo trợ trang phục độc quyền từ nhà thiết kế nổi tiếng" },
+      { category: "Tài trợ khách sạn/lưu trú VIP", details: "Lưu trú tại resort cao cấp Anantara Mũi Né" }
+    ]
+  }
 ];
 
 export const contactRequests = [

@@ -45,8 +45,24 @@ export default function CampaignsPage() {
       const stored = window.localStorage.getItem("onstagevn_campaigns");
       if (stored) {
         try {
-          setCampaigns(JSON.parse(stored));
-        } catch (e) { }
+          const parsed = JSON.parse(stored) as Campaign[];
+          // Merge initialCampaigns that are not present in parsed by ID to ensure newly added mock data is sync'd
+          const parsedIds = new Set(parsed.map(c => c.id));
+          const missing = initialCampaigns.filter(c => !parsedIds.has(c.id));
+          if (missing.length > 0) {
+            const merged = [...parsed, ...missing];
+            // Sort to keep campaigns in order if needed or just append
+            setCampaigns(merged);
+            window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(merged));
+          } else {
+            setCampaigns(parsed);
+          }
+        } catch (e) {
+          setCampaigns(initialCampaigns);
+          window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(initialCampaigns));
+        }
+      } else {
+        window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(initialCampaigns));
       }
     }
   }, []);

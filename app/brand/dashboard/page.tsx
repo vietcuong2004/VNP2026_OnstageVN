@@ -20,7 +20,7 @@ import {
   MapPin,
   MessageSquare
 } from "lucide-react";
-import { campaigns, contactRequests, partnerProfile, savedTalentIds, talents } from "@/lib/brand-mvp-data";
+import { campaigns, contactRequests, partnerProfile, savedTalentIds, talents, Campaign } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 
 const stats = [
@@ -189,7 +189,16 @@ export default function BrandDashboard() {
       const stored = window.localStorage.getItem("onstagevn_campaigns");
       if (stored) {
         try {
-          setCampaignsList(JSON.parse(stored));
+          const parsed = JSON.parse(stored) as Campaign[];
+          const parsedIds = new Set(parsed.map((c: any) => c.id));
+          const missing = campaigns.filter((c: any) => !parsedIds.has(c.id));
+          if (missing.length > 0) {
+            const merged = [...parsed, ...missing];
+            setCampaignsList(merged);
+            window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(merged));
+          } else {
+            setCampaignsList(parsed);
+          }
         } catch (e) {}
       }
     }
