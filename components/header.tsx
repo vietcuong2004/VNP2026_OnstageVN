@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Bell, Calendar, ChevronDown, Crown, LogOut, Search, UserCircle, Building2 } from "lucide-react";
 import { TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
+import { switchCurrentPlatform } from "@/lib/api-client";
 
 type AuthUser = {
   name: string;
@@ -42,6 +43,7 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [talentAvatar, setTalentAvatar] = useState<string | null>(null);
+  const [switchingPlatform, setSwitchingPlatform] = useState(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("onstagevn_auth_user");
@@ -78,6 +80,26 @@ export default function Header() {
       ? { name: "L'Oréal Vietnam", subtitle: "Doanh nghiệp" }
       : { name: "Nguyễn Mai Anh", subtitle: "Hạng S" };
   const headerAvatarSrc = isBrandPath ? "/logo_icon.png" : talentAvatar || user?.external_avatar_url || "/avatar.png";
+  const nextPlatform = user?.type === "brand" ? "talent" : "brand";
+  const nextPlatformPath = nextPlatform === "brand" ? "/brand/dashboard" : "/talent/dashboard";
+  const nextPlatformLabel = nextPlatform === "brand" ? "Chuyển sang Brand" : "Chuyển sang Talent";
+
+  async function handleSwitchPlatform() {
+    if (!user || switchingPlatform) return;
+
+    setSwitchingPlatform(true);
+
+    try {
+      const updatedUser = await switchCurrentPlatform(nextPlatform);
+      setUser(updatedUser);
+      setOpen(false);
+      router.push(nextPlatformPath);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể chuyển nền tảng. Vui lòng thử lại.");
+    } finally {
+      setSwitchingPlatform(false);
+    }
+  }
 
   async function handleLogout() {
     const token = localStorage.getItem("onstagevn_auth_token");
@@ -217,6 +239,20 @@ export default function Header() {
                     Lịch trình
                   </button>
                 </>
+              )}
+
+              <div className="border-t border-white/5 my-1.5" />
+
+              {user && (
+                <button
+                  type="button"
+                  onClick={handleSwitchPlatform}
+                  disabled={switchingPlatform}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/10 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {nextPlatform === "brand" ? <Building2 className="h-4 w-4 text-amber-300" /> : <UserCircle className="h-4 w-4 text-amber-300" />}
+                  {switchingPlatform ? "Đang chuyển..." : nextPlatformLabel}
+                </button>
               )}
 
               <div className="border-t border-white/5 my-1.5" />
