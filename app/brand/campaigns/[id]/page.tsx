@@ -73,7 +73,7 @@ function isStagePassed(current: CampaignStage, target: "new" | "accepted" | "exe
     completed: 4,
     confirmed: 5,
   };
-  
+
   const currentVal = order[current] || 1;
   const targetVal = order[target] || 1;
   return currentVal >= targetVal;
@@ -99,13 +99,13 @@ export default function CampaignDetailPage() {
       if (storedCampaigns) {
         try {
           setCampaigns(JSON.parse(storedCampaigns));
-        } catch (e) {}
+        } catch (e) { }
       }
       const storedRequests = window.localStorage.getItem("onstagevn_sent_requests");
       if (storedRequests) {
         try {
           setSentRequests(JSON.parse(storedRequests));
-        } catch (e) {}
+        } catch (e) { }
       }
       const storedProfile = window.localStorage.getItem("vnp_talent_profile");
       if (storedProfile) {
@@ -139,7 +139,7 @@ export default function CampaignDetailPage() {
               return t;
             }));
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     }
   }, []);
@@ -278,312 +278,301 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="space-y-6 pb-16">
-      <section className="flex flex-col gap-4 border-b border-white/5 pb-5 md:flex-row md:items-start md:justify-between">
-        <div className="flex gap-3">
-          <button onClick={() => router.push("/brand/campaigns")} className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 hover:text-white cursor-pointer">
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div>
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-400">{selectedCampaign.jobType}</span>
-              <span className={cn(
-                "rounded px-2 py-0.5 text-[9px] font-black uppercase",
-                selectedCampaign.status === "published" ? "bg-emerald-500/10 text-emerald-300" : selectedCampaign.status === "closed" ? "bg-slate-500/10 text-slate-400" : "bg-amber-500/10 text-amber-300"
-              )}>
-                {statusLabel(selectedCampaign.status)}
-              </span>
+      {/* Top Section: Header & Info Grid on Left + Mô tả chung on Right */}
+      <section className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        {/* Left Side: Campaign Header & Grid of 5 Info Cards */}
+        <div className="xl:col-span-8 flex flex-col justify-between gap-6">
+          {/* Campaign Header Card */}
+          <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-6 flex flex-col gap-4">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="flex gap-3">
+                <button onClick={() => router.push("/brand/campaigns")} className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 hover:text-white cursor-pointer">
+                  <ArrowLeft className="h-4 w-4" />
+                </button>
+                <div>
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-400">{selectedCampaign.jobType}</span>
+                    <span className={cn(
+                      "rounded px-2 py-0.5 text-[9px] font-black uppercase",
+                      selectedCampaign.status === "published" ? "bg-emerald-500/10 text-emerald-300" : selectedCampaign.status === "closed" ? "bg-slate-500/10 text-slate-400" : "bg-amber-500/10 text-amber-300"
+                    )}>
+                      {statusLabel(selectedCampaign.status)}
+                    </span>
+                  </div>
+                  <h1 className="font-display text-2xl font-black tracking-tight text-white">{selectedCampaign.title}</h1>
+                  <p className="mt-2 max-w-xl text-xs font-semibold leading-relaxed text-slate-400">{selectedCampaign.description}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 shrink-0">
+                {selectedCampaign.status === "draft" && (
+                  <button onClick={() => updateCampaignStatus(selectedCampaign.id, "published")} className="flex h-10 items-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-xs font-black text-slate-950 cursor-pointer">
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Publish
+                  </button>
+                )}
+                {selectedCampaign.status !== "closed" && (
+                  <>
+                    <button
+                      onClick={() => setIsShowingPayoutModal(true)}
+                      className="flex h-10 items-center rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 px-4 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                    >
+                      Xác nhận giải ngân
+                    </button>
+                    <button onClick={() => updateCampaignStatus(selectedCampaign.id, "closed")} className="flex h-10 items-center rounded-xl border border-white/10 bg-white/[0.03] px-4 text-xs font-black text-white hover:bg-white/10 cursor-pointer">
+                      Đóng campaign
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-            <h1 className="font-display text-2xl font-black tracking-tight text-white">{selectedCampaign.title}</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">{selectedCampaign.description}</p>
+          </div>
+
+          {/* Grid of 5 Info Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {[
+              { label: "Địa điểm", value: selectedCampaign.address, icon: MapPin, color: "text-amber-300" },
+              { label: "Thời gian", value: `${selectedCampaign.startDate} - ${selectedCampaign.endDate}`, icon: Calendar, color: "text-cyan-300" },
+              { label: "Deadline", value: selectedCampaign.deadline, icon: Clock, color: "text-purple-300" },
+              { label: "Ứng viên", value: `${selectedCampaign.applicants.length}/${selectedCampaign.talentQuantity}`, icon: Users, color: "text-emerald-300" },
+              { label: "Lượt xem", value: selectedCampaign.views.toString(), icon: Briefcase, color: "text-rose-300" },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label} className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 text-left">
+                  <Icon className={cn("mb-3 h-5 w-5", item.color)} />
+                  <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-500">{item.label}</span>
+                  <span className="text-xs font-black text-white block mt-1 truncate" title={item.value}>{item.value}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {selectedCampaign.status === "draft" && (
-            <button onClick={() => updateCampaignStatus(selectedCampaign.id, "published")} className="flex h-10 items-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-xs font-black text-slate-950 cursor-pointer">
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-              Publish
-            </button>
-          )}
-          {selectedCampaign.status !== "closed" && (
-            <>
-              <button 
-                onClick={() => setIsShowingPayoutModal(true)} 
-                className="flex h-10 items-center rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 px-4 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.2)]"
-              >
-                Xác nhận giải ngân
-              </button>
-              <button onClick={() => updateCampaignStatus(selectedCampaign.id, "closed")} className="flex h-10 items-center rounded-xl border border-white/10 bg-white/[0.03] px-4 text-xs font-black text-white hover:bg-white/10 cursor-pointer">
-                Đóng campaign
-              </button>
-            </>
-          )}
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-5">
-        {[
-          { label: "Địa điểm", value: selectedCampaign.address, icon: MapPin, color: "text-amber-300" },
-          { label: "Thời gian", value: `${selectedCampaign.startDate} - ${selectedCampaign.endDate}`, icon: Calendar, color: "text-cyan-300" },
-          { label: "Deadline", value: selectedCampaign.deadline, icon: Clock, color: "text-purple-300" },
-          { label: "Ứng viên", value: `${selectedCampaign.applicants.length}/${selectedCampaign.talentQuantity}`, icon: Users, color: "text-emerald-300" },
-          { label: "Lượt xem", value: selectedCampaign.views.toString(), icon: Briefcase, color: "text-rose-300" },
-        ].map((item) => {
-          const Icon = item.icon;
-          return (
-            <div key={item.label} className="rounded-2xl border border-white/5 bg-slate-950/25 p-4">
-              <Icon className={cn("mb-3 h-5 w-5", item.color)} />
-              <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">{item.label}</span>
-              <span className="text-sm font-black text-white">{item.value}</span>
-            </div>
-          );
-        })}
-      </section>
-
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-5 xl:col-span-4">
+        {/* Right Side: Mô tả chung sidebar */}
+        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-5 xl:col-span-4 text-left">
           <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-slate-300">MÔ TẢ CHUNG</h2>
-          <div className="space-y-4 text-sm">
+          <div className="space-y-4 text-xs">
             <div>
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Ngân sách</span>
-              <p className="mt-1 font-black text-amber-300">{selectedCampaign.budget}</p>
+              <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Ngân sách</span>
+              <p className="mt-1 font-black text-amber-300 text-sm">{selectedCampaign.budget}</p>
             </div>
             <div>
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
+              <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
               <p className="mt-1 leading-relaxed text-slate-300">{selectedCampaign.requirements}</p>
             </div>
             <div>
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
+              <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
               <p className="mt-1 leading-relaxed text-slate-300">{selectedCampaign.benefits}</p>
             </div>
             {selectedCampaign.sponsorships && selectedCampaign.sponsorships.length > 0 && (
               <div>
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Hạng mục tài trợ cam kết</span>
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Hạng mục tài trợ cam kết</span>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedCampaign.sponsorships.map((s, idx) => (
-                    <span key={idx} className="inline-block rounded bg-amber-400/10 border border-amber-400/30 px-2 py-1 text-[9px] font-bold text-amber-300 uppercase tracking-wider">
+                    <span key={idx} className="inline-block rounded bg-amber-400/10 border border-amber-400/30 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
                       🎁 {s.category}
                     </span>
                   ))}
                 </div>
               </div>
             )}
-            <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-xs leading-relaxed text-slate-500">
+            {/* <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-[10px] leading-relaxed text-slate-500">
               Hệ thống ATS đã được đồng bộ chuẩn theo BRD: Chờ duyệt (New), Đã duyệt (Approved), Đang tham gia (Executing), Nghiệm thu (Completed), và Thành công (Paid & MLM).
-            </div>
+            </div> */}
           </div>
         </aside>
+      </section>
 
-        <main className="space-y-4 xl:col-span-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-300">NHÂN SỰ CAMPAIGN</h2>
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{selectedCampaign.applicants.length + 1} nhân sự</span>
-              <button 
-                onClick={() => setIsAddingStaff(true)}
-                className="flex h-9 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
-              >
-                <Plus className="mr-1.5 h-3.5 w-3.5" />
-                Thêm nhân sự
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Người phụ trách Campaign card */}
-            <article 
-              className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between space-y-5 animate-in fade-in duration-300"
+      {/* Bottom Section: KOC Candidates list (Full Width) */}
+      <section className="space-y-4 pt-4 border-t border-white/5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-black uppercase tracking-widest text-slate-300">NHÂN SỰ CAMPAIGN</h2>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{selectedCampaign.applicants.length + 1} nhân sự</span>
+            <button
+              onClick={() => setIsAddingStaff(true)}
+              className="flex h-9 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
             >
-              {/* Top info */}
-              <div className="flex gap-4 items-start text-left">
-                <img 
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400" 
-                  alt="Nguyễn Ngọc Anh" 
-                  className="h-16 w-16 rounded-xl object-cover border border-emerald-500/20 shrink-0" 
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-black text-white truncate">Nguyễn Ngọc Anh</h3>
-                    <span className="font-display font-extrabold text-[9px] text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded shrink-0">
-                      Người phụ trách Campaign
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Thêm nhân sự
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Người phụ trách Campaign card */}
+          <article
+            className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between space-y-5 animate-in fade-in duration-300"
+          >
+            {/* Top info */}
+            <div className="flex gap-4 items-start text-left">
+              <img
+                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400"
+                alt="Nguyễn Ngọc Anh"
+                className="h-16 w-16 rounded-xl object-cover border border-emerald-500/20 shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-black text-white truncate">Nguyễn Ngọc Anh</h3>
+                  <span className="font-display font-extrabold text-[9px] text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded shrink-0">
+                    Người phụ trách Campaign
+                  </span>
+                </div>
+                <p className="text-[10px] text-emerald-400/80 mt-0.5">Brand Representative · Hà Nội</p>
+                <p className="text-[10.5px] text-slate-400 leading-relaxed mt-2.5 italic font-medium">
+                  "Người đang đăng nhập. Chịu trách nhiệm vận hành, đối soát và giải ngân chiến dịch."
+                </p>
+              </div>
+            </div>
+
+            {/* Contact Information Box */}
+            <div className="space-y-2.5 bg-[#050711] border border-emerald-500/10 rounded-xl p-3.5 text-left">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Thông tin liên hệ
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center gap-2 text-slate-300">
+                  <span className="text-[10px] text-slate-500">📞 Số điện thoại:</span>
+                  <span className="font-bold text-white font-mono">090.123.4567</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-300">
+                  <span className="text-[10px] text-slate-500">✉️ Email:</span>
+                  <span className="font-bold text-white font-mono">ngocanh.nguyen@loreal.com</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions row */}
+            <div className="flex flex-wrap gap-3 pt-3.5 border-t border-white/5 justify-between items-center">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setIsShowingPayoutModal(true)}
+                  className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                >
+                  Xác nhận giải ngân
+                </button>
+                <button
+                  onClick={() => router.push("/brand/messages")}
+                  className="rounded-xl px-3 py-2 text-[10px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
+                >
+                  Nhắn tin nhóm
+                </button>
+              </div>
+
+
+            </div>
+          </article>
+
+          {selectedCampaign.applicants.map((item) => {
+            const talent = displayTalents.find((candidate) => candidate.id === item.talentId);
+            if (!talent) return null;
+            const requestKey = `${selectedCampaign.id}-${talent.id}`;
+            const stage = item.stage;
+            return (
+              <article
+                key={item.talentId}
+                className="rounded-2xl border border-white/5 bg-slate-900/30 p-5 hover:border-amber-400/30 transition-all duration-300 flex flex-col justify-between space-y-5"
+              >
+                {/* Top info and note */}
+                <div className="flex gap-4 items-start text-left">
+                  <img src={talent.avatar} alt={talent.name} className="h-16 w-16 rounded-xl object-cover border border-white/5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-sm font-black text-white truncate">{talent.name}</h3>
+                      <span className="font-display font-extrabold text-[9px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded shrink-0">
+                        {talent.matchScore}% Match
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{talent.type} · {talent.city}</p>
+                    <p className="text-[10.5px] text-slate-500 leading-relaxed mt-2.5 italic font-medium">
+                      "{item.note || "Tôi rất quan tâm và mong muốn thực hiện chiến dịch này."}"
+                    </p>
+                  </div>
+                </div>
+
+                {/* Progress tracker */}
+                <div className="space-y-2.5 bg-[#050711] border border-white/5 rounded-xl p-3.5 text-left">
+                  <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
+                    <span className="text-slate-500">Tiến độ thực hiện:</span>
+                    <span className={cn(
+                      "font-extrabold",
+                      stage === "confirmed" ? "text-emerald-400" : "text-amber-400"
+                    )}>
+                      {stageLabels[stage]}
                     </span>
                   </div>
-                  <p className="text-[10px] text-emerald-400/80 mt-0.5">Brand Representative · Hà Nội</p>
-                  <p className="text-[10.5px] text-slate-400 leading-relaxed mt-2.5 italic font-medium">
-                    "Người đang đăng nhập. Chịu trách nhiệm vận hành, đối soát và giải ngân chiến dịch."
-                  </p>
-                </div>
-              </div>
-
-              {/* Progress tracker box */}
-              <div className="space-y-2.5 bg-[#050711] border border-emerald-500/10 rounded-xl p-3.5 text-left">
-                <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
-                  <span className="text-slate-500">Tiến độ chiến dịch:</span>
-                  <span className="font-extrabold text-emerald-400">
-                    Đang vận hành
-                  </span>
-                </div>
-                {/* Visual Progress Bar */}
-                <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
-                  <div 
-                    className="h-full rounded-full transition-all duration-500 bg-emerald-400" 
-                    style={{ width: "100%" }} 
-                  />
-                </div>
-                
-                {/* Micro stages list */}
-                <div className="grid grid-cols-5 gap-1 pt-1.5 text-[8.5px] font-bold text-center">
-                  <span className="text-emerald-400">Khởi tạo</span>
-                  <span className="text-emerald-400">Mời</span>
-                  <span className="text-emerald-400">Duyệt</span>
-                  <span className="text-emerald-400">Giám sát</span>
-                  <span className="text-emerald-400">Giải ngân</span>
-                </div>
-              </div>
-
-              {/* Actions row */}
-              <div className="flex flex-wrap gap-3 pt-3.5 border-t border-white/5 justify-between items-center">
-                <div className="flex flex-wrap gap-2">
-                  <button 
-                    onClick={() => setIsShowingPayoutModal(true)}
-                    className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
-                  >
-                    Xác nhận giải ngân
-                  </button>
-                  <button 
-                    onClick={() => router.push("/brand/messages")}
-                    className="rounded-xl px-3 py-2 text-[10px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
-                  >
-                    Nhắn tin nhóm
-                  </button>
-                </div>
-
-                {/* Status indicator */}
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Vai trò:</span>
-                  <span className="text-[10px] font-black text-emerald-400 font-mono uppercase bg-emerald-400/5 border border-emerald-400/20 px-2 py-1 rounded">
-                    Admin
-                  </span>
-                </div>
-              </div>
-            </article>
-
-            {selectedCampaign.applicants.map((item) => {
-              const talent = displayTalents.find((candidate) => candidate.id === item.talentId);
-              if (!talent) return null;
-              const requestKey = `${selectedCampaign.id}-${talent.id}`;
-              const stage = item.stage;
-              return (
-                <article 
-                  key={item.talentId} 
-                  className="rounded-2xl border border-white/5 bg-slate-900/30 p-5 hover:border-amber-400/30 transition-all duration-300 flex flex-col justify-between space-y-5"
-                >
-                  {/* Top info and note */}
-                  <div className="flex gap-4 items-start text-left">
-                    <img src={talent.avatar} alt={talent.name} className="h-16 w-16 rounded-xl object-cover border border-white/5 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-sm font-black text-white truncate">{talent.name}</h3>
-                        <span className="font-display font-extrabold text-[9px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded shrink-0">
-                          {talent.matchScore}% Match
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{talent.type} · {talent.city}</p>
-                      <p className="text-[10.5px] text-slate-500 leading-relaxed mt-2.5 italic font-medium">
-                        "{item.note || "Tôi rất quan tâm và mong muốn thực hiện chiến dịch này."}"
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Progress tracker */}
-                  <div className="space-y-2.5 bg-[#050711] border border-white/5 rounded-xl p-3.5 text-left">
-                    <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
-                      <span className="text-slate-500">Tiến độ thực hiện:</span>
-                      <span className={cn(
-                        "font-extrabold",
-                        stage === "confirmed" ? "text-emerald-400" : "text-amber-400"
-                      )}>
-                        {stageLabels[stage]}
-                      </span>
-                    </div>
-                    {/* Visual Progress Bar */}
-                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
-                      <div 
-                        className={cn(
-                          "h-full rounded-full transition-all duration-500", 
-                          stage === "confirmed" ? "bg-emerald-400" : "bg-amber-400"
-                        )} 
-                        style={{ width: getProgressPercent(stage) }} 
-                      />
-                    </div>
-                    
-                    {/* Micro stages list */}
-                    <div className="grid grid-cols-5 gap-1 pt-1.5 text-[8.5px] font-bold text-center">
-                      <span className={cn("transition-colors", isStagePassed(stage, "new") ? "text-amber-400" : "text-slate-600")}>Chờ duyệt</span>
-                      <span className={cn("transition-colors", isStagePassed(stage, "accepted") ? "text-amber-400" : "text-slate-600")}>Đã duyệt</span>
-                      <span className={cn("transition-colors", isStagePassed(stage, "executing") ? "text-amber-400" : "text-slate-600")}>Đang tham gia</span>
-                      <span className={cn("transition-colors", isStagePassed(stage, "completed") ? "text-amber-400" : "text-slate-600")}>Nghiệm thu</span>
-                      <span className={cn("transition-colors", isStagePassed(stage, "confirmed") ? "text-emerald-400" : "text-slate-600")}>Thành công</span>
-                    </div>
-                  </div>
-
-                  {/* Actions row */}
-                  <div className="flex flex-wrap gap-3 pt-3.5 border-t border-white/5 justify-between items-center">
-                    <div className="flex flex-wrap gap-2">
-                      {["new", "shortlisted", "interview"].includes(stage) ? (
-                        <button 
-                          onClick={() => {
-                            setSelectedProfileTalent(talent);
-                            setCurrentApplicantItem(item);
-                          }}
-                          className="rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95"
-                        >
-                          Xem hồ sơ
-                        </button>
-                      ) : stage === "completed" ? (
-                        <button 
-                          onClick={() => setReviewApplicant({ talentId: talent.id, talentName: talent.name })}
-                          className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
-                        >
-                          Nghiệm thu
-                        </button>
-                      ) : stage === "confirmed" ? (
-                        <span className="flex items-center gap-1.5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider">
-                          <CheckCircle2 className="h-4 w-4" /> Đã giải ngân
-                        </span>
-                      ) : (
-                        <button 
-                          onClick={() => {
-                            setSelectedProfileTalent(talent);
-                            setCurrentApplicantItem(item);
-                          }}
-                          className="rounded-xl bg-white/5 border border-white/10 text-slate-355 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 active:scale-95"
-                        >
-                          Xem hồ sơ
-                        </button>
+                  {/* Visual Progress Bar */}
+                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all duration-500",
+                        stage === "confirmed" ? "bg-emerald-400" : "bg-amber-400"
                       )}
-
-                      <button 
-                        onClick={() => router.push("/brand/messages")}
-                        className="rounded-xl px-3 py-2 text-[10px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
-                      >
-                        Nhắn tin
-                      </button>
-                    </div>
-
-                    {/* Stage Display Text */}
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Trạng thái:</span>
-                      <span className="text-[10px] font-black text-amber-300 font-mono uppercase bg-amber-400/5 border border-amber-400/20 px-2 py-1 rounded">
-                        {stageLabels[stage]}
-                      </span>
-                    </div>
+                      style={{ width: getProgressPercent(stage) }}
+                    />
                   </div>
-                </article>
-              );
-            })}
-          </div>
-        </main>
+
+                  {/* Micro stages list */}
+                  <div className="grid grid-cols-5 gap-1 pt-1.5 text-[8.5px] font-bold text-center">
+                    <span className={cn("transition-colors", isStagePassed(stage, "new") ? "text-amber-400" : "text-slate-600")}>Chờ duyệt</span>
+                    <span className={cn("transition-colors", isStagePassed(stage, "accepted") ? "text-amber-400" : "text-slate-600")}>Đã duyệt</span>
+                    <span className={cn("transition-colors", isStagePassed(stage, "executing") ? "text-amber-400" : "text-slate-600")}>Đang tham gia</span>
+                    <span className={cn("transition-colors", isStagePassed(stage, "completed") ? "text-amber-400" : "text-slate-600")}>Nghiệm thu</span>
+                    <span className={cn("transition-colors", isStagePassed(stage, "confirmed") ? "text-emerald-400" : "text-slate-600")}>Thành công</span>
+                  </div>
+                </div>
+
+                {/* Actions row */}
+                <div className="flex flex-wrap gap-3 pt-3.5 border-t border-white/5 justify-between items-center">
+                  <div className="flex flex-wrap gap-2">
+                    {["new", "shortlisted", "interview"].includes(stage) ? (
+                      <button
+                        onClick={() => {
+                          setSelectedProfileTalent(talent);
+                          setCurrentApplicantItem(item);
+                        }}
+                        className="rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95"
+                      >
+                        Xem hồ sơ
+                      </button>
+                    ) : stage === "completed" ? (
+                      <button
+                        onClick={() => setReviewApplicant({ talentId: talent.id, talentName: talent.name })}
+                        className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                      >
+                        Nghiệm thu
+                      </button>
+                    ) : stage === "confirmed" ? (
+                      <span className="flex items-center gap-1.5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider">
+                        <CheckCircle2 className="h-4 w-4" /> Đã giải ngân
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSelectedProfileTalent(talent);
+                          setCurrentApplicantItem(item);
+                        }}
+                        className="rounded-xl bg-white/5 border border-white/10 text-slate-355 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 active:scale-95"
+                      >
+                        Xem hồ sơ
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => router.push("/brand/messages")}
+                      className="rounded-xl px-3 py-2 text-[10px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
+                    >
+                      Nhắn tin
+                    </button>
+                  </div>
+
+
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </section>
 
       {/* Payout Modal Dialog for MLM and F0 */}
@@ -597,7 +586,7 @@ export default function CampaignDetailPage() {
                 <p className="text-[10px] text-emerald-400/80 mt-0.5">Hợp đồng thông minh đã tự động phân bổ dòng tiền</p>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-4 text-xs">
               <div className="space-y-1 bg-[#050711] border border-white/5 rounded-xl p-3.5">
                 <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Thông tin thanh toán F0</span>
@@ -607,7 +596,7 @@ export default function CampaignDetailPage() {
                 </div>
                 <p className="text-[9px] text-slate-500 mt-1 leading-relaxed">Đã cộng vào ví khả dụng của: <b>{payoutDetails.talentName}</b></p>
               </div>
-              
+
               <div className="space-y-3 bg-[#050711] border border-white/5 rounded-xl p-3.5">
                 <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Phân bổ hoa hồng đa cấp (MLM Hierarchy)</span>
                 <div className="space-y-2">
@@ -628,7 +617,7 @@ export default function CampaignDetailPage() {
                   * Áp dụng quy tắc cắt ngọn (Capping) ở tầng F3 theo cấu hình động hệ thống.
                 </div>
               </div>
-              
+
               <div className="flex gap-2 items-start text-[9.5px] text-slate-400 bg-amber-400/5 border border-amber-400/10 rounded-xl p-3">
                 <span>🛡️</span>
                 <p className="leading-normal">
@@ -638,8 +627,8 @@ export default function CampaignDetailPage() {
             </div>
 
             <div className="flex items-center justify-end p-6 border-t border-[#151b2d] bg-[#050711]">
-              <button 
-                onClick={() => setPayoutDetails(null)} 
+              <button
+                onClick={() => setPayoutDetails(null)}
                 className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all"
               >
                 Hoàn tất
@@ -653,7 +642,7 @@ export default function CampaignDetailPage() {
       {selectedProfileTalent && currentApplicantItem && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
-            
+
             <div className="flex items-center justify-between p-6 border-b border-[#151b2d] bg-slate-950/45">
               <div className="flex items-center gap-3">
                 <img src={selectedProfileTalent.avatar} alt={selectedProfileTalent.name} className="h-12 w-12 rounded-xl object-cover border border-white/5" />
@@ -662,7 +651,7 @@ export default function CampaignDetailPage() {
                   <p className="text-[10px] text-slate-400">{selectedProfileTalent.type} · {selectedProfileTalent.city}</p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}
                 className="text-slate-400 hover:text-white cursor-pointer"
               >
@@ -853,13 +842,13 @@ export default function CampaignDetailPage() {
             <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-slate-950/45">
               {["new", "shortlisted", "interview"].includes(currentApplicantItem.stage) ? (
                 <>
-                  <button 
+                  <button
                     onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}
                     className="px-5 py-2 rounded-xl border border-rose-500/20 bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 transition active:scale-95 cursor-pointer text-xs font-bold"
                   >
                     Không duyệt
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       moveApplicant(selectedCampaign.id, selectedProfileTalent.id, "accepted");
                       setSelectedProfileTalent(null);
@@ -871,7 +860,7 @@ export default function CampaignDetailPage() {
                   </button>
                 </>
               ) : (
-                <button 
+                <button
                   onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}
                   className="px-5 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:text-white cursor-pointer"
                 >
@@ -925,7 +914,7 @@ export default function CampaignDetailPage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex gap-2 items-start text-[9.5px] text-slate-400 bg-amber-400/5 border border-amber-400/10 rounded-xl p-3">
                 <span>🔔</span>
                 <p className="leading-normal">
@@ -936,7 +925,7 @@ export default function CampaignDetailPage() {
 
             <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
               <button onClick={() => setReviewApplicant(null)} className="px-4 py-2 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Hủy</button>
-              <button 
+              <button
                 onClick={() => {
                   moveApplicant(selectedCampaign.id, reviewApplicant.talentId, "confirmed");
                   setReviewApplicant(null);
@@ -1111,15 +1100,15 @@ export default function CampaignDetailPage() {
       {isShowingPayoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="relative w-full max-w-5xl max-h-[90vh] flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300 text-left">
-            
+
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-[#151b2d] bg-slate-950/45">
               <div>
                 <h3 className="text-sm font-black text-white uppercase tracking-wider">Đối soát & Chia tiền campaign</h3>
                 <p className="text-[10px] text-slate-500 mt-1">Thông tin giải ngân dòng tiền cho đại diện Brand, KOCs và Uplines theo phân bổ MLM</p>
               </div>
-              <button 
-                onClick={() => setIsShowingPayoutModal(false)} 
+              <button
+                onClick={() => setIsShowingPayoutModal(false)}
                 className="text-slate-400 hover:text-white cursor-pointer"
               >
                 <X className="h-5 w-5" />
@@ -1131,11 +1120,11 @@ export default function CampaignDetailPage() {
               {/* Summary Stats Row */}
               {(() => {
                 const totalBudget = selectedCampaign.budgetValue || 20000000;
-                
+
                 // Get applicants
                 const applicantIds = selectedCampaign.applicants.map((a: any) => a.talentId);
                 const applicantTalents = displayTalents.filter((t: any) => applicantIds.includes(t.id));
-                
+
                 // Fallback to mock talents if none added (to look exactly like the screenshot)
                 const displayApplicantTalents = applicantTalents.length > 0 ? applicantTalents : [
                   { id: "mock-1", name: "Lương Mỹ An", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" },
@@ -1361,17 +1350,17 @@ export default function CampaignDetailPage() {
 
                     {/* Footer Actions inside Content */}
                     <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#151b2d]">
-                      <button 
-                        onClick={() => setIsShowingPayoutModal(false)} 
+                      <button
+                        onClick={() => setIsShowingPayoutModal(false)}
                         className="px-5 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer transition-colors"
                       >
                         Đóng
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           window.alert(`Đã xác nhận giải ngân thành công tổng cộng ${Math.round(totalCalculatedPayout).toLocaleString("vi-VN")} VND cho ${allRows.length} đối tượng nhận tiền!`);
                           setIsShowingPayoutModal(false);
-                        }} 
+                        }}
                         className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                       >
                         Xác nhận giải ngân
