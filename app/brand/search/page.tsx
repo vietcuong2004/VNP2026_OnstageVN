@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
@@ -17,7 +17,7 @@ import {
   Award,
   MessageSquare
 } from "lucide-react";
-import { savedTalentIds, talents, campaigns } from "@/lib/brand-mvp-data";
+import { savedTalentIds, talents, campaigns, LIFESTYLE_SERVICES_TEMPLATES } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 
 const allValue = "all";
@@ -53,6 +53,7 @@ export default function DiscoverTalentsPage() {
   const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
   const [selectedInviteTalent, setSelectedInviteTalent] = useState<any | null>(null);
   const [selectedCampaignForInvite, setSelectedCampaignForInvite] = useState("");
+  const [selectedLifestyleServices, setSelectedLifestyleServices] = useState<string[]>([]);
 
   // Accordion filters state
   const [expandedSection, setExpandedSection] = useState<Record<string, boolean>>({
@@ -61,22 +62,70 @@ export default function DiscoverTalentsPage() {
     professional: true,
     social: true,
     quality: true,
+    lifestyle: true,
   });
 
   const toggleSection = (section: string) => {
     setExpandedSection(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  const toggleLifestyleService = (id: string) => {
+    setSelectedLifestyleServices(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const [displayTalents, setDisplayTalents] = useState<any[]>(talents);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("vnp_talent_profile");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed) {
+          setDisplayTalents(prev => prev.map(t => {
+            if (t.id === "tal-1") {
+              return {
+                ...t,
+                name: parsed.name || t.name,
+                avatar: parsed.avatar || t.avatar,
+                cover: parsed.cover || t.cover,
+                height: parsed.height !== undefined ? Number(parsed.height) : t.height,
+                weight: parsed.weight !== undefined ? Number(parsed.weight) : t.weight,
+                bust: parsed.bust !== undefined ? Number(parsed.bust) : t.bust,
+                waist: parsed.waist !== undefined ? Number(parsed.waist) : t.waist,
+                hips: parsed.hips !== undefined ? Number(parsed.hips) : t.hips,
+                gender: parsed.gender || t.gender,
+                district: parsed.location || t.district,
+                education: parsed.education || t.education,
+                languages: parsed.languages || t.languages,
+                skills: parsed.skills || t.skills,
+                rateCard: parsed.rateCard || t.rateCard,
+                lifestyleServices: parsed.lifestyleServices || t.lifestyleServices,
+                yearsOfExperience: parsed.experience !== undefined ? Number(parsed.experience) : t.yearsOfExperience,
+                verified: parsed.verifiedLevel === "Elite" || parsed.verifiedLevel === "Pro" || parsed.verifiedLevel === "Basic" || t.verified,
+                tier: parsed.tier || t.tier,
+              };
+            }
+            return t;
+          }));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
   // Filter Algorithm
   const filteredTalents = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase();
 
-    return talents
+    return displayTalents
       .filter((talent) => {
         const matchesSearch =
           !keyword ||
           talent.name.toLowerCase().includes(keyword) ||
-          talent.skills.some((skill) => skill.toLowerCase().includes(keyword)) ||
+          talent.skills.some((skill: string) => skill.toLowerCase().includes(keyword)) ||
           talent.type.toLowerCase().includes(keyword);
 
         const matchesGender = selectedGender === allValue || talent.gender === selectedGender;
@@ -106,6 +155,12 @@ export default function DiscoverTalentsPage() {
         const matchesRating = talent.rating >= minRating;
         const matchesJobs = talent.completedJobs >= minJobs;
 
+        const matchesLifestyle =
+          selectedLifestyleServices.length === 0 ||
+          selectedLifestyleServices.every((serviceId) =>
+            talent.lifestyleServices?.some((s: any) => s.id === serviceId && s.enabled)
+          );
+
         return (
           matchesSearch &&
           matchesGender &&
@@ -123,7 +178,8 @@ export default function DiscoverTalentsPage() {
           matchesEngagement &&
           matchesVerified &&
           matchesRating &&
-          matchesJobs
+          matchesJobs &&
+          matchesLifestyle
         );
       })
       .sort((a, b) => b.matchScore - a.matchScore);
@@ -148,6 +204,8 @@ export default function DiscoverTalentsPage() {
     verifiedOnly,
     minRating,
     minJobs,
+    selectedLifestyleServices,
+    displayTalents,
   ]);
 
   const getTalentStatus = (id: string) => {
@@ -177,6 +235,7 @@ export default function DiscoverTalentsPage() {
     setVerifiedOnly(false);
     setMinRating(0);
     setMinJobs(0);
+    setSelectedLifestyleServices([]);
   }
 
   function toggleSaved(id: string) {
@@ -424,7 +483,7 @@ export default function DiscoverTalentsPage() {
             </div>
 
             {/* 5. CHẤT LƯỢNG & ĐÁNH GIÁ */}
-            <div>
+            <div className="border-b border-white/5 pb-3">
               <button
                 onClick={() => toggleSection("quality")}
                 className="flex w-full items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white py-1 cursor-pointer"
@@ -464,6 +523,41 @@ export default function DiscoverTalentsPage() {
                       </select>
                     </label>
                   </div>
+                </div>
+              )}
+            </div>
+
+            {/* 6. DỊCH VỤ ĐỒNG HÀNH (LIFESTYLE CO-SPACE) */}
+            <div>
+              <button
+                onClick={() => toggleSection("lifestyle")}
+                className="flex w-full items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white py-1 cursor-pointer"
+              >
+                <span>Dịch vụ đồng hành VIP</span>
+                {expandedSection.lifestyle ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              </button>
+
+              {expandedSection.lifestyle && (
+                <div className="space-y-2 mt-3 animate-in slide-in-from-top-1 duration-200">
+                  {LIFESTYLE_SERVICES_TEMPLATES.map((service) => {
+                    const isChecked = selectedLifestyleServices.includes(service.id);
+                    return (
+                      <label key={service.id} className="flex cursor-pointer items-start justify-between rounded-xl border border-white/5 bg-slate-900/30 p-2.5 hover:bg-slate-900/50 transition-colors">
+                        <div className="flex flex-col gap-0.5 pr-2">
+                          <span className="text-[10px] font-bold text-slate-300 flex items-center gap-1.5">
+                            {service.title}
+                          </span>
+                          <span className="text-[8.5px] text-slate-500 font-medium leading-normal">{service.description}</span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleLifestyleService(service.id)}
+                          className="rounded accent-[#C9A86A] mt-0.5 shrink-0 cursor-pointer"
+                        />
+                      </label>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -563,6 +657,30 @@ export default function DiscoverTalentsPage() {
                         <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.height}cm</span>
                         <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.weight}kg</span>
                       </div>
+
+                      {/* Lifestyle services badges */}
+                      {talent.lifestyleServices && talent.lifestyleServices.some((s: any) => s.enabled) && (
+                        <div className="mb-2.5 flex flex-wrap gap-1">
+                          {talent.lifestyleServices.filter((s: any) => s.enabled).map((s: any) => {
+                            let icon = "💼";
+                            if (s.id === "golf") icon = "⛳";
+                            else if (s.id === "pickleball") icon = "🎾";
+                            else if (s.id === "dining") icon = "🍷";
+                            else if (s.id === "cafe") icon = "☕";
+                            else if (s.id === "redcarpet") icon = "✨";
+                            else if (s.id === "shopping") icon = "🛍️";
+                            else if (s.id === "art") icon = "🎨";
+                            else if (s.id === "escort") icon = "🛥️";
+                            else if (s.id === "content") icon = "📱";
+                            return (
+                              <span key={s.id} className="rounded border border-amber-500/20 bg-amber-500/5 px-1.5 py-0.5 text-[8px] font-bold text-amber-400 flex items-center gap-1 uppercase tracking-wider" title={s.title}>
+                                <span>{icon}</span>
+                                <span className="max-w-[80px] truncate">{s.title.replace(/(Sport Companion |Business |VIP |Luxury |Launching Event |Daily Content )/g, "")}</span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
 
                       {/* Social stats row */}
                       <div className="grid grid-cols-2 gap-2 bg-[#0F1115]/50 border border-white/5 rounded-xl p-2 text-center text-[10px] my-3">

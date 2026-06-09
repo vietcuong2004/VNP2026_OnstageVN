@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   ArrowRight,
   BookmarkCheck,
@@ -182,17 +182,18 @@ export default function BrandDashboard() {
   const router = useRouter();
   const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
 
-  const [campaignsList] = useState<any[]>(() => {
+  const [campaignsList, setCampaignsList] = useState<any[]>(campaigns);
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const stored = window.localStorage.getItem("onstagevn_campaigns");
       if (stored) {
         try {
-          return JSON.parse(stored);
+          setCampaignsList(JSON.parse(stored));
         } catch (e) {}
       }
     }
-    return campaigns;
-  });
+  }, []);
 
   const openCampaigns = useMemo(() => {
     return campaignsList.filter((c) => c.status === "published");

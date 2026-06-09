@@ -1,3 +1,12 @@
+export type LifestyleService = {
+  id: string; // "golf", "pickleball", "dining", "cafe", "travel", "redcarpet", "shopping", "art", "escort", "content"
+  title: string;
+  rate: number;
+  unit: string;
+  description: string;
+  enabled: boolean;
+};
+
 export type TalentProfile = {
   id: string;
   name: string;
@@ -40,14 +49,20 @@ export type TalentProfile = {
   education: string;
   languages: string[];
   rateCard: Record<string, number>;
+  lifestyleServices?: LifestyleService[];
 };
 
-export type CampaignStage = "new" | "shortlisted" | "interview" | "accepted" | "confirmed";
+export type CampaignStage = "new" | "accepted" | "executing" | "completed" | "confirmed";
 
 export type CampaignTalent = {
   talentId: string;
   stage: CampaignStage;
   note: string;
+};
+
+export type CampaignSponsorship = {
+  category: string;
+  details: string;
 };
 
 export type Campaign = {
@@ -70,7 +85,50 @@ export type Campaign = {
   description: string;
   requirements: string;
   views: number;
+  sponsorships?: CampaignSponsorship[];
+  escrowed?: boolean;
 };
+
+export const LIFESTYLE_SERVICES_TEMPLATES = [
+  { id: "golf", title: "Sport Companion (Golf)", description: "Người đẹp đồng hành, am hiểu văn hóa ứng xử sân golf VIP.", unit: "giờ" },
+  { id: "pickleball", title: "Sport Companion (Pickleball)", description: "Hot Influencer năng động, lan tỏa phong cách sống khỏe khoắn.", unit: "giờ" },
+  { id: "dining", title: "Business Dining (Fine Dining)", description: "Giao tiếp ngoại giao xuất sắc, nâng tầm các buổi tiệc chiêu đãi đối tác.", unit: "buổi" },
+  { id: "cafe", title: "VIP Cafe & Networking", description: "Kết nối tư duy tri thức, trò chuyện tại các không gian Luxury Hub.", unit: "giờ" },
+  { id: "travel", title: "Business Travel Companion", description: "Tháp tùng công tác dài ngày, bảo mật tuyệt đối bằng hợp đồng NDA.", unit: "ngày" },
+  { id: "redcarpet", title: "Red-Carpet Companion", description: "Khí chất thảm đỏ xuất sắc, tháp tùng các sự kiện Gala/Triển lãm VIP.", unit: "sự kiện" },
+  { id: "shopping", title: "Luxury Shopping Advisor", description: "Fashionista/Stylist đồng hành mua sắm tại các Boutique xa xỉ.", unit: "buổi" },
+  { id: "art", title: "Art & Exhibition Companion", description: "Thưởng lãm nghệ thuật, hòa nhạc, đấu giá tranh cổ chiều sâu tri thức.", unit: "buổi" },
+  { id: "escort", title: "Launching Event Escort", description: "Nhân sự hình ảnh tháp tùng lễ bàn giao siêu xe, du thuyền cao cấp.", unit: "sự kiện" },
+  { id: "content", title: "Daily Content Companion", description: "KOC đồng hành sáng tạo nội dung, xây dựng thương hiệu cá nhân cho CEO.", unit: "ngày" }
+];
+
+export const SPONSORSHIP_CATEGORIES = [
+  { id: "cash", label: "Tiền mặt / Thù lao phụ" },
+  { id: "makeup", label: "Tài trợ Trang điểm (Makeup)" },
+  { id: "hair", label: "Tài trợ Làm tóc (Hair Styling)" },
+  { id: "gown", label: "Tài trợ Trang phục dạ hội" },
+  { id: "aodai", label: "Tài trợ Áo dài truyền thống" },
+  { id: "casual", label: "Tài trợ Trang phục thường ngày" },
+  { id: "sports", label: "Tài trợ Trang phục thể thao" },
+  { id: "jewelry", label: "Tài trợ Trang sức cao cấp" },
+  { id: "skincare", label: "Tài trợ Mỹ phẩm dưỡng da" },
+  { id: "hotel", label: "Tài trợ Khách sạn/Lưu trú VIP" },
+  { id: "flight", label: "Tài trợ Vé máy bay khứ hồi" },
+  { id: "limo", label: "Tài trợ Xe đưa đón Limousine" },
+  { id: "fb", label: "Tài trợ Ăn uống (F&B) cao cấp" },
+  { id: "gym", label: "Tài trợ Thẻ tập Gym & Fitness" },
+  { id: "dental", label: "Tài trợ Chăm sóc nha khoa" },
+  { id: "aesthetic", label: "Tài trợ Thẩm mỹ viện & Skincare" },
+  { id: "studio", label: "Tài trợ Chụp ảnh & Studio" },
+  { id: "pr", label: "Tài trợ Gói truyền thông PR báo chí" },
+  { id: "sound", label: "Tài trợ Kỹ thuật Âm thanh & Ánh sáng" },
+  { id: "accessories", label: "Tài trợ Phụ kiện thời trang" },
+  { id: "shoes", label: "Tài trợ Giày cao gót NTK" },
+  { id: "resort", label: "Tài trợ Voucher Nghỉ dưỡng & Spa" },
+  { id: "insurance", label: "Tài trợ Bảo hiểm sức khỏe sự kiện" },
+  { id: "pt", label: "Tài trợ Huấn luyện viên thể hình (PT)" },
+  { id: "training", label: "Tài trợ Đào tạo MC & Kỹ năng" }
+];
 
 export const partnerProfile = {
   organizationName: "L'Oréal Vietnam Cosmetics",
@@ -132,6 +190,17 @@ export const talents: TalentProfile[] = [
       "Instagram Post": 3000000,
       "Event Appearance": 12000000,
     },
+    lifestyleServices: [
+      { id: "golf", title: "Sport Companion (Golf)", rate: 2500000, unit: "giờ", description: "Người đẹp đồng hành, am hiểu văn hóa ứng xử sân golf VIP.", enabled: true },
+      { id: "dining", title: "Business Dining (Fine Dining)", rate: 3000000, unit: "buổi", description: "Giao tiếp ngoại giao xuất sắc, nâng tầm các buổi tiệc chiêu đãi đối tác.", enabled: true },
+      { id: "cafe", title: "VIP Cafe & Networking", rate: 1500000, unit: "giờ", description: "Kết nối tư duy tri thức, trò chuyện tại các không gian Luxury Hub.", enabled: true },
+      { id: "travel", title: "Business Travel Companion", rate: 10000000, unit: "ngày", description: "Tháp tùng công tác dài ngày, bảo mật tuyệt đối bằng hợp đồng NDA.", enabled: true },
+      { id: "redcarpet", title: "Red-Carpet Companion", rate: 15000000, unit: "sự kiện", description: "Khí chất thảm đỏ xuất sắc, tháp tùng các sự kiện Gala/Triển lãm VIP.", enabled: true },
+      { id: "shopping", title: "Luxury Shopping Advisor", rate: 2000000, unit: "buổi", description: "Fashionista/Stylist đồng hành mua sắm tại các Boutique xa xỉ.", enabled: true },
+      { id: "art", title: "Art & Exhibition Companion", rate: 1800000, unit: "buổi", description: "Thưởng lãm nghệ thuật, hòa nhạc, đấu giá tranh cổ chiều sâu tri thức.", enabled: true },
+      { id: "escort", title: "Launching Event Escort", rate: 8000000, unit: "sự kiện", description: "Nhân sự hình ảnh tháp tùng lễ bàn giao siêu xe, du thuyền cao cấp.", enabled: true },
+      { id: "content", title: "Daily Content Companion", rate: 5000000, unit: "ngày", description: "KOC đồng hành sáng tạo nội dung, xây dựng thương hiệu cá nhân cho CEO.", enabled: true }
+    ],
   },
   {
     id: "tal-2",
@@ -179,6 +248,11 @@ export const talents: TalentProfile[] = [
       "Runway show": 9000000,
       "Fashion video": 7000000,
     },
+    lifestyleServices: [
+      { id: "pickleball", title: "Sport Companion (Pickleball)", rate: 1500000, unit: "giờ", description: "Hot Influencer năng động, lan tỏa phong cách sống khỏe khoắn.", enabled: true },
+      { id: "redcarpet", title: "Red-Carpet Companion", rate: 8000000, unit: "sự kiện", description: "Khí chất thảm đỏ xuất sắc, tháp tùng các sự kiện Gala/Triển lãm VIP.", enabled: true },
+      { id: "shopping", title: "Luxury Shopping Advisor", rate: 1500000, unit: "buổi", description: "Fashionista/Stylist đồng hành mua sắm tại các Boutique xa xỉ.", enabled: true }
+    ],
   },
   {
     id: "tal-3",
@@ -226,6 +300,11 @@ export const talents: TalentProfile[] = [
       "MC cả ngày": 18000000,
       "Brand talkshow": 15000000,
     },
+    lifestyleServices: [
+      { id: "dining", title: "Business Dining (Fine Dining)", rate: 2500000, unit: "buổi", description: "Giao tiếp ngoại giao xuất sắc, nâng tầm các buổi tiệc chiêu đãi đối tác.", enabled: true },
+      { id: "cafe", title: "VIP Cafe & Networking", rate: 1200000, unit: "giờ", description: "Kết nối tư duy tri thức, trò chuyện tại các không gian Luxury Hub.", enabled: true },
+      { id: "content", title: "Daily Content Companion", rate: 4000000, unit: "ngày", description: "KOC đồng hành sáng tạo nội dung, xây dựng thương hiệu cá nhân cho CEO.", enabled: true }
+    ],
   },
   {
     id: "tal-4",
@@ -342,14 +421,20 @@ export const campaigns: Campaign[] = [
     status: "published",
     shortlistedTalentIds: ["tal-1", "tal-3"],
     applicants: [
-      { talentId: "tal-1", stage: "shortlisted", note: "Phù hợp beauty livestream" },
-      { talentId: "tal-3", stage: "interview", note: "Cần kiểm tra lịch quay" },
+      { talentId: "tal-1", stage: "accepted", note: "Phù hợp beauty livestream" },
+      { talentId: "tal-3", stage: "new", note: "Cần kiểm tra lịch quay" },
       { talentId: "tal-4", stage: "new", note: "Backup PG hỗ trợ set quay" },
+      { talentId: "tal-5", stage: "completed", note: "Đã check-in & hoàn thành buổi diễn, chờ brand nghiệm thu" },
     ],
     contactRequests: 2,
     views: 420,
     description: "Tìm KOL beauty livestream giới thiệu dòng sản phẩm mới, ưu tiên có kinh nghiệm review mỹ phẩm.",
     requirements: "Nữ 20-28 tuổi, có TikTok/Instagram hoạt động tốt, nói chuyện tự nhiên trước camera.",
+    sponsorships: [
+      { category: "Tài trợ mỹ phẩm", details: "Gói mỹ phẩm trang điểm Glow Beauty trị giá 20.000.000đ" },
+      { category: "Tài trợ trang điểm", details: "Hỗ trợ chuyên gia trang điểm riêng tại Studio" },
+      { category: "Tài trợ ăn uống", details: "Teabreak & nước uống lọc ion cao cấp suốt buổi quay" }
+    ],
   },
   {
     id: "camp-2",
@@ -367,12 +452,17 @@ export const campaigns: Campaign[] = [
     status: "draft",
     shortlistedTalentIds: ["tal-2"],
     applicants: [
-      { talentId: "tal-2", stage: "shortlisted", note: "Phù hợp chiều cao và phong cách" },
+      { talentId: "tal-2", stage: "new", note: "Phù hợp chiều cao và phong cách" },
     ],
     contactRequests: 0,
     views: 180,
     description: "Chụp lookbook thời trang hè, cần model nữ cao từ 170cm, phong cách clean, luxury.",
     requirements: "Nữ 18-26 tuổi, cao từ 170cm, có kinh nghiệm lookbook hoặc runway.",
+    sponsorships: [
+      { category: "Tài trợ trang phục dạ hội", details: "10 bộ trang phục từ nhà thiết kế thời trang haute couture" },
+      { category: "Tài trợ đi lại", details: "Đưa đón bằng xe limousine từ khách sạn đến địa điểm chụp" },
+      { category: "Tài trợ lưu trú", details: "Phòng nghỉ VIP tại khách sạn 5 sao Gem Center" }
+    ],
   },
   {
     id: "camp-3",

@@ -47,6 +47,7 @@ export default function EditInfoTab({
   const [cccdBackUploaded, setCccdBackUploaded] = useState(false);
   const [selfieUploaded, setSelfieUploaded] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<"unverified" | "pending" | "verified">("unverified");
+  const [lifestyleServices, setLifestyleServices] = useState<any[]>([]);
 
   // Form states for profile editing
   const [editForm, setEditForm] = useState<any>({
@@ -115,6 +116,7 @@ export default function EditInfoTab({
         hasUploadedCatwalk: profile.hasUploadedCatwalk || false,
         hasUploadedMC: profile.hasUploadedMC || false
       });
+      setLifestyleServices(profile.lifestyleServices || []);
       if (profile.verifiedLevel === "Elite" || profile.verifiedLevel === "Pro" || profile.verifiedLevel === "Basic") {
         setVerificationStatus("verified");
         setCccdFrontUploaded(true);
@@ -231,7 +233,8 @@ export default function EditInfoTab({
             tattooDesc: editForm.tattoo === "Có" ? editForm.tattooDesc : "",
             experience: Number(editForm.experience),
             specialSkills: editForm.specialSkills.split(",").map((s: string) => s.trim()),
-            skills: editForm.specialSkills.split(",").map((s: string) => s.trim())
+            skills: editForm.specialSkills.split(",").map((s: string) => s.trim()),
+            lifestyleServices: lifestyleServices
           };
           setProfile(updated);
           localStorage.setItem("vnp_talent_profile", JSON.stringify(updated));
@@ -504,6 +507,56 @@ export default function EditInfoTab({
               ))}
             </div>
           </div>
+
+          {/* Lifestyle Companion services config editing */}
+          {lifestyleServices && lifestyleServices.length > 0 && (
+            <div className="border-t border-[#151b2d] pt-4 space-y-3">
+              <span className="block font-bold text-slate-300 uppercase tracking-wider text-[8px] text-left">Dịch Vụ Đồng Hành VIP & Phong Cách Sống (Lifestyle Co-Space)</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {lifestyleServices.map((service, index) => {
+                  return (
+                    <div key={service.id} className="rounded-xl border border-white/5 bg-slate-950 p-4 space-y-3 text-left">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-xs text-white">{service.title}</span>
+                        <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={service.enabled}
+                            onChange={(e) => {
+                              const updated = [...lifestyleServices];
+                              updated[index] = { ...service, enabled: e.target.checked };
+                              setLifestyleServices(updated);
+                            }}
+                            className="rounded accent-[#f4c430] h-3.5 w-3.5 cursor-pointer"
+                          />
+                          <span className="text-[8px] font-black text-slate-400 uppercase">Kích hoạt</span>
+                        </label>
+                      </div>
+                      
+                      <p className="text-[9.5px] text-slate-500 leading-normal">{service.description}</p>
+                      
+                      {service.enabled && (
+                        <div className="space-y-1.5 animate-in fade-in duration-200">
+                          <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Giá dịch vụ đề xuất (VND / {service.unit})</label>
+                          <input
+                            type="number"
+                            required
+                            value={service.rate}
+                            onChange={(e) => {
+                              const updated = [...lifestyleServices];
+                              updated[index] = { ...service, rate: Number(e.target.value) };
+                              setLifestyleServices(updated);
+                            }}
+                            className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Submit Button */}
           <div className="pt-2">

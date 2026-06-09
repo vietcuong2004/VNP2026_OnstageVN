@@ -74,8 +74,8 @@ export default function RootGatewayPage() {
                 <span className="absolute bottom-[-6px] left-0 w-full h-[2px] bg-gradient-to-r from-[#F0C56B] to-[#A87418] shadow-[0_0_6px_rgba(212,166,74,0.6)]" />
               </button>
               <button onClick={() => scrollToId('intro')} className="hover:text-white transition-colors cursor-pointer">Về chúng tôi</button>
-              <Link href="/talent" className="hover:text-[#F0C56B] transition-colors cursor-pointer">Dành cho Talent</Link>
-              <Link href="/brand" className="hover:text-[#F0C56B] transition-colors cursor-pointer">Dành cho Doanh nghiệp</Link>
+              <Link href="/auth/login?redirect=/talent" className="hover:text-[#F0C56B] transition-colors cursor-pointer">Dành cho Talent</Link>
+              <Link href="/auth/login?redirect=/brand" className="hover:text-[#F0C56B] transition-colors cursor-pointer">Dành cho Doanh nghiệp</Link>
               <button onClick={() => scrollToId('process')} className="hover:text-white transition-colors cursor-pointer">Quy trình</button>
             </nav>
             <div>
@@ -120,7 +120,7 @@ export default function RootGatewayPage() {
             {/* Dual call-to-action buttons as shown in mockup */}
             <div className="flex flex-col sm:flex-row gap-4 md:gap-6 pt-2 md:pt-4 w-full sm:w-auto justify-center md:justify-start items-center sm:items-start">
               <Link
-                href="/talent"
+                href="/auth/login?redirect=/talent"
                 className="w-full sm:w-auto px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-gradient-gold text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.3)] hover:scale-102 transition-all duration-305 cursor-pointer flex items-center justify-center gap-2"
               >
                 Dành cho Talent <ArrowRight className="h-4 w-4" />
@@ -131,7 +131,7 @@ export default function RootGatewayPage() {
                 {/* Gold pulsing background glow */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#D4A64A] to-[#F0C56B] rounded-xl blur opacity-60 group-hover:opacity-85 group-hover:blur-md transition-all duration-300 animate-pulse pointer-events-none" />
                 <Link
-                  href="/brand"
+                  href="/auth/login?redirect=/brand"
                   className="relative w-full sm:w-auto px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-slate-950 text-[#F0C56B] hover:text-white hover:scale-102 transition-all duration-305 cursor-pointer flex items-center justify-center gap-2 border border-[#D4A64A]/50 shadow-[0_0_20px_rgba(212,166,74,0.3)]"
                 >
                   Dành cho Doanh nghiệp <ArrowRight className="h-4 w-4" />
@@ -347,7 +347,7 @@ export default function RootGatewayPage() {
 
             {/* Talent Portal Card */}
             <Link
-              href="/talent"
+              href="/auth/login?redirect=/talent"
               className="group relative flex flex-col justify-between items-start rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-amber-400/30 p-5 md:p-8 text-left transition-all duration-500 hover:bg-[#0c0f24]/60 hover:shadow-[0_0_30px_rgba(245,158,11,0.08)] backdrop-blur-xl"
             >
               {/* Subtle gold accent light inside the card */}
@@ -397,7 +397,7 @@ export default function RootGatewayPage() {
 
             {/* Brand Portal Card */}
             <Link
-              href="/brand"
+              href="/auth/login?redirect=/brand"
               className="group relative flex flex-col justify-between items-start rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-[#D4A64A]/30 p-5 md:p-8 text-left transition-all duration-500 hover:bg-[#0c0f24]/60 hover:shadow-[0_0_30px_rgba(212,166,74,0.08)] backdrop-blur-xl"
             >
               {/* Subtle gold accent light inside the card */}
@@ -500,10 +500,10 @@ export default function RootGatewayPage() {
                 <h4 className="text-[11px] font-black text-[#F0C56B] uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Hệ sinh thái</h4>
                 <ul className="space-y-3 text-[11px] font-semibold text-slate-400">
                   <li>
-                    <Link href="/talent" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Talent</Link>
+                    <Link href="/auth/login?redirect=/talent" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Talent</Link>
                   </li>
                   <li>
-                    <Link href="/brand" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Brand</Link>
+                    <Link href="/auth/login?redirect=/brand" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Brand</Link>
                   </li>
                   <li>
                     <button onClick={() => scrollToId('features')} className="hover:text-white transition-colors cursor-pointer text-left block">Định hướng AI</button>

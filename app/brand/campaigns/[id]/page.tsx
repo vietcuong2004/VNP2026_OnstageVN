@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -10,16 +10,18 @@ import {
   Clock,
   MapPin,
   Users,
+  X,
+  Sparkles,
 } from "lucide-react";
 import { campaigns as initialCampaigns, talents, type Campaign, type CampaignStage } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 
 const stageLabels: Record<CampaignStage, string> = {
-  new: "Mới",
-  shortlisted: "Shortlist",
-  interview: "Phỏng vấn",
-  accepted: "Đã chọn",
-  confirmed: "Đã xác nhận",
+  new: "Chờ duyệt",
+  accepted: "Đã duyệt",
+  executing: "Đang diễn",
+  completed: "Nghiệm thu",
+  confirmed: "Thành công",
 };
 
 function statusLabel(status: Campaign["status"]) {
@@ -29,39 +31,69 @@ function statusLabel(status: Campaign["status"]) {
 }
 
 function nextStage(stage: CampaignStage): CampaignStage {
-  if (stage === "new") return "shortlisted";
-  if (stage === "shortlisted") return "interview";
-  if (stage === "interview") return "accepted";
+  if (stage === "new") return "accepted";
+  if (stage === "accepted") return "executing";
+  if (stage === "executing") return "completed";
   return "confirmed";
+}
+
+function stageActionLabel(stage: CampaignStage): string {
+  if (stage === "new") return "Duyệt ứng viên";
+  if (stage === "accepted") return "Bắt đầu diễn (Check-in)";
+  if (stage === "executing") return "Báo cáo hoàn thành";
+  if (stage === "completed") return "Nghiệm thu & Giải ngân";
+  return "";
+}
+
+function getProgressPercent(stage: CampaignStage): string {
+  if (stage === "new") return "20%";
+  if (stage === "accepted") return "40%";
+  if (stage === "executing") return "60%";
+  if (stage === "completed") return "80%";
+  return "100%";
+}
+
+function isStagePassed(current: CampaignStage, target: "new" | "accepted" | "executing" | "completed" | "confirmed"): boolean {
+  const order = {
+    new: 1,
+    accepted: 2,
+    executing: 3,
+    completed: 4,
+    confirmed: 5,
+  };
+  
+  const currentVal = order[current] || 1;
+  const targetVal = order[target] || 1;
+  return currentVal >= targetVal;
 }
 
 export default function CampaignDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const [payoutDetails, setPayoutDetails] = useState<any>(null);
+  const [selectedProfileTalent, setSelectedProfileTalent] = useState<any>(null);
+  const [currentApplicantItem, setCurrentApplicantItem] = useState<any>(null);
+  const [reviewApplicant, setReviewApplicant] = useState<any>(null);
 
-  const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
+  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
+  const [sentRequests, setSentRequests] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
+      const storedCampaigns = window.localStorage.getItem("onstagevn_campaigns");
+      if (storedCampaigns) {
         try {
-          return JSON.parse(stored);
+          setCampaigns(JSON.parse(storedCampaigns));
+        } catch (e) {}
+      }
+      const storedRequests = window.localStorage.getItem("onstagevn_sent_requests");
+      if (storedRequests) {
+        try {
+          setSentRequests(JSON.parse(storedRequests));
         } catch (e) {}
       }
     }
-    return initialCampaigns;
-  });
-
-  const [sentRequests, setSentRequests] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_sent_requests");
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch (e) {}
-      }
-    }
-    return {};
-  });
+  }, []);
 
   const selectedCampaign = useMemo(() => {
     return campaigns.find((c) => c.id === params.id);
@@ -91,6 +123,38 @@ export default function CampaignDetailPage() {
     setCampaigns(nextCampaigns);
     if (typeof window !== "undefined") {
       window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(nextCampaigns));
+    }
+
+    if (stage === "confirmed") {
+      const campaign = campaigns.find(c => c.id === campaignId);
+      const talent = talents.find(t => t.id === talentId);
+      if (campaign && talent) {
+        setPayoutDetails({
+          talentName: talent.name,
+          campaignTitle: campaign.title,
+          budget: campaign.budget,
+        });
+
+        // Update local talent wallet if it is Nguyễn Mai Anh (tal-1)
+        const storedProfile = window.localStorage.getItem("vnp_talent_profile");
+        if (storedProfile && talentId === "tal-1") {
+          try {
+            const parsed = JSON.parse(storedProfile);
+            let addedVal = 5000000;
+            const budgetStr = campaign.budget.replace(/[^0-9]/g, "");
+            if (budgetStr) {
+              const numVal = parseInt(budgetStr, 10);
+              if (!isNaN(numVal)) {
+                addedVal = numVal > 100000000 ? Math.round(numVal / 10) : numVal;
+              }
+            }
+            parsed.availableBalance = (parsed.availableBalance || 19000000) + addedVal;
+            window.localStorage.setItem("vnp_talent_profile", JSON.stringify(parsed));
+          } catch (e) {
+            console.error("Failed to update simulated talent wallet balance:", e);
+          }
+        }
+      }
     }
   }
 
@@ -200,8 +264,20 @@ export default function CampaignDetailPage() {
               <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
               <p className="mt-1 leading-relaxed text-slate-300">{selectedCampaign.benefits}</p>
             </div>
+            {selectedCampaign.sponsorships && selectedCampaign.sponsorships.length > 0 && (
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Hạng mục tài trợ cam kết</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedCampaign.sponsorships.map((s, idx) => (
+                    <span key={idx} className="inline-block rounded bg-amber-400/10 border border-amber-400/30 px-2 py-1 text-[9px] font-bold text-amber-300 uppercase tracking-wider">
+                      🎁 {s.category}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-xs leading-relaxed text-slate-500">
-              ATS MVP dùng stage cơ bản: Mới, Shortlist, Phỏng vấn, Đã chọn, Đã xác nhận. Chat, email/SMS automation và payment để phase sau.
+              Hệ thống ATS đã được đồng bộ chuẩn theo BRD: Chờ duyệt (New), Đã duyệt (Approved), Đang diễn (Executing), Nghiệm thu (Completed), và Thành công (Paid & MLM).
             </div>
           </div>
         </aside>
@@ -212,57 +288,480 @@ export default function CampaignDetailPage() {
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{selectedCampaign.applicants.length} ứng viên</span>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-5">
-            {(Object.keys(stageLabels) as CampaignStage[]).map((stage) => {
-              const items = selectedCampaign.applicants.filter((item) => item.stage === stage);
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {selectedCampaign.applicants.map((item) => {
+              const talent = talents.find((candidate) => candidate.id === item.talentId);
+              if (!talent) return null;
+              const requestKey = `${selectedCampaign.id}-${talent.id}`;
+              const stage = item.stage;
               return (
-                <div key={stage} className="min-h-52 rounded-2xl border border-white/5 bg-slate-950/25 p-3">
-                  <div className="mb-3 flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stageLabels[stage]}</span>
-                    <span className="rounded bg-white/5 px-1.5 py-0.5 text-[9px] font-bold text-white">{items.length}</span>
+                <article 
+                  key={item.talentId} 
+                  className="rounded-2xl border border-white/5 bg-slate-900/30 p-5 hover:border-amber-400/30 transition-all duration-300 flex flex-col justify-between space-y-5"
+                >
+                  {/* Top info and note */}
+                  <div className="flex gap-4 items-start text-left">
+                    <img src={talent.avatar} alt={talent.name} className="h-16 w-16 rounded-xl object-cover border border-white/5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-sm font-black text-white truncate">{talent.name}</h3>
+                        <span className="font-display font-extrabold text-[9px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded shrink-0">
+                          {talent.matchScore}% Match
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{talent.type} · {talent.city}</p>
+                      <p className="text-[10.5px] text-slate-500 leading-relaxed mt-2.5 italic font-medium">
+                        "{item.note || "Tôi rất quan tâm và mong muốn thực hiện chiến dịch này."}"
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    {items.map((item) => {
-                      const talent = talents.find((candidate) => candidate.id === item.talentId);
-                      if (!talent) return null;
-                      const requestKey = `${selectedCampaign.id}-${talent.id}`;
-                      return (
-                        <article key={item.talentId} className="rounded-xl border border-white/5 bg-slate-900/40 p-3">
-                          <button onClick={() => router.push(`/brand/talents/${talent.id}`)} className="flex w-full items-center gap-2 text-left cursor-pointer">
-                            <img src={talent.avatar} alt={talent.name} className="h-9 w-9 rounded-lg object-cover" />
-                            <div className="min-w-0 flex-1">
-                              <h3 className="truncate text-[11px] font-black text-white">{talent.name}</h3>
-                              <p className="text-[9px] text-slate-500">{talent.type} · {talent.matchScore}% match</p>
-                            </div>
-                          </button>
-                          <p className="mt-2 line-clamp-2 text-[9px] leading-relaxed text-slate-500">{item.note}</p>
-                          <div className="mt-2 flex gap-1">
-                            {stage !== "confirmed" && (
-                              <button onClick={() => moveApplicant(selectedCampaign.id, talent.id, nextStage(stage))} className="flex-1 rounded-lg bg-white/5 px-2 py-1 text-[8px] font-black uppercase text-slate-300 hover:bg-white/10 cursor-pointer">
-                                Chuyển
-                              </button>
-                            )}
-                            <button
-                              onClick={() => sendContactRequest(selectedCampaign.id, talent.id)}
-                              disabled={sentRequests[requestKey]}
-                              className={cn(
-                                "flex-1 rounded-lg px-2 py-1 text-[8px] font-black uppercase cursor-pointer",
-                                sentRequests[requestKey] ? "bg-emerald-500/10 text-emerald-300" : "bg-amber-400 text-slate-950"
-                              )}
-                            >
-                              {sentRequests[requestKey] ? "Đã gửi" : "Liên hệ"}
-                            </button>
-                          </div>
-                        </article>
-                      );
-                    })}
+
+                  {/* Progress tracker */}
+                  <div className="space-y-2.5 bg-[#050711] border border-white/5 rounded-xl p-3.5 text-left">
+                    <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
+                      <span className="text-slate-500">Tiến độ thực hiện:</span>
+                      <span className={cn(
+                        "font-extrabold",
+                        stage === "confirmed" ? "text-emerald-400" : "text-amber-400"
+                      )}>
+                        {stageLabels[stage]}
+                      </span>
+                    </div>
+                    {/* Visual Progress Bar */}
+                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
+                      <div 
+                        className={cn(
+                          "h-full rounded-full transition-all duration-500", 
+                          stage === "confirmed" ? "bg-emerald-400" : "bg-amber-400"
+                        )} 
+                        style={{ width: getProgressPercent(stage) }} 
+                      />
+                    </div>
+                    
+                    {/* Micro stages list */}
+                    <div className="grid grid-cols-5 gap-1 pt-1.5 text-[8.5px] font-bold text-center">
+                      <span className={cn("transition-colors", isStagePassed(stage, "new") ? "text-amber-400" : "text-slate-600")}>Chờ duyệt</span>
+                      <span className={cn("transition-colors", isStagePassed(stage, "accepted") ? "text-amber-400" : "text-slate-600")}>Đã duyệt</span>
+                      <span className={cn("transition-colors", isStagePassed(stage, "executing") ? "text-amber-400" : "text-slate-600")}>Đang diễn</span>
+                      <span className={cn("transition-colors", isStagePassed(stage, "completed") ? "text-amber-400" : "text-slate-600")}>Nghiệm thu</span>
+                      <span className={cn("transition-colors", isStagePassed(stage, "confirmed") ? "text-emerald-400" : "text-slate-600")}>Thành công</span>
+                    </div>
                   </div>
-                </div>
+
+                  {/* Actions row */}
+                  <div className="flex flex-wrap gap-3 pt-3.5 border-t border-white/5 justify-between items-center">
+                    <div className="flex flex-wrap gap-2">
+                      {stage === "new" ? (
+                        <button 
+                          onClick={() => {
+                            setSelectedProfileTalent(talent);
+                            setCurrentApplicantItem(item);
+                          }}
+                          className="rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95"
+                        >
+                          Xem hồ sơ
+                        </button>
+                      ) : stage === "completed" ? (
+                        <button 
+                          onClick={() => setReviewApplicant({ talentId: talent.id, talentName: talent.name })}
+                          className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                        >
+                          Nghiệm thu
+                        </button>
+                      ) : stage === "confirmed" ? (
+                        <span className="flex items-center gap-1.5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider">
+                          <CheckCircle2 className="h-4 w-4" /> Đã giải ngân
+                        </span>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            setSelectedProfileTalent(talent);
+                            setCurrentApplicantItem(item);
+                          }}
+                          className="rounded-xl bg-white/5 border border-white/10 text-slate-355 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 active:scale-95"
+                        >
+                          Xem hồ sơ
+                        </button>
+                      )}
+
+                      <button 
+                        onClick={() => router.push("/brand/messages")}
+                        className="rounded-xl px-3 py-2 text-[10px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
+                      >
+                        Nhắn tin
+                      </button>
+                    </div>
+
+                    {/* Stage Display Text */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Trạng thái:</span>
+                      <span className="text-[10px] font-black text-amber-300 font-mono uppercase bg-amber-400/5 border border-amber-400/20 px-2 py-1 rounded">
+                        {stageLabels[stage]}
+                      </span>
+                    </div>
+                  </div>
+                </article>
               );
             })}
           </div>
         </main>
       </section>
+
+      {/* Payout Modal Dialog for MLM and F0 */}
+      {payoutDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-emerald-500/30 rounded-3xl shadow-[0_24px_60px_rgba(16,185,129,0.15)] overflow-hidden animate-in zoom-in-95 duration-300 text-left">
+            <div className="flex items-center gap-3 p-6 border-b border-[#151b2d] bg-emerald-500/5">
+              <CheckCircle2 className="h-6 w-6 text-emerald-400 shrink-0" />
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">Nghiệm Thu & Giải Ngân Thành Công</h3>
+                <p className="text-[10px] text-emerald-400/80 mt-0.5">Hợp đồng thông minh đã tự động phân bổ dòng tiền</p>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4 text-xs">
+              <div className="space-y-1 bg-[#050711] border border-white/5 rounded-xl p-3.5">
+                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Thông tin thanh toán F0</span>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-slate-300 font-medium">Thù lao Talent (F0):</span>
+                  <span className="font-extrabold text-white font-mono text-sm text-emerald-400">+{payoutDetails.budget}</span>
+                </div>
+                <p className="text-[9px] text-slate-500 mt-1 leading-relaxed">Đã cộng vào ví khả dụng của: <b>{payoutDetails.talentName}</b></p>
+              </div>
+              
+              <div className="space-y-3 bg-[#050711] border border-white/5 rounded-xl p-3.5">
+                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Phân bổ hoa hồng đa cấp (MLM Hierarchy)</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-slate-400">F1 Upline (10%): Nguyễn Mai Vy</span>
+                    <span className="font-bold text-amber-400 font-mono">+500.000đ</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-slate-400">F2 Upline (5%): Lê Minh Châu</span>
+                    <span className="font-bold text-amber-400 font-mono">+250.000đ</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-slate-400">F3 Upline (2%): Trần Đức Hoàng</span>
+                    <span className="font-bold text-amber-400 font-mono">+100.000đ</span>
+                  </div>
+                </div>
+                <div className="border-t border-[#151b2d] pt-2 text-[9px] text-slate-500 italic">
+                  * Áp dụng quy tắc cắt ngọn (Capping) ở tầng F3 theo cấu hình động hệ thống.
+                </div>
+              </div>
+              
+              <div className="flex gap-2 items-start text-[9.5px] text-slate-400 bg-amber-400/5 border border-amber-400/10 rounded-xl p-3">
+                <span>🛡️</span>
+                <p className="leading-normal">
+                  <b>Lịch sử giao dịch (Audit Logs)</b> đã được ghi nhận: <i>"Hoa hồng từ user {payoutDetails.talentName} làm job {payoutDetails.campaignTitle}"</i>.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end p-6 border-t border-[#151b2d] bg-[#050711]">
+              <button 
+                onClick={() => setPayoutDetails(null)} 
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all"
+              >
+                Hoàn tất
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Detail Modal */}
+      {selectedProfileTalent && currentApplicantItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
+            
+            <div className="flex items-center justify-between p-6 border-b border-[#151b2d] bg-slate-950/45">
+              <div className="flex items-center gap-3">
+                <img src={selectedProfileTalent.avatar} alt={selectedProfileTalent.name} className="h-12 w-12 rounded-xl object-cover border border-white/5" />
+                <div className="text-left">
+                  <h3 className="text-sm font-black text-white">{selectedProfileTalent.name}</h3>
+                  <p className="text-[10px] text-slate-400">{selectedProfileTalent.type} · {selectedProfileTalent.city}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 text-left scrollbar-thin">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-[#050711] border border-white/5 rounded-xl p-3 text-center">
+                  <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Hạng Profile</span>
+                  <span className="block text-xs font-black text-amber-400 mt-1">Tier {selectedProfileTalent.tier}</span>
+                </div>
+                <div className="bg-[#050711] border border-white/5 rounded-xl p-3 text-center">
+                  <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Đánh Giá</span>
+                  <span className="block text-xs font-black text-white mt-1">{selectedProfileTalent.rating} ★</span>
+                </div>
+                <div className="bg-[#050711] border border-white/5 rounded-xl p-3 text-center">
+                  <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Hoàn Thành</span>
+                  <span className="block text-xs font-black text-white mt-1">{selectedProfileTalent.completedJobs} Jobs</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Chỉ số hình thể</h4>
+                <div className="grid grid-cols-5 gap-2 bg-[#050711] border border-white/5 rounded-xl p-3 text-center text-[10px]">
+                  <div>
+                    <span className="block text-slate-500">Chiều cao</span>
+                    <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.height} cm</span>
+                  </div>
+                  <div>
+                    <span className="block text-slate-500">Cân nặng</span>
+                    <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.weight} kg</span>
+                  </div>
+                  <div>
+                    <span className="block text-slate-500">Vòng 1</span>
+                    <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.bust} cm</span>
+                  </div>
+                  <div>
+                    <span className="block text-slate-500">Vòng 2</span>
+                    <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.waist} cm</span>
+                  </div>
+                  <div>
+                    <span className="block text-slate-500">Vòng 3</span>
+                    <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.hips} cm</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kỹ năng nổi bật</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedProfileTalent.skills?.map((s: string, idx: number) => (
+                      <span key={idx} className="rounded bg-white/5 border border-white/5 px-2 py-0.5 text-[9.5px] text-slate-300">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Học vấn & Ngôn ngữ</span>
+                  <p className="text-xs text-slate-300 leading-relaxed font-medium">{selectedProfileTalent.education}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Ngôn ngữ: {selectedProfileTalent.languages?.join(", ") || "Tiếng Việt, Tiếng Anh"}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bảng Giá Dịch Vụ Cơ Bản (Basic)</h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {Object.entries(selectedProfileTalent.rateCard || {}).map(([key, value]: any) => (
+                    <div key={key} className="flex justify-between p-2.5 bg-[#050711]/40 border border-white/5 rounded-lg items-center">
+                      <span className="text-slate-400">{key}</span>
+                      <span className="font-bold text-amber-400 font-mono">từ {value.toLocaleString()}đ</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {selectedProfileTalent.lifestyleServices && selectedProfileTalent.lifestyleServices.some((s: any) => s.enabled) && (
+                <div className="space-y-2">
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dịch Vụ Đồng Hành VIP</h4>
+                  <div className="space-y-2">
+                    {selectedProfileTalent.lifestyleServices.filter((s: any) => s.enabled).map((service: any) => (
+                      <div key={service.id} className="flex justify-between items-start p-3 bg-[#050711] border border-white/5 rounded-xl">
+                        <div>
+                          <span className="text-xs font-bold text-white block">⛳ {service.title}</span>
+                          <span className="text-[9.5px] text-slate-500 leading-normal block mt-1">{service.description}</span>
+                        </div>
+                        <span className="text-[10px] font-black text-amber-400 font-mono bg-amber-400/10 px-2 py-0.5 rounded shrink-0">
+                          {service.rate.toLocaleString()}đ/{service.unit}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Lookbook Photos Section */}
+              <div className="space-y-3 border-t border-[#151b2d] pt-4">
+                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  📸 Bộ Ảnh Lookbook Nghệ Thuật (4 Ảnh)
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
+                    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600",
+                    "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
+                    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600"
+                  ].map((url, idx) => (
+                    <div key={idx} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
+                      <img src={url} alt={`Lookbook ${idx + 1}`} className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
+                      <div className="absolute bottom-2 left-2">
+                        <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                          Ảnh {idx + 1}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Videos Section */}
+              <div className="space-y-3 border-t border-[#151b2d] pt-4">
+                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  🎥 Video Giới Thiệu & Demo Thực Tế (3 Videos)
+                </span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 flex flex-col justify-end">
+                    <video
+                      src="https://assets.mixkit.co/videos/preview/mixkit-beautiful-woman-smiling-at-the-camera-40898-large.mp4"
+                      className="absolute inset-0 h-full w-full object-cover"
+                      playsInline
+                      loop
+                      muted
+                      autoPlay
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10">
+                      <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                        INTRO VIDEO
+                      </span>
+                      <h4 className="text-[10px] font-black text-white">Video Giới Thiệu</h4>
+                    </div>
+                  </div>
+
+                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 flex flex-col justify-end">
+                    <video
+                      src="https://assets.mixkit.co/videos/preview/mixkit-fashion-model-walking-on-a-runway-show-39871-large.mp4"
+                      className="absolute inset-0 h-full w-full object-cover"
+                      playsInline
+                      loop
+                      muted
+                      autoPlay
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10">
+                      <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                        CATWALK POLAROID
+                      </span>
+                      <h4 className="text-[10px] font-black text-white">Catwalk Video</h4>
+                    </div>
+                  </div>
+
+                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 flex flex-col justify-end">
+                    <video
+                      src="https://assets.mixkit.co/videos/preview/mixkit-young-woman-talking-to-camera-in-interview-42358-large.mp4"
+                      className="absolute inset-0 h-full w-full object-cover"
+                      playsInline
+                      loop
+                      muted
+                      autoPlay
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10">
+                      <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                        DEMO MC / LIVE
+                      </span>
+                      <h4 className="text-[10px] font-black text-white">MC / Livestream Demo</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="flex items-center justify-between p-6 border-t border-[#151b2d] bg-slate-950/45">
+              <button 
+                onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}
+                className="px-5 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:text-white cursor-pointer"
+              >
+                Đóng
+              </button>
+
+              {currentApplicantItem.stage === "new" && (
+                <button 
+                  onClick={() => {
+                    moveApplicant(selectedCampaign.id, selectedProfileTalent.id, "accepted");
+                    setSelectedProfileTalent(null);
+                    setCurrentApplicantItem(null);
+                  }}
+                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all"
+                >
+                  Duyệt
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Checklist Photos Modal */}
+      {reviewApplicant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300 text-left">
+            <div className="flex items-center justify-between p-6 border-b border-[#151b2d] bg-slate-950/45">
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">Nghiệm Thu Kết Quả Job</h3>
+                <p className="text-[10px] text-slate-500 mt-1">Đối soát hình ảnh và lịch trình thực tế của {reviewApplicant.talentName}</p>
+              </div>
+              <button onClick={() => setReviewApplicant(null)} className="text-slate-400 hover:text-white cursor-pointer"><X className="h-4.5 w-4.5" /></button>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs">
+              <div className="bg-[#050711] border border-white/5 rounded-xl p-3.5 space-y-2">
+                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Đối soát hành trình GPS</span>
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-slate-400">Địa điểm check-in:</span>
+                  <span className="text-white font-semibold">📍 Studio Cầu Giấy, Hà Nội</span>
+                </div>
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-slate-400">Thời gian làm việc:</span>
+                  <span className="text-white font-mono font-semibold">08/06/2026 (08:00 - 12:00)</span>
+                </div>
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-slate-400">Hợp đồng thông minh:</span>
+                  <span className="text-emerald-400 font-semibold">✍️ Đã ký số NDA & Lịch trình</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Hình ảnh check-in thực tế</span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-950 border border-white/5">
+                    <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=400&q=80" alt="Check-in 1" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-1 left-1 bg-black/75 px-1 rounded text-[7px] text-white">Check-in bắt đầu</span>
+                  </div>
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-950 border border-white/5">
+                    <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=400&q=80" alt="Check-out 1" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-1 left-1 bg-black/75 px-1 rounded text-[7px] text-white">Báo cáo hoàn thành</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 items-start text-[9.5px] text-slate-400 bg-amber-400/5 border border-amber-400/10 rounded-xl p-3">
+                <span>🔔</span>
+                <p className="leading-normal">
+                  Bấm <b>"Xác nhận nghiệm thu"</b> để kết thúc công việc của ứng viên này, tự động giải ngân cát-xê ký quỹ và thực hiện cascade hoa hồng đa cấp.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
+              <button onClick={() => setReviewApplicant(null)} className="px-4 py-2 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Hủy</button>
+              <button 
+                onClick={() => {
+                  moveApplicant(selectedCampaign.id, reviewApplicant.talentId, "confirmed");
+                  setReviewApplicant(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all"
+              >
+                Xác nhận nghiệm thu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

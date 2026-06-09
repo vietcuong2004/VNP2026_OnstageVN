@@ -371,7 +371,7 @@ export default function PersonalInfoTab({
         {/* Rate Card Table */}
         <div className="rounded-2xl border border-amber-500/10 bg-[#08090f] p-6 space-y-4">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-            <DollarSign className="h-4.5 w-4.5 text-amber-400" /> Bảng Giá Dịch Vụ (Rate Card)
+            <DollarSign className="h-4.5 w-4.5 text-amber-400" /> Dịch Vụ Cơ Bản (Basic)
           </h3>
           <div className="space-y-3">
             {Object.entries(profile.rateCard || {}).map(([key, value]: any) => (
@@ -382,6 +382,67 @@ export default function PersonalInfoTab({
             ))}
           </div>
         </div>
+
+        {/* Lifestyle Co-Space Companion Services Card */}
+        {profile.lifestyleServices && profile.lifestyleServices.some((s: any) => s.enabled) && (
+          <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
+            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
+              <Sparkles className="h-4.5 w-4.5 text-amber-400" /> Dịch Vụ Đồng Hành (VIP)
+            </h3>
+            <div className="space-y-3.5 text-left">
+              {profile.lifestyleServices.filter((s: any) => s.enabled).map((service: any) => {
+                let icon = "💼";
+                if (service.id === "golf") icon = "⛳";
+                else if (service.id === "pickleball") icon = "🎾";
+                else if (service.id === "dining") icon = "🍷";
+                else if (service.id === "cafe") icon = "☕";
+                else if (service.id === "travel") icon = "💼";
+                else if (service.id === "redcarpet") icon = "✨";
+                else if (service.id === "shopping") icon = "🛍️";
+                else if (service.id === "art") icon = "🎨";
+                else if (service.id === "escort") icon = "🛥️";
+                else if (service.id === "content") icon = "📱";
+
+                return (
+                  <div key={service.id} className="rounded-xl border border-white/5 bg-slate-950/40 p-3.5 space-y-2 hover:border-amber-400/30 transition-all text-left">
+                    <div className="flex justify-between items-start flex-wrap gap-1">
+                      <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                        <span>{icon}</span> {service.title}
+                      </span>
+                      <span className="font-black text-[10px] text-amber-400 font-mono bg-amber-400/10 px-2 py-0.5 rounded">
+                        {(service.rate || 0).toLocaleString()}đ/{service.unit}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 leading-relaxed font-medium">{service.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Safety Guarantees Area */}
+            <div className="border-t border-[#151b2d] pt-4 space-y-3">
+              <span className="block text-[8px] text-slate-500 font-black uppercase tracking-wider text-left">🔒 Cam Kết Bảo Mật & An Toàn Giao Dịch</span>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-lg bg-slate-950/80 p-2 text-center border border-white/2">
+                  <span className="block text-[14px] mb-1">✍️</span>
+                  <span className="block text-[8px] font-black text-slate-300 uppercase tracking-wide">Smart Contract</span>
+                  <span className="block text-[6.5px] text-slate-500 mt-0.5 font-medium leading-none">Ký số lịch trình</span>
+                </div>
+                <div className="rounded-lg bg-slate-950/80 p-2 text-center border border-white/2">
+                  <span className="block text-[14px] mb-1">📍</span>
+                  <span className="block text-[8px] font-black text-slate-300 uppercase tracking-wide">Real-time GPS</span>
+                  <span className="block text-[6.5px] text-slate-500 mt-0.5 font-medium leading-none">Check-in điểm hẹn</span>
+                </div>
+                <div className="rounded-lg bg-slate-950/80 p-2 text-center border border-white/2">
+                  <span className="block text-[14px] mb-1">💰</span>
+                  <span className="block text-[8px] font-black text-slate-300 uppercase tracking-wide">Escrow Payment</span>
+                  <span className="block text-[6.5px] text-slate-500 mt-0.5 font-medium leading-none">Đặt cọc hệ thống</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
 

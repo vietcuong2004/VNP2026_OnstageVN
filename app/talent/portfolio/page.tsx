@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
 import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
+import { findTalentById } from "@/lib/brand-mvp-data";
 
 export default function PortfolioPage() {
   const router = useRouter();
@@ -107,7 +108,8 @@ export default function PortfolioPage() {
       ],
       hasUploadedCatwalk: true,
       hasUploadedIntro: true,
-      hasUploadedMC: true
+      hasUploadedMC: true,
+      lifestyleServices: findTalentById("tal-1")?.lifestyleServices || []
     };
 
     if (stored) {
@@ -126,6 +128,9 @@ export default function PortfolioPage() {
           if (parsed.hasUploadedCatwalk === undefined) parsed.hasUploadedCatwalk = true;
           if (parsed.hasUploadedIntro === undefined) parsed.hasUploadedIntro = true;
           if (parsed.hasUploadedMC === undefined) parsed.hasUploadedMC = true;
+          if (!parsed.lifestyleServices || parsed.lifestyleServices.length === 0) {
+            parsed.lifestyleServices = findTalentById("tal-1")?.lifestyleServices || [];
+          }
         }
         localStorage.setItem("vnp_talent_profile", JSON.stringify(parsed));
         setProfile(parsed);
@@ -598,6 +603,11 @@ export default function PortfolioPage() {
                     <option value="Livestream 2h">Livestream 2h</option>
                     <option value="Event Appearance">Event Appearance</option>
                     <option value="Catwalk Show">Catwalk Show</option>
+                    <option value="Sport Companion (Golf)">⛳ Sport Companion (Golf)</option>
+                    <option value="Sport Companion (Pickleball)">🎾 Sport Companion (Pickleball)</option>
+                    <option value="Business Dining (Fine Dining)">🍷 Business Dining (Fine Dining)</option>
+                    <option value="VIP Cafe & Networking">☕ VIP Cafe & Networking</option>
+                    <option value="Business Travel Companion">💼 Business Travel Companion</option>
                   </select>
                 </div>
 
@@ -632,6 +642,34 @@ export default function PortfolioPage() {
                   onChange={(e) => setBookingForm(prev => ({ ...prev, note: e.target.value }))}
                   className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors resize-none"
                 />
+              </div>
+
+              {/* Safety Guarantees details */}
+              <div className="border-t border-[#151b2d] pt-3.5 space-y-2">
+                <span className="block text-[8px] font-black text-slate-500 uppercase tracking-widest text-left">🔒 CAM KẾT AN TOÀN HỆ THỐNG</span>
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 space-y-2.5 text-left">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-[14px] leading-none">✍️</span>
+                    <div>
+                      <span className="block text-[9.5px] font-bold text-white leading-none">Smart Contract (Hợp đồng thông minh)</span>
+                      <span className="block text-[8.5px] text-slate-400 mt-1 leading-normal">Tự động kích hoạt chữ ký số cam kết lịch trình và chi phí phạt chậm trễ.</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5 border-t border-[#151b2d]/50 pt-2.5">
+                    <span className="text-[14px] leading-none">📍</span>
+                    <div>
+                      <span className="block text-[9.5px] font-bold text-white leading-none">Real-time GPS Check-in (Giám sát định vị)</span>
+                      <span className="block text-[8.5px] text-slate-400 mt-1 leading-normal">Xác thực vị trí điểm đến của Talent ngay khi bắt đầu công việc.</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5 border-t border-[#151b2d]/50 pt-2.5">
+                    <span className="text-[14px] leading-none">💰</span>
+                    <div>
+                      <span className="block text-[9.5px] font-bold text-white leading-none">Escrow Wallet (Thanh toán ký quỹ bảo mật)</span>
+                      <span className="block text-[8.5px] text-slate-400 mt-1 leading-normal">Ký quỹ 100% chi phí thù lao tại hệ thống, tự động giải ngân khi hoàn thành.</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="pt-2 flex gap-2">

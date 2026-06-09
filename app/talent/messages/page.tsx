@@ -92,10 +92,10 @@ export default function MessagesPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 h-[calc(100vh-180px)] md:h-auto flex flex-col">
       
       {/* Page Header */}
-      <div className="flex items-center gap-4">
+      <div className={cn("flex items-center gap-4", showMobileChat && "hidden md:flex")}>
         <button 
           onClick={() => router.push("/talent/dashboard")} 
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#151b2d] bg-[#08090f] text-slate-400 hover:text-white transition-all cursor-pointer"
@@ -109,7 +109,7 @@ export default function MessagesPage() {
       </div>
 
       {/* Main chat window - styled like dashboard.htm */}
-      <div className="flex h-[72vh] flex-col rounded-3xl border border-[#151b2d] bg-[#08090f] overflow-hidden shadow-2xl relative">
+      <div className="flex flex-1 md:h-[72vh] flex-col rounded-3xl border border-[#151b2d] bg-[#08090f] overflow-hidden shadow-2xl relative">
         <div className="grid grid-cols-1 md:grid-cols-3 h-full md:divide-x divide-[#151b2d]">
           
           {/* Conversations Column */}

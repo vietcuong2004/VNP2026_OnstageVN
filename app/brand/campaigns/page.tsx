@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Briefcase,
@@ -8,7 +8,7 @@ import {
   Plus,
   X,
 } from "lucide-react";
-import { campaigns as initialCampaigns, type Campaign } from "@/lib/brand-mvp-data";
+import { campaigns as initialCampaigns, type Campaign, SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 
 type CampaignStatusTab = "all" | Campaign["status"];
@@ -26,6 +26,8 @@ const emptyForm = {
   benefits: "",
   requirements: "",
   description: "",
+  selectedSponsorships: [] as string[],
+  escrowed: false,
 };
 
 function statusLabel(status: Campaign["status"]) {
@@ -36,17 +38,18 @@ function statusLabel(status: Campaign["status"]) {
 
 export default function CampaignsPage() {
   const router = useRouter();
-  const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
+  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const stored = window.localStorage.getItem("onstagevn_campaigns");
       if (stored) {
         try {
-          return JSON.parse(stored);
+          setCampaigns(JSON.parse(stored));
         } catch (e) { }
       }
     }
-    return initialCampaigns;
-  });
+  }, []);
   const [activeTab, setActiveTab] = useState<CampaignStatusTab>("all");
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -72,13 +75,21 @@ export default function CampaignsPage() {
       budget: form.budget,
       budgetValue: 40000000,
       benefits: form.benefits || "Thỏa thuận theo brief",
-      status: "draft",
+      status: "published",
       shortlistedTalentIds: [],
       applicants: [],
       contactRequests: 0,
       views: 0,
       description: form.description || "Chưa có mô tả brief.",
       requirements: form.requirements || "Chưa có yêu cầu chi tiết.",
+      sponsorships: (form.selectedSponsorships || []).map(id => {
+        const cat = SPONSORSHIP_CATEGORIES.find(c => c.id === id);
+        return {
+          category: cat?.label || id,
+          details: `Cam kết cung cấp tài trợ gói dịch vụ/hiện vật ${cat?.label.toLowerCase() || id} cho Talent.`
+        };
+      }),
+      escrowed: form.escrowed,
     };
 
     const nextCampaigns = [newCampaign, ...campaigns];
@@ -119,7 +130,6 @@ export default function CampaignsPage() {
       <section className="flex flex-wrap gap-2 border-b border-white/5 pb-3">
         {[
           { id: "all", label: "Tất cả" },
-          { id: "draft", label: "Nháp" },
           { id: "published", label: "Đang mở" },
           { id: "closed", label: "Đã đóng" },
         ].map((tab) => (
@@ -133,8 +143,15 @@ export default function CampaignsPage() {
         {filteredCampaigns.map((campaign) => (
           <article key={campaign.id} className="flex flex-col justify-between rounded-2xl border border-white/5 bg-slate-950/25 p-5 transition hover:border-white/10">
             <div>
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-400">{campaign.jobType}</span>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-400">{campaign.jobType}</span>
+                  {campaign.escrowed && (
+                    <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[9px] text-emerald-400 font-extrabold border border-emerald-500/20 uppercase tracking-wider">
+                      🛡️ Đã Ký Quỹ
+                    </span>
+                  )}
+                </div>
                 <span className={cn("rounded px-2 py-0.5 text-[9px] font-black uppercase", campaign.status === "published" ? "bg-emerald-500/10 text-emerald-300" : campaign.status === "closed" ? "bg-slate-500/10 text-slate-400" : "bg-amber-500/10 text-amber-300")}>
                   {statusLabel(campaign.status)}
                 </span>
@@ -202,6 +219,53 @@ export default function CampaignsPage() {
               <FormInput label="Ngày kết thúc" type="date" value={form.endDate} onChange={(value) => setForm((current) => ({ ...current, endDate: value }))} />
               <FormInput label="Deadline ứng tuyển" type="date" value={form.deadline} onChange={(value) => setForm((current) => ({ ...current, deadline: value }))} />
               <FormInput label="Phúc lợi" value={form.benefits} onChange={(value) => setForm((current) => ({ ...current, benefits: value }))} />
+
+              <label className="flex cursor-pointer items-center justify-between rounded-xl border border-white/5 bg-slate-900/30 p-2.5 md:col-span-2 hover:bg-slate-900/50 transition-colors">
+                <div className="flex flex-col gap-0.5 text-left">
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                    🛡️ Ký quỹ chiến dịch (Escrow Payment)
+                  </span>
+                  <span className="text-[9.5px] text-slate-500 font-medium leading-normal">
+                    Tạm giữ chi phí thù lao trên hệ thống để bảo chứng thanh toán tự động khi nghiệm thu (Khuyên dùng).
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={form.escrowed}
+                  onChange={(e) => setForm(current => ({ ...current, escrowed: e.target.checked }))}
+                  className="rounded accent-amber-400 h-4 w-4 shrink-0 cursor-pointer"
+                />
+              </label>
+
+              {/* Sponsorship categories checklist */}
+              <div className="space-y-2 md:col-span-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Các Hạng Mục Tài Trợ Cho Ứng Viên (Sponsorships)</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border border-white/5 bg-slate-900/30 rounded-xl p-3 custom-scrollbar">
+                  {SPONSORSHIP_CATEGORIES.map((cat) => {
+                    const isChecked = form.selectedSponsorships?.includes(cat.id);
+                    return (
+                      <label key={cat.id} className="flex items-center gap-2 text-[11px] text-slate-300 hover:text-white cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            setForm(current => {
+                              const prev = current.selectedSponsorships || [];
+                              const next = prev.includes(cat.id)
+                                ? prev.filter(id => id !== cat.id)
+                                : [...prev, cat.id];
+                              return { ...current, selectedSponsorships: next };
+                            });
+                          }}
+                          className="rounded accent-amber-400 cursor-pointer h-3.5 w-3.5 shrink-0"
+                        />
+                        <span>{cat.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
               <label className="space-y-1 md:col-span-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu *</span>
                 <textarea value={form.requirements} onChange={(event) => setForm((current) => ({ ...current, requirements: event.target.value }))} required rows={3} className="w-full resize-none rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60" />
@@ -216,7 +280,7 @@ export default function CampaignsPage() {
               <button type="button" onClick={() => setIsCreating(false)} className="h-10 rounded-xl border border-white/10 px-4 text-xs font-black text-white hover:bg-white/5 cursor-pointer">Hủy</button>
               <button type="submit" className="flex h-10 items-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-5 text-xs font-black text-slate-950 cursor-pointer">
                 <Briefcase className="mr-2 h-4 w-4" />
-                Lưu nháp
+                Tạo Job
               </button>
             </div>
           </form>
