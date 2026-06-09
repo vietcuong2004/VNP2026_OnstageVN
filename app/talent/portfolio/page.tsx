@@ -281,7 +281,7 @@ export default function PortfolioPage() {
                 alt={profile.name}
                 className="h-full w-full rounded-full object-cover"
               />
-              
+
               {/* Avatar Hover Overlay upload trigger */}
               <div className="absolute inset-0.5 rounded-full bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 cursor-pointer">
                 <label className="flex flex-col items-center justify-center h-full w-full cursor-pointer text-white text-[9px] font-bold text-center p-1">
@@ -505,7 +505,7 @@ export default function PortfolioPage() {
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-400 rounded-full" />
           )}
         </button>
-        <button
+        {/* <button
           onClick={() => setActiveTab("portrait-3d")}
           className={cn(
             "pb-4 text-xs font-black uppercase tracking-wider transition-all relative cursor-pointer flex items-center gap-1.5 shrink-0",
@@ -517,7 +517,7 @@ export default function PortfolioPage() {
           {activeTab === "portrait-3d" && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400 rounded-full" />
           )}
-        </button>
+        </button> */}
       </div>
 
       {/* Main Content Area based on Tab */}

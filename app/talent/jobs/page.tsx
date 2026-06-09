@@ -8,9 +8,20 @@ import {
 import { cn } from "@/lib/utils";
 import { Campaign, SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
 
+type StageFilter = "all" | "pending" | "accepted" | "executing" | "completed" | "confirmed";
+
+const stageFilterLabels: Record<StageFilter, string> = {
+  all: "Tất cả",
+  pending: "Chờ duyệt",
+  accepted: "Đã duyệt",
+  executing: "Đang tham gia",
+  completed: "Nghiệm thu",
+  confirmed: "Thành công",
+};
+
 export default function JobsPage() {
-  const [selectedTag, setSelectedTag] = useState("Tất cả");
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState("all");
+  const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>("all");
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "info" }[]>([]);
@@ -469,14 +480,7 @@ export default function JobsPage() {
   };
 
   const filteredCampaigns = displayJobs.filter((camp) => {
-    // 1. Tag filter
-    const matchesTag = selectedTag === "Tất cả"
-      ? true
-      : selectedTag === "Đã ứng tuyển"
-      ? appliedJobs.includes(camp.id)
-      : !appliedJobs.includes(camp.id);
-
-    // 2. Sponsorship filter
+    // 1. Sponsorship filter
     let matchesSponsorship = true;
     if (selectedSponsorshipFilter === "any") {
       matchesSponsorship = camp.sponsorships && camp.sponsorships.length > 0;
@@ -488,10 +492,37 @@ export default function JobsPage() {
       );
     }
 
-    return matchesTag && matchesSponsorship;
+    // 2. Stage filter — based on tal-1’s applicant stage in this campaign
+    let matchesStage = true;
+    if (selectedStageFilter !== "all") {
+      const appItem = camp.applicants?.find((a: any) => a.talentId === "tal-1");
+      const stage: string = appItem?.stage || "";
+      if (selectedStageFilter === "pending") {
+        matchesStage = stage === "new";
+      } else {
+        matchesStage = stage === selectedStageFilter;
+      }
+    }
+
+    return matchesSponsorship && matchesStage;
   });
 
-  const tags = ["Tất cả", "Đã ứng tuyển", "Đang tuyển"];
+  const stageFilterOptions: StageFilter[] = ["all", "pending", "accepted", "executing", "completed", "confirmed"];
+
+  // Count jobs per stage for displaying badge counts
+  const stageCounts = stageFilterOptions.reduce((acc, sf) => {
+    if (sf === "all") {
+      acc[sf] = displayJobs.length;
+    } else {
+      acc[sf] = displayJobs.filter((camp) => {
+        const appItem = camp.applicants?.find((a: any) => a.talentId === "tal-1");
+        const stage: string = appItem?.stage || "";
+        if (sf === "pending") return stage === "new";
+        return stage === sf;
+      }).length;
+    }
+    return acc;
+  }, {} as Record<StageFilter, number>);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -502,22 +533,33 @@ export default function JobsPage() {
         <p className="text-xs text-slate-400 mt-2 font-medium">Khám phá và ứng tuyển các job sắc đẹp phù hợp nhất với bản thân.</p>
       </div>
 
-      {/* Filter Tabs - Styled to match Admin button filters */}
+      {/* Filter Tabs - same amber style as brand campaigns page */}
       <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none">
-        {tags.map((tag) => (
-          <button
-            key={tag}
-            onClick={() => setSelectedTag(tag)}
-            className={cn(
-              "rounded-xl px-4.5 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer border",
-              selectedTag === tag
-                ? "bg-[#f4c430] border-amber-400/30 text-slate-950 shadow-[0_4px_12px_rgba(244,196,48,0.2)]"
-                : "bg-[#08090f] border-[#151b2d] text-slate-400 hover:text-white hover:bg-white/2"
-            )}
-          >
-            {tag}
-          </button>
-        ))}
+        {stageFilterOptions.map((sf) => {
+          const count = stageCounts[sf];
+          return (
+            <button
+              key={sf}
+              onClick={() => setSelectedStageFilter(sf)}
+              className={cn(
+                "rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer border flex items-center gap-1.5",
+                selectedStageFilter === sf
+                  ? "bg-[#f4c430] border-amber-400/30 text-slate-950 shadow-[0_4px_12px_rgba(244,196,48,0.2)]"
+                  : "bg-[#08090f] border-[#151b2d] text-slate-400 hover:text-white hover:bg-white/2"
+              )}
+            >
+              {stageFilterLabels[sf]}
+              {count > 0 && (
+                <span className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[9px] font-black min-w-[18px] text-center",
+                  selectedStageFilter === sf ? "bg-black/20" : "bg-white/5 text-slate-500"
+                )}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Sponsorship Filter */}

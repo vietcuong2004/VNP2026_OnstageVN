@@ -52,7 +52,7 @@ export type TalentProfile = {
   lifestyleServices?: LifestyleService[];
 };
 
-export type CampaignStage = "new" | "shortlisted" | "interview" | "accepted" | "executing" | "completed" | "confirmed";
+export type CampaignStage = "new" | "accepted" | "executing" | "completed" | "confirmed";
 
 export type CampaignTalent = {
   talentId: string;

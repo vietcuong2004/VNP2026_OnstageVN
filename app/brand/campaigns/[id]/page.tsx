@@ -19,8 +19,6 @@ import { cn } from "@/lib/utils";
 
 const stageLabels: Record<CampaignStage, string> = {
   new: "Chờ duyệt",
-  shortlisted: "Chờ duyệt",
-  interview: "Chờ duyệt",
   accepted: "Đã duyệt",
   executing: "Đang tham gia",
   completed: "Nghiệm thu",
@@ -41,14 +39,14 @@ function statusLabel(status: Campaign["status"]) {
 }
 
 function nextStage(stage: CampaignStage): CampaignStage {
-  if (stage === "new" || stage === "shortlisted" || stage === "interview") return "accepted";
+  if (stage === "new") return "accepted";
   if (stage === "accepted") return "executing";
   if (stage === "executing") return "completed";
   return "confirmed";
 }
 
 function stageActionLabel(stage: CampaignStage): string {
-  if (stage === "new" || stage === "shortlisted" || stage === "interview") return "Duyệt ứng viên";
+  if (stage === "new") return "Duyệt ứng viên";
   if (stage === "accepted") return "Bắt đầu tham gia (Check-in)";
   if (stage === "executing") return "Báo cáo hoàn thành";
   if (stage === "completed") return "Nghiệm thu & Giải ngân";
@@ -56,7 +54,7 @@ function stageActionLabel(stage: CampaignStage): string {
 }
 
 function getProgressPercent(stage: CampaignStage): string {
-  if (stage === "new" || stage === "shortlisted" || stage === "interview") return "20%";
+  if (stage === "new") return "20%";
   if (stage === "accepted") return "40%";
   if (stage === "executing") return "60%";
   if (stage === "completed") return "80%";
@@ -66,8 +64,6 @@ function getProgressPercent(stage: CampaignStage): string {
 function isStagePassed(current: CampaignStage, target: "new" | "accepted" | "executing" | "completed" | "confirmed"): boolean {
   const order = {
     new: 1,
-    shortlisted: 1,
-    interview: 1,
     accepted: 2,
     executing: 3,
     completed: 4,
@@ -328,7 +324,15 @@ export default function CampaignDetailPage() {
                     >
                       Xác nhận giải ngân
                     </button>
-                    <button onClick={() => updateCampaignStatus(selectedCampaign.id, "closed")} className="flex h-10 items-center rounded-xl border border-white/10 bg-white/[0.03] px-4 text-xs font-black text-white hover:bg-white/10 cursor-pointer">
+                    <button
+                      onClick={() => {
+                        const confirmed = window.confirm("Bạn có muốn đóng campaign không?");
+                        if (confirmed) {
+                          updateCampaignStatus(selectedCampaign.id, "closed");
+                        }
+                      }}
+                      className="flex h-10 items-center rounded-xl border border-red-500/20 bg-red-500/10 px-4 text-xs font-black text-red-400 hover:bg-red-500/20 hover:border-red-500/40 active:scale-95 transition-all cursor-pointer"
+                    >
                       Đóng campaign
                     </button>
                   </>
@@ -535,7 +539,7 @@ export default function CampaignDetailPage() {
                 {/* Actions row */}
                 <div className="flex flex-wrap gap-3 pt-3.5 border-t border-white/5 justify-between items-center">
                   <div className="flex flex-wrap gap-2">
-                    {["new", "shortlisted", "interview"].includes(stage) ? (
+                    {stage === "new" ? (
                       <button
                         onClick={() => {
                           setSelectedProfileTalent(talent);
@@ -849,7 +853,7 @@ export default function CampaignDetailPage() {
             </div>
 
             <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-slate-950/45">
-              {["new", "shortlisted", "interview"].includes(currentApplicantItem.stage) ? (
+              {currentApplicantItem.stage === "new" ? (
                 <>
                   <button
                     onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Home, User, Briefcase, Crown, MessageSquare, Calendar, Wallet, Settings,
   Sparkles, BookmarkCheck, LogOut, LayoutDashboard, ChevronRight, Trophy,
-  Search, BarChart3, Users, Bell
+  Search, BarChart3, Users, Bell, Users2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ const talentMenuItems = [
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   { label: "Danh sách cuộc thi", icon: Trophy, href: "/talent/contests" },
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
+  { label: "Roster của tôi", icon: Users2, href: "/talent/roster" },
   { label: "Quỹ vương miện", icon: Crown, href: "/talent/crown" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },
   { label: "Thu nhập", icon: Wallet, href: "/talent/wallet" },
@@ -26,6 +27,7 @@ const brandMenuItems = [
   { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
   { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Chiến dịch", icon: Briefcase, href: "/brand/campaigns" },
+  { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   { label: "Báo cáo & Phân tích", icon: BarChart3, href: "/brand/analytics" },
   { label: "Quản lý thanh toán", icon: Wallet, href: "/brand/billing" },

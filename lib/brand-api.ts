@@ -307,10 +307,10 @@ function parseBudgetRange(value: string) {
 }
 
 function mapTalentStage(status?: string | null): CampaignStage {
-  if (status === "shortlisted") return "shortlisted";
-  if (status === "interview") return "interview";
   if (status === "accepted" || status === "approved") return "accepted";
   if (status === "confirmed") return "confirmed";
+  if (status === "executing") return "executing";
+  if (status === "completed") return "completed";
   return "new";
 }
 
@@ -652,7 +652,7 @@ export async function addTalentToBrandCampaign(campaignId: string, profileId: st
       id: `local-${campaignId}-${profileId}`,
       campaign_id: campaignId,
       profile_id: profileId,
-      status: "shortlisted",
+      status: "new",
       notes,
     } as BackendCampaignTalent;
   }
@@ -661,7 +661,7 @@ export async function addTalentToBrandCampaign(campaignId: string, profileId: st
     method: "POST",
     body: JSON.stringify({
       profile_id: profileId,
-      status: "shortlisted",
+      status: "new",
       notes,
     }),
   });
