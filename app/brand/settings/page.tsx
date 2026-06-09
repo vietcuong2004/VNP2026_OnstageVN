@@ -1,31 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Building2, CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound } from "lucide-react";
 import { partnerProfile } from "@/lib/brand-mvp-data";
+import { loadBrandPartnerProfile, mapBackendPartnerProfile, saveBrandPartnerProfile } from "@/lib/brand-api";
+
+const fallbackProfile = mapBackendPartnerProfile({
+  organization_name: partnerProfile.organizationName,
+  organization_type: partnerProfile.organizationType,
+  industry: partnerProfile.industry,
+  website_url: "https://loreal.vn",
+  fanpage_url: "https://facebook.com/lorealparisvietnam",
+  contact_name: partnerProfile.contactName,
+  contact_phone: partnerProfile.contactPhone,
+  contact_email: partnerProfile.contactEmail,
+  city: partnerProfile.city,
+  description: "Nhãn hàng mỹ phẩm và chăm sóc sắc đẹp, thường xuyên tìm KOL, model, MC và PG cho campaign marketing.",
+  verification_status: partnerProfile.verificationStatus,
+});
 
 export default function BrandSettingsPage() {
-  const [profile, setProfile] = useState({
-    organizationName: partnerProfile.organizationName,
-    organizationType: partnerProfile.organizationType,
-    industry: partnerProfile.industry,
-    websiteUrl: "https://loreal.vn",
-    fanpageUrl: "https://facebook.com/lorealparisvietnam",
-    contactName: partnerProfile.contactName,
-    contactPhone: partnerProfile.contactPhone,
-    contactEmail: partnerProfile.contactEmail,
-    city: partnerProfile.city,
-    description: "Nhãn hàng mỹ phẩm và chăm sóc sắc đẹp, thường xuyên tìm KOL, model, MC và PG cho campaign marketing.",
-  });
+  const [profile, setProfile] = useState(fallbackProfile);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadBrandPartnerProfile(fallbackProfile).then(setProfile);
+  }, []);
 
   function updateField(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = event.target;
     setProfile((current) => ({ ...current, [name]: value }));
   }
 
-  function saveProfile(event: React.FormEvent) {
+  async function saveProfile(event: React.FormEvent) {
     event.preventDefault();
-    window.alert("Đã lưu hồ sơ.");
+    setSaving(true);
+    try {
+      const saved = await saveBrandPartnerProfile(profile);
+      setProfile(saved);
+      window.alert("Đã lưu hồ sơ.");
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể lưu hồ sơ. Vui lòng thử lại.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -49,7 +67,7 @@ export default function BrandSettingsPage() {
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
           <div className="flex items-center gap-2 text-emerald-300">
             <CheckCircle2 className="h-4 w-4" />
-            <span className="text-[10px] font-black uppercase tracking-widest">{partnerProfile.verificationStatus}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">{profile.verificationStatus}</span>
           </div>
           <div className="mt-1 text-lg font-black text-white">{partnerProfile.completion}% hoàn thiện</div>
         </div>
@@ -158,9 +176,9 @@ export default function BrandSettingsPage() {
           </div>
 
           <div className="mt-6 flex justify-end border-t border-white/5 pt-5">
-            <button type="submit" className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-5 text-xs font-black text-slate-950">
+            <button type="submit" disabled={saving} className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-5 text-xs font-black text-slate-950 disabled:cursor-wait disabled:opacity-70">
               <Save className="mr-2 h-4 w-4" />
-              Lưu hồ sơ
+              {saving ? "Đang lưu..." : "Lưu hồ sơ"}
             </button>
           </div>
         </main>

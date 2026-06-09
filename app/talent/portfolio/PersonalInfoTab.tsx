@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
+import { ensureTalentProfile, persistTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
@@ -48,33 +49,47 @@ export default function PersonalInfoTab({
   setBookingForm
 }: PersonalInfoTabProps) {
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover" | "fullBody") => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover" | "fullBody") => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
 
-    // Enforce size limit of 1.5MB to avoid localStorage quota exceeded (max 5MB)
-    if (file.size > 1.5 * 1024 * 1024) {
-      addToast("Kích thước ảnh phải nhỏ hơn 1.5MB để tối ưu dung lượng lưu trữ", "info");
+    if (file.size > 5 * 1024 * 1024) {
+      addToast("Kích thước ảnh phải nhỏ hơn 5MB.", "info");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64String = event.target?.result as string;
-      if (base64String) {
-        const updatedProfile = { ...profile, [type]: base64String };
-        setProfile(updatedProfile);
-        localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+      setProfile(syncedProfile);
 
-        let typeName = "";
-        if (type === "avatar") typeName = "Ảnh đại diện";
-        else if (type === "cover") typeName = "Ảnh bìa";
-        else if (type === "fullBody") typeName = "Ảnh toàn thân (Full-body)";
-
-        addToast(`Cập nhật ${typeName} thành công!`, "success");
+      if (!syncedProfile.backendProfileId) {
+        addToast("Vui lòng đăng nhập để tải ảnh lên S3.", "info");
+        return;
       }
-    };
-    reader.readAsDataURL(file);
+
+      const category = type === "fullBody" ? "full_body" : type;
+      const photo = await uploadTalentPhoto(syncedProfile.backendProfileId, file, category);
+      const photoUrl = photo.url || photo.path;
+
+      if (!photoUrl) {
+        addToast("Backend chưa trả về URL ảnh.", "info");
+        return;
+      }
+
+      const updatedProfile = persistTalentProfile({ ...syncedProfile, [type]: photoUrl });
+      setProfile(updatedProfile);
+
+      let typeName = "";
+      if (type === "avatar") typeName = "Ảnh đại diện";
+      else if (type === "cover") typeName = "Ảnh bìa";
+      else if (type === "fullBody") typeName = "Ảnh toàn thân (Full-body)";
+
+      addToast(`Cập nhật ${typeName} thành công!`, "success");
+    } catch (error) {
+      console.error(error);
+      addToast("Không tải được ảnh lên S3, vui lòng thử lại.", "info");
+    }
   };
 
   // Lookbook photos metadata (labeled exactly "Ảnh 1", "Ảnh 2", "Ảnh 3", "Ảnh 4")
@@ -189,9 +204,8 @@ export default function PersonalInfoTab({
       addToast(`Đã chuyển ngày ${dayNum}/${currentMonth} thành trạng thái BẬN (🔴)`, "info");
     }
 
-    const updatedProfile = { ...profile, availabilityCalendar: cleanedCalendar };
+    const updatedProfile = persistTalentProfile({ ...profile, availabilityCalendar: cleanedCalendar });
     setProfile(updatedProfile);
-    localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
   };
 
   return (

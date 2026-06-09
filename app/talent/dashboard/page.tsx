@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
+import { loadTalentCampaigns, loadTalentProfile, mapCampaignToTalentJob } from "@/lib/talent-api";
 
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
@@ -40,73 +41,16 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem("vnp_talent_profile");
-    const defaultMock = {
-      name: "Nguyễn Mai Anh",
-      birthYear: 2002,
-      location: "Hà Nội",
-      hometown: "Nam Định",
-      phone: "0912345678",
-      email: "maianh.nguyen@beautyapp.vn",
-      avatar: "/avatar.png",
-      height: 172,
-      weight: 51,
-      bust: 85,
-      waist: 60,
-      hips: 90,
-      plasticSurgery: "false",
-      maritalStatus: "Độc thân",
-      education: "Cử nhân Học viện Ngoại giao",
-      languages: ["Tiếng Việt", "Tiếng Anh (IELTS 7.5)"],
-      skills: ["Catwalk", "MC song ngữ", "Social Content", "Pose dáng lookbook"],
-      followersCount: 120000,
-      engagementRate: 4.8,
-      profileScore: 82,
-      tier: "A",
-      rateCard: {
-        "Instagram Post": 3000000,
-        "TikTok Video": 5000000,
-        "Livestream 2h": 8000000,
-        "Catwalk Show": 15000000
-      },
-      availabilityCalendar: ["2026-06-24", "2026-06-25", "2026-06-28"],
-      reliability: 96,
-      reviewsCount: 18,
-      averageRating: 4.9,
-      surveyScores: { pageant: 50, runway: 45, kol: 95 },
-      mainCategory: "KOL / Người mẫu ảnh / Giải trí thế hệ mới"
+    let active = true;
+
+    loadTalentProfile().then((loadedProfile) => {
+      if (active) setProfile(loadedProfile);
+    });
+
+    return () => {
+      active = false;
     };
-
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (parsed && (parsed.avatar?.includes("unsplash.com") || !parsed.avatar)) {
-          parsed.avatar = "/avatar.png";
-        }
-        if (parsed) {
-          if (parsed.name === "Nguyễn Mai Anh") {
-            parsed.surveyScores = defaultMock.surveyScores;
-            parsed.mainCategory = defaultMock.mainCategory;
-          }
-          if (!parsed.surveyScores) parsed.surveyScores = defaultMock.surveyScores;
-          if (!parsed.mainCategory) parsed.mainCategory = defaultMock.mainCategory;
-          if (!parsed.tier) parsed.tier = defaultMock.tier;
-        }
-        localStorage.setItem("vnp_talent_profile", JSON.stringify(parsed));
-        setProfile(parsed);
-      } catch (e) {
-        console.error(e);
-        setProfile(defaultMock);
-      }
-    } else {
-      setProfile(defaultMock);
-      localStorage.setItem("vnp_talent_profile", JSON.stringify(defaultMock));
-    }
   }, []);
-
-
-
-  if (!profile) return null;
 
   const mockJobs = [
     {
@@ -158,6 +102,38 @@ export default function DashboardPage() {
       iconColor: "text-rose-300"
     }
   ];
+
+  const [dashboardJobs, setDashboardJobs] = useState<any[]>(mockJobs);
+
+  useEffect(() => {
+    let active = true;
+
+    loadTalentCampaigns().then((items) => {
+      if (!active || !items?.length) return;
+      const mapped = items.map((item) => {
+        const campaign = mapCampaignToTalentJob(item);
+        return {
+          id: String(campaign.id),
+          title: campaign.title,
+          brand: campaign.brand,
+          budget: campaign.budget,
+          matchScore: campaign.matchScore,
+          tag: campaign.type,
+          borderColor: campaign.borderColor,
+          badgeColor: campaign.badgeColor,
+          glowColor: "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600",
+          iconColor: "text-amber-300",
+        };
+      });
+      setDashboardJobs(mapped);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (!profile) return null;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
@@ -574,7 +550,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {mockJobs.map((job) => (
+          {dashboardJobs.map((job) => (
             <div
               key={job.id}
               onClick={() => router.push("/talent/jobs")}

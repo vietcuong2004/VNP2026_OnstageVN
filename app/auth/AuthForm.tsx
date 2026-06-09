@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Crown, Loader2, Lock, Mail, User, Users } from "lucide-react";
 
 type AuthMode = "login" | "register";
 type AccountType = "talent" | "brand";
+
+const pendingLoginKey = "onstagevn_pending_login";
 
 type AuthResponse = {
   token: string;
@@ -16,6 +18,7 @@ type AuthResponse = {
     email: string;
     type: AccountType;
     status: string;
+    external_avatar_url?: string | null;
   };
 };
 
@@ -25,11 +28,11 @@ const accountTypes: Array<{ value: AccountType; label: string }> = [
 ];
 
 function getApiBaseUrl() {
-  return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
 }
 
 function getRedirectPath(type: AccountType) {
-  return type === "talent" ? "/talent" : "/brand";
+  return type === "talent" ? "/talent/dashboard" : "/brand/dashboard";
 }
 
 async function parseError(response: Response) {
@@ -67,7 +70,23 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   const [loading, setLoading] = useState(false);
 
   const apiUrl = useMemo(() => getApiBaseUrl(), []);
-  const socialType = isRegister ? accountType : "talent";
+
+  useEffect(() => {
+    if (isRegister) return;
+
+    const stored = sessionStorage.getItem(pendingLoginKey);
+    if (!stored) return;
+
+    try {
+      const pendingLogin = JSON.parse(stored) as { email?: string; password?: string };
+      setEmail(pendingLogin.email || "");
+      setPassword(pendingLogin.password || "");
+    } catch {
+      // Ignore invalid temporary data.
+    } finally {
+      sessionStorage.removeItem(pendingLoginKey);
+    }
+  }, [isRegister]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -103,6 +122,13 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       }
 
       const data = (await response.json()) as AuthResponse;
+
+      if (isRegister) {
+        sessionStorage.setItem(pendingLoginKey, JSON.stringify({ email, password }));
+        router.push("/auth/login");
+        return;
+      }
+
       localStorage.setItem("onstagevn_auth_token", data.token);
       localStorage.setItem("onstagevn_auth_user", JSON.stringify(data.user));
       router.push(getRedirectPath(data.user.type));
@@ -236,14 +262,14 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <a
-            href={`${apiUrl}/auth/social/google/redirect?type=${socialType}`}
+            href={`${apiUrl}/auth/social/google/redirect`}
             className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-xs font-bold uppercase tracking-wider text-slate-200 transition-colors hover:border-amber-400/40 hover:text-amber-300"
           >
             <span className="text-base font-black">G</span>
             Google
           </a>
           <a
-            href={`${apiUrl}/auth/social/facebook/redirect?type=${socialType}`}
+            href={`${apiUrl}/auth/social/facebook/redirect`}
             className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-xs font-bold uppercase tracking-wider text-slate-200 transition-colors hover:border-blue-400/40 hover:text-blue-300"
           >
             <span className="text-base font-black">f</span>

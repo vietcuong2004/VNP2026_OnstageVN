@@ -46,7 +46,7 @@ export default function Sidebar() {
 
     if (token) {
       try {
-        const baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api").replace(/\/$/, "");
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
         await fetch(`${baseUrl}/auth/logout`, {
           method: "POST",
           headers: {

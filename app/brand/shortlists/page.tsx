@@ -1,31 +1,91 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookmarkCheck, Briefcase, FileText, HeartOff, Plus, Send, Eye } from "lucide-react";
 import { campaigns, savedTalentIds, talents } from "@/lib/brand-mvp-data";
+import { addTalentToBrandCampaign, createBrandContactRequest, loadBrandCampaigns, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
+
+function selectExistingCampaignId(current: string, items: typeof campaigns) {
+  if (items.some((campaign) => campaign.id === current)) return current;
+  return items[0]?.id || "";
+}
 
 export default function BrandShortlistsPage() {
   const router = useRouter();
   const [savedIds, setSavedIds] = useState(savedTalentIds);
+  const [talentList, setTalentList] = useState(talents);
   const [localCampaigns, setLocalCampaigns] = useState(campaigns);
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id ?? "");
+  const [wishlistId, setWishlistId] = useState<string | null>(null);
+  const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({
     "tal-1": "Phù hợp campaign beauty, ưu tiên mời lịch livestream.",
     "tal-2": "Giữ cho lookbook thời trang.",
   });
   const [requestedIds, setRequestedIds] = useState<string[]>([]);
 
-  const savedTalents = useMemo(() => talents.filter((talent) => savedIds.includes(talent.id)), [savedIds]);
+  useEffect(() => {
+    loadBrandTalents(talents).then(async (items) => {
+      setTalentList(items);
+      const wishlists = await loadBrandWishlists(items);
+      const primaryWishlist = wishlists[0];
+
+      if (primaryWishlist) {
+        setWishlistId(primaryWishlist.id);
+        setSavedIds(primaryWishlist.savedIds);
+        setNotes((current) => ({ ...current, ...primaryWishlist.notes }));
+        setWishlistItemIds(
+          primaryWishlist.items.reduce((acc: Record<string, string>, item) => {
+            const profileId = String(item.profile_id || item.profile?.id || "");
+            if (profileId) acc[profileId] = String(item.id);
+            return acc;
+          }, {})
+        );
+      } else {
+        const hasSavedTalent = items.some((talent) => savedTalentIds.includes(talent.id));
+        if (!hasSavedTalent) {
+          setSavedIds(items.slice(0, 3).map((talent) => talent.id));
+        }
+      }
+    });
+    loadBrandCampaigns(campaigns).then((items) => {
+      setLocalCampaigns(items);
+      setSelectedCampaignId((current) => selectExistingCampaignId(current, items));
+    });
+  }, []);
+
+  const savedTalents = useMemo(() => talentList.filter((talent) => savedIds.includes(talent.id)), [savedIds, talentList]);
   const selectedCampaign = localCampaigns.find((campaign) => campaign.id === selectedCampaignId);
 
-  function removeTalent(id: string) {
+  async function removeTalent(id: string) {
+    const itemId = wishlistItemIds[id];
+    if (wishlistId && itemId) {
+      try {
+        await removeTalentFromWishlist(wishlistId, itemId);
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Chưa thể xóa talent khỏi danh sách lưu.");
+        return;
+      }
+    }
+
     setSavedIds((current) => current.filter((item) => item !== id));
+    setWishlistItemIds((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
   }
 
-  function addTalentToCampaign(talentId: string) {
+  async function addTalentToCampaign(talentId: string) {
     if (!selectedCampaignId) return;
+    try {
+      await addTalentToBrandCampaign(selectedCampaignId, talentId, notes[talentId]);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể thêm talent vào campaign. Vui lòng thử lại.");
+      return;
+    }
     setLocalCampaigns((current) =>
       current.map((c) => {
         if (c.id === selectedCampaignId) {
@@ -41,9 +101,13 @@ export default function BrandShortlistsPage() {
     );
   }
 
-  function sendRequest(id: string) {
-    setRequestedIds((current) => current.includes(id) ? current : [...current, id]);
-    window.alert("Đã tạo yêu cầu liên hệ demo. Khi nối backend, thao tác này sẽ gọi POST /api/contact-requests.");
+  async function sendRequest(id: string) {
+    try {
+      await createBrandContactRequest(id, selectedCampaignId, notes[id]);
+      setRequestedIds((current) => current.includes(id) ? current : [...current, id]);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể gửi yêu cầu liên hệ. Vui lòng thử lại.");
+    }
   }
 
   return (
@@ -125,7 +189,7 @@ export default function BrandShortlistsPage() {
                     {selectedCampaign.shortlistedTalentIds
                       .filter(id => savedIds.includes(id))
                       .map(id => {
-                        const t = talents.find(talent => talent.id === id);
+                        const t = talentList.find(talent => talent.id === id);
                         if (!t) return null;
                         return (
                           <div key={id} className="flex items-center justify-between p-2 rounded-xl bg-slate-900/50 border border-white/5 text-xs">

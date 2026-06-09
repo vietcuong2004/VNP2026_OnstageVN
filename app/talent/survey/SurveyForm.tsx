@@ -9,6 +9,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
+import {
+  analyzeTalentSurvey,
+  loadTalentSurveyProgress,
+  persistTalentProfile,
+  saveTalentProfile,
+  saveTalentSurveyProgress,
+  submitTalentSurvey,
+  type TalentSurveyAnalysis,
+} from "@/lib/talent-api";
 
 // Custom SVG Icons to avoid import errors from old lucide version
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -37,6 +46,13 @@ const TiktokIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
   </svg>
 );
+
+function clampSurveyStep(value: unknown) {
+  const step = Number(value);
+  if (!Number.isFinite(step)) return 1;
+  return Math.min(5, Math.max(1, Math.trunc(step)));
+}
+
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
   { id: 2, title: "KOLs/Influencer quảng cáo", desc: "Sáng tạo nội dung video ngắn", weights: { pageant: 0.1, runway: 0.1, kol: 0.8 } },
@@ -125,6 +141,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const [surveyAnswers, setSurveyAnswers] = useState<Record<number, number>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [registeredComp, setRegisteredComp] = useState<Record<string, boolean>>({});
+  const [aiAnalysis, setAiAnalysis] = useState<TalentSurveyAnalysis | null>(null);
 
   const [results, setResults] = useState({
     pageant: 0,
@@ -157,14 +174,34 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           hasLanguagePriority: initialHistoryEntry.pageant >= 70
         }
       });
+      setAiAnalysis(initialHistoryEntry.aiSurveyAnalysis || null);
       setIsSubmitted(true);
     } else {
+      setAiAnalysis(null);
       setIsSubmitted(false);
       setStep(1);
       setMaxStep(1);
       setActiveSurveyQIdx(0);
       setSurveyAnswers({});
     }
+  }, [initialHistoryEntry]);
+
+  React.useEffect(() => {
+    if (initialHistoryEntry) return;
+
+    let cancelled = false;
+
+    loadTalentSurveyProgress().then((progress) => {
+      if (cancelled || !progress) return;
+
+      const savedStep = clampSurveyStep(progress.current_step);
+      setStep(savedStep);
+      setMaxStep((prev) => Math.max(prev, savedStep));
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [initialHistoryEntry]);
 
 
@@ -251,15 +288,22 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     return true;
   };
 
+  const goToStep = (nextStep: number, status: "draft" | "completed" | "analyzed" = "draft") => {
+    const savedStep = clampSurveyStep(nextStep);
+    setStep(savedStep);
+    setMaxStep((prev) => Math.max(prev, savedStep));
+    void saveTalentSurveyProgress(savedStep, status);
+  };
+
   const nextStep = () => {
     if (step < 5 && isStepValid()) {
-      setStep((prev) => prev + 1);
+      goToStep(step + 1);
     }
   };
 
   const prevStep = () => {
     if (step > 1) {
-      setStep((prev) => prev - 1);
+      goToStep(step - 1);
     }
   };
 
@@ -271,9 +315,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     setRegisteredComp(prev => ({ ...prev, [compName]: true }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isStepValid()) return;
+    setAiAnalysis(null);
 
     // Hard Rules checks (Q1 - Q10)
     // Rule 1: Married or Major Surgery -> Excluded from strict national pageants
@@ -393,7 +438,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     localStorage.setItem("vnp_talent_survey_history", JSON.stringify(updatedHistory));
 
     // Save to local storage for other views in the application
-    const userProfile = {
+    const userProfile: Record<string, unknown> = {
       ...formData,
       followersCount: getTotalFollowers().toString(),
       surveyScores: {
@@ -410,8 +455,79 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       languages: formData.languages.split(",").map(s => s.trim()),
       mediaUploads
     };
-    localStorage.setItem("vnp_talent_profile", JSON.stringify(userProfile));
+    const savedProfile = await saveTalentProfile(userProfile);
 
+    const surveyQuestionAnswers = SURVEY_QUESTIONS
+      .map((question) => {
+        const answerIdx = surveyAnswers[question.id];
+        const option = answerIdx !== undefined ? question.options[answerIdx] : null;
+
+        return option
+          ? {
+              question_code: `Q${question.id}`,
+              answer_value: {
+                option_index: answerIdx,
+                group: option.group,
+                text: option.text,
+              },
+            }
+          : null;
+      })
+      .filter(Boolean) as { question_code: string; answer_value: unknown }[];
+
+    const experienceYears = parseInt(formData.experience.match(/\d+/)?.[0] || "0", 10);
+
+    await submitTalentSurvey("A", [
+      { question_code: "A1", answer_value: parseFloat(formData.height) || 0 },
+      { question_code: "B1", answer_value: experienceYears },
+      { question_code: "C1", answer_value: getTotalFollowers() },
+      { question_code: "D1", answer_value: mainCategory },
+    ]);
+    await submitTalentSurvey("S", surveyQuestionAnswers);
+    const aiResult = await analyzeTalentSurvey().catch((error) => {
+      console.warn(error);
+      return null;
+    });
+
+    setAiAnalysis(aiResult);
+
+    const finalResults = computedResults;
+
+    if (aiResult) {
+      userProfile.aiSurveyAnalysis = aiResult;
+      userProfile.recommendedPageants = aiResult.pageants || [];
+      userProfile.careerTrends = aiResult.career_trends || [];
+    }
+
+    if (aiResult) {
+      setResults(finalResults);
+      userProfile.surveyScores = {
+        pageant: finalResults.pageant,
+        runway: finalResults.runway,
+        kol: finalResults.kol
+      };
+      userProfile.profileScore = finalResults.profileScore;
+      userProfile.tier = finalResults.tier;
+
+      updatedHistory = updatedHistory.map((entry) =>
+        entry.id === newHistoryEntry.id
+          ? {
+              ...entry,
+              pageant: finalResults.pageant,
+              runway: finalResults.runway,
+              kol: finalResults.kol,
+              profileScore: finalResults.profileScore,
+              tier: finalResults.tier,
+              aiSurveyAnalysis: aiResult || undefined,
+            }
+          : entry
+      );
+      localStorage.setItem("vnp_talent_survey_history", JSON.stringify(updatedHistory));
+    }
+
+    persistTalentProfile({ ...savedProfile, ...userProfile });
+
+    void saveTalentSurveyProgress(5, "analyzed");
     setIsSubmitted(true);
   };
 
@@ -511,16 +627,40 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   }
 
   if (isSubmitted) {
-    const sortedJobs = JOBS_LIST.map((job) => {
+    const fallbackJobs = JOBS_LIST.map((job) => {
       const matchScore = Math.round(
         results.pageant * job.weights.pageant +
-        results.runway * job.weights.runway +
-        results.kol * job.weights.kol
+          results.runway * job.weights.runway +
+          results.kol * job.weights.kol
       );
       return { ...job, matchScore };
     }).sort((a, b) => b.matchScore - a.matchScore);
+    const aiJobs = (aiAnalysis?.career_trends || [])
+      .filter((job) => job.title)
+      .map((job, index) => ({
+        id: `ai-${index}`,
+        title: String(job.title),
+        desc: job.reasoning || "",
+        weights: { pageant: 0, runway: 0, kol: 0 },
+        matchScore: Math.round(Number(job.match_score || 0)),
+      }));
+    const sortedJobs = aiJobs.length
+      ? [
+          ...aiJobs,
+          ...fallbackJobs.filter((job) => !aiJobs.some((aiJob) => aiJob.title === job.title)),
+        ].slice(0, 20)
+      : fallbackJobs;
 
-    const suggestedComps = getSuggestedCompetitions();
+    const aiComps = (aiAnalysis?.pageants || [])
+      .filter((comp) => comp.name)
+      .slice(0, 3)
+      .map((comp) => ({
+        name: String(comp.name),
+        type: comp.reasoning || "AI đề xuất",
+        deadline: "Đang cập nhật",
+        status: `${Math.round(Number(comp.match_score || 0))}% match`,
+      }));
+    const suggestedComps = aiComps.length ? aiComps : getSuggestedCompetitions();
 
     return (
       <div className={cn(
@@ -671,8 +811,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 <button
                   type="button"
                   onClick={() => {
+                    setAiAnalysis(null);
                     setIsSubmitted(false);
-                    setStep(1);
+                    goToStep(1);
                     setMaxStep(1);
                     setActiveSurveyQIdx(0);
                     setSurveyAnswers({});
@@ -873,7 +1014,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   type="button"
                   key={s}
                   disabled={!isClickable}
-                  onClick={() => setStep(s)}
+                  onClick={() => goToStep(s)}
                   className={cn(
                     "flex flex-col items-center transition-all duration-300 relative group focus:outline-none",
                     isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-60"
@@ -1503,7 +1644,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       setActiveSurveyQIdx(prev => prev - 1);
                     } else {
                       // Go back to Step 4
-                      setStep(4);
+                      goToStep(4);
                     }
                   }}
                   className="flex h-9 items-center justify-center rounded-lg border border-white/20 px-4 text-[10px] font-bold text-slate-200 hover:text-amber-300 hover:border-amber-400/50 hover:bg-white/5 transition-all gap-1 cursor-pointer"
