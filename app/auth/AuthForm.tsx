@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Crown, Loader2, Lock, Mail, User, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, Crown, Loader2, Lock, Mail, User } from "lucide-react";
 
 type AuthMode = "login" | "register";
 type AccountType = "talent" | "brand";
@@ -21,11 +21,6 @@ type AuthResponse = {
     external_avatar_url?: string | null;
   };
 };
-
-const accountTypes: Array<{ value: AccountType; label: string }> = [
-  { value: "talent", label: "Talent" },
-  { value: "brand", label: "Brand" },
-];
 
 function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
@@ -65,7 +60,6 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [accountType, setAccountType] = useState<AccountType>("talent");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -99,7 +93,6 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
           email,
           password,
           password_confirmation: password,
-          type: accountType,
         }
       : {
           email,
@@ -161,7 +154,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-slate-400">
             {isRegister
-              ? "Bắt đầu với tài khoản Talent hoặc Brand."
+              ? "Bắt đầu với một tài khoản dùng được cả Talent và Brand."
               : "Truy cập không gian quản lý hồ sơ và chiến dịch của bạn."}
           </p>
         </div>
@@ -213,29 +206,6 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
               />
             </div>
           </label>
-
-          {isRegister && (
-            <div>
-              <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">Loại tài khoản</span>
-              <div className="grid grid-cols-2 gap-2">
-                {accountTypes.map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setAccountType(item.value)}
-                    className={`flex h-11 items-center justify-center gap-2 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all ${
-                      accountType === item.value
-                        ? "border-amber-300 bg-amber-300 text-slate-950"
-                        : "border-white/10 bg-slate-950/40 text-slate-400 hover:border-white/20 hover:text-white"
-                    }`}
-                  >
-                    <Users className="h-3.5 w-3.5" />
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {error && (
             <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">

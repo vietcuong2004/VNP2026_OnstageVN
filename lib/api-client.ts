@@ -21,6 +21,11 @@ export function getStoredAuthUser<T = unknown>() {
   }
 }
 
+export function storeAuthUser(user: unknown) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem("onstagevn_auth_user", JSON.stringify(user));
+}
+
 export function clearAuthSession() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("onstagevn_auth_token");
@@ -94,6 +99,26 @@ export async function apiJson<T>(path: string, init: RequestInit = {}) {
   }
 
   return parseApiResponse<T>(response);
+}
+
+export async function switchCurrentPlatform(type: "talent" | "brand") {
+  const response = await apiJson<{
+    user: {
+      id: number;
+      name: string;
+      email: string;
+      type: "talent" | "brand";
+      status: string;
+      external_avatar_url?: string | null;
+    };
+  }>("/auth/platform", {
+    method: "PUT",
+    body: JSON.stringify({ type }),
+  });
+
+  storeAuthUser(response.user);
+
+  return response.user;
 }
 
 export async function apiForm<T>(path: string, formData: FormData, init: RequestInit = {}) {
