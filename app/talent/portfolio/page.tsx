@@ -4,20 +4,21 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   MapPin, Star, Share2, Crown, ShieldCheck, User, Edit3, Sparkles, X,
-  MessageSquare, HeartHandshake, CheckCircle, Trophy, Award, Camera
+  MessageSquare, HeartHandshake, CheckCircle, Trophy, Award, Camera, Cpu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
 import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
+import Portrait3DTab from "./Portrait3DTab";
 import { findTalentById } from "@/lib/brand-mvp-data";
 
 export default function PortfolioPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
 
-  // Exactly 3 main tabs: 'personal-info' (default), 'edit-info', 'addon-services'
-  const [activeTab, setActiveTab] = useState<"edit-info" | "personal-info" | "addon-services">("personal-info");
+  // Four main tabs: 'personal-info', 'edit-info', 'addon-services', 'portrait-3d'
+  const [activeTab, setActiveTab] = useState<"edit-info" | "personal-info" | "addon-services" | "portrait-3d">("personal-info");
 
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
 
@@ -504,6 +505,19 @@ export default function PortfolioPage() {
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-400 rounded-full" />
           )}
         </button>
+        <button
+          onClick={() => setActiveTab("portrait-3d")}
+          className={cn(
+            "pb-4 text-xs font-black uppercase tracking-wider transition-all relative cursor-pointer flex items-center gap-1.5 shrink-0",
+            activeTab === "portrait-3d" ? "text-emerald-400" : "text-slate-400 hover:text-white"
+          )}
+        >
+          <Cpu className="h-4 w-4 text-emerald-400 animate-pulse" />
+          4. Chân dung 3D (WebGPU)
+          {activeTab === "portrait-3d" && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400 rounded-full" />
+          )}
+        </button>
       </div>
 
       {/* Main Content Area based on Tab */}
@@ -532,6 +546,14 @@ export default function PortfolioPage() {
             setProfile={setProfile}
             addToast={addToast}
             rankingScore={rankingScore}
+          />
+        )}
+
+        {activeTab === "portrait-3d" && (
+          <Portrait3DTab
+            profile={profile}
+            setProfile={setProfile}
+            addToast={addToast}
           />
         )}
       </div>

@@ -963,7 +963,7 @@ export default function PersonalInfoTab({
                 {uploadingState["intro"] && (
                   <ProgressBar
                     progress={uploadingState["intro"].progress}
-                    message="Đang nén và chuyển hóa video lên CDN..."
+                    message="Đang tải video lên..."
                   />
                 )}
 
@@ -1025,7 +1025,7 @@ export default function PersonalInfoTab({
                 {uploadingState["catwalk"] && (
                   <ProgressBar
                     progress={uploadingState["catwalk"].progress}
-                    message="Đang nén và chuyển hóa video lên CDN..."
+                    message="Đang tải video lên..."
                   />
                 )}
 
@@ -1087,7 +1087,7 @@ export default function PersonalInfoTab({
                 {uploadingState["mc"] && (
                   <ProgressBar
                     progress={uploadingState["mc"].progress}
-                    message="Đang nén và chuyển hóa video lên CDN..."
+                    message="Đang tải video lên..."
                   />
                 )}
 

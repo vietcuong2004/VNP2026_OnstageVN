@@ -413,15 +413,15 @@ export default function CampaignDetailPage() {
                 className="h-16 w-16 rounded-xl object-cover border border-emerald-500/20 shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-black text-white truncate">Nguyễn Ngọc Anh</h3>
+                <div className="flex flex-col items-start gap-1">
+                  <h3 className="text-sm font-black text-white">Nguyễn Ngọc Anh</h3>
                   <span className="font-display font-extrabold text-[9px] text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded shrink-0">
                     Người phụ trách Campaign
                   </span>
                 </div>
-                <p className="text-[10px] text-emerald-400/80 mt-0.5">Brand Representative · Hà Nội</p>
+                <p className="text-[10px] text-emerald-400/80 mt-1">Brand Representative · Hà Nội</p>
                 <p className="text-[10.5px] text-slate-400 leading-relaxed mt-2.5 italic font-medium">
-                  "Người đang đăng nhập. Chịu trách nhiệm vận hành, đối soát và giải ngân chiến dịch."
+                  "Người đại diện cho Brand. Chịu trách nhiệm vận hành, đối soát và giải ngân chiến dịch."
                 </p>
               </div>
             </div>
