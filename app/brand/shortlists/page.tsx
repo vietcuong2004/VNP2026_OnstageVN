@@ -50,9 +50,26 @@ export default function BrandShortlistsPage() {
         }
       }
     });
-    loadBrandCampaigns(campaigns).then((items) => {
+
+    let initialCampaignsList = campaigns;
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("onstagevn_campaigns");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            initialCampaignsList = parsed;
+          }
+        } catch (e) {}
+      }
+    }
+
+    loadBrandCampaigns(initialCampaignsList).then((items) => {
       setLocalCampaigns(items);
       setSelectedCampaignId((current) => selectExistingCampaignId(current, items));
+      if (typeof window !== "undefined" && items.length > 0) {
+        window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(items));
+      }
     });
   }, []);
 
@@ -86,8 +103,8 @@ export default function BrandShortlistsPage() {
       window.alert(error instanceof Error ? error.message : "Chưa thể thêm talent vào campaign. Vui lòng thử lại.");
       return;
     }
-    setLocalCampaigns((current) =>
-      current.map((c) => {
+    setLocalCampaigns((current) => {
+      const next = current.map((c) => {
         if (c.id === selectedCampaignId) {
           if (!c.shortlistedTalentIds.includes(talentId)) {
             return {
@@ -97,8 +114,12 @@ export default function BrandShortlistsPage() {
           }
         }
         return c;
-      })
-    );
+      });
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(next));
+      }
+      return next;
+    });
   }
 
   async function sendRequest(id: string) {

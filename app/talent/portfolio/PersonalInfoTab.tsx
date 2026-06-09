@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
+import ProgressBar from "@/components/ui/ProgressBar";
 import { ensureTalentProfile, persistTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 
 const JOBS_LIST = [
@@ -49,6 +50,14 @@ export default function PersonalInfoTab({
   setBookingForm
 }: PersonalInfoTabProps) {
 
+  const [uploadingState, setUploadingState] = useState<{
+    [key: string]: {
+      progress: number;
+      fileName: string;
+      status: "uploading" | "done" | "error" | "idle";
+    };
+  }>({});
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover" | "fullBody") => {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -59,12 +68,43 @@ export default function PersonalInfoTab({
       return;
     }
 
+    setUploadingState(prev => ({
+      ...prev,
+      [type]: {
+        progress: 0,
+        fileName: file.name,
+        status: "uploading"
+      }
+    }));
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 8;
+      if (progress > 95) progress = 95;
+      setUploadingState(prev => {
+        if (!prev[type]) return prev;
+        return {
+          ...prev,
+          [type]: {
+            ...prev[type],
+            progress
+          }
+        };
+      });
+    }, 150);
+
     try {
       const syncedProfile = await ensureTalentProfile(profile);
       setProfile(syncedProfile);
 
       if (!syncedProfile.backendProfileId) {
-        addToast("Vui lòng đăng nhập để tải ảnh lên S3.", "info");
+        clearInterval(interval);
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
+        addToast("Vui lòng đăng nhập để tải ảnh lên.", "info");
         return;
       }
 
@@ -73,12 +113,36 @@ export default function PersonalInfoTab({
       const photoUrl = photo.url || photo.path;
 
       if (!photoUrl) {
+        clearInterval(interval);
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
         addToast("Backend chưa trả về URL ảnh.", "info");
         return;
       }
 
       const updatedProfile = persistTalentProfile({ ...syncedProfile, [type]: photoUrl });
       setProfile(updatedProfile);
+
+      clearInterval(interval);
+      setUploadingState(prev => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          progress: 100,
+          status: "done"
+        }
+      }));
+
+      setTimeout(() => {
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
+      }, 800);
 
       let typeName = "";
       if (type === "avatar") typeName = "Ảnh đại diện";
@@ -87,9 +151,180 @@ export default function PersonalInfoTab({
 
       addToast(`Cập nhật ${typeName} thành công!`, "success");
     } catch (error) {
+      clearInterval(interval);
+      setUploadingState(prev => {
+        const next = { ...prev };
+        delete next[type];
+        return next;
+      });
       console.error(error);
-      addToast("Không tải được ảnh lên S3, vui lòng thử lại.", "info");
+      addToast("Không tải được ảnh lên, vui lòng thử lại.", "info");
     }
+  };
+
+  const handleLookbookUpload = async (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      addToast("Kích thước ảnh phải nhỏ hơn 5MB.", "info");
+      return;
+    }
+
+    const stateKey = `lookbook-${id}`;
+
+    setUploadingState(prev => ({
+      ...prev,
+      [stateKey]: {
+        progress: 0,
+        fileName: file.name,
+        status: "uploading"
+      }
+    }));
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 8;
+      if (progress > 95) progress = 95;
+      setUploadingState(prev => {
+        if (!prev[stateKey]) return prev;
+        return {
+          ...prev,
+          [stateKey]: {
+            ...prev[stateKey],
+            progress
+          }
+        };
+      });
+    }, 150);
+
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+      setProfile(syncedProfile);
+
+      if (!syncedProfile.backendProfileId) {
+        clearInterval(interval);
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[stateKey];
+          return next;
+        });
+        addToast("Vui lòng đăng nhập để tải ảnh lên", "info");
+        return;
+      }
+
+      const photo = await uploadTalentPhoto(syncedProfile.backendProfileId, file, "portfolio");
+      const photoUrl = photo.url || photo.path;
+
+      if (!photoUrl) {
+        clearInterval(interval);
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[stateKey];
+          return next;
+        });
+        addToast("Backend chưa trả về URL ảnh.", "info");
+        return;
+      }
+
+      const updatedProfile = persistTalentProfile({ ...syncedProfile, [`lookbook${id}`]: photoUrl });
+      setProfile(updatedProfile);
+
+      clearInterval(interval);
+      setUploadingState(prev => ({
+        ...prev,
+        [stateKey]: {
+          ...prev[stateKey],
+          progress: 100,
+          status: "done"
+        }
+      }));
+
+      setTimeout(() => {
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[stateKey];
+          return next;
+        });
+      }, 800);
+
+      addToast(`Cập nhật Ảnh ${id} thành công!`, "success");
+    } catch (error) {
+      clearInterval(interval);
+      setUploadingState(prev => {
+        const next = { ...prev };
+        delete next[stateKey];
+        return next;
+      });
+      console.error(error);
+      addToast("Không tải được ảnh lên, vui lòng thử lại.", "info");
+    }
+  };
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "intro" | "catwalk" | "mc") => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+      addToast("Kích thước video phải nhỏ hơn 20MB.", "info");
+      return;
+    }
+
+    setUploadingState(prev => ({
+      ...prev,
+      [type]: {
+        progress: 0,
+        fileName: file.name,
+        status: "uploading"
+      }
+    }));
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 5;
+      if (progress > 95) progress = 95;
+      setUploadingState(prev => {
+        if (!prev[type]) return prev;
+        return {
+          ...prev,
+          [type]: {
+            ...prev[type],
+            progress
+          }
+        };
+      });
+    }, 150);
+
+    setTimeout(() => {
+      clearInterval(interval);
+
+      const updatedProfile = persistTalentProfile({
+        ...profile,
+        [type === "intro" ? "hasUploadedIntro" : type === "catwalk" ? "hasUploadedCatwalk" : "hasUploadedMC"]: true
+      });
+      setProfile(updatedProfile);
+
+      setUploadingState(prev => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          progress: 100,
+          status: "done"
+        }
+      }));
+
+      setTimeout(() => {
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
+      }, 800);
+
+      addToast("Tải lên video và nén thành công!", "success");
+    }, 3000);
   };
 
   // Lookbook photos metadata (labeled exactly "Ảnh 1", "Ảnh 2", "Ảnh 3", "Ảnh 4")
@@ -98,7 +333,7 @@ export default function PersonalInfoTab({
       id: 1,
       label: "Ảnh 1",
       title: "Beauty Portrait",
-      url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
+      url: profile.lookbook1 || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
       photographer: "Lê Huy Studio",
       concept: "Classic High-Fashion",
       date: "20/05/2026",
@@ -108,7 +343,7 @@ export default function PersonalInfoTab({
       id: 2,
       label: "Ảnh 2",
       title: "Runway Pose",
-      url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600",
+      url: profile.lookbook2 || "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600",
       photographer: "Minh Trần Portfolio",
       concept: "Avant-Garde Runway",
       date: "22/05/2026",
@@ -118,7 +353,7 @@ export default function PersonalInfoTab({
       id: 3,
       label: "Ảnh 3",
       title: "Close-up",
-      url: "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
+      url: profile.lookbook3 || "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
       photographer: "Kien Nguyen",
       concept: "Editorial Makeup Glow",
       date: "25/05/2026",
@@ -128,7 +363,7 @@ export default function PersonalInfoTab({
       id: 4,
       label: "Ảnh 4",
       title: "Streetwear Style",
-      url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
+      url: profile.lookbook4 || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
       photographer: "Alex Pham",
       concept: "Cyberpunk Neon Street",
       date: "28/05/2026",
@@ -237,10 +472,19 @@ export default function PersonalInfoTab({
                   type="file"
                   accept="image/*"
                   className="hidden"
+                  disabled={!!uploadingState["fullBody"]}
                   onChange={(e) => handleImageUpload(e, "fullBody")}
                 />
               </label>
             </div>
+
+            {/* Progress bar overlay */}
+            {uploadingState["fullBody"] && (
+              <ProgressBar
+                progress={uploadingState["fullBody"].progress}
+                message="Đang tải ảnh toàn thân lên..."
+              />
+            )}
 
             <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end group-hover:opacity-20 transition-opacity duration-300">
               <div>
@@ -251,20 +495,6 @@ export default function PersonalInfoTab({
                 Ratio: 3:4
               </div>
             </div>
-          </div>
-
-          {/* Mobile visible upload button */}
-          <div className="pt-1 text-center">
-            <label className="inline-flex items-center gap-1.5 w-full justify-center bg-amber-400/5 hover:bg-amber-400/10 border border-amber-400/20 hover:border-amber-400 text-amber-400 text-[10px] font-bold px-3 py-2.5 rounded-xl cursor-pointer transition-all">
-              <Upload className="h-3.5 w-3.5" />
-              Tải lên ảnh Full-body mới
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => handleImageUpload(e, "fullBody")}
-              />
-            </label>
           </div>
         </div>
 
@@ -637,8 +867,31 @@ export default function PersonalInfoTab({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85" />
 
+                  {/* Hover Overlay upload trigger */}
+                  <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-amber-400/80 rounded-xl px-4 py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                      <Upload className="h-5 w-5 text-amber-400" />
+                      <span>Thay đổi ảnh</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={!!uploadingState[`lookbook-${img.id}`]}
+                        onChange={(e) => handleLookbookUpload(e, img.id)}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Progress bar overlay */}
+                  {uploadingState[`lookbook-${img.id}`] && (
+                    <ProgressBar
+                      progress={uploadingState[`lookbook-${img.id}`].progress}
+                      message="Đang tải ảnh lên..."
+                    />
+                  )}
+
                   {/* Labeled overlay info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1">
+                  <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10 pointer-events-none">
                     <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
                       {img.label}
                     </span>
@@ -674,13 +927,47 @@ export default function PersonalInfoTab({
                       autoPlay
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
+
+                    {/* Hover overlay to change video */}
+                    <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                        <Upload className="h-5 w-5 text-cyan-400" />
+                        <span>Đổi video</span>
+                        <input
+                          type="file"
+                          accept="video/*"
+                          className="hidden"
+                          disabled={!!uploadingState["intro"]}
+                          onChange={(e) => handleVideoUpload(e, "intro")}
+                        />
+                      </label>
+                    </div>
                   </div>
                 ) : (
-                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4">
-                    <span className="text-[10px] uppercase font-bold text-slate-500">Chưa tải lên</span>
+                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4 relative">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/40 hover:bg-black/60 border border-dashed border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-6 text-slate-400 hover:text-white text-[10px] font-bold cursor-pointer transition-all w-full h-full justify-center">
+                      <Upload className="h-6 w-6 text-slate-500 hover:text-cyan-400 animate-pulse" />
+                      <span>Tải lên video</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        className="hidden"
+                        disabled={!!uploadingState["intro"]}
+                        onChange={(e) => handleVideoUpload(e, "intro")}
+                      />
+                    </label>
                   </div>
                 )}
-                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1">
+
+                {/* Progress bar overlay */}
+                {uploadingState["intro"] && (
+                  <ProgressBar
+                    progress={uploadingState["intro"].progress}
+                    message="Đang nén và chuyển hóa video lên CDN..."
+                  />
+                )}
+
+                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1 pointer-events-none z-10">
                   <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
                     INTRO VIDEO
                   </span>
@@ -702,13 +989,47 @@ export default function PersonalInfoTab({
                       autoPlay
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
+
+                    {/* Hover overlay to change video */}
+                    <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                        <Upload className="h-5 w-5 text-cyan-400" />
+                        <span>Đổi video</span>
+                        <input
+                          type="file"
+                          accept="video/*"
+                          className="hidden"
+                          disabled={!!uploadingState["catwalk"]}
+                          onChange={(e) => handleVideoUpload(e, "catwalk")}
+                        />
+                      </label>
+                    </div>
                   </div>
                 ) : (
-                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4">
-                    <span className="text-[10px] uppercase font-bold text-slate-500">Chưa tải lên</span>
+                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4 relative">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/40 hover:bg-black/60 border border-dashed border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-6 text-slate-400 hover:text-white text-[10px] font-bold cursor-pointer transition-all w-full h-full justify-center">
+                      <Upload className="h-6 w-6 text-slate-500 hover:text-cyan-400 animate-pulse" />
+                      <span>Tải lên video</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        className="hidden"
+                        disabled={!!uploadingState["catwalk"]}
+                        onChange={(e) => handleVideoUpload(e, "catwalk")}
+                      />
+                    </label>
                   </div>
                 )}
-                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1">
+
+                {/* Progress bar overlay */}
+                {uploadingState["catwalk"] && (
+                  <ProgressBar
+                    progress={uploadingState["catwalk"].progress}
+                    message="Đang nén và chuyển hóa video lên CDN..."
+                  />
+                )}
+
+                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1 pointer-events-none z-10">
                   <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
                     CATWALK POLAROID
                   </span>
@@ -730,13 +1051,47 @@ export default function PersonalInfoTab({
                       autoPlay
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
+
+                    {/* Hover overlay to change video */}
+                    <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                        <Upload className="h-5 w-5 text-cyan-400" />
+                        <span>Đổi video</span>
+                        <input
+                          type="file"
+                          accept="video/*"
+                          className="hidden"
+                          disabled={!!uploadingState["mc"]}
+                          onChange={(e) => handleVideoUpload(e, "mc")}
+                        />
+                      </label>
+                    </div>
                   </div>
                 ) : (
-                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4">
-                    <span className="text-[10px] uppercase font-bold text-slate-500">Chưa tải lên</span>
+                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4 relative">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/40 hover:bg-black/60 border border-dashed border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-6 text-slate-400 hover:text-white text-[10px] font-bold cursor-pointer transition-all w-full h-full justify-center">
+                      <Upload className="h-6 w-6 text-slate-500 hover:text-cyan-400 animate-pulse" />
+                      <span>Tải lên video</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        className="hidden"
+                        disabled={!!uploadingState["mc"]}
+                        onChange={(e) => handleVideoUpload(e, "mc")}
+                      />
+                    </label>
                   </div>
                 )}
-                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1">
+
+                {/* Progress bar overlay */}
+                {uploadingState["mc"] && (
+                  <ProgressBar
+                    progress={uploadingState["mc"].progress}
+                    message="Đang nén và chuyển hóa video lên CDN..."
+                  />
+                )}
+
+                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1 pointer-events-none z-10">
                   <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
                     DEMO MC / LIVE
                   </span>

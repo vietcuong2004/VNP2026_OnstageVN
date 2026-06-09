@@ -473,7 +473,8 @@ export async function loadBrandCampaigns(fallback: Campaign[] = []) {
 
   try {
     const response = await apiJson<{ data: BackendCampaign[] }>("/campaigns");
-    return (response.data ?? []).map(mapBackendCampaign);
+    const items = (response.data ?? []).map(mapBackendCampaign);
+    return items.length > 0 ? items : fallback;
   } catch (error) {
     console.warn("Cannot load brand campaigns", error);
     return fallback;
@@ -531,7 +532,8 @@ export async function loadBrandTalents(fallback: TalentProfile[] = []) {
 
   try {
     const response = await apiJson<{ data: BackendProfile[] }>("/talents?per_page=100&sort=match");
-    return (response.data ?? []).map((profile, index) => mapBackendTalent(profile, fallback[index]));
+    const items = (response.data ?? []).map((profile, index) => mapBackendTalent(profile, fallback[index]));
+    return items.length > 0 ? items : fallback;
   } catch (error) {
     console.warn("Cannot load brand talents", error);
     return fallback;

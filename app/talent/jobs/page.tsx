@@ -649,7 +649,7 @@ export default function JobsPage() {
                           onClick={() => handleUpdateStage(camp.id, "executing")}
                           className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] cursor-pointer"
                         >
-                          Bắt đầu diễn show
+                          Bắt đầu tham gia
                         </button>
                       );
                     }
@@ -924,7 +924,7 @@ export default function JobsPage() {
                       onClick={() => handleUpdateStage(selectedJob.id, "executing")}
                       className="px-6 py-2.5 rounded-xl font-display text-xs font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] cursor-pointer"
                     >
-                      Bắt đầu diễn show
+                      Bắt đầu tham gia
                     </button>
                   );
                 }
