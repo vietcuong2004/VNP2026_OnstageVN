@@ -69,14 +69,13 @@ graph TD
 
 ---
 
-### Bước 3: Chia Sẻ Affiliate Link (Mở Rộng Tuyển Dụng Brand)
-* **Cơ Chế**: Mỗi Manager có một **Affiliate Link** duy nhất: `onstage.vn/ref/mgr-xxx`.
+### Bước 3: Chia Sẻ Affiliate Link (Mở Rộng Tuyển Dụng Talent — F1)
+* **Cơ Chế**: Mỗi Brand (Manager) sở hữu một **Affiliate Link** tuyển dụng duy nhất: `onstage.vn/ref/mgr-xxx`.
 * **Cách Hoạt Động**:
-  1. Brand chia sẻ link này cho các Brand đối tác hoặc Agency đối tác.
-  2. Brand đối tác nhấp vào link, đăng ký tài khoản Brand mới trên OnStage.
-  3. Khi Brand mới này tạo và thanh toán **Booking đầu tiên** trên hệ thống, Brand sẽ nhận **Bonus Affiliate 3%** từ ngân sách booking đó.
-* **Ví Dụ**: Brand đối tác đăng ký qua link của Brand và book KOL đầu tiên với ngân sách **50.000.000đ**. Brand nhận ngay hoa hồng giới thiệu:
-  $$\text{Bonus Affiliate} = 50.000.000đ \times 3\% = 1.500.000đ$$
+  1. Brand chia sẻ link này cho các Talent (KOL/KOC) tiềm năng qua các nền tảng mạng xã hội, tin nhắn trực tiếp hoặc email.
+  2. Talent nhấp vào link, thực hiện đăng ký tài khoản Talent mới trên hệ thống OnStage.
+  3. Sau khi Talent hoàn tất đăng ký, hệ thống tự động kết nối và thêm Talent này vào danh sách **Roster (F1)** của Brand mà không cần thực hiện thêm bước gửi lời mời thủ công trong ứng dụng.
+* **Ý Nghĩa**: Giúp Brand nhanh chóng tuyển dụng và phát triển mạng lưới Talent F1 độc quyền để nhận **10% hoa hồng** từ các job họ hoàn thành sau này.
 
 ---
 
@@ -94,7 +93,7 @@ graph TD
 ---
 
 ### Bước 5: Đối Soát Số Dư & Rút Tiền (Payout)
-1. **Cập Nhật Số Dư**: Tất cả các khoản hoa hồng (F1 Roster, F2 MLM, Affiliate Brand) được cộng dồn thời gian thực (Real-time) vào ví quản lý của Brand tại mục **Số dư khả dụng**.
+1. **Cập Nhật Số Dư**: Tất cả các khoản hoa hồng (F1 Roster, F2 MLM, F3 MLM) được cộng dồn thời gian thực (Real-time) vào ví quản lý của Brand tại mục **Số dư khả dụng**.
 2. **Yêu Cầu Thanh Toán**: Bấm nút **"Rút tiền về ví"** trên dashboard.
 3. **Chuyển Khoản**: Hệ thống tự động phê duyệt và chuyển tiền về tài khoản ngân hàng liên kết của Brand (ví dụ: Techcombank) và cập nhật giao dịch vào bảng **Lịch sử thanh toán** ở trạng thái "Thành công".
 
@@ -104,7 +103,6 @@ graph TD
 
 | Loại Hoa Hồng | Tỷ Lệ | Cơ Sở Tính | Người Chi Trả | Tần Suất Nhận |
 | :--- | :---: | :--- | :--- | :--- |
-| **F1 (Roster Jobs)** | **10%** | Ngân sách Booking của KOL trong Roster | Brand Thuê KOL | Mỗi khi KOL hoàn thành Job |
-| **Affiliate Brand** | **3%** | Giá trị Booking đầu tiên của Brand được giới thiệu | Nền tảng trích trả | 1 lần duy nhất trên mỗi Brand mới |
-| **F2 MLM (Thụ động)** | **5%** | Ngân sách Booking của KOL F2 | Brand Thuê KOL F2 | Mỗi khi KOL F2 hoàn thành Job |
-| **F3 MLM (Thụ động)** | **2%** | Ngân sách Booking của KOL F3 | Brand Thuê KOL F3 | Mỗi khi KOL F3 hoàn thành Job |
+| **F1 (Roster Jobs)** | **10%** | Ngân sách Booking của KOL F1 trong Roster | Nhãn hàng book KOL F1 | Mỗi khi KOL F1 hoàn thành Job |
+| **F2 MLM (Thụ động)** | **5%** | Ngân sách Booking của KOL F2 | Nhãn hàng book KOL F2 | Mỗi khi KOL F2 hoàn thành Job |
+| **F3 MLM (Thụ động)** | **2%** | Ngân sách Booking của KOL F3 | Nhãn hàng book KOL F3 | Mỗi khi KOL F3 hoàn thành Job |

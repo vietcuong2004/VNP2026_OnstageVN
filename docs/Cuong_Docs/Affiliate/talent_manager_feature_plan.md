@@ -38,21 +38,19 @@ BRAND MANAGER FLOW
      → Nhắn tin nhóm hoặc cá nhân
      → Giao chiến dịch/Assign KOL vào chiến dịch nhanh (không cần KOL apply)
 
-[4] GIỚI THIỆU AFFILIATE (Referral/Affiliate Link)
-     Brand/Manager có một Affiliate Link cá nhân
-     → Share link cho các Brand đối tác hoặc nhãn hàng thân thiết
-     → Brand khác đăng ký qua link → đặt booking KOL
-     → Brand/Manager nhận hoa hồng % từ giá trị booking đó (F1 commission)
-     → Nếu Brand đó tiếp tục giới thiệu Brand khác → nhận F2
+[4] TUYỂN DỤNG TALENT QUA LINK AFFILIATE
+     Brand/Manager có một Affiliate Link tuyển dụng cá nhân
+     → Chia sẻ link cho các Talent (KOL/KOC) tiềm năng
+     → Talent đăng ký qua link → tự động tham gia vào Roster (F1) của Brand
+     → Brand nhận 10% hoa hồng trực tiếp từ thù lao booking mà Talent F1 thực hiện
      
      Ngoài ra, mỗi KOL trong roster của Brand cũng có Referral Code
-     → KOL mời KOL khác → Brand (upline) nhận commission thụ động
+     → KOL mời KOL khác → Brand (upline) nhận hoa hồng thụ động (F2: 5%, F3: 2%)
 
 [5] NHẬN HOA HỒNG
      Brand Dashboard > Doanh thu & Affiliate
-     → Hoa hồng từ Job do KOL trong Roster thực hiện: 10%
-     → Hoa hồng từ Brand đăng ký qua Affiliate Link của mình
-     → Hoa hồng thụ động từ tuyến dưới của các KOL
+     → Hoa hồng từ Job do KOL trong Roster thực hiện (F1 Roster Jobs): 10%
+     → Hoa hồng thụ động từ tuyến dưới của các KOL (F2 & F3 MLM)
      → Tổng ví: Số dư khả dụng + Rút tiền trực tiếp
 ```
 
@@ -79,9 +77,8 @@ BRAND MANAGER FLOW
 ### Tab 4: 💰 Doanh thu & Affiliate
 - **Revenue Summary**: Tổng thu theo tháng / quý / năm
 - **Commission Breakdown**:
-  - F1 (Roster Jobs): Hoa hồng 10% từ các Job KOL Roster thực hiện
-  - Affiliate (Brand): Hoa hồng từ Brand đăng ký qua link của Manager
-  - Passive (MLM): Hoa hồng thụ động từ tuyến dưới KOL
+  - F1 (Roster Jobs): Hoa hồng 10% từ các Job KOL Roster thực hiện (tuyển trực tiếp hoặc qua Link Affiliate)
+  - Passive (MLM): Hoa hồng thụ động từ tuyến dưới KOL (F2: 5%, F3: 2%)
 - **Affiliate Link** cá nhân của Manager (copy/share)
 - **Network Tree**: Sơ đồ mạng lưới (KOL → KOL → Brand)
 - **Payout History**: Lịch sử thanh toán
@@ -102,9 +99,6 @@ Brand đặt booking KOL A (thù lao: 10.000.000đ)
 ├── KOL A nhận (F1): 75% → 7.500.000đ  
 ├── Brand Manager của KOL A (F0): 10% → 1.000.000đ ← BIG WIN
 └── Upline của Manager (F2): 5% → 500.000đ
-
-Cộng thêm nếu Brand này đến qua Affiliate Link của Manager:
-└── Bonus Affiliate: thêm 3% của giá trị booking đầu tiên
 ```
 
 ---
@@ -128,11 +122,10 @@ Cộng thêm nếu Brand này đến qua Affiliate Link của Manager:
 ┌─────────────────────────────────────────────┐
 │ 💰 DOANH THU THÁNG 06/2026                  │
 │                                             │
-│ F0 (Roster Jobs)     24.500.000đ  ████████ │
-│ Affiliate (Brands)    8.200.000đ  ████     │
+│ F1 (Roster Jobs)     24.500.000đ  ████████ │
 │ Passive MLM           3.100.000đ  ██       │
 │ ─────────────────────────────────────────── │
-│ TỔNG                 35.800.000đ            │
+│ TỔNG                 27.600.000đ            │
 │                                             │
 │ 🔗 Affiliate Link: onstage.vn/ref/mgr-xxx  │
 │ [Copy] [Share QR] [Xem Network Tree]        │
@@ -148,7 +141,7 @@ Cộng thêm nếu Brand này đến qua Affiliate Link của Manager:
 | 🔥 P1 | Roster KOL + Trạng thái | Core feature, dễ build |
 | 🔥 P1 | Quick-assign KOL vào Campaign | Tích hợp với campaigns đã có |
 | 🔥 P1 | Revenue Dashboard (tổng hợp) | Show business value |
-| 🟡 P2 | Affiliate Link + Hoa hồng Brand | Cần backend support |
+| 🟡 P2 | Affiliate Link + Tuyển dụng Talent | Cần backend support |
 | 🟡 P2 | Availability Calendar | UX nice-to-have |
 | 🟢 P3 | Network Tree (D3.js) | Complex, dùng sau |
 | 🟢 P3 | Agency Package (gộp KOL) | Future feature |

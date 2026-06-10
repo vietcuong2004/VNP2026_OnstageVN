@@ -58,6 +58,7 @@ export type CampaignTalent = {
   talentId: string;
   stage: CampaignStage;
   note: string;
+  referredByTalentId?: string; // ID of the KOL who invited them to this campaign
 };
 
 export type CampaignSponsorship = {
@@ -423,8 +424,8 @@ export const campaigns: Campaign[] = [
     applicants: [
       { talentId: "tal-1", stage: "accepted", note: "Phù hợp beauty livestream" },
       { talentId: "tal-3", stage: "new", note: "Cần kiểm tra lịch quay" },
-      { talentId: "tal-4", stage: "new", note: "Backup PG hỗ trợ set quay" },
-      { talentId: "tal-5", stage: "completed", note: "Đã check-in & hoàn thành buổi diễn, chờ brand nghiệm thu" },
+      { talentId: "tal-4", stage: "new", note: "Backup PG hỗ trợ set quay", referredByTalentId: "tal-1" },
+      { talentId: "tal-5", stage: "completed", note: "Đã check-in & hoàn thành buổi diễn, chờ brand nghiệm thu", referredByTalentId: "tal-3" },
     ],
     contactRequests: 2,
     views: 420,

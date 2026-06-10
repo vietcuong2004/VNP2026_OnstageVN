@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import {
-  BarChart3, Users2, Link2, Network, Wallet, ArrowUpRight, Check, Copy, Sparkles,
-  Calendar, QrCode, GitMerge
+  BarChart3, Users2, Link2, Network, Wallet, ArrowUpRight, Check, Copy,
+  Calendar, QrCode
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RosterTalent } from "./roster-tab";
@@ -11,7 +11,6 @@ import { RosterTalent } from "./roster-tab";
 interface RevenueTabProps {
   roster: RosterTalent[];
   totalF1Commission: number;
-  affiliateBrandBonus: number;
   passiveMLM: number;
   totalRevenue: number;
   affiliateLink: string;
@@ -23,7 +22,6 @@ interface RevenueTabProps {
 export default function RevenueTab({
   roster,
   totalF1Commission,
-  affiliateBrandBonus,
   passiveMLM,
   totalRevenue,
   affiliateLink,
@@ -40,9 +38,8 @@ export default function RevenueTab({
   const multiplier = timeframe === "month" ? 1 : timeframe === "quarter" ? 3.2 : 12.5;
 
   const displayF1Commission = totalF1Commission * multiplier;
-  const displayBrandBonus = affiliateBrandBonus * multiplier;
   const displayPassiveMLM = passiveMLM * multiplier;
-  const displayTotalRevenue = displayF1Commission + displayBrandBonus + displayPassiveMLM;
+  const displayTotalRevenue = displayF1Commission + displayPassiveMLM;
 
   return (
     <div className="space-y-6">
@@ -84,8 +81,8 @@ export default function RevenueTab({
             <div className="space-y-5">
               {[
                 {
-                  label: "Hoa hồng F1 (Roster Jobs)",
-                  sublabel: `Nhận 10% từ các booking của ${acceptedRoster.length} Talent trong Roster`,
+                  label: "Hoa hồng F1 (Talent hợp tác)",
+                  sublabel: `Nhận 10% từ các booking của ${acceptedRoster.length} Talent hợp tác`,
                   value: displayF1Commission,
                   barWidth: Math.round((displayF1Commission / displayTotalRevenue) * 100) || 0,
                   color: "bg-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.3)]",
@@ -93,17 +90,8 @@ export default function RevenueTab({
                   icon: Users2,
                 },
                 {
-                  label: "Affiliate (Brand Referral)",
-                  sublabel: "Hoa hồng giới thiệu các đối tác thương hiệu mới đăng ký",
-                  value: displayBrandBonus,
-                  barWidth: Math.round((displayBrandBonus / displayTotalRevenue) * 100) || 0,
-                  color: "bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]",
-                  textColor: "text-yellow-400",
-                  icon: Link2,
-                },
-                {
                   label: "Hoa hồng thụ động (MLM)",
-                  sublabel: "F2 nhận hoa hồng 5% từ tuyến dưới của Talent trong Roster của Brand",
+                  sublabel: "F2 nhận hoa hồng 5% từ tuyến dưới của Talent trong mạng lưới của Brand",
                   value: displayPassiveMLM,
                   barWidth: Math.round((displayPassiveMLM / displayTotalRevenue) * 100) || 0,
                   color: "bg-amber-300 shadow-[0_0_10px_rgba(252,211,77,0.3)]",
@@ -194,7 +182,7 @@ export default function RevenueTab({
                 <Wallet className="h-5 w-5 text-amber-400" />
               </div>
               <div>
-                <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Số dư khả dụng rút</p>
+                <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Số dư khả dụng </p>
                 <p className="text-xl font-black text-amber-400 font-mono tracking-tight mt-0.5">
                   {formatVND(Math.round(displayTotalRevenue * 0.72))}
                 </p>
@@ -213,7 +201,7 @@ export default function RevenueTab({
               </div>
               <div>
                 <h2 className="text-sm font-black text-white uppercase tracking-wider">Affiliate Link</h2>
-                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Mời đối tác mới đăng ký — nhận hoa hồng MLM</p>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Chia sẻ link để tuyển dụng Talent tham gia mạng lưới của Brand</p>
               </div>
             </div>
 
@@ -287,177 +275,6 @@ export default function RevenueTab({
             </div>
           </div>
         </div>
-      </div>
-
-      {/* ── Network Tree (Sơ đồ mạng lưới MLM) ── */}
-      <div className="rounded-2xl bg-[#08090f] border border-[#151b2d] p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-              <GitMerge className="h-4.5 w-4.5 text-amber-400" /> Sơ đồ mạng lưới liên kết (Network Tree)
-            </h2>
-            <p className="text-[10px] text-slate-500 font-semibold mt-1">Mạng lưới kết nối trực tiếp F1 & gián tiếp F2</p>
-          </div>
-          <span className="text-[9px] font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-            F1: 10% | F2: 5%
-          </span>
-        </div>
-
-        {/* Tree visual diagram block - 100% Responsive HTML/CSS */}
-        <div className="p-6 bg-[#050711]/60 border border-[#151b2d] rounded-2xl overflow-x-auto">
-          <div className="min-w-[650px] flex flex-col items-center">
-
-            {/* Level 0: You (Manager) */}
-            <div className="flex flex-col items-center">
-              <div className="relative rounded-2xl bg-gradient-to-r from-amber-450 to-yellow-500 p-[1.5px] shadow-[0_0_20px_rgba(245,158,11,0.25)]">
-                <div className="rounded-[14px] bg-[#050711] px-5 py-3 text-center min-w-[150px]">
-                  <span className="rounded bg-amber-450/15 border border-amber-400/30 px-2 py-0.5 text-[8px] font-black uppercase text-amber-300 tracking-wider">
-                    Brand (Manager F0)
-                  </span>
-                  <p className="text-xs font-black text-white mt-1.5">L'Oréal Vietnam</p>
-                  <p className="text-[10px] text-amber-400 font-mono font-black mt-1">{formatVND(displayTotalRevenue)}</p>
-                </div>
-              </div>
-
-              {/* Vertical line going down from Parent */}
-              <div className="h-6 w-0.5 bg-amber-500/40" />
-            </div>
-
-            {/* Level 1: Horizontal Connector Bar using absolute borders */}
-            <div className="w-full flex relative h-[1px]">
-              {/* Left half of first card to center */}
-              <div className="w-1/3 relative">
-                <div className="absolute top-0 right-0 left-1/2 border-t border-amber-500/40" />
-              </div>
-              {/* Center card span */}
-              <div className="w-1/3 relative">
-                <div className="absolute top-0 left-0 right-0 border-t border-amber-500/40" />
-              </div>
-              {/* Center to right half of last card */}
-              <div className="w-1/3 relative">
-                <div className="absolute top-0 left-0 right-1/2 border-t border-amber-500/40" />
-              </div>
-            </div>
-
-            {/* Level 1: F1 Talents */}
-            <div className="grid grid-cols-3 gap-6 w-full text-center">
-
-              {/* Node F1.1: Nguyễn Mai Anh */}
-              <div className="flex flex-col items-center">
-                {/* Vertical line down from horizontal connector */}
-                <div className="h-6 w-0.5 bg-amber-500/40" />
-
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3.5 min-w-[140px] text-center hover:border-amber-500/50 hover:bg-amber-500/10 transition-all shadow-[0_4px_12px_rgba(245,158,11,0.03)]">
-                  <span className="block text-[8px] font-black text-amber-400 uppercase tracking-widest">KOL F1</span>
-                  <span className="text-xs font-bold text-white block mt-1">Nguyễn Mai Anh</span>
-                  <span className="text-[9px] font-mono text-slate-400 font-bold mt-1 block">Đã nhận: 2.4Mđ</span>
-                </div>
-
-                {/* Vertical line down to F2 */}
-                <div className="h-6 w-0.5 bg-amber-500/30" />
-
-                {/* Level 2: Horizontal Connector Bar for F2 */}
-                <div className="w-full flex relative h-[1px]">
-                  <div className="w-1/2 relative">
-                    <div className="absolute top-0 right-0 left-1/2 border-t border-amber-500/30" />
-                  </div>
-                  <div className="w-1/2 relative">
-                    <div className="absolute top-0 left-0 right-1/2 border-t border-amber-500/30" />
-                  </div>
-                </div>
-
-                {/* Level 2 children nodes */}
-                <div className="grid grid-cols-2 gap-3 w-full">
-                  <div className="flex flex-col items-center">
-                    <div className="h-4 w-0.5 bg-amber-500/30" />
-                    <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-2 text-center min-w-[85px] hover:border-amber-500/40 transition-colors">
-                      <span className="text-[9px] text-amber-300 font-black block">Lê Mai (F2)</span>
-                      <span className="text-[8px] text-slate-500 font-mono font-bold uppercase tracking-wider block mt-0.5">5% MLM</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center">
-                    <div className="h-4 w-0.5 bg-amber-500/30" />
-                    <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-2 text-center min-w-[85px] hover:border-amber-500/40 transition-colors">
-                      <span className="text-[9px] text-amber-300 font-black block">Hoàng Nam (F2)</span>
-                      <span className="text-[8px] text-slate-500 font-mono font-bold uppercase tracking-wider block mt-0.5">5% MLM</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Node F1.2: Khánh Linh */}
-              <div className="flex flex-col items-center">
-                {/* Vertical line down from horizontal connector */}
-                <div className="h-6 w-0.5 bg-amber-500/40" />
-
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3.5 min-w-[140px] text-center hover:border-amber-500/50 hover:bg-amber-500/10 transition-all shadow-[0_4px_12px_rgba(245,158,11,0.03)]">
-                  <span className="block text-[8px] font-black text-amber-400 uppercase tracking-widest">KOL F1</span>
-                  <span className="text-xs font-bold text-white block mt-1">Khánh Linh</span>
-                  <span className="text-[9px] font-mono text-slate-400 font-bold mt-1 block">Đã nhận: 1.8Mđ</span>
-                </div>
-
-                {/* Vertical line down to F2 (Single child) */}
-                <div className="h-6 w-0.5 bg-amber-500/30" />
-
-                <div className="flex flex-col items-center">
-                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-2 text-center min-w-[90px] hover:border-amber-500/40 transition-colors">
-                    <span className="text-[9px] text-amber-300 font-black block">Trần Tiến (F2)</span>
-                    <span className="text-[8px] text-slate-500 font-mono font-bold uppercase tracking-wider block mt-0.5">5% MLM</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Node F1.3: Bảo Nguyễn */}
-              <div className="flex flex-col items-center">
-                {/* Vertical line down from horizontal connector */}
-                <div className="h-6 w-0.5 bg-amber-500/40" />
-
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3.5 min-w-[140px] text-center hover:border-amber-500/50 hover:bg-amber-500/10 transition-all shadow-[0_4px_12px_rgba(245,158,11,0.03)]">
-                  <span className="block text-[8px] font-black text-amber-400 uppercase tracking-widest">KOL F1</span>
-                  <span className="text-xs font-bold text-white block mt-1">Bảo Nguyễn</span>
-                  <span className="text-[9px] font-mono text-slate-400 font-bold mt-1 block">Đã nhận: 950Kđ</span>
-                </div>
-
-                {/* Vertical line down to F2 (Single child) */}
-                <div className="h-6 w-0.5 bg-amber-500/30" />
-
-                <div className="flex flex-col items-center">
-                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-2 text-center min-w-[90px] hover:border-amber-500/40 transition-colors">
-                    <span className="text-[9px] text-amber-300 font-black block">Kiều Anh (F2)</span>
-                    <span className="text-[8px] text-slate-500 font-mono font-bold uppercase tracking-wider block mt-0.5">5% MLM</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Commission Model Info Card ── */}
-      <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 p-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
-        <h3 className="text-xs font-black text-amber-300 uppercase tracking-widest mb-4 flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-amber-300" /> Mô hình phân phối dòng tiền hoa hồng
-        </h3>
-        <div className="grid grid-cols-4 gap-3 text-center">
-          {[
-            { label: "Platform", pct: "15%", desc: "Phí vận hành hệ thống & ký quỹ bảo chứng", color: "text-slate-400" },
-            { label: "KOL (F1)", pct: "75%", desc: "Nhận thù lao booking trực tiếp", color: "text-emerald-400" },
-            { label: "Manager (F0)", pct: "10%", desc: "Hoa hồng quản lý & chiết khấu", color: "text-amber-400" },
-            { label: "Upline (F2)", pct: "5%", desc: "Hoa hồng thụ động tuyến trên giới thiệu", color: "text-amber-300" },
-          ].map((item) => (
-            <div key={item.label} className="rounded-xl bg-[#050711]/90 border border-amber-500/10 p-3.5 hover:border-amber-500/30 transition-colors">
-              <p className={cn("text-2xl font-black font-mono", item.color)}>{item.pct}</p>
-              <p className="text-[10px] text-white font-bold mt-1 uppercase tracking-wider">{item.label}</p>
-              <p className="text-[8.5px] text-slate-500 mt-0.5 leading-normal">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-        <p className="text-[10px] text-slate-400 mt-4 text-center font-bold uppercase tracking-wider bg-[#050711]/60 py-2.5 rounded-lg border border-[#151b2d]">
-          Ví dụ: Booking thù lao 10.000.000đ → Brand nhận <span className="text-amber-400 font-black font-mono">1.000.000đ</span> (10% F0) → Upline của Brand nhận <span className="text-amber-400 font-black font-mono">500.000đ</span> (5% F2)
-        </p>
       </div>
     </div>
   );

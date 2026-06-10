@@ -40,9 +40,9 @@ export default function RosterTab({
       {roster.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl border border-dashed border-white/5 bg-[#08090f]/40">
           <Users2 className="h-12 w-12 text-slate-700 mb-4 animate-pulse" />
-          <p className="text-slate-400 font-black text-sm uppercase tracking-wider">Roster trống</p>
+          <p className="text-slate-400 font-black text-sm uppercase tracking-wider">Danh sách hợp tác trống</p>
           <p className="text-slate-500 text-xs mt-1 max-w-sm">
-            Brand chưa mời Talent nào vào đội ngũ quản lý. Hãy bắt đầu xây dựng roster ngay.
+            Brand chưa mời Talent nào vào đội ngũ quản lý. Hãy bắt đầu xây dựng danh sách hợp tác ngay.
           </p>
           <button
             onClick={() => setShowInviteModal(true)}
