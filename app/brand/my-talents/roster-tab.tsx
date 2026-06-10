@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 export type RosterStatus = "accepted" | "pending" | "declined";
 
 export interface RosterTalent {
+  rosterId?: string;
   talentId: string;
   status: RosterStatus;
   addedAt: string;
