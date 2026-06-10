@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
+import {
   Share2, Sparkles, CheckCircle, AlertCircle, Copy, Check, Info,
   TrendingUp, Users2, DollarSign, ArrowUpRight, Trophy, Briefcase, Award, ShieldCheck, HelpCircle
 } from "lucide-react";
@@ -51,7 +51,7 @@ export default function TalentAffiliatePage() {
           console.error("Failed to parse campaigns:", e);
         }
       }
-      
+
       // If empty or missing initial campaigns, merge
       if (loadedCampaigns.length === 0) {
         loadedCampaigns = [...initialCampaigns];
@@ -72,7 +72,7 @@ export default function TalentAffiliatePage() {
 
   // Filter campaigns where "tal-1" is in accepted, executing, completed, or confirmed stage
   useEffect(() => {
-    const active = campaigns.filter(c => 
+    const active = campaigns.filter(c =>
       c.applicants?.some(a => a.talentId === "tal-1" && ["accepted", "executing", "completed", "confirmed"].includes(a.stage))
     );
     setActiveCampaigns(active);
@@ -82,7 +82,7 @@ export default function TalentAffiliatePage() {
   const [joinedViaReferral, setJoinedViaReferral] = useState<Campaign[]>([]);
 
   useEffect(() => {
-    const joined = campaigns.filter(c => 
+    const joined = campaigns.filter(c =>
       c.applicants?.some(a => a.talentId === "tal-1" && a.referredByTalentId)
     );
     setJoinedViaReferral(joined);
@@ -112,7 +112,7 @@ export default function TalentAffiliatePage() {
       if (!urlStr.startsWith("http://") && !urlStr.startsWith("https://")) {
         urlStr = "https://" + urlStr;
       }
-      
+
       const urlObj = new URL(urlStr);
       const pathname = urlObj.pathname;
       const searchParams = urlObj.searchParams;
@@ -125,13 +125,13 @@ export default function TalentAffiliatePage() {
 
       const pathParts = pathname.split("/campaign/");
       const campaignPart = pathParts[pathParts.length - 1];
-      
-      let campaignId = campaignPart.split("-").slice(-2).join("-") === "camp-1" || 
-                       campaignPart.split("-").slice(-2).join("-") === "camp-2" || 
-                       campaignPart.split("-").slice(-2).join("-") === "camp-3" || 
-                       campaignPart.split("-").slice(-2).join("-") === "camp-4"
-                       ? campaignPart.split("-").slice(-2).join("-")
-                       : campaignPart.split("-").pop() || "";
+
+      let campaignId = campaignPart.split("-").slice(-2).join("-") === "camp-1" ||
+        campaignPart.split("-").slice(-2).join("-") === "camp-2" ||
+        campaignPart.split("-").slice(-2).join("-") === "camp-3" ||
+        campaignPart.split("-").slice(-2).join("-") === "camp-4"
+        ? campaignPart.split("-").slice(-2).join("-")
+        : campaignPart.split("-").pop() || "";
 
       if (campaignId === "c1") campaignId = "camp-1";
       if (campaignId === "c2") campaignId = "camp-2";
@@ -189,7 +189,7 @@ export default function TalentAffiliatePage() {
       window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(updatedCampaigns));
       setCampaigns(updatedCampaigns);
       setPastedUrl("");
-      
+
       const referrerTalent = talents.find(t => t.id === refId);
       const referrerName = referrerTalent ? referrerTalent.name : "KOL đối tác";
       addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
@@ -201,13 +201,13 @@ export default function TalentAffiliatePage() {
           const rightPart = parts[parts.length - 1];
           const cleanPart = rightPart.split("?")[0];
           const queryPart = rightPart.includes("?") ? rightPart.split("?")[1] : "";
-          
-          let campaignId = cleanPart.split("-").slice(-2).join("-") === "camp-1" || 
-                           cleanPart.split("-").slice(-2).join("-") === "camp-2" || 
-                           cleanPart.split("-").slice(-2).join("-") === "camp-3" || 
-                           cleanPart.split("-").slice(-2).join("-") === "camp-4"
-                           ? cleanPart.split("-").slice(-2).join("-")
-                           : cleanPart.split("-").pop() || "";
+
+          let campaignId = cleanPart.split("-").slice(-2).join("-") === "camp-1" ||
+            cleanPart.split("-").slice(-2).join("-") === "camp-2" ||
+            cleanPart.split("-").slice(-2).join("-") === "camp-3" ||
+            cleanPart.split("-").slice(-2).join("-") === "camp-4"
+            ? cleanPart.split("-").slice(-2).join("-")
+            : cleanPart.split("-").pop() || "";
 
           if (campaignId === "c1") campaignId = "camp-1";
           if (campaignId === "c2") campaignId = "camp-2";
@@ -268,14 +268,14 @@ export default function TalentAffiliatePage() {
           window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(updatedCampaigns));
           setCampaigns(updatedCampaigns);
           setPastedUrl("");
-          
+
           const referrerTalent = talents.find(t => t.id === refId);
           const referrerName = referrerTalent ? referrerTalent.name : "KOL đối tác";
           addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
           return;
         }
-      } catch (e) {}
-      
+      } catch (e) { }
+
       addToast("Đường dẫn không hợp lệ. Vui lòng kiểm tra lại.", "info");
     }
   };
@@ -300,11 +300,14 @@ export default function TalentAffiliatePage() {
   let totalExpectedPayout = 0;
 
   activeCampaigns.forEach(c => {
-    const rawBudget = c.budget || "10.000.000đ";
-    const cleanBudget = parseInt(rawBudget.replace(/[^0-9]/g, ""), 10) || 10000000;
+    const cleanBudget = c.budgetValue || (() => {
+      const rawBudget = c.budget || "10.000.000đ";
+      const firstPart = rawBudget.split("-")[0] || "";
+      return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
+    })();
     const poolVal = cleanBudget / (c.applicants?.length || 1);
     const f2Applicants = c.applicants?.filter(a => a.referredByTalentId === "tal-1") || [];
-    
+
     totalF2Referred += f2Applicants.length;
     // F1 receives 5% of F2's contract payout value (poolVal)
     totalExpectedPayout += f2Applicants.reduce((sum) => sum + (poolVal * 0.05), 0);
@@ -330,6 +333,187 @@ export default function TalentAffiliatePage() {
         <p className="text-xs text-slate-400 mt-1.5 max-w-2xl font-medium">
           Dành riêng cho KOL đối tác. Sử dụng link giới thiệu để mời các KOL khác (F2) tham gia chiến dịch. Nhận ngay hoa hồng quản lý <span className="text-amber-400 font-extrabold">5%</span> trên mỗi buổi biểu diễn/job của F2 khi chiến dịch được Brand quyết toán.
         </p>
+      </div>
+
+      {/* KHU VỰC THAM GIA & THEO DÕI F2 (NHẬN LINK NGƯỜI KHÁC) - TỐI ƯU MOBILE & ĐỒNG HÀNG */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* CỘT 1: THAM GIA QUA GIỚI THIỆU (FORM NHẬP LINK) */}
+        <div className="rounded-3xl border border-amber-500/15 bg-gradient-to-br from-[#0c0f1d] to-[#07080e] p-6 shadow-xl flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-amber-400 animate-pulse" />
+                Tham gia qua link giới thiệu
+              </h2>
+              <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                Dán đường dẫn Affiliate nhận từ đối tác (F1) để tham gia trực tiếp chiến dịch với vai trò F2 và nhận 70% cát-xê.
+              </p>
+            </div>
+
+            <form onSubmit={handleJoinCampaign} className="space-y-3 pt-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={pastedUrl}
+                  onChange={(e) => setPastedUrl(e.target.value)}
+                  placeholder="Dán link chiến dịch tại đây..."
+                  className="w-full bg-[#03050c] border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-650 focus:border-amber-500/40 focus:outline-none pr-10"
+                />
+                {pastedUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setPastedUrl("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-[10px] uppercase font-bold"
+                  >
+                    Xóa
+                  </button>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={!pastedUrl.trim()}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-slate-950 px-6 py-3 text-xs font-black uppercase tracking-wider transition-all hover:from-amber-300 hover:to-yellow-400 active:scale-[0.98] cursor-pointer"
+              >
+                Tham gia ngay <ArrowUpRight className="h-4 w-4 text-slate-950" />
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* CỘT 2-3: CHIẾN DỊCH THAM GIA QUA GIỚI THIỆU (BẢNG THEO DÕI) */}
+        <div className="lg:col-span-2 rounded-3xl border border-white/5 bg-[#08090f] p-6 shadow-xl flex flex-col justify-between relative overflow-hidden">
+          <div className="space-y-4 w-full">
+            <h3 className="text-xs font-black text-slate-350 uppercase tracking-widest flex items-center gap-2">
+              <Award className="h-4.5 w-4.5 text-amber-400" />
+              Chiến dịch tham gia qua giới thiệu (F2)
+            </h3>
+
+            {joinedViaReferral.length === 0 ? (
+              <div className="text-center py-10 rounded-2xl border border-dashed border-white/5 bg-[#08090f]/30 px-6">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Bạn chưa tham gia chiến dịch nào qua link giới thiệu
+                </p>
+                <p className="text-[9px] text-slate-600 mt-1.5 max-w-md mx-auto leading-relaxed">
+                  Nhập link Affiliate nhận từ đồng nghiệp ở ô giới thiệu bên cạnh để đăng ký và theo dõi trạng thái công việc tại đây.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Desktop view (Table) - Hidden on Mobile */}
+                <div className="hidden md:block overflow-hidden rounded-2xl border border-white/5 bg-[#050711]/60 shadow-lg">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b border-[#151b2d] bg-[#050711]/90 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                          <th className="p-4">Chiến dịch</th>
+                          <th className="p-4">KOL giới thiệu (F1)</th>
+                          <th className="p-4 text-right">Cát-xê của bạn (70%)</th>
+                          <th className="p-4 text-center">Trạng thái</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {joinedViaReferral.map((c, idx) => {
+                          const applicantInfo = c.applicants?.find(a => a.talentId === "tal-1");
+                          const referrerId = applicantInfo?.referredByTalentId || "";
+                          const referrerTalent = talents.find(t => t.id === referrerId);
+                          const referrerName = referrerTalent ? referrerTalent.name : `KOL #${referrerId.split("-")[1] || idx}`;
+                          const referrerAvatar = referrerTalent?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80";
+
+                          const cleanBudget = c.budgetValue || (() => {
+                            const rawBudget = c.budget || "10.000.000đ";
+                            const firstPart = rawBudget.split("-")[0] || "";
+                            return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
+                          })();
+                          const poolVal = cleanBudget / (c.applicants?.length || 1);
+                          const yourPayout = poolVal * 0.70;
+
+                          const stageKey = (applicantInfo?.stage || "new") as StageFilter;
+                          const colors = stageColors[stageKey] || stageColors.new;
+                          const statusLabelText = stageLabels[stageKey] || "Chờ duyệt";
+
+                          return (
+                            <tr key={c.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors">
+                              <td className="p-4">
+                                <span className="block font-bold text-white hover:text-amber-300 transition-colors cursor-pointer">{c.title}</span>
+                                <span className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">{c.jobType}</span>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-2">
+                                  <img src={referrerAvatar} alt={referrerName} className="h-6 w-6 rounded-full object-cover border border-white/10" />
+                                  <span className="font-semibold text-slate-350">{referrerName}</span>
+                                </div>
+                              </td>
+                              <td className="p-4 text-right font-mono font-black text-amber-400">
+                                {formatVND(yourPayout)}
+                              </td>
+                              <td className="p-4 text-center">
+                                <span className={cn("inline-flex items-center gap-1 text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded border", colors.text, colors.bg, colors.border)}>
+                                  <span className={cn("h-1.5 w-1.5 rounded-full", colors.dot)} />
+                                  {statusLabelText}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Mobile view (Card List) - Optimized for small screens */}
+                <div className="block md:hidden space-y-3">
+                  {joinedViaReferral.map((c, idx) => {
+                    const applicantInfo = c.applicants?.find(a => a.talentId === "tal-1");
+                    const referrerId = applicantInfo?.referredByTalentId || "";
+                    const referrerTalent = talents.find(t => t.id === referrerId);
+                    const referrerName = referrerTalent ? referrerTalent.name : `KOL #${referrerId.split("-")[1] || idx}`;
+                    const referrerAvatar = referrerTalent?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80";
+
+                    const cleanBudget = c.budgetValue || (() => {
+                      const rawBudget = c.budget || "10.000.000đ";
+                      const firstPart = rawBudget.split("-")[0] || "";
+                      return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
+                    })();
+                    const poolVal = cleanBudget / (c.applicants?.length || 1);
+                    const yourPayout = poolVal * 0.70;
+
+                    const stageKey = (applicantInfo?.stage || "new") as StageFilter;
+                    const colors = stageColors[stageKey] || stageColors.new;
+                    const statusLabelText = stageLabels[stageKey] || "Chờ duyệt";
+
+                    return (
+                      <div key={c.id} className="p-4 rounded-2xl border border-white/5 bg-[#050711]/60 space-y-3 shadow-md">
+                        <div className="flex justify-between items-start gap-2">
+                          <div>
+                            <span className="block font-bold text-white text-xs hover:text-amber-300 transition-colors cursor-pointer">{c.title}</span>
+                            <span className="inline-block text-[8px] text-slate-500 font-bold uppercase tracking-wider mt-0.5 bg-white/5 px-1.5 py-0.5 rounded">{c.jobType}</span>
+                          </div>
+                          <span className={cn("inline-flex items-center gap-1 text-[8px] font-black uppercase px-2 py-0.5 rounded border shrink-0", colors.text, colors.bg, colors.border)}>
+                            <span className={cn("h-1 w-1 rounded-full", colors.dot)} />
+                            {statusLabelText}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[10px] pt-2 border-t border-white/5">
+                          <div className="flex items-center gap-1.5 text-slate-400">
+                            <span>Người mời:</span>
+                            <img src={referrerAvatar} alt={referrerName} className="h-4 w-4 rounded-full object-cover border border-white/10" />
+                            <span className="font-semibold text-slate-350">{referrerName}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-slate-500 block text-[8px] font-bold uppercase">Cát-xê (70%)</span>
+                            <span className="font-mono font-black text-amber-400 text-xs">{formatVND(yourPayout)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* STATS SUMMARY BANNER */}
@@ -370,7 +554,7 @@ export default function TalentAffiliatePage() {
 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* LIST OF ACTIVE CAMPAIGNS (LEFT COLUMN - 2/3 width) */}
         <div className="lg:col-span-2 space-y-6">
           <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 border-b border-white/5 pb-2">
@@ -394,10 +578,13 @@ export default function TalentAffiliatePage() {
           ) : (
             <div className="space-y-6">
               {activeCampaigns.map(c => {
-                const rawBudget = c.budget || "10.000.000đ";
-                const cleanBudget = parseInt(rawBudget.replace(/[^0-9]/g, ""), 10) || 10000000;
+                const cleanBudget = c.budgetValue || (() => {
+                  const rawBudget = c.budget || "10.000.000đ";
+                  const firstPart = rawBudget.split("-")[0] || "";
+                  return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
+                })();
                 const poolVal = cleanBudget / (c.applicants?.length || 1);
-                
+
                 const f2Applicants = c.applicants?.filter(a => a.referredByTalentId === "tal-1") || [];
                 const expectedComm = f2Applicants.reduce((sum) => sum + (poolVal * 0.05), 0);
 
@@ -408,7 +595,7 @@ export default function TalentAffiliatePage() {
 
                 return (
                   <div key={c.id} className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#08090f] p-6 hover:border-amber-500/20 transition-all duration-300 shadow-lg space-y-5">
-                    
+
                     {/* Campaign Info Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-4">
                       <div>
@@ -440,8 +627,8 @@ export default function TalentAffiliatePage() {
                           onClick={() => handleCopyLink(c.id, referralUrl)}
                           className={cn(
                             "flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer active:scale-95",
-                            copiedId === c.id 
-                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" 
+                            copiedId === c.id
+                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                               : "bg-amber-400 text-slate-950 hover:bg-amber-300 border border-transparent shadow-[0_2px_10px_rgba(245,158,11,0.1)]"
                           )}
                         >
@@ -490,10 +677,10 @@ export default function TalentAffiliatePage() {
                             return (
                               <div key={idx} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-[#03050c]/50 border border-white/5 hover:border-white/10 transition-colors">
                                 <div className="flex items-center gap-3">
-                                  <img 
-                                    src={avatar} 
-                                    alt={name} 
-                                    className="h-8 w-8 rounded-lg object-cover border border-white/10" 
+                                  <img
+                                    src={avatar}
+                                    alt={name}
+                                    className="h-8 w-8 rounded-lg object-cover border border-white/10"
                                   />
                                   <div>
                                     <div className="flex items-center gap-2">
@@ -525,115 +712,11 @@ export default function TalentAffiliatePage() {
               })}
             </div>
           )}
-
-          {/* JOINED VIA REFERRAL CAMPAIGNS (F2 ROLE) */}
-          <div className="space-y-4 pt-2">
-            <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 border-b border-white/5 pb-2">
-              <Award className="h-4.5 w-4.5 text-amber-400 animate-none" /> Chiến dịch tham gia qua giới thiệu (F2)
-            </h2>
-
-            {joinedViaReferral.length === 0 ? (
-              <div className="text-center py-10 rounded-2xl border border-dashed border-white/5 bg-[#08090f]/30 px-6">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  Bạn chưa tham gia chiến dịch nào qua link giới thiệu
-                </p>
-                <p className="text-[9px] text-slate-600 mt-1.5 max-w-xs mx-auto leading-relaxed">
-                  Hãy nhập link Affiliate nhận được từ đồng nghiệp ở ô "Tham gia qua giới thiệu" để đăng ký tham gia chiến dịch của họ.
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-hidden rounded-2xl border border-white/5 bg-[#08090f] shadow-lg">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-[#151b2d] bg-[#050711]/60 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                        <th className="p-4">Chiến dịch</th>
-                        <th className="p-4">KOL giới thiệu (F1)</th>
-                        <th className="p-4 text-right">Cát-xê của bạn (70%)</th>
-                        <th className="p-4 text-center">Trạng thái</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {joinedViaReferral.map((c, idx) => {
-                        const applicantInfo = c.applicants?.find(a => a.talentId === "tal-1");
-                        const referrerId = applicantInfo?.referredByTalentId || "";
-                        const referrerTalent = talents.find(t => t.id === referrerId);
-                        const referrerName = referrerTalent ? referrerTalent.name : `KOL #${referrerId.split("-")[1] || idx}`;
-                        const referrerAvatar = referrerTalent?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80";
-                        
-                        const rawBudget = c.budget || "10.000.000đ";
-                        const cleanBudget = parseInt(rawBudget.replace(/[^0-9]/g, ""), 10) || 10000000;
-                        const poolVal = cleanBudget / (c.applicants?.length || 1);
-                        const yourPayout = poolVal * 0.70;
-
-                        const stageKey = (applicantInfo?.stage || "new") as StageFilter;
-                        const colors = stageColors[stageKey] || stageColors.new;
-                        const statusLabelText = stageLabels[stageKey] || "Chờ duyệt";
-
-                        return (
-                          <tr key={c.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors">
-                            <td className="p-4">
-                              <span className="block font-bold text-white hover:text-amber-300 transition-colors cursor-pointer">{c.title}</span>
-                              <span className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">{c.jobType}</span>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center gap-2">
-                                <img src={referrerAvatar} alt={referrerName} className="h-6 w-6 rounded-full object-cover border border-white/10" />
-                                <span className="font-semibold text-slate-350">{referrerName}</span>
-                              </div>
-                            </td>
-                            <td className="p-4 text-right font-mono font-black text-amber-400">
-                              {formatVND(yourPayout)}
-                            </td>
-                            <td className="p-4 text-center">
-                              <span className={cn("inline-flex items-center gap-1 text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded border", colors.text, colors.bg, colors.border)}>
-                                <span className={cn("h-1.5 w-1.5 rounded-full", colors.dot)} />
-                                {statusLabelText}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
 
         {/* COMMISSION POLICY / RULES (RIGHT COLUMN - 1/3 width) */}
         <div className="space-y-6">
-          
-          {/* JOIN CAMPAIGN VIA REFERRAL LINK */}
-          <div className="rounded-2xl border border-amber-500/10 bg-gradient-to-br from-[#0a0d1a] to-[#08090f] p-5 space-y-4 shadow-xl">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4.5 w-4.5 text-amber-400 animate-pulse" />
-              <h3 className="text-xs font-black text-white uppercase tracking-wider">
-                Tham gia qua giới thiệu
-              </h3>
-            </div>
-            <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
-              Bạn nhận được link Affiliate từ đồng nghiệp? Dán link vào đây để đăng ký trực tiếp và trở thành F2 của họ trong chiến dịch đó.
-            </p>
-            <form onSubmit={handleJoinCampaign} className="space-y-2.5">
-              <input
-                type="text"
-                value={pastedUrl}
-                onChange={(e) => setPastedUrl(e.target.value)}
-                placeholder="Dán link chiến dịch tại đây..."
-                className="w-full bg-[#03050c] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:border-amber-500/40 focus:outline-none transition-colors"
-              />
-              <button
-                type="submit"
-                disabled={!pastedUrl.trim()}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-slate-950 px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all hover:from-amber-300 hover:to-yellow-400 active:scale-[0.98] cursor-pointer"
-              >
-                Tham gia ngay <ArrowUpRight className="h-4 w-4 text-slate-950" />
-              </button>
-            </form>
-          </div>
 
           <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 border-b border-white/5 pb-2">
             <Info className="h-4.5 w-4.5 text-amber-400" /> Cơ chế & Chính sách
@@ -651,7 +734,7 @@ export default function TalentAffiliatePage() {
 
             {/* Visual breakdown bars */}
             <div className="space-y-3.5">
-              
+
               <div className="space-y-1">
                 <div className="flex justify-between text-[10px] font-bold">
                   <span className="text-slate-300">KOL F2 (Người thực hiện)</span>
