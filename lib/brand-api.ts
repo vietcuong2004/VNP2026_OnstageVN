@@ -76,6 +76,9 @@ type BackendSocialAccount = {
 
 type BackendCampaignTalent = {
   id?: number | string;
+  campaign_id?: number | string;
+  profile_id?: number | string;
+  referred_by_user_id?: number | string | null;
   status?: string | null;
   notes?: string | null;
   profile?: BackendProfile | null;
@@ -149,6 +152,70 @@ type BackendContactRequest = {
   created_at?: string | null;
 };
 
+export type BrandCommissionTransaction = {
+  id: number | string;
+  campaign_id?: number | string | null;
+  campaign_talent_id?: number | string | null;
+  commission_plan_id?: number | string | null;
+  source_type: "campaign_payout" | "referral" | "roster_management" | string;
+  talent_user_id?: number | string | null;
+  receiver_user_id?: number | string | null;
+  level: number;
+  rate: number;
+  base_amount: number;
+  amount: number;
+  calculation_base?: string | null;
+  status: "pending" | "approved" | "cancelled" | string;
+  metadata?: Record<string, unknown>;
+  calculated_at?: string | null;
+  campaign?: { id?: number | string | null; title?: string | null } | null;
+  commission_plan?: { id?: number | string | null; name?: string | null; type?: string | null } | null;
+  receiver?: { id?: number | string | null; name?: string | null; type?: string | null; external_avatar_url?: string | null } | null;
+  talent?: { id?: number | string | null; name?: string | null; type?: string | null; external_avatar_url?: string | null } | null;
+  campaign_talent?: {
+    id?: number | string | null;
+    profile_id?: number | string | null;
+    status?: string | null;
+    profile?: {
+      id?: number | string | null;
+      display_name?: string | null;
+      full_name?: string | null;
+      user?: { id?: number | string | null; name?: string | null; type?: string | null } | null;
+    } | null;
+  } | null;
+};
+
+export type BrandCampaignCommissionResponse = {
+  data: BrandCommissionTransaction[];
+  summary: {
+    total: number;
+    pending: number;
+    approved: number;
+    cancelled: number;
+    campaign_payout: number;
+    referral: number;
+    roster_management: number;
+    talent_gross: number;
+    roster_deduction: number;
+    talent_net: number;
+  };
+  platform_fee?: {
+    id?: number | string | null;
+    brand_user_id?: number | string | null;
+    campaign_id?: number | string | null;
+    platform_fee_plan_id?: number | string | null;
+    fee_type?: string | null;
+    base_amount: number;
+    rate: number;
+    amount: number;
+    status: "pending" | "approved" | "cancelled" | string;
+    brand_total_payable: number;
+    platform_fee_plan?: { id?: number | string | null; name?: string | null } | null;
+  } | null;
+  campaign?: { id?: number | string | null; title?: string | null };
+  updated_count?: number;
+};
+
 type CampaignForm = {
   title: string;
   jobType: string;
@@ -165,6 +232,9 @@ type CampaignForm = {
 };
 
 type CampaignTalentWithProfile = Campaign["applicants"][number] & {
+  id?: string;
+  profileId?: string;
+  referredByUserId?: string | null;
   talent?: Pick<TalentProfile, "id" | "name" | "type" | "avatar" | "matchScore">;
 };
 
@@ -327,6 +397,9 @@ function mapCampaignTalent(item: BackendCampaignTalent, index: number): Campaign
   const stage = mapTalentStage(item.status);
 
   return {
+    id: item.id ? String(item.id) : undefined,
+    profileId: profile?.id ? String(profile.id) : item.profile_id ? String(item.profile_id) : undefined,
+    referredByUserId: item.referred_by_user_id ? String(item.referred_by_user_id) : null,
     talentId: id,
     stage,
     note: item.notes || "",
@@ -669,6 +742,28 @@ export async function addTalentToBrandCampaign(campaignId: string, profileId: st
   return response.data;
 }
 
+export async function updateBrandCampaignTalent(
+  campaignId: string,
+  campaignTalentId: string,
+  payload: { status?: CampaignStage; notes?: string; referredByUserId?: string | null },
+) {
+  requireBrandSession();
+  if (!isBackendRecordId(campaignId) || !isBackendRecordId(campaignTalentId)) {
+    throw new Error("Ứng viên này đang là dữ liệu local, chưa có ID backend.");
+  }
+
+  const response = await apiJson<{ data: BackendCampaignTalent }>(`/campaigns/${campaignId}/talents/${campaignTalentId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      status: payload.status,
+      notes: payload.notes,
+      referred_by_user_id: payload.referredByUserId || null,
+    }),
+  });
+
+  return response.data;
+}
+
 export async function createBrandContactRequest(profileId: string, campaignId?: string, message?: string) {
   requireBrandSession();
 
@@ -691,4 +786,41 @@ export async function createBrandContactRequest(profileId: string, campaignId?: 
   });
 
   return response.data;
+}
+
+export async function loadBrandCampaignCommissions(campaignId: string) {
+  requireBrandSession();
+  if (!isBackendRecordId(campaignId)) throw new Error("Campaign này đang là dữ liệu local, chưa có ID backend.");
+
+  return apiJson<BrandCampaignCommissionResponse>(`/campaigns/${campaignId}/commission-transactions`);
+}
+
+export async function settleBrandCampaign(campaignId: string, settlementAmount: number) {
+  requireBrandSession();
+  if (!isBackendRecordId(campaignId)) throw new Error("Campaign này đang là dữ liệu local, chưa có ID backend.");
+
+  return apiJson<BrandCampaignCommissionResponse>(`/campaigns/${campaignId}/settle`, {
+    method: "POST",
+    body: JSON.stringify({
+      settlement_amount: Math.max(1, Math.round(settlementAmount)),
+    }),
+  });
+}
+
+export async function approveBrandCampaignCommissions(campaignId: string) {
+  requireBrandSession();
+  if (!isBackendRecordId(campaignId)) throw new Error("Campaign này đang là dữ liệu local, chưa có ID backend.");
+
+  return apiJson<BrandCampaignCommissionResponse>(`/campaigns/${campaignId}/commission-transactions/approve`, {
+    method: "POST",
+  });
+}
+
+export async function cancelBrandCampaignCommissions(campaignId: string) {
+  requireBrandSession();
+  if (!isBackendRecordId(campaignId)) throw new Error("Campaign này đang là dữ liệu local, chưa có ID backend.");
+
+  return apiJson<BrandCampaignCommissionResponse>(`/campaigns/${campaignId}/commission-transactions/cancel`, {
+    method: "POST",
+  });
 }

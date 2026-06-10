@@ -15,6 +15,18 @@ import {
   Plus,
 } from "lucide-react";
 import { campaigns as initialCampaigns, talents, type Campaign, type CampaignStage } from "@/lib/brand-mvp-data";
+import {
+  approveBrandCampaignCommissions,
+  closeBrandCampaign,
+  loadBrandCampaign,
+  loadBrandCampaignCommissions,
+  loadBrandTalents,
+  publishBrandCampaign,
+  settleBrandCampaign,
+  type BrandCampaignCommissionResponse,
+  type BrandCommissionTransaction,
+  updateBrandCampaignTalent,
+} from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 const stageLabels: Record<CampaignStage, string> = {
@@ -30,6 +42,52 @@ const getTalentStatus = (id: string) => {
   if (id === "tal-3") return "busy";
   return "maybe";
 };
+
+const DEFAULT_PLATFORM_FEE_RATE = 5;
+
+function isBackendRecordId(id?: string | number | null) {
+  return /^\d+$/.test(String(id || ""));
+}
+
+function backendStage(stage: CampaignStage) {
+  if (stage === "executing" || stage === "completed") return null;
+  return stage;
+}
+
+function moneyText(value: number) {
+  return `${Math.round(value).toLocaleString("vi-VN")} VND`;
+}
+
+function transactionRole(transaction: BrandCommissionTransaction) {
+  if (transaction.source_type === "campaign_payout") {
+    if (transaction.level === 1) return "Brand tổ chức";
+    return `Talent thực hiện${transaction.metadata?.eligible_talent_count ? ` (${transaction.metadata.eligible_talent_count} talent)` : ""}`;
+  }
+
+  if (transaction.source_type === "roster_management") return "Brand quản lý talent";
+
+  return `F${transaction.level}`;
+}
+
+function transactionRelatedTalent(transaction: BrandCommissionTransaction) {
+  return transaction.talent?.name
+    || transaction.campaign_talent?.profile?.display_name
+    || transaction.campaign_talent?.profile?.full_name
+    || transaction.campaign_talent?.profile?.user?.name
+    || "-";
+}
+
+function transactionRow(transaction: BrandCommissionTransaction) {
+  return {
+    role: transactionRole(transaction),
+    recipient: transaction.receiver?.name || "-",
+    relatedTalent: transactionRelatedTalent(transaction),
+    base: Number(transaction.base_amount) || 0,
+    rate: Number(transaction.rate) || 0,
+    amount: Number(transaction.amount) || 0,
+    status: transaction.status === "approved" ? "Đã duyệt" : transaction.status === "cancelled" ? "Đã hủy" : "Chờ duyệt",
+  };
+}
 
 
 function statusLabel(status: Campaign["status"]) {
@@ -84,12 +142,16 @@ export default function CampaignDetailPage() {
   const [reviewApplicant, setReviewApplicant] = useState<any>(null);
   const [isAddingStaff, setIsAddingStaff] = useState(false);
   const [isShowingPayoutModal, setIsShowingPayoutModal] = useState(false);
+  const [commissionData, setCommissionData] = useState<BrandCampaignCommissionResponse | null>(null);
+  const [isCommissionLoading, setIsCommissionLoading] = useState(false);
 
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [sentRequests, setSentRequests] = useState<Record<string, boolean>>({});
   const [displayTalents, setDisplayTalents] = useState<any[]>(talents);
 
   useEffect(() => {
+    let fallbackCampaigns = initialCampaigns;
+
     if (typeof window !== "undefined") {
       const storedCampaigns = window.localStorage.getItem("onstagevn_campaigns");
       if (storedCampaigns) {
@@ -101,8 +163,10 @@ export default function CampaignDetailPage() {
             const merged = [...parsed, ...missing];
             setCampaigns(merged);
             window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(merged));
+            fallbackCampaigns = merged;
           } else {
             setCampaigns(parsed);
+            fallbackCampaigns = parsed;
           }
         } catch (e) { }
       }
@@ -147,13 +211,106 @@ export default function CampaignDetailPage() {
         } catch (e) { }
       }
     }
-  }, []);
+
+    loadBrandTalents(talents).then(setDisplayTalents);
+    loadBrandCampaign(params.id, fallbackCampaigns).then((campaign) => {
+      if (!campaign) return;
+
+      setCampaigns((current) => {
+        const exists = current.some((item) => item.id === campaign.id);
+        const next = exists
+          ? current.map((item) => item.id === campaign.id ? campaign : item)
+          : [campaign, ...current];
+
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(next));
+        }
+
+        return next;
+      });
+    });
+  }, [params.id]);
 
   const selectedCampaign = useMemo(() => {
     return campaigns.find((c) => c.id === params.id);
   }, [campaigns, params.id]);
 
-  function updateCampaignStatus(id: string, status: Campaign["status"]) {
+  async function openPayoutModal() {
+    if (!selectedCampaign || !isBackendRecordId(selectedCampaign.id)) {
+      setIsShowingPayoutModal(true);
+      return;
+    }
+
+    setCommissionData(null);
+    setIsCommissionLoading(true);
+    try {
+      const data = await loadBrandCampaignCommissions(selectedCampaign.id);
+      if (data.data.length && data.summary.approved > 0) {
+        setCommissionData(data);
+        return;
+      }
+
+      const settled = await settleBrandCampaign(selectedCampaign.id, selectedCampaign.budgetValue || 20000000);
+      setCommissionData(settled);
+    } catch (error) {
+      console.warn("Cannot load campaign commission transactions", error);
+    } finally {
+      setIsShowingPayoutModal(true);
+      setIsCommissionLoading(false);
+    }
+  }
+
+  async function confirmCampaignDisbursement(totalBudget: number) {
+    if (!selectedCampaign || !isBackendRecordId(selectedCampaign.id)) {
+      window.alert(`Đã xác nhận giải ngân thành công tổng cộng ${moneyText(totalBudget)}!`);
+      setIsShowingPayoutModal(false);
+      return;
+    }
+
+    setIsCommissionLoading(true);
+    try {
+      const current = commissionData?.data?.length
+        ? commissionData
+        : await settleBrandCampaign(selectedCampaign.id, totalBudget);
+
+      setCommissionData(current);
+
+      const hasPending = current.data.some((transaction) => transaction.status === "pending");
+      const approved = hasPending
+        ? await approveBrandCampaignCommissions(selectedCampaign.id)
+        : current;
+
+      setCommissionData(approved);
+      window.alert(`Đã xác nhận giải ngân thành công tổng cộng ${moneyText(approved.summary.total)} cho ${approved.data.length} đối tượng nhận tiền!`);
+      setIsShowingPayoutModal(false);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể xác nhận giải ngân.");
+    } finally {
+      setIsCommissionLoading(false);
+    }
+  }
+
+  async function updateCampaignStatus(id: string, status: Campaign["status"]) {
+    if (isBackendRecordId(id) && (status === "published" || status === "closed")) {
+      try {
+        const updatedCampaign = status === "published"
+          ? await publishBrandCampaign(id)
+          : await closeBrandCampaign(id);
+
+        const nextCampaigns = campaigns.map((campaign) =>
+          campaign.id === id ? updatedCampaign : campaign
+        );
+        setCampaigns(nextCampaigns);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(nextCampaigns));
+        }
+        return;
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật trạng thái campaign.");
+        return;
+      }
+    }
+
     const nextCampaigns = campaigns.map((campaign) =>
       campaign.id === id ? { ...campaign, status } : campaign
     );
@@ -163,7 +320,24 @@ export default function CampaignDetailPage() {
     }
   }
 
-  function moveApplicant(campaignId: string, talentId: string, stage: CampaignStage) {
+  async function moveApplicant(campaignId: string, talentId: string, stage: CampaignStage) {
+    const campaign = campaigns.find((item) => item.id === campaignId);
+    const applicant = campaign?.applicants.find((item: any) => item.talentId === talentId);
+    const apiStage = backendStage(stage);
+
+    if (campaign && applicant && apiStage && isBackendRecordId(campaignId) && isBackendRecordId((applicant as any).id)) {
+      try {
+        await updateBrandCampaignTalent(campaignId, String((applicant as any).id), {
+          status: apiStage,
+          notes: applicant.note,
+          referredByUserId: (applicant as any).referredByUserId ?? null,
+        });
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật trạng thái ứng viên.");
+        return;
+      }
+    }
+
     const nextCampaigns = campaigns.map((campaign) => {
       if (campaign.id !== campaignId) return campaign;
       return {
@@ -215,11 +389,11 @@ export default function CampaignDetailPage() {
   async function addTalentToCampaignDirect(talentId: string) {
     if (!selectedCampaign) return;
 
-    const newApplicant = {
+    let newApplicant = {
       talentId,
       stage: "new" as CampaignStage,
       note: "Thêm trực tiếp bởi đối tác.",
-    };
+    } as Campaign["applicants"][number] & { id?: string };
 
     const isBackendCampaign = /^\d+$/.test(selectedCampaign.id);
     const isBackendTalent = /^\d+$/.test(talentId);
@@ -227,7 +401,13 @@ export default function CampaignDetailPage() {
     if (isBackendCampaign && isBackendTalent) {
       try {
         const { addTalentToBrandCampaign } = await import("@/lib/brand-api");
-        await addTalentToBrandCampaign(selectedCampaign.id, talentId, "Thêm trực tiếp bởi đối tác.");
+        const created = await addTalentToBrandCampaign(selectedCampaign.id, talentId, "Thêm trực tiếp bởi đối tác.");
+        newApplicant = {
+          ...newApplicant,
+          id: created.id ? String(created.id) : undefined,
+          stage: "new",
+          note: created.notes || newApplicant.note,
+        };
       } catch (e) {
         console.warn("Could not sync to backend DB:", e);
       }
@@ -319,7 +499,7 @@ export default function CampaignDetailPage() {
                 {selectedCampaign.status !== "closed" && (
                   <>
                     <button
-                      onClick={() => setIsShowingPayoutModal(true)}
+                      onClick={openPayoutModal}
                       className="flex h-10 items-center rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 px-4 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.2)]"
                     >
                       Xác nhận giải ngân
@@ -460,7 +640,7 @@ export default function CampaignDetailPage() {
             <div className="flex flex-wrap gap-3 pt-3.5 border-t border-white/5 justify-between items-center">
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => setIsShowingPayoutModal(true)}
+                  onClick={openPayoutModal}
                   className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
                 >
                   Xác nhận giải ngân
@@ -1149,7 +1329,7 @@ export default function CampaignDetailPage() {
                 const talentBase = totalBudget / N;
 
                 // 1. Chia tiền campaign rows
-                const campaignRows = [
+                let campaignRows = [
                   {
                     role: "Brand tổ chức",
                     recipient: "Nguyễn Ngọc Anh",
@@ -1247,9 +1427,34 @@ export default function CampaignDetailPage() {
                   }
                 }
 
-                const referralRows = [...f1Rows, ...f2Rows, ...f3Rows];
-                const allRows = [...campaignRows, ...referralRows];
-                const totalCalculatedPayout = allRows.reduce((sum, r) => sum + r.amount, 0);
+                let referralRows = [...f1Rows, ...f2Rows, ...f3Rows];
+                let rosterRows: typeof referralRows = [];
+
+                if (commissionData?.data?.length) {
+                  campaignRows = commissionData.data
+                    .filter((transaction) => transaction.source_type === "campaign_payout")
+                    .map(transactionRow);
+                  referralRows = commissionData.data
+                    .filter((transaction) => transaction.source_type === "referral")
+                    .map(transactionRow);
+                  rosterRows = commissionData.data
+                    .filter((transaction) => transaction.source_type === "roster_management")
+                    .map(transactionRow);
+                }
+
+                const allRows = [...campaignRows, ...referralRows, ...rosterRows];
+                const totalCalculatedPayout = commissionData?.data?.length
+                  ? commissionData.summary.total
+                  : allRows.reduce((sum, r) => sum + r.amount, 0);
+                const pendingPayout = commissionData?.data?.length
+                  ? commissionData.summary.pending
+                  : totalCalculatedPayout;
+                const shouldShowPlatformFee = Boolean(commissionData);
+                const platformFee = commissionData?.platform_fee;
+                const platformFeeRate = Number(platformFee?.rate || DEFAULT_PLATFORM_FEE_RATE);
+                const platformFeeBaseAmount = Number(platformFee?.base_amount || totalBudget);
+                const platformFeeAmount = Number(platformFee?.amount || Math.round(platformFeeBaseAmount * (platformFeeRate / 100)));
+                const brandTotalPayable = Number(platformFee?.brand_total_payable || totalBudget + platformFeeAmount);
 
                 return (
                   <div className="space-y-6">
@@ -1276,10 +1481,31 @@ export default function CampaignDetailPage() {
                       <div className="border-l border-white/5 pl-4">
                         <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Chờ duyệt</span>
                         <span className="text-xs font-black text-amber-400 mt-1 block font-mono">
-                          {Math.round(totalCalculatedPayout).toLocaleString("vi-VN")} VND
+                          {Math.round(pendingPayout).toLocaleString("vi-VN")} VND
                         </span>
                       </div>
                     </div>
+
+                    {shouldShowPlatformFee && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#0F1115]/60 border border-white/5 rounded-2xl p-5">
+                        <div>
+                          <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Phí sàn brand</span>
+                          <span className="text-xs font-black text-violet-300 mt-1 block font-mono">
+                            {Math.round(platformFeeAmount).toLocaleString("vi-VN")} VND
+                          </span>
+                        </div>
+                        <div className="border-l border-white/5 pl-4">
+                          <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Tỷ lệ phí sàn</span>
+                          <span className="text-xs font-black text-white mt-1 block font-mono">{platformFeeRate}%</span>
+                        </div>
+                        <div className="border-l border-white/5 pl-4">
+                          <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Brand cần thanh toán</span>
+                          <span className="text-xs font-black text-emerald-400 mt-1 block font-mono">
+                            {Math.round(brandTotalPayable).toLocaleString("vi-VN")} VND
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Table 1: Chia tiền campaign */}
                     <div className="space-y-2">
@@ -1361,6 +1587,47 @@ export default function CampaignDetailPage() {
                       </div>
                     </div>
 
+                    {rosterRows.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-violet-400" />
+                          Brand quản lý talent
+                        </h4>
+                        <div className="overflow-x-auto rounded-xl border border-white/5 bg-[#0F1115]/30">
+                          <table className="w-full text-left text-xs border-collapse font-medium">
+                            <thead>
+                              <tr className="border-b border-white/5 bg-slate-950/45 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                <th className="p-3">Vai trò/F</th>
+                                <th className="p-3">Người nhận</th>
+                                <th className="p-3">Talent liên quan</th>
+                                <th className="p-3">Cơ sở tính</th>
+                                <th className="p-3 text-center">Tỷ lệ</th>
+                                <th className="p-3 text-right">Số tiền</th>
+                                <th className="p-3 text-center">Trạng thái</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {rosterRows.map((row, idx) => (
+                                <tr key={idx} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                                  <td className="p-3 font-semibold text-violet-300">{row.role}</td>
+                                  <td className="p-3 font-bold text-white">{row.recipient}</td>
+                                  <td className="p-3 text-slate-400">{row.relatedTalent}</td>
+                                  <td className="p-3 font-mono text-slate-400">{Math.round(row.base).toLocaleString("vi-VN")} VND</td>
+                                  <td className="p-3 text-center font-bold text-violet-300">{row.rate}%</td>
+                                  <td className="p-3 text-right font-mono font-black text-white">{Math.round(row.amount).toLocaleString("vi-VN")} VND</td>
+                                  <td className="p-3 text-center">
+                                    <span className="inline-block rounded bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-400 uppercase tracking-wide">
+                                      {row.status}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Footer Actions inside Content */}
                     <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#151b2d]">
                       <button
@@ -1370,13 +1637,11 @@ export default function CampaignDetailPage() {
                         Đóng
                       </button>
                       <button
-                        onClick={() => {
-                          window.alert(`Đã xác nhận giải ngân thành công tổng cộng ${Math.round(totalCalculatedPayout).toLocaleString("vi-VN")} VND cho ${allRows.length} đối tượng nhận tiền!`);
-                          setIsShowingPayoutModal(false);
-                        }}
-                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                        onClick={() => confirmCampaignDisbursement(totalBudget)}
+                        disabled={isCommissionLoading}
+                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        Xác nhận giải ngân
+                        {isCommissionLoading ? "Đang xử lý..." : "Xác nhận giải ngân"}
                       </button>
                     </div>
                   </div>

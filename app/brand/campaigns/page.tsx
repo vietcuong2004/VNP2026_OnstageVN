@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { campaigns as initialCampaigns, type Campaign, SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
+import { createBrandCampaign, loadBrandCampaigns, publishBrandCampaign } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 type CampaignStatusTab = "all" | Campaign["status"];
@@ -41,6 +42,8 @@ export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
 
   useEffect(() => {
+    let fallbackCampaigns = initialCampaigns;
+
     if (typeof window !== "undefined") {
       const stored = window.localStorage.getItem("onstagevn_campaigns");
       if (stored) {
@@ -54,8 +57,10 @@ export default function CampaignsPage() {
             // Sort to keep campaigns in order if needed or just append
             setCampaigns(merged);
             window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(merged));
+            fallbackCampaigns = merged;
           } else {
             setCampaigns(parsed);
+            fallbackCampaigns = parsed;
           }
         } catch (e) {
           setCampaigns(initialCampaigns);
@@ -65,6 +70,13 @@ export default function CampaignsPage() {
         window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(initialCampaigns));
       }
     }
+
+    loadBrandCampaigns(fallbackCampaigns).then((items) => {
+      setCampaigns(items);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(items));
+      }
+    });
   }, []);
   const [activeTab, setActiveTab] = useState<CampaignStatusTab>("all");
   const [isCreating, setIsCreating] = useState(false);
@@ -75,38 +87,48 @@ export default function CampaignsPage() {
     return campaigns.filter((campaign) => campaign.status === activeTab);
   }, [activeTab, campaigns]);
 
-  function handleCreateCampaign(event: React.FormEvent) {
+  async function handleCreateCampaign(event: React.FormEvent) {
     event.preventDefault();
 
-    const newCampaign: Campaign = {
-      id: `camp-${Date.now()}`,
-      title: form.title || "Campaign mới",
-      jobType: form.jobType,
-      city: form.city,
-      address: form.address || form.city,
-      startDate: form.startDate,
-      endDate: form.endDate,
-      deadline: form.deadline,
-      talentQuantity: Number(form.talentQuantity) || 1,
-      budget: form.budget,
-      budgetValue: 40000000,
-      benefits: form.benefits || "Thỏa thuận theo brief",
-      status: "published",
-      shortlistedTalentIds: [],
-      applicants: [],
-      contactRequests: 0,
-      views: 0,
-      description: form.description || "Chưa có mô tả brief.",
-      requirements: form.requirements || "Chưa có yêu cầu chi tiết.",
-      sponsorships: (form.selectedSponsorships || []).map(id => {
-        const cat = SPONSORSHIP_CATEGORIES.find(c => c.id === id);
-        return {
-          category: cat?.label || id,
-          details: `Cam kết cung cấp tài trợ gói dịch vụ/hiện vật ${cat?.label.toLowerCase() || id} cho Talent.`
-        };
-      }),
-      escrowed: form.escrowed,
-    };
+    let newCampaign: Campaign;
+
+    try {
+      const createdCampaign = await createBrandCampaign(form);
+      newCampaign = /^\d+$/.test(createdCampaign.id)
+        ? await publishBrandCampaign(createdCampaign.id)
+        : createdCampaign;
+    } catch (error) {
+      console.warn("Cannot create campaign from API, using local fallback", error);
+      newCampaign = {
+        id: `camp-${Date.now()}`,
+        title: form.title || "Campaign mới",
+        jobType: form.jobType,
+        city: form.city,
+        address: form.address || form.city,
+        startDate: form.startDate,
+        endDate: form.endDate,
+        deadline: form.deadline,
+        talentQuantity: Number(form.talentQuantity) || 1,
+        budget: form.budget,
+        budgetValue: 40000000,
+        benefits: form.benefits || "Thỏa thuận theo brief",
+        status: "published",
+        shortlistedTalentIds: [],
+        applicants: [],
+        contactRequests: 0,
+        views: 0,
+        description: form.description || "Chưa có mô tả brief.",
+        requirements: form.requirements || "Chưa có yêu cầu chi tiết.",
+        sponsorships: (form.selectedSponsorships || []).map(id => {
+          const cat = SPONSORSHIP_CATEGORIES.find(c => c.id === id);
+          return {
+            category: cat?.label || id,
+            details: `Cam kết cung cấp tài trợ gói dịch vụ/hiện vật ${cat?.label.toLowerCase() || id} cho Talent.`
+          };
+        }),
+        escrowed: form.escrowed,
+      };
+    }
 
     const nextCampaigns = [newCampaign, ...campaigns];
     setCampaigns(nextCampaigns);
