@@ -6,6 +6,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { talents as allTalents } from "@/lib/brand-mvp-data";
+import {
+  addBrandRosterTalent,
+  createBrandTalentInviteLink,
+  loadBrandRosterTalents,
+  loadBrandTalentInviteLink,
+  loadBrandTalents,
+  removeBrandRosterTalent,
+  type BrandRosterTalent,
+} from "@/lib/brand-api";
 
 import RosterTab, { type RosterTalent, type RosterStatus } from "./roster-tab";
 import CampaignsTab from "./campaigns-tab";
@@ -186,23 +195,114 @@ const MOCK_ROSTER: RosterTalent[] = [
 const formatVND = (n: number) =>
   new Intl.NumberFormat("vi-VN").format(n) + "đ";
 
+function rosterStatusFromBackend(status?: string | null): RosterStatus {
+  if (status === "active") return "accepted";
+  if (status === "inactive" || status === "blocked") return "declined";
+  return "pending";
+}
+
+function profileToTalent(profile: BrandRosterTalent["talent_profile"], fallback?: any) {
+  if (!profile) return fallback;
+
+  const followersCount = fallback?.followersCount || 0;
+  const displayName = profile.display_name || profile.full_name || profile.user?.name || fallback?.name || "Talent";
+  const avatar = profile.avatar_url || profile.user?.external_avatar_url || fallback?.avatar || "/images/default-avatar.png";
+
+  return {
+    ...fallback,
+    id: String(profile.id || fallback?.id || ""),
+    name: displayName,
+    type: profile.talent_types?.[0] || fallback?.type || "Talent",
+    city: profile.city || fallback?.city || "",
+    district: profile.district || fallback?.district || "",
+    gender: profile.gender === "male" ? "Nam" : profile.gender === "female" ? "Nữ" : fallback?.gender || "",
+    age: fallback?.age || 24,
+    height: Number(profile.height_cm) || fallback?.height || 0,
+    weight: Number(profile.weight_kg) || fallback?.weight || 0,
+    tier: profile.tier || fallback?.tier || "C",
+    verified: profile.verification_status === "verified" || Boolean(profile.user?.is_verified) || fallback?.verified || false,
+    rating: Number(profile.rating) || fallback?.rating || 0,
+    followersCount,
+    followers: fallback?.followers || (followersCount ? new Intl.NumberFormat("vi-VN").format(followersCount) : "0"),
+    engagementRate: fallback?.engagementRate || 0,
+    avatar,
+    cover: fallback?.cover || avatar,
+    fullBodyImage: fallback?.fullBodyImage || avatar,
+    experience: profile.experience || profile.bio || fallback?.experience || "",
+    skills: profile.skills?.length ? profile.skills : fallback?.skills || [],
+    languages: profile.languages?.length ? profile.languages : fallback?.languages || [],
+    completion: Number(profile.profile_completion) || fallback?.completion || 0,
+    matchScore: Number(profile.profile_completion) || fallback?.matchScore || 0,
+  };
+}
+
+function rosterFromBackend(item: BrandRosterTalent): RosterTalent {
+  return {
+    rosterId: String(item.id),
+    talentId: String(item.talent_profile_id),
+    status: rosterStatusFromBackend(item.status),
+    addedAt: String(item.joined_at || new Date().toISOString()).slice(0, 10),
+    earnedCommission: 0,
+    activeJobs: 0,
+    completedJobs: 0,
+  };
+}
+
 export default function MyTalentsPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("roster");
   const [roster, setRoster] = useState<RosterTalent[]>([]);
+  const [displayTalents, setDisplayTalents] = useState<any[]>(extendedTalents);
+  const [affiliateLink, setAffiliateLink] = useState(`https://onstage.vn/ref/${AFFILIATE_ID}`);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteSearch, setInviteSearch] = useState("");
   const [inviteSent, setInviteSent] = useState<string[]>([]);
   const [copiedLink, setCopiedLink] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; msg: string }[]>([]);
 
-  // Load roster from localStorage or seed mock
+  // Load roster from backend, with local fallback while API is offline.
   useEffect(() => {
-    const stored = localStorage.getItem("onstagevn_my_roster");
-    if (stored) {
-      try { setRoster(JSON.parse(stored)); return; } catch { }
+    let cancelled = false;
+
+    async function loadRoster() {
+      try {
+        const [talentItems, rosterItems, link] = await Promise.all([
+          loadBrandTalents(extendedTalents),
+          loadBrandRosterTalents(),
+          loadBrandTalentInviteLink().catch(() => createBrandTalentInviteLink()),
+        ]);
+
+        if (cancelled) return;
+
+        const talentsById = new Map<string, any>();
+        talentItems.forEach((talent: any) => talentsById.set(String(talent.id), talent));
+
+        rosterItems.forEach((item) => {
+          const profileId = String(item.talent_profile_id);
+          talentsById.set(profileId, profileToTalent(item.talent_profile, talentsById.get(profileId)));
+        });
+
+        const nextRoster = rosterItems.map(rosterFromBackend);
+        setDisplayTalents(Array.from(talentsById.values()));
+        setRoster(nextRoster);
+        setAffiliateLink(link.url);
+        localStorage.setItem("onstagevn_my_roster", JSON.stringify(nextRoster));
+      } catch (error) {
+        console.warn("Cannot load brand roster from API, using local fallback", error);
+
+        const stored = localStorage.getItem("onstagevn_my_roster");
+        if (stored) {
+          try { setRoster(JSON.parse(stored)); return; } catch { }
+        }
+        setRoster(MOCK_ROSTER);
+        localStorage.setItem("onstagevn_my_roster", JSON.stringify(MOCK_ROSTER));
+      }
     }
-    setRoster(MOCK_ROSTER);
-    localStorage.setItem("onstagevn_my_roster", JSON.stringify(MOCK_ROSTER));
+
+    loadRoster();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const saveRoster = (r: RosterTalent[]) => {
@@ -216,7 +316,7 @@ export default function MyTalentsPage() {
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 4000);
   };
 
-  const handleInvite = (talentId: string) => {
+  const handleInvite = async (talentId: string) => {
     const existing = roster.find(r => r.talentId === talentId);
     let nextRoster = [...roster];
     if (existing) {
@@ -226,29 +326,43 @@ export default function MyTalentsPage() {
         return; // already pending or accepted
       }
     } else {
-      const newEntry: RosterTalent = {
-        talentId,
-        status: "pending",
-        addedAt: new Date().toISOString().slice(0, 10),
-        earnedCommission: 0,
-        activeJobs: 0,
-        completedJobs: 0,
-      };
-      nextRoster.push(newEntry);
+      try {
+        const created = await addBrandRosterTalent(talentId);
+        nextRoster.push(rosterFromBackend(created));
+      } catch (error) {
+        console.warn("Cannot sync roster invite to backend, using local fallback", error);
+        const newEntry: RosterTalent = {
+          talentId,
+          status: "pending",
+          addedAt: new Date().toISOString().slice(0, 10),
+          earnedCommission: 0,
+          activeJobs: 0,
+          completedJobs: 0,
+        };
+        nextRoster.push(newEntry);
+      }
     }
     saveRoster(nextRoster);
     setInviteSent(p => [...p, talentId]);
     addToast("Đã gửi lời mời cho Talent! Chờ họ xác nhận.");
   };
 
-  const handleRemove = (talentId: string) => {
+  const handleRemove = async (talentId: string) => {
+    const existing = roster.find(r => r.talentId === talentId);
+    if (existing?.rosterId) {
+      try {
+        await removeBrandRosterTalent(existing.rosterId);
+      } catch (error) {
+        console.warn("Cannot remove roster talent from backend, removing locally", error);
+      }
+    }
+
     saveRoster(roster.filter(r => r.talentId !== talentId));
     addToast("Đã xoá Talent khỏi danh sách hợp tác.");
   };
 
   const handleCopyLink = () => {
-    const link = `https://onstage.vn/ref/${AFFILIATE_ID}`;
-    navigator.clipboard.writeText(link).catch(() => { });
+    navigator.clipboard.writeText(affiliateLink).catch(() => { });
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
     addToast("Đã sao chép Affiliate Link!");
@@ -261,10 +375,8 @@ export default function MyTalentsPage() {
   const passiveMLM = 3100000;            // mock passive
   const totalRevenue = totalF1Commission + passiveMLM;
 
-  const affiliateLink = `https://onstage.vn/ref/${AFFILIATE_ID}`;
-
   // Talents not yet in roster or whose status is declined (for invite modal)
-  const availableToInvite = extendedTalents.filter(
+  const availableToInvite = displayTalents.filter(
     t => {
       const r = roster.find(item => item.talentId === t.id);
       return !r || r.status === "declined";
@@ -369,7 +481,7 @@ export default function MyTalentsPage() {
       {activeTab === "roster" && (
         <RosterTab
           roster={roster}
-          extendedTalents={extendedTalents}
+          extendedTalents={displayTalents}
           statusConfig={statusConfig}
           tierColor={tierColor}
           formatVND={formatVND}
@@ -380,7 +492,7 @@ export default function MyTalentsPage() {
 
       {activeTab === "campaigns" && (
         <CampaignsTab
-          extendedTalents={extendedTalents}
+          extendedTalents={displayTalents}
           tierColor={tierColor}
           formatVND={formatVND}
         />

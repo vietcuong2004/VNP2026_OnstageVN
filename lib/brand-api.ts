@@ -152,6 +152,38 @@ type BackendContactRequest = {
   created_at?: string | null;
 };
 
+export type BrandRosterTalent = {
+  id: number | string;
+  brand_user_id: number | string;
+  talent_profile_id: number | string;
+  status: "invited" | "active" | "inactive" | "blocked" | string;
+  source: "manual" | "wishlist" | "campaign" | "referral" | string;
+  joined_at?: string | null;
+  notes?: string | null;
+  talent_profile?: BackendProfile | null;
+  active_term?: {
+    id?: number | string;
+    commission_rate?: number | string | null;
+    commission_base?: string | null;
+    status?: string | null;
+  } | null;
+};
+
+export type BrandTalentInviteLink = {
+  id: number | string;
+  campaign_id?: number | string | null;
+  owner_user_id: number | string;
+  name?: string | null;
+  code: string;
+  destination_path?: string | null;
+  status: string;
+  click_count?: number;
+  conversion_count?: number;
+  expires_at?: string | null;
+  last_used_at?: string | null;
+  url: string;
+};
+
 export type BrandCommissionTransaction = {
   id: number | string;
   campaign_id?: number | string | null;
@@ -611,6 +643,66 @@ export async function loadBrandTalents(fallback: TalentProfile[] = []) {
     console.warn("Cannot load brand talents", error);
     return fallback;
   }
+}
+
+export async function loadBrandRosterTalents() {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BrandRosterTalent[] }>("/brand/talents");
+  return response.data ?? [];
+}
+
+export async function addBrandRosterTalent(profileId: string, notes?: string) {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BrandRosterTalent }>("/brand/talents", {
+    method: "POST",
+    body: JSON.stringify({
+      profile_id: profileId,
+      notes,
+    }),
+  });
+
+  return response.data;
+}
+
+export async function updateBrandRosterTalent(
+  rosterTalentId: string,
+  payload: { status?: BrandRosterTalent["status"]; notes?: string | null },
+) {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BrandRosterTalent }>(`/brand/talents/${rosterTalentId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+
+  return response.data;
+}
+
+export async function removeBrandRosterTalent(rosterTalentId: string) {
+  requireBrandSession();
+
+  await apiJson(`/brand/talents/${rosterTalentId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function loadBrandTalentInviteLink() {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BrandTalentInviteLink }>("/brand/talent-invite-link");
+  return response.data;
+}
+
+export async function createBrandTalentInviteLink() {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BrandTalentInviteLink }>("/brand/talent-invite-link", {
+    method: "POST",
+  });
+
+  return response.data;
 }
 
 export async function loadBrandTalent(id: string, fallback?: TalentProfile | null) {
