@@ -103,7 +103,7 @@ export default function RevenueTab({
                 },
                 {
                   label: "Hoa hồng thụ động (MLM)",
-                  sublabel: "F2 nhận hoa hồng 5% từ tuyến dưới của Talent trong Roster của bạn",
+                  sublabel: "F2 nhận hoa hồng 5% từ tuyến dưới của Talent trong Roster của Brand",
                   value: displayPassiveMLM,
                   barWidth: Math.round((displayPassiveMLM / displayTotalRevenue) * 100) || 0,
                   color: "bg-amber-300 shadow-[0_0_10px_rgba(252,211,77,0.3)]",
@@ -312,7 +312,7 @@ export default function RevenueTab({
               <div className="relative rounded-2xl bg-gradient-to-r from-amber-450 to-yellow-500 p-[1.5px] shadow-[0_0_20px_rgba(245,158,11,0.25)]">
                 <div className="rounded-[14px] bg-[#050711] px-5 py-3 text-center min-w-[150px]">
                   <span className="rounded bg-amber-450/15 border border-amber-400/30 px-2 py-0.5 text-[8px] font-black uppercase text-amber-300 tracking-wider">
-                    Bạn (Manager F1)
+                    Brand (Manager F0)
                   </span>
                   <p className="text-xs font-black text-white mt-1.5">L'Oréal Vietnam</p>
                   <p className="text-[10px] text-amber-400 font-mono font-black mt-1">{formatVND(displayTotalRevenue)}</p>
@@ -444,8 +444,8 @@ export default function RevenueTab({
         <div className="grid grid-cols-4 gap-3 text-center">
           {[
             { label: "Platform", pct: "15%", desc: "Phí vận hành hệ thống & ký quỹ bảo chứng", color: "text-slate-400" },
-            { label: "KOL (F0)", pct: "75%", desc: "Nhận thù lao booking trực tiếp", color: "text-emerald-400" },
-            { label: "Manager (F1)", pct: "10%", desc: "Hoa hồng quản lý & chiết khấu", color: "text-amber-400" },
+            { label: "KOL (F1)", pct: "75%", desc: "Nhận thù lao booking trực tiếp", color: "text-emerald-400" },
+            { label: "Manager (F0)", pct: "10%", desc: "Hoa hồng quản lý & chiết khấu", color: "text-amber-400" },
             { label: "Upline (F2)", pct: "5%", desc: "Hoa hồng thụ động tuyến trên giới thiệu", color: "text-amber-300" },
           ].map((item) => (
             <div key={item.label} className="rounded-xl bg-[#050711]/90 border border-amber-500/10 p-3.5 hover:border-amber-500/30 transition-colors">
@@ -456,7 +456,7 @@ export default function RevenueTab({
           ))}
         </div>
         <p className="text-[10px] text-slate-400 mt-4 text-center font-bold uppercase tracking-wider bg-[#050711]/60 py-2.5 rounded-lg border border-[#151b2d]">
-          Ví dụ: Booking thù lao 10.000.000đ → Bạn nhận <span className="text-amber-400 font-black font-mono">1.000.000đ</span> (10% F1) → Upline của bạn nhận <span className="text-amber-400 font-black font-mono">500.000đ</span> (5% F2)
+          Ví dụ: Booking thù lao 10.000.000đ → Brand nhận <span className="text-amber-400 font-black font-mono">1.000.000đ</span> (10% F0) → Upline của Brand nhận <span className="text-amber-400 font-black font-mono">500.000đ</span> (5% F2)
         </p>
       </div>
     </div>

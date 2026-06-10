@@ -1,6 +1,6 @@
 # 🎯 Thiết kế Tính năng: Talent Manager (Brand Side)
 
-> **Góc nhìn:** **Brand account đồng thời là Manager luôn.** Bạn là một thương hiệu kiêm **Agency/Talent Manager** đang quản lý một roster gồm **10 KOL**. Mỗi ngày bạn phải theo dõi: ai đang bận, ai đang rảnh, ai đang trong chiến dịch nào, ai cần được giới thiệu cho khách hàng tiếp theo, và hoa hồng nhận được từ mạng lưới này là bao nhiêu.
+> **Góc nhìn:** **Brand account đồng thời là Manager luôn.** Brand là một thương hiệu kiêm **Agency/Talent Manager** đang quản lý một roster gồm **10 KOL**. Mỗi ngày Brand phải theo dõi: ai đang bận, ai đang rảnh, ai đang trong chiến dịch nào, ai cần được giới thiệu cho khách hàng tiếp theo, và hoa hồng nhận được từ mạng lưới này là bao nhiêu.
 
 ---
 
@@ -40,7 +40,7 @@ BRAND MANAGER FLOW
 
 [4] GIỚI THIỆU AFFILIATE (Referral/Affiliate Link)
      Brand/Manager có một Affiliate Link cá nhân
-     → Share link cho các Brand đối tác hoặc nhãn hàng bạn bè
+     → Share link cho các Brand đối tác hoặc nhãn hàng thân thiết
      → Brand khác đăng ký qua link → đặt booking KOL
      → Brand/Manager nhận hoa hồng % từ giá trị booking đó (F1 commission)
      → Nếu Brand đó tiếp tục giới thiệu Brand khác → nhận F2
@@ -99,8 +99,8 @@ BRAND MANAGER FLOW
 Brand đặt booking KOL A (thù lao: 10.000.000đ)
 │
 ├── Platform fee: 15% → 1.500.000đ (hệ thống)
-├── KOL A nhận (F0): 75% → 7.500.000đ  
-├── Brand Manager của KOL A (F1): 10% → 1.000.000đ ← BIG WIN
+├── KOL A nhận (F1): 75% → 7.500.000đ  
+├── Brand Manager của KOL A (F0): 10% → 1.000.000đ ← BIG WIN
 └── Upline của Manager (F2): 5% → 500.000đ
 
 Cộng thêm nếu Brand này đến qua Affiliate Link của Manager:
