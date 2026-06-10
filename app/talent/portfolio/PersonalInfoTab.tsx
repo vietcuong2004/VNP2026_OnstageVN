@@ -467,7 +467,7 @@ export default function PersonalInfoTab({
             <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-amber-400/80 rounded-xl px-4 py-3 text-white text-xs font-bold cursor-pointer transition-all">
                 <Upload className="h-5 w-5 text-amber-400" />
-                <span>Đổi ảnh toàn thân</span>
+                <span>Đổi ảnh</span>
                 <input
                   type="file"
                   accept="image/*"

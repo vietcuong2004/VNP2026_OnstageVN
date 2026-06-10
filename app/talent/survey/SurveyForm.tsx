@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { 
   User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft, 
@@ -85,6 +85,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [maxStep, setMaxStep] = useState(1);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const portfolioInputRef = useRef<HTMLInputElement | null>(null);
+  const introVideoInputRef = useRef<HTMLInputElement | null>(null);
+  const avatarPreviewUrlRef = useRef<string | null>(null);
+  const portfolioPreviewUrlRef = useRef<string | null>(null);
+  const introVideoPreviewUrlRef = useRef<string | null>(null);
   
   // Track max step reached to allow click-to-navigation on header stepper
   React.useEffect(() => {
@@ -128,6 +134,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     portfolio: null as string | null, // Portfolio/CV (required)
     introVideo: null as string | null // Intro video (optional)
   });
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const [portfolioPreviewUrl, setPortfolioPreviewUrl] = useState<string | null>(null);
+  const [introVideoPreviewUrl, setIntroVideoPreviewUrl] = useState<string | null>(null);
 
   const getTotalFollowers = () => {
     return (
@@ -185,6 +194,23 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       setSurveyAnswers({});
     }
   }, [initialHistoryEntry]);
+
+  React.useEffect(() => {
+    return () => {
+      if (avatarPreviewUrlRef.current) {
+        URL.revokeObjectURL(avatarPreviewUrlRef.current);
+        avatarPreviewUrlRef.current = null;
+      }
+      if (portfolioPreviewUrlRef.current) {
+        URL.revokeObjectURL(portfolioPreviewUrlRef.current);
+        portfolioPreviewUrlRef.current = null;
+      }
+      if (introVideoPreviewUrlRef.current) {
+        URL.revokeObjectURL(introVideoPreviewUrlRef.current);
+        introVideoPreviewUrlRef.current = null;
+      }
+    };
+  }, []);
 
   React.useEffect(() => {
     if (initialHistoryEntry) return;
@@ -309,6 +335,89 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   const handleMockUpload = (field: keyof typeof mediaUploads, fileName: string) => {
     setMediaUploads(prev => ({ ...prev, [field]: fileName }));
+  };
+
+  const handleFileUploadClick = (field: keyof typeof mediaUploads) => {
+    if (field === "avatar") {
+      avatarInputRef.current?.click();
+      return;
+    }
+
+    if (field === "portfolio") {
+      portfolioInputRef.current?.click();
+      return;
+    }
+
+    introVideoInputRef.current?.click();
+  };
+
+  const handleFileSelection = (
+    field: keyof typeof mediaUploads,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const nextPreviewUrl = URL.createObjectURL(file);
+
+    if (field === "avatar") {
+      if (avatarPreviewUrlRef.current) {
+        URL.revokeObjectURL(avatarPreviewUrlRef.current);
+      }
+
+      avatarPreviewUrlRef.current = nextPreviewUrl;
+      setAvatarPreviewUrl(nextPreviewUrl);
+    } else if (field === "portfolio") {
+      if (portfolioPreviewUrlRef.current) {
+        URL.revokeObjectURL(portfolioPreviewUrlRef.current);
+      }
+
+      portfolioPreviewUrlRef.current = nextPreviewUrl;
+      setPortfolioPreviewUrl(nextPreviewUrl);
+    } else if (field === "introVideo") {
+      if (introVideoPreviewUrlRef.current) {
+        URL.revokeObjectURL(introVideoPreviewUrlRef.current);
+      }
+
+      introVideoPreviewUrlRef.current = nextPreviewUrl;
+      setIntroVideoPreviewUrl(nextPreviewUrl);
+    }
+
+    setMediaUploads((prev) => ({
+      ...prev,
+      [field]: file.name,
+    }));
+
+    event.target.value = "";
+  };
+
+  const handleClearUploadedFile = (field: keyof typeof mediaUploads) => {
+    if (field === "portfolio") {
+      if (portfolioPreviewUrlRef.current) {
+        URL.revokeObjectURL(portfolioPreviewUrlRef.current);
+        portfolioPreviewUrlRef.current = null;
+      }
+      setPortfolioPreviewUrl(null);
+      if (portfolioInputRef.current) {
+        portfolioInputRef.current.value = "";
+      }
+    }
+
+    if (field === "introVideo") {
+      if (introVideoPreviewUrlRef.current) {
+        URL.revokeObjectURL(introVideoPreviewUrlRef.current);
+        introVideoPreviewUrlRef.current = null;
+      }
+      setIntroVideoPreviewUrl(null);
+      if (introVideoInputRef.current) {
+        introVideoInputRef.current.value = "";
+      }
+    }
+
+    setMediaUploads((prev) => ({
+      ...prev,
+      [field]: null,
+    }));
   };
 
   const handleRegisterComp = (compName: string) => {
@@ -1068,7 +1177,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               <span className="block text-[10px] text-slate-300 font-extrabold uppercase tracking-wider self-start">Ảnh Đại Diện *</span>
               
               <div 
-                onClick={() => handleMockUpload("avatar", "maianh_avatar.jpg")}
+                onClick={() => handleFileUploadClick("avatar")}
                 className={cn(
                   "w-full aspect-square max-w-[200px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative overflow-hidden group",
                   mediaUploads.avatar 
@@ -1076,14 +1185,23 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     : "border-white/20 bg-slate-900/60 hover:border-amber-400 hover:bg-slate-900"
                 )}
               >
-                {mediaUploads.avatar ? (
-                  <div className="text-center p-4">
-                    <CheckCircle2 className="h-8 w-8 text-emerald-400 mx-auto mb-2 animate-bounce" />
-                    <span className="block text-[10px] text-slate-200 font-bold truncate max-w-[150px]">{mediaUploads.avatar}</span>
-                    <span className="block text-[8px] text-emerald-400 font-bold mt-1 uppercase tracking-wide">Đã tải lên</span>
-                  </div>
-                ) : (
-                  <div className="text-center p-4">
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(event) => handleFileSelection("avatar", event)}
+                />
+                {avatarPreviewUrl && (
+                  <img
+                    src={avatarPreviewUrl}
+                    alt="Xem trước ảnh đại diện"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                )}
+                {avatarPreviewUrl && <div className="absolute inset-0 bg-black/20" />}
+                {!avatarPreviewUrl && (
+                  <div className="relative z-10 text-center p-4">
                     <Upload className="h-8 w-8 text-slate-400 group-hover:text-amber-300 transition-colors mx-auto mb-2" />
                     <span className="block text-[10px] text-slate-100 font-extrabold">Kéo thả hoặc click</span>
                     <span className="block text-[8px] text-slate-400 mt-1 leading-normal">PNG, JPG tối đa 5MB</span>
@@ -1545,33 +1663,89 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               <div className="grid grid-cols-2 gap-3.5">
                 {/* Portfolio images / CV zone */}
                 <div 
-                  onClick={() => handleMockUpload("portfolio", "portfolio_cv_maianh.pdf")}
+                  onClick={() => handleFileUploadClick("portfolio")}
                   className={cn(
-                    "rounded-xl border border-dashed p-5 cursor-pointer text-center transition-all duration-300 relative overflow-hidden group min-h-[140px] flex flex-col justify-center items-center",
+                    "rounded-xl border border-dashed p-5 cursor-pointer text-center transition-all duration-300 relative overflow-hidden group aspect-[9/16] w-full flex flex-col justify-center items-center",
                     mediaUploads.portfolio ? "border-emerald-400 bg-emerald-500/10" : "border-white/20 bg-slate-900/60 hover:border-amber-400 hover:bg-slate-900"
                   )}
                 >
-                  <FileText className={cn("h-7 w-7 mx-auto mb-2", mediaUploads.portfolio ? "text-emerald-400 animate-pulse" : "text-slate-400 group-hover:text-amber-300 transition-colors")} />
-                  <span className="block text-[10px] text-slate-100 font-extrabold truncate">Portfolio / CV *</span>
-                  <span className="block text-[7.5px] text-slate-400 mt-1">{mediaUploads.portfolio ? "Đã tải lên" : "Tải lên tệp PDF/ZIP/DOCX"}</span>
-                  {mediaUploads.portfolio && (
-                    <span className="block text-[8px] text-emerald-400 font-mono mt-1 truncate max-w-[120px]">{mediaUploads.portfolio}</span>
+                  <input
+                    ref={portfolioInputRef}
+                    type="file"
+                    accept=".pdf,.zip,.doc,.docx"
+                    className="hidden"
+                    onChange={(event) => handleFileSelection("portfolio", event)}
+                  />
+                  {portfolioPreviewUrl ? (
+                    <iframe
+                      src={portfolioPreviewUrl}
+                      title="Xem trước Portfolio / CV"
+                      className="absolute inset-0 h-full w-full border-0 bg-white"
+                    />
+                  ) : (
+                    <>
+                      <FileText className={cn("h-7 w-7 mx-auto mb-2", mediaUploads.portfolio ? "text-emerald-400 animate-pulse" : "text-slate-400 group-hover:text-amber-300 transition-colors")} />
+                      <span className="block text-[10px] text-slate-100 font-extrabold truncate">Portfolio / CV *</span>
+                      <span className="block text-[7.5px] text-slate-400 mt-1">
+                        Tải lên tệp PDF/ZIP/DOCX
+                      </span>
+                    </>
+                  )}
+                  {mediaUploads.portfolio && portfolioPreviewUrl && (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleClearUploadedFile("portfolio");
+                      }}
+                      className="absolute top-2 right-2 z-20 rounded-full border border-rose-300/70 bg-rose-600 px-2.5 py-1 text-[9px] font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.45)] backdrop-blur-sm transition-colors hover:bg-rose-500 hover:border-rose-200"
+                    >
+                      Xóa
+                    </button>
                   )}
                 </div>
 
                 {/* Intro video zone (Optional) */}
                 <div 
-                  onClick={() => handleMockUpload("introVideo", "video_introduction.mp4")}
+                  onClick={() => handleFileUploadClick("introVideo")}
                   className={cn(
-                    "rounded-xl border border-dashed p-5 cursor-pointer text-center transition-all duration-300 relative overflow-hidden group min-h-[140px] flex flex-col justify-center items-center",
+                    "rounded-xl border border-dashed p-5 cursor-pointer text-center transition-all duration-300 relative overflow-hidden group aspect-[9/16] w-full flex flex-col justify-center items-center",
                     mediaUploads.introVideo ? "border-emerald-400 bg-emerald-500/10" : "border-white/20 bg-slate-900/60 hover:border-amber-400 hover:bg-slate-900"
                   )}
                 >
-                  <Video className={cn("h-7 w-7 mx-auto mb-2", mediaUploads.introVideo ? "text-emerald-400 animate-pulse" : "text-slate-500 group-hover:text-amber-400 transition-colors")} />
-                  <span className="block text-[10px] text-slate-100 font-extrabold truncate">Video Giới Thiệu</span>
-                  <span className="block text-[7.5px] text-slate-400 mt-1">{mediaUploads.introVideo ? "Đã tải lên (Tùy chọn)" : "Tải lên tệp MP4 (Không bắt buộc)"}</span>
-                  {mediaUploads.introVideo && (
-                    <span className="block text-[8px] text-emerald-400 font-mono mt-1 truncate max-w-[120px]">{mediaUploads.introVideo}</span>
+                  <input
+                    ref={introVideoInputRef}
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={(event) => handleFileSelection("introVideo", event)}
+                  />
+                  {introVideoPreviewUrl ? (
+                    <video
+                      src={introVideoPreviewUrl}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      controls
+                    />
+                  ) : (
+                    <>
+                      <Video className={cn("h-7 w-7 mx-auto mb-2", mediaUploads.introVideo ? "text-emerald-400 animate-pulse" : "text-slate-500 group-hover:text-amber-400 transition-colors")} />
+                      <span className="block text-[10px] text-slate-100 font-extrabold truncate">Video Giới Thiệu</span>
+                      <span className="block text-[7.5px] text-slate-400 mt-1">
+                        Tải lên tệp MP4 (Không bắt buộc)
+                      </span>
+                    </>
+                  )}
+                  {mediaUploads.introVideo && introVideoPreviewUrl && (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleClearUploadedFile("introVideo");
+                      }}
+                      className="absolute top-2 right-2 z-20 rounded-full border border-rose-300/70 bg-rose-600 px-2.5 py-1 text-[9px] font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.45)] backdrop-blur-sm transition-colors hover:bg-rose-500 hover:border-rose-200"
+                    >
+                      Xóa
+                    </button>
                   )}
                 </div>
               </div>
