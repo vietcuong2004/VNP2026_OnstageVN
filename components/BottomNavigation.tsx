@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Home, Briefcase, BookmarkCheck, Crown, Search, User,
   Sparkles, Trophy, Calendar, MessageSquare, Wallet, Menu, X, LogOut,
-  BarChart3, Users, Bell, Settings
+  BarChart3, Users, Bell, Settings, Share2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ const talentAllItems = [
   { label: "Hồ sơ số", icon: User, href: "/talent/portfolio" },
   { label: "Cuộc thi", icon: Trophy, href: "/talent/contests" },
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
+  { label: "Affiliate", icon: Share2, href: "/talent/affiliate" },
   { label: "Quỹ", icon: Crown, href: "/talent/crown" },
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },

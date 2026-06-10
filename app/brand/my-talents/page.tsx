@@ -243,7 +243,7 @@ export default function MyTalentsPage() {
 
   const handleRemove = (talentId: string) => {
     saveRoster(roster.filter(r => r.talentId !== talentId));
-    addToast("Đã xoá Talent khỏi Roster.");
+    addToast("Đã xoá Talent khỏi danh sách hợp tác.");
   };
 
   const handleCopyLink = () => {
@@ -258,9 +258,8 @@ export default function MyTalentsPage() {
   const acceptedRoster = roster.filter(r => r.status === "accepted");
   const pendingRoster = roster.filter(r => r.status === "pending");
   const totalF1Commission = roster.reduce((s, r) => s + r.earnedCommission, 0);
-  const affiliateBrandBonus = 8200000;   // mock brand referral bonus
   const passiveMLM = 3100000;            // mock passive
-  const totalRevenue = totalF1Commission + affiliateBrandBonus + passiveMLM;
+  const totalRevenue = totalF1Commission + passiveMLM;
 
   const affiliateLink = `https://onstage.vn/ref/${AFFILIATE_ID}`;
 
@@ -297,7 +296,7 @@ export default function MyTalentsPage() {
 
   // ── TABS CONTENT ──────────────────────────────────────────────────────────
   const TABS = [
-    { id: "roster" as ActiveTab, label: "Danh sách Talent (Roster)", icon: Users2 },
+    { id: "roster" as ActiveTab, label: "Danh sách Talent hợp tác", icon: Users2 },
     { id: "campaigns" as ActiveTab, label: "Chiến dịch", icon: Briefcase },
     { id: "revenue" as ActiveTab, label: "Doanh thu & Affiliate", icon: DollarSign },
   ];
@@ -309,7 +308,7 @@ export default function MyTalentsPage() {
         <div>
           <div className="mb-2 flex items-center gap-2">
             <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-              ROSTER MANAGEMENT
+              TALENT MANAGEMENT
             </span>
           </div>
           <h1 className="font-display text-2xl font-black tracking-tight text-white uppercase leading-none">
@@ -391,7 +390,6 @@ export default function MyTalentsPage() {
         <RevenueTab
           roster={roster}
           totalF1Commission={totalF1Commission}
-          affiliateBrandBonus={affiliateBrandBonus}
           passiveMLM={passiveMLM}
           totalRevenue={totalRevenue}
           affiliateLink={affiliateLink}

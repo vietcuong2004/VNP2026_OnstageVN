@@ -75,7 +75,7 @@ export default function TalentRosterPage() {
 
   const handleAccept = (invId: string) => {
     save(invitations.map(i => i.id === invId ? { ...i, status: "accepted" as const } : i));
-    addToast("Đã chấp nhận lời mời vào Roster! Manager sẽ sớm liên hệ với bạn.", "success");
+    addToast("Đã chấp nhận lời mời hợp tác Brand! Manager sẽ sớm liên hệ với bạn.", "success");
   };
 
   const handleDecline = (invId: string) => {
@@ -89,7 +89,7 @@ export default function TalentRosterPage() {
 
   const statusConfig = {
     pending:  { label: "Đang chờ phản hồi", dot: "bg-amber-400 animate-pulse", text: "text-amber-400", bg: "bg-amber-500/5 border-amber-500/20" },
-    accepted: { label: "Đã tham gia Roster", dot: "bg-emerald-400", text: "text-emerald-400", bg: "bg-emerald-500/5 border-emerald-500/20" },
+    accepted: { label: "Đã hợp tác Brand", dot: "bg-emerald-400", text: "text-emerald-400", bg: "bg-emerald-500/5 border-emerald-500/20" },
     declined: { label: "Đã từ chối", dot: "bg-red-400", text: "text-red-400", bg: "bg-red-500/5 border-red-500/10" },
   };
 
@@ -99,14 +99,14 @@ export default function TalentRosterPage() {
       <div className="border-b border-white/5 pb-5">
         <div className="mb-2 flex items-center gap-2">
           <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-            MY ROSTER
+            HỢP TÁC BRAND
           </span>
         </div>
         <h1 className="font-display text-2xl font-black text-white tracking-tight uppercase leading-none">
-          Quản lý Roster
+          Hợp tác Brand
         </h1>
         <p className="text-xs text-slate-400 mt-2 font-medium">
-          Xem lời mời từ các Brand Manager muốn thêm bạn vào mạng lưới Talent của họ.
+          Xem lời mời từ các Brand Manager muốn thêm bạn vào mạng lưới hợp tác của họ.
         </p>
       </div>
 
@@ -117,9 +117,9 @@ export default function TalentRosterPage() {
           <Network className="h-5.5 w-5.5 text-amber-400" />
         </div>
         <div className="flex-1">
-          <h3 className="text-xs font-black text-amber-300 uppercase tracking-widest">Hợp tác Roster là gì?</h3>
+          <h3 className="text-xs font-black text-amber-300 uppercase tracking-widest">Hợp tác Brand là gì?</h3>
           <p className="text-[11px] text-slate-300 mt-1.5 leading-relaxed font-medium">
-            Khi bạn tham gia vào <strong className="text-white">Roster của một Brand Manager</strong>, họ sẽ đại diện giới thiệu bạn với nhiều nhãn hàng đối tác lớn và quản lý các booking trực tiếp. Manager nhận <strong className="text-amber-400">10% hoa hồng</strong> từ thù lao job do họ mang lại — phần thù lao còn lại <strong className="text-emerald-400 font-bold">75% hoàn toàn thuộc về bạn</strong> (nền tảng OnStage thu phí 15% phí vận hành & ký quỹ bảo chứng).
+            Khi bạn tham gia vào <strong className="text-white">mạng lưới hợp tác của một Brand Manager</strong>, họ sẽ đại diện giới thiệu bạn với nhiều nhãn hàng đối tác lớn và quản lý các booking trực tiếp. Manager nhận <strong className="text-amber-400">10% hoa hồng</strong> từ thù lao job do họ mang lại — phần thù lao còn lại <strong className="text-emerald-400 font-bold">75% hoàn toàn thuộc về bạn</strong> (nền tảng OnStage thu phí 15% phí vận hành & ký quỹ bảo chứng).
           </p>
         </div>
       </div>
@@ -145,7 +145,7 @@ export default function TalentRosterPage() {
           ))}
         </div>
         <p className="text-[9.5px] text-slate-500 mt-4 text-center font-semibold uppercase tracking-wider">
-          💡 Bạn vẫn tự do nhận job ngoài — Roster là kênh tăng thêm cơ hội được booking trực tiếp từ các Agency lớn.
+          💡 Bạn vẫn tự do nhận job ngoài — Hợp tác Brand là kênh tăng thêm cơ hội được booking trực tiếp từ các Agency lớn.
         </p>
       </div>
 
@@ -212,7 +212,7 @@ export default function TalentRosterPage() {
       {accepted.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 border-b border-white/5 pb-2">
-            <CheckCircle className="h-4 w-4 text-emerald-400" /> Đang trong Roster hợp tác
+            <CheckCircle className="h-4 w-4 text-emerald-400" /> Đang hợp tác Brand
           </h2>
           {accepted.map(inv => (
             <div key={inv.id} className={cn("rounded-2xl border p-5 bg-[#08090f] border-emerald-500/25 hover:border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.02)] transition-all duration-300")}>
@@ -264,8 +264,8 @@ export default function TalentRosterPage() {
         <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl border border-dashed border-white/5 bg-[#08090f]/40">
           <Users2 className="h-12 w-12 text-slate-700 mb-4 animate-pulse" />
           <p className="text-slate-400 font-black text-sm uppercase tracking-wider">Không có lời mời nào</p>
-          <p className="text-slate-500 text-xs mt-1 max-w-sm">
-            Khi Brand Manager gửi lời mời hợp tác vào roster của họ, danh sách sẽ hiển thị tại đây.
+          <p className="text-slate-550 text-xs mt-1 max-w-sm">
+            Khi Brand Manager gửi lời mời hợp tác Brand, danh sách sẽ hiển thị tại đây.
           </p>
         </div>
       )}

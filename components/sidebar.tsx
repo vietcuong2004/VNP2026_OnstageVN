@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Home, User, Briefcase, Crown, MessageSquare, Calendar, Wallet, Settings,
   Sparkles, BookmarkCheck, LogOut, LayoutDashboard, ChevronRight, Trophy,
-  Search, BarChart3, Users, Bell, Users2
+  Search, BarChart3, Users, Bell, Users2, Share2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +16,8 @@ const talentMenuItems = [
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   { label: "Danh sách cuộc thi", icon: Trophy, href: "/talent/contests" },
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
-  { label: "Roster của tôi", icon: Users2, href: "/talent/roster" },
+  { label: "Chiến dịch Affiliate", icon: Share2, href: "/talent/affiliate" },
+  { label: "Hợp tác Brand", icon: Users2, href: "/talent/roster" },
   { label: "Quỹ vương miện", icon: Crown, href: "/talent/crown" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },
   { label: "Thu nhập", icon: Wallet, href: "/talent/wallet" },

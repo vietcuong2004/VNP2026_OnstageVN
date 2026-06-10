@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const isPublic = pathname === "/" || pathname.startsWith("/auth");
+  const isPublic = pathname === "/" || pathname.startsWith("/auth") || pathname.startsWith("/campaign");
 
   return (
     <html lang="vi" className="h-full dark antialiased" style={{ colorScheme: "dark" }}>

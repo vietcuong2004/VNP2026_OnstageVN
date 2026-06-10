@@ -157,6 +157,22 @@ export default function CampaignDetailPage() {
       if (storedCampaigns) {
         try {
           const parsed = JSON.parse(storedCampaigns) as Campaign[];
+          
+          // Pre-seed F2 referred applicant (Lương Mỹ An) for campaign 1 / camp-1
+          parsed.forEach((c) => {
+            if (c.id === "1" || c.id === "camp-1") {
+              const hasF2 = c.applicants.some(a => a.referredByTalentId === "tal-1" || a.talentId === "tal-4");
+              if (!hasF2) {
+                c.applicants.push({
+                  talentId: "tal-4", // Lương Mỹ An
+                  stage: "new",
+                  note: "Tôi rất mong muốn ứng tuyển tham gia chiến dịch này qua giới thiệu của chị Mai Anh.",
+                  referredByTalentId: "tal-1"
+                });
+              }
+            }
+          });
+
           const parsedIds = new Set(parsed.map(c => c.id));
           const missing = initialCampaigns.filter(c => !parsedIds.has(c.id));
           if (missing.length > 0) {
@@ -166,6 +182,7 @@ export default function CampaignDetailPage() {
             fallbackCampaigns = merged;
           } else {
             setCampaigns(parsed);
+            window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(parsed));
             fallbackCampaigns = parsed;
           }
         } catch (e) { }
@@ -217,10 +234,39 @@ export default function CampaignDetailPage() {
       if (!campaign) return;
 
       setCampaigns((current) => {
+        const localCampaign = current.find((item) => item.id === campaign.id);
+        let mergedApplicants = [...campaign.applicants];
+
+        // Pre-seed F2 referred applicant if campaign 1/camp-1 is loaded
+        if (campaign.id === "1" || campaign.id === "camp-1") {
+          const hasF2 = mergedApplicants.some(a => a.referredByTalentId === "tal-1" || a.talentId === "tal-4");
+          if (!hasF2) {
+            mergedApplicants.push({
+              talentId: "tal-4",
+              stage: "new",
+              note: "Tôi rất mong muốn ứng tuyển tham gia chiến dịch này qua giới thiệu của chị Mai Anh.",
+              referredByTalentId: "tal-1"
+            });
+          }
+        }
+
+        if (localCampaign) {
+          localCampaign.applicants.forEach((localApp) => {
+            if (!mergedApplicants.some((a) => a.talentId === localApp.talentId)) {
+              mergedApplicants.push(localApp);
+            }
+          });
+        }
+
+        const mergedCampaign = {
+          ...campaign,
+          applicants: mergedApplicants
+        };
+
         const exists = current.some((item) => item.id === campaign.id);
         const next = exists
-          ? current.map((item) => item.id === campaign.id ? campaign : item)
-          : [campaign, ...current];
+          ? current.map((item) => item.id === campaign.id ? mergedCampaign : item)
+          : [mergedCampaign, ...current];
 
         if (typeof window !== "undefined") {
           window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(next));
@@ -355,7 +401,7 @@ export default function CampaignDetailPage() {
 
     if (stage === "confirmed") {
       const campaign = campaigns.find(c => c.id === campaignId);
-      const talent = displayTalents.find(t => t.id === talentId);
+      const talent = displayTalents.find(t => t.id === talentId) || talents.find(t => t.id === talentId);
       if (campaign && talent) {
         setPayoutDetails({
           talentName: talent.name,
@@ -502,7 +548,7 @@ export default function CampaignDetailPage() {
                       onClick={openPayoutModal}
                       className="flex h-10 items-center rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 px-4 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.2)]"
                     >
-                      Xác nhận giải ngân
+                      Quyết Toán
                     </button>
                     <button
                       onClick={() => {
@@ -643,7 +689,7 @@ export default function CampaignDetailPage() {
                   onClick={openPayoutModal}
                   className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
                 >
-                  Xác nhận giải ngân
+                  Quyết Toán
                 </button>
                 <button
                   onClick={() => router.push("/brand/messages")}
@@ -658,10 +704,13 @@ export default function CampaignDetailPage() {
           </article>
 
           {selectedCampaign.applicants.map((item) => {
-            const talent = displayTalents.find((candidate) => candidate.id === item.talentId);
+            const talent = displayTalents.find((candidate) => candidate.id === item.talentId) || talents.find((candidate) => candidate.id === item.talentId);
             if (!talent) return null;
             const requestKey = `${selectedCampaign.id}-${talent.id}`;
             const stage = item.stage;
+            const referrer = item.referredByTalentId
+              ? displayTalents.find((candidate) => candidate.id === item.referredByTalentId) || talents.find((candidate) => candidate.id === item.referredByTalentId)
+              : null;
             return (
               <article
                 key={item.talentId}
@@ -677,7 +726,14 @@ export default function CampaignDetailPage() {
                         {talent.matchScore}% Match
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{talent.type} · {talent.city}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-[10px] text-slate-400">{talent.type} · {talent.city}</span>
+                      {referrer && (
+                        <span className="inline-flex items-center gap-1 rounded bg-cyan-400/10 border border-cyan-500/20 px-2 py-0.5 text-[8.5px] font-bold text-cyan-400 uppercase tracking-wider">
+                          Giới thiệu bởi: {referrer.name}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[10.5px] text-slate-500 leading-relaxed mt-2.5 italic font-medium">
                       "{item.note || "Tôi rất quan tâm và mong muốn thực hiện chiến dịch này."}"
                     </p>
@@ -759,8 +815,6 @@ export default function CampaignDetailPage() {
                       Nhắn tin
                     </button>
                   </div>
-
-
                 </div>
               </article>
             );
@@ -769,67 +823,89 @@ export default function CampaignDetailPage() {
       </section>
 
       {/* Payout Modal Dialog for MLM and F0 */}
-      {payoutDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-emerald-500/30 rounded-3xl shadow-[0_24px_60px_rgba(16,185,129,0.15)] overflow-hidden animate-in zoom-in-95 duration-300 text-left">
-            <div className="flex items-center gap-3 p-6 border-b border-[#151b2d] bg-emerald-500/5">
-              <CheckCircle2 className="h-6 w-6 text-emerald-400 shrink-0" />
-              <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Nghiệm Thu & Giải Ngân Thành Công</h3>
-                <p className="text-[10px] text-emerald-400/80 mt-0.5">Hợp đồng thông minh đã tự động phân bổ dòng tiền</p>
-              </div>
-            </div>
+      {payoutDetails && (() => {
+        const rawBudget = payoutDetails.budget;
+        const cleanBudgetStr = rawBudget.split("-").pop().replace(/[^0-9]/g, "");
+        const parsedVal = parseInt(cleanBudgetStr, 10) || 10000000;
+        const poolVal = parsedVal / (selectedCampaign.applicants.length || 1);
 
-            <div className="p-6 space-y-4 text-xs">
-              <div className="space-y-1 bg-[#050711] border border-white/5 rounded-xl p-3.5">
-                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Thông tin thanh toán F0</span>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-slate-300 font-medium">Thù lao Talent (F0):</span>
-                  <span className="font-extrabold text-white font-mono text-sm text-emerald-400">+{payoutDetails.budget}</span>
-                </div>
-                <p className="text-[9px] text-slate-500 mt-1 leading-relaxed">Đã cộng vào ví khả dụng của: <b>{payoutDetails.talentName}</b></p>
-              </div>
+        const appEntry = selectedCampaign.applicants.find(a => {
+          const t = displayTalents.find(dt => dt.id === a.talentId) || talents.find(dt => dt.id === a.talentId);
+          return t && t.name === payoutDetails.talentName;
+        });
 
-              <div className="space-y-3 bg-[#050711] border border-white/5 rounded-xl p-3.5">
-                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Phân bổ hoa hồng đa cấp (MLM Hierarchy)</span>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-[10px]">
-                    <span className="text-slate-400">F1 Upline (10%): Nguyễn Mai Vy</span>
-                    <span className="font-bold text-amber-400 font-mono">+500.000đ</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px]">
-                    <span className="text-slate-400">F2 Upline (5%): Lê Minh Châu</span>
-                    <span className="font-bold text-amber-400 font-mono">+250.000đ</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px]">
-                    <span className="text-slate-400">F3 Upline (2%): Trần Đức Hoàng</span>
-                    <span className="font-bold text-amber-400 font-mono">+100.000đ</span>
-                  </div>
-                </div>
-                <div className="border-t border-[#151b2d] pt-2 text-[9px] text-slate-500 italic">
-                  * Áp dụng quy tắc cắt ngọn (Capping) ở tầng F3 theo cấu hình động hệ thống.
+        const hasReferrer = appEntry ? !!appEntry.referredByTalentId : false;
+        const referrer = (appEntry && appEntry.referredByTalentId) ? (displayTalents.find(t => t.id === appEntry.referredByTalentId) || talents.find(t => t.id === appEntry.referredByTalentId)) : null;
+
+        const talentAmount = hasReferrer ? poolVal * 0.70 : poolVal * 0.75;
+        const brandAmount = poolVal * 0.10;
+        const referralAmount = hasReferrer ? poolVal * 0.05 : 0;
+        const platformAmount = poolVal * 0.15;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-emerald-500/30 rounded-3xl shadow-[0_24px_60px_rgba(16,185,129,0.15)] overflow-hidden animate-in zoom-in-95 duration-300 text-left">
+              <div className="flex items-center gap-3 p-6 border-b border-[#151b2d] bg-emerald-500/5">
+                <CheckCircle2 className="h-6 w-6 text-emerald-400 shrink-0" />
+                <div>
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider">Nghiệm Thu & Giải Ngân Thành Công</h3>
+                  <p className="text-[10px] text-emerald-400/80 mt-0.5">Hợp đồng thông minh đã tự động phân bổ dòng tiền</p>
                 </div>
               </div>
 
-              <div className="flex gap-2 items-start text-[9.5px] text-slate-400 bg-amber-400/5 border border-amber-400/10 rounded-xl p-3">
-                <span>🛡️</span>
-                <p className="leading-normal">
-                  <b>Lịch sử giao dịch (Audit Logs)</b> đã được ghi nhận: <i>"Hoa hồng từ user {payoutDetails.talentName} làm job {payoutDetails.campaignTitle}"</i>.
-                </p>
-              </div>
-            </div>
+              <div className="p-6 space-y-4 text-xs">
+                <div className="space-y-1 bg-[#050711] border border-white/5 rounded-xl p-3.5">
+                  <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Thông tin thanh toán</span>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-slate-300 font-medium">Thù lao Talent ({hasReferrer ? "KOL F2" : "KOL F1"} - {hasReferrer ? "70%" : "75%"}):</span>
+                    <span className="font-extrabold text-white font-mono text-sm text-emerald-400">+{moneyText(talentAmount)}</span>
+                  </div>
+                  <p className="text-[9px] text-slate-500 mt-1 leading-relaxed">Đã cộng vào ví khả dụng của: <b>{payoutDetails.talentName}</b></p>
+                </div>
 
-            <div className="flex items-center justify-end p-6 border-t border-[#151b2d] bg-[#050711]">
-              <button
-                onClick={() => setPayoutDetails(null)}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all"
-              >
-                Hoàn tất
-              </button>
+                <div className="space-y-3 bg-[#050711] border border-white/5 rounded-xl p-3.5">
+                  <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Phân bổ hoa hồng chi tiết (Campaign Affiliate)</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-slate-400">Phí quản lý Brand F0 (10%):</span>
+                      <span className="font-bold text-amber-400 font-mono">+{moneyText(brandAmount)}</span>
+                    </div>
+                    {hasReferrer && referrer && (
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-slate-400">Hoa hồng F1 Giới thiệu ({referrer.name} - 5%):</span>
+                        <span className="font-bold text-cyan-400 font-mono">+{moneyText(referralAmount)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-slate-400">Phí nền tảng OnStage Platform (15%):</span>
+                      <span className="font-bold text-slate-450 font-mono">+{moneyText(platformAmount)}</span>
+                    </div>
+                  </div>
+                  <div className="border-t border-[#151b2d] pt-2 text-[9px] text-slate-500 italic">
+                    * Áp dụng quy tắc trích thưởng và giải ngân tự động từ số dư bảo chứng (Escrow).
+                  </div>
+                </div>
+
+                <div className="flex gap-2 items-start text-[9.5px] text-slate-400 bg-amber-400/5 border border-amber-400/10 rounded-xl p-3">
+                  <span>🛡️</span>
+                  <p className="leading-normal">
+                    <b>Lịch sử giao dịch (Audit Logs)</b> đã được ghi nhận: <i>"Quyết toán thù lao cho {payoutDetails.talentName} thuộc chiến dịch {payoutDetails.campaignTitle}"</i>.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end p-6 border-t border-[#151b2d] bg-[#050711]">
+                <button
+                  onClick={() => setPayoutDetails(null)}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all"
+                >
+                  Hoàn tất
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Profile Detail Modal */}
       {selectedProfileTalent && currentApplicantItem && (
@@ -1314,121 +1390,84 @@ export default function CampaignDetailPage() {
               {(() => {
                 const totalBudget = selectedCampaign.budgetValue || 20000000;
 
-                // Get applicants
-                const applicantIds = selectedCampaign.applicants.map((a: any) => a.talentId);
-                const applicantTalents = displayTalents.filter((t: any) => applicantIds.includes(t.id));
+                // Get active applicants
+                const activeApplicants = selectedCampaign.applicants.filter(
+                  (a) => a.stage === "accepted" || a.stage === "executing" || a.stage === "completed" || a.stage === "confirmed"
+                );
 
-                // Fallback to mock talents if none added (to look exactly like the screenshot)
-                const displayApplicantTalents = applicantTalents.length > 0 ? applicantTalents : [
-                  { id: "mock-1", name: "Lương Mỹ An", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" },
-                  { id: "mock-2", name: "Danh Nguyễn", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80" },
-                  { id: "mock-3", name: "Bảo Nguyễn", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80" }
+                // Map display applicants
+                const displayApplicants = activeApplicants.length > 0 ? activeApplicants.map(a => ({
+                  talentId: a.talentId,
+                  referredByTalentId: a.referredByTalentId
+                })) : [
+                  { talentId: "tal-1", referredByTalentId: undefined },
+                  { talentId: "tal-4", referredByTalentId: "tal-1" },
+                  { talentId: "tal-5", referredByTalentId: "tal-3" }
                 ];
 
-                const N = displayApplicantTalents.length;
-                const talentBase = totalBudget / N;
+                const N = displayApplicants.length;
+                const poolPerTalent = totalBudget / N;
 
-                // 1. Chia tiền campaign rows
-                let campaignRows = [
-                  {
-                    role: "Brand tổ chức",
-                    recipient: "Nguyễn Ngọc Anh",
-                    relatedTalent: "-",
-                    base: totalBudget,
-                    rate: 20,
-                    amount: totalBudget * 0.2,
-                    status: "Chờ duyệt"
-                  },
-                  ...displayApplicantTalents.map(talent => ({
-                    role: `Talent thực hiện (pool ${totalBudget.toLocaleString("vi-VN")} VND * 60% / ${N} talent)`,
-                    recipient: talent.name,
-                    relatedTalent: talent.name,
-                    base: totalBudget,
-                    rate: 60, // Meaning 60% of budget split among N talents
-                    amount: (totalBudget * 0.6) / N,
-                    status: "Chờ duyệt"
-                  }))
-                ];
+                let campaignRows: any[] = [];
+                let referralRows: any[] = [];
+                let rosterRows: any[] = [];
 
-                // 2. Giới thiệu (MLM Referral) rows
-                // F1: 10% for each talent, recipient: Nguyễn Ngọc Anh
-                const f1Rows = displayApplicantTalents.map(talent => ({
-                  role: "F1",
-                  recipient: "Nguyễn Ngọc Anh",
-                  relatedTalent: talent.name,
-                  base: talentBase,
-                  rate: 10,
-                  amount: talentBase * 0.1,
-                  status: "Chờ duyệt"
-                }));
+                displayApplicants.forEach((appl) => {
+                  const talent = displayTalents.find(t => t.id === appl.talentId) || talents.find(t => t.id === appl.talentId) || { name: appl.talentId };
+                  const hasReferrer = !!appl.referredByTalentId;
+                  const referrer = hasReferrer ? (displayTalents.find(t => t.id === appl.referredByTalentId) || talents.find(t => t.id === appl.referredByTalentId)) : null;
 
-                // F2: 5% (simulated upline: Danh Nguyễn or next talent)
-                const f2Rows = [];
-                if (N > 1) {
-                  if (displayApplicantTalents[0].id === "mock-1" && displayApplicantTalents[1].id === "mock-2" && displayApplicantTalents[2].id === "mock-3") {
-                    f2Rows.push({
-                      role: "F2",
-                      recipient: "Danh Nguyễn",
-                      relatedTalent: "Lương Mỹ An",
-                      base: talentBase,
-                      rate: 5,
-                      amount: talentBase * 0.05,
+                  if (hasReferrer && referrer) {
+                    // F2 referred candidate
+                    campaignRows.push({
+                      role: "KOL F2 (Thực hiện - 70%)",
+                      recipient: talent.name,
+                      relatedTalent: talent.name,
+                      base: poolPerTalent,
+                      rate: 70,
+                      amount: poolPerTalent * 0.7,
                       status: "Chờ duyệt"
                     });
-                    f2Rows.push({
-                      role: "F2",
-                      recipient: "Danh Nguyễn",
-                      relatedTalent: "Bảo Nguyễn",
-                      base: talentBase,
+                    campaignRows.push({
+                      role: "Brand F0 (Phí quản lý - 10%)",
+                      recipient: "Nguyễn Ngọc Anh",
+                      relatedTalent: talent.name,
+                      base: poolPerTalent,
+                      rate: 10,
+                      amount: poolPerTalent * 0.1,
+                      status: "Chờ duyệt"
+                    });
+                    referralRows.push({
+                      role: "F1 (Giới thiệu Campaign - 5%)",
+                      recipient: referrer.name,
+                      relatedTalent: talent.name,
+                      base: poolPerTalent,
                       rate: 5,
-                      amount: talentBase * 0.05,
+                      amount: poolPerTalent * 0.05,
                       status: "Chờ duyệt"
                     });
                   } else {
-                    for (let i = 0; i < N; i++) {
-                      if (i !== 1) {
-                        f2Rows.push({
-                          role: "F2",
-                          recipient: displayApplicantTalents[1].name,
-                          relatedTalent: displayApplicantTalents[i].name,
-                          base: talentBase,
-                          rate: 5,
-                          amount: talentBase * 0.05,
-                          status: "Chờ duyệt"
-                        });
-                      }
-                    }
-                  }
-                }
-
-                // F3: 2% (simulated upline: Bảo Nguyễn or third talent)
-                const f3Rows = [];
-                if (N > 2) {
-                  if (displayApplicantTalents[0].id === "mock-1" && displayApplicantTalents[1].id === "mock-2" && displayApplicantTalents[2].id === "mock-3") {
-                    f3Rows.push({
-                      role: "F3",
-                      recipient: "Bảo Nguyễn",
-                      relatedTalent: "Lương Mỹ An",
-                      base: talentBase,
-                      rate: 2,
-                      amount: talentBase * 0.02,
+                    // F1 direct candidate
+                    campaignRows.push({
+                      role: "KOL F1 (Thực hiện - 75%)",
+                      recipient: talent.name,
+                      relatedTalent: talent.name,
+                      base: poolPerTalent,
+                      rate: 75,
+                      amount: poolPerTalent * 0.75,
                       status: "Chờ duyệt"
                     });
-                  } else {
-                    f3Rows.push({
-                      role: "F3",
-                      recipient: displayApplicantTalents[2].name,
-                      relatedTalent: displayApplicantTalents[0].name,
-                      base: talentBase,
-                      rate: 2,
-                      amount: talentBase * 0.02,
+                    campaignRows.push({
+                      role: "Brand F0 (Phí quản lý - 10%)",
+                      recipient: "Nguyễn Ngọc Anh",
+                      relatedTalent: talent.name,
+                      base: poolPerTalent,
+                      rate: 10,
+                      amount: poolPerTalent * 0.1,
                       status: "Chờ duyệt"
                     });
                   }
-                }
-
-                let referralRows = [...f1Rows, ...f2Rows, ...f3Rows];
-                let rosterRows: typeof referralRows = [];
+                });
 
                 if (commissionData?.data?.length) {
                   campaignRows = commissionData.data

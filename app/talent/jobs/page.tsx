@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { 
   Search, MapPin, DollarSign, Sparkles, Filter, ShieldCheck, CheckCircle,
-  Eye, X, Info, Clock, Phone, Mail, Globe, MapPinned, Trophy, AlertCircle
+  Eye, X, Info, Clock, Phone, Mail, Globe, MapPinned, Trophy, AlertCircle,
+  ArrowUpRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Campaign, SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
+import Link from "next/link";
 
 type StageFilter = "all" | "pending" | "accepted" | "executing" | "completed" | "confirmed";
 
@@ -396,7 +398,12 @@ export default function JobsPage() {
           const campaigns = JSON.parse(stored);
           if (Array.isArray(campaigns)) {
             const updated = campaigns.map((c: any) => {
-              if (c.id === id) {
+              const isMatch = c.id === id || 
+                              (id === "c1" && c.id === "camp-1") || (id === "camp-1" && c.id === "c1") ||
+                              (id === "c2" && c.id === "camp-2") || (id === "camp-2" && c.id === "c2") ||
+                              (id === "c3" && c.id === "camp-3") || (id === "camp-3" && c.id === "c3") ||
+                              (id === "c4" && c.id === "camp-4") || (id === "camp-4" && c.id === "c4");
+              if (isMatch) {
                 const applicants = c.applicants || [];
                 if (!applicants.some((a: any) => a.talentId === "tal-1")) {
                   return {
@@ -431,7 +438,12 @@ export default function JobsPage() {
           const campaigns = JSON.parse(stored);
           if (Array.isArray(campaigns)) {
             const updated = campaigns.map((c: any) => {
-              if (c.id === jobId) {
+              const isMatch = c.id === jobId || 
+                              (jobId === "c1" && c.id === "camp-1") || (jobId === "camp-1" && c.id === "c1") ||
+                              (jobId === "c2" && c.id === "camp-2") || (jobId === "camp-2" && c.id === "c2") ||
+                              (jobId === "c3" && c.id === "camp-3") || (jobId === "camp-3" && c.id === "c3") ||
+                              (jobId === "c4" && c.id === "camp-4") || (jobId === "camp-4" && c.id === "c4");
+              if (isMatch) {
                 return {
                   ...c,
                   applicants: (c.applicants || []).map((a: any) =>
@@ -445,7 +457,10 @@ export default function JobsPage() {
             
             // Reload displayJobs to reflect changes immediately
             setDisplayJobs(prevJobs => prevJobs.map(job => {
-              if (job.id === jobId) {
+              const isMatch = job.id === jobId || 
+                              (jobId === "c1" && job.id === "camp-1") || (jobId === "camp-1" && job.id === "c1") ||
+                              (jobId === "c2" && job.id === "camp-2") || (jobId === "camp-2" && job.id === "c2");
+              if (isMatch) {
                 return {
                   ...job,
                   applicants: (job.applicants || []).map((a: any) =>
@@ -457,7 +472,7 @@ export default function JobsPage() {
             }));
 
             // Also if selectedJob is currently open, update its state
-            if (selectedJob && selectedJob.id === jobId) {
+            if (selectedJob && (selectedJob.id === jobId || (jobId === "c1" && selectedJob.id === "camp-1") || (jobId === "camp-1" && selectedJob.id === "c1"))) {
               setSelectedJob((prev: any) => ({
                 ...prev,
                 applicants: (prev.applicants || []).map((a: any) =>
@@ -922,6 +937,33 @@ export default function JobsPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Campaign Affiliate Widget */}
+              {selectedJob.applicants?.some((a: any) => a.talentId === "tal-1" && ["accepted", "executing", "completed", "confirmed"].includes(a.stage)) && (
+                <div className="mt-6 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 space-y-3.5 text-left">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4.5 w-4.5 text-amber-400" />
+                      <h4 className="text-xs font-black text-amber-400 uppercase tracking-wider">
+                        Lan tỏa chiến dịch nhận thưởng (5% Affiliate)
+                      </h4>
+                    </div>
+                    <span className="text-[9px] font-extrabold uppercase bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/20">
+                      Active Upline
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed font-semibold">
+                    Chiến dịch này đã kích hoạt chương trình giới thiệu. Nhận ngay <span className="text-amber-400 font-bold">5% hoa hồng</span> thù lao khi mời các KOL khác cùng tham gia thành công.
+                  </p>
+                  <Link
+                    href="/talent/affiliate"
+                    onClick={() => setSelectedJob(null)}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-amber-400 text-slate-950 px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all hover:bg-amber-300 active:scale-[0.98] cursor-pointer"
+                  >
+                    Lấy link & Quản lý Affiliate <ArrowUpRight className="h-4 w-4 text-slate-950" />
+                  </Link>
+                </div>
+              )}
 
             </div>
 
