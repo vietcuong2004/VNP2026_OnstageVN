@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Users2, CheckCircle, X, Clock, Building2, Shield, Star,
   ChevronRight, Sparkles, Gift, DollarSign, TrendingUp, Crown,
-  Bell, Check, AlertCircle, Link2, Network
+  Bell, Check, AlertCircle, Link2, Network, Send
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { loadTalentBrandInvitations, updateTalentBrandInvitation } from "@/lib/talent-api";
+import { acceptBrandTalentInviteLink, loadTalentBrandInvitations, updateTalentBrandInvitation } from "@/lib/talent-api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface RosterInvitation {
@@ -74,12 +74,40 @@ function mapBackendInvitation(item: any): RosterInvitation {
   };
 }
 
+function extractInviteCode(value: string) {
+  const rawValue = value.trim();
+  if (!rawValue) return "";
+
+  try {
+    const parsed = new URL(rawValue);
+    const segments = parsed.pathname.split("/").filter(Boolean);
+    const refIndex = segments.findIndex((segment) => segment.toLowerCase() === "ref");
+    if (refIndex >= 0 && segments[refIndex + 1]) return decodeURIComponent(segments[refIndex + 1]);
+
+    const refParam = parsed.searchParams.get("ref") || parsed.searchParams.get("code");
+    if (refParam) return refParam.trim();
+
+    return decodeURIComponent(segments.at(-1) || "");
+  } catch {
+    return rawValue
+      .replace(/^https?:\/\/[^/]+\/?/i, "")
+      .replace(/^ref\//i, "")
+      .replace(/[?#].*$/, "")
+      .replace(/\/$/, "")
+      .trim();
+  }
+}
+
 export default function TalentRosterPage() {
+  const acceptedQueryCodeRef = useRef("");
   const [invitations, setInvitations] = useState<RosterInvitation[]>([]);
+  const [inviteLinkValue, setInviteLinkValue] = useState("");
+  const [isAcceptingLink, setIsAcceptingLink] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; msg: string; type: "success" | "info" }[]>([]);
 
-  useEffect(() => {
-    loadTalentBrandInvitations().then((items) => {
+  const loadInvitations = useCallback(async () => {
+    try {
+      const items = await loadTalentBrandInvitations();
       if (items?.length) {
         const mapped = items.map(mapBackendInvitation);
         setInvitations(mapped);
@@ -93,15 +121,19 @@ export default function TalentRosterPage() {
       }
       setInvitations(MOCK_INVITATIONS);
       localStorage.setItem("onstagevn_roster_invitations", JSON.stringify(MOCK_INVITATIONS));
-    }).catch(() => {
+    } catch {
       const stored = localStorage.getItem("onstagevn_roster_invitations");
       if (stored) {
         try { setInvitations(JSON.parse(stored)); return; } catch {}
       }
       setInvitations(MOCK_INVITATIONS);
       localStorage.setItem("onstagevn_roster_invitations", JSON.stringify(MOCK_INVITATIONS));
-    });
+    }
   }, []);
+
+  useEffect(() => {
+    loadInvitations();
+  }, [loadInvitations]);
 
   const save = (items: RosterInvitation[]) => {
     setInvitations(items);
@@ -136,6 +168,54 @@ export default function TalentRosterPage() {
       save(invitations.map(i => i.id === invId ? { ...i, status: "declined" as const } : i));
     }
     addToast("Đã từ chối lời mời.", "info");
+  };
+
+  const acceptInviteCode = useCallback(async (code: string) => {
+    if (!code || isAcceptingLink) return;
+
+    setIsAcceptingLink(true);
+    try {
+      const acceptedInvitation = await acceptBrandTalentInviteLink(code);
+      const mapped = mapBackendInvitation(acceptedInvitation);
+
+      setInviteLinkValue("");
+      save([
+        mapped,
+        ...invitations.filter((invitation) => invitation.id !== mapped.id),
+      ]);
+
+      await loadInvitations();
+      addToast("Đã tham gia mạng lưới Brand từ link mời.", "success");
+    } catch (error) {
+      console.warn("Cannot accept brand invite link", error);
+      addToast("Link mời không hợp lệ hoặc đã hết hạn.", "info");
+    } finally {
+      setIsAcceptingLink(false);
+    }
+  }, [invitations, isAcceptingLink, loadInvitations]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const codeFromQuery = params.get("brand_ref") || params.get("ref");
+    if (!codeFromQuery) return;
+    if (acceptedQueryCodeRef.current === codeFromQuery) return;
+
+    acceptedQueryCodeRef.current = codeFromQuery;
+    acceptInviteCode(codeFromQuery);
+  }, [acceptInviteCode]);
+
+  const handleAcceptInviteLink = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const code = extractInviteCode(inviteLinkValue);
+    if (!code) {
+      addToast("Vui lòng nhập link hoặc mã mời Brand.", "info");
+      return;
+    }
+
+    await acceptInviteCode(code);
   };
 
   const pending  = invitations.filter(i => i.status === "pending");
@@ -178,6 +258,35 @@ export default function TalentRosterPage() {
           </p>
         </div>
       </div>
+
+      <form
+        onSubmit={handleAcceptInviteLink}
+        className="rounded-2xl bg-[#08090f] border border-[#151b2d] p-5 flex flex-col gap-3 md:flex-row md:items-center"
+      >
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+          <Link2 className="h-5 w-5 text-cyan-400" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-black text-white uppercase tracking-widest">Nhập link mời Brand</p>
+          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+            Dán link dạng onstage.vn/ref/ten-brand hoặc mã mời để tự tham gia mạng lưới của Brand.
+          </p>
+        </div>
+        <input
+          value={inviteLinkValue}
+          onChange={(event) => setInviteLinkValue(event.target.value)}
+          placeholder="https://onstage.vn/ref/ten-brand"
+          className="h-11 min-w-0 flex-1 rounded-xl border border-[#151b2d] bg-[#050711] px-3 text-xs font-semibold text-white outline-none placeholder:text-slate-600 focus:border-cyan-400/50 md:max-w-md"
+        />
+        <button
+          type="submit"
+          disabled={isAcceptingLink}
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 text-xs font-black uppercase tracking-wider text-slate-950 transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Send className="h-4 w-4" />
+          {isAcceptingLink ? "Đang xử lý" : "Tham gia"}
+        </button>
+      </form>
 
       {/* ── Commission breakdown visual ── */}
       <div className="rounded-2xl bg-[#08090f] border border-[#151b2d] p-6">

@@ -9,6 +9,41 @@ import {
 import { cn } from "@/lib/utils";
 import { campaigns as initialCampaigns, talents, Campaign } from "@/lib/brand-mvp-data";
 import { loadBrandCampaign } from "@/lib/brand-api";
+import { getAuthToken } from "@/lib/api-client";
+import { applyTalentCampaign, resolveCampaignReferralLink } from "@/lib/talent-api";
+
+function formatVND(value?: number | string | null) {
+  const amount = Number(value || 0);
+  return amount > 0 ? `${new Intl.NumberFormat("vi-VN").format(amount)}đ` : "Thỏa thuận";
+}
+
+function mapReferralCampaign(raw: any): Campaign | null {
+  if (!raw?.id) return null;
+
+  return {
+    id: String(raw.id),
+    title: raw.title || "Chiến dịch",
+    jobType: raw.job_type || "Campaign",
+    budget: raw.budget_min || raw.budget_max ? `${formatVND(raw.budget_min)} - ${formatVND(raw.budget_max)}` : "Thỏa thuận",
+    budgetValue: Number(raw.budget_max || raw.budget_min || 0),
+    city: raw.city || raw.location || "Linh hoạt",
+    address: raw.location || raw.city || "Linh hoạt",
+    startDate: raw.start_date || "",
+    endDate: raw.end_date || "",
+    deadline: raw.end_date || raw.start_date || "Theo lịch Brand",
+    talentQuantity: Number(raw.max_talents || raw.talent_quantity || 1),
+    benefits: raw.benefits || "Thù lao và quyền lợi theo brief của Brand.",
+    description: raw.description || "Brand sẽ cập nhật mô tả chi tiết.",
+    requirements: raw.requirements || "Brand sẽ cập nhật yêu cầu chi tiết.",
+    status: raw.status || "published",
+    shortlistedTalentIds: [],
+    applicants: [],
+    contactRequests: 0,
+    views: 0,
+    sponsorships: [],
+    escrowed: true,
+  };
+}
 
 export default function CampaignReferralPage() {
   const params = useParams<{ id: string }>();
@@ -24,6 +59,7 @@ export default function CampaignReferralPage() {
   const [note, setNote] = useState("Tôi rất quan tâm và mong muốn thực hiện chiến dịch này qua giới thiệu.");
   const [isApplied, setIsApplied] = useState(false);
   const [error, setError] = useState("");
+  const [resolvedReferralCode, setResolvedReferralCode] = useState("");
 
   // Parse campaign ID from slug (e.g. "beauty-mega-live-camp-1" -> "camp-1")
   const paramId = params.id || "";
@@ -41,6 +77,19 @@ export default function CampaignReferralPage() {
   if (campaignId === "c4") campaignId = "camp-4";
 
   useEffect(() => {
+    if (refId) {
+      resolveCampaignReferralLink(refId).then((resolved) => {
+        if (resolved?.type === "campaign") {
+          setResolvedReferralCode(resolved.code || refId);
+          const resolvedCampaign = mapReferralCampaign(resolved.campaign);
+          if (resolvedCampaign) setCampaign(resolvedCampaign);
+          setReferrerName(resolved?.referrer?.name || resolved?.owner?.name || "KOL đối tác");
+        }
+      }).catch((error) => {
+        console.warn("Cannot resolve campaign referral link", error);
+      });
+    }
+
     // 1. Get campaign details
     let currentCampaign: Campaign | undefined;
     if (typeof window !== "undefined") {
@@ -101,9 +150,26 @@ export default function CampaignReferralPage() {
     }
   }, [campaignId, paramId, refId, refNameSlug]);
 
-  const handleApply = (e: React.FormEvent) => {
+  const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!campaign) return;
+
+    if (refId && /^\d+$/.test(String(campaign.id))) {
+      if (!getAuthToken()) {
+        router.push(`/auth/login?redirect=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);
+        return;
+      }
+
+      try {
+        await applyTalentCampaign(campaign.id, note, resolvedReferralCode || refId);
+        setIsApplied(true);
+        setError("");
+        return;
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "Không thể ứng tuyển qua link giới thiệu.");
+        return;
+      }
+    }
 
     if (typeof window !== "undefined") {
       const stored = window.localStorage.getItem("onstagevn_campaigns");

@@ -124,7 +124,10 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
 
       localStorage.setItem("onstagevn_auth_token", data.token);
       localStorage.setItem("onstagevn_auth_user", JSON.stringify(data.user));
-      router.push(getRedirectPath(data.user.type));
+      const redirectPath = typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("redirect")
+        : null;
+      router.push(redirectPath?.startsWith("/") ? redirectPath : getRedirectPath(data.user.type));
     } catch {
       setError("Không kết nối được backend Laravel. Hãy kiểm tra API server đã chạy chưa.");
     } finally {

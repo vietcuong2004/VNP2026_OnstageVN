@@ -3,6 +3,7 @@
 import React from "react";
 import { Users2, Plus, Shield, MapPin, Eye, Briefcase, MessageSquare, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createInitialAvatarDataUrl } from "@/lib/avatar";
 
 export type RosterStatus = "accepted" | "pending" | "declined";
 
@@ -87,6 +88,9 @@ export default function RosterTab({
                       <img
                         src={talent.avatar}
                         alt={talent.name}
+                        onError={(event) => {
+                          event.currentTarget.src = createInitialAvatarDataUrl(talent.name, talent.email);
+                        }}
                         className="h-full w-full rounded-[14px] object-cover"
                       />
                     </div>

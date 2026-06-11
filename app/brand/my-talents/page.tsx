@@ -5,6 +5,7 @@ import {
   Users2, Briefcase, DollarSign, CheckCircle, Clock, Wallet, TrendingUp, UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createInitialAvatarDataUrl, isUsableAvatarUrl, profileAvatarFromBackend } from "@/lib/avatar";
 import { talents as allTalents } from "@/lib/brand-mvp-data";
 import {
   addBrandRosterTalent,
@@ -206,7 +207,12 @@ function profileToTalent(profile: BrandRosterTalent["talent_profile"], fallback?
 
   const followersCount = fallback?.followersCount || 0;
   const displayName = profile.display_name || profile.full_name || profile.user?.name || fallback?.name || "Talent";
-  const avatar = profile.avatar_url || profile.user?.external_avatar_url || fallback?.avatar || "/images/default-avatar.png";
+  const backendAvatar = profileAvatarFromBackend(profile) || profile.avatar_url || profile.user?.external_avatar_url;
+  const avatar = isUsableAvatarUrl(backendAvatar)
+    ? backendAvatar
+    : isUsableAvatarUrl(fallback?.avatar)
+      ? fallback.avatar
+      : createInitialAvatarDataUrl(displayName, profile.user?.name);
 
   return {
     ...fallback,

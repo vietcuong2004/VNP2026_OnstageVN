@@ -517,6 +517,14 @@ export async function updateTalentBrandInvitation(invitationId: number | string,
   return response.data;
 }
 
+export async function acceptBrandTalentInviteLink(code: string) {
+  const response = await apiJson<{ data: any }>(`/brand/talent-invite-links/${encodeURIComponent(code)}/accept`, {
+    method: "POST",
+  });
+
+  return response.data;
+}
+
 export async function loadTalentRecommendations() {
   if (!getAuthToken()) return null;
 
