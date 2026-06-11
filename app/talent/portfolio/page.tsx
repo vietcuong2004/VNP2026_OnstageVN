@@ -12,6 +12,8 @@ import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
 import Portrait3DTab from "./Portrait3DTab";
 import { findTalentById } from "@/lib/brand-mvp-data";
+import { createInitialAvatarDataUrl } from "@/lib/avatar";
+import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 
 export default function PortfolioPage() {
   const router = useRouter();
@@ -59,7 +61,7 @@ export default function PortfolioPage() {
       hometown: "Nam Định",
       phone: "0912345678",
       email: "maianh.nguyen@beautyapp.vn",
-      avatar: "/avatar.png",
+      avatar: createInitialAvatarDataUrl("Nguyễn Mai Anh", "maianh.nguyen@beautyapp.vn"),
       height: 172,
       weight: 51,
       bust: 85,
@@ -116,8 +118,8 @@ export default function PortfolioPage() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        if (parsed && (parsed.avatar?.includes("unsplash.com") || !parsed.avatar)) {
-          parsed.avatar = "/avatar.png";
+        if (parsed && !parsed.avatar) {
+          parsed.avatar = createInitialAvatarDataUrl(parsed.name, parsed.email);
         }
         if (parsed) {
           if (!parsed.skillsScores) parsed.skillsScores = defaultMock.skillsScores;
@@ -133,16 +135,18 @@ export default function PortfolioPage() {
             parsed.lifestyleServices = findTalentById("tal-1")?.lifestyleServices || [];
           }
         }
-        localStorage.setItem("vnp_talent_profile", JSON.stringify(parsed));
-        setProfile(parsed);
+        setProfile(persistTalentProfile(parsed));
       } catch (e) {
         console.error(e);
         setProfile(defaultMock);
       }
     } else {
-      localStorage.setItem("vnp_talent_profile", JSON.stringify(defaultMock));
-      setProfile(defaultMock);
+      setProfile(persistTalentProfile(defaultMock));
     }
+
+    void loadTalentProfile().then((backendProfile) => {
+      setProfile(backendProfile);
+    });
   }, []);
 
   if (!profile) return null;
@@ -168,10 +172,44 @@ export default function PortfolioPage() {
   const currentBoostLevel = getBoostLevel(profile);
   const rankingScore = Math.round((currentBoostLevel * 100) + (profile.profileScore || 82) * 0.5 + 95 * 0.3 + (profile.averageRating || 4.9) * 2);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      addToast("Kich thuoc anh phai nho hon 5MB.", "info");
+      return;
+    }
+
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+
+      if (!syncedProfile.backendProfileId) {
+        setProfile(syncedProfile);
+        addToast("Vui long dang nhap lai de tai anh len he thong.", "info");
+        return;
+      }
+
+      const photo = await uploadTalentPhoto(syncedProfile.backendProfileId, file, type);
+      const photoUrl = photo.url || photo.path;
+
+      if (!photoUrl) {
+        addToast("Upload thanh cong nhung backend chua tra ve duong dan anh.", "info");
+        return;
+      }
+
+      const updatedProfile = persistTalentProfile({ ...syncedProfile, [type]: photoUrl });
+      setProfile(updatedProfile);
+      addToast(`Cap nhat ${type === "avatar" ? "anh dai dien" : "anh bia"} thanh cong!`, "success");
+    } catch (error) {
+      console.error(error);
+      addToast("Khong tai duoc anh len backend. Kiem tra lai API/storage.", "info");
+    }
+
+    return;
+
+    /*
     // Enforce size limit of 1.5MB to avoid localStorage quota exceeded (max 5MB)
     if (file.size > 1.5 * 1024 * 1024) {
       addToast("Kích thước ảnh phải nhỏ hơn 1.5MB để tối ưu dung lượng lưu trữ", "info");
@@ -189,6 +227,7 @@ export default function PortfolioPage() {
       }
     };
     reader.readAsDataURL(file);
+    */
   };
 
   // Handler for booking form submit preview
@@ -279,6 +318,9 @@ export default function PortfolioPage() {
               <img
                 src={profile.avatar}
                 alt={profile.name}
+                onError={(event) => {
+                  event.currentTarget.src = createInitialAvatarDataUrl(profile.name, profile.email);
+                }}
                 className="h-full w-full rounded-full object-cover"
               />
 

@@ -82,6 +82,7 @@ type BackendCampaignTalent = {
   status?: string | null;
   notes?: string | null;
   profile?: BackendProfile | null;
+  referred_by?: BackendUser | null;
 };
 
 type BackendCampaign = {
@@ -267,6 +268,8 @@ type CampaignTalentWithProfile = Campaign["applicants"][number] & {
   id?: string;
   profileId?: string;
   referredByUserId?: string | null;
+  referredByName?: string | null;
+  referredByAvatar?: string | null;
   talent?: Pick<TalentProfile, "id" | "name" | "type" | "avatar" | "matchScore">;
 };
 
@@ -432,6 +435,8 @@ function mapCampaignTalent(item: BackendCampaignTalent, index: number): Campaign
     id: item.id ? String(item.id) : undefined,
     profileId: profile?.id ? String(profile.id) : item.profile_id ? String(item.profile_id) : undefined,
     referredByUserId: item.referred_by_user_id ? String(item.referred_by_user_id) : null,
+    referredByName: item.referred_by?.name || null,
+    referredByAvatar: item.referred_by?.external_avatar_url || null,
     talentId: id,
     stage,
     note: item.notes || "",
@@ -439,7 +444,7 @@ function mapCampaignTalent(item: BackendCampaignTalent, index: number): Campaign
       id,
       name,
       type: user?.type || "Talent",
-      avatar: profile?.avatar_url || user?.external_avatar_url || "/images/default-avatar.png",
+      avatar: profile ? firstPhoto(profile, "avatar") || profile.avatar_url || user?.external_avatar_url || "/images/default-avatar.png" : user?.external_avatar_url || "/images/default-avatar.png",
       matchScore: 0,
     },
   };

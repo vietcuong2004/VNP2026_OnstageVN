@@ -121,6 +121,36 @@ export async function switchCurrentPlatform(type: "talent" | "brand") {
   return response.user;
 }
 
+export type SocialConnection = {
+  provider: "google" | "facebook";
+  email?: string | null;
+  avatar_url?: string | null;
+  created_at?: string | null;
+};
+
+export async function loadSocialConnections() {
+  const response = await apiJson<{ connections: SocialConnection[] }>("/auth/social/connections");
+
+  return response.connections;
+}
+
+export async function unlinkSocialConnection(provider: SocialConnection["provider"]) {
+  return apiJson<{ message: string }>(`/auth/social/connections/${provider}`, {
+    method: "DELETE",
+  });
+}
+
+export function getSocialLinkUrl(provider: SocialConnection["provider"]) {
+  const token = getAuthToken();
+  const query = new URLSearchParams({ mode: "link" });
+
+  if (token) {
+    query.set("token", token);
+  }
+
+  return `${API_BASE_URL}/auth/social/${provider}/redirect?${query.toString()}`;
+}
+
 export async function apiForm<T>(path: string, formData: FormData, init: RequestInit = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,

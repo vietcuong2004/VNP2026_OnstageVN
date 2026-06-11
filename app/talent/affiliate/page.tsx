@@ -7,6 +7,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { campaigns as initialCampaigns, talents, Campaign } from "@/lib/brand-mvp-data";
+import {
+  applyTalentCampaign,
+  getCampaignReferralLink,
+  loadTalentCampaigns,
+  mapCampaignToTalentJob,
+  resolveCampaignReferralLink,
+} from "@/lib/talent-api";
 import Link from "next/link";
 
 type StageFilter = "all" | "new" | "accepted" | "executing" | "completed" | "confirmed";
@@ -29,12 +36,33 @@ const stageColors: Record<StageFilter, { text: string; bg: string; border: strin
   confirmed: { text: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20", dot: "bg-emerald-400" },
 };
 
+const fallbackAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80";
+
+function profilePhotoUrl(profile: any, category?: string) {
+  const photos = Array.isArray(profile?.photos) ? profile.photos : [];
+  const photo = category
+    ? photos.find((item: any) => item?.category === category)
+    : photos[0];
+
+  return photo?.url || null;
+}
+
+function campaignApplicantAvatar(applicant: any, talentObj?: { avatar?: string }) {
+  return applicant?.talent?.avatar
+    || profilePhotoUrl(applicant?.profile, "avatar")
+    || applicant?.profile?.avatar_url
+    || applicant?.profile?.user?.external_avatar_url
+    || talentObj?.avatar
+    || fallbackAvatar;
+}
+
 export default function TalentAffiliatePage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [activeCampaigns, setActiveCampaigns] = useState<Campaign[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [activeCampaigns, setActiveCampaigns] = useState<any[]>([]);
   const [toasts, setToasts] = useState<{ id: string; msg: string; type: "success" | "info" }[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [pastedUrl, setPastedUrl] = useState("");
+  const [referralLinks, setReferralLinks] = useState<Record<string, string>>({});
 
   // Load from localStorage & sync
   useEffect(() => {
@@ -67,23 +95,46 @@ export default function TalentAffiliatePage() {
       }
 
       setCampaigns(loadedCampaigns);
+
+      loadTalentCampaigns().then((items) => {
+        if (!items?.length) return;
+        setCampaigns(items.map(mapCampaignToTalentJob));
+      }).catch((error) => {
+        console.warn("Cannot load talent affiliate campaigns from backend", error);
+      });
     }
   }, []);
 
   // Filter campaigns where "tal-1" is in accepted, executing, completed, or confirmed stage
   useEffect(() => {
     const active = campaigns.filter(c =>
-      c.applicants?.some(a => a.talentId === "tal-1" && ["accepted", "executing", "completed", "confirmed"].includes(a.stage))
+      (c.hasApplied && ["new", "accepted", "executing", "completed", "confirmed"].includes(c.application?.status)) ||
+      c.applicants?.some((a: any) => a.talentId === "tal-1" && ["accepted", "executing", "completed", "confirmed"].includes(a.stage))
     );
     setActiveCampaigns(active);
   }, [campaigns]);
 
+  useEffect(() => {
+    activeCampaigns.forEach((campaign) => {
+      const campaignId = String(campaign.id);
+      if (!/^\d+$/.test(campaignId) || referralLinks[campaignId]) return;
+
+      getCampaignReferralLink(campaignId).then((link) => {
+        if (!link?.url) return;
+        setReferralLinks((prev) => ({ ...prev, [campaignId]: link.url }));
+      }).catch((error) => {
+        console.warn("Cannot create campaign referral link", error);
+      });
+    });
+  }, [activeCampaigns, referralLinks]);
+
   // Filter campaigns where "tal-1" joined via someone else's referral (F2 role)
-  const [joinedViaReferral, setJoinedViaReferral] = useState<Campaign[]>([]);
+  const [joinedViaReferral, setJoinedViaReferral] = useState<any[]>([]);
 
   useEffect(() => {
     const joined = campaigns.filter(c =>
-      c.applicants?.some(a => a.talentId === "tal-1" && a.referredByTalentId)
+      c.application?.referred_by_user_id ||
+      c.applicants?.some((a: any) => a.talentId === "tal-1" && a.referredByTalentId)
     );
     setJoinedViaReferral(joined);
   }, [campaigns]);
@@ -96,14 +147,30 @@ export default function TalentAffiliatePage() {
     }, 4000);
   };
 
-  const handleCopyLink = (campaignId: string, url: string) => {
-    navigator.clipboard.writeText(url);
+  const handleCopyLink = async (campaignId: string, url: string) => {
+    let copyUrl = url;
+
+    if (/^\d+$/.test(String(campaignId)) && (!referralLinks[String(campaignId)] || url.includes("ref=tal-1"))) {
+      try {
+        const link = await getCampaignReferralLink(campaignId);
+        if (link?.url) {
+          copyUrl = link.url;
+          setReferralLinks((prev) => ({ ...prev, [String(campaignId)]: link.url }));
+        }
+      } catch (error) {
+        console.warn("Cannot create campaign referral link before copy", error);
+        addToast("Chua tao duoc link backend. Vui long thu lai sau vai giay.", "info");
+        return;
+      }
+    }
+
+    navigator.clipboard.writeText(copyUrl);
     setCopiedId(campaignId);
     addToast("Đã copy link giới thiệu chiến dịch!", "success");
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleJoinCampaign = (e: React.FormEvent) => {
+  const handleJoinCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pastedUrl) return;
 
@@ -137,6 +204,33 @@ export default function TalentAffiliatePage() {
       if (campaignId === "c2") campaignId = "camp-2";
       if (campaignId === "c3") campaignId = "camp-3";
       if (campaignId === "c4") campaignId = "camp-4";
+
+      if (refId) {
+        try {
+          const resolved = await resolveCampaignReferralLink(refId);
+          const resolvedCampaignId = resolved?.campaign?.id || resolved?.campaign_id || campaignId;
+
+          if (resolvedCampaignId) {
+            await applyTalentCampaign(resolvedCampaignId, "Dang ky tham gia qua link gioi thieu Affiliate.", refId);
+
+            const refreshed = await loadTalentCampaigns();
+            if (refreshed?.length) {
+              setCampaigns(refreshed.map(mapCampaignToTalentJob));
+            }
+
+            setPastedUrl("");
+            const referrerName = resolved?.referrer?.name || resolved?.owner?.name || "KOL doi tac";
+            addToast(`Dang ky tham gia thanh cong qua gioi thieu cua ${referrerName}!`, "success");
+            return;
+          }
+        } catch (error) {
+          console.warn("Cannot apply campaign referral via backend", error);
+          if (/^\d+$/.test(String(campaignId))) {
+            addToast(error instanceof Error ? error.message : "Khong the dang ky campaign qua link backend.", "info");
+            return;
+          }
+        }
+      }
 
       const stored = window.localStorage.getItem("onstagevn_campaigns");
       let allCampaigns: Campaign[] = [];
@@ -294,23 +388,43 @@ export default function TalentAffiliatePage() {
       .trim();
   };
 
+  const campaignBudgetValue = (campaign: any) => campaign.budgetValue || (() => {
+    const rawBudget = campaign.budget || "10.000.000Ä‘";
+    const firstPart = rawBudget.split("-")[0] || "";
+    return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
+  })();
+
+  const campaignParticipantCount = (campaign: any) => {
+    const applicantCount = Array.isArray(campaign.applicants) ? campaign.applicants.length : 0;
+    const referralCount = Array.isArray(campaign.referrals) ? campaign.referrals.length : 0;
+    return applicantCount || referralCount + 1 || 1;
+  };
+
+  const campaignF2Applicants = (campaign: any) => {
+    if (Array.isArray(campaign.referrals) && campaign.referrals.length) return campaign.referrals;
+    return campaign.applicants?.filter((applicant: any) => applicant.referredByTalentId === "tal-1") || [];
+  };
+
   // Overall statistics calculation
   const totalCampaigns = activeCampaigns.length;
   let totalF2Referred = 0;
   let totalExpectedPayout = 0;
 
-  activeCampaigns.forEach(c => {
+  activeCampaigns.forEach((c: any) => {
     const cleanBudget = c.budgetValue || (() => {
       const rawBudget = c.budget || "10.000.000đ";
       const firstPart = rawBudget.split("-")[0] || "";
       return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
     })();
     const poolVal = cleanBudget / (c.applicants?.length || 1);
-    const f2Applicants = c.applicants?.filter(a => a.referredByTalentId === "tal-1") || [];
+    const f2Applicants = c.applicants?.filter((a: any) => a.referredByTalentId === "tal-1") || [];
+    const backendF2Applicants = campaignF2Applicants(c);
+    const effectiveF2Applicants = backendF2Applicants.length ? backendF2Applicants : f2Applicants;
+    const effectivePoolVal = cleanBudget / campaignParticipantCount(c);
 
-    totalF2Referred += f2Applicants.length;
+    totalF2Referred += effectiveF2Applicants.length;
     // F1 receives 5% of F2's contract payout value (poolVal)
-    totalExpectedPayout += f2Applicants.reduce((sum) => sum + (poolVal * 0.05), 0);
+    totalExpectedPayout += effectiveF2Applicants.reduce((sum: number) => sum + (effectivePoolVal * 0.05), 0);
   });
 
   const formatVND = (value: number) => {
@@ -414,21 +528,21 @@ export default function TalentAffiliatePage() {
                       </thead>
                       <tbody>
                         {joinedViaReferral.map((c, idx) => {
-                          const applicantInfo = c.applicants?.find(a => a.talentId === "tal-1");
-                          const referrerId = applicantInfo?.referredByTalentId || "";
+                          const applicantInfo = c.applicants?.find((a: any) => a.talentId === "tal-1");
+                          const referrerId = applicantInfo?.referredByTalentId || c.application?.referred_by_user_id || "";
                           const referrerTalent = talents.find(t => t.id === referrerId);
-                          const referrerName = referrerTalent ? referrerTalent.name : `KOL #${referrerId.split("-")[1] || idx}`;
-                          const referrerAvatar = referrerTalent?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80";
+                          const referrerName = c.application?.referred_by?.name || (referrerTalent ? referrerTalent.name : `KOL #${String(referrerId).split("-")[1] || idx}`);
+                          const referrerAvatar = c.application?.referred_by?.external_avatar_url || referrerTalent?.avatar || fallbackAvatar;
 
                           const cleanBudget = c.budgetValue || (() => {
                             const rawBudget = c.budget || "10.000.000đ";
                             const firstPart = rawBudget.split("-")[0] || "";
                             return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
                           })();
-                          const poolVal = cleanBudget / (c.applicants?.length || 1);
+                          const poolVal = cleanBudget / campaignParticipantCount(c);
                           const yourPayout = poolVal * 0.70;
 
-                          const stageKey = (applicantInfo?.stage || "new") as StageFilter;
+                          const stageKey = (applicantInfo?.stage || c.application?.status || "new") as StageFilter;
                           const colors = stageColors[stageKey] || stageColors.new;
                           const statusLabelText = stageLabels[stageKey] || "Chờ duyệt";
 
@@ -464,21 +578,21 @@ export default function TalentAffiliatePage() {
                 {/* Mobile view (Card List) - Optimized for small screens */}
                 <div className="block md:hidden space-y-3">
                   {joinedViaReferral.map((c, idx) => {
-                    const applicantInfo = c.applicants?.find(a => a.talentId === "tal-1");
-                    const referrerId = applicantInfo?.referredByTalentId || "";
+                    const applicantInfo = c.applicants?.find((a: any) => a.talentId === "tal-1");
+                    const referrerId = applicantInfo?.referredByTalentId || c.application?.referred_by_user_id || "";
                     const referrerTalent = talents.find(t => t.id === referrerId);
-                    const referrerName = referrerTalent ? referrerTalent.name : `KOL #${referrerId.split("-")[1] || idx}`;
-                    const referrerAvatar = referrerTalent?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80";
+                    const referrerName = c.application?.referred_by?.name || (referrerTalent ? referrerTalent.name : `KOL #${String(referrerId).split("-")[1] || idx}`);
+                    const referrerAvatar = c.application?.referred_by?.external_avatar_url || referrerTalent?.avatar || fallbackAvatar;
 
                     const cleanBudget = c.budgetValue || (() => {
                       const rawBudget = c.budget || "10.000.000đ";
                       const firstPart = rawBudget.split("-")[0] || "";
                       return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
                     })();
-                    const poolVal = cleanBudget / (c.applicants?.length || 1);
+                    const poolVal = cleanBudget / campaignParticipantCount(c);
                     const yourPayout = poolVal * 0.70;
 
-                    const stageKey = (applicantInfo?.stage || "new") as StageFilter;
+                    const stageKey = (applicantInfo?.stage || c.application?.status || "new") as StageFilter;
                     const colors = stageColors[stageKey] || stageColors.new;
                     const statusLabelText = stageLabels[stageKey] || "Chờ duyệt";
 
@@ -577,21 +691,21 @@ export default function TalentAffiliatePage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {activeCampaigns.map(c => {
+              {activeCampaigns.map((c: any) => {
                 const cleanBudget = c.budgetValue || (() => {
                   const rawBudget = c.budget || "10.000.000đ";
                   const firstPart = rawBudget.split("-")[0] || "";
                   return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
                 })();
-                const poolVal = cleanBudget / (c.applicants?.length || 1);
+                const poolVal = cleanBudget / campaignParticipantCount(c);
 
-                const f2Applicants = c.applicants?.filter(a => a.referredByTalentId === "tal-1") || [];
-                const expectedComm = f2Applicants.reduce((sum) => sum + (poolVal * 0.05), 0);
+                const f2Applicants = campaignF2Applicants(c);
+                const expectedComm = f2Applicants.reduce((sum: number) => sum + (poolVal * 0.05), 0);
 
                 // Generate referral URL
-                const referralUrl = typeof window !== "undefined"
+                const referralUrl = referralLinks[String(c.id)] || (typeof window !== "undefined"
                   ? `${window.location.origin}/campaign/${slugify(c.title || "chien-dich")}-${c.id}?ref=tal-1&name=nguyen-mai-anh`
-                  : `https://onstage.vn/campaign/${slugify(c.title || "chien-dich")}-${c.id}?ref=tal-1&name=nguyen-mai-anh`;
+                  : `https://onstage.vn/campaign/${slugify(c.title || "chien-dich")}-${c.id}?ref=tal-1&name=nguyen-mai-anh`);
 
                 return (
                   <div key={c.id} className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#08090f] p-6 hover:border-amber-500/20 transition-all duration-300 shadow-lg space-y-5">
@@ -601,7 +715,7 @@ export default function TalentAffiliatePage() {
                       <div>
                         <h3 className="text-base font-black text-white tracking-wide">{c.title}</h3>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
-                          Thương hiệu: <span className="text-slate-300 font-extrabold">{c.id.startsWith("camp-") ? "L'Oréal Vietnam" : "Brand đối tác"}</span>
+                          Thương hiệu: <span className="text-slate-300 font-extrabold">{String(c.id).startsWith("camp-") ? "L'Oréal Vietnam" : "Brand đối tác"}</span>
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
@@ -667,10 +781,10 @@ export default function TalentAffiliatePage() {
                         </div>
                       ) : (
                         <div className="space-y-2.5">
-                          {f2Applicants.map((applicant, idx) => {
+                          {f2Applicants.map((applicant: any, idx: number) => {
                             const talentObj = talents.find(t => t.id === applicant.talentId);
-                            const name = talentObj?.name || `KOL F2 #${applicant.talentId.split("-")[1] || idx}`;
-                            const avatar = talentObj?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80";
+                            const name = applicant?.talent?.name || applicant?.profile?.display_name || talentObj?.name || `KOL F2 #${String(applicant.talentId || applicant.talent_id || idx).split("-")[1] || idx}`;
+                            const avatar = campaignApplicantAvatar(applicant, talentObj);
                             const stageKey = applicant.stage as StageFilter;
                             const colors = stageColors[stageKey] || stageColors.new;
 

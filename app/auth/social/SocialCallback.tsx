@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { avatarFallbackForUser, profileAvatarFromBackend } from "@/lib/avatar";
 
 type AccountType = "talent" | "brand";
 
@@ -17,12 +18,62 @@ type MeResponse = {
   };
 };
 
+type ProfileResponse = {
+  data?: {
+    id?: number;
+    display_name?: string | null;
+    photos?: Array<{ url?: string | null; path?: string | null; category?: string | null }> | null;
+    user?: { name?: string | null; email?: string | null } | null;
+  } | null;
+};
+
 function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
 }
 
 function getRedirectPath(type: AccountType | null) {
   return type === "talent" ? "/talent/dashboard" : "/brand/dashboard";
+}
+
+async function hydrateTalentAvatar(apiUrl: string, token: string, user: MeResponse["user"]) {
+  if (user.type !== "talent") return user;
+
+  const fallbackAvatar = avatarFallbackForUser(user);
+  let avatar = fallbackAvatar;
+
+  try {
+    const response = await fetch(`${apiUrl}/my/profile`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      const profile = (await response.json()) as ProfileResponse;
+      avatar = profileAvatarFromBackend(profile.data) || fallbackAvatar;
+    }
+  } catch {
+    avatar = fallbackAvatar;
+  }
+
+  const storedProfile = localStorage.getItem("vnp_talent_profile");
+  let currentProfile = {};
+
+  try {
+    currentProfile = storedProfile ? JSON.parse(storedProfile) : {};
+  } catch {
+    currentProfile = {};
+  }
+
+  localStorage.setItem("vnp_talent_profile", JSON.stringify({
+    ...currentProfile,
+    name: user.name,
+    email: user.email,
+    avatar,
+  }));
+
+  return { ...user, external_avatar_url: avatar };
 }
 
 export default function SocialCallback() {
@@ -53,9 +104,9 @@ export default function SocialCallback() {
 
         if (response.ok) {
           const data = (await response.json()) as MeResponse;
-          localStorage.setItem("onstagevn_auth_user", JSON.stringify(data.user));
-          localStorage.removeItem("vnp_talent_profile");
-          router.replace(getRedirectPath(data.user.type));
+          const user = await hydrateTalentAvatar(apiUrl, token, data.user);
+          localStorage.setItem("onstagevn_auth_user", JSON.stringify(user));
+          router.replace(getRedirectPath(user.type));
           return;
         }
       } catch {

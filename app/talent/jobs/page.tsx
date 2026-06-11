@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Campaign, SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
+import { applyTalentCampaign, loadTalentCampaigns, mapCampaignToTalentJob } from "@/lib/talent-api";
 import Link from "next/link";
 
 type StageFilter = "all" | "pending" | "accepted" | "executing" | "completed" | "confirmed";
@@ -35,6 +36,25 @@ export default function JobsPage() {
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);
+  };
+
+  const normalizeJobStage = (status?: string | null) => {
+    if (!status) return "";
+    if (status === "pending") return "new";
+    if (status === "approved") return "accepted";
+    return status;
+  };
+
+  const getTalentJobStage = (job: any) => {
+    const backendStage = normalizeJobStage(job.application?.status);
+    if (backendStage) return backendStage;
+
+    const appItem = job.applicants?.find((a: any) => a.talentId === "tal-1");
+    return normalizeJobStage(appItem?.stage) || "";
+  };
+
+  const hasTalentApplication = (job: any) => {
+    return Boolean(job.hasApplied || job.application || job.applicants?.some((a: any) => a.talentId === "tal-1"));
   };
 
   useEffect(() => {
@@ -382,11 +402,42 @@ export default function JobsPage() {
       }
     }
 
-    setDisplayJobs([...loadedBrandJobs, ...mockCampaigns]);
+    const fallbackJobs = [...loadedBrandJobs, ...mockCampaigns];
+    setDisplayJobs(fallbackJobs);
+
+    loadTalentCampaigns().then((items) => {
+      if (!items?.length) return;
+
+      const backendJobs = items.map(mapCampaignToTalentJob);
+      setDisplayJobs(backendJobs);
+      const backendAppliedIds = backendJobs.filter((job) => job.hasApplied).map((job) => String(job.id));
+      setAppliedJobs((prev) => {
+        const next = Array.from(new Set([...prev, ...backendAppliedIds]));
+        return next.length === prev.length ? prev : next;
+      });
+    }).catch((error) => {
+      console.warn("Cannot load talent campaigns from backend", error);
+    });
   }, [appliedJobs]);
 
-  const handleApply = (id: string, title: string) => {
+  const handleApply = async (id: string, title: string) => {
     if (appliedJobs.includes(id)) return;
+
+    if (/^\d+$/.test(String(id))) {
+      try {
+        await applyTalentCampaign(id, "Toi rat quan tam va mong muon ung tuyen thuc hien chien dich nay.");
+        setDisplayJobs((prev) => prev.map((job) => (
+          String(job.id) === String(id)
+            ? { ...job, hasApplied: true, application: { ...(job.application || {}), status: "new" } }
+            : job
+        )));
+      } catch (error) {
+        console.warn("Cannot apply campaign from backend", error);
+        addToast("Chua gui duoc ung tuyen len backend. Vui long thu lai.", "info");
+        return;
+      }
+    }
+
     setAppliedJobs((prev) => [...prev, id]);
     addToast(`Ứng tuyển thành công công việc "${title}"!`);
 
@@ -510,8 +561,7 @@ export default function JobsPage() {
     // 2. Stage filter — based on tal-1’s applicant stage in this campaign
     let matchesStage = true;
     if (selectedStageFilter !== "all") {
-      const appItem = camp.applicants?.find((a: any) => a.talentId === "tal-1");
-      const stage: string = appItem?.stage || "";
+      const stage = getTalentJobStage(camp);
       if (selectedStageFilter === "pending") {
         matchesStage = stage === "new";
       } else {
@@ -530,8 +580,7 @@ export default function JobsPage() {
       acc[sf] = displayJobs.length;
     } else {
       acc[sf] = displayJobs.filter((camp) => {
-        const appItem = camp.applicants?.find((a: any) => a.talentId === "tal-1");
-        const stage: string = appItem?.stage || "";
+        const stage = getTalentJobStage(camp);
         if (sf === "pending") return stage === "new";
         return stage === sf;
       }).length;
@@ -601,7 +650,7 @@ export default function JobsPage() {
       {/* Campaigns Listing - Premium grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredCampaigns.map((camp) => {
-          const isApplied = appliedJobs.includes(camp.id);
+          const isApplied = appliedJobs.includes(camp.id) || hasTalentApplication(camp);
           
           return (
             <div
@@ -687,8 +736,7 @@ export default function JobsPage() {
                       );
                     }
                     
-                    const appItem = camp.applicants?.find((a: any) => a.talentId === "tal-1");
-                    const stage = appItem?.stage || "new";
+                    const stage = getTalentJobStage(camp) || "new";
 
                     if (stage === "new") {
                       return (
@@ -762,7 +810,7 @@ export default function JobsPage() {
                       <ShieldCheck className="h-3 w-3" /> Đã ký quỹ Escrow
                     </span>
                   )}
-                  {appliedJobs.includes(selectedJob.id) && (
+                  {(appliedJobs.includes(selectedJob.id) || hasTalentApplication(selectedJob)) && (
                     <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[8px] text-emerald-400 font-extrabold border border-emerald-500/20 uppercase tracking-wider">
                       <CheckCircle className="h-3 w-3" /> Đã ứng tuyển
                     </span>
@@ -939,7 +987,7 @@ export default function JobsPage() {
               </div>
 
               {/* Campaign Affiliate Widget */}
-              {selectedJob.applicants?.some((a: any) => a.talentId === "tal-1" && ["accepted", "executing", "completed", "confirmed"].includes(a.stage)) && (
+              {hasTalentApplication(selectedJob) && (
                 <div className="mt-6 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 space-y-3.5 text-left">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -977,7 +1025,7 @@ export default function JobsPage() {
               </button>
               
               {(() => {
-                const isApplied = appliedJobs.includes(selectedJob.id);
+                const isApplied = appliedJobs.includes(selectedJob.id) || hasTalentApplication(selectedJob);
                 if (!isApplied) {
                   return (
                     <button
@@ -989,8 +1037,7 @@ export default function JobsPage() {
                   );
                 }
                 
-                const appItem = selectedJob.applicants?.find((a: any) => a.talentId === "tal-1");
-                const stage = appItem?.stage || "new";
+                const stage = getTalentJobStage(selectedJob) || "new";
 
                 if (stage === "new") {
                   return (

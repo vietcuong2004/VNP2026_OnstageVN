@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Building2, CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound } from "lucide-react";
 import { partnerProfile } from "@/lib/brand-mvp-data";
 import { loadBrandPartnerProfile, mapBackendPartnerProfile, saveBrandPartnerProfile } from "@/lib/brand-api";
+import { getSocialLinkUrl, loadSocialConnections, SocialConnection, unlinkSocialConnection } from "@/lib/api-client";
+import { SocialProviderIcon } from "@/components/social-provider-icon";
 
 const fallbackProfile = mapBackendPartnerProfile({
   organization_name: partnerProfile.organizationName,
@@ -22,10 +24,38 @@ const fallbackProfile = mapBackendPartnerProfile({
 export default function BrandSettingsPage() {
   const [profile, setProfile] = useState(fallbackProfile);
   const [saving, setSaving] = useState(false);
+  const [connections, setConnections] = useState<SocialConnection[]>([]);
+  const [socialLoading, setSocialLoading] = useState(false);
 
   useEffect(() => {
     loadBrandPartnerProfile(fallbackProfile).then(setProfile);
+    loadSocialConnections()
+      .then(setConnections)
+      .catch(() => {
+        // Keep settings usable if auth API is not ready.
+      });
   }, []);
+
+  const isLinked = (provider: SocialConnection["provider"]) => {
+    return connections.some((connection) => connection.provider === provider);
+  };
+
+  const linkSocial = (provider: SocialConnection["provider"]) => {
+    window.location.href = getSocialLinkUrl(provider);
+  };
+
+  const unlinkSocial = async (provider: SocialConnection["provider"]) => {
+    setSocialLoading(true);
+    try {
+      await unlinkSocialConnection(provider);
+      setConnections((current) => current.filter((connection) => connection.provider !== provider));
+      window.alert(`Đã hủy liên kết ${provider}.`);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể hủy liên kết.");
+    } finally {
+      setSocialLoading(false);
+    }
+  };
 
   function updateField(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = event.target;
@@ -110,6 +140,76 @@ export default function BrandSettingsPage() {
 
           <div className="mt-5 rounded-xl border border-white/5 bg-white/[0.03] p-3 text-xs leading-relaxed text-slate-500">
             Thông tin liên hệ của doanh nghiệp. Vui lòng cập nhật đầy đủ thông tin để tăng tính xác thực với các KOL, Model, MC, PG
+          </div>
+          <div className="mt-5 rounded-xl border border-white/5 bg-white/[0.03] p-3">
+            <h3 className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Liên kết đăng nhập</h3>
+            <div className="space-y-2">
+              {(["google", "facebook"] as const).map((provider) => {
+                const linked = isLinked(provider);
+                const label = provider === "google" ? "Google" : "Facebook";
+
+                return (
+                  <div
+                    key={`new-${provider}`}
+                    className="rounded-xl border border-white/5 bg-slate-950/40 p-3 transition-colors hover:border-amber-400/30"
+                  >
+                    <div className="flex items-start gap-3">
+                      <SocialProviderIcon provider={provider} className="h-10 w-10 rounded-lg" />
+                      <div className="min-w-0 flex-1">
+                        <span className="block text-sm font-black text-white">{label}</span>
+                        <span className="mt-1 block text-xs leading-relaxed text-slate-500">
+                          Dùng tài khoản {label} để đăng nhập vào cùng một tài khoản OnstageVN.
+                        </span>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          {linked ? (
+                            <>
+                              <span className="inline-flex h-8 items-center justify-center rounded-lg border border-emerald-400/25 bg-emerald-400/10 px-3 text-[10px] font-black text-emerald-300">
+                                Đã liên kết
+                              </span>
+                              <button
+                                type="button"
+                                disabled={socialLoading}
+                                onClick={() => unlinkSocial(provider)}
+                                className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-400/25 bg-rose-500/10 px-3 text-[10px] font-black text-rose-300 transition-colors hover:bg-rose-500/15 disabled:cursor-wait disabled:opacity-60"
+                              >
+                                Huỷ liên kết
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={socialLoading}
+                              onClick={() => linkSocial(provider)}
+                              className="inline-flex h-8 items-center justify-center rounded-lg border border-amber-400/25 bg-amber-400 px-3 text-[10px] font-black text-slate-950 transition-colors hover:bg-amber-300 disabled:cursor-wait disabled:opacity-60"
+                            >
+                              Liên kết
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {false && (["google", "facebook"] as const).map((provider) => {
+                const linked = isLinked(provider);
+                const label = provider === "google" ? "Google" : "Facebook";
+
+                return (
+                  <button
+                    key={provider}
+                    type="button"
+                    disabled={socialLoading}
+                    onClick={() => (linked ? unlinkSocial(provider) : linkSocial(provider))}
+                    className="flex w-full items-center justify-between rounded-lg border border-white/5 bg-slate-950/40 px-3 py-2 text-left text-xs text-slate-300 transition-colors hover:border-amber-400/40 disabled:cursor-wait disabled:opacity-70"
+                  >
+                    <span className="font-bold">{linked ? `Đã liên kết ${label}` : `Liên kết ${label}`}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-300">{linked ? "Hủy" : "Kết nối"}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </aside>
 

@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Bell, Calendar, ChevronDown, Crown, LogOut, Search, UserCircle, Building2 } from "lucide-react";
+import { Bell, Calendar, ChevronDown, Crown, LogOut, Search, UserCircle, Building2, Settings } from "lucide-react";
 import { TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
 import { switchCurrentPlatform } from "@/lib/api-client";
+import { createInitialAvatarDataUrl, profileAvatarFromBackend } from "@/lib/avatar";
 
 type AuthUser = {
   name: string;
@@ -79,7 +80,8 @@ export default function Header() {
     : isBrandPath
       ? { name: "L'Oréal Vietnam", subtitle: "Doanh nghiệp" }
       : { name: "Nguyễn Mai Anh", subtitle: "Hạng S" };
-  const headerAvatarSrc = isBrandPath ? "/logo_icon.png" : talentAvatar || user?.external_avatar_url || "/avatar.png";
+  const fallbackAvatarSrc = createInitialAvatarDataUrl(label.name, user?.email);
+  const headerAvatarSrc = isBrandPath ? "/logo_icon.png" : talentAvatar || fallbackAvatarSrc;
   const nextPlatform = user?.type === "brand" ? "talent" : "brand";
   const nextPlatformPath = nextPlatform === "brand" ? "/brand/dashboard" : "/talent/dashboard";
   const nextPlatformLabel = nextPlatform === "brand" ? "Chuyển sang Brand" : "Chuyển sang Talent";
@@ -100,6 +102,59 @@ export default function Header() {
       setSwitchingPlatform(false);
     }
   }
+
+  useEffect(() => {
+    if (!user || user.type !== "talent") return;
+
+    const token = localStorage.getItem("onstagevn_auth_token");
+    if (!token) return;
+
+    let cancelled = false;
+    const currentUser = user;
+
+    async function loadProfileAvatar() {
+      try {
+        const response = await fetch(`${getApiBaseUrl()}/my/profile`, {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) return;
+
+        const payload = await response.json();
+        const avatar = profileAvatarFromBackend(payload?.data) || fallbackAvatarSrc;
+
+        if (cancelled) return;
+
+        const storedProfile = localStorage.getItem("vnp_talent_profile");
+        let currentProfile = {};
+
+        try {
+          currentProfile = storedProfile ? JSON.parse(storedProfile) : {};
+        } catch {
+          currentProfile = {};
+        }
+
+        localStorage.setItem("vnp_talent_profile", JSON.stringify({
+          ...currentProfile,
+          name: currentUser.name,
+          email: currentUser.email,
+          avatar,
+        }));
+        setTalentAvatar(avatar);
+      } catch {
+        if (!cancelled) setTalentAvatar(fallbackAvatarSrc);
+      }
+    }
+
+    loadProfileAvatar();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fallbackAvatarSrc, user]);
 
   async function handleLogout() {
     const token = localStorage.getItem("onstagevn_auth_token");
@@ -169,6 +224,9 @@ export default function Header() {
             <img
               src={headerAvatarSrc}
               alt="Profile avatar"
+              onError={(event) => {
+                event.currentTarget.src = fallbackAvatarSrc;
+              }}
               className="h-9 w-9 rounded-full border border-amber-400/30 object-cover bg-slate-950"
             />
             <div className="hidden sm:block">
@@ -181,7 +239,14 @@ export default function Header() {
           {open && (
             <div className="absolute right-0 top-12 w-64 rounded-xl border border-white/10 bg-[#080b16] p-2 shadow-2xl">
               <div className="flex items-center gap-3 rounded-lg px-3 py-3 border-b border-white/5 mb-1.5">
-                {isBrandPath ? <Building2 className="h-9 w-9 text-amber-300" /> : <UserCircle className="h-9 w-9 text-amber-300" />}
+                <img
+                  src={headerAvatarSrc}
+                  alt="Profile avatar"
+                  onError={(event) => {
+                    event.currentTarget.src = fallbackAvatarSrc;
+                  }}
+                  className="h-9 w-9 rounded-full border border-amber-400/30 object-cover bg-slate-950"
+                />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-white">{label.name}</p>
                   <p className="truncate text-xs text-slate-500">{user?.email ?? (isBrandPath ? "partner@loreal.com" : "maianh@onstage.vn")}</p>
@@ -216,6 +281,17 @@ export default function Header() {
                 </>
               ) : (
                 <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push("/talent/settings");
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    <Settings className="h-4 w-4 text-slate-400" />
+                    Cài đặt
+                  </button>
                   <button
                     type="button"
                     onClick={() => {

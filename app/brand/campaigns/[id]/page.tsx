@@ -232,13 +232,13 @@ export default function CampaignDetailPage() {
     loadBrandTalents(talents).then(setDisplayTalents);
     loadBrandCampaign(params.id, fallbackCampaigns).then((campaign) => {
       if (!campaign) return;
+      const loadedCampaign = campaign;
 
       setCampaigns((current) => {
-        const localCampaign = current.find((item) => item.id === campaign.id);
-        let mergedApplicants = [...campaign.applicants];
+        let mergedApplicants = [...loadedCampaign.applicants];
 
         // Pre-seed F2 referred applicant if campaign 1/camp-1 is loaded
-        if (campaign.id === "1" || campaign.id === "camp-1") {
+        if (false && (loadedCampaign.id === "1" || loadedCampaign.id === "camp-1")) {
           const hasF2 = mergedApplicants.some(a => a.referredByTalentId === "tal-1" || a.talentId === "tal-4");
           if (!hasF2) {
             mergedApplicants.push({
@@ -250,22 +250,14 @@ export default function CampaignDetailPage() {
           }
         }
 
-        if (localCampaign) {
-          localCampaign.applicants.forEach((localApp) => {
-            if (!mergedApplicants.some((a) => a.talentId === localApp.talentId)) {
-              mergedApplicants.push(localApp);
-            }
-          });
-        }
-
         const mergedCampaign = {
-          ...campaign,
+          ...loadedCampaign,
           applicants: mergedApplicants
         };
 
-        const exists = current.some((item) => item.id === campaign.id);
+        const exists = current.some((item) => item.id === loadedCampaign.id);
         const next = exists
-          ? current.map((item) => item.id === campaign.id ? mergedCampaign : item)
+          ? current.map((item) => item.id === loadedCampaign.id ? mergedCampaign : item)
           : [mergedCampaign, ...current];
 
         if (typeof window !== "undefined") {
@@ -704,13 +696,17 @@ export default function CampaignDetailPage() {
           </article>
 
           {selectedCampaign.applicants.map((item) => {
-            const talent = displayTalents.find((candidate) => candidate.id === item.talentId) || talents.find((candidate) => candidate.id === item.talentId);
+            const talent = displayTalents.find((candidate) => candidate.id === item.talentId)
+              || talents.find((candidate) => candidate.id === item.talentId)
+              || (item as any).talent;
             if (!talent) return null;
             const requestKey = `${selectedCampaign.id}-${talent.id}`;
             const stage = item.stage;
+            const referredByName = (item as any).referredByName;
             const referrer = item.referredByTalentId
-              ? displayTalents.find((candidate) => candidate.id === item.referredByTalentId) || talents.find((candidate) => candidate.id === item.referredByTalentId)
-              : null;
+              ? displayTalents.find((candidate) => candidate.id === item.referredByTalentId) || talents.find((candidate) => candidate.id === item.referredByTalentId) || (referredByName ? { name: referredByName } : null)
+              : (referredByName ? { name: referredByName } : null);
+            const referrerName = referrer?.name;
             return (
               <article
                 key={item.talentId}
@@ -728,7 +724,7 @@ export default function CampaignDetailPage() {
                     </div>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <span className="text-[10px] text-slate-400">{talent.type} · {talent.city}</span>
-                      {referrer && (
+                      {referrerName && (
                         <span className="inline-flex items-center gap-1 rounded bg-cyan-400/10 border border-cyan-500/20 px-2 py-0.5 text-[8.5px] font-bold text-cyan-400 uppercase tracking-wider">
                           Giới thiệu bởi: {referrer.name}
                         </span>

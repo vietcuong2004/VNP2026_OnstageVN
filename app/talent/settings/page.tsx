@@ -1,13 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Settings, ArrowLeft, Bell, Key, LogOut, RefreshCw, CheckCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getSocialLinkUrl, loadSocialConnections, SocialConnection, unlinkSocialConnection } from "@/lib/api-client";
+import { SocialProviderIcon } from "@/components/social-provider-icon";
 
 export default function SettingsPage() {
   const router = useRouter();
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
+  const [connections, setConnections] = useState<SocialConnection[]>([]);
+  const [socialLoading, setSocialLoading] = useState(false);
 
   const addToast = (message: string, type: "success" | "info" = "success") => {
     const id = Date.now();
@@ -15,6 +19,35 @@ export default function SettingsPage() {
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 4000);
+  };
+
+  useEffect(() => {
+    loadSocialConnections()
+      .then(setConnections)
+      .catch(() => {
+        // Settings should still render if backend auth is not ready.
+      });
+  }, []);
+
+  const isLinked = (provider: SocialConnection["provider"]) => {
+    return connections.some((connection) => connection.provider === provider);
+  };
+
+  const handleLinkSocial = (provider: SocialConnection["provider"]) => {
+    window.location.href = getSocialLinkUrl(provider);
+  };
+
+  const handleUnlinkSocial = async (provider: SocialConnection["provider"]) => {
+    setSocialLoading(true);
+    try {
+      await unlinkSocialConnection(provider);
+      setConnections((current) => current.filter((connection) => connection.provider !== provider));
+      addToast(`Đã hủy liên kết ${provider}.`, "success");
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : "Chưa thể hủy liên kết.", "info");
+    } finally {
+      setSocialLoading(false);
+    }
   };
 
   const handleLogout = () => {
@@ -79,6 +112,82 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {(["google", "facebook"] as const).map((provider) => {
+          const linked = isLinked(provider);
+          const label = provider === "google" ? "Google" : "Facebook";
+
+          return (
+            <div
+              key={`new-${provider}`}
+              className="flex flex-col gap-4 p-5 transition-colors duration-300 hover:bg-slate-950/40 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <SocialProviderIcon provider={provider} />
+                <div>
+                  <span className="block text-sm font-black text-white">{label}</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-slate-500">
+                    Dùng tài khoản {label} để đăng nhập vào cùng một tài khoản OnstageVN.
+                  </span>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2 self-start sm:self-center">
+                {linked ? (
+                  <>
+                    <span className="inline-flex h-9 items-center justify-center rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-3 text-xs font-black text-emerald-300">
+                      Đã liên kết
+                    </span>
+                    <button
+                      type="button"
+                      disabled={socialLoading}
+                      onClick={() => handleUnlinkSocial(provider)}
+                      className="inline-flex h-9 items-center justify-center rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 text-xs font-black text-rose-300 transition-colors hover:bg-rose-500/15 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      Huỷ liên kết
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={socialLoading}
+                    onClick={() => handleLinkSocial(provider)}
+                    className="inline-flex h-9 items-center justify-center rounded-xl border border-amber-400/25 bg-amber-400 px-4 text-xs font-black text-slate-950 transition-colors hover:bg-amber-300 disabled:cursor-wait disabled:opacity-60"
+                  >
+                    Liên kết
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {false && (["google", "facebook"] as const).map((provider) => {
+          const linked = isLinked(provider);
+          const label = provider === "google" ? "Google" : "Facebook";
+
+          return (
+            <div
+              key={provider}
+              onClick={() => (linked ? handleUnlinkSocial(provider) : handleLinkSocial(provider))}
+              className="flex items-center justify-between p-5 cursor-pointer hover:bg-slate-950/40 transition-colors duration-300"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-400/25 bg-emerald-400/10 text-emerald-300">
+                  <span className="text-sm font-black">{provider === "google" ? "G" : "f"}</span>
+                </div>
+                <div>
+                  <span className="block text-xs font-bold text-white">{linked ? `Đã liên kết ${label}` : `Liên kết ${label}`}</span>
+                  <span className="block text-[10px] text-slate-500 mt-0.5">
+                    {linked ? "Có thể đăng nhập vào cùng tài khoản bằng nền tảng này" : "Kết nối để đăng nhập nhanh bằng tài khoản social"}
+                  </span>
+                </div>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-300">
+                {socialLoading ? "Đang xử lý" : linked ? "Hủy" : "Kết nối"}
+              </span>
+            </div>
+          );
+        })}
 
         {/* Push Notifications */}
         <div 

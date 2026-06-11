@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { apiForm, apiJson, getAuthToken, getStoredAuthUser } from "@/lib/api-client";
+import { avatarFallbackForUser, createInitialAvatarDataUrl, isUsableAvatarUrl } from "@/lib/avatar";
 
 const PROFILE_STORAGE_KEY = "vnp_talent_profile";
 export const TALENT_PROFILE_UPDATED_EVENT = "vnp_talent_profile_updated";
@@ -47,6 +48,8 @@ type BackendProfile = {
 export function getDefaultTalentProfile() {
   const user = getStoredAuthUser<{ name?: string; email?: string; external_avatar_url?: string | null; avatar?: string | null }>();
 
+  const fallbackAvatar = isUsableAvatarUrl(user?.avatar) ? user?.avatar : avatarFallbackForUser(user);
+
   return {
     name: user?.name || "Nguyễn Mai Anh",
     birthYear: 2002,
@@ -54,7 +57,7 @@ export function getDefaultTalentProfile() {
     hometown: "Nam Định",
     phone: "0912345678",
     email: user?.email || "maianh.nguyen@beautyapp.vn",
-    avatar: user?.external_avatar_url || user?.avatar || "/avatar.png",
+    avatar: fallbackAvatar,
     height: 172,
     weight: 51,
     bust: 85,
@@ -112,7 +115,9 @@ export function sanitizeTalentProfile(profile: any) {
   const photoRecords = Array.isArray(profile?.photoRecords)
     ? profile.photoRecords.filter((photo: BackendPhoto) => isPortablePhotoUrl(photo.url || photo.path))
     : profile?.photoRecords;
-  const avatar = isPortablePhotoUrl(profile?.avatar) ? profile.avatar : "/avatar.png";
+  const avatar = isPortablePhotoUrl(profile?.avatar)
+    ? profile.avatar
+    : createInitialAvatarDataUrl(profile?.name, profile?.email);
   const cover = isPortablePhotoUrl(profile?.cover) ? profile.cover : "/cover_image.png";
 
   return {
@@ -240,7 +245,7 @@ function averageEngagement(profile: BackendProfile) {
 
 function isPortablePhotoUrl(value: unknown) {
   const url = String(value || "");
-  return Boolean(url) && !url.startsWith("/storage/") && !url.startsWith("data:") && !url.startsWith("blob:");
+  return Boolean(url) && !url.startsWith("/storage/") && !url.startsWith("blob:");
 }
 
 function photoUrl(photo?: BackendPhoto | null) {
@@ -276,7 +281,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     backendProfileId: profile.id,
     name: profile.display_name || profile.user?.name || local.name,
     email: profile.user?.email || local.email,
-    avatar: avatarUrl || profile.user?.external_avatar_url || local.avatar || "/avatar.png",
+    avatar: avatarUrl || local.avatar || createInitialAvatarDataUrl(profile.display_name || profile.user?.name, profile.user?.email),
     cover: coverUrl || local.cover || "/cover_image.png",
     fullBody: fullBodyUrl || local.fullBody || "/fullbody_model.png",
     location: profile.city || local.location,
@@ -465,10 +470,48 @@ export async function loadTalentCampaigns() {
   }
 }
 
-export async function applyTalentCampaign(campaignId: number | string, notes?: string) {
+export async function applyTalentCampaign(campaignId: number | string, notes?: string, referralCode?: string | null) {
   const response = await apiJson<{ data: any }>(`/talent/campaigns/${campaignId}/apply`, {
     method: "POST",
-    body: JSON.stringify({ notes }),
+    body: JSON.stringify({
+      notes,
+      referral_code: referralCode || undefined,
+    }),
+  });
+
+  return response.data;
+}
+
+export async function getCampaignReferralLink(campaignId: number | string) {
+  const response = await apiJson<{ data: any }>(`/campaigns/${campaignId}/referral-link`, {
+    method: "POST",
+  });
+
+  return response.data;
+}
+
+export async function resolveCampaignReferralLink(code: string) {
+  const response = await apiJson<{ data: any }>(`/referral-links/${encodeURIComponent(code)}`);
+
+  return response.data;
+}
+
+export async function loadTalentBrandInvitations() {
+  if (!getAuthToken()) return null;
+
+  try {
+    const response = await apiJson<{ data: any[] }>("/talent/brand-invitations");
+    return response.data || [];
+  } catch (error) {
+    console.warn(error);
+    return null;
+  }
+}
+
+export async function updateTalentBrandInvitation(invitationId: number | string, status: "active" | "inactive") {
+  const response = await apiJson<{ data: any }>(`/talent/brand-invitations/${invitationId}`, {
+    method: "PUT",
+    body: JSON.stringify({ status }),
   });
 
   return response.data;
@@ -626,7 +669,7 @@ export function mapCampaignToTalentJob(campaign: any) {
     .filter(Boolean);
 
   return {
-    id: campaign.id,
+    id: String(campaign.id),
     title: campaign.title,
     brand: campaign.brand || "Brand",
     type: campaign.job_type || "Campaign",
@@ -640,6 +683,7 @@ export function mapCampaignToTalentJob(campaign: any) {
     ...theme,
     hasApplied: Boolean(campaign.has_applied),
     application: campaign.application || null,
+    referrals: campaign.referrals || [],
     detail: {
       requirements: requirements.length ? requirements : ["Brand sẽ cập nhật yêu cầu chi tiết sau."],
       benefits: [

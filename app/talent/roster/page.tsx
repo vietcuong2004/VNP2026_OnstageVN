@@ -7,6 +7,7 @@ import {
   Bell, Check, AlertCircle, Link2, Network
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { loadTalentBrandInvitations, updateTalentBrandInvitation } from "@/lib/talent-api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface RosterInvitation {
@@ -49,17 +50,57 @@ const MOCK_INVITATIONS: RosterInvitation[] = [
 
 const formatVND = (n: number) => new Intl.NumberFormat("vi-VN").format(n) + "đ";
 
+function mapBackendInvitation(item: any): RosterInvitation {
+  const brand = item.brand || {};
+  const partner = brand.partner_profile || brand.partnerProfile || {};
+  const activeTerm = item.active_term || item.activeTerm || {};
+  const statusMap: Record<string, RosterInvitation["status"]> = {
+    invited: "pending",
+    active: "accepted",
+    inactive: "declined",
+    blocked: "declined",
+  };
+
+  return {
+    id: String(item.id),
+    managerId: String(brand.id || item.brand_user_id || ""),
+    managerName: brand.name || partner.contact_name || "Brand Manager",
+    managerBrand: partner.organization_name || brand.name || "Brand",
+    managerAvatar: brand.external_avatar_url || "/avatar.png",
+    managerTier: partner.organization_type || "Brand",
+    commissionRate: Number(activeTerm.commission_rate || 10) / 100,
+    sentAt: String(item.created_at || item.joined_at || new Date().toISOString()).slice(0, 10),
+    status: statusMap[item.status] || "pending",
+  };
+}
+
 export default function TalentRosterPage() {
   const [invitations, setInvitations] = useState<RosterInvitation[]>([]);
   const [toasts, setToasts] = useState<{ id: string; msg: string; type: "success" | "info" }[]>([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem("onstagevn_roster_invitations");
-    if (stored) {
-      try { setInvitations(JSON.parse(stored)); return; } catch {}
-    }
-    setInvitations(MOCK_INVITATIONS);
-    localStorage.setItem("onstagevn_roster_invitations", JSON.stringify(MOCK_INVITATIONS));
+    loadTalentBrandInvitations().then((items) => {
+      if (items?.length) {
+        const mapped = items.map(mapBackendInvitation);
+        setInvitations(mapped);
+        localStorage.setItem("onstagevn_roster_invitations", JSON.stringify(mapped));
+        return;
+      }
+
+      const stored = localStorage.getItem("onstagevn_roster_invitations");
+      if (stored) {
+        try { setInvitations(JSON.parse(stored)); return; } catch {}
+      }
+      setInvitations(MOCK_INVITATIONS);
+      localStorage.setItem("onstagevn_roster_invitations", JSON.stringify(MOCK_INVITATIONS));
+    }).catch(() => {
+      const stored = localStorage.getItem("onstagevn_roster_invitations");
+      if (stored) {
+        try { setInvitations(JSON.parse(stored)); return; } catch {}
+      }
+      setInvitations(MOCK_INVITATIONS);
+      localStorage.setItem("onstagevn_roster_invitations", JSON.stringify(MOCK_INVITATIONS));
+    });
   }, []);
 
   const save = (items: RosterInvitation[]) => {
@@ -73,13 +114,27 @@ export default function TalentRosterPage() {
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 4000);
   };
 
-  const handleAccept = (invId: string) => {
-    save(invitations.map(i => i.id === invId ? { ...i, status: "accepted" as const } : i));
+  const handleAccept = async (invId: string) => {
+    try {
+      const updated = await updateTalentBrandInvitation(invId, "active");
+      const mapped = mapBackendInvitation(updated);
+      save(invitations.map(i => i.id === invId ? mapped : i));
+    } catch (error) {
+      console.warn("Cannot accept brand invitation from backend", error);
+      save(invitations.map(i => i.id === invId ? { ...i, status: "accepted" as const } : i));
+    }
     addToast("Đã chấp nhận lời mời hợp tác Brand! Manager sẽ sớm liên hệ với bạn.", "success");
   };
 
-  const handleDecline = (invId: string) => {
-    save(invitations.map(i => i.id === invId ? { ...i, status: "declined" as const } : i));
+  const handleDecline = async (invId: string) => {
+    try {
+      const updated = await updateTalentBrandInvitation(invId, "inactive");
+      const mapped = mapBackendInvitation(updated);
+      save(invitations.map(i => i.id === invId ? mapped : i));
+    } catch (error) {
+      console.warn("Cannot decline brand invitation from backend", error);
+      save(invitations.map(i => i.id === invId ? { ...i, status: "declined" as const } : i));
+    }
     addToast("Đã từ chối lời mời.", "info");
   };
 
