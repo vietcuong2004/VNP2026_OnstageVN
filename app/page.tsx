@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import {
   User,
   Briefcase,
@@ -19,6 +21,22 @@ import {
 } from "lucide-react";
 
 export default function RootGatewayPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("onstagevn_auth_token");
+    const storedUser = localStorage.getItem("onstagevn_auth_user");
+
+    if (!token || !storedUser) return;
+
+    try {
+      const user = JSON.parse(storedUser) as { type?: string };
+      router.replace(user.type === "brand" ? "/brand/dashboard" : "/talent/dashboard");
+    } catch {
+      localStorage.removeItem("onstagevn_auth_user");
+    }
+  }, [router]);
+
   const scrollToId = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
