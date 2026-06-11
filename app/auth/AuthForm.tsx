@@ -30,6 +30,21 @@ function getRedirectPath(type: AccountType) {
   return type === "talent" ? "/talent/dashboard" : "/brand/dashboard";
 }
 
+function getStoredAuthUser() {
+  if (typeof window === "undefined") return null;
+
+  const token = localStorage.getItem("onstagevn_auth_token");
+  const storedUser = localStorage.getItem("onstagevn_auth_user");
+  if (!token || !storedUser) return null;
+
+  try {
+    return JSON.parse(storedUser) as AuthResponse["user"];
+  } catch {
+    localStorage.removeItem("onstagevn_auth_user");
+    return null;
+  }
+}
+
 async function parseError(response: Response) {
   const fallback = "Không thể xử lý yêu cầu. Vui lòng thử lại.";
 
@@ -64,6 +79,17 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   const [loading, setLoading] = useState(false);
 
   const apiUrl = useMemo(() => getApiBaseUrl(), []);
+
+  useEffect(() => {
+    const storedUser = getStoredAuthUser();
+    if (!storedUser) return;
+
+    const redirectPath = typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("redirect")
+      : null;
+
+    router.replace(redirectPath?.startsWith("/") ? redirectPath : getRedirectPath(storedUser.type));
+  }, [router]);
 
   useEffect(() => {
     if (isRegister) return;
