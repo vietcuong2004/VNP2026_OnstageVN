@@ -3,7 +3,7 @@ import { Crown, Trophy, Star, Award, ShieldAlert } from "lucide-react";
 
 export default function ModelTiersGrid() {
   return (
-    <div className="w-full max-w-6xl mx-auto bg-[#070913]/95 p-6 md:p-8 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden transition-all duration-500">
+    <div className="w-full bg-[#070913]/95 p-6 md:p-8 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden transition-all duration-500">
       <div className="absolute top-0 right-0 -z-10 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -z-10 h-32 w-32 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
 

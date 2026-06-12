@@ -42,9 +42,9 @@ export default function SurveyPage() {
   };
 
   return (
-    <div className="flex min-h-[85vh] flex-col items-center justify-center py-6 w-full max-w-6xl mx-auto space-y-8">
+    <div className="flex min-h-[85vh] w-full flex-col items-stretch justify-start py-6 space-y-8">
       {!isSurveyActive && (
-        <div className="mb-2 text-center max-w-2xl animate-in fade-in duration-500 flex flex-col items-center">
+        <div className="mx-auto mb-2 flex max-w-3xl animate-in fade-in duration-500 flex-col items-center text-center">
           <h1 className="font-display text-3xl font-black text-white tracking-tight uppercase">
             Khám Phá <span className="text-gradient-gold">Bản Thân</span>
           </h1>

@@ -773,7 +773,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
     return (
       <div className={cn(
-        "w-full max-w-6xl mx-auto bg-[#070913]/90 p-6 md:p-10 rounded-3xl border transition-all duration-700 animate-in fade-in slide-in-from-bottom-8",
+        "w-full bg-[#070913]/90 p-6 md:p-10 rounded-3xl border transition-all duration-700 animate-in fade-in slide-in-from-bottom-8",
         tierStyles.wrapperBorder,
         tierStyles.glowBg
       )}>
@@ -1055,7 +1055,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto rounded-3xl border border-white/5 bg-[#070913]/95 p-6 md:p-8 shadow-2xl relative overflow-hidden transition-all duration-500">
+    <div className="w-full rounded-3xl border border-white/5 bg-[#070913]/95 p-6 md:p-8 shadow-2xl relative overflow-hidden transition-all duration-500">
       
       {/* Top ambient glow light */}
       <div className="absolute top-0 right-0 -z-10 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
