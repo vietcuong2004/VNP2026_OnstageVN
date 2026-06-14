@@ -420,25 +420,25 @@ export default function MyTalentsPage() {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-5 pb-20 md:space-y-8 md:pb-0 animate-in fade-in duration-300">
       {/* ── Header ── */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b border-white/5 pb-5">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b border-white/5 pb-4 md:pb-5">
         <div>
           <div className="mb-2 flex items-center gap-2">
             <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
               TALENT MANAGEMENT
             </span>
           </div>
-          <h1 className="font-display text-2xl font-black tracking-tight text-white uppercase leading-none">
+          <h1 className="font-display text-xl md:text-2xl font-black tracking-tight text-white uppercase leading-none">
             Quản lý Talent
           </h1>
-          <p className="text-xs text-slate-400 mt-2 font-medium">
+          <p className="text-[11px] md:text-xs text-slate-400 mt-2 font-medium leading-relaxed">
             Quản lý đội ngũ KOL độc quyền, theo dõi tiến độ chiến dịch và hoa hồng giới thiệu Affiliate.
           </p>
         </div>
         <button
           onClick={() => setShowInviteModal(true)}
-          className="flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(244,196,48,0.2)] hover:shadow-[0_0_25px_rgba(244,196,48,0.4)] hover:brightness-105 active:scale-[0.98] cursor-pointer transition-all duration-300"
+          className="flex w-full md:w-auto items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(244,196,48,0.2)] hover:shadow-[0_0_25px_rgba(244,196,48,0.4)] hover:brightness-105 active:scale-[0.98] cursor-pointer transition-all duration-300"
         >
           <UserPlus className="h-4 w-4" />
           Thêm Talent
@@ -446,36 +446,37 @@ export default function MyTalentsPage() {
       </div>
 
       {/* ── Summary Stats ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: "Talent đã xác nhận", value: acceptedRoster.length, icon: CheckCircle, color: "text-emerald-400 border-emerald-500/15 bg-emerald-500/5", glow: "hover:shadow-[0_0_20px_rgba(16,185,129,0.08)]" },
           { label: "Đang chờ xác nhận", value: pendingRoster.length, icon: Clock, color: "text-amber-400 border-amber-500/15 bg-amber-500/5", glow: "hover:shadow-[0_0_20px_rgba(245,158,11,0.08)]" },
           { label: "Hoa hồng F1 tháng này", value: formatVND(totalF1Commission), icon: Wallet, color: "text-cyan-400 border-cyan-500/15 bg-cyan-500/5", glow: "hover:shadow-[0_0_20px_rgba(6,182,212,0.08)]" },
           { label: "Tổng doanh thu tháng này", value: formatVND(totalRevenue), icon: TrendingUp, color: "text-amber-300 border-amber-400/20 bg-amber-500/5", glow: "hover:shadow-[0_0_25px_rgba(244,196,48,0.12)]" },
         ].map((stat) => (
-          <div key={stat.label} className={cn("rounded-2xl border p-5 bg-[#08090f] transition-all duration-300 hover:scale-[1.02] hover:border-slate-700/50", stat.glow)}>
-            <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl border mb-3.5", stat.color)}>
+          <div key={stat.label} className={cn("rounded-2xl border p-3.5 md:p-5 bg-[#08090f] transition-all duration-300 hover:scale-[1.02] hover:border-slate-700/50", stat.glow)}>
+            <div className={cn("flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl border mb-2.5 md:mb-3.5", stat.color)}>
               <stat.icon className="h-4.5 w-4.5" />
             </div>
-            <p className="text-xl font-black text-white tracking-tight font-mono">{stat.value}</p>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">{stat.label}</p>
+            <p className="text-base md:text-xl font-black text-white tracking-tight font-mono break-words">{stat.value}</p>
+            <p className="text-[8.5px] md:text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1 leading-tight">{stat.label}</p>
           </div>
         ))}
       </div>
 
       {/* ── Tabs ── */}
-      <div className="border-b border-[#151b2d] flex gap-8 overflow-x-auto scrollbar-none">
+      <div className="border-b border-[#151b2d] flex gap-2 md:gap-8 overflow-x-auto scrollbar-none">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "pb-4 text-[11px] font-black uppercase tracking-widest transition-all relative cursor-pointer flex items-center gap-2 shrink-0",
-              activeTab === tab.id ? "text-amber-400 font-black" : "text-slate-500 hover:text-slate-300"
+              "rounded-t-xl px-3 py-3 md:px-0 md:pb-4 md:pt-0 text-[10px] md:text-[11px] font-black uppercase tracking-wider md:tracking-widest transition-all relative cursor-pointer flex items-center gap-1.5 md:gap-2 shrink-0",
+              activeTab === tab.id ? "bg-amber-400/5 text-amber-400 font-black md:bg-transparent" : "text-slate-500 hover:text-slate-300"
             )}
           >
             <tab.icon className="h-4 w-4" />
-            {tab.label}
+            <span className="md:hidden">{tab.id === "roster" ? "Talent" : tab.id === "campaigns" ? "Campaign" : "Doanh thu"}</span>
+            <span className="hidden md:inline">{tab.label}</span>
             {activeTab === tab.id && (
               <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-300 to-yellow-500 rounded-full shadow-[0_0_8px_rgba(244,196,48,0.5)]" />
             )}

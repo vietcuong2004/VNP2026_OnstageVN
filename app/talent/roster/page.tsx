@@ -229,31 +229,31 @@ export default function TalentRosterPage() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-5 pb-20 md:space-y-8 md:pb-0 animate-in fade-in duration-300">
       {/* ── Header ── */}
-      <div className="border-b border-white/5 pb-5">
+      <div className="border-b border-white/5 pb-4 md:pb-5">
         <div className="mb-2 flex items-center gap-2">
           <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
             HỢP TÁC BRAND
           </span>
         </div>
-        <h1 className="font-display text-2xl font-black text-white tracking-tight uppercase leading-none">
+        <h1 className="font-display text-xl md:text-2xl font-black text-white tracking-tight uppercase leading-none">
           Hợp tác Brand
         </h1>
-        <p className="text-xs text-slate-400 mt-2 font-medium">
+        <p className="text-[11px] md:text-xs text-slate-400 mt-2 font-medium leading-relaxed">
           Xem lời mời từ các Brand Manager muốn thêm bạn vào mạng lưới hợp tác của họ.
         </p>
       </div>
 
       {/* ── Info Banner ── */}
-      <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 p-6 flex items-start gap-4 relative overflow-hidden">
+      <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 p-4 md:p-6 flex flex-col md:flex-row md:items-start gap-3 md:gap-4 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 shadow-[0_0_15px_rgba(244,196,48,0.1)]">
           <Network className="h-5.5 w-5.5 text-amber-400" />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <h3 className="text-xs font-black text-amber-300 uppercase tracking-widest">Hợp tác Brand là gì?</h3>
-          <p className="text-[11px] text-slate-300 mt-1.5 leading-relaxed font-medium">
+          <p className="text-[10.5px] md:text-[11px] text-slate-300 mt-1.5 leading-relaxed font-medium">
             Khi bạn tham gia vào <strong className="text-white">mạng lưới hợp tác của một Brand Manager</strong>, họ sẽ đại diện giới thiệu bạn với nhiều nhãn hàng đối tác lớn và quản lý các booking trực tiếp. Manager nhận <strong className="text-amber-400">10% hoa hồng</strong> từ thù lao job do họ mang lại — phần thù lao còn lại <strong className="text-emerald-400 font-bold">75% hoàn toàn thuộc về bạn</strong> (nền tảng OnStage thu phí 15% phí vận hành & ký quỹ bảo chứng).
           </p>
         </div>
@@ -261,7 +261,7 @@ export default function TalentRosterPage() {
 
       <form
         onSubmit={handleAcceptInviteLink}
-        className="rounded-2xl bg-[#08090f] border border-[#151b2d] p-5 flex flex-col gap-3 md:flex-row md:items-center"
+        className="rounded-2xl bg-[#08090f] border border-[#151b2d] p-4 md:p-5 flex flex-col gap-3 md:flex-row md:items-center"
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20">
           <Link2 className="h-5 w-5 text-cyan-400" />
@@ -276,12 +276,12 @@ export default function TalentRosterPage() {
           value={inviteLinkValue}
           onChange={(event) => setInviteLinkValue(event.target.value)}
           placeholder="https://onstage.vn/ref/ten-brand"
-          className="h-11 min-w-0 flex-1 rounded-xl border border-[#151b2d] bg-[#050711] px-3 text-xs font-semibold text-white outline-none placeholder:text-slate-600 focus:border-cyan-400/50 md:max-w-md"
+          className="h-11 w-full min-w-0 rounded-xl border border-[#151b2d] bg-[#050711] px-3 text-xs font-semibold text-white outline-none placeholder:text-slate-600 focus:border-cyan-400/50 md:max-w-md md:flex-1"
         />
         <button
           type="submit"
           disabled={isAcceptingLink}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 text-xs font-black uppercase tracking-wider text-slate-950 transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-11 w-full md:w-auto items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 text-xs font-black uppercase tracking-wider text-slate-950 transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Send className="h-4 w-4" />
           {isAcceptingLink ? "Đang xử lý" : "Tham gia"}
@@ -289,8 +289,8 @@ export default function TalentRosterPage() {
       </form>
 
       {/* ── Commission breakdown visual ── */}
-      <div className="rounded-2xl bg-[#08090f] border border-[#151b2d] p-6">
-        <h3 className="text-xs font-black text-white uppercase tracking-widest mb-5 flex items-center gap-2">
+      <div className="rounded-2xl bg-[#08090f] border border-[#151b2d] p-4 md:p-6">
+        <h3 className="text-[11px] md:text-xs font-black text-white uppercase tracking-widest mb-5 flex items-center gap-2 leading-relaxed">
           <DollarSign className="h-4 w-4 text-emerald-400" /> Phân bổ thù lao (Ví dụ: Job trị giá 10.000.000đ)
         </h3>
         <div className="space-y-4">
@@ -308,7 +308,7 @@ export default function TalentRosterPage() {
             </div>
           ))}
         </div>
-        <p className="text-[9.5px] text-slate-500 mt-4 text-center font-semibold uppercase tracking-wider">
+        <p className="text-[9px] md:text-[9.5px] text-slate-500 mt-4 text-center font-semibold uppercase tracking-wider leading-relaxed">
           💡 Bạn vẫn tự do nhận job ngoài — Hợp tác Brand là kênh tăng thêm cơ hội được booking trực tiếp từ các Agency lớn.
         </p>
       </div>
@@ -324,8 +324,8 @@ export default function TalentRosterPage() {
             </h2>
           </div>
           {pending.map(inv => (
-            <div key={inv.id} className={cn("rounded-2xl border p-6 bg-[#08090f] hover:border-amber-500/30 transition-all duration-300", "border-amber-500/25 shadow-[0_0_20px_rgba(245,158,11,0.03)]")}>
-              <div className="flex items-start gap-4">
+            <div key={inv.id} className={cn("rounded-2xl border p-4 md:p-6 bg-[#08090f] hover:border-amber-500/30 transition-all duration-300", "border-amber-500/25 shadow-[0_0_20px_rgba(245,158,11,0.03)]")}>
+              <div className="flex items-start gap-3 md:gap-4">
                 <div className="relative shrink-0">
                   <div className="h-14 w-14 rounded-2xl overflow-hidden border border-amber-500/20 bg-amber-500/5 p-[2px]">
                     <img src={inv.managerAvatar} alt={inv.managerName} className="h-full w-full rounded-[12px] object-cover" />
@@ -342,7 +342,7 @@ export default function TalentRosterPage() {
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">{inv.managerBrand}</p>
-                  <div className="mt-3 flex items-center gap-4 text-[10px] text-slate-500 font-medium">
+                  <div className="mt-3 flex flex-col gap-1.5 text-[10px] text-slate-500 font-medium sm:flex-row sm:items-center sm:gap-4">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5 text-slate-500" /> Ngày gửi: {inv.sentAt}
                     </span>
@@ -353,7 +353,7 @@ export default function TalentRosterPage() {
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-3">
+              <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
                 <button
                   onClick={() => handleAccept(inv.id)}
                   className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-green-600 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-[0.98] cursor-pointer shadow-md transition-all duration-300"
@@ -379,13 +379,13 @@ export default function TalentRosterPage() {
             <CheckCircle className="h-4 w-4 text-emerald-400" /> Đang hợp tác Brand
           </h2>
           {accepted.map(inv => (
-            <div key={inv.id} className={cn("rounded-2xl border p-5 bg-[#08090f] border-emerald-500/25 hover:border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.02)] transition-all duration-300")}>
-              <div className="flex items-center gap-4">
+            <div key={inv.id} className={cn("rounded-2xl border p-4 md:p-5 bg-[#08090f] border-emerald-500/25 hover:border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.02)] transition-all duration-300")}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <div className="h-12 w-12 rounded-xl overflow-hidden border border-emerald-500/20 bg-emerald-500/5 p-[2px] shrink-0">
                   <img src={inv.managerAvatar} alt={inv.managerName} className="h-full w-full rounded-[10px] object-cover" />
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-sm font-black text-white">{inv.managerName}</h3>
                     <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-400">
                       Đang liên kết
@@ -396,7 +396,7 @@ export default function TalentRosterPage() {
                     Hoa hồng Manager: <span className="text-amber-400 font-mono font-bold">{Math.round(inv.commissionRate * 100)}%</span> thù lao từ job
                   </p>
                 </div>
-                <button className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-white cursor-pointer transition-colors">
+                <button className="flex h-10 w-full items-center justify-center gap-1 rounded-xl border border-[#151b2d] bg-[#050711] text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-white cursor-pointer transition-colors sm:w-auto sm:border-0 sm:bg-transparent">
                   Chi tiết <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -435,7 +435,7 @@ export default function TalentRosterPage() {
       )}
 
       {/* ── Toast Notifications ── */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">
+      <div className="fixed bottom-24 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none md:bottom-6 md:left-auto md:right-6 md:max-w-sm">
         {toasts.map(t => (
           <div
             key={t.id}
