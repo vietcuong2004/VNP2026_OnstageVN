@@ -464,8 +464,8 @@ export default function PersonalInfoTab({
             <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80" />
 
             {/* Desktop Hover Overlay upload trigger */}
-            <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-amber-400/80 rounded-xl px-4 py-3 text-white text-xs font-bold cursor-pointer transition-all">
+            <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+              <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[11px] sm:text-xs font-bold cursor-pointer transition-all">
                 <Upload className="h-5 w-5 text-amber-400" />
                 <span>Đổi ảnh</span>
                 <input
@@ -486,7 +486,7 @@ export default function PersonalInfoTab({
               />
             )}
 
-            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end group-hover:opacity-20 transition-opacity duration-300">
+            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end opacity-35 sm:opacity-100 sm:group-hover:opacity-20 transition-opacity duration-300">
               <div>
                 <span className="text-[8px] font-mono tracking-widest text-[#f4c430] font-bold uppercase">POLAROID BOOK</span>
                 <h4 className="text-xs font-black text-white mt-0.5">{profile.name.toUpperCase()}</h4>
@@ -868,8 +868,8 @@ export default function PersonalInfoTab({
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85" />
 
                   {/* Hover Overlay upload trigger */}
-                  <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-amber-400/80 rounded-xl px-4 py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                  <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                       <Upload className="h-5 w-5 text-amber-400" />
                       <span>Thay đổi ảnh</span>
                       <input
@@ -929,8 +929,8 @@ export default function PersonalInfoTab({
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
 
                     {/* Hover overlay to change video */}
-                    <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                    <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                         <Upload className="h-5 w-5 text-cyan-400" />
                         <span>Đổi video</span>
                         <input
@@ -991,8 +991,8 @@ export default function PersonalInfoTab({
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
 
                     {/* Hover overlay to change video */}
-                    <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                    <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                         <Upload className="h-5 w-5 text-cyan-400" />
                         <span>Đổi video</span>
                         <input
@@ -1053,8 +1053,8 @@ export default function PersonalInfoTab({
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
 
                     {/* Hover overlay to change video */}
-                    <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                    <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                         <Upload className="h-5 w-5 text-cyan-400" />
                         <span>Đổi video</span>
                         <input

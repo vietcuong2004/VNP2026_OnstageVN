@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Building2, CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound } from "lucide-react";
 import { partnerProfile } from "@/lib/brand-mvp-data";
 import { loadBrandPartnerProfile, mapBackendPartnerProfile, saveBrandPartnerProfile } from "@/lib/brand-api";
-import { getSocialLinkUrl, loadSocialConnections, SocialConnection, unlinkSocialConnection } from "@/lib/api-client";
+import { getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, SocialConnection, unlinkSocialConnection, updateAuthEmail } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
+
+type AuthUser = {
+  id: number;
+  name?: string | null;
+  email?: string | null;
+  type?: "talent" | "brand";
+};
 
 const fallbackProfile = mapBackendPartnerProfile({
   organization_name: partnerProfile.organizationName,
@@ -22,18 +30,34 @@ const fallbackProfile = mapBackendPartnerProfile({
 });
 
 export default function BrandSettingsPage() {
+  const router = useRouter();
   const [profile, setProfile] = useState(fallbackProfile);
   const [saving, setSaving] = useState(false);
   const [connections, setConnections] = useState<SocialConnection[]>([]);
   const [socialLoading, setSocialLoading] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [emailInput, setEmailInput] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [missingEmailFromQuery, setMissingEmailFromQuery] = useState(false);
+  const needsEmail = !authUser?.email;
+  const missingEmail = missingEmailFromQuery && needsEmail;
 
   useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      const user = getStoredAuthUser<AuthUser>();
+      setAuthUser(user);
+      setEmailInput(user?.email ?? "");
+      setMissingEmailFromQuery(new URLSearchParams(window.location.search).get("missingEmail") === "1");
+    }, 0);
+
     loadBrandPartnerProfile(fallbackProfile).then(setProfile);
     loadSocialConnections()
       .then(setConnections)
       .catch(() => {
         // Keep settings usable if auth API is not ready.
       });
+
+    return () => window.clearTimeout(timeout);
   }, []);
 
   const isLinked = (provider: SocialConnection["provider"]) => {
@@ -41,7 +65,7 @@ export default function BrandSettingsPage() {
   };
 
   const linkSocial = (provider: SocialConnection["provider"]) => {
-    window.location.href = getSocialLinkUrl(provider);
+    window.location.assign(getSocialLinkUrl(provider));
   };
 
   const unlinkSocial = async (provider: SocialConnection["provider"]) => {
@@ -56,6 +80,26 @@ export default function BrandSettingsPage() {
       setSocialLoading(false);
     }
   };
+
+  async function saveAuthEmail() {
+    setEmailSaving(true);
+    try {
+      const user = await updateAuthEmail(emailInput.trim());
+      setAuthUser(user);
+      setEmailInput(user.email ?? "");
+      setMissingEmailFromQuery(false);
+      setProfile((current) => ({
+        ...current,
+        contactEmail: current.contactEmail || user.email || "",
+      }));
+      window.alert("Đã cập nhật email đăng nhập.");
+      router.replace("/brand/settings");
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật email.");
+    } finally {
+      setEmailSaving(false);
+    }
+  }
 
   function updateField(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = event.target;
@@ -140,6 +184,37 @@ export default function BrandSettingsPage() {
 
           <div className="mt-5 rounded-xl border border-white/5 bg-white/[0.03] p-3 text-xs leading-relaxed text-slate-500">
             Thông tin liên hệ của doanh nghiệp. Vui lòng cập nhật đầy đủ thông tin để tăng tính xác thực với các KOL, Model, MC, PG
+          </div>
+          <div
+            className={`mt-5 rounded-xl border p-3 ${missingEmail ? "border-amber-400/30 bg-amber-400/5" : "border-white/5 bg-white/[0.03]"}`}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <Mail className="h-4 w-4 text-amber-300" />
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email đăng nhập</h3>
+            </div>
+            <p className="mb-3 text-xs leading-relaxed text-slate-500">
+              {missingEmail
+                ? "Facebook chưa trả email. Hãy cập nhật email để nhận thông báo và khôi phục đăng nhập."
+                : "Email riêng của tài khoản đăng nhập. Email công việc ở form bên phải có thể khác."}
+            </p>
+            <div className="space-y-2">
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(event) => setEmailInput(event.target.value)}
+                required
+                placeholder="ban@example.com"
+                className="h-10 w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 text-xs text-white outline-none focus:border-amber-400/60"
+              />
+              <button
+                type="button"
+                disabled={emailSaving}
+                onClick={saveAuthEmail}
+                className="inline-flex h-9 w-full items-center justify-center rounded-xl bg-amber-400 px-4 text-xs font-black text-slate-950 transition-colors hover:bg-amber-300 disabled:cursor-wait disabled:opacity-60"
+              >
+                {emailSaving ? "Đang lưu..." : "Lưu email"}
+              </button>
+            </div>
           </div>
           <div className="mt-5 rounded-xl border border-white/5 bg-white/[0.03] p-3">
             <h3 className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Liên kết đăng nhập</h3>

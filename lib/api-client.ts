@@ -1,6 +1,7 @@
 "use client";
 
 export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
+export const AUTH_USER_UPDATED_EVENT = "onstagevn_auth_user_updated";
 
 export function getAuthToken() {
   if (typeof window === "undefined") return null;
@@ -24,12 +25,14 @@ export function getStoredAuthUser<T = unknown>() {
 export function storeAuthUser(user: unknown) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem("onstagevn_auth_user", JSON.stringify(user));
+  window.dispatchEvent(new Event(AUTH_USER_UPDATED_EVENT));
 }
 
 export function clearAuthSession() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("onstagevn_auth_token");
   window.localStorage.removeItem("onstagevn_auth_user");
+  window.dispatchEvent(new Event(AUTH_USER_UPDATED_EVENT));
 }
 
 export async function parseApiError(response: Response) {
@@ -106,7 +109,7 @@ export async function switchCurrentPlatform(type: "talent" | "brand") {
     user: {
       id: number;
       name: string;
-      email: string;
+      email: string | null;
       type: "talent" | "brand";
       status: string;
       external_avatar_url?: string | null;
@@ -114,6 +117,26 @@ export async function switchCurrentPlatform(type: "talent" | "brand") {
   }>("/auth/platform", {
     method: "PUT",
     body: JSON.stringify({ type }),
+  });
+
+  storeAuthUser(response.user);
+
+  return response.user;
+}
+
+export async function updateAuthEmail(email: string) {
+  const response = await apiJson<{
+    user: {
+      id: number;
+      name: string;
+      email: string | null;
+      type: "talent" | "brand";
+      status: string;
+      external_avatar_url?: string | null;
+    };
+  }>("/auth/email", {
+    method: "PUT",
+    body: JSON.stringify({ email }),
   });
 
   storeAuthUser(response.user);

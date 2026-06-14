@@ -734,7 +734,7 @@ export default function EditInfoTab({
                   localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
                   addToast("Đã xóa ảnh khỏi bộ ảnh nghệ thuật", "info");
                 }}
-                className="absolute top-1.5 right-1.5 h-5 w-5 bg-red-600/90 text-white rounded-full flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer shadow-md"
+                className="absolute top-1.5 right-1.5 h-6 w-6 sm:h-5 sm:w-5 bg-red-600/90 text-white rounded-full flex items-center justify-center text-[8px] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 cursor-pointer shadow-md"
               >
                 <X className="h-3 w-3" />
               </button>

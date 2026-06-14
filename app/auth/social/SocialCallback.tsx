@@ -4,16 +4,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { avatarFallbackForUser, profileAvatarFromBackend } from "@/lib/avatar";
+import { storeAuthUser } from "@/lib/api-client";
 
 type AccountType = "talent" | "brand";
+type SocialProvider = "google" | "facebook";
 
 type MeResponse = {
   user: {
     id: number;
     name: string;
-    email: string;
+    email: string | null;
     type: AccountType;
     status: string;
+    social_provider?: SocialProvider | null;
     external_avatar_url?: string | null;
   };
 };
@@ -33,6 +36,10 @@ function getApiBaseUrl() {
 
 function getRedirectPath(type: AccountType | null) {
   return type === "talent" ? "/talent/dashboard" : "/brand/dashboard";
+}
+
+function getMissingEmailPath(type: AccountType | null) {
+  return type === "talent" ? "/talent/settings?missingEmail=1" : "/brand/settings?missingEmail=1";
 }
 
 async function hydrateTalentAvatar(apiUrl: string, token: string, user: MeResponse["user"]) {
@@ -86,6 +93,7 @@ export default function SocialCallback() {
     async function completeLogin() {
       const token = searchParams.get("token");
       const type = searchParams.get("type") as AccountType | null;
+      const provider = searchParams.get("provider") as SocialProvider | null;
 
       if (!token) {
         setMessage("Không nhận được token đăng nhập.");
@@ -105,7 +113,12 @@ export default function SocialCallback() {
         if (response.ok) {
           const data = (await response.json()) as MeResponse;
           const user = await hydrateTalentAvatar(apiUrl, token, data.user);
-          localStorage.setItem("onstagevn_auth_user", JSON.stringify(user));
+          storeAuthUser(user);
+          const loginProvider = provider ?? user.social_provider ?? null;
+          if (!user.email && loginProvider === "facebook") {
+            router.replace(getMissingEmailPath(user.type));
+            return;
+          }
           router.replace(getRedirectPath(user.type));
           return;
         }

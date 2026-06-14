@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Bell, Calendar, ChevronDown, Crown, LogOut, Search, UserCircle, Building2, Settings } from "lucide-react";
+import { Bell, Calendar, ChevronDown, LogOut, Search, UserCircle, Building2, Settings } from "lucide-react";
 import { TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
-import { switchCurrentPlatform } from "@/lib/api-client";
+import { AUTH_USER_UPDATED_EVENT, switchCurrentPlatform } from "@/lib/api-client";
 import { createInitialAvatarDataUrl, profileAvatarFromBackend } from "@/lib/avatar";
 
 type AuthUser = {
   name: string;
-  email: string;
+  email: string | null;
   type: "talent" | "brand";
   status: string;
   external_avatar_url?: string | null;
@@ -37,29 +37,46 @@ function readTalentAvatar() {
   }
 }
 
+function readAuthUser() {
+  if (typeof window === "undefined") return null;
+
+  const stored = window.localStorage.getItem("onstagevn_auth_user");
+  if (!stored) return null;
+
+  try {
+    return JSON.parse(stored) as AuthUser;
+  } catch {
+    window.localStorage.removeItem("onstagevn_auth_user");
+    return null;
+  }
+}
+
+function authUserSnapshot() {
+  const user = readAuthUser();
+  return user ? JSON.stringify(user) : "";
+}
+
+function subscribeAuthUser(onStoreChange: () => void) {
+  if (typeof window === "undefined") return () => {};
+
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(AUTH_USER_UPDATED_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(AUTH_USER_UPDATED_EVENT, onStoreChange);
+  };
+}
+
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const isBrandPath = pathname.startsWith("/brand");
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const authUserJson = useSyncExternalStore(subscribeAuthUser, authUserSnapshot, () => "");
+  const user = authUserJson ? (JSON.parse(authUserJson) as AuthUser) : null;
   const [talentAvatar, setTalentAvatar] = useState<string | null>(null);
   const [switchingPlatform, setSwitchingPlatform] = useState(false);
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem("onstagevn_auth_user");
-    setTalentAvatar(readTalentAvatar());
-
-    if (!stored) {
-      return;
-    }
-
-    try {
-      setUser(JSON.parse(stored) as AuthUser);
-    } catch {
-      window.localStorage.removeItem("onstagevn_auth_user");
-    }
-  }, []);
 
   useEffect(() => {
     function syncTalentAvatar() {
@@ -92,8 +109,7 @@ export default function Header() {
     setSwitchingPlatform(true);
 
     try {
-      const updatedUser = await switchCurrentPlatform(nextPlatform);
-      setUser(updatedUser);
+      await switchCurrentPlatform(nextPlatform);
       setOpen(false);
       router.push(nextPlatformPath);
     } catch (error) {
@@ -183,17 +199,17 @@ export default function Header() {
       <div className="flex w-auto md:w-72 shrink-0 items-center">
         <button
           onClick={() => router.push("/")}
-          className="flex items-center hover:opacity-95 transition-opacity focus:outline-none cursor-pointer"
+          className="flex items-center gap-1.5 hover:opacity-95 transition-opacity focus:outline-none cursor-pointer"
         >
           <img
             src="/logo_icon.png"
             alt="OnstageVN Logo Icon"
-            className="h-11 w-11 object-contain shrink-0"
+            className="h-9 w-auto sm:h-10 object-contain shrink-0"
           />
           <img
             src="/logo_text.png"
             alt="OnstageVN Logo Text"
-            className="h-9 object-contain shrink-0"
+            className="h-6 w-auto sm:h-7 object-contain shrink-0"
           />
         </button>
       </div>

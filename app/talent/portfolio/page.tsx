@@ -267,8 +267,8 @@ export default function PortfolioPage() {
               <Crown className="h-3 w-3 animate-pulse" /> SUPER BOOSTED
             </div>
             {/* Cover Hover Overlay upload trigger for Super Boosted */}
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <label className="flex items-center gap-2 bg-black/60 hover:bg-black/80 border border-white/10 hover:border-amber-400/80 rounded-xl px-4 py-2.5 text-white text-xs font-bold cursor-pointer transition-all">
+            <div className="absolute inset-0 bg-black/25 sm:bg-black/40 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+              <label className="flex items-center gap-2 bg-black/70 hover:bg-black/80 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-white text-[11px] sm:text-xs font-bold cursor-pointer transition-all">
                 <Camera className="h-4.5 w-4.5 text-amber-400" />
                 <span>Thay đổi ảnh bìa</span>
                 <input
@@ -289,8 +289,8 @@ export default function PortfolioPage() {
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80" />
             {/* Cover Hover Overlay upload trigger */}
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <label className="flex items-center gap-2 bg-black/60 hover:bg-black/80 border border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-2.5 text-white text-xs font-bold cursor-pointer transition-all">
+            <div className="absolute inset-0 bg-black/25 sm:bg-black/40 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+              <label className="flex items-center gap-2 bg-black/70 hover:bg-black/80 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-white text-[11px] sm:text-xs font-bold cursor-pointer transition-all">
                 <Camera className="h-4.5 w-4.5 text-cyan-400" />
                 <span>Thay đổi ảnh bìa</span>
                 <input
@@ -325,7 +325,7 @@ export default function PortfolioPage() {
               />
 
               {/* Avatar Hover Overlay upload trigger */}
-              <div className="absolute inset-0.5 rounded-full bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 cursor-pointer">
+              <div className="absolute inset-0.5 rounded-full bg-black/35 sm:bg-black/50 flex flex-col items-center justify-center opacity-100 sm:opacity-0 sm:group-hover/avatar:opacity-100 transition-opacity duration-300 cursor-pointer">
                 <label className="flex flex-col items-center justify-center h-full w-full cursor-pointer text-white text-[9px] font-bold text-center p-1">
                   <Camera className="h-5 w-5 text-amber-400 mb-0.5" />
                   <span>Đổi ảnh</span>
