@@ -17,14 +17,14 @@ import {
   type BrandRosterTalent,
 } from "@/lib/brand-api";
 
-import RosterTab, { type RosterTalent, type RosterStatus } from "./roster-tab";
+import RosterTab, { type BrandTalentCard, type RosterTalent, type RosterStatus } from "./roster-tab";
 import CampaignsTab from "./campaigns-tab";
 import RevenueTab from "./revenue-tab";
 import InviteModal from "./invite-modal";
 
 // ─── Extended mock talents local to this page so that invite list has candidates ────
-const extendedTalents: any[] = [
-  ...allTalents,
+const extendedTalents: BrandTalentCard[] = [
+  ...(allTalents as BrandTalentCard[]),
   {
     id: "tal-6",
     name: "Vương Việt Cường",
@@ -202,17 +202,32 @@ function rosterStatusFromBackend(status?: string | null): RosterStatus {
   return "pending";
 }
 
-function profileToTalent(profile: BrandRosterTalent["talent_profile"], fallback?: any) {
+function usableText(value: unknown) {
+  const text = String(value || "").trim();
+  if (!text || text.toLowerCase() === "talent") return "";
+  return text;
+}
+
+function profileToTalent(
+  profile: BrandRosterTalent["talent_profile"],
+  fallback?: BrandTalentCard,
+): BrandTalentCard | undefined {
   if (!profile) return fallback;
 
   const followersCount = fallback?.followersCount || 0;
-  const displayName = profile.display_name || profile.full_name || profile.user?.name || fallback?.name || "Talent";
+  const displayName =
+    usableText(profile.display_name) ||
+    usableText(profile.full_name) ||
+    usableText(profile.user?.name) ||
+    usableText(profile.user?.email) ||
+    usableText(fallback?.name) ||
+    `Talent #${String(profile.id || fallback?.id || "").trim() || "mới"}`;
   const backendAvatar = profileAvatarFromBackend(profile) || profile.avatar_url || profile.user?.external_avatar_url;
   const avatar = isUsableAvatarUrl(backendAvatar)
     ? backendAvatar
     : isUsableAvatarUrl(fallback?.avatar)
       ? fallback.avatar
-      : createInitialAvatarDataUrl(displayName, profile.user?.name);
+      : createInitialAvatarDataUrl(displayName, profile.user?.email || profile.user?.name);
 
   return {
     ...fallback,
@@ -243,6 +258,8 @@ function profileToTalent(profile: BrandRosterTalent["talent_profile"], fallback?
 }
 
 function rosterFromBackend(item: BrandRosterTalent): RosterTalent {
+  const invitedBy = item.talent_profile?.user?.parent?.name || "Brand";
+
   return {
     rosterId: String(item.id),
     talentId: String(item.talent_profile_id),
@@ -251,13 +268,14 @@ function rosterFromBackend(item: BrandRosterTalent): RosterTalent {
     earnedCommission: 0,
     activeJobs: 0,
     completedJobs: 0,
+    invitedBy,
   };
 }
 
 export default function MyTalentsPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("roster");
   const [roster, setRoster] = useState<RosterTalent[]>([]);
-  const [displayTalents, setDisplayTalents] = useState<any[]>(extendedTalents);
+  const [displayTalents, setDisplayTalents] = useState<BrandTalentCard[]>(extendedTalents);
   const [affiliateLink, setAffiliateLink] = useState(`https://onstage.vn/ref/${AFFILIATE_ID}`);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteSearch, setInviteSearch] = useState("");
@@ -279,12 +297,13 @@ export default function MyTalentsPage() {
 
         if (cancelled) return;
 
-        const talentsById = new Map<string, any>();
-        talentItems.forEach((talent: any) => talentsById.set(String(talent.id), talent));
+        const talentsById = new Map<string, BrandTalentCard>();
+        talentItems.forEach((talent: BrandTalentCard) => talentsById.set(String(talent.id), talent));
 
         rosterItems.forEach((item) => {
           const profileId = String(item.talent_profile_id);
-          talentsById.set(profileId, profileToTalent(item.talent_profile, talentsById.get(profileId)));
+          const talent = profileToTalent(item.talent_profile, talentsById.get(profileId));
+          if (talent) talentsById.set(profileId, talent);
         });
 
         const nextRoster = rosterItems.map(rosterFromBackend);

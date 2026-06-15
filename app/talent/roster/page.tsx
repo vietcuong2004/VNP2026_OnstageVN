@@ -4,10 +4,11 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Users2, CheckCircle, X, Clock, Building2, Shield, Star,
   ChevronRight, Sparkles, Gift, DollarSign, TrendingUp, Crown,
-  Bell, Check, AlertCircle, Link2, Network, Send
+  Bell, Check, AlertCircle, Link2, Network, Send, Copy, UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { acceptBrandTalentInviteLink, loadTalentBrandInvitations, updateTalentBrandInvitation } from "@/lib/talent-api";
+import { createInitialAvatarDataUrl, isUsableAvatarUrl, profileAvatarFromBackend } from "@/lib/avatar";
+import { acceptBrandTalentInviteLink, loadTalentBrandInvitations, loadTalentBrandInviteLink, updateTalentBrandInvitation } from "@/lib/talent-api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface RosterInvitation {
@@ -20,6 +21,16 @@ interface RosterInvitation {
   commissionRate: number;    // e.g. 0.10
   sentAt: string;
   status: "pending" | "accepted" | "declined";
+  inviteLink?: string;
+  childCount?: number;
+  members?: Array<{
+    id: string;
+    name: string;
+    avatar: string;
+    joinedAt: string;
+    status: string;
+    invitedBy?: string;
+  }>;
 }
 
 // ─── Mock invitations (as if received from Brands) ────────────────────────────
@@ -50,10 +61,16 @@ const MOCK_INVITATIONS: RosterInvitation[] = [
 
 const formatVND = (n: number) => new Intl.NumberFormat("vi-VN").format(n) + "đ";
 
-function mapBackendInvitation(item: any): RosterInvitation {
-  const brand = item.brand || {};
-  const partner = brand.partner_profile || brand.partnerProfile || {};
-  const activeTerm = item.active_term || item.activeTerm || {};
+function usableText(value: unknown) {
+  const text = String(value || "").trim();
+  if (!text || text.toLowerCase() === "talent") return "";
+  return text;
+}
+
+function mapBackendInvitation(item: Record<string, unknown>): RosterInvitation {
+  const brand = (item.brand || {}) as Record<string, unknown>;
+  const partner = (brand.partner_profile || brand.partnerProfile || {}) as Record<string, unknown>;
+  const activeTerm = (item.active_term || item.activeTerm || {}) as Record<string, unknown>;
   const statusMap: Record<string, RosterInvitation["status"]> = {
     invited: "pending",
     active: "accepted",
@@ -64,45 +81,91 @@ function mapBackendInvitation(item: any): RosterInvitation {
   return {
     id: String(item.id),
     managerId: String(brand.id || item.brand_user_id || ""),
-    managerName: brand.name || partner.contact_name || "Brand Manager",
-    managerBrand: partner.organization_name || brand.name || "Brand",
-    managerAvatar: brand.external_avatar_url || "/avatar.png",
-    managerTier: partner.organization_type || "Brand",
+    managerName: String(brand.name || partner.contact_name || "Brand Manager"),
+    managerBrand: String(partner.organization_name || brand.name || "Brand"),
+    managerAvatar: String(brand.external_avatar_url || "/avatar.png"),
+    managerTier: String(partner.organization_type || "Brand"),
     commissionRate: Number(activeTerm.commission_rate || 10) / 100,
     sentAt: String(item.created_at || item.joined_at || new Date().toISOString()).slice(0, 10),
-    status: statusMap[item.status] || "pending",
+    status: statusMap[String(item.status)] || "pending",
+    inviteLink: String(((item.invite_link || item.inviteLink || {}) as Record<string, unknown>).url || ""),
+    childCount: Number(item.child_count || item.childCount || 0),
+    members: Array.isArray(item.members || item.children)
+      ? ((item.members || item.children) as unknown[]).map((child) => {
+          const childRecord = child as Record<string, unknown>;
+          const profile = (childRecord.talent_profile || childRecord.talentProfile || {}) as Record<string, unknown>;
+          const user = (profile.user || {}) as Record<string, unknown>;
+          const parent = (user.parent || {}) as Record<string, unknown>;
+          const name =
+            usableText(profile.display_name) ||
+            usableText(profile.full_name) ||
+            usableText(profile.name) ||
+            usableText(user.name) ||
+            usableText(user.email) ||
+            `Talent #${String(profile.id || user.id || childRecord.id || "").trim() || "mới"}`;
+          const avatar = String(profileAvatarFromBackend(profile) || profile.avatar_url || user.external_avatar_url || "");
+
+          return {
+            id: String(childRecord.id || profile.id || user.id || ""),
+            name,
+            avatar: isUsableAvatarUrl(avatar) ? avatar : createInitialAvatarDataUrl(name, String(user.email || "")),
+            joinedAt: String(childRecord.joined_at || childRecord.created_at || "").slice(0, 10),
+            status: String(childRecord.status || "active"),
+            invitedBy: String(parent.name || ""),
+          };
+        })
+      : [],
   };
 }
 
-function extractInviteCode(value: string) {
+function extractInviteParts(value: string) {
   const rawValue = value.trim();
-  if (!rawValue) return "";
+  if (!rawValue) return { code: "", talentSlug: "" };
 
   try {
     const parsed = new URL(rawValue);
     const segments = parsed.pathname.split("/").filter(Boolean);
     const refIndex = segments.findIndex((segment) => segment.toLowerCase() === "ref");
-    if (refIndex >= 0 && segments[refIndex + 1]) return decodeURIComponent(segments[refIndex + 1]);
+    if (refIndex >= 0 && segments[refIndex + 1]) {
+      return {
+        code: decodeURIComponent(segments[refIndex + 1]),
+        talentSlug: segments[refIndex + 2] ? decodeURIComponent(segments[refIndex + 2]) : "",
+      };
+    }
 
     const refParam = parsed.searchParams.get("ref") || parsed.searchParams.get("code");
-    if (refParam) return refParam.trim();
+    if (refParam) {
+      return {
+        code: refParam.trim(),
+        talentSlug: parsed.searchParams.get("inviter")?.trim() || "",
+      };
+    }
 
-    return decodeURIComponent(segments.at(-1) || "");
+    return {
+      code: decodeURIComponent(segments.at(-2) || segments.at(-1) || ""),
+      talentSlug: segments.length > 1 ? decodeURIComponent(segments.at(-1) || "") : "",
+    };
   } catch {
-    return rawValue
+    const cleaned = rawValue
       .replace(/^https?:\/\/[^/]+\/?/i, "")
       .replace(/^ref\//i, "")
       .replace(/[?#].*$/, "")
       .replace(/\/$/, "")
       .trim();
+    const [code = "", talentSlug = ""] = cleaned.split("/").filter(Boolean);
+
+    return { code, talentSlug };
   }
 }
 
 export default function TalentRosterPage() {
   const acceptedQueryCodeRef = useRef("");
+  const toastIdRef = useRef(0);
   const [invitations, setInvitations] = useState<RosterInvitation[]>([]);
   const [inviteLinkValue, setInviteLinkValue] = useState("");
   const [isAcceptingLink, setIsAcceptingLink] = useState(false);
+  const [selectedInvitation, setSelectedInvitation] = useState<RosterInvitation | null>(null);
+  const [isLoadingInviteLink, setIsLoadingInviteLink] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; msg: string; type: "success" | "info" }[]>([]);
 
   const loadInvitations = useCallback(async () => {
@@ -121,7 +184,7 @@ export default function TalentRosterPage() {
   }, []);
 
   useEffect(() => {
-    loadInvitations();
+    void Promise.resolve().then(loadInvitations);
   }, [loadInvitations]);
 
   const save = (items: RosterInvitation[]) => {
@@ -129,7 +192,8 @@ export default function TalentRosterPage() {
   };
 
   const addToast = (msg: string, type: "success" | "info" = "success") => {
-    const id = Date.now().toString();
+    toastIdRef.current += 1;
+    const id = toastIdRef.current.toString();
     setToasts(p => [...p, { id, msg, type }]);
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 4000);
   };
@@ -158,12 +222,46 @@ export default function TalentRosterPage() {
     addToast("Đã từ chối lời mời.", "info");
   };
 
-  const acceptInviteCode = useCallback(async (code: string) => {
+  const handleOpenDetails = async (invitation: RosterInvitation) => {
+    setSelectedInvitation(invitation);
+
+    if (invitation.inviteLink) return;
+
+    setIsLoadingInviteLink(true);
+    try {
+      const link = await loadTalentBrandInviteLink(invitation.managerId);
+      const nextInvitation = {
+        ...invitation,
+        inviteLink: link.url,
+        childCount: Number(link.child_count || link.childCount || invitation.childCount || 0),
+        members: mapBackendInvitation({ ...invitation, members: link.members || link.children || [] }).members,
+      };
+
+      setSelectedInvitation(nextInvitation);
+      setInvitations((current) => current.map((item) => item.id === invitation.id ? nextInvitation : item));
+    } catch (error) {
+      console.warn("Cannot load talent child invite link", error);
+      addToast("Chưa thể tải link mời riêng cho Brand này.", "info");
+    } finally {
+      setIsLoadingInviteLink(false);
+    }
+  };
+
+  const handleCopyChildInviteLink = () => {
+    if (!selectedInvitation?.inviteLink) return;
+
+    navigator.clipboard.writeText(selectedInvitation.inviteLink).then(
+      () => addToast("Đã sao chép link mời riêng.", "success"),
+      () => addToast("Không sao chép được link, hãy copy thủ công.", "info"),
+    );
+  };
+
+  const acceptInviteCode = useCallback(async (code: string, talentSlug = "") => {
     if (!code || isAcceptingLink) return;
 
     setIsAcceptingLink(true);
     try {
-      const acceptedInvitation = await acceptBrandTalentInviteLink(code);
+      const acceptedInvitation = await acceptBrandTalentInviteLink(code, talentSlug);
       const mapped = mapBackendInvitation(acceptedInvitation);
 
       setInviteLinkValue("");
@@ -187,23 +285,25 @@ export default function TalentRosterPage() {
 
     const params = new URLSearchParams(window.location.search);
     const codeFromQuery = params.get("brand_ref") || params.get("ref");
+    const talentSlugFromQuery = params.get("inviter") || "";
     if (!codeFromQuery) return;
-    if (acceptedQueryCodeRef.current === codeFromQuery) return;
+    const queryKey = `${codeFromQuery}/${talentSlugFromQuery}`;
+    if (acceptedQueryCodeRef.current === queryKey) return;
 
-    acceptedQueryCodeRef.current = codeFromQuery;
-    acceptInviteCode(codeFromQuery);
+    acceptedQueryCodeRef.current = queryKey;
+    acceptInviteCode(codeFromQuery, talentSlugFromQuery);
   }, [acceptInviteCode]);
 
   const handleAcceptInviteLink = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const code = extractInviteCode(inviteLinkValue);
+    const { code, talentSlug } = extractInviteParts(inviteLinkValue);
     if (!code) {
       addToast("Vui lòng nhập link hoặc mã mời Brand.", "info");
       return;
     }
 
-    await acceptInviteCode(code);
+    await acceptInviteCode(code, talentSlug);
   };
 
   const pending  = invitations.filter(i => i.status === "pending");
@@ -384,7 +484,11 @@ export default function TalentRosterPage() {
                     Hoa hồng Manager: <span className="text-amber-400 font-mono font-bold">{Math.round(inv.commissionRate * 100)}%</span> thù lao từ job
                   </p>
                 </div>
-                <button className="flex h-10 w-full items-center justify-center gap-1 rounded-xl border border-[#151b2d] bg-[#050711] text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-white cursor-pointer transition-colors sm:w-auto sm:border-0 sm:bg-transparent">
+                <button
+                  type="button"
+                  onClick={() => handleOpenDetails(inv)}
+                  className="flex h-10 w-full items-center justify-center gap-1 rounded-xl border border-[#151b2d] bg-[#050711] text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-white cursor-pointer transition-colors sm:w-auto sm:border-0 sm:bg-transparent"
+                >
                   Chi tiết <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -423,6 +527,111 @@ export default function TalentRosterPage() {
       )}
 
       {/* ── Toast Notifications ── */}
+      {selectedInvitation && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 p-0 backdrop-blur-sm md:p-4">
+          <div className="flex min-h-full items-end justify-center md:items-start lg:items-center">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-[#151b2d] bg-[#08090f] p-5 shadow-2xl md:max-h-[calc(100vh-2rem)] md:rounded-3xl md:p-6">
+            <div className="flex items-start justify-between gap-4 border-b border-[#151b2d] pb-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-300">Chi tiết hợp tác Brand</p>
+                <h3 className="mt-2 text-base font-black text-white">{selectedInvitation.managerBrand}</h3>
+                <p className="mt-1 text-xs font-semibold text-slate-500">Quản lý trực tiếp: {selectedInvitation.managerName}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedInvitation(null)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-300">Trạng thái</p>
+                <p className="mt-2 text-sm font-black text-white">Đang hợp tác</p>
+              </div>
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+                <p className="text-[9px] font-black uppercase tracking-widest text-amber-300">Hoa hồng</p>
+                <p className="mt-2 text-sm font-black text-white">5%/booking</p>
+              </div>
+              <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+                <p className="text-[9px] font-black uppercase tracking-widest text-cyan-300">Talent của Brand</p>
+                <p className="mt-2 text-sm font-black text-white">{selectedInvitation.members?.length || selectedInvitation.childCount || 0}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-[#151b2d] bg-[#050711] p-4">
+              <div className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4 text-amber-300" />
+                <p className="text-xs font-black uppercase tracking-widest text-white">Link mời riêng của bạn</p>
+              </div>
+              <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
+                Link này đưa talent mới vào cùng roster Brand, đồng thời gắn talent mới dưới trướng của bạn. Link này không liên quan đến referral campaign.
+              </p>
+              <div className="mt-3 flex flex-col gap-2 md:flex-row">
+                <input
+                  readOnly
+                  value={selectedInvitation.inviteLink || (isLoadingInviteLink ? "Đang tải link..." : "Chưa có link")}
+                  className="h-11 min-w-0 flex-1 rounded-xl border border-white/5 bg-slate-950 px-3 text-xs font-semibold text-slate-200 outline-none"
+                />
+                <button
+                  type="button"
+                  disabled={!selectedInvitation.inviteLink}
+                  onClick={handleCopyChildInviteLink}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 text-xs font-black uppercase tracking-wider text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Copy className="h-4 w-4" />
+                  Sao chép link
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-[#151b2d] bg-[#050711] p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-white">Danh sách Talent của Brand</p>
+                  <p className="mt-1 text-[10px] text-slate-500">
+                    Tất cả Talent đang thuộc roster của Brand này, dù được mời bởi Brand hay Talent khác.
+                  </p>
+                </div>
+                <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[10px] font-black text-cyan-300">
+                  {selectedInvitation.members?.length || 0}
+                </span>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {selectedInvitation.members?.length ? (
+                  selectedInvitation.members.map((member) => (
+                    <div key={member.id} className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950/60 p-3">
+                      <img src={member.avatar} alt={member.name} className="h-10 w-10 rounded-xl object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-black text-white">{member.name}</p>
+                        <p className="mt-0.5 text-[10px] font-semibold text-slate-500">
+                          Tham gia: {member.joinedAt || "Chưa cập nhật"}
+                        </p>
+                        <p className="mt-0.5 text-[10px] font-semibold text-slate-500">
+                          Được mời bởi: <span className="font-bold text-slate-300">{member.invitedBy || "Brand"}</span>
+                        </p>
+                      </div>
+                      <span className="rounded-md border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 text-[9px] font-black uppercase text-emerald-300">
+                        {member.status === "active" ? "Đang hoạt động" : member.status}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/40 p-4 text-center">
+                    <p className="text-xs font-bold text-slate-400">Brand này chưa có Talent nào trong roster.</p>
+                    <p className="mt-1 text-[10px] text-slate-600">Khi có Talent tham gia, danh sách sẽ hiển thị tại đây.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      )}
+
       <div className="fixed bottom-24 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none md:bottom-6 md:left-auto md:right-6 md:max-w-sm">
         {toasts.map(t => (
           <div

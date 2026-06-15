@@ -517,8 +517,18 @@ export async function updateTalentBrandInvitation(invitationId: number | string,
   return response.data;
 }
 
-export async function acceptBrandTalentInviteLink(code: string) {
-  const response = await apiJson<{ data: any }>(`/brand/talent-invite-links/${encodeURIComponent(code)}/accept`, {
+export async function loadTalentBrandInviteLink(brandId: number | string) {
+  const response = await apiJson<{ data: any }>(`/talent/brand-invitations/${brandId}/invite-link`);
+
+  return response.data;
+}
+
+export async function acceptBrandTalentInviteLink(code: string, talentSlug?: string | null) {
+  const path = talentSlug
+    ? `/brand/talent-invite-links/${encodeURIComponent(code)}/${encodeURIComponent(talentSlug)}/accept`
+    : `/brand/talent-invite-links/${encodeURIComponent(code)}/accept`;
+
+  const response = await apiJson<{ data: any }>(path, {
     method: "POST",
   });
 

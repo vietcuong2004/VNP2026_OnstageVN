@@ -7,6 +7,37 @@ import { createInitialAvatarDataUrl } from "@/lib/avatar";
 
 export type RosterStatus = "accepted" | "pending" | "declined";
 
+export interface BrandTalentCard {
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+  type?: string;
+  city?: string;
+  district?: string;
+  gender?: string;
+  age?: number;
+  height?: number;
+  weight?: number;
+  bust?: number;
+  waist?: number;
+  hips?: number;
+  tier?: string;
+  verified?: boolean;
+  rating?: number | string;
+  followers?: string;
+  followersCount?: number;
+  engagementRate?: number;
+  cover?: string;
+  fullBodyImage?: string;
+  experience?: string;
+  skills?: string[];
+  languages?: string[];
+  completion?: number;
+  matchScore?: number;
+  [key: string]: unknown;
+}
+
 export interface RosterTalent {
   rosterId?: string;
   talentId: string;
@@ -15,11 +46,12 @@ export interface RosterTalent {
   earnedCommission: number;
   activeJobs: number;
   completedJobs: number;
+  invitedBy?: string;
 }
 
 interface RosterTabProps {
   roster: RosterTalent[];
-  extendedTalents: any[];
+  extendedTalents: BrandTalentCard[];
   statusConfig: Record<RosterStatus, { label: string; dot: string; text: string }>;
   tierColor: (tier: string) => string;
   formatVND: (n: number) => string;
@@ -166,6 +198,9 @@ export default function RosterTab({
                       <span className="flex items-center gap-1">👥 <strong className="text-white">{talent.followers}</strong> followers</span>
                       <span className="flex items-center gap-1">⭐ <strong className="text-white">{talent.rating}</strong>/5</span>
                     </div>
+                    <p className="mt-2 text-[10px] font-semibold text-slate-500">
+                      Được mời bởi: <span className="font-bold text-slate-300">{entry.invitedBy || "Brand"}</span>
+                    </p>
                   </div>
                 </div>
 

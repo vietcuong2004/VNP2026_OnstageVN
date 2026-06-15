@@ -6,9 +6,12 @@ import type { Campaign, CampaignStage, TalentProfile } from "@/lib/brand-mvp-dat
 type BackendUser = {
   id?: number | string;
   name?: string | null;
+  email?: string | null;
   type?: string | null;
   is_verified?: boolean | number | null;
   external_avatar_url?: string | null;
+  parent_id?: number | string | null;
+  parent?: BackendUser | null;
 };
 
 type StoredAuthUser = {
