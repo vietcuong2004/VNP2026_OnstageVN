@@ -17,7 +17,7 @@ export default function TalentChildInviteRedirectPage() {
       return;
     }
 
-    const targetPath = `/talent/roster?brand_ref=${encodeURIComponent(code)}&inviter=${encodeURIComponent(talentSlug)}`;
+    const targetPath = `/talent/brands?brand_ref=${encodeURIComponent(code)}&inviter=${encodeURIComponent(talentSlug)}`;
 
     if (!getAuthToken()) {
       router.replace(`/auth/login?redirect=${encodeURIComponent(targetPath)}`);

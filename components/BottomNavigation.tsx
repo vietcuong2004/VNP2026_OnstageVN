@@ -17,7 +17,7 @@ const talentAllItems = [
   { label: "Cuộc thi", icon: Trophy, href: "/talent/contests" },
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Affiliate", icon: Share2, href: "/talent/affiliate" },
-  { label: "Hợp tác Brand", icon: Users, href: "/talent/roster" },
+  { label: "Hợp tác Brand", icon: Users, href: "/talent/brands" },
   { label: "Quỹ", icon: Crown, href: "/talent/crown" },
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },

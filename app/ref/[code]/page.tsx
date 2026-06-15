@@ -15,7 +15,7 @@ export default function BrandInviteRedirectPage() {
       return;
     }
 
-    const targetPath = `/talent/roster?brand_ref=${encodeURIComponent(code)}`;
+    const targetPath = `/talent/brands?brand_ref=${encodeURIComponent(code)}`;
 
     if (!getAuthToken()) {
       router.replace(`/auth/login?redirect=${encodeURIComponent(targetPath)}`);
