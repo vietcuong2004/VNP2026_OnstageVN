@@ -64,45 +64,16 @@ export default function TalentAffiliatePage() {
   const [pastedUrl, setPastedUrl] = useState("");
   const [referralLinks, setReferralLinks] = useState<Record<string, string>>({});
 
-  // Load from localStorage & sync
+  // Load fallback campaigns first, then replace with backend data when available
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      let loadedCampaigns: Campaign[] = [];
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as Campaign[];
-          if (Array.isArray(parsed)) {
-            loadedCampaigns = parsed;
-          }
-        } catch (e) {
-          console.error("Failed to parse campaigns:", e);
-        }
-      }
+    setCampaigns(initialCampaigns);
 
-      // If empty or missing initial campaigns, merge
-      if (loadedCampaigns.length === 0) {
-        loadedCampaigns = [...initialCampaigns];
-        window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(loadedCampaigns));
-      } else {
-        // Ensure initialCampaigns are merged in case brand-mvp-data has new items
-        const parsedIds = new Set(loadedCampaigns.map(c => c.id));
-        const missing = initialCampaigns.filter(c => !parsedIds.has(c.id));
-        if (missing.length > 0) {
-          loadedCampaigns = [...loadedCampaigns, ...missing];
-          window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(loadedCampaigns));
-        }
-      }
-
-      setCampaigns(loadedCampaigns);
-
-      loadTalentCampaigns().then((items) => {
-        if (!items?.length) return;
-        setCampaigns(items.map(mapCampaignToTalentJob));
-      }).catch((error) => {
-        console.warn("Cannot load talent affiliate campaigns from backend", error);
-      });
-    }
+    loadTalentCampaigns().then((items) => {
+      if (!items?.length) return;
+      setCampaigns(items.map(mapCampaignToTalentJob));
+    }).catch((error) => {
+      console.warn("Cannot load talent affiliate campaigns from backend", error);
+    });
   }, []);
 
   // Filter campaigns where "tal-1" is in accepted, executing, completed, or confirmed stage
@@ -232,18 +203,7 @@ export default function TalentAffiliatePage() {
         }
       }
 
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      let allCampaigns: Campaign[] = [];
-      if (stored) {
-        try {
-          allCampaigns = JSON.parse(stored) as Campaign[];
-        } catch (err) {
-          allCampaigns = [...initialCampaigns];
-        }
-      } else {
-        allCampaigns = [...initialCampaigns];
-      }
-
+      const allCampaigns = campaigns.length ? campaigns : initialCampaigns;
       const targetCamp = allCampaigns.find(c => c.id === campaignId);
       if (!targetCamp) {
         addToast("Không tìm thấy chiến dịch trong dữ liệu hệ thống.", "info");
@@ -279,8 +239,6 @@ export default function TalentAffiliatePage() {
         }
         return c;
       });
-
-      window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(updatedCampaigns));
       setCampaigns(updatedCampaigns);
       setPastedUrl("");
 
@@ -311,18 +269,7 @@ export default function TalentAffiliatePage() {
           const queryParams = new URLSearchParams(queryPart);
           const refId = queryParams.get("ref") || "";
 
-          const stored = window.localStorage.getItem("onstagevn_campaigns");
-          let allCampaigns: Campaign[] = [];
-          if (stored) {
-            try {
-              allCampaigns = JSON.parse(stored) as Campaign[];
-            } catch (err) {
-              allCampaigns = [...initialCampaigns];
-            }
-          } else {
-            allCampaigns = [...initialCampaigns];
-          }
-
+          const allCampaigns = campaigns.length ? campaigns : initialCampaigns;
           const targetCamp = allCampaigns.find(c => c.id === campaignId);
           if (!targetCamp) {
             addToast("Không tìm thấy chiến dịch trong dữ liệu hệ thống.", "info");
@@ -358,8 +305,6 @@ export default function TalentAffiliatePage() {
             }
             return c;
           });
-
-          window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(updatedCampaigns));
           setCampaigns(updatedCampaigns);
           setPastedUrl("");
 

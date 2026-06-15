@@ -17,6 +17,7 @@ import {
   saveTalentSurveyProgress,
   submitTalentSurvey,
   type TalentSurveyAnalysis,
+  type TalentSurveyHistoryEntry,
 } from "@/lib/talent-api";
 
 // Custom SVG Icons to avoid import errors from old lucide version
@@ -77,7 +78,7 @@ const JOBS_LIST = [
 ];
 
 interface SurveyFormProps {
-  initialHistoryEntry?: any;
+  initialHistoryEntry?: TalentSurveyHistoryEntry | null;
   onBackToDashboard?: () => void;
 }
 
@@ -519,33 +520,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
     setResults(computedResults);
 
-    // Save to history list in local storage
-    const newHistoryEntry = {
-      id: Date.now(),
-      date: computedResults.date,
-      mainCategory,
-      tier,
-      pageant: pageantPct,
-      runway: runwayPct,
-      kol: kolPct,
-      profileScore: evaluationScore
-    };
-
-    let updatedHistory: any[] = [];
-    const existingHistory = localStorage.getItem("vnp_talent_survey_history");
-    if (existingHistory) {
-      try {
-        updatedHistory = JSON.parse(existingHistory);
-        if (!Array.isArray(updatedHistory)) {
-          updatedHistory = [];
-        }
-      } catch (e) {
-        updatedHistory = [];
-      }
-    }
-    updatedHistory.unshift(newHistoryEntry);
-    localStorage.setItem("vnp_talent_survey_history", JSON.stringify(updatedHistory));
-
     // Save to local storage for other views in the application
     const userProfile: Record<string, unknown> = {
       ...formData,
@@ -617,21 +591,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       };
       userProfile.profileScore = finalResults.profileScore;
       userProfile.tier = finalResults.tier;
-
-      updatedHistory = updatedHistory.map((entry) =>
-        entry.id === newHistoryEntry.id
-          ? {
-              ...entry,
-              pageant: finalResults.pageant,
-              runway: finalResults.runway,
-              kol: finalResults.kol,
-              profileScore: finalResults.profileScore,
-              tier: finalResults.tier,
-              aiSurveyAnalysis: aiResult || undefined,
-            }
-          : entry
-      );
-      localStorage.setItem("vnp_talent_survey_history", JSON.stringify(updatedHistory));
     }
 
     persistTalentProfile({ ...savedProfile, ...userProfile });

@@ -42,40 +42,8 @@ export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
 
   useEffect(() => {
-    let fallbackCampaigns = initialCampaigns;
-
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as Campaign[];
-          // Merge initialCampaigns that are not present in parsed by ID to ensure newly added mock data is sync'd
-          const parsedIds = new Set(parsed.map(c => c.id));
-          const missing = initialCampaigns.filter(c => !parsedIds.has(c.id));
-          if (missing.length > 0) {
-            const merged = [...parsed, ...missing];
-            // Sort to keep campaigns in order if needed or just append
-            setCampaigns(merged);
-            window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(merged));
-            fallbackCampaigns = merged;
-          } else {
-            setCampaigns(parsed);
-            fallbackCampaigns = parsed;
-          }
-        } catch (e) {
-          setCampaigns(initialCampaigns);
-          window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(initialCampaigns));
-        }
-      } else {
-        window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(initialCampaigns));
-      }
-    }
-
-    loadBrandCampaigns(fallbackCampaigns).then((items) => {
+    loadBrandCampaigns(initialCampaigns).then((items) => {
       setCampaigns(items);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(items));
-      }
     });
   }, []);
   const [activeTab, setActiveTab] = useState<CampaignStatusTab>("all");
@@ -132,9 +100,6 @@ export default function CampaignsPage() {
 
     const nextCampaigns = [newCampaign, ...campaigns];
     setCampaigns(nextCampaigns);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(nextCampaigns));
-    }
     setIsCreating(false);
     setForm(emptyForm);
 

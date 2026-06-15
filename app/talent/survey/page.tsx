@@ -6,29 +6,28 @@ import { Sparkles, Star, ChevronRight, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SurveyForm from "./SurveyForm";
 import ModelTiersGrid from "@/components/ui/ModelTiersGrid";
+import { loadTalentSurveyHistory, type TalentSurveyHistoryEntry } from "@/lib/talent-api";
 
 export default function SurveyPage() {
   const router = useRouter();
   const [isSurveyActive, setIsSurveyActive] = useState(false);
-  const [viewingEntry, setViewingEntry] = useState<any>(null);
-  const [historyList, setHistoryList] = useState<any[]>([]);
+  const [viewingEntry, setViewingEntry] = useState<TalentSurveyHistoryEntry | null>(null);
+  const [historyList, setHistoryList] = useState<TalentSurveyHistoryEntry[]>([]);
 
   useEffect(() => {
-    let existingHistory = localStorage.getItem("vnp_talent_survey_history");
-    let parsedHistory = [];
-    if (existingHistory) {
-      try {
-        parsedHistory = JSON.parse(existingHistory);
-      } catch (e) {
-        console.error(e);
-      }
+    let cancelled = false;
+
+    if (!isSurveyActive) {
+      loadTalentSurveyHistory().then((items) => {
+        if (!cancelled) {
+          setHistoryList(items);
+        }
+      });
     }
-    
-    if (!Array.isArray(parsedHistory)) {
-      parsedHistory = [];
-    }
-    
-    setHistoryList(parsedHistory);
+
+    return () => {
+      cancelled = true;
+    };
   }, [isSurveyActive]);
 
   const handleStartSurvey = () => {
@@ -36,7 +35,7 @@ export default function SurveyPage() {
     setIsSurveyActive(true);
   };
 
-  const handleViewHistoryDetail = (entry: any) => {
+  const handleViewHistoryDetail = (entry: TalentSurveyHistoryEntry) => {
     setViewingEntry(entry);
     setIsSurveyActive(true);
   };
@@ -117,7 +116,7 @@ export default function SurveyPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-[11px]">
-                    {historyList.map((entry: any) => (
+                    {historyList.map((entry) => (
                       <tr key={entry.id} className="hover:bg-white/2 transition-colors group">
                         <td className="py-3.5 px-4 font-medium text-slate-300">{entry.date}</td>
                         <td className="py-3.5 px-4 text-slate-200">

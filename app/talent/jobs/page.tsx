@@ -7,7 +7,7 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Campaign, SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
+import { SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
 import { applyTalentCampaign, loadTalentCampaigns, mapCampaignToTalentJob } from "@/lib/talent-api";
 import Link from "next/link";
 
@@ -56,23 +56,6 @@ export default function JobsPage() {
   const hasTalentApplication = (job: any) => {
     return Boolean(job.hasApplied || job.application || job.applicants?.some((a: any) => a.talentId === "tal-1"));
   };
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
-        try {
-          const campaigns = JSON.parse(stored);
-          if (Array.isArray(campaigns)) {
-            const ids = campaigns
-              .filter((c: any) => c.applicants?.some((a: any) => a.talentId === "tal-1"))
-              .map((c: any) => c.id);
-            setAppliedJobs(ids);
-          }
-        } catch (e) {}
-      }
-    }
-  }, []);
 
   useEffect(() => {
     const mockCampaigns = [
@@ -320,93 +303,11 @@ export default function JobsPage() {
       }
     ];
 
-    let loadedBrandJobs: any[] = [];
-    const stored = localStorage.getItem("onstagevn_campaigns");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as Campaign[];
-        if (Array.isArray(parsed)) {
-          loadedBrandJobs = parsed
-            .filter((c) => c.status === "published")
-            .map((c) => {
-              let badgeColor = "bg-amber-400/10 border-amber-400/20 text-amber-400";
-              let color = "gold";
-              let borderColor = "border-[#3e3415] hover:border-amber-400/40 shadow-[0_0_15px_rgba(244,196,48,0.02)]";
-              let glowColor = "from-amber-400/5 to-transparent";
-
-              const typeLower = c.jobType.toLowerCase();
-              if (typeLower.includes("live") || typeLower.includes("stream")) {
-                badgeColor = "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
-                color = "cyan";
-                borderColor = "border-[#143d4d] hover:border-cyan-400/40 shadow-[0_0_15px_rgba(34,211,238,0.02)]";
-                glowColor = "from-cyan-500/5 to-transparent";
-              } else if (typeLower.includes("runway") || typeLower.includes("show")) {
-                badgeColor = "bg-[#a855f7]/10 border-[#a855f7]/20 text-[#a855f7]";
-                color = "purple";
-                borderColor = "border-[#2f1c4f] hover:border-[#a855f7]/40 shadow-[0_0_15px_rgba(168,85,247,0.02)]";
-                glowColor = "from-purple-500/5 to-transparent";
-              } else if (typeLower.includes("mc") || typeLower.includes("event") || typeLower.includes("host")) {
-                badgeColor = "bg-rose-500/10 border-rose-500/20 text-rose-400";
-                color = "rose";
-                borderColor = "border-[#4f1a2d] hover:border-rose-400/40 shadow-[0_0_15px_rgba(236,72,153,0.02)]";
-                glowColor = "from-rose-500/5 to-transparent";
-              }
-
-              return {
-                id: c.id,
-                title: c.title,
-                brand: "L'Oréal Vietnam Cosmetics",
-                type: c.jobType,
-                budget: c.budget,
-                location: c.address || c.city,
-                brief: c.description,
-                minHeight: 165,
-                matchScore: 85,
-                escrowed: true,
-                color,
-                borderColor,
-                badgeColor,
-                glowColor,
-                sponsorships: c.sponsorships || [],
-                applicants: c.applicants || [],
-                detail: {
-                  requirements: c.requirements.split("\n").map((r: string) => r.trim()).filter(Boolean),
-                  benefits: [
-                    c.benefits,
-                    ...(c.sponsorships || []).map((s: any) => `Tài trợ cam kết từ nhãn hàng: ${s.category}`)
-                  ],
-                  phases: [
-                    {
-                      title: "Vòng Tuyển Chọn (Casting Online)",
-                      timeline: `Trước ${c.deadline}`,
-                      location: "Online",
-                      items: ["Đánh giá hồ sơ và mức độ phù hợp thông qua thuật toán AI."]
-                    },
-                    {
-                      title: "Phòng Vấn & Triển Khai",
-                      timeline: `${c.startDate} - ${c.endDate}`,
-                      location: c.address || c.city,
-                      items: ["Thực hiện các hạng mục công việc theo hợp đồng thống nhất."]
-                    }
-                  ],
-                  address: c.address || c.city,
-                  phone: "0901234567",
-                  email: "contact@loreal-vietnam.com",
-                  website: "loreal-vietnam.com"
-                }
-              };
-            });
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    const fallbackJobs = [...loadedBrandJobs, ...mockCampaigns];
-    setDisplayJobs(fallbackJobs);
-
     loadTalentCampaigns().then((items) => {
-      if (!items?.length) return;
+      if (!items?.length) {
+        setDisplayJobs(mockCampaigns);
+        return;
+      }
 
       const backendJobs = items.map(mapCampaignToTalentJob);
       setDisplayJobs(backendJobs);
@@ -417,8 +318,9 @@ export default function JobsPage() {
       });
     }).catch((error) => {
       console.warn("Cannot load talent campaigns from backend", error);
+      setDisplayJobs(mockCampaigns);
     });
-  }, [appliedJobs]);
+  }, []);
 
   const handleApply = async (id: string, title: string) => {
     if (appliedJobs.includes(id)) return;
@@ -440,108 +342,35 @@ export default function JobsPage() {
 
     setAppliedJobs((prev) => [...prev, id]);
     addToast(`Ứng tuyển thành công công việc "${title}"!`);
-
-    // Sync applied candidate directly with brand campaigns in localStorage
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
-        try {
-          const campaigns = JSON.parse(stored);
-          if (Array.isArray(campaigns)) {
-            const updated = campaigns.map((c: any) => {
-              const isMatch = c.id === id || 
-                              (id === "c1" && c.id === "camp-1") || (id === "camp-1" && c.id === "c1") ||
-                              (id === "c2" && c.id === "camp-2") || (id === "camp-2" && c.id === "c2") ||
-                              (id === "c3" && c.id === "camp-3") || (id === "camp-3" && c.id === "c3") ||
-                              (id === "c4" && c.id === "camp-4") || (id === "camp-4" && c.id === "c4");
-              if (isMatch) {
-                const applicants = c.applicants || [];
-                if (!applicants.some((a: any) => a.talentId === "tal-1")) {
-                  return {
-                    ...c,
-                    applicants: [
-                      ...applicants,
-                      {
-                        talentId: "tal-1",
-                        stage: "new",
-                        note: "Tôi rất quan tâm và mong muốn ứng tuyển thực hiện chiến dịch này."
-                      }
-                    ]
-                  };
-                }
-              }
-              return c;
-            });
-            window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(updated));
-          }
-        } catch (e) {
-          console.error("Failed to sync applicant with brand campaigns:", e);
-        }
-      }
-    }
   };
 
   const handleUpdateStage = (jobId: string, nextStage: string) => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
-        try {
-          const campaigns = JSON.parse(stored);
-          if (Array.isArray(campaigns)) {
-            const updated = campaigns.map((c: any) => {
-              const isMatch = c.id === jobId || 
-                              (jobId === "c1" && c.id === "camp-1") || (jobId === "camp-1" && c.id === "c1") ||
-                              (jobId === "c2" && c.id === "camp-2") || (jobId === "camp-2" && c.id === "c2") ||
-                              (jobId === "c3" && c.id === "camp-3") || (jobId === "camp-3" && c.id === "c3") ||
-                              (jobId === "c4" && c.id === "camp-4") || (jobId === "camp-4" && c.id === "c4");
-              if (isMatch) {
-                return {
-                  ...c,
-                  applicants: (c.applicants || []).map((a: any) =>
-                    a.talentId === "tal-1" ? { ...a, stage: nextStage } : a
-                  )
-                };
-              }
-              return c;
-            });
-            window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(updated));
-            
-            // Reload displayJobs to reflect changes immediately
-            setDisplayJobs(prevJobs => prevJobs.map(job => {
-              const isMatch = job.id === jobId || 
-                              (jobId === "c1" && job.id === "camp-1") || (jobId === "camp-1" && job.id === "c1") ||
-                              (jobId === "c2" && job.id === "camp-2") || (jobId === "camp-2" && job.id === "c2");
-              if (isMatch) {
-                return {
-                  ...job,
-                  applicants: (job.applicants || []).map((a: any) =>
-                    a.talentId === "tal-1" ? { ...a, stage: nextStage } : a
-                  )
-                };
-              }
-              return job;
-            }));
+    setDisplayJobs(prevJobs => prevJobs.map(job => {
+      if (String(job.id) !== String(jobId)) return job;
 
-            // Also if selectedJob is currently open, update its state
-            if (selectedJob && (selectedJob.id === jobId || (jobId === "c1" && selectedJob.id === "camp-1") || (jobId === "camp-1" && selectedJob.id === "c1"))) {
-              setSelectedJob((prev: any) => ({
-                ...prev,
-                applicants: (prev.applicants || []).map((a: any) =>
-                  a.talentId === "tal-1" ? { ...a, stage: nextStage } : a
-                )
-              }));
-            }
+      return {
+        ...job,
+        application: job.application ? { ...job.application, status: nextStage } : job.application,
+        applicants: (job.applicants || []).map((a: any) =>
+          a.talentId === "tal-1" ? { ...a, stage: nextStage } : a
+        )
+      };
+    }));
 
-            if (nextStage === "executing") {
-              addToast("Bắt đầu thực hiện job (Check-in thành công)!", "success");
-            } else if (nextStage === "completed") {
-              addToast("Đã báo cáo hoàn thành job (Chờ nghiệm thu)!", "success");
-            }
-          }
-        } catch (e) {
-          console.error("Failed to update talent job stage:", e);
-        }
-      }
+    if (selectedJob && String(selectedJob.id) === String(jobId)) {
+      setSelectedJob((prev: any) => ({
+        ...prev,
+        application: prev.application ? { ...prev.application, status: nextStage } : prev.application,
+        applicants: (prev.applicants || []).map((a: any) =>
+          a.talentId === "tal-1" ? { ...a, stage: nextStage } : a
+        )
+      }));
+    }
+
+    if (nextStage === "executing") {
+      addToast("Bắt đầu thực hiện job (Check-in thành công)!", "success");
+    } else if (nextStage === "completed") {
+      addToast("Đã báo cáo hoàn thành job (Chờ nghiệm thu)!", "success");
     }
   };
 

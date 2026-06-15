@@ -20,7 +20,8 @@ import {
   MapPin,
   MessageSquare
 } from "lucide-react";
-import { campaigns, contactRequests, partnerProfile, savedTalentIds, talents, Campaign } from "@/lib/brand-mvp-data";
+import { campaigns, savedTalentIds, talents, type Campaign } from "@/lib/brand-mvp-data";
+import { loadBrandCampaigns } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 const stats = [
@@ -182,26 +183,12 @@ export default function BrandDashboard() {
   const router = useRouter();
   const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
 
-  const [campaignsList, setCampaignsList] = useState<any[]>(campaigns);
+  const [campaignsList, setCampaignsList] = useState<Campaign[]>(campaigns);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as Campaign[];
-          const parsedIds = new Set(parsed.map((c: any) => c.id));
-          const missing = campaigns.filter((c: any) => !parsedIds.has(c.id));
-          if (missing.length > 0) {
-            const merged = [...parsed, ...missing];
-            setCampaignsList(merged);
-            window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(merged));
-          } else {
-            setCampaignsList(parsed);
-          }
-        } catch (e) {}
-      }
-    }
+    loadBrandCampaigns(campaigns).then((items) => {
+      setCampaignsList(items);
+    });
   }, []);
 
   const openCampaigns = useMemo(() => {
@@ -225,7 +212,7 @@ export default function BrandDashboard() {
             </span>
           </div>
           <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-4xl uppercase">
-            CHÀO MỪNG QUAY LẠI, <span className="bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 bg-clip-text text-transparent">L'ORÉAL VIETNAM</span>!
+            CHÀO MỪNG QUAY LẠI, <span className="bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 bg-clip-text text-transparent">L&apos;ORÉAL VIETNAM</span>!
           </h1>
           <p className="mt-2 max-w-2xl text-xs font-semibold leading-relaxed text-slate-400 uppercase tracking-wide">
             Chào mừng bạn đến với hệ thống quản trị, kết nối và vận hành chiến dịch tuyển chọn tài năng thông minh.

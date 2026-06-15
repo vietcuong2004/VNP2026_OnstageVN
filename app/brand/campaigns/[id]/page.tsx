@@ -150,43 +150,10 @@ export default function CampaignDetailPage() {
   const [displayTalents, setDisplayTalents] = useState<any[]>(talents);
 
   useEffect(() => {
-    let fallbackCampaigns = initialCampaigns;
+    const fallbackCampaigns = initialCampaigns;
 
     if (typeof window !== "undefined") {
-      const storedCampaigns = window.localStorage.getItem("onstagevn_campaigns");
-      if (storedCampaigns) {
-        try {
-          const parsed = JSON.parse(storedCampaigns) as Campaign[];
-          
-          // Pre-seed F2 referred applicant (Lương Mỹ An) for campaign 1 / camp-1
-          parsed.forEach((c) => {
-            if (c.id === "1" || c.id === "camp-1") {
-              const hasF2 = c.applicants.some(a => a.referredByTalentId === "tal-1" || a.talentId === "tal-4");
-              if (!hasF2) {
-                c.applicants.push({
-                  talentId: "tal-4", // Lương Mỹ An
-                  stage: "new",
-                  note: "Tôi rất mong muốn ứng tuyển tham gia chiến dịch này qua giới thiệu của chị Mai Anh.",
-                  referredByTalentId: "tal-1"
-                });
-              }
-            }
-          });
 
-          const parsedIds = new Set(parsed.map(c => c.id));
-          const missing = initialCampaigns.filter(c => !parsedIds.has(c.id));
-          if (missing.length > 0) {
-            const merged = [...parsed, ...missing];
-            setCampaigns(merged);
-            window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(merged));
-            fallbackCampaigns = merged;
-          } else {
-            setCampaigns(parsed);
-            window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(parsed));
-            fallbackCampaigns = parsed;
-          }
-        } catch (e) { }
-      }
       const storedRequests = window.localStorage.getItem("onstagevn_sent_requests");
       if (storedRequests) {
         try {
@@ -235,20 +202,9 @@ export default function CampaignDetailPage() {
       const loadedCampaign = campaign;
 
       setCampaigns((current) => {
-        let mergedApplicants = [...loadedCampaign.applicants];
+        const mergedApplicants = [...loadedCampaign.applicants];
 
-        // Pre-seed F2 referred applicant if campaign 1/camp-1 is loaded
-        if (false && (loadedCampaign.id === "1" || loadedCampaign.id === "camp-1")) {
-          const hasF2 = mergedApplicants.some(a => a.referredByTalentId === "tal-1" || a.talentId === "tal-4");
-          if (!hasF2) {
-            mergedApplicants.push({
-              talentId: "tal-4",
-              stage: "new",
-              note: "Tôi rất mong muốn ứng tuyển tham gia chiến dịch này qua giới thiệu của chị Mai Anh.",
-              referredByTalentId: "tal-1"
-            });
-          }
-        }
+
 
         const mergedCampaign = {
           ...loadedCampaign,
@@ -260,9 +216,7 @@ export default function CampaignDetailPage() {
           ? current.map((item) => item.id === loadedCampaign.id ? mergedCampaign : item)
           : [mergedCampaign, ...current];
 
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(next));
-        }
+
 
         return next;
       });
@@ -339,9 +293,7 @@ export default function CampaignDetailPage() {
           campaign.id === id ? updatedCampaign : campaign
         );
         setCampaigns(nextCampaigns);
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(nextCampaigns));
-        }
+
         return;
       } catch (error) {
         window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật trạng thái campaign.");
@@ -353,9 +305,7 @@ export default function CampaignDetailPage() {
       campaign.id === id ? { ...campaign, status } : campaign
     );
     setCampaigns(nextCampaigns);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(nextCampaigns));
-    }
+
   }
 
   async function moveApplicant(campaignId: string, talentId: string, stage: CampaignStage) {
@@ -387,9 +337,7 @@ export default function CampaignDetailPage() {
     });
 
     setCampaigns(nextCampaigns);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(nextCampaigns));
-    }
+
 
     if (stage === "confirmed") {
       const campaign = campaigns.find(c => c.id === campaignId);
@@ -460,9 +408,7 @@ export default function CampaignDetailPage() {
     });
 
     setCampaigns(nextCampaigns);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(nextCampaigns));
-    }
+
   }
 
   function sendContactRequest(campaignId: string, talentId: string) {
@@ -479,9 +425,7 @@ export default function CampaignDetailPage() {
         : campaign
     );
     setCampaigns(nextCampaigns);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(nextCampaigns));
-    }
+
   }
 
   if (!selectedCampaign) {

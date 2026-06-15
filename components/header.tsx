@@ -3,9 +3,9 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Bell, Calendar, ChevronDown, LogOut, Search, UserCircle, Building2, Settings } from "lucide-react";
-import { TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
+import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
 import { AUTH_USER_UPDATED_EVENT, switchCurrentPlatform } from "@/lib/api-client";
-import { createInitialAvatarDataUrl, profileAvatarFromBackend } from "@/lib/avatar";
+import { createInitialAvatarDataUrl } from "@/lib/avatar";
 
 type AuthUser = {
   name: string;
@@ -83,6 +83,7 @@ export default function Header() {
       setTalentAvatar(readTalentAvatar());
     }
 
+    syncTalentAvatar();
     window.addEventListener(TALENT_PROFILE_UPDATED_EVENT, syncTalentAvatar);
     window.addEventListener("storage", syncTalentAvatar);
 
@@ -122,44 +123,13 @@ export default function Header() {
   useEffect(() => {
     if (!user || user.type !== "talent") return;
 
-    const token = localStorage.getItem("onstagevn_auth_token");
-    if (!token) return;
-
     let cancelled = false;
-    const currentUser = user;
 
     async function loadProfileAvatar() {
       try {
-        const response = await fetch(`${getApiBaseUrl()}/my/profile`, {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) return;
-
-        const payload = await response.json();
-        const avatar = profileAvatarFromBackend(payload?.data) || fallbackAvatarSrc;
-
+        const profile = await loadTalentProfile();
         if (cancelled) return;
-
-        const storedProfile = localStorage.getItem("vnp_talent_profile");
-        let currentProfile = {};
-
-        try {
-          currentProfile = storedProfile ? JSON.parse(storedProfile) : {};
-        } catch {
-          currentProfile = {};
-        }
-
-        localStorage.setItem("vnp_talent_profile", JSON.stringify({
-          ...currentProfile,
-          name: currentUser.name,
-          email: currentUser.email,
-          avatar,
-        }));
-        setTalentAvatar(avatar);
+        setTalentAvatar(profile?.avatar || fallbackAvatarSrc);
       } catch {
         if (!cancelled) setTalentAvatar(fallbackAvatarSrc);
       }

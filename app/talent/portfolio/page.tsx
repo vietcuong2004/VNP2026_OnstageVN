@@ -53,7 +53,6 @@ export default function PortfolioPage() {
   };
 
   useEffect(() => {
-    const stored = localStorage.getItem("vnp_talent_profile");
     const defaultMock = {
       name: "Nguyễn Mai Anh",
       birthYear: 2002,
@@ -115,37 +114,32 @@ export default function PortfolioPage() {
       lifestyleServices: findTalentById("tal-1")?.lifestyleServices || []
     };
 
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (parsed && !parsed.avatar) {
-          parsed.avatar = createInitialAvatarDataUrl(parsed.name, parsed.email);
-        }
-        if (parsed) {
-          if (!parsed.skillsScores) parsed.skillsScores = defaultMock.skillsScores;
-          if (!parsed.followersCount || parsed.followersCount === 120000) parsed.followersCount = 520000;
-          if (parsed.isAvailable === undefined) parsed.isAvailable = true;
-          if (!parsed.verifiedLevel) parsed.verifiedLevel = "Elite";
-          if (!parsed.rateCard["Event Appearance"]) parsed.rateCard["Event Appearance"] = 10000000;
-          if (!parsed.photos) parsed.photos = defaultMock.photos;
-          if (parsed.hasUploadedCatwalk === undefined) parsed.hasUploadedCatwalk = true;
-          if (parsed.hasUploadedIntro === undefined) parsed.hasUploadedIntro = true;
-          if (parsed.hasUploadedMC === undefined) parsed.hasUploadedMC = true;
-          if (!parsed.lifestyleServices || parsed.lifestyleServices.length === 0) {
-            parsed.lifestyleServices = findTalentById("tal-1")?.lifestyleServices || [];
-          }
-        }
-        setProfile(persistTalentProfile(parsed));
-      } catch (e) {
-        console.error(e);
-        setProfile(defaultMock);
-      }
-    } else {
-      setProfile(persistTalentProfile(defaultMock));
-    }
+    void loadTalentProfile().then((loadedProfile) => {
+      const nextProfile = {
+        ...defaultMock,
+        ...loadedProfile,
+        skillsScores: loadedProfile?.skillsScores || defaultMock.skillsScores,
+        followersCount: !loadedProfile?.followersCount || loadedProfile.followersCount === 120000 ? 520000 : loadedProfile.followersCount,
+        isAvailable: loadedProfile?.isAvailable ?? true,
+        verifiedLevel: loadedProfile?.verifiedLevel || "Elite",
+        rateCard: {
+          ...defaultMock.rateCard,
+          ...(loadedProfile?.rateCard || {}),
+        },
+        photos: loadedProfile?.photos?.length ? loadedProfile.photos : defaultMock.photos,
+        hasUploadedCatwalk: loadedProfile?.hasUploadedCatwalk ?? true,
+        hasUploadedIntro: loadedProfile?.hasUploadedIntro ?? true,
+        hasUploadedMC: loadedProfile?.hasUploadedMC ?? true,
+        lifestyleServices: loadedProfile?.lifestyleServices?.length
+          ? loadedProfile.lifestyleServices
+          : findTalentById("tal-1")?.lifestyleServices || [],
+      };
 
-    void loadTalentProfile().then((backendProfile) => {
-      setProfile(backendProfile);
+      if (!nextProfile.avatar) {
+        nextProfile.avatar = createInitialAvatarDataUrl(nextProfile.name, nextProfile.email);
+      }
+
+      setProfile(persistTalentProfile(nextProfile));
     });
   }, []);
 
@@ -210,7 +204,7 @@ export default function PortfolioPage() {
     return;
 
     /*
-    // Enforce size limit of 1.5MB to avoid localStorage quota exceeded (max 5MB)
+    // Enforce size limit of 1.5MB to avoid browser storage quota issues.
     if (file.size > 1.5 * 1024 * 1024) {
       addToast("Kích thước ảnh phải nhỏ hơn 1.5MB để tối ưu dung lượng lưu trữ", "info");
       return;
@@ -222,7 +216,7 @@ export default function PortfolioPage() {
       if (base64String) {
         const updatedProfile = { ...profile, [type]: base64String };
         setProfile(updatedProfile);
-        localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
+        persistTalentProfile(updatedProfile);
         addToast(`Cập nhật ${type === "avatar" ? "Ảnh đại diện" : "Ảnh bìa"} thành công!`, "success");
       }
     };

@@ -184,7 +184,7 @@ type ActiveTab = "roster" | "campaigns" | "revenue";
 const COMMISSION_RATE = 0.10; // F1 = 10%
 const AFFILIATE_ID = "mgr-loreal-vn-2026";
 
-// ─── Mock roster data (pre-seeded in localStorage if empty) ───────────────────
+// ─── Mock roster data used only as in-memory demo fallback ───────────────────
 const MOCK_ROSTER: RosterTalent[] = [
   { talentId: "tal-1", status: "accepted", addedAt: "2026-05-01", earnedCommission: 2400000, activeJobs: 2, completedJobs: 8 },
   { talentId: "tal-2", status: "accepted", addedAt: "2026-05-10", earnedCommission: 1800000, activeJobs: 1, completedJobs: 5 },
@@ -289,18 +289,11 @@ export default function MyTalentsPage() {
 
         const nextRoster = rosterItems.map(rosterFromBackend);
         setDisplayTalents(Array.from(talentsById.values()));
-        setRoster(nextRoster);
+        setRoster(nextRoster.length ? nextRoster : MOCK_ROSTER);
         setAffiliateLink(link.url);
-        localStorage.setItem("onstagevn_my_roster", JSON.stringify(nextRoster));
       } catch (error) {
         console.warn("Cannot load brand roster from API, using local fallback", error);
-
-        const stored = localStorage.getItem("onstagevn_my_roster");
-        if (stored) {
-          try { setRoster(JSON.parse(stored)); return; } catch { }
-        }
         setRoster(MOCK_ROSTER);
-        localStorage.setItem("onstagevn_my_roster", JSON.stringify(MOCK_ROSTER));
       }
     }
 
@@ -313,7 +306,6 @@ export default function MyTalentsPage() {
 
   const saveRoster = (r: RosterTalent[]) => {
     setRoster(r);
-    localStorage.setItem("onstagevn_my_roster", JSON.stringify(r));
   };
 
   const addToast = (msg: string) => {

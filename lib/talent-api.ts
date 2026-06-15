@@ -617,12 +617,36 @@ export type TalentSurveyAnalysis = {
   }>;
 };
 
+export type TalentSurveyHistoryEntry = {
+  id: string | number;
+  date: string;
+  mainCategory: string;
+  tier: "S" | "A" | "B" | "C" | "Potential";
+  pageant: number;
+  runway: number;
+  kol: number;
+  profileScore: number;
+  aiSurveyAnalysis?: TalentSurveyAnalysis | null;
+};
+
 export async function analyzeTalentSurvey() {
   if (!getAuthToken()) return null;
 
   return apiJson<TalentSurveyAnalysis>("/survey/analyze", {
     method: "POST",
   });
+}
+
+export async function loadTalentSurveyHistory() {
+  if (!getAuthToken()) return [];
+
+  try {
+    const response = await apiJson<{ data: TalentSurveyHistoryEntry[] }>("/survey/history");
+    return response.data || [];
+  } catch (error) {
+    console.warn(error);
+    return [];
+  }
 }
 
 function moneyRange(min?: number | null, max?: number | null) {

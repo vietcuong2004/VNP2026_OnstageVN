@@ -12,12 +12,30 @@ import { loadBrandCampaign } from "@/lib/brand-api";
 import { getAuthToken } from "@/lib/api-client";
 import { applyTalentCampaign, resolveCampaignReferralLink } from "@/lib/talent-api";
 
+type ReferralCampaignPayload = {
+  id?: number | string;
+  title?: string | null;
+  job_type?: string | null;
+  budget_min?: number | string | null;
+  budget_max?: number | string | null;
+  city?: string | null;
+  location?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  max_talents?: number | string | null;
+  talent_quantity?: number | string | null;
+  benefits?: string | null;
+  description?: string | null;
+  requirements?: string | null;
+  status?: Campaign["status"] | string | null;
+};
+
 function formatVND(value?: number | string | null) {
   const amount = Number(value || 0);
   return amount > 0 ? `${new Intl.NumberFormat("vi-VN").format(amount)}đ` : "Thỏa thuận";
 }
 
-function mapReferralCampaign(raw: any): Campaign | null {
+function mapReferralCampaign(raw?: ReferralCampaignPayload | null): Campaign | null {
   if (!raw?.id) return null;
 
   return {
@@ -35,7 +53,7 @@ function mapReferralCampaign(raw: any): Campaign | null {
     benefits: raw.benefits || "Thù lao và quyền lợi theo brief của Brand.",
     description: raw.description || "Brand sẽ cập nhật mô tả chi tiết.",
     requirements: raw.requirements || "Brand sẽ cập nhật yêu cầu chi tiết.",
-    status: raw.status || "published",
+    status: raw.status === "draft" || raw.status === "closed" ? raw.status : "published",
     shortlistedTalentIds: [],
     applicants: [],
     contactRequests: 0,
@@ -54,7 +72,7 @@ export default function CampaignReferralPage() {
   const refNameSlug = searchParams.get("name") || "";
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [referrerName, setReferrerName] = useState("");
+  const [resolvedReferrerName, setResolvedReferrerName] = useState("");
   const [selectedTalentId, setSelectedTalentId] = useState("tal-2");
   const [note, setNote] = useState("Tôi rất quan tâm và mong muốn thực hiện chiến dịch này qua giới thiệu.");
   const [isApplied, setIsApplied] = useState(false);
@@ -83,78 +101,33 @@ export default function CampaignReferralPage() {
           setResolvedReferralCode(resolved.code || refId);
           const resolvedCampaign = mapReferralCampaign(resolved.campaign);
           if (resolvedCampaign) setCampaign(resolvedCampaign);
-          setReferrerName(resolved?.referrer?.name || resolved?.owner?.name || "KOL đối tác");
+          setResolvedReferrerName(resolved?.referrer?.name || resolved?.owner?.name || "KOL đối tác");
         }
       }).catch((error) => {
         console.warn("Cannot resolve campaign referral link", error);
       });
     }
 
-    // 1. Get campaign details
-    let currentCampaign: Campaign | undefined;
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as Campaign[];
-          currentCampaign = parsed.find(c => c.id === campaignId || c.id === paramId);
-        } catch (e) {
-          console.error("Failed to parse campaigns from localStorage:", e);
-        }
-      }
-    }
+    loadBrandCampaign(campaignId, initialCampaigns).then((loaded) => {
+      if (loaded) setCampaign(loaded);
+    });
 
-    if (!currentCampaign) {
-      currentCampaign = initialCampaigns.find(c => c.id === campaignId || c.id === paramId);
-    }
+  }, [campaignId, paramId, refId, refNameSlug]);
 
-    if (currentCampaign) {
-      setCampaign(currentCampaign);
-    } else {
-      // Fetch from API for backend campaigns
-      loadBrandCampaign(campaignId).then((loaded) => {
-        if (loaded) {
-          setCampaign(loaded);
-          // Save back to localStorage
-          if (typeof window !== "undefined") {
-            const stored = window.localStorage.getItem("onstagevn_campaigns");
-            let all: Campaign[] = [];
-            if (stored) {
-              try {
-                all = JSON.parse(stored) as Campaign[];
-              } catch (e) {
-                all = [];
-              }
-            }
-            if (!all.some(c => c.id === loaded.id)) {
-              all.push(loaded);
-              window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(all));
-            }
-          }
-        }
-      });
-    }
-
-    // 2. Format referrer name
-    const referrerTalent = talents.find(t => t.id === refId);
-    if (referrerTalent) {
-      setReferrerName(referrerTalent.name);
-    } else if (refNameSlug) {
-      const formatted = refNameSlug
+  const referrerTalent = talents.find(t => t.id === refId);
+  const fallbackReferrerName = refNameSlug
+    ? refNameSlug
         .split("-")
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-      setReferrerName(formatted);
-    } else {
-      setReferrerName("Một KOL uy tín");
-    }
-  }, [campaignId, paramId, refId, refNameSlug]);
+        .join(" ")
+    : "Một KOL uy tín";
+  const referrerName = resolvedReferrerName || referrerTalent?.name || fallbackReferrerName;
 
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!campaign) return;
 
-    if (refId && /^\d+$/.test(String(campaign.id))) {
+    if (/^\d+$/.test(String(campaign.id))) {
       if (!getAuthToken()) {
         router.push(`/auth/login?redirect=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);
         return;
@@ -171,61 +144,26 @@ export default function CampaignReferralPage() {
       }
     }
 
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      let allCampaigns: Campaign[] = [];
-      if (stored) {
-        try {
-          allCampaigns = JSON.parse(stored) as Campaign[];
-        } catch (err) {
-          allCampaigns = [...initialCampaigns];
-        }
-      } else {
-        allCampaigns = [...initialCampaigns];
-      }
-
-      // Check if already applied
-      const currentCamp = allCampaigns.find(c => c.id === campaign.id);
-      if (currentCamp) {
-        if (currentCamp.applicants.some(a => a.talentId === selectedTalentId)) {
-          setError("Tài khoản KOL này đã ứng tuyển chiến dịch này rồi.");
-          return;
-        }
-
-        const updatedCampaigns = allCampaigns.map(c => {
-          const matchesCurrentId = c.id === campaign.id;
-          const matchesMockId1 = (campaign.id === "camp-1" && c.id === "c1") || (campaign.id === "c1" && c.id === "camp-1");
-          const matchesMockId2 = (campaign.id === "camp-2" && c.id === "c2") || (campaign.id === "c2" && c.id === "camp-2");
-          const matchesMockId3 = (campaign.id === "camp-3" && c.id === "c3") || (campaign.id === "c3" && c.id === "camp-3");
-          const matchesMockId4 = (campaign.id === "camp-4" && c.id === "c4") || (campaign.id === "c4" && c.id === "camp-4");
-
-          if (matchesCurrentId || matchesMockId1 || matchesMockId2 || matchesMockId3 || matchesMockId4) {
-            if (c.applicants.some((a: any) => a.talentId === selectedTalentId)) {
-              return c;
-            }
-            return {
-              ...c,
-              applicants: [
-                ...c.applicants,
-                {
-                  talentId: selectedTalentId,
-                  stage: "new" as const,
-                  note: note,
-                  referredByTalentId: refId || undefined
-                }
-              ]
-            };
-          }
-          return c;
-        });
-
-        window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(updatedCampaigns));
-        setIsApplied(true);
-        setError("");
-      }
+    if (campaign.applicants.some(a => a.talentId === selectedTalentId)) {
+      setError("Tài khoản KOL này đã ứng tuyển chiến dịch này rồi.");
+      return;
     }
-  };
 
+    setCampaign({
+      ...campaign,
+      applicants: [
+        ...campaign.applicants,
+        {
+          talentId: selectedTalentId,
+          stage: "new" as const,
+          note,
+          referredByTalentId: refId || undefined
+        }
+      ]
+    });
+    setIsApplied(true);
+    setError("");
+  };
   if (!campaign) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#020408] text-slate-100 p-6">

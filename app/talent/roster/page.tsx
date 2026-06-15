@@ -111,23 +111,12 @@ export default function TalentRosterPage() {
       if (items?.length) {
         const mapped = items.map(mapBackendInvitation);
         setInvitations(mapped);
-        localStorage.setItem("onstagevn_roster_invitations", JSON.stringify(mapped));
         return;
       }
 
-      const stored = localStorage.getItem("onstagevn_roster_invitations");
-      if (stored) {
-        try { setInvitations(JSON.parse(stored)); return; } catch {}
-      }
       setInvitations(MOCK_INVITATIONS);
-      localStorage.setItem("onstagevn_roster_invitations", JSON.stringify(MOCK_INVITATIONS));
     } catch {
-      const stored = localStorage.getItem("onstagevn_roster_invitations");
-      if (stored) {
-        try { setInvitations(JSON.parse(stored)); return; } catch {}
-      }
       setInvitations(MOCK_INVITATIONS);
-      localStorage.setItem("onstagevn_roster_invitations", JSON.stringify(MOCK_INVITATIONS));
     }
   }, []);
 
@@ -137,7 +126,6 @@ export default function TalentRosterPage() {
 
   const save = (items: RosterInvitation[]) => {
     setInvitations(items);
-    localStorage.setItem("onstagevn_roster_invitations", JSON.stringify(items));
   };
 
   const addToast = (msg: string, type: "success" | "info" = "success") => {

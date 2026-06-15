@@ -3,26 +3,34 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Crown, Sparkles, Shield, ArrowRight } from "lucide-react";
+import { loadTalentProfile } from "@/lib/talent-api";
 
 export default function LandingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already onboarded
-    const stored = localStorage.getItem("vnp_talent_profile");
-    if (stored) {
-      try {
-        const profile = JSON.parse(stored);
-        if (profile.isOnboarded) {
+    let cancelled = false;
+
+    loadTalentProfile()
+      .then((profile) => {
+        if (cancelled) return;
+
+        if (profile?.isOnboarded) {
           router.replace("/talent/dashboard");
           return;
         }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    setLoading(false);
+
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   if (loading) {

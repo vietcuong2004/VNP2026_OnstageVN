@@ -31,6 +31,7 @@ import {
 import { campaigns, findTalentById, savedTalentIds } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
+import { loadTalentProfile } from "@/lib/talent-api";
 
 const formatNumber = (num: number) => {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -66,43 +67,39 @@ export default function BrandTalentProfilePage() {
   const [talent, setTalent] = useState<any>(staticTalent);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (params.id === "tal-1") {
-      const stored = localStorage.getItem("vnp_talent_profile");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (parsed) {
-            // Merge localStorage profile into static talent profile
-            const merged = {
-              ...staticTalent,
-              name: parsed.name || staticTalent?.name,
-              avatar: parsed.avatar || staticTalent?.avatar,
-              cover: parsed.cover || staticTalent?.cover,
-              height: parsed.height !== undefined ? Number(parsed.height) : staticTalent?.height,
-              weight: parsed.weight !== undefined ? Number(parsed.weight) : staticTalent?.weight,
-              bust: parsed.bust !== undefined ? Number(parsed.bust) : staticTalent?.bust,
-              waist: parsed.waist !== undefined ? Number(parsed.waist) : staticTalent?.waist,
-              hips: parsed.hips !== undefined ? Number(parsed.hips) : staticTalent?.hips,
-              gender: parsed.gender || staticTalent?.gender,
-              district: parsed.location || staticTalent?.district,
-              education: parsed.education || staticTalent?.education,
-              languages: parsed.languages || staticTalent?.languages,
-              skills: parsed.skills || staticTalent?.skills,
-              rateCard: parsed.rateCard || staticTalent?.rateCard,
-              lifestyleServices: parsed.lifestyleServices || staticTalent?.lifestyleServices,
-              yearsOfExperience: parsed.experience !== undefined ? Number(parsed.experience) : staticTalent?.yearsOfExperience,
-              verified: parsed.verifiedLevel === "Elite" || parsed.verifiedLevel === "Pro" || parsed.verifiedLevel === "Basic" || staticTalent?.verified,
-              tier: parsed.tier || staticTalent?.tier,
-            };
-            setTalent(merged);
-          }
-        } catch (e) {
-          console.error("Error parsing vnp_talent_profile:", e);
-        }
-      }
-    } else {
-      setTalent(staticTalent);
+      loadTalentProfile().then((parsed) => {
+        if (cancelled || !parsed) return;
+
+        setTalent({
+          ...staticTalent,
+          name: parsed.name || staticTalent?.name,
+          avatar: parsed.avatar || staticTalent?.avatar,
+          cover: parsed.cover || staticTalent?.cover,
+          height: parsed.height !== undefined ? Number(parsed.height) : staticTalent?.height,
+          weight: parsed.weight !== undefined ? Number(parsed.weight) : staticTalent?.weight,
+          bust: parsed.bust !== undefined ? Number(parsed.bust) : staticTalent?.bust,
+          waist: parsed.waist !== undefined ? Number(parsed.waist) : staticTalent?.waist,
+          hips: parsed.hips !== undefined ? Number(parsed.hips) : staticTalent?.hips,
+          gender: parsed.gender || staticTalent?.gender,
+          district: parsed.location || staticTalent?.district,
+          education: parsed.education || staticTalent?.education,
+          languages: parsed.languages || staticTalent?.languages,
+          skills: parsed.skills || staticTalent?.skills,
+          rateCard: parsed.rateCard || staticTalent?.rateCard,
+          lifestyleServices: parsed.lifestyleServices || staticTalent?.lifestyleServices,
+          yearsOfExperience: parsed.experience !== undefined ? Number(parsed.experience) : staticTalent?.yearsOfExperience,
+          verified: parsed.verifiedLevel === "Elite" || parsed.verifiedLevel === "Pro" || parsed.verifiedLevel === "Basic" || staticTalent?.verified,
+          tier: parsed.tier || staticTalent?.tier,
+        });
+      });
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [params.id, staticTalent]);
 
   const [addedCampaigns, setAddedCampaigns] = useState<string[]>([]);

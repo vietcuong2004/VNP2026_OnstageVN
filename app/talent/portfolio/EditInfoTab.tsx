@@ -5,6 +5,7 @@ import {
   Edit3, ShieldCheck, CheckCircle, Camera, X, Plus, Info, Upload, Video, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { persistTalentProfile } from "@/lib/talent-api";
 
 const convertToInputDate = (dateStr: string) => {
   if (!dateStr) return "2002-05-15";
@@ -179,8 +180,7 @@ export default function EditInfoTab({
       hasUploadedCatwalk: videoForm.hasUploadedCatwalk,
       hasUploadedMC: videoForm.hasUploadedMC
     };
-    setProfile(updated);
-    localStorage.setItem("vnp_talent_profile", JSON.stringify(updated));
+    setProfile(persistTalentProfile(updated));
     addToast("Đã lưu các thay đổi video thành công!", "success");
   };
 
@@ -236,8 +236,7 @@ export default function EditInfoTab({
             skills: editForm.specialSkills.split(",").map((s: string) => s.trim()),
             lifestyleServices: lifestyleServices
           };
-          setProfile(updated);
-          localStorage.setItem("vnp_talent_profile", JSON.stringify(updated));
+          setProfile(persistTalentProfile(updated));
           addToast("Cập nhật thông tin cá nhân và ngoại hình thành công!", "success");
         }} className="space-y-4 text-xs">
 
@@ -730,8 +729,7 @@ export default function EditInfoTab({
                   const updatedPhotos = [...(profile.photos || [])];
                   updatedPhotos.splice(idx, 1);
                   const updatedProfile = { ...profile, photos: updatedPhotos };
-                  setProfile(updatedProfile);
-                  localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
+                  setProfile(persistTalentProfile(updatedProfile));
                   addToast("Đã xóa ảnh khỏi bộ ảnh nghệ thuật", "info");
                 }}
                 className="absolute top-1.5 right-1.5 h-6 w-6 sm:h-5 sm:w-5 bg-red-600/90 text-white rounded-full flex items-center justify-center text-[8px] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 cursor-pointer shadow-md"
@@ -766,8 +764,7 @@ export default function EditInfoTab({
                     const currentPhotos = [...(profile.photos || [])];
                     currentPhotos.push(randomPhoto);
                     const updatedProfile = { ...profile, photos: currentPhotos };
-                    setProfile(updatedProfile);
-                    localStorage.setItem("vnp_talent_profile", JSON.stringify(updatedProfile));
+                    setProfile(persistTalentProfile(updatedProfile));
                     setUploadingType(null);
                     addToast("Đã tải ảnh mới lên Art Portfolio!", "success");
                   }, 100);

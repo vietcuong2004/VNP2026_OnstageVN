@@ -51,31 +51,9 @@ export default function BrandShortlistsPage() {
       }
     });
 
-    let initialCampaignsList = campaigns;
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("onstagevn_campaigns");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const parsedIds = new Set(parsed.map(c => c.id));
-            const missing = campaigns.filter(c => !parsedIds.has(c.id));
-            if (missing.length > 0) {
-              initialCampaignsList = [...parsed, ...missing];
-            } else {
-              initialCampaignsList = parsed;
-            }
-          }
-        } catch (e) {}
-      }
-    }
-
-    loadBrandCampaigns(initialCampaignsList).then((items) => {
+    loadBrandCampaigns(campaigns).then((items) => {
       setLocalCampaigns(items);
       setSelectedCampaignId((current) => selectExistingCampaignId(current, items));
-      if (typeof window !== "undefined" && items.length > 0) {
-        window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(items));
-      }
     });
   }, []);
 
@@ -121,9 +99,6 @@ export default function BrandShortlistsPage() {
         }
         return c;
       });
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("onstagevn_campaigns", JSON.stringify(next));
-      }
       return next;
     });
   }
