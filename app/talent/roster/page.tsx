@@ -412,48 +412,78 @@ export default function TalentRosterPage() {
             </h2>
           </div>
           {pending.map(inv => (
-            <div key={inv.id} className={cn("rounded-2xl border p-4 md:p-6 bg-[#08090f] hover:border-amber-500/30 transition-all duration-300", "border-amber-500/25 shadow-[0_0_20px_rgba(245,158,11,0.03)]")}>
-              <div className="flex items-start gap-3 md:gap-4">
-                <div className="relative shrink-0">
-                  <div className="h-14 w-14 rounded-2xl overflow-hidden border border-amber-500/20 bg-amber-500/5 p-[2px]">
-                    <img src={inv.managerAvatar} alt={inv.managerName} className="h-full w-full rounded-[12px] object-cover" />
+            <div
+              key={inv.id}
+              className="group relative overflow-hidden rounded-3xl border border-amber-500/30 bg-gradient-to-b from-[#1b1509] via-[#0d0f1a] to-[#070913] p-5 md:p-6 transition-all duration-500 hover:scale-[1.01] hover:border-amber-400/60 hover:shadow-[0_0_40px_rgba(245,158,11,0.22)]"
+            >
+              {/* Luxury gradient background accents */}
+              <div className="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-amber-500/10 blur-3xl pointer-events-none group-hover:bg-amber-500/15 transition-all duration-500" />
+              <div className="absolute -left-24 -bottom-24 h-48 w-48 rounded-full bg-cyan-500/5 blur-3xl pointer-events-none group-hover:bg-cyan-500/10 transition-all duration-500" />
+              
+              {/* Shimmer light effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                <div className="flex items-start gap-4">
+                  <div className="relative shrink-0">
+                    <div className="h-16 w-16 rounded-2xl overflow-hidden border-2 border-amber-400/40 bg-gradient-to-br from-amber-400/20 to-transparent p-[2px] shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all duration-300">
+                      <img src={inv.managerAvatar} alt={inv.managerName} className="h-full w-full rounded-[12px] object-cover" />
+                    </div>
+                    <div className="absolute -bottom-1.5 -right-1.5 h-6.5 w-6.5 rounded-full bg-[#08090f] border border-amber-400/40 flex items-center justify-center shadow-lg">
+                      <Crown className="h-3.5 w-3.5 text-amber-400 fill-amber-400/20" />
+                    </div>
                   </div>
-                  <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-[#08090f] border border-[#151b2d] flex items-center justify-center">
-                    <Shield className="h-3 w-3 text-amber-400" />
+
+                  <div className="space-y-1.5 text-left min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[8px] font-black uppercase tracking-wider bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded text-amber-300 shadow-sm">
+                        {inv.managerTier}
+                      </span>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-[#F0C56B] bg-[#071B42]/60 border border-[#D4A64A]/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Clock className="h-2.5 w-2.5 text-amber-400" /> {inv.sentAt}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base md:text-lg font-black text-white group-hover:text-amber-300 transition-colors leading-snug tracking-tight">
+                      {inv.managerName}
+                    </h3>
+                    <p className="text-xs font-extrabold text-[#F0C56B] uppercase tracking-wider leading-none">
+                      {inv.managerBrand}
+                    </p>
                   </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-sm font-black text-white">{inv.managerName}</h3>
-                    <span className="rounded border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-amber-400">
-                      {inv.managerTier}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">{inv.managerBrand}</p>
-                  <div className="mt-3 flex flex-col gap-1.5 text-[10px] text-slate-500 font-medium sm:flex-row sm:items-center sm:gap-4">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-slate-500" /> Ngày gửi: {inv.sentAt}
-                    </span>
-                    <span className="flex items-center gap-1 text-amber-400 font-black uppercase tracking-wider">
-                      <TrendingUp className="h-3.5 w-3.5" /> Hoa hồng: {Math.round(inv.commissionRate * 100)}%/job
-                    </span>
+
+                {/* Terms preview section */}
+                <div className="flex md:flex-col items-start justify-between md:justify-center md:items-end p-3 rounded-2xl bg-[#08090f]/90 border border-white/5 md:border-0 md:bg-transparent w-full md:w-auto shrink-0 gap-2 shadow-inner md:shadow-none">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Mức hoa hồng đề xuất</span>
+                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-400/20 to-amber-500/10 border border-amber-400/30 px-3.5 py-2 rounded-xl text-amber-300 text-xs font-black uppercase tracking-widest shadow-md">
+                    <TrendingUp className="h-4 w-4 text-amber-400" /> {Math.round(inv.commissionRate * 100)}% / JOB
                   </div>
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
+              {/* Action Buttons */}
+              <div className="mt-6 flex flex-col sm:flex-row items-center gap-3 w-full relative z-10">
                 <button
-                  onClick={() => handleAccept(inv.id)}
-                  className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-green-600 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-[0.98] cursor-pointer shadow-md transition-all duration-300"
+                  onClick={() => handleOpenDetails(inv)}
+                  className="w-full sm:w-auto px-6 h-12 rounded-xl border border-amber-400/30 bg-amber-400/5 text-amber-300 text-xs font-black uppercase tracking-wider hover:bg-amber-400 hover:text-black active:scale-[0.98] cursor-pointer transition-all duration-300 flex items-center justify-center gap-1.5 shrink-0 shadow-md"
                 >
-                  <Check className="h-4 w-4" /> Chấp nhận
+                  <Sparkles className="h-3.5 w-3.5" /> Xem chi tiết
                 </button>
-                <button
-                  onClick={() => handleDecline(inv.id)}
-                  className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#050711] border border-[#151b2d] text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white hover:border-slate-700/50 cursor-pointer active:scale-[0.98] transition-all duration-300"
-                >
-                  <X className="h-4 w-4" /> Từ chối
-                </button>
+                <div className="flex-1 w-full flex items-center gap-3">
+                  <button
+                    onClick={() => handleAccept(inv.id)}
+                    className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-400 to-green-600 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-110 hover:shadow-[0_0_15px_rgba(52,211,153,0.3)] active:scale-[0.98] cursor-pointer shadow-md transition-all duration-300 flex items-center justify-center gap-1.5"
+                  >
+                    <Check className="h-4.5 w-4.5 stroke-[2.5]" /> Chấp nhận
+                  </button>
+                  <button
+                    onClick={() => handleDecline(inv.id)}
+                    className="flex-1 h-12 rounded-xl bg-[#050711] border border-[#151b2d] text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white hover:border-slate-700/50 cursor-pointer active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-1.5"
+                  >
+                    <X className="h-4.5 w-4.5" /> Từ chối
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -529,105 +559,196 @@ export default function TalentRosterPage() {
       {/* ── Toast Notifications ── */}
       {selectedInvitation && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 p-0 backdrop-blur-sm md:p-4">
-          <div className="flex min-h-full items-end justify-center md:items-start lg:items-center">
-          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-[#151b2d] bg-[#08090f] p-5 shadow-2xl md:max-h-[calc(100vh-2rem)] md:rounded-3xl md:p-6">
-            <div className="flex items-start justify-between gap-4 border-b border-[#151b2d] pb-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-300">Chi tiết hợp tác Brand</p>
-                <h3 className="mt-2 text-base font-black text-white">{selectedInvitation.managerBrand}</h3>
-                <p className="mt-1 text-xs font-semibold text-slate-500">Quản lý trực tiếp: {selectedInvitation.managerName}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedInvitation(null)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+          <div className="flex min-h-full items-end justify-center md:items-start lg:items-center animate-in fade-in duration-300">
+            <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-[#151b2d] bg-[#08090f] p-5 shadow-2xl md:max-h-[calc(100vh-2rem)] md:rounded-3xl md:p-6 relative">
+              <div className="absolute top-0 right-1/4 w-48 h-48 bg-gradient-to-br from-amber-500/5 to-transparent blur-3xl pointer-events-none" />
 
-            <div className="mt-5 grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-300">Trạng thái</p>
-                <p className="mt-2 text-sm font-black text-white">Đang hợp tác</p>
-              </div>
-              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
-                <p className="text-[9px] font-black uppercase tracking-widest text-amber-300">Hoa hồng</p>
-                <p className="mt-2 text-sm font-black text-white">5%/booking</p>
-              </div>
-              <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
-                <p className="text-[9px] font-black uppercase tracking-widest text-cyan-300">Talent của Brand</p>
-                <p className="mt-2 text-sm font-black text-white">{selectedInvitation.members?.length || selectedInvitation.childCount || 0}</p>
-              </div>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-[#151b2d] bg-[#050711] p-4">
-              <div className="flex items-center gap-2">
-                <UserPlus className="h-4 w-4 text-amber-300" />
-                <p className="text-xs font-black uppercase tracking-widest text-white">Link mời riêng của bạn</p>
-              </div>
-              <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-                Link này đưa talent mới vào cùng roster Brand, đồng thời gắn talent mới dưới trướng của bạn. Link này không liên quan đến referral campaign.
-              </p>
-              <div className="mt-3 flex flex-col gap-2 md:flex-row">
-                <input
-                  readOnly
-                  value={selectedInvitation.inviteLink || (isLoadingInviteLink ? "Đang tải link..." : "Chưa có link")}
-                  className="h-11 min-w-0 flex-1 rounded-xl border border-white/5 bg-slate-950 px-3 text-xs font-semibold text-slate-200 outline-none"
-                />
+              <div className="flex items-start justify-between gap-4 border-b border-[#151b2d] pb-4">
+                <div>
+                  <p className={cn(
+                    "text-[10px] font-black uppercase tracking-[0.22em]",
+                    selectedInvitation.status === "pending" ? "text-amber-400" : "text-emerald-300"
+                  )}>
+                    {selectedInvitation.status === "pending" ? "Lời mời hợp tác Brand" : "Chi tiết hợp tác Brand"}
+                  </p>
+                  <h3 className="mt-2 text-base md:text-lg font-black text-white">{selectedInvitation.managerBrand}</h3>
+                  <p className="mt-1 text-xs font-semibold text-slate-405">Quản lý trực tiếp: <span className="text-white font-bold">{selectedInvitation.managerName}</span> ({selectedInvitation.managerTier})</p>
+                </div>
                 <button
                   type="button"
-                  disabled={!selectedInvitation.inviteLink}
-                  onClick={handleCopyChildInviteLink}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 text-xs font-black uppercase tracking-wider text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => setSelectedInvitation(null)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-colors"
                 >
-                  <Copy className="h-4 w-4" />
-                  Sao chép link
+                  <X className="h-4 w-4" />
                 </button>
               </div>
-            </div>
 
-            <div className="mt-5 rounded-2xl border border-[#151b2d] bg-[#050711] p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-white">Danh sách Talent của Brand</p>
-                  <p className="mt-1 text-[10px] text-slate-500">
-                    Tất cả Talent đang thuộc roster của Brand này, dù được mời bởi Brand hay Talent khác.
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
+                <div className={cn(
+                  "rounded-2xl border p-4 transition-all duration-300",
+                  selectedInvitation.status === "pending"
+                    ? "border-amber-500/20 bg-amber-500/5"
+                    : selectedInvitation.status === "accepted"
+                    ? "border-emerald-500/20 bg-emerald-500/5"
+                    : "border-red-500/20 bg-red-500/5"
+                )}>
+                  <p className={cn(
+                    "text-[9px] font-black uppercase tracking-widest",
+                    selectedInvitation.status === "pending" ? "text-amber-400" : selectedInvitation.status === "accepted" ? "text-emerald-300" : "text-red-400"
+                  )}>Trạng thái</p>
+                  <p className="mt-2 text-sm font-black text-white">
+                    {selectedInvitation.status === "pending" ? "Chờ phản hồi" : selectedInvitation.status === "accepted" ? "Đang hợp tác" : "Đã từ chối"}
                   </p>
                 </div>
-                <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[10px] font-black text-cyan-300">
-                  {selectedInvitation.members?.length || 0}
-                </span>
+                <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-amber-300">Hoa hồng</p>
+                  <p className="mt-2 text-sm font-black text-white">{Math.round(selectedInvitation.commissionRate * 100)}% / JOB</p>
+                </div>
+                <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-cyan-300">Talent của Brand</p>
+                  <p className="mt-2 text-sm font-black text-white">{selectedInvitation.members?.length || selectedInvitation.childCount || 0}</p>
+                </div>
               </div>
 
-              <div className="mt-4 space-y-2">
-                {selectedInvitation.members?.length ? (
-                  selectedInvitation.members.map((member) => (
-                    <div key={member.id} className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950/60 p-3">
-                      <img src={member.avatar} alt={member.name} className="h-10 w-10 rounded-xl object-cover" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-black text-white">{member.name}</p>
-                        <p className="mt-0.5 text-[10px] font-semibold text-slate-500">
-                          Tham gia: {member.joinedAt || "Chưa cập nhật"}
-                        </p>
-                        <p className="mt-0.5 text-[10px] font-semibold text-slate-500">
-                          Được mời bởi: <span className="font-bold text-slate-300">{member.invitedBy || "Brand"}</span>
+              {selectedInvitation.status === "pending" ? (
+                <>
+                  <div className="mt-5 rounded-2xl border border-amber-500/20 bg-[#150f02]/45 p-5 space-y-4">
+                    <div className="flex items-center gap-2 border-b border-amber-500/15 pb-3">
+                      <Sparkles className="h-4 w-4 text-amber-400" />
+                      <p className="text-xs font-black uppercase tracking-widest text-amber-300">Quyền lợi & Điều khoản hợp tác</p>
+                    </div>
+                    <div className="space-y-3.5">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-amber-400/10 p-1">
+                          <Building2 className="h-3.5 w-3.5 text-amber-400" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-extrabold text-white">Mạng lưới Agency chuyên nghiệp</p>
+                          <p className="text-[10.5px] leading-relaxed text-slate-400">
+                            Được đại diện và giới thiệu trực tiếp bởi <strong className="text-white">{selectedInvitation.managerName}</strong> ({selectedInvitation.managerTier}) đến các chiến dịch lớn của <strong className="text-white">{selectedInvitation.managerBrand}</strong>.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-amber-400/10 p-1">
+                          <TrendingUp className="h-3.5 w-3.5 text-amber-400" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-extrabold text-white">Tỷ lệ chia sẻ thù lao hấp dẫn</p>
+                          <p className="text-[10.5px] leading-relaxed text-slate-400">
+                            Nhận <strong className="text-emerald-400 font-bold">75% thù lao thực tế</strong> từ Job. Manager chỉ nhận <strong className="text-amber-400">{Math.round(selectedInvitation.commissionRate * 100)}%</strong> phí quản lý & vận hành khi kết nối thành công.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-amber-400/10 p-1">
+                          <Shield className="h-3.5 w-3.5 text-amber-400" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-extrabold text-white">Hợp đồng & Thanh toán Bảo chứng</p>
+                          <p className="text-[10.5px] leading-relaxed text-slate-400">
+                            Mọi hợp đồng booking được quản lý minh bạch, thanh toán được OnStage ký quỹ bảo vệ quyền lợi 100% cho Talent.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Accept/Decline Actions in Modal */}
+                  <div className="mt-6 flex items-center gap-3 border-t border-[#151b2d] pt-5">
+                    <button
+                      onClick={() => {
+                        handleAccept(selectedInvitation.id);
+                        setSelectedInvitation(null);
+                      }}
+                      className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-400 to-green-600 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-110 hover:shadow-[0_0_15px_rgba(52,211,153,0.3)] active:scale-[0.98] shadow-md transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Check className="h-4.5 w-4.5 stroke-[2.5]" /> Chấp nhận lời mời
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDecline(selectedInvitation.id);
+                        setSelectedInvitation(null);
+                      }}
+                      className="flex-1 h-12 rounded-xl bg-[#050711] border border-[#151b2d] text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white hover:border-slate-700/50 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <X className="h-4.5 w-4.5" /> Từ chối
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mt-5 rounded-2xl border border-[#151b2d] bg-[#050711] p-4">
+                    <div className="flex items-center gap-2">
+                      <UserPlus className="h-4 w-4 text-amber-300" />
+                      <p className="text-xs font-black uppercase tracking-widest text-white">Link mời riêng của bạn</p>
+                    </div>
+                    <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
+                      Link này đưa talent mới vào cùng roster Brand, đồng thời gắn talent mới dưới trướng của bạn. Link này không liên quan đến referral campaign.
+                    </p>
+                    <div className="mt-3 flex flex-col gap-2 md:flex-row">
+                      <input
+                        readOnly
+                        value={selectedInvitation.inviteLink || (isLoadingInviteLink ? "Đang tải link..." : "Chưa có link")}
+                        className="h-11 min-w-0 flex-1 rounded-xl border border-white/5 bg-slate-950 px-3 text-xs font-semibold text-slate-200 outline-none"
+                      />
+                      <button
+                        type="button"
+                        disabled={!selectedInvitation.inviteLink}
+                        onClick={handleCopyChildInviteLink}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 text-xs font-black uppercase tracking-wider text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Copy className="h-4 w-4" />
+                        Sao chép link
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 rounded-2xl border border-[#151b2d] bg-[#050711] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-widest text-white">Danh sách Talent của Brand</p>
+                        <p className="mt-1 text-[10px] text-slate-500">
+                          Tất cả Talent đang thuộc roster của Brand này, dù được mời bởi Brand hay Talent khác.
                         </p>
                       </div>
-                      <span className="rounded-md border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 text-[9px] font-black uppercase text-emerald-300">
-                        {member.status === "active" ? "Đang hoạt động" : member.status}
+                      <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[10px] font-black text-cyan-300">
+                        {selectedInvitation.members?.length || 0}
                       </span>
                     </div>
-                  ))
-                ) : (
-                  <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/40 p-4 text-center">
-                    <p className="text-xs font-bold text-slate-400">Brand này chưa có Talent nào trong roster.</p>
-                    <p className="mt-1 text-[10px] text-slate-600">Khi có Talent tham gia, danh sách sẽ hiển thị tại đây.</p>
+
+                    <div className="mt-4 space-y-2">
+                      {selectedInvitation.members?.length ? (
+                        selectedInvitation.members.map((member) => (
+                          <div key={member.id} className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950/60 p-3">
+                            <img src={member.avatar} alt={member.name} className="h-10 w-10 rounded-xl object-cover" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-black text-white">{member.name}</p>
+                              <p className="mt-0.5 text-[10px] font-semibold text-slate-500">
+                                Tham gia: {member.joinedAt || "Chưa cập nhật"}
+                              </p>
+                              <p className="mt-0.5 text-[10px] font-semibold text-slate-500">
+                                Được mời bởi: <span className="font-bold text-slate-300">{member.invitedBy || "Brand"}</span>
+                              </p>
+                            </div>
+                            <span className="rounded-md border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 text-[9px] font-black uppercase text-emerald-300">
+                              {member.status === "active" ? "Đang hoạt động" : member.status}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/40 p-4 text-center">
+                          <p className="text-xs font-bold text-slate-400">Brand này chưa có Talent nào trong roster.</p>
+                          <p className="mt-1 text-[10px] text-slate-600">Khi có Talent tham gia, danh sách sẽ hiển thị tại đây.</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
+                </>
+              )}
             </div>
-          </div>
           </div>
         </div>
       )}
