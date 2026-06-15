@@ -51,12 +51,12 @@ export function getDefaultTalentProfile() {
   const fallbackAvatar = isUsableAvatarUrl(user?.avatar) ? user?.avatar : avatarFallbackForUser(user);
 
   return {
-    name: user?.name || "Nguyễn Mai Anh",
+    name: user?.name || "Talent",
     birthYear: 2002,
     location: "Hà Nội",
     hometown: "Nam Định",
     phone: "0912345678",
-    email: user?.email || "maianh.nguyen@beautyapp.vn",
+    email: user?.email || "",
     avatar: fallbackAvatar,
     height: 172,
     weight: 51,

@@ -1,5 +1,19 @@
 "use client";
 
+function backendAssetBaseUrl() {
+  const apiBase = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
+  return apiBase.replace(/\/api$/, "");
+}
+
+export function normalizeBackendAssetUrl(value: unknown) {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  if (url.startsWith("data:") || /^https?:\/\//i.test(url)) return url;
+  if (url.startsWith("/storage/")) return `${backendAssetBaseUrl()}${url}`;
+  if (url.startsWith("storage/")) return `${backendAssetBaseUrl()}/${url}`;
+  return url;
+}
+
 export function getAvatarInitial(name?: string | null, email?: string | null) {
   const source = String(name || email || "U").trim();
   const firstWord = source.split(/\s+/).find(Boolean) || "U";
@@ -31,19 +45,18 @@ export function avatarFallbackForUser(user?: { name?: string | null; email?: str
 }
 
 export function isUsableAvatarUrl(value: unknown) {
-  const url = String(value || "");
+  const url = normalizeBackendAssetUrl(value);
 
   return Boolean(url)
     && url !== "/avatar.png"
     && url !== "/images/default-avatar.png"
-    && !url.startsWith("/storage/")
     && !url.startsWith("blob:");
 }
 
 export function profileAvatarFromBackend(profile: any) {
   const photos = Array.isArray(profile?.photos) ? profile.photos : [];
   const avatarPhoto = [...photos].reverse().find((photo) => photo?.category === "avatar");
-  const photoUrl = avatarPhoto?.url || avatarPhoto?.path;
+  const photoUrl = normalizeBackendAssetUrl(avatarPhoto?.url || avatarPhoto?.path);
 
   return isUsableAvatarUrl(photoUrl) ? photoUrl : null;
 }

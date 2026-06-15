@@ -36,6 +36,12 @@ const JOBS_LIST = [
   { id: 20, title: "Người mẫu ảo / Metaverse", desc: "Scan 3D hình ảnh số để làm mẫu ảo", weights: { pageant: 0.1, runway: 0.6, kol: 0.3 } }
 ];
 
+function formatCompactVND(value: number) {
+  if (!value) return "0đ";
+  if (value >= 1000000) return `${Number((value / 1000000).toFixed(1))}M đ`;
+  return `${new Intl.NumberFormat("vi-VN").format(value)}đ`;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
@@ -104,12 +110,25 @@ export default function DashboardPage() {
   ];
 
   const [dashboardJobs, setDashboardJobs] = useState<any[]>(mockJobs);
+  const [dashboardStats, setDashboardStats] = useState({
+    matchedCampaigns: mockJobs.length,
+    activeCampaigns: 3,
+    estimatedIncome: "12.5M đ",
+  });
 
   useEffect(() => {
     let active = true;
 
     loadTalentCampaigns().then((items) => {
       if (!active || !items?.length) return;
+      const activeItems = items.filter((item) => {
+        const status = item.application?.status;
+        return item.has_applied && ["accepted", "executing", "completed", "confirmed"].includes(status);
+      });
+      const estimatedIncome = activeItems.reduce((total, item) => {
+        const budget = Number(item.budget_max || item.budget_min || 0);
+        return total + (Number.isFinite(budget) ? budget : 0);
+      }, 0);
       const mapped = items.map((item) => {
         const campaign = mapCampaignToTalentJob(item);
         return {
@@ -126,6 +145,13 @@ export default function DashboardPage() {
         };
       });
       setDashboardJobs(mapped);
+      setDashboardStats({
+        matchedCampaigns: mapped.length,
+        activeCampaigns: activeItems.length,
+        estimatedIncome: formatCompactVND(estimatedIncome),
+      });
+    }).catch((error) => {
+      console.warn("Cannot load dashboard campaigns from backend", error);
     });
 
     return () => {
@@ -406,7 +432,7 @@ export default function DashboardPage() {
               <Briefcase className="h-4.5 w-4.5" />
             </div>
           </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">5 Chiến dịch</strong>
+          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">{dashboardStats.matchedCampaigns} Chiến dịch</strong>
           <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">AI Matching</span>
         </div>
 
@@ -419,7 +445,7 @@ export default function DashboardPage() {
               <Calendar className="h-4.5 w-4.5" />
             </div>
           </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">3 Shows diễn</strong>
+          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">{dashboardStats.activeCampaigns} Shows diễn</strong>
           <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Tháng 6/2026</span>
         </div>
 
@@ -432,7 +458,7 @@ export default function DashboardPage() {
               <DollarSign className="h-4.5 w-4.5" />
             </div>
           </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">12.5M đ</strong>
+          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">{dashboardStats.estimatedIncome}</strong>
           <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Tổng thu nhập hiện tại</span>
         </div>
 
@@ -445,7 +471,7 @@ export default function DashboardPage() {
               <Award className="h-4.5 w-4.5" />
             </div>
           </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">98%</strong>
+          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">{profile.reliability || 98}%</strong>
           <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Chất lượng diễn show</span>
         </div>
 

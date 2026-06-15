@@ -225,9 +225,9 @@ function profileToTalent(
   const backendAvatar = profileAvatarFromBackend(profile) || profile.avatar_url || profile.user?.external_avatar_url;
   const fallbackAvatar = fallback?.avatar;
   const avatar = isUsableAvatarUrl(backendAvatar)
-    ? backendAvatar
+    ? String(backendAvatar)
     : isUsableAvatarUrl(fallbackAvatar)
-      ? fallbackAvatar
+      ? String(fallbackAvatar)
       : createInitialAvatarDataUrl(displayName, profile.user?.email || profile.user?.name);
 
   return {

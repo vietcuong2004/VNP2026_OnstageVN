@@ -27,6 +27,7 @@ import {
   type BrandCommissionTransaction,
   updateBrandCampaignTalent,
 } from "@/lib/brand-api";
+import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
 const stageLabels: Record<CampaignStage, string> = {
@@ -658,7 +659,14 @@ export default function CampaignDetailPage() {
               >
                 {/* Top info and note */}
                 <div className="flex gap-4 items-start text-left">
-                  <img src={talent.avatar} alt={talent.name} className="h-16 w-16 rounded-xl object-cover border border-white/5 shrink-0" />
+                  <img
+                    src={talent.avatar}
+                    alt={talent.name}
+                    onError={(event) => {
+                      event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                    }}
+                    className="h-16 w-16 rounded-xl object-cover border border-white/5 shrink-0 bg-slate-950"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <h3 className="text-sm font-black text-white truncate">{talent.name}</h3>
@@ -854,7 +862,14 @@ export default function CampaignDetailPage() {
 
             <div className="flex items-center justify-between p-6 border-b border-[#151b2d] bg-slate-950/45">
               <div className="flex items-center gap-3">
-                <img src={selectedProfileTalent.avatar} alt={selectedProfileTalent.name} className="h-12 w-12 rounded-xl object-cover border border-white/5" />
+                <img
+                  src={selectedProfileTalent.avatar}
+                  alt={selectedProfileTalent.name}
+                  onError={(event) => {
+                    event.currentTarget.src = createInitialAvatarDataUrl(selectedProfileTalent.name, "");
+                  }}
+                  className="h-12 w-12 rounded-xl object-cover border border-white/5 bg-slate-950"
+                />
                 <div className="text-left">
                   <h3 className="text-sm font-black text-white">{selectedProfileTalent.name}</h3>
                   <p className="text-[10px] text-slate-400">{selectedProfileTalent.type} · {selectedProfileTalent.city}</p>
@@ -1186,7 +1201,14 @@ export default function CampaignDetailPage() {
                           <div>
                             {/* Image Top Area */}
                             <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-900 border border-white/5 mb-3.5">
-                              <img src={talent.avatar} alt={talent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                              <img
+                                src={talent.avatar}
+                                alt={talent.name}
+                                onError={(event) => {
+                                  event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                                }}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 bg-slate-950"
+                              />
 
                               {/* Overlay top badges */}
                               <div className="absolute top-2 left-2 flex flex-col gap-1.5">

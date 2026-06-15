@@ -130,7 +130,7 @@ export default function TalentAffiliatePage() {
         }
       } catch (error) {
         console.warn("Cannot create campaign referral link before copy", error);
-        addToast("Chua tao duoc link backend. Vui long thu lai sau vai giay.", "info");
+        addToast("Chưa tạo được link backend. Vui lòng thử lại sau vài giây.", "info");
         return;
       }
     }
@@ -182,7 +182,7 @@ export default function TalentAffiliatePage() {
           const resolvedCampaignId = resolved?.campaign?.id || resolved?.campaign_id || campaignId;
 
           if (resolvedCampaignId) {
-            await applyTalentCampaign(resolvedCampaignId, "Dang ky tham gia qua link gioi thieu Affiliate.", refId);
+            await applyTalentCampaign(resolvedCampaignId, "Đăng ký tham gia qua link giới thiệu Affiliate.", refId);
 
             const refreshed = await loadTalentCampaigns();
             if (refreshed?.length) {
@@ -191,13 +191,13 @@ export default function TalentAffiliatePage() {
 
             setPastedUrl("");
             const referrerName = resolved?.referrer?.name || resolved?.owner?.name || "KOL doi tac";
-            addToast(`Dang ky tham gia thanh cong qua gioi thieu cua ${referrerName}!`, "success");
+            addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
             return;
           }
         } catch (error) {
           console.warn("Cannot apply campaign referral via backend", error);
           if (/^\d+$/.test(String(campaignId))) {
-            addToast(error instanceof Error ? error.message : "Khong the dang ky campaign qua link backend.", "info");
+            addToast(error instanceof Error ? error.message : "Không thể đăng ký campaign qua link backend.", "info");
             return;
           }
         }

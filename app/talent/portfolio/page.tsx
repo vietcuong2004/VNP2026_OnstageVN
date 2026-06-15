@@ -40,8 +40,8 @@ export default function PortfolioPage() {
   // Chat preview state
   const [chatMessage, setChatMessage] = useState("");
   const [chatHistory, setChatHistory] = useState<any[]>([
-    { sender: "brand", text: "Chào Mai Anh, bên mình là nhãn hàng L'Oréal Paris. Bên mình rất ấn tượng với profile của bạn và muốn book bạn cho buổi livestream ngày 24/06 tới." },
-    { sender: "talent", text: "Dạ em chào anh/chị ạ! Rất vui nhận được lời mời từ L'Oréal Paris. Ngày 24/06 lịch của em hiện đang trống. Anh/chị gửi giúp em brief chi tiết qua đây nhé!" }
+    { sender: "brand", text: "Chào bạn, bên mình đã xem hồ sơ và muốn trao đổi thêm về một buổi livestream sắp tới." },
+    { sender: "talent", text: "Dạ em chào anh/chị ạ! Anh/chị gửi giúp em brief chi tiết qua đây nhé." }
   ]);
 
   const addToast = (message: string, type: "success" | "info" = "success") => {
@@ -54,13 +54,13 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     const defaultMock = {
-      name: "Nguyễn Mai Anh",
+      name: "Talent",
       birthYear: 2002,
       location: "Hà Nội",
       hometown: "Nam Định",
       phone: "0912345678",
-      email: "maianh.nguyen@beautyapp.vn",
-      avatar: createInitialAvatarDataUrl("Nguyễn Mai Anh", "maianh.nguyen@beautyapp.vn"),
+      email: "",
+      avatar: createInitialAvatarDataUrl("Talent", ""),
       height: 172,
       weight: 51,
       bust: 85,
@@ -119,7 +119,7 @@ export default function PortfolioPage() {
         ...defaultMock,
         ...loadedProfile,
         skillsScores: loadedProfile?.skillsScores || defaultMock.skillsScores,
-        followersCount: !loadedProfile?.followersCount || loadedProfile.followersCount === 120000 ? 520000 : loadedProfile.followersCount,
+        followersCount: loadedProfile?.followersCount ?? defaultMock.followersCount,
         isAvailable: loadedProfile?.isAvailable ?? true,
         verifiedLevel: loadedProfile?.verifiedLevel || "Elite",
         rateCard: {
@@ -181,7 +181,7 @@ export default function PortfolioPage() {
 
       if (!syncedProfile.backendProfileId) {
         setProfile(syncedProfile);
-        addToast("Vui long dang nhap lai de tai anh len he thong.", "info");
+        addToast("Vui lòng đăng nhập lại để tải ảnh lên hệ thống.", "info");
         return;
       }
 
@@ -189,16 +189,16 @@ export default function PortfolioPage() {
       const photoUrl = photo.url || photo.path;
 
       if (!photoUrl) {
-        addToast("Upload thanh cong nhung backend chua tra ve duong dan anh.", "info");
+        addToast("Upload thành công nhưng backend chưa trả về đường dẫn ảnh.", "info");
         return;
       }
 
       const updatedProfile = persistTalentProfile({ ...syncedProfile, [type]: photoUrl });
       setProfile(updatedProfile);
-      addToast(`Cap nhat ${type === "avatar" ? "anh dai dien" : "anh bia"} thanh cong!`, "success");
+      addToast(`Cập nhật ${type === "avatar" ? "ảnh đại diện" : "ảnh bìa"} thành công!`, "success");
     } catch (error) {
       console.error(error);
-      addToast("Khong tai duoc anh len backend. Kiem tra lai API/storage.", "info");
+      addToast("Không tải được ảnh lên backend. Kiểm tra lại API/storage.", "info");
     }
 
     return;
@@ -800,7 +800,7 @@ export default function PortfolioPage() {
                     : "self-end bg-[#f4c430]/10 border border-[#f4c430]/20 text-[#f4c430] ml-auto"
                 )}>
                   <span className="text-[8px] font-black uppercase text-slate-500 block mb-1">
-                    {chat.sender === "brand" ? "L'Oréal Brand Manager" : "Nguyễn Mai Anh"}
+                    {chat.sender === "brand" ? "Brand Manager" : profile.name}
                   </span>
                   <span className="leading-relaxed">{chat.text}</span>
                 </div>
