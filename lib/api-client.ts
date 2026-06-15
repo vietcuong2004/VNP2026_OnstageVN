@@ -60,6 +60,20 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+function portalHeader() {
+  if (typeof window === "undefined") return {};
+
+  if (window.location.pathname.startsWith("/brand")) {
+    return { "X-Onstage-Portal": "brand" };
+  }
+
+  if (window.location.pathname.startsWith("/talent")) {
+    return { "X-Onstage-Portal": "talent" };
+  }
+
+  return {};
+}
+
 function buildHeaders(defaultHeaders: Record<string, string>, extraHeaders?: HeadersInit) {
   const headers = new Headers(extraHeaders);
 
@@ -68,6 +82,10 @@ function buildHeaders(defaultHeaders: Record<string, string>, extraHeaders?: Hea
   });
 
   Object.entries(authHeaders()).forEach(([key, value]) => {
+    headers.set(key, value);
+  });
+
+  Object.entries(portalHeader()).forEach(([key, value]) => {
     headers.set(key, value);
   });
 
@@ -112,6 +130,7 @@ export async function switchCurrentPlatform(type: "talent" | "brand") {
       email: string | null;
       type: "talent" | "brand";
       status: string;
+      capabilities?: Array<"talent" | "brand">;
       external_avatar_url?: string | null;
     };
   }>("/auth/platform", {
@@ -132,6 +151,7 @@ export async function updateAuthEmail(email: string) {
       email: string | null;
       type: "talent" | "brand";
       status: string;
+      capabilities?: Array<"talent" | "brand">;
       external_avatar_url?: string | null;
     };
   }>("/auth/email", {

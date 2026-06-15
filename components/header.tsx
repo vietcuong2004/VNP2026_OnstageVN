@@ -4,7 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Bell, Calendar, ChevronDown, LogOut, Search, UserCircle, Building2, Settings } from "lucide-react";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
-import { AUTH_USER_UPDATED_EVENT, switchCurrentPlatform } from "@/lib/api-client";
+import { AUTH_USER_UPDATED_EVENT } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 
 type AuthUser = {
@@ -12,6 +12,7 @@ type AuthUser = {
   email: string | null;
   type: "talent" | "brand";
   status: string;
+  capabilities?: Array<"talent" | "brand">;
   external_avatar_url?: string | null;
 };
 
@@ -76,7 +77,6 @@ export default function Header() {
   const authUserJson = useSyncExternalStore(subscribeAuthUser, authUserSnapshot, () => "");
   const user = authUserJson ? (JSON.parse(authUserJson) as AuthUser) : null;
   const [talentAvatar, setTalentAvatar] = useState<string | null>(null);
-  const [switchingPlatform, setSwitchingPlatform] = useState(false);
 
   useEffect(() => {
     function syncTalentAvatar() {
@@ -104,20 +104,11 @@ export default function Header() {
   const nextPlatformPath = nextPlatform === "brand" ? "/brand/dashboard" : "/talent/dashboard";
   const nextPlatformLabel = nextPlatform === "brand" ? "Chuyển sang Brand" : "Chuyển sang Talent";
 
-  async function handleSwitchPlatform() {
-    if (!user || switchingPlatform) return;
+  function handleSwitchPlatform() {
+    if (!user) return;
 
-    setSwitchingPlatform(true);
-
-    try {
-      await switchCurrentPlatform(nextPlatform);
-      setOpen(false);
-      router.push(nextPlatformPath);
-    } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Chưa thể chuyển nền tảng. Vui lòng thử lại.");
-    } finally {
-      setSwitchingPlatform(false);
-    }
+    setOpen(false);
+    router.push(nextPlatformPath);
   }
 
   useEffect(() => {
@@ -309,11 +300,10 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={handleSwitchPlatform}
-                  disabled={switchingPlatform}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/10 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/10 hover:text-amber-100"
                 >
                   {nextPlatform === "brand" ? <Building2 className="h-4 w-4 text-amber-300" /> : <UserCircle className="h-4 w-4 text-amber-300" />}
-                  {switchingPlatform ? "Đang chuyển..." : nextPlatformLabel}
+                  {nextPlatformLabel}
                 </button>
               )}
 
