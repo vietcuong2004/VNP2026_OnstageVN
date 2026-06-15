@@ -135,6 +135,65 @@ export default function DashboardPage() {
 
   if (!profile) return null;
 
+  if (!profile.isOnboarded) {
+    return (
+      <div className="relative flex flex-col items-center justify-center min-h-[80vh] py-6 sm:py-12 px-4 animate-in fade-in duration-500 w-full">
+        {/* Immersive Background Image & Dark Overlay - stretching to fill the entire main content area */}
+        <div className="absolute inset-0 -mx-4 -mt-5 -mb-24 md:-mx-8 md:-mt-7 md:-mb-8 lg:-mx-10 lg:-mt-8 2xl:-mx-12 z-0 overflow-hidden pointer-events-none">
+          <img
+            src="/hero_bg.png"
+            alt="OnstageVN Background Graphics"
+            className="w-full h-full object-cover object-center absolute inset-0"
+          />
+          {/* Subtle overlay for contrast, transparent on desktop to maximize background visibility */}
+          <div className="absolute inset-0 bg-[#02040a]/30 md:bg-transparent pointer-events-none" />
+        </div>
+
+        <div className="relative z-10 overflow-hidden rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.08),transparent_40%),linear-gradient(135deg,rgba(15,23,42,0.8),rgba(2,6,23,0.95))] p-6 sm:p-10 md:p-12 text-center max-w-xl w-full shadow-[0_24px_80px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+          {/* Subtle gold accent light inside the card */}
+          <div className="absolute top-0 left-0 w-32 h-32 bg-amber-400/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
+
+          {/* Top Tag/Pill */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#D4A64A]/30 bg-[#071B42]/45 backdrop-blur-md max-w-full mb-6">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#F0C56B] animate-pulse shrink-0" />
+            <span className="text-[10px] font-bold text-[#F0C56B] uppercase tracking-widest truncate">
+              Yêu cầu hoàn thành khảo sát
+            </span>
+          </div>
+
+          {/* Heading */}
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight uppercase text-white">
+            Kích Hoạt Trung Tâm <br />
+            <span className="text-gradient-gold">Điều Khiển Talent</span>
+          </h1>
+
+          {/* Glass Description Box */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/50 backdrop-blur-md border border-white/5 shadow-xl max-w-md mx-auto my-6 text-center">
+            <p className="text-xs sm:text-sm leading-relaxed text-slate-300 font-medium">
+              Chào mừng bạn đến với <b>OnstageVN</b>! Để mở khóa các thông số đánh giá định hướng AI, độ tin cậy, thống kê thu nhập và danh sách các chiến dịch đề xuất phù hợp nhất, vui lòng làm bài khảo sát định hướng trước.
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mt-2">
+            <button
+              onClick={() => router.push("/talent/survey")}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gradient-gold text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.35)] hover:scale-[1.02] active:scale-98 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Plus className="h-4 w-4 stroke-[3]" /> Làm Khảo Sát Ngay
+            </button>
+            <button
+              onClick={() => router.push("/talent/portfolio")}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-950 text-[#F0C56B] hover:text-white hover:scale-[1.02] active:scale-98 transition-all duration-305 cursor-pointer flex items-center justify-center gap-2 border border-[#D4A64A]/50 shadow-[0_0_15px_rgba(212,166,74,0.15)]"
+            >
+              Xem Hồ Sơ Cá Nhân
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
 

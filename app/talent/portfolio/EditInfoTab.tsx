@@ -43,6 +43,10 @@ export default function EditInfoTab({
   addToast
 }: EditInfoTabProps) {
 
+  const displayedPhotos = (profile?.photos || []).filter(
+    (p: string) => profile?.isOnboarded || (!p.includes("fullbody_model.png") && !p.includes("cover_image.png"))
+  );
+
   // Identity card (CCCD) upload state simulators
   const [cccdFrontUploaded, setCccdFrontUploaded] = useState(false);
   const [cccdBackUploaded, setCccdBackUploaded] = useState(false);
@@ -89,40 +93,52 @@ export default function EditInfoTab({
   // Sync edit form fields once profile loads
   useEffect(() => {
     if (profile) {
+      const onboarded = !!profile.isOnboarded;
       setEditForm({
         name: profile.name || "",
-        height: profile.height || 172,
-        weight: profile.weight || 51,
-        bust: profile.bust || 85,
-        waist: profile.waist || 60,
-        hips: profile.hips || 90,
-        location: profile.location || "",
-        hometown: profile.hometown || "",
-        education: profile.education || "",
-        languages: Array.isArray(profile.languages) ? profile.languages.join(", ") : (profile.languages || ""),
-        rateCard: { ...(profile.rateCard || {}) },
-        plasticSurgery: profile.plasticSurgery || "false",
-        maritalStatus: profile.maritalStatus || "Độc thân",
-        gender: profile.gender || "Nữ",
-        dob: convertToInputDate(profile.dob),
-        skinColor: profile.skinColor || "Sáng",
-        hairColor: profile.hairColor || "Nâu",
-        tattoo: profile.tattoo || "Không",
-        tattooDesc: profile.tattooDesc || "",
-        experience: profile.experience !== undefined ? profile.experience : 3,
-        specialSkills: Array.isArray(profile.specialSkills) ? profile.specialSkills.join(", ") : (Array.isArray(profile.skills) ? profile.skills.join(", ") : "Catwalk, MC song ngữ, Pose dáng lookbook")
+        height: onboarded ? (profile.height || 172) : "",
+        weight: onboarded ? (profile.weight || 51) : "",
+        bust: onboarded ? (profile.bust || 85) : "",
+        waist: onboarded ? (profile.waist || 60) : "",
+        hips: onboarded ? (profile.hips || 90) : "",
+        location: onboarded ? (profile.location || "") : "",
+        hometown: onboarded ? (profile.hometown || "") : "",
+        education: onboarded ? (profile.education || "") : "",
+        languages: onboarded ? (Array.isArray(profile.languages) ? profile.languages.join(", ") : (profile.languages || "")) : "",
+        rateCard: onboarded ? { ...(profile.rateCard || {}) } : {
+          "Instagram Post": "",
+          "TikTok Video": "",
+          "Livestream 2h": "",
+          "Event Appearance": "",
+          "Catwalk Show": "",
+        },
+        plasticSurgery: onboarded ? (profile.plasticSurgery || "false") : "false",
+        maritalStatus: onboarded ? (profile.maritalStatus || "Độc thân") : "",
+        gender: onboarded ? (profile.gender || "Nữ") : "Nữ",
+        dob: onboarded ? convertToInputDate(profile.dob) : "",
+        skinColor: onboarded ? (profile.skinColor || "Sáng") : "Sáng",
+        hairColor: onboarded ? (profile.hairColor || "Nâu") : "Nâu",
+        tattoo: onboarded ? (profile.tattoo || "Không") : "Không",
+        tattooDesc: onboarded ? (profile.tattooDesc || "") : "",
+        experience: onboarded ? (profile.experience !== undefined ? profile.experience : 3) : "",
+        specialSkills: onboarded ? (Array.isArray(profile.specialSkills) ? profile.specialSkills.join(", ") : (Array.isArray(profile.skills) ? profile.skills.join(", ") : "")) : ""
       });
       setVideoForm({
-        hasUploadedIntro: profile.hasUploadedIntro || false,
-        hasUploadedCatwalk: profile.hasUploadedCatwalk || false,
-        hasUploadedMC: profile.hasUploadedMC || false
+        hasUploadedIntro: onboarded ? (profile.hasUploadedIntro || false) : false,
+        hasUploadedCatwalk: onboarded ? (profile.hasUploadedCatwalk || false) : false,
+        hasUploadedMC: onboarded ? (profile.hasUploadedMC || false) : false
       });
-      setLifestyleServices(profile.lifestyleServices || []);
-      if (profile.verifiedLevel === "Elite" || profile.verifiedLevel === "Pro" || profile.verifiedLevel === "Basic") {
+      setLifestyleServices(onboarded ? (profile.lifestyleServices || []) : []);
+      if (onboarded && (profile.verifiedLevel === "Elite" || profile.verifiedLevel === "Pro" || profile.verifiedLevel === "Basic")) {
         setVerificationStatus("verified");
         setCccdFrontUploaded(true);
         setCccdBackUploaded(true);
         setSelfieUploaded(true);
+      } else {
+        setVerificationStatus("unverified");
+        setCccdFrontUploaded(false);
+        setCccdBackUploaded(false);
+        setSelfieUploaded(false);
       }
     }
   }, [profile]);
@@ -531,9 +547,9 @@ export default function EditInfoTab({
                           <span className="text-[8px] font-black text-slate-400 uppercase">Kích hoạt</span>
                         </label>
                       </div>
-                      
+
                       <p className="text-[9.5px] text-slate-500 leading-normal">{service.description}</p>
-                      
+
                       {service.enabled && (
                         <div className="space-y-1.5 animate-in fade-in duration-200">
                           <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Giá dịch vụ đề xuất (VND / {service.unit})</label>
@@ -613,7 +629,7 @@ export default function EditInfoTab({
               onClick={() => startCccdUpload("cccd_front")}
               className="bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider text-white transition-all disabled:opacity-50"
             >
-              {cccdFrontUploaded ? "Tải lại" : "Tải lên tệp"}
+              {cccdFrontUploaded ? "Tải lại" : "Tải ảnh lên"}
             </button>
           </div>
 
@@ -636,7 +652,7 @@ export default function EditInfoTab({
               onClick={() => startCccdUpload("cccd_back")}
               className="bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider text-white transition-all disabled:opacity-50"
             >
-              {cccdBackUploaded ? "Tải lại" : "Tải lên tệp"}
+              {cccdBackUploaded ? "Tải lại" : "Tải ảnh lên"}
             </button>
           </div>
 
@@ -659,7 +675,7 @@ export default function EditInfoTab({
               onClick={() => startCccdUpload("cccd_selfie")}
               className="bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider text-white transition-all disabled:opacity-50"
             >
-              {selfieUploaded ? "Tải lại" : "Tải lên tệp"}
+              {selfieUploaded ? "Tải lại" : "Tải ảnh lên"}
             </button>
           </div>
 
@@ -699,11 +715,11 @@ export default function EditInfoTab({
           </div>
           <span className={cn(
             "text-[10px] font-black px-2 py-0.5 rounded border font-mono",
-            (profile.photos || []).length >= 10
+            displayedPhotos.length >= 10
               ? "border-red-500/30 text-red-400 bg-red-500/10 animate-pulse"
               : "border-purple-500/30 text-purple-400 bg-purple-500/10"
           )}>
-            {(profile.photos || []).length} / 10 Ảnh
+            {displayedPhotos.length} / 10 Ảnh
           </span>
         </div>
 
@@ -720,14 +736,13 @@ export default function EditInfoTab({
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {(profile.photos || []).map((imgUrl: string, idx: number) => (
+          {displayedPhotos.map((imgUrl: string, idx: number) => (
             <div key={idx} className="relative aspect-[3/4] rounded-lg overflow-hidden border border-white/5 bg-slate-900 group shadow-md">
               <img src={imgUrl} className="h-full w-full object-cover" />
               <button
                 type="button"
                 onClick={() => {
-                  const updatedPhotos = [...(profile.photos || [])];
-                  updatedPhotos.splice(idx, 1);
+                  const updatedPhotos = (profile.photos || []).filter((url: string) => url !== imgUrl);
                   const updatedProfile = { ...profile, photos: updatedPhotos };
                   setProfile(persistTalentProfile(updatedProfile));
                   addToast("Đã xóa ảnh khỏi bộ ảnh nghệ thuật", "info");
@@ -741,9 +756,9 @@ export default function EditInfoTab({
 
           {/* Add photos trigger block (strictly limit <= 10) */}
           <button
-            disabled={!!uploadingType || (profile.photos || []).length >= 10}
+            disabled={!!uploadingType || displayedPhotos.length >= 10}
             onClick={() => {
-              if (uploadingType || (profile.photos || []).length >= 10) return;
+              if (uploadingType || displayedPhotos.length >= 10) return;
               setUploadingType("photos");
               setUploadProgress(0);
               let progress = 0;
@@ -761,7 +776,9 @@ export default function EditInfoTab({
                       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600"
                     ];
                     const randomPhoto = unsplashPhotos[Math.floor(Math.random() * unsplashPhotos.length)];
-                    const currentPhotos = [...(profile.photos || [])];
+                    const currentPhotos = (profile.photos || []).filter(
+                      (url: string) => profile.isOnboarded || (!url.includes("fullbody_model.png") && !url.includes("cover_image.png"))
+                    );
                     currentPhotos.push(randomPhoto);
                     const updatedProfile = { ...profile, photos: currentPhotos };
                     setProfile(persistTalentProfile(updatedProfile));
@@ -773,19 +790,19 @@ export default function EditInfoTab({
             }}
             className={cn(
               "aspect-[3/4] rounded-lg border border-dashed flex flex-col items-center justify-center gap-1.5 transition-all text-xs",
-              (profile.photos || []).length >= 10
+              displayedPhotos.length >= 10
                 ? "border-red-500/25 bg-red-500/5 text-red-500/60 cursor-not-allowed"
                 : "border-white/10 hover:border-amber-400 bg-slate-900 text-slate-500 hover:text-amber-400 cursor-pointer disabled:opacity-50"
             )}
           >
             <Plus className="h-6 w-6" />
             <span className="text-[8px] font-black uppercase text-center">
-              {(profile.photos || []).length >= 10 ? "Đầy 10 ảnh" : "Tải thêm ảnh"}
+              {displayedPhotos.length >= 10 ? "Đầy 10 ảnh" : "Tải thêm ảnh"}
             </span>
           </button>
         </div>
 
-        {(profile.photos || []).length >= 10 && (
+        {displayedPhotos.length >= 10 && (
           <p className="text-[9px] text-red-400/80 font-bold bg-red-500/5 border border-red-500/10 p-2.5 rounded-lg flex items-center gap-2">
             <Info className="h-4 w-4 shrink-0" />
             Đã đạt giới hạn tối đa 10 ảnh nghệ thuật. Vui lòng xóa ảnh cũ để giải phóng dung lượng trước khi tải ảnh mới.

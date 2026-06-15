@@ -229,3 +229,116 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Optimization for 1080p and scaled 2K screens */
+@media (min-width: 1600px) {
+  .max-w-\[1550px\] {
+    max-w: none !important;
+  }
+  .max-w-6xl {
+    max-w: none !important;
+  }
+  .max-w-5xl {
+    max-w: none !important;
+  }
+  .max-w-4xl {
+    max-w: none !important;
+  }
+  .max-w-3xl {
+    max-w: none !important;
+  }
+  .max-w-2xl {
+    max-w: 1000px !important;
+  }
+  .max-w-xl {
+    max-w: 900px !important;
+  }
+  .max-w-lg {
+    max-w: 800px !important;
+  }
+  .max-w-md {
+    max-w: 700px !important;
+  }
+  
+  html {
+    font-size: 19px !important;
+  }
+
+  .text-\[8px\] { font-size: 11px !important; }
+  .text-\[9px\] { font-size: 12.5px !important; }
+  .text-\[10px\] { font-size: 14px !important; }
+  .text-\[11px\] { font-size: 15.5px !important; }
+  .text-\[12px\] { font-size: 16.5px !important; }
+  .text-\[13px\] { font-size: 18px !important; }
+  .text-\[25px\] { font-size: 34px !important; }
+
+  .md\:text-\[9px\] { font-size: 12.5px !important; }
+  .md\:text-\[10px\] { font-size: 14px !important; }
+  .sm\:text-\[11px\] { font-size: 15.5px !important; }
+
+  .md\:w-\[50\%\] {
+    width: 55% !important;
+  }
+  .md\:w-\[45\%\] {
+    width: 40% !important;
+  }
+}
+
+/* Optimization for large 2K/4K screens (min-width: 2200px) */
+@media (min-width: 2200px) {
+  .max-w-\[1550px\] {
+    max-w: none !important;
+  }
+  .max-w-6xl {
+    max-w: none !important;
+  }
+  .max-w-5xl {
+    max-w: none !important;
+  }
+  .max-w-4xl {
+    max-w: none !important;
+  }
+  .max-w-3xl {
+    max-w: none !important;
+  }
+  .max-w-2xl {
+    max-w: 1200px !important;
+  }
+  .max-w-xl {
+    max-w: 1000px !important;
+  }
+  .max-w-lg {
+    max-w: 900px !important;
+  }
+  .max-w-md {
+    max-w: 800px !important;
+  }
+
+  html {
+    font-size: 24px !important;
+  }
+
+  .text-\[8px\] { font-size: 13px !important; }
+  .text-\[9px\] { font-size: 15px !important; }
+  .text-\[10px\] { font-size: 17px !important; }
+  .text-\[11px\] { font-size: 19px !important; }
+  .text-\[12px\] { font-size: 20px !important; }
+  .text-\[13px\] { font-size: 21px !important; }
+  .text-\[25px\] { font-size: 42px !important; }
+
+  .md\:text-\[9px\] { font-size: 15px !important; }
+  .md\:text-\[10px\] { font-size: 17px !important; }
+  .sm\:text-\[11px\] { font-size: 19px !important; }
+
+  .md\:h-\[105vh\] {
+    height: 95vh !important;
+  }
+  
+  .md\:w-\[45\%\] {
+    width: 35% !important;
+  }
+  .md\:w-\[50\%\] {
+    width: 62% !important;
+  }
+}
+

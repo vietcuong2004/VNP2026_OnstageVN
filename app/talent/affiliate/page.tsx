@@ -210,7 +210,7 @@ export default function TalentAffiliatePage() {
         return;
       }
 
-      if (targetCamp.applicants?.some(a => a.talentId === "tal-1")) {
+      if (targetCamp.applicants?.some((a: any) => a.talentId === "tal-1")) {
         addToast("Bạn đã ứng tuyển hoặc đang tham gia chiến dịch này rồi.", "info");
         return;
       }
@@ -276,7 +276,7 @@ export default function TalentAffiliatePage() {
             return;
           }
 
-          if (targetCamp.applicants?.some(a => a.talentId === "tal-1")) {
+          if (targetCamp.applicants?.some((a: any) => a.talentId === "tal-1")) {
             addToast("Bạn đã ứng tuyển hoặc đang tham gia chiến dịch này rồi.", "info");
             return;
           }

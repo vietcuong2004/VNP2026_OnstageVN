@@ -45,7 +45,7 @@ export default function RootGatewayPage() {
   };
 
   return (
-    <div className="relative flex flex-col items-center text-center px-0 md:px-2 py-0 w-full font-sans bg-[#02040a] min-h-screen">
+    <div className="relative flex flex-col items-center text-center px-0 md:px-2 py-0 w-full font-sans bg-[#02040a] min-h-screen homepage-container">
 
       {/* Immersive Mockup Background Image & Gradient Overlays (z-0 to prevent background-color overlap) */}
       <div className="absolute top-0 right-0 left-0 z-0 w-full h-[70vh] md:h-[105vh] overflow-hidden pointer-events-none">

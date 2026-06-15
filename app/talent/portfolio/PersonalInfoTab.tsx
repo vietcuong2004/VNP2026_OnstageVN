@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Award, User, GraduationCap, BookOpen, DollarSign,
   TrendingUp, Wallet, ShieldCheck, Calendar, Image, Sparkles, Star, Crown, Video,
@@ -50,6 +50,18 @@ export default function PersonalInfoTab({
   setBookingForm
 }: PersonalInfoTabProps) {
 
+  const [videoPreviews, setVideoPreviews] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    return () => {
+      Object.values(videoPreviews).forEach((url) => {
+        if (url.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [videoPreviews]);
+
   const [uploadingState, setUploadingState] = useState<{
     [key: string]: {
       progress: number;
@@ -63,10 +75,6 @@ export default function PersonalInfoTab({
     e.target.value = "";
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      addToast("Kích thước ảnh phải nhỏ hơn 5MB.", "info");
-      return;
-    }
 
     setUploadingState(prev => ({
       ...prev,
@@ -167,10 +175,6 @@ export default function PersonalInfoTab({
     e.target.value = "";
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      addToast("Kích thước ảnh phải nhỏ hơn 5MB.", "info");
-      return;
-    }
 
     const stateKey = `lookbook-${id}`;
 
@@ -267,10 +271,6 @@ export default function PersonalInfoTab({
     e.target.value = "";
     if (!file) return;
 
-    if (file.size > 20 * 1024 * 1024) {
-      addToast("Kích thước video phải nhỏ hơn 20MB.", "info");
-      return;
-    }
 
     setUploadingState(prev => ({
       ...prev,
@@ -299,6 +299,18 @@ export default function PersonalInfoTab({
 
     setTimeout(() => {
       clearInterval(interval);
+
+      // Create local object URL for preview
+      const objectUrl = URL.createObjectURL(file);
+      setVideoPreviews(prev => {
+        if (prev[type]) {
+          URL.revokeObjectURL(prev[type]);
+        }
+        return {
+          ...prev,
+          [type]: objectUrl
+        };
+      });
 
       const updatedProfile = persistTalentProfile({
         ...profile,
@@ -442,6 +454,35 @@ export default function PersonalInfoTab({
     const updatedProfile = persistTalentProfile({ ...profile, availabilityCalendar: cleanedCalendar });
     setProfile(updatedProfile);
   };
+
+  if (!profile.isOnboarded) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center p-8 py-16 rounded-3xl border border-white/10 bg-[#08090f] shadow-2xl relative overflow-hidden backdrop-blur-xl min-h-[50vh] max-w-xl mx-auto w-full animate-in fade-in duration-500">
+        <div className="absolute top-0 right-0 -z-10 h-32 w-32 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -z-10 h-32 w-32 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10 border border-amber-400/30 text-amber-400 mb-6">
+          <Sparkles className="h-6 w-6 animate-pulse" />
+        </div>
+
+        <div className="space-y-3 max-w-sm">
+          <h3 className="font-display font-black text-lg text-white uppercase tracking-wider">
+            Hồ Sơ Chưa Được Kích Hoạt
+          </h3>
+          <p className="text-xs text-slate-450 leading-relaxed">
+            Bạn chưa thực hiện bài khảo sát định hướng và cập nhật thông tin cá nhân. Hãy hoàn thành khảo sát để mở khóa chỉ số ngoại hình, học vấn, hạng người mẫu, các dịch vụ đồng hành và báo cáo hiệu quả.
+          </p>
+        </div>
+
+        <button
+          onClick={() => window.location.href = "/talent/survey"}
+          className="mt-8 px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gradient-gold text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.35)] hover:scale-[1.02] active:scale-98 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2"
+        >
+          Làm Khảo Sát Ngay
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-300">
@@ -915,11 +956,11 @@ export default function PersonalInfoTab({
             </span>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Video 1: Intro */}
-              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
+              <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
                 {profile.hasUploadedIntro ? (
                   <div className="h-full w-full relative">
                     <video
-                      src="https://assets.mixkit.co/videos/preview/mixkit-beautiful-woman-smiling-at-the-camera-40898-large.mp4"
+                      src={videoPreviews.intro || "https://assets.mixkit.co/videos/preview/mixkit-beautiful-woman-smiling-at-the-camera-40898-large.mp4"}
                       className="h-full w-full object-cover"
                       playsInline
                       loop
@@ -977,11 +1018,11 @@ export default function PersonalInfoTab({
               </div>
 
               {/* Video 2: Catwalk */}
-              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
+              <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
                 {profile.hasUploadedCatwalk ? (
                   <div className="h-full w-full relative">
                     <video
-                      src="https://assets.mixkit.co/videos/preview/mixkit-fashion-model-walking-on-a-runway-show-39871-large.mp4"
+                      src={videoPreviews.catwalk || "https://assets.mixkit.co/videos/preview/mixkit-fashion-model-walking-on-a-runway-show-39871-large.mp4"}
                       className="h-full w-full object-cover"
                       playsInline
                       loop
@@ -1039,11 +1080,11 @@ export default function PersonalInfoTab({
               </div>
 
               {/* Video 3: MC/Livestream */}
-              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
+              <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
                 {profile.hasUploadedMC ? (
                   <div className="h-full w-full relative">
                     <video
-                      src="https://assets.mixkit.co/videos/preview/mixkit-young-woman-talking-to-camera-in-interview-42358-large.mp4"
+                      src={videoPreviews.mc || "https://assets.mixkit.co/videos/preview/mixkit-young-woman-talking-to-camera-in-interview-42358-large.mp4"}
                       className="h-full w-full object-cover"
                       playsInline
                       loop
@@ -1122,104 +1163,124 @@ export default function PersonalInfoTab({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-            {/* Radar Chart Summary Column */}
-            <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
-              <div className="space-y-2">
-                <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-black">Nhóm Tương Thích Nhất</span>
-                <h4 className="text-xs font-black text-amber-300 leading-relaxed uppercase tracking-wide">
-                  {profile.mainCategory}
-                </h4>
-                <p className="text-[9.5px] text-slate-400 leading-normal">
-                  Biểu đồ radar 8 trục: <strong>Catwalk, Pose dáng, MC, Livestream, Diễn xuất, Social content, Brand safety, Reliability</strong>.
+          {!profile.isOnboarded ? (
+            <div className="flex flex-col items-center justify-center text-center p-8 py-12 rounded-xl border border-purple-500/15 bg-slate-950/45 max-w-md mx-auto space-y-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400">
+                <Sparkles className="h-5.5 w-5.5 animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-xs font-black text-white uppercase tracking-wider">Kích Hoạt Bản Đồ Năng Lực AI</h4>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Vui lòng thực hiện bài khảo sát định hướng gồm 20 câu hỏi định tính để mở khóa bản đồ năng lực 8 trục, biểu đồ radar & độ tương thích chi tiết với 20 vị trí công việc.
                 </p>
               </div>
-
-              {/* SVG 8-axis Radar */}
-              <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
-                <RadarChart
-                  scores={profile.skillsScores}
-                  fillColor="rgba(244,196,48,0.2)"
-                  strokeColor="#f4c430"
-                  strokeWidth={2}
-                  labelFontSize={9}
-                  labelFontWeight="black"
-                />
-              </div>
-
-              {/* Legend description */}
-              <div className="grid grid-cols-4 gap-x-2 gap-y-1 text-[8px] text-slate-500 border-t border-white/5 pt-2 font-mono">
-                <span>CW: Catwalk</span>
-                <span>PS: Pose dáng</span>
-                <span>MC: Dẫn chương trình</span>
-                <span>LS: Livestream</span>
-                <span>AC: Diễn xuất</span>
-                <span>SC: Social content</span>
-                <span>SF: Brand safety</span>
-                <span>RL: Reliability</span>
-              </div>
+              <button
+                onClick={() => window.location.href = "/talent/survey"}
+                className="h-9 px-5 rounded-lg bg-gradient-to-r from-purple-400 to-pink-500 text-[10px] font-black text-white hover:brightness-105 active:scale-98 transition-all uppercase tracking-wider cursor-pointer"
+              >
+                Làm Khảo Sát Ngay
+              </button>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+              {/* Radar Chart Summary Column */}
+              <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
+                <div className="space-y-2">
+                  <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-black">Nhóm Tương Thích Nhất</span>
+                  <h4 className="text-xs font-black text-amber-300 leading-relaxed uppercase tracking-wide">
+                    {profile.mainCategory}
+                  </h4>
+                  <p className="text-[9.5px] text-slate-400 leading-normal">
+                    Biểu đồ radar 8 trục: <strong>Catwalk, Pose dáng, MC, Livestream, Diễn xuất, Social content, Brand safety, Reliability</strong>.
+                  </p>
+                </div>
 
-            {/* 20 Recommended Roles Column */}
-            <div className="md:col-span-7 space-y-3 flex flex-col justify-between">
-              <div>
-                <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">Độ Tương Thích Với 20 Vị Trí Công Việc</span>
+                {/* SVG 8-axis Radar */}
+                <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
+                  <RadarChart
+                    scores={profile.skillsScores}
+                    fillColor="rgba(244,196,48,0.2)"
+                    strokeColor="#f4c430"
+                    strokeWidth={2}
+                    labelFontSize={9}
+                    labelFontWeight="black"
+                  />
+                </div>
 
-                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                  {(() => {
-                    const scores = profile.surveyScores || { pageant: 50, runway: 45, kol: 95 };
-                    const calculatedJobs = JOBS_LIST.map((job) => {
-                      const matchScore = Math.round(
-                        scores.pageant * job.weights.pageant +
-                        scores.runway * job.weights.runway +
-                        scores.kol * job.weights.kol
-                      );
-                      return { ...job, matchScore };
-                    }).sort((a, b) => b.matchScore - a.matchScore);
+                {/* Legend description */}
+                <div className="grid grid-cols-4 gap-x-2 gap-y-1 text-[8px] text-slate-500 border-t border-white/5 pt-2 font-mono">
+                  <span>CW: Catwalk</span>
+                  <span>PS: Pose dáng</span>
+                  <span>MC: Dẫn chương trình</span>
+                  <span>LS: Livestream</span>
+                  <span>AC: Diễn xuất</span>
+                  <span>SC: Social content</span>
+                  <span>SF: Brand safety</span>
+                  <span>RL: Reliability</span>
+                </div>
+              </div>
 
-                    return calculatedJobs.map((job, idx) => {
-                      const isHigh = job.matchScore >= 80;
-                      const isMid = job.matchScore >= 50 && job.matchScore < 80;
+              {/* 20 Recommended Roles Column */}
+              <div className="md:col-span-7 space-y-3 flex flex-col justify-between">
+                <div>
+                  <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">Độ Tương Thích Với 20 Vị Trí Công Việc</span>
 
-                      return (
-                        <div
-                          key={job.id}
-                          className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950 p-2.5 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
-                        >
-                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
-                            {idx + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-center">
-                              <h4 className="text-[10px] sm:text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
-                                {job.title}
-                              </h4>
-                              <span className={cn(
-                                "font-display text-[9px] font-extrabold",
-                                isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
-                              )}>
-                                {job.matchScore}% Match
-                              </span>
+                  <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                    {(() => {
+                      const scores = profile.surveyScores || { pageant: 50, runway: 45, kol: 95 };
+                      const calculatedJobs = JOBS_LIST.map((job) => {
+                        const matchScore = Math.round(
+                          scores.pageant * job.weights.pageant +
+                          scores.runway * job.weights.runway +
+                          scores.kol * job.weights.kol
+                        );
+                        return { ...job, matchScore };
+                      }).sort((a, b) => b.matchScore - a.matchScore);
+
+                      return calculatedJobs.map((job, idx) => {
+                        const isHigh = job.matchScore >= 80;
+                        const isMid = job.matchScore >= 50 && job.matchScore < 80;
+
+                        return (
+                          <div
+                            key={job.id}
+                            className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950 p-2.5 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
+                          >
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
+                              {idx + 1}
                             </div>
-                            <p className="text-[8px] text-slate-500 truncate mt-0.5">{job.desc}</p>
-                            <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full transition-all duration-500",
-                                  isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
-                                )}
-                                style={{ width: `${job.matchScore}%` }}
-                              />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-center">
+                                <h4 className="text-[10px] sm:text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
+                                  {job.title}
+                                </h4>
+                                <span className={cn(
+                                  "font-display text-[9px] font-extrabold",
+                                  isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
+                                )}>
+                                  {job.matchScore}% Match
+                                </span>
+                              </div>
+                              <p className="text-[8px] text-slate-500 truncate mt-0.5">{job.desc}</p>
+                              <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
+                                <div
+                                  className={cn(
+                                    "h-full rounded-full transition-all duration-500",
+                                    isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
+                                  )}
+                                  style={{ width: `${job.matchScore}%` }}
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    });
-                  })()}
+                        );
+                      });
+                    })()}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* SECTION F: REPUTATION REVIEWS */}

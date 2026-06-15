@@ -375,19 +375,21 @@ export default function PortfolioPage() {
               {/* Location & Availability Badge */}
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-slate-400 font-medium">
                 <span className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5 text-slate-500" /> {profile.location}
+                  <MapPin className="h-3.5 w-3.5 text-slate-500" /> {profile.isOnboarded ? profile.location : "Chưa biết"}
                 </span>
                 <span className="text-slate-600">•</span>
-                <span>KOL Beauty • MC • Event Guest</span>
+                <span>{profile.isOnboarded ? "KOL Beauty • MC • Event Guest" : "Chưa biết"}</span>
                 <span className="text-slate-600">•</span>
                 <span className={cn(
                   "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border",
-                  profile.isAvailable
+                  profile.isOnboarded && profile.isAvailable
                     ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
-                    : "bg-red-500/10 border-red-500/25 text-red-400"
+                    : profile.isOnboarded
+                      ? "bg-red-500/10 border-red-500/25 text-red-400"
+                      : "bg-slate-500/10 border-slate-500/25 text-slate-400"
                 )}>
-                  <span className={cn("h-1.5 w-1.5 rounded-full", profile.isAvailable ? "bg-emerald-400" : "bg-red-400")} />
-                  {profile.isAvailable ? "Đang Rảnh (Trống lịch hôm nay)" : "Đang Bận"}
+                  {profile.isOnboarded && <span className={cn("h-1.5 w-1.5 rounded-full", profile.isAvailable ? "bg-emerald-400" : "bg-red-400")} />}
+                  {profile.isOnboarded ? (profile.isAvailable ? "Đang Rảnh (Trống lịch hôm nay)" : "Đang Bận") : "Chưa biết"}
                 </span>
               </div>
             </div>
@@ -396,7 +398,7 @@ export default function PortfolioPage() {
           {/* Action Area: Model Tier Card & Share Button */}
           <div className="flex items-center gap-3 pb-1 relative z-10 shrink-0">
             {/* Model Tier Card */}
-            {profile.tier && (() => {
+            {profile.isOnboarded && profile.tier ? (() => {
               const tier = profile.tier.toUpperCase();
               if (tier === "S") {
                 return (
@@ -495,7 +497,25 @@ export default function PortfolioPage() {
                 );
               }
               return null;
-            })()}
+            })() : (
+              <div className="relative overflow-hidden rounded-2xl border border-dashed border-amber-500/20 bg-amber-500/5 p-3 text-left w-64 md:w-72 transition-all duration-300">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+                  <span className="text-[7px] font-black uppercase tracking-wider text-amber-400">
+                    Chưa phân hạng người mẫu
+                  </span>
+                </div>
+                <span className="block text-[11px] font-bold text-white leading-tight">
+                  Làm khảo sát định hướng để tự động xếp hạng người mẫu
+                </span>
+                <button
+                  onClick={() => router.push("/talent/survey")}
+                  className="mt-2 block text-[9px] font-black uppercase tracking-wider text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                >
+                  Làm Khảo Sát Ngay →
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
