@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Users2, Plus, Shield, MapPin, Eye, Briefcase, MessageSquare, Clock, X } from "lucide-react";
+import { Users2, Plus, Shield, MapPin, Eye, Briefcase, MessageSquare, Clock, X, Link2, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 
@@ -23,6 +23,9 @@ interface RosterTabProps {
   statusConfig: Record<RosterStatus, { label: string; dot: string; text: string }>;
   tierColor: (tier: string) => string;
   formatVND: (n: number) => string;
+  affiliateLink: string;
+  copiedLink: boolean;
+  handleCopyLink: () => void;
   handleRemove: (talentId: string) => void;
   setShowInviteModal: (show: boolean) => void;
 }
@@ -33,11 +36,57 @@ export default function RosterTab({
   statusConfig,
   tierColor,
   formatVND,
+  affiliateLink,
+  copiedLink,
+  handleCopyLink,
   handleRemove,
   setShowInviteModal,
 }: RosterTabProps) {
   return (
     <div className="space-y-4">
+      <section className="relative overflow-hidden rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-400/10 via-[#111018] to-[#08090f] p-3.5 shadow-[0_0_20px_rgba(245,158,11,0.06)] md:p-4">
+        <div className="absolute right-[-70px] top-[-80px] h-40 w-40 rounded-full bg-amber-300/8 blur-3xl pointer-events-none" />
+        <div className="relative flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/25 bg-amber-400/10 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.1)]">
+              <Link2 className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <span className="inline-flex rounded-md border border-amber-400/25 bg-amber-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-300">
+                Affiliate Link
+              </span>
+              <h2 className="mt-1.5 text-sm font-black uppercase tracking-tight text-white md:text-base">
+                Link tuyển Talent vào mạng lưới Brand
+              </h2>
+              <p className="mt-1 max-w-2xl text-[10px] font-semibold leading-relaxed text-slate-400 md:text-[11px]">
+                Chia sẻ link này cho Talent để họ tham gia roster của Brand và ghi nhận hoa hồng affiliate.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className={cn(
+              "flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-[10px] font-black uppercase tracking-wider transition-all active:scale-[0.98] lg:w-auto",
+              copiedLink
+                ? "border border-emerald-400/30 bg-emerald-400/15 text-emerald-300"
+                : "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_18px_rgba(245,158,11,0.22)] hover:brightness-105"
+            )}
+          >
+            {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {copiedLink ? "Đã sao chép" : "Sao chép link"}
+          </button>
+        </div>
+
+        <div className="relative mt-3 flex min-w-0 items-center gap-2 rounded-xl border border-amber-400/15 bg-[#050711]/80 p-2.5 md:p-3">
+          <Link2 className="h-4 w-4 shrink-0 text-amber-300" />
+          <span className="min-w-0 flex-1 truncate font-mono text-[10px] font-bold text-amber-100 md:text-xs">
+            {affiliateLink}
+          </span>
+        </div>
+      </section>
+
       {roster.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-14 md:py-20 px-4 text-center rounded-3xl border border-dashed border-white/5 bg-[#08090f]/40">
           <Users2 className="h-12 w-12 text-slate-700 mb-4 animate-pulse" />

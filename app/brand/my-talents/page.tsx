@@ -492,6 +492,9 @@ export default function MyTalentsPage() {
           statusConfig={statusConfig}
           tierColor={tierColor}
           formatVND={formatVND}
+          affiliateLink={affiliateLink}
+          copiedLink={copiedLink}
+          handleCopyLink={handleCopyLink}
           handleRemove={handleRemove}
           setShowInviteModal={setShowInviteModal}
         />
@@ -511,9 +514,6 @@ export default function MyTalentsPage() {
           totalF1Commission={totalF1Commission}
           passiveMLM={passiveMLM}
           totalRevenue={totalRevenue}
-          affiliateLink={affiliateLink}
-          copiedLink={copiedLink}
-          handleCopyLink={handleCopyLink}
           formatVND={formatVND}
         />
       )}

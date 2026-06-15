@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import {
-  BarChart3, Users2, Link2, Network, Wallet, ArrowUpRight, Check, Copy,
-  Calendar, QrCode
+  BarChart3, Users2, Network, Wallet, ArrowUpRight,
+  Calendar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RosterTalent } from "./roster-tab";
@@ -13,9 +13,6 @@ interface RevenueTabProps {
   totalF1Commission: number;
   passiveMLM: number;
   totalRevenue: number;
-  affiliateLink: string;
-  copiedLink: boolean;
-  handleCopyLink: () => void;
   formatVND: (n: number) => string;
 }
 
@@ -24,13 +21,9 @@ export default function RevenueTab({
   totalF1Commission,
   passiveMLM,
   totalRevenue,
-  affiliateLink,
-  copiedLink,
-  handleCopyLink,
   formatVND,
 }: RevenueTabProps) {
   const [timeframe, setTimeframe] = useState<"month" | "quarter" | "year">("month");
-  const [showQR, setShowQR] = useState(false);
 
   const acceptedRoster = roster.filter((r) => r.status === "accepted");
 
@@ -172,7 +165,7 @@ export default function RevenueTab({
           </div>
         </div>
 
-        {/* ── Right side: Affiliate Link, QR Code ── */}
+        {/* ── Right side: Payout CTA ── */}
         <div className="space-y-6">
           {/* Payout CTA */}
           <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 p-6 flex flex-col gap-4 relative overflow-hidden">
@@ -193,87 +186,6 @@ export default function RevenueTab({
             </button>
           </div>
 
-          {/* Affiliate Link & QR Code display */}
-          <div className="rounded-2xl bg-[#08090f] border border-[#151b2d] p-6 space-y-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/20 to-yellow-600/10 border border-amber-500/20">
-                <Link2 className="h-5 w-5 text-amber-400" />
-              </div>
-              <div>
-                <h2 className="text-sm font-black text-white uppercase tracking-wider">Affiliate Link</h2>
-                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Chia sẻ link để tuyển dụng Talent tham gia mạng lưới của Brand</p>
-              </div>
-            </div>
-
-            {/* Link Copy */}
-            <div className="flex items-center gap-2 rounded-xl bg-[#050711] border border-[#151b2d] p-3">
-              <Link2 className="h-4 w-4 text-slate-500 shrink-0" />
-              <span className="flex-1 text-[11px] font-mono text-slate-400 truncate">{affiliateLink}</span>
-              <button
-                onClick={handleCopyLink}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border shrink-0",
-                  copiedLink
-                    ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
-                    : "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20 hover:border-amber-500/40"
-                )}
-              >
-                {copiedLink ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                {copiedLink ? "Đã chép" : "Copy"}
-              </button>
-            </div>
-
-            {/* Offline QR Code Trigger */}
-            <div className="pt-2 border-t border-[#151b2d]/50">
-              <button
-                onClick={() => setShowQR(!showQR)}
-                className="flex w-full items-center justify-between rounded-xl bg-[#050711] border border-[#151b2d] px-4 py-3 hover:border-amber-500/30 transition-all"
-              >
-                <span className="flex items-center gap-2 text-[10px] font-bold text-slate-300 uppercase tracking-wider">
-                  <QrCode className="h-4 w-4 text-amber-400" />
-                  QR Code
-                </span>
-                <span className="text-[9px] font-black text-amber-400 bg-amber-500/5 px-2 py-0.5 rounded border border-amber-500/15">
-                  {showQR ? "ẨN" : "XEM"}
-                </span>
-              </button>
-
-              {/* QR Code Container */}
-              {showQR && (
-                <div className="mt-4 flex flex-col items-center justify-center p-5 bg-[#050711] border border-amber-500/10 rounded-2xl animate-in slide-in-from-top-3 duration-300">
-                  <div className="bg-white p-3.5 rounded-xl border border-white shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-                    <svg width="120" height="120" viewBox="0 0 100 100" className="text-slate-950">
-                      <rect width="100" height="100" fill="white" />
-                      <rect x="5" y="5" width="25" height="25" fill="black" />
-                      <rect x="10" y="10" width="15" height="15" fill="white" />
-                      <rect x="13" y="13" width="9" height="9" fill="black" />
-                      <rect x="70" y="5" width="25" height="25" fill="black" />
-                      <rect x="75" y="10" width="15" height="15" fill="white" />
-                      <rect x="78" y="13" width="9" height="9" fill="black" />
-                      <rect x="5" y="70" width="25" height="25" fill="black" />
-                      <rect x="10" y="75" width="15" height="15" fill="white" />
-                      <rect x="13" y="78" width="9" height="9" fill="black" />
-                      <rect x="75" y="75" width="10" height="10" fill="black" />
-                      <rect x="77" y="77" width="6" height="6" fill="white" />
-                      <rect x="79" y="79" width="2" height="2" fill="black" />
-                      <rect x="35" y="10" width="5" height="5" fill="black" /><rect x="45" y="5" width="10" height="5" fill="black" />
-                      <rect x="40" y="15" width="5" height="5" fill="black" /><rect x="55" y="10" width="5" height="10" fill="black" />
-                      <rect x="35" y="30" width="15" height="5" fill="black" /><rect x="60" y="25" width="5" height="15" fill="black" />
-                      <rect x="10" y="35" width="5" height="15" fill="black" /><rect x="25" y="45" width="5" height="5" fill="black" />
-                      <rect x="40" y="50" width="10" height="10" fill="black" /><rect x="55" y="45" width="15" height="5" fill="black" />
-                      <rect x="15" y="60" width="10" height="5" fill="black" /><rect x="30" y="65" width="5" height="10" fill="black" />
-                      <rect x="70" y="40" width="10" height="15" fill="black" /><rect x="85" y="50" width="10" height="5" fill="black" />
-                      <rect x="45" y="70" width="5" height="20" fill="black" /><rect x="55" y="80" width="15" height="10" fill="black" />
-                      <rect x="60" y="70" width="10" height="5" fill="black" /><rect x="35" y="80" width="5" height="5" fill="black" />
-                    </svg>
-                  </div>
-                  <p className="text-[9px] text-slate-400 mt-3 font-semibold text-center uppercase tracking-wider">
-                    Quét mã giới thiệu đại diện
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </div>
