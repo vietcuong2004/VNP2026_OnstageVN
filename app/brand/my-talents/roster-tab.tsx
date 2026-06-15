@@ -203,16 +203,25 @@ export default function RosterTab({
                 )}
 
                 {isPending && (
-                  <div className="mt-5 rounded-xl bg-amber-500/5 border border-amber-500/15 p-3 pr-12 flex items-center gap-3">
-                    <Clock className="h-4 w-4 text-amber-400 shrink-0" />
-                    <p className="text-[10px] text-amber-300/80 font-medium leading-relaxed">
-                      Lời mời đã được gửi vào <span className="text-white font-bold">{entry.addedAt}</span>. Chờ Talent xác nhận.
-                    </p>
+                  <div className="mt-5 flex flex-col gap-3 rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                      <p className="text-[10px] font-medium leading-relaxed text-amber-300/80">
+                        Lời mời đã được gửi vào <span className="font-bold text-white">{entry.addedAt}</span>. Chờ Talent xác nhận.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleRemove(entry.talentId)}
+                      className="flex h-8 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3 text-[9px] font-black uppercase tracking-wider text-red-300 transition-all hover:bg-red-500/20 hover:text-red-200 sm:w-auto"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Hủy lời mời
+                    </button>
                   </div>
                 )}
 
                 {/* Remove button */}
-                {!isAccepted && (
+                {!isAccepted && !isPending && (
                   <button
                     onClick={() => handleRemove(entry.talentId)}
                     className="absolute bottom-5 right-5 h-7 w-7 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 cursor-pointer transition-all"

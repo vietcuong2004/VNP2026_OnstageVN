@@ -389,7 +389,7 @@ export default function TalentAffiliatePage() {
   };
 
   const campaignBudgetValue = (campaign: any) => campaign.budgetValue || (() => {
-    const rawBudget = campaign.budget || "10.000.000Ä‘";
+    const rawBudget = campaign.budget || "10.000.000đ";
     const firstPart = rawBudget.split("-")[0] || "";
     return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
   })();
