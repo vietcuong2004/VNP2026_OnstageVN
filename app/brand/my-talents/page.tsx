@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, profileAvatarFromBackend } from "@/lib/avatar";
-import { talents as allTalents } from "@/lib/brand-mvp-data";
+import { talents as allTalents, type TalentProfile } from "@/lib/brand-mvp-data";
 import {
   addBrandRosterTalent,
   createBrandTalentInviteLink,
@@ -23,8 +23,8 @@ import RevenueTab from "./revenue-tab";
 import InviteModal from "./invite-modal";
 
 // ─── Extended mock talents local to this page so that invite list has candidates ────
-const extendedTalents: BrandTalentCard[] = [
-  ...(allTalents as BrandTalentCard[]),
+const extendedTalents: TalentProfile[] = [
+  ...allTalents,
   {
     id: "tal-6",
     name: "Vương Việt Cường",
@@ -223,10 +223,11 @@ function profileToTalent(
     usableText(fallback?.name) ||
     `Talent #${String(profile.id || fallback?.id || "").trim() || "mới"}`;
   const backendAvatar = profileAvatarFromBackend(profile) || profile.avatar_url || profile.user?.external_avatar_url;
+  const fallbackAvatar = fallback?.avatar;
   const avatar = isUsableAvatarUrl(backendAvatar)
     ? backendAvatar
-    : isUsableAvatarUrl(fallback?.avatar)
-      ? fallback.avatar
+    : isUsableAvatarUrl(fallbackAvatar)
+      ? fallbackAvatar
       : createInitialAvatarDataUrl(displayName, profile.user?.email || profile.user?.name);
 
   return {
@@ -401,7 +402,7 @@ export default function MyTalentsPage() {
   ).filter(t =>
     inviteSearch === "" ||
     t.name.toLowerCase().includes(inviteSearch.toLowerCase()) ||
-    t.type.toLowerCase().includes(inviteSearch.toLowerCase())
+    (t.type || "").toLowerCase().includes(inviteSearch.toLowerCase())
   );
 
   const tierColor = (tier: string) => {

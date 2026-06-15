@@ -182,7 +182,7 @@ export default function TalentBrandsPage() {
   const loadInvitations = useCallback(async () => {
     try {
       const items = await loadTalentBrandInvitations();
-      let mapped = items?.length ? items.map(mapBackendInvitation) : MOCK_INVITATIONS;
+      const mapped = items?.length ? items.map(mapBackendInvitation) : MOCK_INVITATIONS;
       setInvitations(mapped);
 
       // Pre-load invite links for accepted partnerships in the background
