@@ -1,6 +1,6 @@
 "use client";
 
-import { apiJson, getAuthToken, getStoredAuthUser } from "@/lib/api-client";
+import { apiJson, getAuthToken } from "@/lib/api-client";
 import type { Campaign, CampaignStage, TalentProfile } from "@/lib/brand-mvp-data";
 
 type BackendUser = {
@@ -14,20 +14,11 @@ type BackendUser = {
   parent?: BackendUser | null;
 };
 
-type StoredAuthUser = {
-  type?: string | null;
-};
-
 export function requireBrandSession() {
   const token = getAuthToken();
-  const user = getStoredAuthUser<StoredAuthUser>();
 
   if (!token) {
     throw new Error("Bạn cần đăng nhập bằng tài khoản brand để thực hiện thao tác này.");
-  }
-
-  if (user?.type && user.type !== "brand") {
-    throw new Error("Tính năng này chỉ dành cho tài khoản brand.");
   }
 }
 

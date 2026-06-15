@@ -94,13 +94,13 @@ export default function Header() {
   }, []);
 
   const label = user
-    ? { name: user.name, subtitle: user.type === "talent" ? "Talent" : "Đối tác" }
+    ? { name: user.name, subtitle: user.email || "" }
     : isBrandPath
-      ? { name: "L'Oréal Vietnam", subtitle: "Doanh nghiệp" }
-      : { name: "Nguyễn Mai Anh", subtitle: "Hạng S" };
+      ? { name: "L'Oréal Vietnam", subtitle: "partner@loreal.com" }
+      : { name: "Nguyễn Mai Anh", subtitle: "maianh@onstage.vn" };
   const fallbackAvatarSrc = createInitialAvatarDataUrl(label.name, user?.email);
   const headerAvatarSrc = isBrandPath ? "/logo_icon.png" : talentAvatar || fallbackAvatarSrc;
-  const nextPlatform = user?.type === "brand" ? "talent" : "brand";
+  const nextPlatform = isBrandPath ? "talent" : "brand";
   const nextPlatformPath = nextPlatform === "brand" ? "/brand/dashboard" : "/talent/dashboard";
   const nextPlatformLabel = nextPlatform === "brand" ? "Chuyển sang Brand" : "Chuyển sang Talent";
 
@@ -121,7 +121,7 @@ export default function Header() {
   }
 
   useEffect(() => {
-    if (!user || user.type !== "talent") return;
+    if (!user || isBrandPath) return;
 
     let cancelled = false;
 
@@ -140,7 +140,7 @@ export default function Header() {
     return () => {
       cancelled = true;
     };
-  }, [fallbackAvatarSrc, user]);
+  }, [fallbackAvatarSrc, isBrandPath, user]);
 
   async function handleLogout() {
     const token = localStorage.getItem("onstagevn_auth_token");
@@ -217,7 +217,7 @@ export default function Header() {
             />
             <div className="hidden sm:block">
               <span className="block text-xs font-bold text-white">{label.name}</span>
-              <span className="block text-[10px] text-slate-500">{label.subtitle}</span>
+              {label.subtitle && <span className="block max-w-32 truncate text-[10px] text-slate-500">{label.subtitle}</span>}
             </div>
             <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
           </button>
