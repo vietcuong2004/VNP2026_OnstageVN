@@ -1,9 +1,11 @@
 "use client";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import AuthGuard from "@/components/auth-guard";
 import BottomNavigation from "@/components/BottomNavigation";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
+import { isPublicPath } from "@/lib/auth-routes";
 import { usePathname } from "next/navigation";
 import "./globals.css";
 
@@ -13,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const isPublic = pathname === "/" || pathname.startsWith("/auth") || pathname.startsWith("/campaign");
+  const isPublic = isPublicPath(pathname || "/");
 
   return (
     <html lang="vi" className="h-full dark antialiased" style={{ colorScheme: "dark" }}>
@@ -27,7 +29,8 @@ export default function RootLayout({
       </head>
       <body className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
         <ThemeProvider>
-          <div className="flex flex-col h-screen w-full relative overflow-x-hidden">
+          <AuthGuard>
+            <div className="flex flex-col h-screen w-full relative overflow-x-hidden">
 
             {/* Ambient background glows */}
             <div className="absolute top-[-10%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none" />
@@ -56,7 +59,8 @@ export default function RootLayout({
 
             {/* Mobile Bottom Navigation menu */}
             {!isPublic && <BottomNavigation />}
-          </div>
+            </div>
+          </AuthGuard>
         </ThemeProvider>
       </body>
     </html>
