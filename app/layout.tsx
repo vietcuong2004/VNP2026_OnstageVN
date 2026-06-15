@@ -17,6 +17,11 @@ export default function RootLayout({
 
   return (
     <html lang="vi" className="h-full dark antialiased" style={{ colorScheme: "dark" }}>
+      <head>
+        <link rel="icon" type="image/png" href="/icon.png?v=onstage-logo" />
+        <link rel="shortcut icon" type="image/png" href="/icon.png?v=onstage-logo" />
+        <link rel="apple-touch-icon" href="/icon.png?v=onstage-logo" />
+      </head>
       <body className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
         <ThemeProvider>
           <div className="flex flex-col h-screen w-full relative overflow-x-hidden">
