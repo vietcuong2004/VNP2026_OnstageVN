@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import AuthGuard from "@/components/auth-guard";
 import BottomNavigation from "@/components/BottomNavigation";
 import Header from "@/components/header";
+import RouteScrollReset from "@/components/route-scroll-reset";
 import Sidebar from "@/components/sidebar";
 import { isPublicPath } from "@/lib/auth-routes";
 import { usePathname } from "next/navigation";
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
         <ThemeProvider>
           <AuthGuard>
+            <RouteScrollReset />
             <div className="flex flex-col h-dvh w-full relative overflow-hidden">
 
             {/* Ambient background glows */}

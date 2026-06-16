@@ -253,6 +253,37 @@ function photoUrl(photo?: BackendPhoto | null) {
   return isPortablePhotoUrl(url) ? url : "";
 }
 
+function isPlaceholderTalentName(value?: string | null) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return !normalized || normalized === "talent";
+}
+
+function profileDisplayName(profile: BackendProfile, localName?: string) {
+  if (!isPlaceholderTalentName(profile.display_name)) return profile.display_name;
+  if (!isPlaceholderTalentName(profile.user?.name)) return profile.user?.name;
+  if (!isPlaceholderTalentName(localName)) return localName;
+  return "Talent";
+}
+
+function applyLatestSurveyState(profile: any, history: TalentSurveyHistoryEntry[]) {
+  const latest = history[0];
+  if (!latest) return profile;
+
+  return {
+    ...profile,
+    isOnboarded: true,
+    tier: latest.tier || profile.tier,
+    profileScore: latest.profileScore || profile.profileScore,
+    mainCategory: latest.mainCategory || profile.mainCategory,
+    surveyScores: {
+      pageant: latest.pageant ?? profile.surveyScores?.pageant ?? 0,
+      runway: latest.runway ?? profile.surveyScores?.runway ?? 0,
+      kol: latest.kol ?? profile.surveyScores?.kol ?? 0,
+    },
+    aiSurveyAnalysis: latest.aiSurveyAnalysis ?? profile.aiSurveyAnalysis,
+  };
+}
+
 function parseMeasurements(value: BackendProfile["measurements"] | string | null | undefined) {
   if (!value) return {};
   if (typeof value === "object") return value;
@@ -282,9 +313,9 @@ export function mapBackendProfile(profile: BackendProfile | null) {
   const mapped = {
     ...local,
     backendProfileId: profile.id,
-    name: profile.display_name || profile.user?.name || local.name,
+    name: profileDisplayName(profile, local.name),
     email: profile.user?.email || local.email,
-    avatar: avatarUrl || local.avatar || createInitialAvatarDataUrl(profile.display_name || profile.user?.name, profile.user?.email),
+    avatar: avatarUrl || local.avatar || createInitialAvatarDataUrl(profileDisplayName(profile, local.name), profile.user?.email),
     cover: coverUrl || local.cover || "/cover_image.png",
     fullBody: fullBodyUrl || local.fullBody || "/fullbody_model.png",
     cccdFront: cccdFrontUrl || local.cccdFront || "",
@@ -322,7 +353,9 @@ export async function loadTalentProfile() {
 
   try {
     const response = await apiJson<{ data: BackendProfile | null }>("/my/profile");
-    return mapBackendProfile(response.data);
+    const mappedProfile = mapBackendProfile(response.data);
+    const history = await loadTalentSurveyHistory();
+    return persistTalentProfile(applyLatestSurveyState(mappedProfile, history));
   } catch (error) {
     console.warn(error);
     return persistTalentProfile(readLocalProfile());
@@ -763,7 +796,7 @@ export function mapCampaignToTalentJob(campaign: any) {
       benefits: [
         ...(campaign.benefits ? String(campaign.benefits).split(/\r?\n|;|\./).map((item) => item.trim()).filter(Boolean) : []),
         campaign.budget_min || campaign.budget_max ? `Cát-xê dự kiến: ${moneyRange(campaign.budget_min, campaign.budget_max)}.` : "Cát-xê trao đổi theo brief.",
-        "Thông tin ứng tuyển được lưu trực tiếp vào backend để brand xử lý.",
+        "Brand sẽ xem hồ sơ và phản hồi trạng thái ứng tuyển ngay trên hệ thống.",
       ],
       phases: [
         {
