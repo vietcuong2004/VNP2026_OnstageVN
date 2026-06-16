@@ -588,7 +588,7 @@ export default function CampaignDetailPage() {
         </div>
 
         {/* Right Side: Mô tả chung sidebar */}
-        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 xl:col-span-4 text-left">
+        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 xl:col-span-4 xl:self-start text-left">
           <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-300">MÔ TẢ CHUNG</h2>
           <div className="divide-y divide-white/5 text-xs">
             <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2 first:pt-0">
@@ -597,28 +597,28 @@ export default function CampaignDetailPage() {
             </div>
             <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
-              <p className="line-clamp-3 leading-relaxed text-slate-300" title={selectedCampaign.requirements}>{selectedCampaign.requirements}</p>
+              <p className="leading-relaxed text-slate-300" title={selectedCampaign.requirements}>{selectedCampaign.requirements}</p>
             </div>
             <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
-              <p className="line-clamp-3 leading-relaxed text-slate-300" title={selectedCampaign.benefits}>{selectedCampaign.benefits}</p>
+              <p className="leading-relaxed text-slate-300" title={selectedCampaign.benefits}>{selectedCampaign.benefits}</p>
             </div>
             {selectedCampaign.venueName && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Địa điểm</span>
-                <p className="line-clamp-2 leading-relaxed text-slate-300" title={selectedCampaign.venueName}>{selectedCampaign.venueName}</p>
+                <p className="leading-relaxed text-slate-300" title={selectedCampaign.venueName}>{selectedCampaign.venueName}</p>
               </div>
             )}
             {selectedCampaign.venueAddress && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Địa chỉ</span>
-                <p className="line-clamp-3 leading-relaxed text-slate-300" title={selectedCampaign.venueAddress}>{selectedCampaign.venueAddress}</p>
+                <p className="leading-relaxed text-slate-300" title={selectedCampaign.venueAddress}>{selectedCampaign.venueAddress}</p>
               </div>
             )}
             {selectedCampaign.roles && selectedCampaign.roles.length > 0 && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí</span>
-                <div className="flex max-h-16 flex-wrap gap-1.5 overflow-hidden">
+                <div className="flex flex-wrap gap-1.5">
                   {selectedCampaign.roles.map((role, idx) => (
                     <span key={`${role}-${idx}`} className="rounded bg-cyan-400/10 border border-cyan-400/20 px-2 py-1 text-[8.5px] font-bold text-cyan-300 uppercase tracking-wider">
                       {role}
@@ -630,7 +630,7 @@ export default function CampaignDetailPage() {
             {selectedCampaign.targetProfiles && selectedCampaign.targetProfiles.length > 0 && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Talent</span>
-                <div className="flex max-h-16 flex-wrap gap-1.5 overflow-hidden">
+                <div className="flex flex-wrap gap-1.5">
                   {selectedCampaign.targetProfiles.map((profile, idx) => (
                     <span key={`${profile}-${idx}`} className="rounded bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 text-[8.5px] font-bold text-emerald-300 uppercase tracking-wider">
                       {profile}
@@ -642,7 +642,7 @@ export default function CampaignDetailPage() {
             {selectedCampaign.industries && selectedCampaign.industries.length > 0 && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực</span>
-                <div className="flex max-h-16 flex-wrap gap-1.5 overflow-hidden">
+                <div className="flex flex-wrap gap-1.5">
                   {selectedCampaign.industries.map((industry, idx) => (
                     <span key={`${industry}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
                       {industry}
@@ -654,8 +654,8 @@ export default function CampaignDetailPage() {
             {selectedCampaign.responsibilities && selectedCampaign.responsibilities.length > 0 && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Đầu việc</span>
-                <ul className="line-clamp-5 list-disc space-y-1 pl-4 leading-relaxed text-slate-300">
-                  {selectedCampaign.responsibilities.slice(0, 5).map((item, idx) => (
+                <ul className="list-disc space-y-1 pl-4 leading-relaxed text-slate-300">
+                  {selectedCampaign.responsibilities.map((item, idx) => (
                     <li key={`${item}-${idx}`}>{item}</li>
                   ))}
                 </ul>
@@ -664,13 +664,13 @@ export default function CampaignDetailPage() {
             {selectedCampaign.contactNote && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Ứng tuyển</span>
-                <p className="line-clamp-3 leading-relaxed text-slate-300" title={selectedCampaign.contactNote}>{selectedCampaign.contactNote}</p>
+                <p className="leading-relaxed text-slate-300" title={selectedCampaign.contactNote}>{selectedCampaign.contactNote}</p>
               </div>
             )}
             {selectedCampaign.sponsorships && selectedCampaign.sponsorships.length > 0 && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Tài trợ</span>
-                <div className="flex max-h-16 flex-wrap gap-1.5 overflow-hidden">
+                <div className="flex flex-wrap gap-1.5">
                   {selectedCampaign.sponsorships.map((s, idx) => (
                     <span key={idx} className="inline-block rounded bg-amber-400/10 border border-amber-400/30 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
                       🎁 {s.category}
