@@ -11,6 +11,7 @@ import PersonalInfoTab from "./PersonalInfoTab";
 import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
 import Portrait3DTab from "./Portrait3DTab";
+import ProgressBar from "@/components/ui/ProgressBar";
 import { findTalentById } from "@/lib/brand-mvp-data";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
@@ -23,6 +24,14 @@ export default function PortfolioPage() {
   const [activeTab, setActiveTab] = useState<"edit-info" | "personal-info" | "addon-services" | "portrait-3d">("personal-info");
 
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
+
+  const [uploadingState, setUploadingState] = useState<{
+    [key: string]: {
+      progress: number;
+      fileName: string;
+      status: "uploading" | "done" | "error" | "idle";
+    };
+  }>({});
 
   // Modals for Brand interactions preview
   const [showBookModal, setShowBookModal] = useState(false);
@@ -171,17 +180,43 @@ export default function PortfolioPage() {
     e.target.value = "";
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      addToast("Kich thuoc anh phai nho hon 5MB.", "info");
-      return;
-    }
+    setUploadingState(prev => ({
+      ...prev,
+      [type]: {
+        progress: 0,
+        fileName: file.name,
+        status: "uploading"
+      }
+    }));
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 8;
+      if (progress > 95) progress = 95;
+      setUploadingState(prev => {
+        if (!prev[type]) return prev;
+        return {
+          ...prev,
+          [type]: {
+            ...prev[type],
+            progress
+          }
+        };
+      });
+    }, 150);
 
     try {
       const syncedProfile = await ensureTalentProfile(profile);
 
       if (!syncedProfile.backendProfileId) {
+        clearInterval(interval);
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
         setProfile(syncedProfile);
-        addToast("Vui long dang nhap lai de tai anh len he thong.", "info");
+        addToast("Vui lòng đăng nhập lại để tải ảnh lên hệ thống.", "info");
         return;
       }
 
@@ -189,39 +224,48 @@ export default function PortfolioPage() {
       const photoUrl = photo.url || photo.path;
 
       if (!photoUrl) {
-        addToast("Upload thanh cong nhung backend chua tra ve duong dan anh.", "info");
+        clearInterval(interval);
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
+        addToast("Đăng tải thành công nhưng backend chưa trả về đường dẫn ảnh.", "info");
         return;
       }
 
       const updatedProfile = persistTalentProfile({ ...syncedProfile, [type]: photoUrl });
       setProfile(updatedProfile);
-      addToast(`Cap nhat ${type === "avatar" ? "anh dai dien" : "anh bia"} thanh cong!`, "success");
+
+      clearInterval(interval);
+      setUploadingState(prev => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          progress: 100,
+          status: "done"
+        }
+      }));
+
+      setTimeout(() => {
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
+      }, 800);
+
+      addToast(`Cập nhật ${type === "avatar" ? "ảnh đại diện" : "ảnh bìa"} thành công!`, "success");
     } catch (error) {
+      clearInterval(interval);
+      setUploadingState(prev => {
+        const next = { ...prev };
+        delete next[type];
+        return next;
+      });
       console.error(error);
-      addToast("Khong tai duoc anh len backend. Kiem tra lai API/storage.", "info");
+      addToast(error instanceof Error ? error.message : "Không tải được ảnh lên backend. Kiểm tra lại API/storage.", "info");
     }
-
-    return;
-
-    /*
-    // Enforce size limit of 1.5MB to avoid browser storage quota issues.
-    if (file.size > 1.5 * 1024 * 1024) {
-      addToast("Kích thước ảnh phải nhỏ hơn 1.5MB để tối ưu dung lượng lưu trữ", "info");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64String = event.target?.result as string;
-      if (base64String) {
-        const updatedProfile = { ...profile, [type]: base64String };
-        setProfile(updatedProfile);
-        persistTalentProfile(updatedProfile);
-        addToast(`Cập nhật ${type === "avatar" ? "Ảnh đại diện" : "Ảnh bìa"} thành công!`, "success");
-      }
-    };
-    reader.readAsDataURL(file);
-    */
   };
 
   // Handler for booking form submit preview
@@ -269,10 +313,17 @@ export default function PortfolioPage() {
                   type="file"
                   accept="image/*"
                   className="hidden"
+                  disabled={!!uploadingState["cover"]}
                   onChange={(e) => handleImageUpload(e, "cover")}
                 />
               </label>
             </div>
+            {uploadingState["cover"] && (
+              <ProgressBar
+                progress={uploadingState["cover"].progress}
+                message="Đang tải ảnh bìa lên..."
+              />
+            )}
           </div>
         ) : (
           <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-white/5 bg-slate-950 group">
@@ -291,10 +342,17 @@ export default function PortfolioPage() {
                   type="file"
                   accept="image/*"
                   className="hidden"
+                  disabled={!!uploadingState["cover"]}
                   onChange={(e) => handleImageUpload(e, "cover")}
                 />
               </label>
             </div>
+            {uploadingState["cover"] && (
+              <ProgressBar
+                progress={uploadingState["cover"].progress}
+                message="Đang tải ảnh bìa lên..."
+              />
+            )}
           </div>
         )}
 
@@ -327,10 +385,19 @@ export default function PortfolioPage() {
                     type="file"
                     accept="image/*"
                     className="hidden"
+                    disabled={!!uploadingState["avatar"]}
                     onChange={(e) => handleImageUpload(e, "avatar")}
                   />
                 </label>
               </div>
+
+              {uploadingState["avatar"] && (
+                <ProgressBar
+                  progress={uploadingState["avatar"].progress}
+                  message="Tải ảnh..."
+                  className="rounded-full"
+                />
+              )}
 
               <span className={cn(
                 "absolute bottom-1 right-1 h-4 w-4 border-2 border-[#08090f] rounded-full z-10",

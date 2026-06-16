@@ -166,7 +166,7 @@ export default function PersonalInfoTab({
         return next;
       });
       console.error(error);
-      addToast("Không tải được ảnh lên, vui lòng thử lại.", "info");
+      addToast(error instanceof Error ? error.message : "Không tải được ảnh lên, vui lòng thử lại.", "info");
     }
   };
 
@@ -262,7 +262,7 @@ export default function PersonalInfoTab({
         return next;
       });
       console.error(error);
-      addToast("Không tải được ảnh lên, vui lòng thử lại.", "info");
+      addToast(error instanceof Error ? error.message : "Không tải được ảnh lên, vui lòng thử lại.", "info");
     }
   };
 

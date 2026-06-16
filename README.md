@@ -221,3 +221,134 @@ server {
 }
 ```
 
+Lệnh deploy:
+./vendor/bin/dep deploy:onstage.vn onstage.vn:frontend-server-local-45 -vvv
+
+---
+
+## 🚀 Quy Trình Deploy Sau Khi Sửa Code
+
+Sau khi chỉnh sửa code frontend, có **2 cách** để deploy lên server production (`onstage.vn`):
+
+---
+
+### ⚡ Cách 1 — Tự Động bằng Deployer (Khuyến nghị)
+
+Hệ thống sử dụng [Deployer PHP](https://deployer.org/) để tự động hoá toàn bộ quy trình.
+
+> **Yêu cầu trước:** Có PHP cài sẵn trên máy local & đã clone repo `deploy` về máy.
+
+**Bước 1 — Push code lên nhánh `main` (GitLab):**
+```bash
+git add .
+git commit -m "feat: mô tả thay đổi"
+git push origin main
+```
+
+**Bước 2 — Chạy lệnh deploy từ thư mục `deploy/` trên máy local:**
+```bash
+cd C:\CONG_VIEC\VNP_OnstageVN\deploy
+
+# Cài đặt Deployer lần đầu (chỉ cần chạy 1 lần):
+composer install
+
+# Deploy lên server production:
+./vendor/bin/dep deploy:onstage.vn onstage.vn:frontend-server-local-45 -vvv
+```
+
+**Những gì Deployer tự động làm:**
+
+| Bước | Mô tả |
+|------|--------|
+| `deploy:update_code` | Pull code mới nhất từ nhánh `main` trên GitLab |
+| `upload` | Upload file `.env` và `pm2.yml` lên server |
+| `npm:frontend` | Chạy `npm install && npm run build` (dùng Node.js v22 qua NVM) |
+| `deploy:symlink` | Symlink `current/` sang release mới |
+| `pm2:restart` | Chạy `pm2 flush && pm2 restart pm2.yml` để áp dụng code mới |
+
+**Thông tin server (được cấu hình sẵn trong `deploy/`):**
+
+| Thông số | Giá trị |
+|----------|---------|
+| Host | `118.70.132.119` |
+| Port SSH | `4522` |
+| User | `ssh_code` |
+| Nhánh deploy | `main` |
+| Thư mục gốc | `/var/www/manager-kol-model/web-main` |
+| Code chạy tại | `/var/www/manager-kol-model/web-main/current` |
+| URL production | `https://onstage.vn` |
+| Node.js (trên server) | v22.22.3 (qua NVM) |
+
+---
+
+### 🔧 Cách 2 — Thủ Công qua SSH
+
+Dùng khi cần can thiệp trực tiếp vào server.
+
+**Bước 1 — Push code lên GitLab trước:**
+```bash
+git add .
+git commit -m "feat: mô tả thay đổi"
+git push origin main
+```
+
+**Bước 2 — SSH vào server:**
+```bash
+ssh ssh_code@118.70.132.119 -p 4522
+```
+
+**Bước 3 — Đến thư mục code:**
+```bash
+cd /var/www/manager-kol-model/web-main/current
+```
+
+**Bước 4 — Kéo code mới:**
+```bash
+git pull origin main
+```
+
+**Bước 5 — Cài đặt thư viện (nếu có thay đổi `package.json`):**
+```bash
+nvm use 22
+npm install
+```
+
+**Bước 6 — Build lại Next.js:**
+```bash
+npm run build
+```
+
+**Bước 7 — Khởi động lại PM2:**
+```bash
+# Nếu PM2 chưa chạy (lần đầu):
+pm2 start pm2.yml
+
+# Nếu đã chạy rồi (cập nhật):
+pm2 flush
+pm2 restart pm2.yml
+```
+
+---
+
+### 📋 Cấu Hình PM2 (`pm2.yml`)
+
+```yaml
+apps:
+  - name: 'onstage-web'
+    script: 'npm'
+    args: 'start'
+    instances: 1
+    exec_mode: fork
+    cwd: /var/www/manager-kol-model/web-main/current
+    autorestart: true
+    restart_delay: 30000
+    log_date_format: MM.DD.HH.mm
+```
+
+### 🌍 Biến Môi Trường Production (`.env`)
+
+```env
+NEXT_PUBLIC_API_URL=https://onstage.vn/api
+```
+
+> **Lưu ý:** File `.env` production được upload tự động lên server bởi Deployer (từ `deploy/domains/onstage.vn/stages/frontend-server-local-45/.env`). Không commit file này lên Git.

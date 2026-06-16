@@ -52,64 +52,15 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const mockJobs = [
-    {
-      id: "j1",
-      title: "KOL Livestream son môi mới",
-      brand: "Glow Beauty Cosmetics",
-      budget: "8.000.000đ - 12.000.000đ",
-      matchScore: 94,
-      tag: "Livestream",
-      borderColor: "border-cyan-400/25 shadow-[0_0_22px_rgba(34,211,238,0.12)]",
-      badgeColor: "border-cyan-400/25 bg-cyan-400/10 text-cyan-300",
-      glowColor: "bg-gradient-to-br from-cyan-300 to-blue-500",
-      iconColor: "text-cyan-300"
-    },
-    {
-      id: "j2",
-      title: "Người mẫu BST Thu Đông Luxury",
-      brand: "Diamond Luxury Fashion",
-      budget: "15.000.000đ - 20.000.000đ",
-      matchScore: 89,
-      tag: "Runway",
-      borderColor: "border-purple-400/25 shadow-[0_0_22px_rgba(168,85,247,0.12)]",
-      badgeColor: "border-purple-400/25 bg-purple-400/10 text-purple-300",
-      glowColor: "bg-gradient-to-br from-purple-300 to-fuchsia-500",
-      iconColor: "text-purple-300"
-    },
-    {
-      id: "j3",
-      title: "Chụp ảnh Lookbook BST Hè Vibe",
-      brand: "Linen House Vietnam",
-      budget: "6.000.000đ",
-      matchScore: 82,
-      tag: "Lookbook",
-      borderColor: "border-amber-400/25 shadow-[0_0_22px_rgba(245,158,11,0.12)]",
-      badgeColor: "border-amber-400/25 bg-amber-400/10 text-amber-300",
-      glowColor: "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600",
-      iconColor: "text-amber-300"
-    },
-    {
-      id: "j4",
-      title: "MC song ngữ Lễ khai trương Showroom",
-      brand: "Luxury Diamonds Co.",
-      budget: "10.000.000đ",
-      matchScore: 85,
-      tag: "Event MC",
-      borderColor: "border-rose-400/25 shadow-[0_0_22px_rgba(244,63,94,0.12)]",
-      badgeColor: "border-rose-400/25 bg-rose-400/10 text-rose-300",
-      glowColor: "bg-gradient-to-br from-rose-300 to-red-500",
-      iconColor: "text-rose-300"
-    }
-  ];
-
-  const [dashboardJobs, setDashboardJobs] = useState<any[]>(mockJobs);
+  const [dashboardJobs, setDashboardJobs] = useState<any[]>([]);
+  const [calendarData, setCalendarData] = useState<{ availabilityCalendar?: string[]; todoLists?: Record<string, any[]> } | null>(null);
 
   useEffect(() => {
     let active = true;
 
     loadTalentCampaigns().then((items) => {
-      if (!active || !items?.length) return;
+      if (!active) return;
+      if (!items?.length) return;
       const mapped = items.map((item) => {
         const campaign = mapCampaignToTalentJob(item);
         return {
@@ -132,6 +83,17 @@ export default function DashboardPage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!profile) return;
+    let active = true;
+    import("@/lib/talent-api").then(({ loadTalentCalendar }) => {
+      loadTalentCalendar(profile).then((data) => {
+        if (active && data) setCalendarData(data);
+      });
+    });
+    return () => { active = false; };
+  }, [profile]);
 
   if (!profile) return null;
 
@@ -354,14 +316,18 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <span className="block text-2xl font-black text-white tracking-wide">
-                  4.9<span className="text-amber-400 text-lg ml-0.5">★</span>
-                </span>
+                {profile.reviewsCount ? (
+                  <span className="block text-2xl font-black text-white tracking-wide">
+                    {profile.averageRating?.toFixed(1) ?? "—"}<span className="text-amber-400 text-lg ml-0.5">★</span>
+                  </span>
+                ) : (
+                  <span className="block text-2xl font-black text-slate-500 tracking-wide">—</span>
+                )}
                 <span className="mt-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
                   Đánh Giá TB
                 </span>
                 <span className="block text-[7.5px] font-semibold text-slate-500 mt-0.5">
-                  ({profile.reviewsCount || 18} Đánh giá)
+                  {profile.reviewsCount ? `(${profile.reviewsCount} Đánh giá)` : "Chưa có đánh giá"}
                 </span>
               </div>
             </div>
@@ -394,62 +360,78 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Quick Stats Grid - replica of dashboard.htm card styles */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Quick Stats Grid */}
+      {(() => {
+        const showCount = calendarData?.availabilityCalendar?.length ?? 0;
+        const now = new Date();
+        const monthLabel = `Tháng ${now.getMonth() + 1}/${now.getFullYear()}`;
+        const reliability = profile.reliability ?? null;
+        const budgetMin = profile.rateCard ? Math.min(...Object.values(profile.rateCard as Record<string, number>).filter(Boolean)) : null;
+        const budgetFormatted = budgetMin ? `Từ ${(budgetMin / 1000000).toFixed(1)}M đ` : "Chưa có";
+        return (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-        {/* Thẻ 1: Job Phù Hợp - Gold */}
-        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#1a1305]/88 to-[#070913]/96 p-5 transition-all duration-300 hover:-translate-y-0.5 border-amber-400/35 shadow-[0_0_22px_rgba(245,158,11,0.18)]">
-          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-15 blur-2xl bg-gradient-to-br from-amber-300 to-yellow-600"></div>
-          <div className="flex items-start justify-between gap-4">
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Job Phù Hợp</span>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/35 bg-amber-400/15 text-amber-300">
-              <Briefcase className="h-4.5 w-4.5" />
+            {/* Thẻ 1: Job Phù Hợp - Gold */}
+            <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#1a1305]/88 to-[#070913]/96 p-5 transition-all duration-300 hover:-translate-y-0.5 border-amber-400/35 shadow-[0_0_22px_rgba(245,158,11,0.18)]">
+              <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-15 blur-2xl bg-gradient-to-br from-amber-300 to-yellow-600"></div>
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Job Phù Hợp</span>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/35 bg-amber-400/15 text-amber-300">
+                  <Briefcase className="h-4.5 w-4.5" />
+                </div>
+              </div>
+              <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
+                {dashboardJobs.length > 0 ? `${dashboardJobs.length} Chiến dịch` : "—"}
+              </strong>
+              <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">AI Matching</span>
             </div>
-          </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">5 Chiến dịch</strong>
-          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">AI Matching</span>
-        </div>
 
-        {/* Thẻ 2: Lịch Trình - Gold-Deep */}
-        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#14100a]/88 to-[#070913]/96 p-5 transition-all duration-300 hover:-translate-y-0.5 border-yellow-500/30 shadow-[0_0_22px_rgba(234,179,8,0.14)]">
-          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-12 blur-2xl bg-gradient-to-br from-yellow-300 to-amber-600"></div>
-          <div className="flex items-start justify-between gap-4">
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Lịch Trình Show</span>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-300">
-              <Calendar className="h-4.5 w-4.5" />
+            {/* Thẻ 2: Lịch Trình - Gold-Deep */}
+            <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#14100a]/88 to-[#070913]/96 p-5 transition-all duration-300 hover:-translate-y-0.5 border-yellow-500/30 shadow-[0_0_22px_rgba(234,179,8,0.14)]">
+              <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-12 blur-2xl bg-gradient-to-br from-yellow-300 to-amber-600"></div>
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Lịch Trình Show</span>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-300">
+                  <Calendar className="h-4.5 w-4.5" />
+                </div>
+              </div>
+              <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
+                {showCount > 0 ? `${showCount} Lịch` : "—"}
+              </strong>
+              <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">{monthLabel}</span>
             </div>
-          </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">3 Shows diễn</strong>
-          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Tháng 6/2026</span>
-        </div>
 
-        {/* Thẻ 3: Thu nhập - Gold */}
-        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#111421]/88 to-[#070913]/96 p-5 transition-all duration-300 hover:-translate-y-0.5 border-amber-400/25 shadow-[0_0_22px_rgba(245,158,11,0.12)]">
-          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600"></div>
-          <div className="flex items-start justify-between gap-4">
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Thu nhập</span>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/25 bg-amber-400/10 text-amber-300">
-              <DollarSign className="h-4.5 w-4.5" />
+            {/* Thẻ 3: Mức cát-xê tham khảo - Gold */}
+            <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#111421]/88 to-[#070913]/96 p-5 transition-all duration-300 hover:-translate-y-0.5 border-amber-400/25 shadow-[0_0_22px_rgba(245,158,11,0.12)]">
+              <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600"></div>
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Cát-xê tối thiểu</span>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/25 bg-amber-400/10 text-amber-300">
+                  <DollarSign className="h-4.5 w-4.5" />
+                </div>
+              </div>
+              <strong className="mt-5 block text-2xl font-black tracking-tight text-white">{budgetFormatted}</strong>
+              <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Rate card của bạn</span>
             </div>
-          </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">12.5M đ</strong>
-          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Tổng thu nhập hiện tại</span>
-        </div>
 
-        {/* Thẻ 4: Độ tin cậy - Gold-Light */}
-        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#1a1508]/88 to-[#070913]/96 p-5 transition-all duration-300 hover:-translate-y-0.5 border-amber-300/30 shadow-[0_0_22px_rgba(253,230,138,0.12)]">
-          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-100 to-amber-500"></div>
-          <div className="flex items-start justify-between gap-4">
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Độ tin cậy</span>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 text-amber-200">
-              <Award className="h-4.5 w-4.5" />
+            {/* Thẻ 4: Độ tin cậy - Gold-Light */}
+            <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#1a1508]/88 to-[#070913]/96 p-5 transition-all duration-300 hover:-translate-y-0.5 border-amber-300/30 shadow-[0_0_22px_rgba(253,230,138,0.12)]">
+              <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-100 to-amber-500"></div>
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Độ tin cậy</span>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 text-amber-200">
+                  <Award className="h-4.5 w-4.5" />
+                </div>
+              </div>
+              <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
+                {reliability !== null ? `${reliability}%` : "—"}
+              </strong>
+              <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Chất lượng diễn show</span>
             </div>
-          </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">98%</strong>
-          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Chất lượng diễn show</span>
-        </div>
 
-      </div>
+          </div>
+        );
+      })()}
 
       {/* AI Career Diagnostics Component */}
       <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-b from-[#150f02]/90 to-[#050712]/95 shadow-[0_0_30px_rgba(245,158,11,0.08)] p-6 space-y-6">
@@ -658,36 +640,45 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex gap-3 rounded-xl border border-amber-400/10 bg-amber-400/[0.03] p-3 text-xs leading-relaxed">
-              <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></div>
-              <div>
-                <p className="font-semibold text-slate-300">Nhãn hàng Glow Beauty Cosmetics đã tạo chiến dịch mới Mega Beauty Live.</p>
-                <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-600">3 phút trước</span>
+          {(() => {
+            // Build activity items from real data
+            const activities: { label: string; time?: string }[] = [];
+            // Chiến dịch đã ứng tuyển
+            dashboardJobs.forEach((job) => {
+              activities.push({ label: `Chiến dịch "${job.title}" (${job.brand}) – phù hợp ${job.matchScore}%` });
+            });
+            // Lịch từ calendar
+            const calEvents = Object.values(calendarData?.todoLists ?? {}).flat();
+            calEvents.slice(0, 3).forEach((ev: any) => {
+              activities.push({ label: ev.title, time: ev.time });
+            });
+
+            if (activities.length === 0) {
+              return (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <div className="h-10 w-10 mb-3 flex items-center justify-center rounded-full bg-amber-400/10 border border-amber-400/20">
+                    <Radio className="h-4 w-4 text-amber-400/60" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-500">Chưa có hoạt động nào</p>
+                  <p className="text-[10px] text-slate-600 mt-1">Các chiến dịch và lịch trình sẽ hiển thị tại đây sau khi bạn đăng nhập và ứng tuyển.</p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="space-y-3">
+                {activities.slice(0, 5).map((act, idx) => (
+                  <div key={idx} className="flex gap-3 rounded-xl border border-amber-400/10 bg-amber-400/[0.03] p-3 text-xs leading-relaxed">
+                    <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></div>
+                    <div>
+                      <p className="font-semibold text-slate-300">{act.label}</p>
+                      {act.time && <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-600">{act.time}</span>}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-            <div className="flex gap-3 rounded-xl border border-amber-400/10 bg-amber-400/[0.03] p-3 text-xs leading-relaxed">
-              <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></div>
-              <div>
-                <p className="font-semibold text-slate-300">Bạn đã đồng ý ứng tuyển vào chiến dịch #BK12082 (Glow Beauty).</p>
-                <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-600">4 phút trước</span>
-              </div>
-            </div>
-            <div className="flex gap-3 rounded-xl border border-amber-400/10 bg-amber-400/[0.03] p-3 text-xs leading-relaxed">
-              <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></div>
-              <div>
-                <p className="font-semibold text-slate-300">Đã nhận thanh toán đặt cọc: 28.000.000 VND từ nhãn hàng Maison Design.</p>
-                <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-600">5 phút trước</span>
-              </div>
-            </div>
-            <div className="flex gap-3 rounded-xl border border-amber-400/10 bg-amber-400/[0.03] p-3 text-xs leading-relaxed">
-              <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></div>
-              <div>
-                <p className="font-semibold text-slate-300">Quản trị viên đã phê duyệt tích xanh xác minh của thương hiệu Diamond Luxury.</p>
-                <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-600">12 phút trước</span>
-              </div>
-            </div>
-          </div>
+            );
+          })()}
         </section>
 
         {/* AI Orientation Alert card / Risk Alerts Style */}

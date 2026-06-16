@@ -42,17 +42,21 @@ export async function parseApiError(response: Response) {
     const data = await response.json();
     const errors = data?.errors;
 
+    let message = fallback;
     if (errors && typeof errors === "object") {
       const firstError = Object.values(errors).flat().find(Boolean);
-      if (typeof firstError === "string") return firstError;
+      if (typeof firstError === "string") message = firstError;
+    } else if (typeof data?.message === "string") {
+      message = data.message;
     }
 
-    if (typeof data?.message === "string") return data.message;
+    if (message === "validation.max.file") {
+      return "Dung lượng ảnh vượt quá giới hạn cho phép (tối đa 5MB).";
+    }
+    return message;
   } catch {
     return fallback;
   }
-
-  return fallback;
 }
 
 function authHeaders() {
