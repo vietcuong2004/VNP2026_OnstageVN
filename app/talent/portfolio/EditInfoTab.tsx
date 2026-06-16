@@ -5,7 +5,7 @@ import {
   Edit3, ShieldCheck, CheckCircle, Camera, X, Plus, Info, Upload, Video, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { persistTalentProfile } from "@/lib/talent-api";
+import { persistTalentProfile, ensureTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 
 const convertToInputDate = (dateStr: string) => {
   if (!dateStr) return "2002-05-15";
@@ -47,10 +47,10 @@ export default function EditInfoTab({
     (p: string) => profile?.isOnboarded || (!p.includes("fullbody_model.png") && !p.includes("cover_image.png"))
   );
 
-  // Identity card (CCCD) upload state simulators
-  const [cccdFrontUploaded, setCccdFrontUploaded] = useState(false);
-  const [cccdBackUploaded, setCccdBackUploaded] = useState(false);
-  const [selfieUploaded, setSelfieUploaded] = useState(false);
+  // Identity card (CCCD) upload states
+  const [cccdFront, setCccdFront] = useState<string | null>(null);
+  const [cccdBack, setCccdBack] = useState<string | null>(null);
+  const [selfie, setSelfie] = useState<string | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<"unverified" | "pending" | "verified">("unverified");
   const [lifestyleServices, setLifestyleServices] = useState<any[]>([]);
 
@@ -129,84 +129,165 @@ export default function EditInfoTab({
         hasUploadedMC: onboarded ? (profile.hasUploadedMC || false) : false
       });
       setLifestyleServices(onboarded ? (profile.lifestyleServices || []) : []);
+      
+      const front = profile.cccdFront || null;
+      const back = profile.cccdBack || null;
+      const self = profile.cccdSelfie || null;
+      setCccdFront(front);
+      setCccdBack(back);
+      setSelfie(self);
+
+      if (front && back && self) {
+        setVerificationStatus(profile.verificationStatus || "pending");
+      } else {
+        setVerificationStatus(profile.verificationStatus || "unverified");
+      }
+
       if (onboarded && (profile.verifiedLevel === "Elite" || profile.verifiedLevel === "Pro" || profile.verifiedLevel === "Basic")) {
         setVerificationStatus("verified");
-        setCccdFrontUploaded(true);
-        setCccdBackUploaded(true);
-        setSelfieUploaded(true);
-      } else {
-        setVerificationStatus("unverified");
-        setCccdFrontUploaded(false);
-        setCccdBackUploaded(false);
-        setSelfieUploaded(false);
       }
     }
   }, [profile]);
 
-  // Simulated identity uploaders
-  const startCccdUpload = (type: "cccd_front" | "cccd_back" | "cccd_selfie") => {
-    if (uploadingType) return;
+  // Real identity card (CCCD) uploader
+  const handleCccdUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "cccd_front" | "cccd_back" | "cccd_selfie") => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
     setUploadingType(type);
     setUploadProgress(0);
+
     let progress = 0;
     const interval = setInterval(() => {
-      progress += 20;
+      progress += 15;
+      if (progress > 90) progress = 90;
       setUploadProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          if (type === "cccd_front") setCccdFrontUploaded(true);
-          if (type === "cccd_back") setCccdBackUploaded(true);
-          if (type === "cccd_selfie") setSelfieUploaded(true);
-          setUploadingType(null);
-          addToast(`Tải lên tài liệu ${type === "cccd_front" ? "Mặt trước CCCD" : type === "cccd_back" ? "Mặt sau CCCD" : "Ảnh Selfie xác thực"} thành công!`, "success");
-        }, 100);
-      }
     }, 100);
+
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+
+      let photoUrl = "";
+      if (syncedProfile.backendProfileId) {
+        const photo = await uploadTalentPhoto(syncedProfile.backendProfileId, file, type);
+        photoUrl = photo.url || photo.path || "";
+      }
+
+      if (!photoUrl) {
+        // Fallback for unauthenticated or local usage: read as Base64 data URL
+        photoUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (err) => reject(err);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      clearInterval(interval);
+      setUploadProgress(100);
+
+      const fieldMap = {
+        cccd_front: "cccdFront",
+        cccd_back: "cccdBack",
+        cccd_selfie: "cccdSelfie"
+      };
+      const field = fieldMap[type];
+
+      const updatedProfile = {
+        ...syncedProfile,
+        [field]: photoUrl
+      };
+
+      setProfile(persistTalentProfile(updatedProfile));
+
+      if (type === "cccd_front") setCccdFront(photoUrl);
+      if (type === "cccd_back") setCccdBack(photoUrl);
+      if (type === "cccd_selfie") setSelfie(photoUrl);
+
+      setUploadingType(null);
+      addToast(`Tải lên tài liệu ${type === "cccd_front" ? "Mặt trước CCCD" : type === "cccd_back" ? "Mặt sau CCCD" : "Ảnh Selfie xác thực"} thành công!`, "success");
+    } catch (error) {
+      clearInterval(interval);
+      setUploadingType(null);
+      console.error(error);
+      addToast("Có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.", "info");
+    }
   };
 
-  // Simulated video uploaders
-  const startVideoUpload = (type: "intro" | "catwalk" | "mc") => {
-    if (uploadingType) return;
-    setUploadingType(type);
+  // Real lookbook/portfolio photo upload handler
+  const handlePortfolioPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    if (displayedPhotos.length >= 10) {
+      addToast("Đã đạt giới hạn tối đa 10 ảnh nghệ thuật.", "info");
+      return;
+    }
+
+    setUploadingType("photos");
     setUploadProgress(0);
+
     let progress = 0;
     const interval = setInterval(() => {
       progress += 10;
+      if (progress > 90) progress = 90;
       setUploadProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setVideoForm(prev => ({
-            ...prev,
-            [type === "intro" ? "hasUploadedIntro" : type === "catwalk" ? "hasUploadedCatwalk" : "hasUploadedMC"]: true
-          }));
-          setUploadingType(null);
-          addToast(`Tải lên video thành công! Vui lòng nhấn "Lưu thay đổi" ở góc dưới để áp dụng.`, "success");
-        }, 100);
-      }
     }, 100);
-  };
 
-  // Submit Video changes
-  const handleSaveVideos = () => {
-    const updated = {
-      ...profile,
-      hasUploadedIntro: videoForm.hasUploadedIntro,
-      hasUploadedCatwalk: videoForm.hasUploadedCatwalk,
-      hasUploadedMC: videoForm.hasUploadedMC
-    };
-    setProfile(persistTalentProfile(updated));
-    addToast("Đã lưu các thay đổi video thành công!", "success");
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+
+      let photoUrl = "";
+      if (syncedProfile.backendProfileId) {
+        const photo = await uploadTalentPhoto(syncedProfile.backendProfileId, file, "portfolio");
+        photoUrl = photo.url || photo.path || "";
+      }
+
+      if (!photoUrl) {
+        photoUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (err) => reject(err);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      clearInterval(interval);
+      setUploadProgress(100);
+
+      const currentPhotos = [...(profile.photos || [])];
+      currentPhotos.push(photoUrl);
+
+      const updatedProfile = {
+        ...syncedProfile,
+        photos: currentPhotos
+      };
+
+      setProfile(persistTalentProfile(updatedProfile));
+      setUploadingType(null);
+      addToast("Đã tải ảnh mới lên Art Portfolio!", "success");
+    } catch (error) {
+      clearInterval(interval);
+      setUploadingType(null);
+      console.error(error);
+      addToast("Có lỗi xảy ra khi tải ảnh lên Art Portfolio.", "info");
+    }
   };
 
   // Submit Identity Verification Request
   const handleIdentitySubmit = () => {
-    if (!cccdFrontUploaded || !cccdBackUploaded || !selfieUploaded) {
+    if (!cccdFront || !cccdBack || !selfie) {
       addToast("Vui lòng tải lên đầy đủ 3 tài liệu xác thực trước!", "info");
       return;
     }
     setVerificationStatus("pending");
+    const updated = {
+      ...profile,
+      verificationStatus: "pending"
+    };
+    setProfile(persistTalentProfile(updated));
     addToast("Đã gửi hồ sơ xác minh CCCD lên hệ thống! Tiến trình xét duyệt từ 1-2 tiếng.", "success");
   };
 
@@ -614,22 +695,19 @@ export default function EditInfoTab({
           <div className="rounded-xl bg-slate-950 p-4 border border-white/5 flex flex-col justify-between items-center text-center space-y-3">
             <span className="font-bold block uppercase text-[8px] text-slate-400">CCCD Mặt trước</span>
             <div className="h-24 w-full rounded bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden">
-              {cccdFrontUploaded ? (
-                <div className="absolute inset-0 bg-emerald-500/5 text-emerald-400 flex flex-col items-center justify-center p-2">
-                  <CheckCircle className="h-8 w-8 text-emerald-400 mb-1" />
-                  <span className="text-[7.5px] font-black uppercase">Đã Tải Lên</span>
-                </div>
+              {cccdFront ? (
+                <img src={cccdFront} className="h-full w-full object-cover" alt="CCCD Mặt trước" />
               ) : (
-                <span className="text-[8px] text-slate-500 px-4">Độ phân giải rõ nét, không bị lóa</span>
+                <span className="text-[8px] text-slate-500 px-4">Chưa chọn ảnh nào</span>
               )}
             </div>
             <button
               type="button"
               disabled={!!uploadingType || verificationStatus === "verified"}
-              onClick={() => startCccdUpload("cccd_front")}
+              onClick={() => document.getElementById("cccd-front-input")?.click()}
               className="bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider text-white transition-all disabled:opacity-50"
             >
-              {cccdFrontUploaded ? "Tải lại" : "Tải ảnh lên"}
+              {cccdFront ? "Tải lại" : "Tải ảnh lên"}
             </button>
           </div>
 
@@ -637,22 +715,19 @@ export default function EditInfoTab({
           <div className="rounded-xl bg-slate-950 p-4 border border-white/5 flex flex-col justify-between items-center text-center space-y-3">
             <span className="font-bold block uppercase text-[8px] text-slate-400">CCCD Mặt sau</span>
             <div className="h-24 w-full rounded bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden">
-              {cccdBackUploaded ? (
-                <div className="absolute inset-0 bg-emerald-500/5 text-emerald-400 flex flex-col items-center justify-center p-2">
-                  <CheckCircle className="h-8 w-8 text-emerald-400 mb-1" />
-                  <span className="text-[7.5px] font-black uppercase">Đã Tải Lên</span>
-                </div>
+              {cccdBack ? (
+                <img src={cccdBack} className="h-full w-full object-cover" alt="CCCD Mặt sau" />
               ) : (
-                <span className="text-[8px] text-slate-500 px-4">Hiển thị rõ mã vạch và quốc huy</span>
+                <span className="text-[8px] text-slate-500 px-4">Chưa chọn ảnh nào</span>
               )}
             </div>
             <button
               type="button"
               disabled={!!uploadingType || verificationStatus === "verified"}
-              onClick={() => startCccdUpload("cccd_back")}
+              onClick={() => document.getElementById("cccd-back-input")?.click()}
               className="bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider text-white transition-all disabled:opacity-50"
             >
-              {cccdBackUploaded ? "Tải lại" : "Tải ảnh lên"}
+              {cccdBack ? "Tải lại" : "Tải ảnh lên"}
             </button>
           </div>
 
@@ -660,22 +735,19 @@ export default function EditInfoTab({
           <div className="rounded-xl bg-slate-950 p-4 border border-white/5 flex flex-col justify-between items-center text-center space-y-3">
             <span className="font-bold block uppercase text-[8px] text-slate-400">Ảnh chân dung Selfie</span>
             <div className="h-24 w-full rounded bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden">
-              {selfieUploaded ? (
-                <div className="absolute inset-0 bg-emerald-500/5 text-emerald-400 flex flex-col items-center justify-center p-2">
-                  <CheckCircle className="h-8 w-8 text-emerald-400 mb-1" />
-                  <span className="text-[7.5px] font-black uppercase">Đã Tải Lên</span>
-                </div>
+              {selfie ? (
+                <img src={selfie} className="h-full w-full object-cover" alt="Ảnh chân dung Selfie" />
               ) : (
-                <span className="text-[8px] text-slate-500 px-4">Ảnh selfie cầm CCCD trên tay</span>
+                <span className="text-[8px] text-slate-500 px-4">Chưa chọn ảnh nào</span>
               )}
             </div>
             <button
               type="button"
               disabled={!!uploadingType || verificationStatus === "verified"}
-              onClick={() => startCccdUpload("cccd_selfie")}
+              onClick={() => document.getElementById("selfie-input")?.click()}
               className="bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider text-white transition-all disabled:opacity-50"
             >
-              {selfieUploaded ? "Tải lại" : "Tải ảnh lên"}
+              {selfie ? "Tải lại" : "Tải ảnh lên"}
             </button>
           </div>
 
@@ -757,37 +829,7 @@ export default function EditInfoTab({
           {/* Add photos trigger block (strictly limit <= 10) */}
           <button
             disabled={!!uploadingType || displayedPhotos.length >= 10}
-            onClick={() => {
-              if (uploadingType || displayedPhotos.length >= 10) return;
-              setUploadingType("photos");
-              setUploadProgress(0);
-              let progress = 0;
-              const interval = setInterval(() => {
-                progress += 10;
-                setUploadProgress(progress);
-                if (progress >= 100) {
-                  clearInterval(interval);
-                  setTimeout(() => {
-                    const unsplashPhotos = [
-                      "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
-                      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
-                      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=600",
-                      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=600",
-                      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600"
-                    ];
-                    const randomPhoto = unsplashPhotos[Math.floor(Math.random() * unsplashPhotos.length)];
-                    const currentPhotos = (profile.photos || []).filter(
-                      (url: string) => profile.isOnboarded || (!url.includes("fullbody_model.png") && !url.includes("cover_image.png"))
-                    );
-                    currentPhotos.push(randomPhoto);
-                    const updatedProfile = { ...profile, photos: currentPhotos };
-                    setProfile(persistTalentProfile(updatedProfile));
-                    setUploadingType(null);
-                    addToast("Đã tải ảnh mới lên Art Portfolio!", "success");
-                  }, 100);
-                }
-              }, 100);
-            }}
+            onClick={() => document.getElementById("portfolio-photo-input")?.click()}
             className={cn(
               "aspect-[3/4] rounded-lg border border-dashed flex flex-col items-center justify-center gap-1.5 transition-all text-xs",
               displayedPhotos.length >= 10
@@ -812,6 +854,34 @@ export default function EditInfoTab({
 
       {/* SUB-SECTION 4: VIDEO UPLOAD MANAGER (Commented out) */}
 
+      <input
+        type="file"
+        id="cccd-front-input"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleCccdUpload(e, "cccd_front")}
+      />
+      <input
+        type="file"
+        id="cccd-back-input"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleCccdUpload(e, "cccd_back")}
+      />
+      <input
+        type="file"
+        id="selfie-input"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleCccdUpload(e, "cccd_selfie")}
+      />
+      <input
+        type="file"
+        id="portfolio-photo-input"
+        accept="image/*"
+        className="hidden"
+        onChange={handlePortfolioPhotoUpload}
+      />
     </div>
   );
 }

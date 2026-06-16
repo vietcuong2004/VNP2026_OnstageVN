@@ -77,6 +77,39 @@ export default function Header() {
   const authUserJson = useSyncExternalStore(subscribeAuthUser, authUserSnapshot, () => "");
   const user = authUserJson ? (JSON.parse(authUserJson) as AuthUser) : null;
   const [talentAvatar, setTalentAvatar] = useState<string | null>(null);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    let prevScrollY = 0;
+
+    const handleScroll = (event: Event) => {
+      const target = event.target;
+      if (!target) return;
+
+      let currentScrollY = 0;
+      if (target === document) {
+        currentScrollY = window.scrollY || document.documentElement.scrollTop;
+      } else if (target instanceof HTMLElement) {
+        currentScrollY = target.scrollTop;
+      } else {
+        return;
+      }
+
+      if (currentScrollY < 10) {
+        setVisible(true);
+      } else if (currentScrollY > prevScrollY) {
+        setVisible(false);
+        setOpen(false);
+      } else {
+        setVisible(true);
+      }
+
+      prevScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    return () => window.removeEventListener("scroll", handleScroll, { capture: true });
+  }, []);
 
   useEffect(() => {
     function syncTalentAvatar() {
@@ -156,7 +189,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913]/80 px-4 md:px-8 backdrop-blur-md">
+    <header className={`sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913]/80 px-4 md:px-8 backdrop-blur-md transition-all duration-300 ${visible ? "mt-0" : "-mt-16"}`}>
       <div className="flex w-auto md:w-72 shrink-0 items-center">
         <button
           onClick={() => router.push("/")}

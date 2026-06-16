@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -42,6 +42,39 @@ const brandAllItems = [
 export default function BottomNavigation() {
   const pathname = usePathname();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    let prevScrollY = 0;
+
+    const handleScroll = (event: Event) => {
+      if (showMoreMenu) return;
+      const target = event.target;
+      if (!target) return;
+
+      let currentScrollY = 0;
+      if (target === document) {
+        currentScrollY = window.scrollY || document.documentElement.scrollTop;
+      } else if (target instanceof HTMLElement) {
+        currentScrollY = target.scrollTop;
+      } else {
+        return;
+      }
+
+      if (currentScrollY < 10) {
+        setVisible(true);
+      } else if (currentScrollY > prevScrollY) {
+        setVisible(false);
+      } else {
+        setVisible(true);
+      }
+
+      prevScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    return () => window.removeEventListener("scroll", handleScroll, { capture: true });
+  }, [showMoreMenu]);
 
   // Guard: only render the bottom nav inside the app portals.
   if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand")) {
@@ -138,7 +171,10 @@ export default function BottomNavigation() {
       </div>
 
       {/* Main Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center px-4 pb-4 md:hidden">
+      <div className={cn(
+        "fixed bottom-0 left-0 right-0 z-40 flex justify-center px-4 pb-4 md:hidden transition-transform duration-300",
+        visible ? "translate-y-0" : "translate-y-24"
+      )}>
         <nav className="flex h-16 w-full max-w-md items-center justify-around rounded-2xl border border-white/10 bg-slate-950/75 px-2 shadow-2xl backdrop-blur-xl">
           {primaryItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href));

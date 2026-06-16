@@ -273,6 +273,9 @@ export function mapBackendProfile(profile: BackendProfile | null) {
   const avatarUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "avatar"));
   const coverUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cover"));
   const fullBodyUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "full_body"));
+  const cccdFrontUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_front"));
+  const cccdBackUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_back"));
+  const cccdSelfieUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_selfie"));
   const localPhotos = (Array.isArray(local.photos) ? local.photos : []).filter(isPortablePhotoUrl);
   const measurements = parseMeasurements(profile.measurements);
 
@@ -284,6 +287,9 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     avatar: avatarUrl || local.avatar || createInitialAvatarDataUrl(profile.display_name || profile.user?.name, profile.user?.email),
     cover: coverUrl || local.cover || "/cover_image.png",
     fullBody: fullBodyUrl || local.fullBody || "/fullbody_model.png",
+    cccdFront: cccdFrontUrl || local.cccdFront || "",
+    cccdBack: cccdBackUrl || local.cccdBack || "",
+    cccdSelfie: cccdSelfieUrl || local.cccdSelfie || "",
     location: profile.city || local.location,
     hometown: profile.district || local.hometown,
     gender: displayGender(profile.gender) || local.gender,
