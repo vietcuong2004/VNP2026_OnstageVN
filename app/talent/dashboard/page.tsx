@@ -83,11 +83,6 @@ export default function DashboardPage() {
         };
       });
       setDashboardJobs(mapped);
-      setDashboardStats({
-        matchedCampaigns: mapped.length,
-        activeCampaigns: activeItems.length,
-        estimatedIncome: formatCompactVND(estimatedIncome),
-      });
     }).catch((error) => {
       console.warn("Cannot load dashboard campaigns from backend", error);
     });
