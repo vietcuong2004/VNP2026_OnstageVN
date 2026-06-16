@@ -882,10 +882,10 @@ export default function PersonalInfoTab({
           <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                <Image className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ Ảnh Lookbook & Video
+                <Image className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ Ảnh Lookbook Nghệ Thuật
               </h3>
               <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                Hiển thị bộ ảnh Lookbook nghệ thuật và các video giới thiệu, trình diễn thực tế của Talent
+                Hiển thị bộ ảnh Lookbook nghệ thuật của Talent
               </span>
             </div>
           </div>
@@ -958,13 +958,12 @@ export default function PersonalInfoTab({
             </div>
           </div>
 
-          {/* Sub-grid 2: 3 Videos (Intro, Catwalk, MC/Live Demo) */}
+          {/* Sub-grid 2: 3 Videos (Intro, Catwalk, MC/Live Demo) - Commented out as requested
           <div className="space-y-3 border-t border-[#151b2d] pt-4">
             <span className="block text-[9px] text-cyan-400 font-black uppercase tracking-wider">
               🎥 Video Giới Thiệu & Demo Thực Tế (3 Videos)
             </span>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Video 1: Intro */}
               <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
                 {profile.hasUploadedIntro ? (
                   <div className="h-full w-full relative">
@@ -978,7 +977,6 @@ export default function PersonalInfoTab({
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
 
-                    {/* Hover overlay to change video */}
                     <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
                       <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                         <Upload className="h-5 w-5 text-cyan-400" />
@@ -1009,7 +1007,6 @@ export default function PersonalInfoTab({
                   </div>
                 )}
 
-                {/* Progress bar overlay */}
                 {uploadingState["intro"] && (
                   <ProgressBar
                     progress={uploadingState["intro"].progress}
@@ -1026,7 +1023,6 @@ export default function PersonalInfoTab({
                 </div>
               </div>
 
-              {/* Video 2: Catwalk */}
               <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
                 {profile.hasUploadedCatwalk ? (
                   <div className="h-full w-full relative">
@@ -1040,7 +1036,6 @@ export default function PersonalInfoTab({
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
 
-                    {/* Hover overlay to change video */}
                     <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
                       <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                         <Upload className="h-5 w-5 text-cyan-400" />
@@ -1071,7 +1066,6 @@ export default function PersonalInfoTab({
                   </div>
                 )}
 
-                {/* Progress bar overlay */}
                 {uploadingState["catwalk"] && (
                   <ProgressBar
                     progress={uploadingState["catwalk"].progress}
@@ -1088,7 +1082,6 @@ export default function PersonalInfoTab({
                 </div>
               </div>
 
-              {/* Video 3: MC/Livestream */}
               <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
                 {profile.hasUploadedMC ? (
                   <div className="h-full w-full relative">
@@ -1102,7 +1095,6 @@ export default function PersonalInfoTab({
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
 
-                    {/* Hover overlay to change video */}
                     <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
                       <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                         <Upload className="h-5 w-5 text-cyan-400" />
@@ -1133,7 +1125,6 @@ export default function PersonalInfoTab({
                   </div>
                 )}
 
-                {/* Progress bar overlay */}
                 {uploadingState["mc"] && (
                   <ProgressBar
                     progress={uploadingState["mc"].progress}
@@ -1151,6 +1142,7 @@ export default function PersonalInfoTab({
               </div>
             </div>
           </div>
+          */}
         </div>
 
         {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}

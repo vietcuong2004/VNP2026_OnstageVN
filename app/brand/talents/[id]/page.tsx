@@ -650,10 +650,10 @@ export default function BrandTalentProfilePage() {
             <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
               <div>
                 <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                  <Image className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ Ảnh Lookbook & Video
+                  <Image className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ Ảnh Lookbook Nghệ Thuật
                 </h3>
                 <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                  Hiển thị bộ ảnh Lookbook nghệ thuật và các video giới thiệu, trình diễn thực tế của Talent
+                  Hiển thị bộ ảnh Lookbook nghệ thuật của Talent
                 </span>
               </div>
             </div>
@@ -694,14 +694,13 @@ export default function BrandTalentProfilePage() {
               </div>
             </div>
 
-            {/* Sub-grid 2: 3 Videos (Intro, Catwalk, MC/Live Demo) */}
+            {/* Sub-grid 2: 3 Videos (Intro, Catwalk, MC/Live Demo) - Commented out as requested
             <div className="space-y-3 border-t border-[#151b2d] pt-4">
               <span className="block text-[9px] text-cyan-400 font-black uppercase tracking-wider">
                 🎥 Video Giới Thiệu & Demo Thực Tế (3 Videos)
               </span>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 
-                {/* Video 1: Intro */}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
                   <div className="h-full w-full relative">
                     <video
@@ -723,7 +722,6 @@ export default function BrandTalentProfilePage() {
                   </div>
                 </div>
 
-                {/* Video 2: Catwalk */}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
                   <div className="h-full w-full relative">
                     <video
@@ -745,7 +743,6 @@ export default function BrandTalentProfilePage() {
                   </div>
                 </div>
 
-                {/* Video 3: MC/Livestream */}
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
                   <div className="h-full w-full relative">
                     <video
@@ -769,6 +766,7 @@ export default function BrandTalentProfilePage() {
 
               </div>
             </div>
+            */}
           </div>
 
           {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}

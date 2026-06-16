@@ -999,7 +999,7 @@ export default function CampaignDetailPage() {
                 </div>
               </div>
 
-              {/* Videos Section */}
+              {/* Videos Section - Commented out as requested
               <div className="space-y-3 border-t border-[#151b2d] pt-4">
                 <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   🎥 Video Giới Thiệu & Demo Thực Tế (3 Videos)
@@ -1060,6 +1060,7 @@ export default function CampaignDetailPage() {
                   </div>
                 </div>
               </div>
+              */}
 
             </div>
 
