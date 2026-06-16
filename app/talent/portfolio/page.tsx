@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
 import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
-import Portrait3DTab from "./Portrait3DTab";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { findTalentById } from "@/lib/brand-mvp-data";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
@@ -587,17 +586,17 @@ export default function PortfolioPage() {
         </div>
       </div>
 
-      {/* Main 3 Tab Navigation */}
-      <div className="flex border-b border-[#151b2d] gap-6 overflow-x-auto scrollbar-none whitespace-nowrap">
+      {/* Main 3 Tab Navigation – responsive grid, no horizontal scroll */}
+      <div className="grid grid-cols-3 border-b border-[#151b2d]">
         <button
           onClick={() => setActiveTab("personal-info")}
           className={cn(
-            "pb-4 text-xs font-black uppercase tracking-wider transition-all relative cursor-pointer flex items-center gap-1.5 shrink-0",
+            "py-3 px-1 text-[10px] sm:text-xs font-black uppercase tracking-wide transition-all relative cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-center",
             activeTab === "personal-info" ? "text-amber-400" : "text-slate-400 hover:text-white"
           )}
         >
-          <User className="h-4 w-4" />
-          1. Thông tin cá nhân
+          <User className="h-4 w-4 shrink-0" />
+          <span className="leading-tight">Thông tin<br className="sm:hidden" /> cá nhân</span>
           {activeTab === "personal-info" && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400 rounded-full" />
           )}
@@ -605,12 +604,12 @@ export default function PortfolioPage() {
         <button
           onClick={() => setActiveTab("edit-info")}
           className={cn(
-            "pb-4 text-xs font-black uppercase tracking-wider transition-all relative cursor-pointer flex items-center gap-1.5 shrink-0",
+            "py-3 px-1 text-[10px] sm:text-xs font-black uppercase tracking-wide transition-all relative cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-center border-x border-[#151b2d]",
             activeTab === "edit-info" ? "text-[#f4c430]" : "text-slate-400 hover:text-white"
           )}
         >
-          <Edit3 className="h-4 w-4" />
-          2. Cập nhật thông tin
+          <Edit3 className="h-4 w-4 shrink-0" />
+          <span className="leading-tight">Cập nhật<br className="sm:hidden" /> thông tin</span>
           {activeTab === "edit-info" && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f4c430] rounded-full" />
           )}
@@ -618,29 +617,16 @@ export default function PortfolioPage() {
         <button
           onClick={() => setActiveTab("addon-services")}
           className={cn(
-            "pb-4 text-xs font-black uppercase tracking-wider transition-all relative cursor-pointer flex items-center gap-1.5 shrink-0",
+            "py-3 px-1 text-[10px] sm:text-xs font-black uppercase tracking-wide transition-all relative cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-center",
             activeTab === "addon-services" ? "text-purple-400" : "text-slate-400 hover:text-white"
           )}
         >
-          <Sparkles className="h-4 w-4 text-purple-400 animate-pulse" />
-          3. Chợ dịch vụ bổ trợ
+          <Sparkles className="h-4 w-4 shrink-0 text-purple-400 animate-pulse" />
+          <span className="leading-tight">Dịch vụ<br className="sm:hidden" /> bổ trợ</span>
           {activeTab === "addon-services" && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-400 rounded-full" />
           )}
         </button>
-        {/* <button
-          onClick={() => setActiveTab("portrait-3d")}
-          className={cn(
-            "pb-4 text-xs font-black uppercase tracking-wider transition-all relative cursor-pointer flex items-center gap-1.5 shrink-0",
-            activeTab === "portrait-3d" ? "text-emerald-400" : "text-slate-400 hover:text-white"
-          )}
-        >
-          <Cpu className="h-4 w-4 text-emerald-400 animate-pulse" />
-          4. Chân dung 3D (WebGPU)
-          {activeTab === "portrait-3d" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400 rounded-full" />
-          )}
-        </button> */}
       </div>
 
       {/* Main Content Area based on Tab */}
@@ -672,13 +658,6 @@ export default function PortfolioPage() {
           />
         )}
 
-        {activeTab === "portrait-3d" && (
-          <Portrait3DTab
-            profile={profile}
-            setProfile={setProfile}
-            addToast={addToast}
-          />
-        )}
       </div>
 
       {/* Floating Toast Notification System */}

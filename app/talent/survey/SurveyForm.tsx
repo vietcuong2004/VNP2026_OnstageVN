@@ -306,7 +306,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       return formData.education.trim() !== "" && formData.skills.trim() !== "";
     }
     if (step === 4) {
-      return mediaUploads.portfolio !== null;
+      // Portfolio upload UI is hidden – always valid at step 4
+      // return mediaUploads.portfolio !== null;
+      return true;
     }
     if (step === 5) {
       // Valid if all 20 questions are answered
@@ -1022,13 +1024,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
       {/* Modern Stepper Header Progress */}
       <div className="mb-8 pb-6 border-b border-white/10 space-y-6">
-        <div className="flex items-center justify-between gap-3 w-full">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+        <div className="flex items-center justify-between gap-2 w-full min-w-0">
+          {/* Left: step badge + step name + progress text – single row on all screens */}
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="shrink-0 text-[10px] font-black text-amber-300 uppercase tracking-widest bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 whitespace-nowrap">
                 Bước {step} / 5
               </span>
-              <span className="text-xs font-black text-white">
+              <span className="text-xs font-black text-white truncate">
                 {step === 1 && "Thông tin cơ bản"}
                 {step === 2 && "Nhân trắc học"}
                 {step === 3 && "Học vấn & Kỹ năng"}
@@ -1037,7 +1040,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               </span>
             </div>
             {/* Micro feedback text */}
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
               Hồ sơ định hướng của bạn đã hoàn thiện <strong className="text-amber-300 font-bold">{completenessPercent}%</strong>
             </p>
           </div>
@@ -1046,9 +1049,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             <button
               type="button"
               onClick={onBackToDashboard}
-              className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#070913] bg-gradient-to-r from-amber-200 via-amber-300 to-amber-500 hover:brightness-105 hover:scale-[1.02] active:scale-98 transition-all cursor-pointer px-4 py-2.5 rounded-xl border border-amber-400/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+              className="shrink-0 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#070913] bg-gradient-to-r from-amber-200 via-amber-300 to-amber-500 hover:brightness-105 hover:scale-[1.02] active:scale-98 transition-all cursor-pointer px-3 py-2 rounded-xl border border-amber-400/30 shadow-[0_0_15px_rgba(245,158,11,0.2)] whitespace-nowrap"
             >
-              <ArrowLeft className="h-3.5 w-3.5 stroke-[3]" /> Quay lại
+              <ArrowLeft className="h-3 w-3 stroke-[3]" /> Quay lại
             </button>
           )}
         </div>
@@ -1615,13 +1618,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               </div>
             </div>
 
-            {/* Right: Media upload zones (Portfolio book, Intro video) */}
-            <div className="md:col-span-6 space-y-3.5">
+            {/* Right: Media upload zones (Portfolio book, Intro video) – HIDDEN, code preserved */}
+            {/* COMMENTED OUT: Phần tải lên Portfolio/CV và Video Giới Thiệu – ẩn khỏi UI, giữ nguyên code */}
+            {/* <div className="md:col-span-6 space-y-3.5">
               <span className="block text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Hồ Sơ Năng Lực (Media Uploads)</span>
               
               <div className="grid grid-cols-2 gap-3.5">
                 {/* Portfolio images / CV zone */}
-                <div 
+                {/* <div 
                   onClick={() => handleFileUploadClick("portfolio")}
                   className={cn(
                     "rounded-xl border border-dashed p-5 cursor-pointer text-center transition-all duration-300 relative overflow-hidden group aspect-[9/16] w-full flex flex-col justify-center items-center",
@@ -1662,10 +1666,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       Xóa
                     </button>
                   )}
-                </div>
+                </div> */}
 
                 {/* Intro video zone (Optional) */}
-                <div 
+                {/* <div 
                   onClick={() => handleFileUploadClick("introVideo")}
                   className={cn(
                     "rounded-xl border border-dashed p-5 cursor-pointer text-center transition-all duration-300 relative overflow-hidden group aspect-[9/16] w-full flex flex-col justify-center items-center",
@@ -1706,9 +1710,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       Xóa
                     </button>
                   )}
-                </div>
-              </div>
-            </div>
+                </div> */}
+              {/* </div>
+            </div> */}
           </div>
         )}
 
@@ -1785,23 +1789,36 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   <ArrowLeft className="h-3.5 w-3.5" /> Quay Lại
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (activeSurveyQIdx < SURVEY_QUESTIONS.length - 1) {
-                      setActiveSurveyQIdx(prev => prev + 1);
-                    }
-                  }}
-                  disabled={surveyAnswers[activeQuestion.id] === undefined}
-                  className={cn(
-                    "flex h-9 items-center justify-center rounded-lg px-4 text-[10px] font-black transition-all gap-1 cursor-pointer",
-                    surveyAnswers[activeQuestion.id] !== undefined
-                      ? "bg-gradient-to-r from-amber-300 to-yellow-500 text-slate-950 hover:brightness-110 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
-                      : "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40"
-                  )}
-                >
-                  Tiếp Theo <ArrowRight className="h-3.5 w-3.5" />
-                </button>
+                {activeSurveyQIdx === SURVEY_QUESTIONS.length - 1 ? (
+                  // Câu cuối – nút "Hoàn Thành"
+                  <button
+                    type="submit"
+                    disabled={surveyAnswers[activeQuestion.id] === undefined || !isStepValid()}
+                    className={cn(
+                      "flex h-9 items-center justify-center rounded-lg px-5 text-[10px] font-black transition-all gap-1.5 cursor-pointer",
+                      surveyAnswers[activeQuestion.id] !== undefined && isStepValid()
+                        ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 hover:brightness-110 shadow-[0_0_14px_rgba(52,211,153,0.35)] animate-pulse"
+                        : "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40"
+                    )}
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Hoàn Thành
+                  </button>
+                ) : (
+                  // Các câu khác – nút "Tiếp Theo"
+                  <button
+                    type="button"
+                    onClick={() => setActiveSurveyQIdx(prev => prev + 1)}
+                    disabled={surveyAnswers[activeQuestion.id] === undefined}
+                    className={cn(
+                      "flex h-9 items-center justify-center rounded-lg px-4 text-[10px] font-black transition-all gap-1 cursor-pointer",
+                      surveyAnswers[activeQuestion.id] !== undefined
+                        ? "bg-gradient-to-r from-amber-300 to-yellow-500 text-slate-950 hover:brightness-110 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+                        : "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40"
+                    )}
+                  >
+                    Tiếp Theo <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1892,23 +1909,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           </div>
         )}
 
-        {/* Final Submit action button container at Step 5 */}
-        {step === 5 && (
-          <div className="flex justify-center pt-2">
-            <button
-              type="submit"
-              disabled={!isStepValid()}
-              className={cn(
-                "flex h-11 w-full max-w-xs items-center justify-center rounded-xl font-display text-[11px] font-black transition-all gap-1.5 shadow-lg cursor-pointer",
-                isStepValid()
-                  ? "bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-600 text-slate-950 hover:brightness-110 active:scale-98"
-                  : "bg-[#131936] text-slate-450 border border-white/10 cursor-not-allowed"
-              )}
-            >
-              Hoàn Thành Khảo Sát & Xem Kết Quả <Sparkles className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        )}
+        {/* Final Submit action button – hidden at step 5, handled inline in survey nav */}
 
       </form>
     </div>
