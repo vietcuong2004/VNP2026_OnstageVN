@@ -20,4 +20,4 @@ deploy_production:
     - "[ -z \"$VERCEL_PROJECT_ID\" ] && { echo \"ERROR: VERCEL_PROJECT_ID is empty in GitLab Variables!\"; exit 1; }"
     - vercel pull --yes --environment=production --token=$VERCEL_TOKEN
     - vercel build --prod --token=$VERCEL_TOKEN
-    - vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+    - vercel deploy --prebuilt --prod --archive=tgz --token=$VERCEL_TOKEN
