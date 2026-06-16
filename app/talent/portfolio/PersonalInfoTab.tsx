@@ -530,10 +530,10 @@ export default function PersonalInfoTab({
 
             <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end opacity-35 sm:opacity-100 sm:group-hover:opacity-20 transition-opacity duration-300">
               <div>
-                <span className="text-[8px] font-mono tracking-widest text-[#f4c430] font-bold uppercase">POLAROID BOOK</span>
+                <span className="text-[10px] font-mono tracking-widest text-[#f4c430] font-bold uppercase">POLAROID BOOK</span>
                 <h4 className="text-xs font-black text-white mt-0.5">{profile.name.toUpperCase()}</h4>
               </div>
-              <div className="text-[8px] font-mono bg-black/40 border border-white/10 px-2 py-0.5 rounded text-slate-300">
+              <div className="text-[10px] font-mono bg-black/40 border border-white/10 px-2 py-0.5 rounded text-slate-300">
                 Ratio: 3:4
               </div>
             </div>
@@ -548,11 +548,11 @@ export default function PersonalInfoTab({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-xl bg-slate-950 p-3.5 text-center border border-white/2">
-              <span className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Chiều Cao</span>
+              <span className="block text-[11px] text-slate-500 font-bold uppercase tracking-wider">Chiều Cao</span>
               <span className="text-sm font-extrabold text-white mt-1 block">{profile.height} cm</span>
             </div>
             <div className="rounded-xl bg-slate-950 p-3.5 text-center border border-white/2">
-              <span className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Cân Nặng</span>
+              <span className="block text-[11px] text-slate-500 font-bold uppercase tracking-wider">Cân Nặng</span>
               <span className="text-sm font-extrabold text-white mt-1 block">{profile.weight} kg</span>
             </div>
           </div>
@@ -644,7 +644,7 @@ export default function PersonalInfoTab({
                 <span className="block font-bold text-white">Kỹ năng đặc biệt</span>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {(profile.specialSkills || profile.skills || ["Catwalk", "MC song ngữ", "Pose dáng lookbook"]).map((skill: string, sIdx: number) => (
-                    <span key={sIdx} className="bg-white/5 border border-white/10 text-slate-300 text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                    <span key={sIdx} className="bg-white/5 border border-white/10 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
                       {skill}
                     </span>
                   ))}
@@ -707,23 +707,23 @@ export default function PersonalInfoTab({
 
             {/* Safety Guarantees Area */}
             <div className="border-t border-[#151b2d] pt-4 space-y-3">
-              <span className="block text-[8px] text-slate-500 font-black uppercase tracking-wider text-left">🔒 Cam Kết Bảo Mật & An Toàn Giao Dịch</span>
+              <span className="block text-[10px] text-slate-500 font-black uppercase tracking-wider text-left">🔒 Cam Kết Bảo Mật & An Toàn Giao Dịch</span>
 
               <div className="grid grid-cols-3 gap-2">
                 <div className="rounded-lg bg-slate-950/80 p-2 text-center border border-white/2">
                   <span className="block text-[14px] mb-1">✍️</span>
-                  <span className="block text-[8px] font-black text-slate-300 uppercase tracking-wide">Smart Contract</span>
-                  <span className="block text-[6.5px] text-slate-500 mt-0.5 font-medium leading-none">Ký số lịch trình</span>
+                  <span className="block text-[10px] font-black text-slate-300 uppercase tracking-wide">Smart Contract</span>
+                  <span className="block text-[10px] text-slate-500 mt-0.5 font-medium leading-none">Ký số lịch trình</span>
                 </div>
                 <div className="rounded-lg bg-slate-950/80 p-2 text-center border border-white/2">
                   <span className="block text-[14px] mb-1">📍</span>
-                  <span className="block text-[8px] font-black text-slate-300 uppercase tracking-wide">Real-time GPS</span>
-                  <span className="block text-[6.5px] text-slate-500 mt-0.5 font-medium leading-none">Check-in điểm hẹn</span>
+                  <span className="block text-[10px] font-black text-slate-300 uppercase tracking-wide">Real-time GPS</span>
+                  <span className="block text-[10px] text-slate-500 mt-0.5 font-medium leading-none">Check-in điểm hẹn</span>
                 </div>
                 <div className="rounded-lg bg-slate-950/80 p-2 text-center border border-white/2">
                   <span className="block text-[14px] mb-1">💰</span>
-                  <span className="block text-[8px] font-black text-slate-300 uppercase tracking-wide">Escrow Payment</span>
-                  <span className="block text-[6.5px] text-slate-500 mt-0.5 font-medium leading-none">Đặt cọc hệ thống</span>
+                  <span className="block text-[10px] font-black text-slate-300 uppercase tracking-wide">Escrow Payment</span>
+                  <span className="block text-[10px] text-slate-500 mt-0.5 font-medium leading-none">Đặt cọc hệ thống</span>
                 </div>
               </div>
             </div>
@@ -742,24 +742,24 @@ export default function PersonalInfoTab({
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="rounded-xl bg-slate-950 p-4 border border-white/2">
-              <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">Xem profile/tuần</span>
+              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Xem profile/tuần</span>
               <h4 className="text-lg font-extrabold text-white mt-1.5">1,520 lượt</h4>
-              <span className="text-[8px] text-emerald-400 font-bold block mt-1">↑ 400% (Từ Super Boost)</span>
+              <span className="text-[10px] text-emerald-400 font-bold block mt-1">↑ 400% (Từ Super Boost)</span>
             </div>
             <div className="rounded-xl bg-slate-950 p-4 border border-white/2">
-              <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">Đề xuất Booking</span>
+              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Đề xuất Booking</span>
               <h4 className="text-lg font-extrabold text-white mt-1.5">48 Đề xuất</h4>
-              <span className="text-[8px] text-emerald-400 font-bold block mt-1">↑ 500% (Elite Verified)</span>
+              <span className="text-[10px] text-emerald-400 font-bold block mt-1">↑ 500% (Elite Verified)</span>
             </div>
             <div className="rounded-xl bg-slate-950 p-4 border border-white/2">
-              <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">Tỷ lệ nhận việc</span>
+              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tỷ lệ nhận việc</span>
               <h4 className="text-lg font-extrabold text-white mt-1.5">98%</h4>
-              <span className="text-[8px] text-cyan-400 font-bold block mt-1">Hạng xuất sắc A+</span>
+              <span className="text-[10px] text-cyan-400 font-bold block mt-1">Hạng xuất sắc A+</span>
             </div>
             <div className="rounded-xl bg-slate-950 p-4 border border-white/2">
-              <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">ROI Tiếp Cận</span>
+              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">ROI Tiếp Cận</span>
               <h4 className="text-lg font-extrabold text-white mt-1.5">3,000%</h4>
-              <span className="text-[8px] text-[#f4c430] font-bold block mt-1 font-mono">Tối Ưu Cực Cao</span>
+              <span className="text-[10px] text-[#f4c430] font-bold block mt-1 font-mono">Tối Ưu Cực Cao</span>
             </div>
           </div>
         </div>
@@ -775,9 +775,9 @@ export default function PersonalInfoTab({
               <div className="absolute top-2 right-2 opacity-15">
                 <Wallet className="h-10 w-10 text-emerald-400" />
               </div>
-              <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">Số dư Ví hiện tại</span>
+              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Số dư Ví hiện tại</span>
               <h4 className="text-xl font-black text-emerald-400 mt-2 font-mono">12.500.000đ</h4>
-              <span className="text-[8.5px] text-emerald-500 block mt-1.5 font-bold">● Sẵn sàng rút về ngân hàng</span>
+              <span className="text-[10px] text-emerald-500 block mt-1.5 font-bold">● Sẵn sàng rút về ngân hàng</span>
             </div>
 
             {/* Monthly Income */}
@@ -785,9 +785,9 @@ export default function PersonalInfoTab({
               <div className="absolute top-2 right-2 opacity-15">
                 <TrendingUp className="h-10 w-10 text-purple-400" />
               </div>
-              <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">Doanh thu tháng này</span>
+              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Doanh thu tháng này</span>
               <h4 className="text-xl font-black text-purple-400 mt-2 font-mono">18.000.000đ</h4>
-              <span className="text-[8.5px] text-purple-400 block mt-1.5 font-bold">↑ Tăng 22% so với tháng trước</span>
+              <span className="text-[10px] text-purple-400 block mt-1.5 font-bold">↑ Tăng 22% so với tháng trước</span>
             </div>
 
             {/* Escrowed / Locked cọc */}
@@ -795,9 +795,9 @@ export default function PersonalInfoTab({
               <div className="absolute top-2 right-2 opacity-15">
                 <ShieldCheck className="h-10 w-10 text-amber-400" />
               </div>
-              <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">Tiền cọc chờ giải ngân</span>
+              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tiền cọc chờ giải ngân</span>
               <h4 className="text-xl font-black text-amber-400 mt-2 font-mono">4.000.000đ</h4>
-              <span className="text-[8.5px] text-amber-400 block mt-1.5 font-bold">🔒 Tiền cọc an toàn (Escrow)</span>
+              <span className="text-[10px] text-amber-400 block mt-1.5 font-bold">🔒 Tiền cọc an toàn (Escrow)</span>
             </div>
           </div>
         </div>
@@ -832,7 +832,7 @@ export default function PersonalInfoTab({
           </div>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-7 gap-1 text-center text-[9px] text-slate-500 font-black uppercase">
+            <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-slate-500 font-black uppercase">
               <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
             </div>
 
@@ -855,22 +855,22 @@ export default function PersonalInfoTab({
                     key={idx}
                     onClick={() => handleCalendarDayClick(dateKey)}
                     className={cn(
-                      "flex flex-col items-center justify-between p-1.5 h-12 rounded-xl border text-center transition-all cursor-pointer hover:scale-102",
+                      "flex flex-col items-center justify-center gap-0.5 p-1 h-16 rounded-xl border text-center transition-all cursor-pointer hover:scale-102 overflow-hidden",
                       status === "available" && "border-emerald-400/40 bg-emerald-400/5 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.1)] hover:border-emerald-400",
                       status === "maybe" && "border-yellow-500/30 bg-yellow-500/5 text-yellow-300 shadow-[0_0_8px_rgba(234,179,8,0.1)] hover:border-yellow-400",
                       status === "busy" && "border-red-500/40 bg-red-500/5 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.1)] hover:border-red-500"
                     )}
                   >
-                    <span className="text-[9px] font-mono font-bold block">{dayStr}</span>
-                    <span className="text-[6.5px] font-black uppercase tracking-wider scale-90">
-                      {status === "available" ? "Rảnh" : status === "maybe" ? "Chưa có lịch" : "Bận"}
+                    <span className="text-[11px] font-mono font-bold leading-none">{dayStr}</span>
+                    <span className="text-[8px] font-black uppercase tracking-wide leading-tight text-center block w-full px-0.5">
+                      {status === "available" ? "Rảnh" : status === "maybe" ? "Chưa\ncó lịch" : "Bận"}
                     </span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[9.5px] text-slate-400 border-t border-white/5 pt-3 mt-1">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-slate-400 border-t border-white/5 pt-3 mt-1">
               <span>🟢 Rảnh</span>
               <span>🔴 Bận</span>
               <span>🟡 Chưa có lịch</span>
@@ -885,7 +885,7 @@ export default function PersonalInfoTab({
               <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
                 <Image className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ Ảnh Lookbook Nghệ Thuật
               </h3>
-              <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+              <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
                 Hiển thị bộ ảnh Lookbook nghệ thuật của Talent
               </span>
             </div>
@@ -893,7 +893,7 @@ export default function PersonalInfoTab({
 
           {/* Sub-grid 1: 4 Lookbook Photos */}
           <div className="space-y-3">
-            <span className="block text-[9px] text-[#f4c430] font-black uppercase tracking-wider">
+            <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
               📸 Bộ Ảnh Lookbook Nghệ Thuật (4 Ảnh)
             </span>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -961,7 +961,7 @@ export default function PersonalInfoTab({
 
           {/* Sub-grid 2: 3 Videos (Intro, Catwalk, MC/Live Demo) - Commented out as requested
           <div className="space-y-3 border-t border-[#151b2d] pt-4">
-            <span className="block text-[9px] text-cyan-400 font-black uppercase tracking-wider">
+            <span className="block text-[11px] text-cyan-400 font-black uppercase tracking-wider">
               🎥 Video Giới Thiệu & Demo Thực Tế (3 Videos)
             </span>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1155,12 +1155,12 @@ export default function PersonalInfoTab({
                 <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
                   Bản Đồ Năng Lực AI & Xếp Hạng Việc Làm (Radar Chart)
                 </h3>
-                <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
                   Định hướng 8 trục chính xác theo nhân trắc học & kỹ năng
                 </span>
               </div>
             </div>
-            <div className="text-[9px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 uppercase tracking-wide">
+            <div className="text-[11px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 uppercase tracking-wide">
               AI Powered
             </div>
           </div>
@@ -1188,11 +1188,11 @@ export default function PersonalInfoTab({
               {/* Radar Chart Summary Column */}
               <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
                 <div className="space-y-2">
-                  <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-black">Nhóm Tương Thích Nhất</span>
+                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">Nhóm Tương Thích Nhất</span>
                   <h4 className="text-xs font-black text-amber-300 leading-relaxed uppercase tracking-wide">
                     {profile.mainCategory}
                   </h4>
-                  <p className="text-[9.5px] text-slate-400 leading-normal">
+                  <p className="text-[11px] text-slate-400 leading-normal">
                     Biểu đồ radar 8 trục: <strong>Catwalk, Pose dáng, MC, Livestream, Diễn xuất, Social content, Brand safety, Reliability</strong>.
                   </p>
                 </div>
@@ -1225,7 +1225,7 @@ export default function PersonalInfoTab({
               {/* 20 Recommended Roles Column */}
               <div className="md:col-span-7 space-y-3 flex flex-col justify-between">
                 <div>
-                  <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">Độ Tương Thích Với 20 Vị Trí Công Việc</span>
+                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">Độ Tương Thích Với 20 Vị Trí Công Việc</span>
 
                   <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                     {(() => {
