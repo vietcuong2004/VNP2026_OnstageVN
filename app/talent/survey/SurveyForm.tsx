@@ -1499,7 +1499,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 
                 {/* TikTok Row */}
                 <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-8 relative">
+                  <div className="col-span-7 relative">
                     <span className="absolute left-3 top-3 text-slate-400">
                       <TiktokIcon className="h-3.5 w-3.5 text-slate-300" />
                     </span>
@@ -1512,14 +1512,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       placeholder="TikTok Profile URL"
                     />
                   </div>
-                  <div className="col-span-4 relative">
-                    <span className="absolute right-2.5 top-3 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
+                  <div className="col-span-5 relative">
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
                     <input
                       type="number"
                       name="tiktokFollowers"
                       value={formData.tiktokFollowers}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-11 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
                       placeholder="0"
                       min="0"
                     />
@@ -1528,7 +1528,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
                 {/* Instagram Row */}
                 <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-8 relative">
+                  <div className="col-span-7 relative">
                     <span className="absolute left-3 top-3 text-slate-400">
                       <InstagramIcon className="h-3.5 w-3.5 text-slate-300" />
                     </span>
@@ -1541,14 +1541,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       placeholder="Instagram Profile URL"
                     />
                   </div>
-                  <div className="col-span-4 relative">
-                    <span className="absolute right-2.5 top-3 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
+                  <div className="col-span-5 relative">
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
                     <input
                       type="number"
                       name="instagramFollowers"
                       value={formData.instagramFollowers}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-11 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
                       placeholder="0"
                       min="0"
                     />
@@ -1557,7 +1557,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
                 {/* Facebook Row */}
                 <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-8 relative">
+                  <div className="col-span-7 relative">
                     <span className="absolute left-3 top-3 text-slate-400">
                       <FacebookIcon className="h-3.5 w-3.5 text-slate-300" />
                     </span>
@@ -1570,14 +1570,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       placeholder="Facebook Profile URL"
                     />
                   </div>
-                  <div className="col-span-4 relative">
-                    <span className="absolute right-2.5 top-3 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
+                  <div className="col-span-5 relative">
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
                     <input
                       type="number"
                       name="facebookFollowers"
                       value={formData.facebookFollowers}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-11 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
                       placeholder="0"
                       min="0"
                     />
@@ -1586,7 +1586,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
                 {/* YouTube Row */}
                 <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-8 relative">
+                  <div className="col-span-7 relative">
                     <span className="absolute left-3 top-3 text-slate-400">
                       <YoutubeIcon className="h-3.5 w-3.5 text-slate-300" />
                     </span>
@@ -1599,14 +1599,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       placeholder="YouTube Channel URL"
                     />
                   </div>
-                  <div className="col-span-4 relative">
-                    <span className="absolute right-2.5 top-3 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
+                  <div className="col-span-5 relative">
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
                     <input
                       type="number"
                       name="youtubeFollowers"
                       value={formData.youtubeFollowers}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-11 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
                       placeholder="0"
                       min="0"
                     />
