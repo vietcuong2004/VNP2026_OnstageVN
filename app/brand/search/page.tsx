@@ -547,7 +547,7 @@ export default function DiscoverTalentsPage() {
                           <span className="text-[10px] font-bold text-slate-300 flex items-center gap-1.5">
                             {service.title}
                           </span>
-                          <span className="text-[8.5px] text-slate-500 font-medium leading-normal">{service.description}</span>
+                          <span className="text-xs text-slate-500 font-medium leading-normal">{service.description}</span>
                         </div>
                         <input
                           type="checkbox"

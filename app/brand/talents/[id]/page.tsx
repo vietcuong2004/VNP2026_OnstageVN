@@ -466,7 +466,7 @@ export default function BrandTalentProfilePage() {
                           {formatNumber(service.rate)}đ/{service.unit}
                         </span>
                       </div>
-                      <p className="text-[10px] text-slate-400 leading-relaxed font-medium">{service.description}</p>
+                      <p className="text-xs text-slate-400 leading-relaxed font-medium">{service.description}</p>
                     </div>
                   );
                 })}

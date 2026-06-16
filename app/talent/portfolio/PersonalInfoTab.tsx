@@ -698,7 +698,7 @@ export default function PersonalInfoTab({
                         {(service.rate || 0).toLocaleString()}đ/{service.unit}
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-400 leading-relaxed font-medium">{service.description}</p>
+                    <p className="text-xs text-slate-400 leading-relaxed font-medium">{service.description}</p>
                   </div>
                 );
               })}
@@ -897,52 +897,61 @@ export default function PersonalInfoTab({
             </span>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {lookbookPhotos.map((img) => (
-                <div
-                  key={img.id}
-                  className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md"
-                >
-                  <img
-                    src={img.url}
-                    alt={img.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85" />
+                <div key={img.id} className="flex flex-col gap-2">
+                  <div
+                    className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md"
+                  >
+                    <img
+                      src={img.url}
+                      alt={img.title}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85 sm:block hidden" />
 
-                  {/* Hover Overlay upload trigger */}
-                  <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                    <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
-                      <Upload className="h-5 w-5 text-amber-400" />
-                      <span>Thay đổi ảnh</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        disabled={!!uploadingState[`lookbook-${img.id}`]}
-                        onChange={(e) => handleLookbookUpload(e, img.id)}
+                    {/* Hover Overlay upload trigger */}
+                    <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                        <Upload className="h-5 w-5 text-amber-400" />
+                        <span>Thay đổi ảnh</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={!!uploadingState[`lookbook-${img.id}`]}
+                          onChange={(e) => handleLookbookUpload(e, img.id)}
+                        />
+                      </label>
+                    </div>
+
+                    {/* Progress bar overlay */}
+                    {uploadingState[`lookbook-${img.id}`] && (
+                      <ProgressBar
+                        progress={uploadingState[`lookbook-${img.id}`].progress}
+                        message="Đang tải ảnh lên..."
                       />
-                    </label>
+                    )}
+
+                    {/* Labeled overlay info (Desktop only) */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10 pointer-events-none hidden sm:block text-left">
+                      <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                        {img.label}
+                      </span>
+                      <h4 className="text-[10px] font-black text-white">{img.title}</h4>
+                      <div className="text-[7.5px] text-slate-400 space-y-0.5 leading-normal opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <p>📷 {img.photographer}</p>
+                        <p>👗 Concept: {img.concept}</p>
+                        <p>⚙️ {img.device}</p>
+                        <p>📅 Ngày chụp: {img.date}</p>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Progress bar overlay */}
-                  {uploadingState[`lookbook-${img.id}`] && (
-                    <ProgressBar
-                      progress={uploadingState[`lookbook-${img.id}`].progress}
-                      message="Đang tải ảnh lên..."
-                    />
-                  )}
-
-                  {/* Labeled overlay info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10 pointer-events-none">
+                  {/* Labeled overlay info (Mobile only) */}
+                  <div className="sm:hidden block space-y-1 px-1 text-left pb-1">
                     <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
                       {img.label}
                     </span>
                     <h4 className="text-[10px] font-black text-white">{img.title}</h4>
-                    <div className="text-[7.5px] text-slate-400 space-y-0.5 leading-normal opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p>📷 {img.photographer}</p>
-                      <p>👗 Concept: {img.concept}</p>
-                      <p>⚙️ {img.device}</p>
-                      <p>📅 Ngày chụp: {img.date}</p>
-                    </div>
                   </div>
                 </div>
               ))}

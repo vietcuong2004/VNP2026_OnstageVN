@@ -963,7 +963,7 @@ export default function CampaignDetailPage() {
                       <div key={service.id} className="flex justify-between items-start p-3 bg-[#050711] border border-white/5 rounded-xl">
                         <div>
                           <span className="text-xs font-bold text-white block">⛳ {service.title}</span>
-                          <span className="text-[9.5px] text-slate-500 leading-normal block mt-1">{service.description}</span>
+                          <span className="text-xs text-slate-500 leading-normal block mt-1">{service.description}</span>
                         </div>
                         <span className="text-[10px] font-black text-amber-400 font-mono bg-amber-400/10 px-2 py-0.5 rounded shrink-0">
                           {service.rate.toLocaleString()}đ/{service.unit}

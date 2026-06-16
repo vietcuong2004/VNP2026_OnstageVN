@@ -548,7 +548,7 @@ export default function EditInfoTab({
                         </label>
                       </div>
 
-                      <p className="text-[9.5px] text-slate-500 leading-normal">{service.description}</p>
+                      <p className="text-xs text-slate-500 leading-normal">{service.description}</p>
 
                       {service.enabled && (
                         <div className="space-y-1.5 animate-in fade-in duration-200">
