@@ -4,16 +4,117 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Briefcase,
+  ChevronDown,
   ChevronRight,
   ImagePlus,
   Plus,
   X,
 } from "lucide-react";
-import { campaigns as initialCampaigns, type Campaign, SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
+import { campaigns as initialCampaigns, type Campaign } from "@/lib/brand-mvp-data";
 import { createBrandCampaign, loadBrandCampaigns, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 type CampaignStatusTab = "all" | Campaign["status"];
+
+const ROLE_OPTIONS = [
+  "CTV Take Care nghệ sĩ",
+  "CTV điều phối sự kiện",
+  "CTV check-in & đón tiếp khách mời",
+  "Người mẫu",
+  "Người dẫn chương trình",
+  "Ca sĩ",
+  "KOL/KOC",
+  "Beauty Blogger",
+  "Fashion Blogger",
+  "Đại sứ thương hiệu",
+  "Nhân vật truyền cảm hứng",
+];
+
+const BENEFIT_OPTIONS = [
+  "Hỗ trợ ăn uống trong chương trình",
+  "Nhận giấy chứng nhận sau khi hoàn thành",
+  "Cơ hội tham gia dự án trong lĩnh vực giải trí/sự kiện",
+  "Đào tạo kỹ năng vận hành, điều phối và quản lý",
+  "Mở rộng quan hệ với nghệ sĩ, KOLs, khách mời và đối tác",
+  "Tích lũy kinh nghiệm thực tế",
+  "Trải nghiệm thương hiệu cao cấp",
+  "Mở rộng mạng lưới kết nối",
+  "Ưu tiên sản xuất nội dung",
+  "Cơ hội trở thành đại sứ thương hiệu",
+  "Vinh danh tại chương trình",
+  "Hỗ trợ thù lao phụ",
+  "Tài trợ trang điểm",
+  "Tài trợ làm tóc",
+  "Tài trợ trang phục dạ hội",
+  "Tài trợ áo dài truyền thống",
+  "Tài trợ trang phục thường ngày",
+  "Tài trợ trang phục thể thao",
+  "Tài trợ trang sức cao cấp",
+  "Tài trợ mỹ phẩm dưỡng da",
+  "Tài trợ khách sạn/lưu trú VIP",
+  "Tài trợ vé máy bay khứ hồi",
+  "Tài trợ xe đưa đón",
+  "Tài trợ ăn uống",
+  "Tài trợ thẻ tập Gym & Fitness",
+  "Tài trợ chăm sóc nha khoa",
+  "Tài trợ thẩm mỹ viện & skincare",
+  "Tài trợ chụp ảnh & studio",
+  "Tài trợ gói truyền thông PR/báo chí",
+  "Tài trợ phụ kiện thời trang",
+  "Tài trợ giày cao gót NTK",
+  "Tài trợ voucher nghỉ dưỡng & spa",
+  "Tài trợ bảo hiểm sức khỏe sự kiện",
+  "Tài trợ đào tạo MC & kỹ năng",
+];
+
+const RESPONSIBILITY_OPTIONS = [
+  "Hỗ trợ vận hành chương trình, sự kiện và các hoạt động sản xuất",
+  "Phối hợp cùng bộ phận điều phối để đảm bảo tiến độ chương trình",
+  "Hỗ trợ nghệ sĩ, khách mời, đối tác và khán giả trong quá trình diễn ra sự kiện",
+  "Thực hiện các nhiệm vụ điều phối, check-in và hậu cần theo phân công",
+  "Góp phần đảm bảo chương trình diễn ra chỉn chu, chuyên nghiệp và đúng timeline",
+  "Đồng hành trong các hoạt động truyền thông và lan tỏa hình ảnh chiến dịch",
+  "Tham gia sản xuất nội dung hậu trường hoặc review sản phẩm theo brief",
+];
+
+const INDUSTRY_OPTIONS = [
+  "Thời trang",
+  "Làm đẹp",
+  "Giải trí",
+  "Sự kiện",
+  "Truyền thông",
+  "Mỹ phẩm cao cấp",
+  "Công nghệ làm đẹp",
+  "Viện thẩm mỹ quốc tế",
+  "Spa & Wellness",
+  "Training & Academy",
+  "Nhãn hàng đồng hành",
+];
+
+const TARGET_PROFILE_OPTIONS = [
+  "Người mẫu",
+  "Người dẫn chương trình",
+  "Ca sĩ",
+  "KOL/KOC",
+  "Beauty Blogger",
+  "Fashion Blogger",
+  "Doanh nhân / Nhà đầu tư",
+  "Chuyên gia làm đẹp",
+  "Nhà thiết kế",
+  "Hoa hậu / Nghệ sĩ",
+  "Nhân vật truyền cảm hứng",
+];
+
+function splitOptionText(value: string) {
+  return value
+    .split(/\r?\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function joinOptionText(items: string[]) {
+  return Array.from(new Set(items.map((item) => item.trim()).filter(Boolean))).join("\n");
+}
 
 const emptyForm = {
   title: "",
@@ -39,7 +140,6 @@ const emptyForm = {
   industries: "",
   targetProfiles: "",
   contactNote: "",
-  selectedSponsorships: [] as string[],
   escrowed: false,
 };
 
@@ -62,10 +162,12 @@ export default function CampaignsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [campaignImages, setCampaignImages] = useState<File[]>([]);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   function closeCreateForm() {
     setIsCreating(false);
     setCampaignImages([]);
+    setOpenDropdown(null);
   }
 
   const filteredCampaigns = useMemo(() => {
@@ -131,18 +233,12 @@ export default function CampaignsPage() {
         views: 0,
         description: form.description || "Chưa có mô tả brief.",
         requirements: form.requirements || "Chưa có yêu cầu chi tiết.",
-        roles: form.roles.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean),
-        responsibilities: form.responsibilities.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean),
-        industries: form.industries.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean),
-        targetProfiles: form.targetProfiles.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean),
+        roles: splitOptionText(form.roles),
+        responsibilities: splitOptionText(form.responsibilities),
+        industries: splitOptionText(form.industries),
+        targetProfiles: splitOptionText(form.targetProfiles),
         contactNote: form.contactNote,
-        sponsorships: (form.selectedSponsorships || []).map(id => {
-          const cat = SPONSORSHIP_CATEGORIES.find(c => c.id === id);
-          return {
-            category: cat?.label || id,
-            details: `Cam kết cung cấp tài trợ gói dịch vụ/hiện vật ${cat?.label.toLowerCase() || id} cho Talent.`
-          };
-        }),
+        sponsorships: [],
         escrowed: form.escrowed,
       };
     }
@@ -279,20 +375,61 @@ export default function CampaignsPage() {
               <FormInput label="Ngày kết thúc" type="date" value={form.endDate} onChange={(value) => setForm((current) => ({ ...current, endDate: value }))} />
               <FormInput label="Hạn ứng tuyển" type="date" value={form.applicationDeadline} onChange={(value) => setForm((current) => ({ ...current, applicationDeadline: value, deadline: value }))} />
               <FormInput label="Ngày sự kiện chính" type="date" value={form.eventDate} onChange={(value) => setForm((current) => ({ ...current, eventDate: value }))} />
-              <FormInput label="Phúc lợi" value={form.benefits} onChange={(value) => setForm((current) => ({ ...current, benefits: value }))} />
+              <MultiChoiceField
+                id="roles"
+                label="Vị trí tuyển dụng"
+                value={form.roles}
+                options={ROLE_OPTIONS}
+                placeholder={"Nhập thêm vị trí khác, mỗi dòng một mục"}
+                onChange={(value) => setForm((current) => ({ ...current, roles: value }))}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+              />
 
-              <label className="space-y-1 md:col-span-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển dụng</span>
-                <textarea value={form.roles} onChange={(event) => setForm((current) => ({ ...current, roles: event.target.value }))} rows={3} placeholder={"Mỗi dòng một vị trí\nCTV Take Care nghệ sĩ\nCTV Check-in & đón tiếp khách mời"} className="w-full resize-none rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60" />
-              </label>
+              <MultiChoiceField
+                id="benefits"
+                label="Quyền lợi / đãi ngộ"
+                value={form.benefits}
+                options={BENEFIT_OPTIONS}
+                placeholder={"Nhập thêm quyền lợi khác, mỗi dòng một mục"}
+                onChange={(value) => setForm((current) => ({ ...current, benefits: value }))}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+              />
 
-              <label className="space-y-1 md:col-span-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mô tả đầu việc</span>
-                <textarea value={form.responsibilities} onChange={(event) => setForm((current) => ({ ...current, responsibilities: event.target.value }))} rows={3} placeholder={"Mỗi dòng một đầu việc\nHỗ trợ vận hành chương trình\nPhối hợp cùng bộ phận điều phối"} className="w-full resize-none rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60" />
-              </label>
+              <MultiChoiceField
+                id="responsibilities"
+                label="Mô tả đầu việc"
+                value={form.responsibilities}
+                options={RESPONSIBILITY_OPTIONS}
+                placeholder={"Nhập thêm đầu việc khác, mỗi dòng một mục"}
+                onChange={(value) => setForm((current) => ({ ...current, responsibilities: value }))}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                showCustomInput
+              />
 
-              <FormInput label="Lĩnh vực liên quan" value={form.industries} onChange={(value) => setForm((current) => ({ ...current, industries: value }))} />
-              <FormInput label="Nhóm Talent phù hợp" value={form.targetProfiles} onChange={(value) => setForm((current) => ({ ...current, targetProfiles: value }))} />
+              <MultiChoiceField
+                id="industries"
+                label="Lĩnh vực liên quan"
+                value={form.industries}
+                options={INDUSTRY_OPTIONS}
+                placeholder={"Nhập thêm lĩnh vực khác, mỗi dòng một mục"}
+                onChange={(value) => setForm((current) => ({ ...current, industries: value }))}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+              />
+
+              <MultiChoiceField
+                id="targetProfiles"
+                label="Nhóm Talent phù hợp"
+                value={form.targetProfiles}
+                options={TARGET_PROFILE_OPTIONS}
+                placeholder={"Nhập thêm nhóm Talent khác, mỗi dòng một mục"}
+                onChange={(value) => setForm((current) => ({ ...current, targetProfiles: value }))}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+              />
               <FormInput label="Ghi chú ứng tuyển" value={form.contactNote} onChange={(value) => setForm((current) => ({ ...current, contactNote: value }))} />
 
               <label className="flex cursor-pointer items-center justify-between rounded-xl border border-white/5 bg-slate-900/30 p-2.5 md:col-span-2 hover:bg-slate-900/50 transition-colors">
@@ -311,35 +448,6 @@ export default function CampaignsPage() {
                   className="rounded accent-amber-400 h-4 w-4 shrink-0 cursor-pointer"
                 />
               </label>
-
-              {/* Sponsorship categories checklist */}
-              <div className="space-y-2 md:col-span-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Các Hạng Mục Tài Trợ Cho Ứng Viên (Sponsorships)</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border border-white/5 bg-slate-900/30 rounded-xl p-3 custom-scrollbar">
-                  {SPONSORSHIP_CATEGORIES.map((cat) => {
-                    const isChecked = form.selectedSponsorships?.includes(cat.id);
-                    return (
-                      <label key={cat.id} className="flex items-center gap-2 text-[11px] text-slate-300 hover:text-white cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {
-                            setForm(current => {
-                              const prev = current.selectedSponsorships || [];
-                              const next = prev.includes(cat.id)
-                                ? prev.filter(id => id !== cat.id)
-                                : [...prev, cat.id];
-                              return { ...current, selectedSponsorships: next };
-                            });
-                          }}
-                          className="rounded accent-amber-400 cursor-pointer h-3.5 w-3.5 shrink-0"
-                        />
-                        <span>{cat.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
 
               <label className="space-y-1 md:col-span-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu *</span>
@@ -377,6 +485,129 @@ export default function CampaignsPage() {
             </div>
           </form>
         </div>
+      )}
+    </div>
+  );
+}
+
+function MultiChoiceField({
+  id,
+  label,
+  value,
+  options,
+  placeholder,
+  onChange,
+  openDropdown,
+  setOpenDropdown,
+  showCustomInput = false,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  options: string[];
+  placeholder: string;
+  onChange: (value: string) => void;
+  openDropdown: string | null;
+  setOpenDropdown: (value: string | null) => void;
+  showCustomInput?: boolean;
+}) {
+  const open = openDropdown === id;
+  const selectedItems = splitOptionText(value);
+  const selectedSet = new Set(selectedItems);
+  const optionSet = new Set(options);
+  const customItems = selectedItems.filter((item) => !optionSet.has(item));
+  const customValue = customItems.join("\n");
+  const summary = selectedItems.length > 0
+    ? selectedItems.slice(0, 2).join(", ") + (selectedItems.length > 2 ? ` +${selectedItems.length - 2}` : "")
+    : "Chọn từ danh sách";
+
+  function toggleOption(option: string) {
+    const next = selectedSet.has(option)
+      ? selectedItems.filter((item) => item !== option)
+      : [...selectedItems, option];
+
+    onChange(joinOptionText(next));
+  }
+
+  function updateCustomItems(nextValue: string) {
+    const selectedOptions = options.filter((option) => selectedSet.has(option));
+    onChange(joinOptionText([...selectedOptions, ...splitOptionText(nextValue)]));
+  }
+
+  return (
+    <div className="space-y-2 md:col-span-2">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</span>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpenDropdown(open ? null : id)}
+          className={cn(
+            "flex w-full items-center justify-between gap-3 rounded-xl border bg-slate-900/50 px-3 py-2.5 text-left text-xs outline-none transition-colors",
+            open ? "border-amber-400/60" : "border-white/5 hover:border-white/15"
+          )}
+        >
+          <span className={cn("truncate", selectedItems.length > 0 ? "text-white" : "text-slate-500")}>
+            {summary}
+          </span>
+          <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-500 transition-transform", open && "rotate-180 text-amber-300")} />
+        </button>
+
+        {open && (
+          <div className="absolute left-0 right-0 top-full z-[70] mt-2 rounded-xl border border-white/10 bg-[#070913] p-3 shadow-2xl">
+            <div className="grid max-h-56 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 custom-scrollbar">
+              {options.map((option) => {
+                const checked = selectedSet.has(option);
+
+                return (
+                  <label
+                    key={option}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-[11px] font-semibold transition-colors",
+                      checked
+                        ? "border-amber-400/40 bg-amber-400/10 text-amber-200"
+                        : "border-white/5 bg-slate-950/60 text-slate-300 hover:border-white/15 hover:bg-white/[0.04]"
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleOption(option)}
+                      className="h-3.5 w-3.5 shrink-0 rounded accent-amber-400"
+                    />
+                    <span>{option}</span>
+                  </label>
+                );
+              })}
+            </div>
+            {!showCustomInput && (
+              <textarea
+                value={customValue}
+                onChange={(event) => updateCustomItems(event.target.value)}
+                rows={2}
+                placeholder={placeholder}
+                className="mt-3 w-full resize-none rounded-lg border border-white/5 bg-slate-950/70 px-3 py-2 text-xs text-white outline-none placeholder:text-slate-600 focus:border-amber-400/60"
+              />
+            )}
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setOpenDropdown(null)}
+                className="rounded-lg bg-amber-300 px-3 py-1.5 text-[10px] font-black uppercase text-slate-950"
+              >
+                Xong
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      {showCustomInput && (
+        <textarea
+          value={customValue}
+          onChange={(event) => updateCustomItems(event.target.value)}
+          rows={3}
+          placeholder={placeholder}
+          className="w-full resize-none rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none placeholder:text-slate-600 focus:border-amber-400/60"
+        />
       )}
     </div>
   );
