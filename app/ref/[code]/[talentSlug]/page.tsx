@@ -31,7 +31,7 @@ export default function TalentChildInviteRedirectPage() {
     <div className="flex min-h-[70vh] items-center justify-center px-4 text-center">
       <div>
         <p className="text-xs font-black uppercase tracking-[0.25em] text-amber-300">OnstageVN</p>
-        <p className="mt-3 text-sm font-semibold text-slate-300">Dang mo link moi cua Talent...</p>
+        <p className="mt-3 text-sm font-semibold text-slate-300">Đang mở link mời của Talent...</p>
       </div>
     </div>
   );

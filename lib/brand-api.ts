@@ -1,6 +1,7 @@
 "use client";
 
 import { apiJson, getAuthToken } from "@/lib/api-client";
+import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import type { Campaign, CampaignStage, TalentProfile } from "@/lib/brand-mvp-data";
 
 type BackendUser = {
@@ -317,7 +318,7 @@ function firstPhoto(profile: BackendProfile, category?: string) {
     ? [...photos].reverse().find((item) => item.category === category)
     : photos[0];
 
-  return photo?.url || photo?.path || "";
+  return normalizeBackendAssetUrl(photo?.url || photo?.path || "");
 }
 
 function mapTier(value?: string | null): TalentProfile["tier"] {
@@ -342,7 +343,11 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
   const measurements = parseMeasurements(profile.measurements);
   const followersCount = sumFollowers(profile) || fallback?.followersCount || 0;
   const engagementRate = avgEngagement(profile) || fallback?.engagementRate || 0;
-  const avatar = firstPhoto(profile, "avatar") || profile.avatar_url || profile.user?.external_avatar_url || fallback?.avatar || "/images/default-avatar.png";
+  const avatar = firstPhoto(profile, "avatar")
+    || normalizeBackendAssetUrl(profile.avatar_url)
+    || normalizeBackendAssetUrl(profile.user?.external_avatar_url)
+    || fallback?.avatar
+    || "/images/default-avatar.png";
   const cover = firstPhoto(profile, "cover") || fallback?.cover || avatar;
   const portfolio = (profile.photos ?? [])
     .map((photo) => photo.url || photo.path || "")
@@ -354,7 +359,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     type: profile.talent_types?.[0] || fallback?.type || "Talent",
     city: profile.city || fallback?.city || "",
     district: profile.district || fallback?.district || "",
-    gender: profile.gender === "male" ? "Nam" : profile.gender === "female" ? "Nu" : fallback?.gender || "",
+    gender: profile.gender === "male" ? "Nam" : profile.gender === "female" ? "Nữ" : fallback?.gender || "",
     age: profileAge(profile.birth_date) || fallback?.age || 24,
     height: Number(profile.height_cm) || fallback?.height || 0,
     weight: Number(profile.weight_kg) || fallback?.weight || 0,
@@ -375,14 +380,14 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     platforms: (profile.social_accounts ?? []).map((account) => account.platform || "").filter(Boolean),
     rateValue: Number(profile.budget_max || profile.budget_min) || fallback?.rateValue || 0,
     rate: formatBudget(profile.budget_min, profile.budget_max),
-    rateUnit: fallback?.rateUnit || "du an",
+    rateUnit: fallback?.rateUnit || "dự án",
     avatar,
     cover,
     fullBodyImage: firstPhoto(profile, "portfolio") || fallback?.fullBodyImage || avatar,
     skills: profile.skills?.length ? profile.skills : fallback?.skills || [],
     experience: profile.experience || profile.bio || fallback?.experience || "",
     portfolio: portfolio.length ? portfolio : fallback?.portfolio || [],
-    availability: fallback?.availability || "Chua co lich",
+    availability: fallback?.availability || "Chưa có lịch",
     availabilityDates: (profile.calendar_events ?? []).map((event) => String(event.starts_at || "").slice(0, 10)).filter(Boolean),
     completion: Number(profile.profile_completion) || fallback?.completion || 0,
     matchScore: Number(profile.profile_completion) || fallback?.matchScore || 0,
@@ -418,6 +423,19 @@ function mapCampaignStatus(status?: string | null): Campaign["status"] {
   return "draft";
 }
 
+function displayApplicationNote(value?: string | null) {
+  const note = String(value || "").trim();
+  if (note === "Toi rat quan tam va mong muon ung tuyen thuc hien chien dich nay.") {
+    return "Tôi rất quan tâm và mong muốn ứng tuyển thực hiện chiến dịch này.";
+  }
+
+  if (note === "Dang ky tham gia qua link gioi thieu Affiliate.") {
+    return "Đăng ký tham gia qua link giới thiệu Affiliate.";
+  }
+
+  return note;
+}
+
 function mapCampaignTalent(item: BackendCampaignTalent, index: number): CampaignTalentWithProfile {
   const profile = item.profile;
   const user = profile?.user;
@@ -433,12 +451,17 @@ function mapCampaignTalent(item: BackendCampaignTalent, index: number): Campaign
     referredByAvatar: item.referred_by?.external_avatar_url || null,
     talentId: id,
     stage,
-    note: item.notes || "",
+    note: displayApplicationNote(item.notes),
     talent: {
       id,
       name,
       type: user?.type || "Talent",
-      avatar: profile ? firstPhoto(profile, "avatar") || profile.avatar_url || user?.external_avatar_url || "/images/default-avatar.png" : user?.external_avatar_url || "/images/default-avatar.png",
+      avatar: profile
+        ? firstPhoto(profile, "avatar")
+          || normalizeBackendAssetUrl(profile.avatar_url)
+          || normalizeBackendAssetUrl(user?.external_avatar_url)
+          || "/images/default-avatar.png"
+        : normalizeBackendAssetUrl(user?.external_avatar_url) || "/images/default-avatar.png",
       matchScore: 0,
     },
   };

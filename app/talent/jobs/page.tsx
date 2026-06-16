@@ -327,7 +327,7 @@ export default function JobsPage() {
 
     if (/^\d+$/.test(String(id))) {
       try {
-        await applyTalentCampaign(id, "Toi rat quan tam va mong muon ung tuyen thuc hien chien dich nay.");
+        await applyTalentCampaign(id, "Tôi rất quan tâm và mong muốn ứng tuyển thực hiện chiến dịch này.");
         setDisplayJobs((prev) => prev.map((job) => (
           String(job.id) === String(id)
             ? { ...job, hasApplied: true, application: { ...(job.application || {}), status: "new" } }
@@ -335,7 +335,7 @@ export default function JobsPage() {
         )));
       } catch (error) {
         console.warn("Cannot apply campaign from backend", error);
-        addToast("Chua gui duoc ung tuyen len backend. Vui long thu lai.", "info");
+        addToast("Chưa gửi được ứng tuyển lên backend. Vui lòng thử lại.", "info");
         return;
       }
     }

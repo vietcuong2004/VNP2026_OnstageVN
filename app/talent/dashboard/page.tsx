@@ -36,6 +36,12 @@ const JOBS_LIST = [
   { id: 20, title: "Người mẫu ảo / Metaverse", desc: "Scan 3D hình ảnh số để làm mẫu ảo", weights: { pageant: 0.1, runway: 0.6, kol: 0.3 } }
 ];
 
+function formatCompactVND(value: number) {
+  if (!value) return "0đ";
+  if (value >= 1000000) return `${Number((value / 1000000).toFixed(1))}M đ`;
+  return `${new Intl.NumberFormat("vi-VN").format(value)}đ`;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
@@ -77,6 +83,13 @@ export default function DashboardPage() {
         };
       });
       setDashboardJobs(mapped);
+      setDashboardStats({
+        matchedCampaigns: mapped.length,
+        activeCampaigns: activeItems.length,
+        estimatedIncome: formatCompactVND(estimatedIncome),
+      });
+    }).catch((error) => {
+      console.warn("Cannot load dashboard campaigns from backend", error);
     });
 
     return () => {
@@ -385,7 +398,6 @@ export default function DashboardPage() {
               </strong>
               <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">AI Matching</span>
             </div>
-
             {/* Thẻ 2: Lịch Trình - Gold-Deep */}
             <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#14100a]/88 to-[#070913]/96 p-5 transition-all duration-300 hover:-translate-y-0.5 border-yellow-500/30 shadow-[0_0_22px_rgba(234,179,8,0.14)]">
               <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-12 blur-2xl bg-gradient-to-br from-yellow-300 to-amber-600"></div>

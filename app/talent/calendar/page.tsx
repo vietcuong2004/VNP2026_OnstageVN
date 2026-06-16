@@ -8,7 +8,7 @@ import {
   Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createTalentCalendarEvent, loadTalentCalendar, loadTalentProfile, updateTalentCalendarEvent } from "@/lib/talent-api";
+import { createTalentCalendarEvent, deleteTalentCalendarEvent, loadTalentCalendar, loadTalentProfile, updateTalentCalendarEvent } from "@/lib/talent-api";
 
 // Contest data for the calendar page detail modal
 const CALENDAR_CONTESTS = [
@@ -164,6 +164,10 @@ const CALENDAR_CONTESTS = [
     }
   }
 ];
+
+function isBackendCalendarTaskId(taskId: string | number) {
+  return /^\d+$/.test(String(taskId));
+}
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -369,7 +373,7 @@ export default function CalendarPage() {
     const newTodoLists = { ...todoLists, [date]: updated };
     setTodoLists(newTodoLists);
 
-    if (nextStatusForBackend && !String(taskId).startsWith("mock-") && !String(taskId).startsWith("task-")) {
+    if (nextStatusForBackend && isBackendCalendarTaskId(taskId)) {
       try {
         await updateTalentCalendarEvent(taskId, { status: nextStatusForBackend });
       } catch (error) {
@@ -398,10 +402,10 @@ export default function CalendarPage() {
     setTodoLists(newTodoLists);
 
     try {
-      if (!String(taskId).startsWith("mock-") && !String(taskId).startsWith("task-")) {
+      if (isBackendCalendarTaskId(taskId)) {
         await updateTalentCalendarEvent(taskId, { status: "completed" });
       }
-      if (nextTodo && !String(nextTodo.id).startsWith("mock-") && !String(nextTodo.id).startsWith("task-")) {
+      if (nextTodo && isBackendCalendarTaskId(nextTodo.id)) {
         await updateTalentCalendarEvent(nextTodo.id, { status: "in_progress" });
       }
     } catch (error) {
@@ -444,6 +448,22 @@ export default function CalendarPage() {
 
     setTodoLists(newTodoLists);
     setNewTask({ time: "", title: "", desc: "" });
+  };
+
+  const handleDeleteTask = async (date: string, taskId: string | number) => {
+    const previousTodoLists = todoLists;
+    const nextTasks = getTasksForDate(date).filter((todo: any) => String(todo.id) !== String(taskId));
+    setTodoLists({ ...todoLists, [date]: nextTasks });
+    setSelectedTask(null);
+
+    if (!isBackendCalendarTaskId(taskId)) return;
+
+    try {
+      await deleteTalentCalendarEvent(taskId);
+    } catch (error) {
+      console.error(error);
+      setTodoLists(previousTodoLists);
+    }
   };
 
   return (
@@ -1185,7 +1205,13 @@ export default function CalendarPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end p-6 border-t border-[#151b2d] bg-[#050711]">
+            <div className="flex items-center justify-between gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
+              <button
+                onClick={() => handleDeleteTask(selectedDate, selectedTask.id)}
+                className="px-5 py-2.5 rounded-xl border border-red-500/20 bg-red-500/10 text-xs font-bold text-red-300 hover:bg-red-500/15 cursor-pointer transition-colors"
+              >
+                Xoá công việc
+              </button>
               <button
                 onClick={() => setSelectedTask(null)}
                 className="px-5 py-2.5 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white hover:bg-white/2 cursor-pointer transition-colors"
