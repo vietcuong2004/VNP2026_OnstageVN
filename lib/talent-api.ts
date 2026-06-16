@@ -578,7 +578,9 @@ export async function loadTalentSurveyProgress() {
   if (!getAuthToken()) return null;
 
   try {
-    return await apiJson<TalentSurveyProgress>("/survey/progress");
+    return await apiJson<TalentSurveyProgress>("/survey/progress", {
+      clearAuthOnUnauthorized: false,
+    });
   } catch (error) {
     console.warn(error);
     return null;
@@ -657,7 +659,9 @@ export async function loadTalentSurveyHistory() {
   if (!getAuthToken()) return [];
 
   try {
-    const response = await apiJson<{ data: TalentSurveyHistoryEntry[] }>("/survey/history");
+    const response = await apiJson<{ data: TalentSurveyHistoryEntry[] }>("/survey/history", {
+      clearAuthOnUnauthorized: false,
+    });
     return response.data || [];
   } catch (error) {
     console.warn(error);

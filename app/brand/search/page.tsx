@@ -17,7 +17,9 @@ import {
   Award,
   MessageSquare
 } from "lucide-react";
-import { savedTalentIds, talents, campaigns, LIFESTYLE_SERVICES_TEMPLATES } from "@/lib/brand-mvp-data";
+import { talents, campaigns, LIFESTYLE_SERVICES_TEMPLATES } from "@/lib/brand-mvp-data";
+import { addTalentToWishlist, createBrandWishlist, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist } from "@/lib/brand-api";
+import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
 const allValue = "all";
@@ -50,7 +52,9 @@ export default function DiscoverTalentsPage() {
   const [minRating, setMinRating] = useState(0);
   const [minJobs, setMinJobs] = useState(0);
 
-  const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [wishlistId, setWishlistId] = useState<string | null>(null);
+  const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
   const [selectedInviteTalent, setSelectedInviteTalent] = useState<any | null>(null);
   const [selectedCampaignForInvite, setSelectedCampaignForInvite] = useState("");
   const [selectedLifestyleServices, setSelectedLifestyleServices] = useState<string[]>([]);
@@ -78,42 +82,37 @@ export default function DiscoverTalentsPage() {
   const [displayTalents, setDisplayTalents] = useState<any[]>(talents);
 
   useEffect(() => {
-    const stored = localStorage.getItem("vnp_talent_profile");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (parsed) {
-          setDisplayTalents(prev => prev.map(t => {
-            if (t.id === "tal-1") {
-              return {
-                ...t,
-                name: parsed.name || t.name,
-                avatar: parsed.avatar || t.avatar,
-                cover: parsed.cover || t.cover,
-                height: parsed.height !== undefined ? Number(parsed.height) : t.height,
-                weight: parsed.weight !== undefined ? Number(parsed.weight) : t.weight,
-                bust: parsed.bust !== undefined ? Number(parsed.bust) : t.bust,
-                waist: parsed.waist !== undefined ? Number(parsed.waist) : t.waist,
-                hips: parsed.hips !== undefined ? Number(parsed.hips) : t.hips,
-                gender: parsed.gender || t.gender,
-                district: parsed.location || t.district,
-                education: parsed.education || t.education,
-                languages: parsed.languages || t.languages,
-                skills: parsed.skills || t.skills,
-                rateCard: parsed.rateCard || t.rateCard,
-                lifestyleServices: parsed.lifestyleServices || t.lifestyleServices,
-                yearsOfExperience: parsed.experience !== undefined ? Number(parsed.experience) : t.yearsOfExperience,
-                verified: parsed.verifiedLevel === "Elite" || parsed.verifiedLevel === "Pro" || parsed.verifiedLevel === "Basic" || t.verified,
-                tier: parsed.tier || t.tier,
-              };
-            }
-            return t;
-          }));
-        }
-      } catch (e) {
-        console.error(e);
+    let cancelled = false;
+
+    loadBrandTalents(talents).then(async (items) => {
+      if (cancelled) return;
+      setDisplayTalents(items);
+
+      const wishlists = await loadBrandWishlists(items);
+      if (cancelled) return;
+
+      const primaryWishlist = wishlists[0];
+      if (!primaryWishlist) {
+        setSavedIds([]);
+        setWishlistId(null);
+        setWishlistItemIds({});
+        return;
       }
-    }
+
+      setWishlistId(primaryWishlist.id);
+      setSavedIds(primaryWishlist.savedIds);
+      setWishlistItemIds(
+        primaryWishlist.items.reduce((acc: Record<string, string>, item: any) => {
+          const profileId = String(item.profile_id || item.profile?.id || "");
+          if (profileId) acc[profileId] = String(item.id);
+          return acc;
+        }, {})
+      );
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Filter Algorithm
@@ -238,10 +237,37 @@ export default function DiscoverTalentsPage() {
     setSelectedLifestyleServices([]);
   }
 
-  function toggleSaved(id: string) {
-    setSavedIds((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    );
+  async function ensureWishlist() {
+    if (wishlistId) return wishlistId;
+    const created = await createBrandWishlist("Talent đã lưu", "Danh sách talent yêu thích của Brand");
+    setWishlistId(created.id);
+    return created.id;
+  }
+
+  async function toggleSaved(id: string) {
+    try {
+      if (savedIds.includes(id)) {
+        const itemId = wishlistItemIds[id];
+        if (wishlistId && itemId) {
+          await removeTalentFromWishlist(wishlistId, itemId);
+        }
+
+        setSavedIds((current) => current.filter((item) => item !== id));
+        setWishlistItemIds((current) => {
+          const next = { ...current };
+          delete next[id];
+          return next;
+        });
+        return;
+      }
+
+      const nextWishlistId = await ensureWishlist();
+      const created = await addTalentToWishlist(nextWishlistId, id);
+      setSavedIds((current) => current.includes(id) ? current : [...current, id]);
+      setWishlistItemIds((current) => ({ ...current, [id]: String(created.id) }));
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật danh sách talent đã lưu. Vui lòng thử lại.");
+    }
   }
 
   return (
@@ -595,7 +621,14 @@ export default function DiscoverTalentsPage() {
                     <div>
                       {/* Image Top Area */}
                       <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-900 border border-white/5 mb-3.5">
-                        <img src={talent.avatar} alt={talent.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img
+                          src={talent.avatar}
+                          alt={talent.name}
+                          onError={(event) => {
+                            event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                          }}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
 
                         {/* Overlay top badges */}
                         <div className="absolute top-2 left-2 flex flex-col gap-1.5">
@@ -606,7 +639,7 @@ export default function DiscoverTalentsPage() {
 
                         {/* Floating Wishlist Heart */}
                         <button
-                          onClick={() => toggleSaved(talent.id)}
+                          onClick={() => void toggleSaved(talent.id)}
                           className={cn(
                             "absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full border shadow-lg backdrop-blur-sm transition active:scale-90 cursor-pointer",
                             isSaved

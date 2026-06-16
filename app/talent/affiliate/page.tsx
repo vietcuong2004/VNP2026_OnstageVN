@@ -15,6 +15,7 @@ import {
   resolveCampaignReferralLink,
 } from "@/lib/talent-api";
 import Link from "next/link";
+import { normalizeBackendAssetUrl } from "@/lib/avatar";
 
 type StageFilter = "all" | "new" | "accepted" | "executing" | "completed" | "confirmed";
 
@@ -37,6 +38,15 @@ const stageColors: Record<StageFilter, { text: string; bg: string; border: strin
 };
 
 const fallbackAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80";
+const mockTalentId = "tal-1";
+const activeStages: StageFilter[] = ["new", "accepted", "executing", "completed", "confirmed"];
+
+function normalizeStage(value?: string | null): StageFilter {
+  if (value === "approved") return "accepted";
+  if (value === "pending") return "new";
+  if (value === "accepted" || value === "executing" || value === "completed" || value === "confirmed") return value;
+  return "new";
+}
 
 function profilePhotoUrl(profile: any, category?: string) {
   const photos = Array.isArray(profile?.photos) ? profile.photos : [];
@@ -44,16 +54,31 @@ function profilePhotoUrl(profile: any, category?: string) {
     ? photos.find((item: any) => item?.category === category)
     : photos[0];
 
-  return photo?.url || null;
+  return normalizeBackendAssetUrl(photo?.url || photo?.path || "") || null;
 }
 
 function campaignApplicantAvatar(applicant: any, talentObj?: { avatar?: string }) {
-  return applicant?.talent?.avatar
+  return normalizeBackendAssetUrl(applicant?.talent?.avatar)
     || profilePhotoUrl(applicant?.profile, "avatar")
-    || applicant?.profile?.avatar_url
-    || applicant?.profile?.user?.external_avatar_url
+    || normalizeBackendAssetUrl(applicant?.profile?.avatar_url)
+    || normalizeBackendAssetUrl(applicant?.profile?.user?.external_avatar_url)
     || talentObj?.avatar
     || fallbackAvatar;
+}
+
+function currentCampaignApplicant(campaign: any) {
+  if (campaign?.application) {
+    return {
+      talentId: String(campaign.application.profile_id || campaign.application.talent_id || "current"),
+      stage: normalizeStage(campaign.application.status),
+      referredByTalentId: campaign.application.referred_by_user_id || undefined,
+      profile: campaign.application.profile,
+      talent: campaign.application.talent,
+    };
+  }
+
+  const applicant = campaign?.applicants?.find((item: any) => item.talentId === mockTalentId);
+  return applicant ? { ...applicant, stage: normalizeStage(applicant.stage) } : undefined;
 }
 
 export default function TalentAffiliatePage() {
@@ -76,12 +101,9 @@ export default function TalentAffiliatePage() {
     });
   }, []);
 
-  // Filter campaigns where "tal-1" is in accepted, executing, completed, or confirmed stage
+  // Backend uses campaign.application for the signed-in talent; mock data still uses tal-1.
   useEffect(() => {
-    const active = campaigns.filter(c =>
-      (c.hasApplied && ["new", "accepted", "executing", "completed", "confirmed"].includes(c.application?.status)) ||
-      c.applicants?.some((a: any) => a.talentId === "tal-1" && ["accepted", "executing", "completed", "confirmed"].includes(a.stage))
-    );
+    const active = campaigns.filter((campaign) => activeStages.includes(currentCampaignApplicant(campaign)?.stage));
     setActiveCampaigns(active);
   }, [campaigns]);
 
@@ -99,14 +121,11 @@ export default function TalentAffiliatePage() {
     });
   }, [activeCampaigns, referralLinks]);
 
-  // Filter campaigns where "tal-1" joined via someone else's referral (F2 role)
+  // Campaigns where the signed-in talent joined through someone else's referral (F2 role).
   const [joinedViaReferral, setJoinedViaReferral] = useState<any[]>([]);
 
   useEffect(() => {
-    const joined = campaigns.filter(c =>
-      c.application?.referred_by_user_id ||
-      c.applicants?.some((a: any) => a.talentId === "tal-1" && a.referredByTalentId)
-    );
+    const joined = campaigns.filter((campaign) => currentCampaignApplicant(campaign)?.referredByTalentId);
     setJoinedViaReferral(joined);
   }, [campaigns]);
 
@@ -121,7 +140,7 @@ export default function TalentAffiliatePage() {
   const handleCopyLink = async (campaignId: string, url: string) => {
     let copyUrl = url;
 
-    if (/^\d+$/.test(String(campaignId)) && (!referralLinks[String(campaignId)] || url.includes("ref=tal-1"))) {
+    if (/^\d+$/.test(String(campaignId)) && (!referralLinks[String(campaignId)] || /[?&]ref=tal-1\b/.test(url))) {
       try {
         const link = await getCampaignReferralLink(campaignId);
         if (link?.url) {
@@ -210,7 +229,7 @@ export default function TalentAffiliatePage() {
         return;
       }
 
-      if (targetCamp.applicants?.some((a: any) => a.talentId === "tal-1")) {
+      if (currentCampaignApplicant(targetCamp)) {
         addToast("Bạn đã ứng tuyển hoặc đang tham gia chiến dịch này rồi.", "info");
         return;
       }
@@ -229,7 +248,7 @@ export default function TalentAffiliatePage() {
             applicants: [
               ...apps,
               {
-                talentId: "tal-1",
+                talentId: mockTalentId,
                 stage: "accepted" as const,
                 note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
                 referredByTalentId: refId || undefined
@@ -276,7 +295,7 @@ export default function TalentAffiliatePage() {
             return;
           }
 
-          if (targetCamp.applicants?.some((a: any) => a.talentId === "tal-1")) {
+          if (currentCampaignApplicant(targetCamp)) {
             addToast("Bạn đã ứng tuyển hoặc đang tham gia chiến dịch này rồi.", "info");
             return;
           }
@@ -295,7 +314,7 @@ export default function TalentAffiliatePage() {
                 applicants: [
                   ...apps,
                   {
-                    talentId: "tal-1",
+                    talentId: mockTalentId,
                     stage: "accepted" as const,
                     note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
                     referredByTalentId: refId || undefined
@@ -347,7 +366,7 @@ export default function TalentAffiliatePage() {
 
   const campaignF2Applicants = (campaign: any) => {
     if (Array.isArray(campaign.referrals) && campaign.referrals.length) return campaign.referrals;
-    return campaign.applicants?.filter((applicant: any) => applicant.referredByTalentId === "tal-1") || [];
+    return campaign.applicants?.filter((applicant: any) => applicant.referredByTalentId === mockTalentId) || [];
   };
 
   // Overall statistics calculation
@@ -361,10 +380,8 @@ export default function TalentAffiliatePage() {
       const firstPart = rawBudget.split("-")[0] || "";
       return parseInt(firstPart.replace(/[^0-9]/g, ""), 10) || 10000000;
     })();
-    const poolVal = cleanBudget / (c.applicants?.length || 1);
-    const f2Applicants = c.applicants?.filter((a: any) => a.referredByTalentId === "tal-1") || [];
     const backendF2Applicants = campaignF2Applicants(c);
-    const effectiveF2Applicants = backendF2Applicants.length ? backendF2Applicants : f2Applicants;
+    const effectiveF2Applicants = backendF2Applicants;
     const effectivePoolVal = cleanBudget / campaignParticipantCount(c);
 
     totalF2Referred += effectiveF2Applicants.length;
@@ -473,11 +490,11 @@ export default function TalentAffiliatePage() {
                       </thead>
                       <tbody>
                         {joinedViaReferral.map((c, idx) => {
-                          const applicantInfo = c.applicants?.find((a: any) => a.talentId === "tal-1");
+                          const applicantInfo = currentCampaignApplicant(c);
                           const referrerId = applicantInfo?.referredByTalentId || c.application?.referred_by_user_id || "";
                           const referrerTalent = talents.find(t => t.id === referrerId);
                           const referrerName = c.application?.referred_by?.name || (referrerTalent ? referrerTalent.name : `KOL #${String(referrerId).split("-")[1] || idx}`);
-                          const referrerAvatar = c.application?.referred_by?.external_avatar_url || referrerTalent?.avatar || fallbackAvatar;
+                          const referrerAvatar = normalizeBackendAssetUrl(c.application?.referred_by?.external_avatar_url) || referrerTalent?.avatar || fallbackAvatar;
 
                           const cleanBudget = c.budgetValue || (() => {
                             const rawBudget = c.budget || "10.000.000đ";
@@ -499,7 +516,14 @@ export default function TalentAffiliatePage() {
                               </td>
                               <td className="p-4">
                                 <div className="flex items-center gap-2">
-                                  <img src={referrerAvatar} alt={referrerName} className="h-6 w-6 rounded-full object-cover border border-white/10" />
+                                  <img
+                                    src={referrerAvatar}
+                                    alt={referrerName}
+                                    onError={(event) => {
+                                      event.currentTarget.src = fallbackAvatar;
+                                    }}
+                                    className="h-6 w-6 rounded-full object-cover border border-white/10"
+                                  />
                                   <span className="font-semibold text-slate-350">{referrerName}</span>
                                 </div>
                               </td>
@@ -523,11 +547,11 @@ export default function TalentAffiliatePage() {
                 {/* Mobile view (Card List) - Optimized for small screens */}
                 <div className="block md:hidden space-y-3">
                   {joinedViaReferral.map((c, idx) => {
-                    const applicantInfo = c.applicants?.find((a: any) => a.talentId === "tal-1");
+                    const applicantInfo = currentCampaignApplicant(c);
                     const referrerId = applicantInfo?.referredByTalentId || c.application?.referred_by_user_id || "";
                     const referrerTalent = talents.find(t => t.id === referrerId);
                     const referrerName = c.application?.referred_by?.name || (referrerTalent ? referrerTalent.name : `KOL #${String(referrerId).split("-")[1] || idx}`);
-                    const referrerAvatar = c.application?.referred_by?.external_avatar_url || referrerTalent?.avatar || fallbackAvatar;
+                    const referrerAvatar = normalizeBackendAssetUrl(c.application?.referred_by?.external_avatar_url) || referrerTalent?.avatar || fallbackAvatar;
 
                     const cleanBudget = c.budgetValue || (() => {
                       const rawBudget = c.budget || "10.000.000đ";
@@ -557,7 +581,14 @@ export default function TalentAffiliatePage() {
                         <div className="flex items-center justify-between text-[10px] pt-2 border-t border-white/5">
                           <div className="flex items-center gap-1.5 text-slate-400">
                             <span>Người mời:</span>
-                            <img src={referrerAvatar} alt={referrerName} className="h-4 w-4 rounded-full object-cover border border-white/10" />
+                            <img
+                              src={referrerAvatar}
+                              alt={referrerName}
+                              onError={(event) => {
+                                event.currentTarget.src = fallbackAvatar;
+                              }}
+                              className="h-4 w-4 rounded-full object-cover border border-white/10"
+                            />
                             <span className="font-semibold text-slate-350">{referrerName}</span>
                           </div>
                           <div className="text-right">
@@ -649,8 +680,8 @@ export default function TalentAffiliatePage() {
 
                 // Generate referral URL
                 const referralUrl = referralLinks[String(c.id)] || (typeof window !== "undefined"
-                  ? `${window.location.origin}/campaign/${slugify(c.title || "chien-dich")}-${c.id}?ref=tal-1&name=nguyen-mai-anh`
-                  : `https://onstage.vn/campaign/${slugify(c.title || "chien-dich")}-${c.id}?ref=tal-1&name=nguyen-mai-anh`);
+                  ? `${window.location.origin}/campaign/${slugify(c.title || "chien-dich")}-${c.id}?ref=demo-talent&name=talent`
+                  : `https://onstage.vn/campaign/${slugify(c.title || "chien-dich")}-${c.id}?ref=demo-talent&name=talent`);
 
                 return (
                   <div key={c.id} className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#08090f] p-6 hover:border-amber-500/20 transition-all duration-300 shadow-lg space-y-5">
@@ -730,7 +761,7 @@ export default function TalentAffiliatePage() {
                             const talentObj = talents.find(t => t.id === applicant.talentId);
                             const name = applicant?.talent?.name || applicant?.profile?.display_name || talentObj?.name || `KOL F2 #${String(applicant.talentId || applicant.talent_id || idx).split("-")[1] || idx}`;
                             const avatar = campaignApplicantAvatar(applicant, talentObj);
-                            const stageKey = applicant.stage as StageFilter;
+                            const stageKey = normalizeStage(applicant.stage);
                             const colors = stageColors[stageKey] || stageColors.new;
 
                             return (
@@ -739,6 +770,9 @@ export default function TalentAffiliatePage() {
                                   <img
                                     src={avatar}
                                     alt={name}
+                                    onError={(event) => {
+                                      event.currentTarget.src = fallbackAvatar;
+                                    }}
                                     className="h-8 w-8 rounded-lg object-cover border border-white/10"
                                   />
                                   <div>

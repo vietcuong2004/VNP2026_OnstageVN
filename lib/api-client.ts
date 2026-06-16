@@ -2,6 +2,7 @@
 
 export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
 export const AUTH_USER_UPDATED_EVENT = "onstagevn_auth_user_updated";
+const TALENT_PROFILE_UPDATED_EVENT = "vnp_talent_profile_updated";
 
 export function getAuthToken() {
   if (typeof window === "undefined") return null;
@@ -32,7 +33,31 @@ export function clearAuthSession() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("onstagevn_auth_token");
   window.localStorage.removeItem("onstagevn_auth_user");
+  window.localStorage.removeItem("vnp_talent_profile");
+  window.localStorage.removeItem("onstagevn_sent_requests");
+  window.sessionStorage.removeItem("onstagevn_pending_login");
   window.dispatchEvent(new Event(AUTH_USER_UPDATED_EVENT));
+  window.dispatchEvent(new Event(TALENT_PROFILE_UPDATED_EVENT));
+}
+
+export async function logoutCurrentSession() {
+  const token = getAuthToken();
+
+  if (token) {
+    try {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch {
+      // Local logout still clears the browser session when API is offline.
+    }
+  }
+
+  clearAuthSession();
 }
 
 export async function parseApiError(response: Response) {
@@ -109,17 +134,22 @@ async function parseApiResponse<T>(response: Response) {
   return JSON.parse(text) as T;
 }
 
-export async function apiJson<T>(path: string, init: RequestInit = {}) {
+type ApiRequestInit = RequestInit & {
+  clearAuthOnUnauthorized?: boolean;
+};
+
+export async function apiJson<T>(path: string, init: ApiRequestInit = {}) {
+  const { clearAuthOnUnauthorized = true, ...requestInit } = init;
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
+    ...requestInit,
     headers: buildHeaders({
       Accept: "application/json",
       "Content-Type": "application/json",
-    }, init.headers),
+    }, requestInit.headers),
   });
 
   if (!response.ok) {
-    if (response.status === 401) clearAuthSession();
+    if (response.status === 401 && clearAuthOnUnauthorized) clearAuthSession();
     throw new Error(await parseApiError(response));
   }
 
@@ -198,18 +228,19 @@ export function getSocialLinkUrl(provider: SocialConnection["provider"]) {
   return `${API_BASE_URL}/auth/social/${provider}/redirect?${query.toString()}`;
 }
 
-export async function apiForm<T>(path: string, formData: FormData, init: RequestInit = {}) {
+export async function apiForm<T>(path: string, formData: FormData, init: ApiRequestInit = {}) {
+  const { clearAuthOnUnauthorized = true, ...requestInit } = init;
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    method: init.method ?? "POST",
+    ...requestInit,
+    method: requestInit.method ?? "POST",
     headers: buildHeaders({
       Accept: "application/json",
-    }, init.headers),
+    }, requestInit.headers),
     body: formData,
   });
 
   if (!response.ok) {
-    if (response.status === 401) clearAuthSession();
+    if (response.status === 401 && clearAuthOnUnauthorized) clearAuthSession();
     throw new Error(await parseApiError(response));
   }
 

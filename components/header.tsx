@@ -4,7 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Bell, Calendar, ChevronDown, LogOut, Search, UserCircle, Building2, Settings } from "lucide-react";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
-import { AUTH_USER_UPDATED_EVENT } from "@/lib/api-client";
+import { AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 
 type AuthUser = {
@@ -19,10 +19,6 @@ type AuthUser = {
 type TalentProfileStorage = {
   avatar?: string | null;
 };
-
-function getApiBaseUrl() {
-  return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
-}
 
 function readTalentAvatar() {
   if (typeof window === "undefined") return null;
@@ -167,24 +163,7 @@ export default function Header() {
   }, [fallbackAvatarSrc, isBrandPath, user]);
 
   async function handleLogout() {
-    const token = localStorage.getItem("onstagevn_auth_token");
-
-    if (token) {
-      try {
-        await fetch(`${getApiBaseUrl()}/auth/logout`, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      } catch {
-        // Local logout still clears the browser session when API is offline.
-      }
-    }
-
-    localStorage.removeItem("onstagevn_auth_token");
-    localStorage.removeItem("onstagevn_auth_user");
+    await logoutCurrentSession();
     router.push("/auth/login");
   }
 
