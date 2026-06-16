@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { ensureTalentProfile, persistTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
+import { normalizeBackendAssetUrl } from "@/lib/avatar";
 
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
@@ -498,7 +499,7 @@ export default function PersonalInfoTab({
 
           <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-inner">
             <img
-              src={profile.fullBody || "/fullbody_model.png"}
+              src={normalizeBackendAssetUrl(profile.fullBody) || "/fullbody_model.png"}
               alt="Model Full-body portrait"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
             />
@@ -902,7 +903,7 @@ export default function PersonalInfoTab({
                     className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md"
                   >
                     <img
-                      src={img.url}
+                      src={normalizeBackendAssetUrl(img.url)}
                       alt={img.title}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />

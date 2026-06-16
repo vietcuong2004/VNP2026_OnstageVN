@@ -53,15 +53,25 @@ export default function BottomNavigation() {
       if (!target) return;
 
       let currentScrollY = 0;
+      let scrollHeight = 0;
+      let clientHeight = 0;
+
       if (target === document) {
         currentScrollY = window.scrollY || document.documentElement.scrollTop;
+        scrollHeight = document.documentElement.scrollHeight;
+        clientHeight = document.documentElement.clientHeight;
       } else if (target instanceof HTMLElement) {
         currentScrollY = target.scrollTop;
+        scrollHeight = target.scrollHeight;
+        clientHeight = target.clientHeight;
       } else {
         return;
       }
 
-      if (currentScrollY < 10) {
+      // Check if user is near the bottom of the scroll container (within 80px)
+      const isNearBottom = scrollHeight - (currentScrollY + clientHeight) < 80;
+
+      if (currentScrollY < 10 || isNearBottom) {
         setVisible(true);
       } else if (currentScrollY > prevScrollY) {
         setVisible(false);
@@ -102,73 +112,72 @@ export default function BottomNavigation() {
 
   return (
     <>
-      {/* Backdrop overlay for the More menu */}
-      <div
-        onClick={() => setShowMoreMenu(false)}
-        className={cn(
-          "fixed inset-0 z-40 bg-black/75 backdrop-blur-sm transition-opacity duration-300 md:hidden",
-          showMoreMenu ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        )}
-      />
 
-      {/* Slide-up Bottom Sheet Menu */}
-      <div
-        className={cn(
-          "fixed bottom-0 left-0 right-0 z-50 rounded-t-[2rem] border-t border-white/10 bg-[#070913]/98 p-6 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl transition-transform duration-500 ease-out md:hidden",
-          showMoreMenu ? "translate-y-0" : "translate-y-full"
-        )}
-      >
-        {/* Drag Indicator handle bar */}
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" />
-
-        {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
-          <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-            <Menu className="h-4 w-4 text-amber-400" /> Danh mục tiện ích
-          </h3>
-          <button
+      {showMoreMenu && (
+        <>
+          {/* Backdrop overlay for the More menu */}
+          <div
             onClick={() => setShowMoreMenu(false)}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-slate-400 hover:text-white cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+            className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm transition-opacity duration-300 md:hidden animate-in fade-in"
+          />
 
-        {/* Grid of all items */}
-        <div className="grid grid-cols-4 gap-y-5 gap-x-2.5 max-h-[60vh] overflow-y-auto pr-1">
-          {allItems.map((item) => {
-            const Icon = item.icon;
-            const isLogout = item.label === "Đăng xuất";
-            const isActive = !isLogout && (pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href)));
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
+          {/* Slide-up Bottom Sheet Menu */}
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[2rem] border-t border-white/10 bg-[#070913]/98 p-6 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl md:hidden animate-in slide-in-from-bottom duration-300"
+          >
+            {/* Drag Indicator handle bar */}
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" />
+
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
+              <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Menu className="h-4 w-4 text-amber-400" /> Danh mục tiện ích
+              </h3>
+              <button
                 onClick={() => setShowMoreMenu(false)}
-                className="flex flex-col items-center text-center group cursor-pointer"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-slate-400 hover:text-white cursor-pointer"
               >
-                <div className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300",
-                  isActive
-                    ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
-                    : isLogout
-                    ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.08)]"
-                    : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
-                )}>
-                  <Icon className="h-5 w-5 animate-none" />
-                </div>
-                <span className={cn(
-                  "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
-                  isActive && "text-amber-400 font-extrabold",
-                  isLogout ? "text-red-400 group-hover:text-red-300 font-black" : "text-slate-400 group-hover:text-white"
-                )}>
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Grid of all items */}
+            <div className="grid grid-cols-4 gap-y-5 gap-x-2.5 max-h-[60vh] overflow-y-auto pr-1">
+              {allItems.map((item) => {
+                const Icon = item.icon;
+                const isLogout = item.label === "Đăng xuất";
+                const isActive = !isLogout && (pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href)));
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setShowMoreMenu(false)}
+                    className="flex flex-col items-center text-center group cursor-pointer"
+                  >
+                    <div className={cn(
+                      "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300",
+                      isActive
+                        ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
+                        : isLogout
+                        ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.08)]"
+                        : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                    )}>
+                      <Icon className="h-5 w-5 animate-none" />
+                    </div>
+                    <span className={cn(
+                      "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
+                      isActive && "text-amber-400 font-extrabold",
+                      isLogout ? "text-red-400 group-hover:text-red-300 font-black" : "text-slate-400 group-hover:text-white"
+                    )}>
+                      {item.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Main Bottom Navigation Bar */}
       <div className={cn(

@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { persistTalentProfile, ensureTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
+import { normalizeBackendAssetUrl } from "@/lib/avatar";
+import ProgressBar from "@/components/ui/ProgressBar";
 
 const convertToInputDate = (dateStr: string) => {
   if (!dateStr) return "2002-05-15";
@@ -87,8 +89,13 @@ export default function EditInfoTab({
   });
 
   // Upload simulation states
-  const [uploadingType, setUploadingType] = useState<"photos" | "catwalk" | "intro" | "mc" | "cccd_front" | "cccd_back" | "cccd_selfie" | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadingState, setUploadingState] = useState<{
+    [key: string]: {
+      progress: number;
+      fileName: string;
+      status: "uploading" | "done" | "error" | "idle";
+    };
+  }>({});
 
   // Sync edit form fields once profile loads
   useEffect(() => {
@@ -155,15 +162,30 @@ export default function EditInfoTab({
     e.target.value = "";
     if (!file) return;
 
-    setUploadingType(type);
-    setUploadProgress(0);
+    setUploadingState(prev => ({
+      ...prev,
+      [type]: {
+        progress: 0,
+        fileName: file.name,
+        status: "uploading"
+      }
+    }));
 
     let progress = 0;
     const interval = setInterval(() => {
-      progress += 15;
-      if (progress > 90) progress = 90;
-      setUploadProgress(progress);
-    }, 100);
+      progress += 8;
+      if (progress > 95) progress = 95;
+      setUploadingState(prev => {
+        if (!prev[type]) return prev;
+        return {
+          ...prev,
+          [type]: {
+            ...prev[type],
+            progress
+          }
+        };
+      });
+    }, 150);
 
     try {
       const syncedProfile = await ensureTalentProfile(profile);
@@ -185,7 +207,22 @@ export default function EditInfoTab({
       }
 
       clearInterval(interval);
-      setUploadProgress(100);
+      setUploadingState(prev => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          progress: 100,
+          status: "done"
+        }
+      }));
+
+      setTimeout(() => {
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
+      }, 800);
 
       const fieldMap = {
         cccd_front: "cccdFront",
@@ -205,13 +242,21 @@ export default function EditInfoTab({
       if (type === "cccd_back") setCccdBack(photoUrl);
       if (type === "cccd_selfie") setSelfie(photoUrl);
 
-      setUploadingType(null);
-      addToast(`Tải lên tài liệu ${type === "cccd_front" ? "Mặt trước CCCD" : type === "cccd_back" ? "Mặt sau CCCD" : "Ảnh Selfie xác thực"} thành công!`, "success");
+      let typeName = "";
+      if (type === "cccd_front") typeName = "Mặt trước CCCD";
+      else if (type === "cccd_back") typeName = "Mặt sau CCCD";
+      else if (type === "cccd_selfie") typeName = "Ảnh Selfie xác thực";
+
+      addToast(`Tải lên tài liệu ${typeName} thành công!`, "success");
     } catch (error) {
       clearInterval(interval);
-      setUploadingType(null);
+      setUploadingState(prev => {
+        const next = { ...prev };
+        delete next[type];
+        return next;
+      });
       console.error(error);
-      addToast("Có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.", "info");
+      addToast(error instanceof Error ? error.message : "Có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.", "info");
     }
   };
 
@@ -226,15 +271,32 @@ export default function EditInfoTab({
       return;
     }
 
-    setUploadingType("photos");
-    setUploadProgress(0);
+    const type = "photos";
+
+    setUploadingState(prev => ({
+      ...prev,
+      [type]: {
+        progress: 0,
+        fileName: file.name,
+        status: "uploading"
+      }
+    }));
 
     let progress = 0;
     const interval = setInterval(() => {
-      progress += 10;
-      if (progress > 90) progress = 90;
-      setUploadProgress(progress);
-    }, 100);
+      progress += 8;
+      if (progress > 95) progress = 95;
+      setUploadingState(prev => {
+        if (!prev[type]) return prev;
+        return {
+          ...prev,
+          [type]: {
+            ...prev[type],
+            progress
+          }
+        };
+      });
+    }, 150);
 
     try {
       const syncedProfile = await ensureTalentProfile(profile);
@@ -255,7 +317,22 @@ export default function EditInfoTab({
       }
 
       clearInterval(interval);
-      setUploadProgress(100);
+      setUploadingState(prev => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          progress: 100,
+          status: "done"
+        }
+      }));
+
+      setTimeout(() => {
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
+      }, 800);
 
       const currentPhotos = [...(profile.photos || [])];
       currentPhotos.push(photoUrl);
@@ -266,13 +343,16 @@ export default function EditInfoTab({
       };
 
       setProfile(persistTalentProfile(updatedProfile));
-      setUploadingType(null);
       addToast("Đã tải ảnh mới lên Art Portfolio!", "success");
     } catch (error) {
       clearInterval(interval);
-      setUploadingType(null);
+      setUploadingState(prev => {
+        const next = { ...prev };
+        delete next[type];
+        return next;
+      });
       console.error(error);
-      addToast("Có lỗi xảy ra khi tải ảnh lên Art Portfolio.", "info");
+      addToast(error instanceof Error ? error.message : "Có lỗi xảy ra khi tải ảnh lên Art Portfolio.", "info");
     }
   };
 
@@ -677,78 +757,150 @@ export default function EditInfoTab({
           </span>
         </div>
 
-        {uploadingType && (uploadingType.includes("cccd")) && (
-          <div className="bg-slate-950 p-4 rounded-xl border border-white/5 space-y-2 text-xs">
-            <div className="flex justify-between items-center text-[10px]">
-              <span className="font-bold text-white uppercase">Đang mã hóa tệp tin CCCD bảo mật...</span>
-              <span className="font-mono text-cyan-400 font-bold">{uploadProgress}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-cyan-400 to-blue-600 rounded-full transition-all duration-100" style={{ width: `${uploadProgress}%` }} />
-            </div>
-          </div>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300">
 
           {/* Front CCCD */}
           <div className="rounded-xl bg-slate-950 p-4 border border-white/5 flex flex-col justify-between items-center text-center space-y-3">
             <span className="font-bold block uppercase text-[8px] text-slate-400">CCCD Mặt trước</span>
-            <div className="h-24 w-full rounded bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden">
+            <div className="h-24 w-full rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden group">
               {cccdFront ? (
-                <img src={cccdFront} className="h-full w-full object-cover" alt="CCCD Mặt trước" />
+                <>
+                  <img src={normalizeBackendAssetUrl(cccdFront)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" alt="CCCD Mặt trước" />
+                  <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                      <Upload className="h-5 w-5 text-amber-400" />
+                      <span>Thay đổi ảnh</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={!!uploadingState["cccd_front"] || verificationStatus === "verified"}
+                        onChange={(e) => handleCccdUpload(e, "cccd_front")}
+                      />
+                    </label>
+                  </div>
+                </>
               ) : (
-                <span className="text-[8px] text-slate-500 px-4">Chưa chọn ảnh nào</span>
+                <div className="flex flex-col items-center justify-center p-4">
+                  <span className="text-[8px] text-slate-500 mb-2">Chưa chọn ảnh nào</span>
+                  <label className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-[8px] font-black uppercase tracking-wider cursor-pointer transition-all">
+                    <Upload className="h-3.5 w-3.5 text-white" />
+                    <span>Tải ảnh lên</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={!!uploadingState["cccd_front"] || verificationStatus === "verified"}
+                      onChange={(e) => handleCccdUpload(e, "cccd_front")}
+                    />
+                  </label>
+                </div>
+              )}
+
+              {/* Progress bar overlay */}
+              {uploadingState["cccd_front"] && (
+                <ProgressBar
+                  progress={uploadingState["cccd_front"].progress}
+                  message="Đang tải ảnh mặt trước CCCD lên..."
+                />
               )}
             </div>
-            <button
-              type="button"
-              disabled={!!uploadingType || verificationStatus === "verified"}
-              onClick={() => document.getElementById("cccd-front-input")?.click()}
-              className="bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider text-white transition-all disabled:opacity-50"
-            >
-              {cccdFront ? "Tải lại" : "Tải ảnh lên"}
-            </button>
           </div>
 
           {/* Back CCCD */}
           <div className="rounded-xl bg-slate-950 p-4 border border-white/5 flex flex-col justify-between items-center text-center space-y-3">
             <span className="font-bold block uppercase text-[8px] text-slate-400">CCCD Mặt sau</span>
-            <div className="h-24 w-full rounded bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden">
+            <div className="h-24 w-full rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden group">
               {cccdBack ? (
-                <img src={cccdBack} className="h-full w-full object-cover" alt="CCCD Mặt sau" />
+                <>
+                  <img src={normalizeBackendAssetUrl(cccdBack)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" alt="CCCD Mặt sau" />
+                  <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                      <Upload className="h-5 w-5 text-amber-400" />
+                      <span>Thay đổi ảnh</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={!!uploadingState["cccd_back"] || verificationStatus === "verified"}
+                        onChange={(e) => handleCccdUpload(e, "cccd_back")}
+                      />
+                    </label>
+                  </div>
+                </>
               ) : (
-                <span className="text-[8px] text-slate-500 px-4">Chưa chọn ảnh nào</span>
+                <div className="flex flex-col items-center justify-center p-4">
+                  <span className="text-[8px] text-slate-500 mb-2">Chưa chọn ảnh nào</span>
+                  <label className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-[8px] font-black uppercase tracking-wider cursor-pointer transition-all">
+                    <Upload className="h-3.5 w-3.5 text-white" />
+                    <span>Tải ảnh lên</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={!!uploadingState["cccd_back"] || verificationStatus === "verified"}
+                      onChange={(e) => handleCccdUpload(e, "cccd_back")}
+                    />
+                  </label>
+                </div>
+              )}
+
+              {/* Progress bar overlay */}
+              {uploadingState["cccd_back"] && (
+                <ProgressBar
+                  progress={uploadingState["cccd_back"].progress}
+                  message="Đang tải ảnh mặt sau CCCD lên..."
+                />
               )}
             </div>
-            <button
-              type="button"
-              disabled={!!uploadingType || verificationStatus === "verified"}
-              onClick={() => document.getElementById("cccd-back-input")?.click()}
-              className="bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider text-white transition-all disabled:opacity-50"
-            >
-              {cccdBack ? "Tải lại" : "Tải ảnh lên"}
-            </button>
           </div>
 
           {/* Selfie Verified */}
           <div className="rounded-xl bg-slate-950 p-4 border border-white/5 flex flex-col justify-between items-center text-center space-y-3">
             <span className="font-bold block uppercase text-[8px] text-slate-400">Ảnh chân dung Selfie</span>
-            <div className="h-24 w-full rounded bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden">
+            <div className="h-24 w-full rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden group">
               {selfie ? (
-                <img src={selfie} className="h-full w-full object-cover" alt="Ảnh chân dung Selfie" />
+                <>
+                  <img src={normalizeBackendAssetUrl(selfie)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Ảnh chân dung Selfie" />
+                  <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                      <Upload className="h-5 w-5 text-amber-400" />
+                      <span>Thay đổi ảnh</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={!!uploadingState["cccd_selfie"] || verificationStatus === "verified"}
+                        onChange={(e) => handleCccdUpload(e, "cccd_selfie")}
+                      />
+                    </label>
+                  </div>
+                </>
               ) : (
-                <span className="text-[8px] text-slate-500 px-4">Chưa chọn ảnh nào</span>
+                <div className="flex flex-col items-center justify-center p-4">
+                  <span className="text-[8px] text-slate-500 mb-2">Chưa chọn ảnh nào</span>
+                  <label className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-[8px] font-black uppercase tracking-wider cursor-pointer transition-all">
+                    <Upload className="h-3.5 w-3.5 text-white" />
+                    <span>Tải ảnh lên</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={!!uploadingState["cccd_selfie"] || verificationStatus === "verified"}
+                      onChange={(e) => handleCccdUpload(e, "cccd_selfie")}
+                    />
+                  </label>
+                </div>
+              )}
+
+              {/* Progress bar overlay */}
+              {uploadingState["cccd_selfie"] && (
+                <ProgressBar
+                  progress={uploadingState["cccd_selfie"].progress}
+                  message="Đang tải ảnh chân dung selfie lên..."
+                />
               )}
             </div>
-            <button
-              type="button"
-              disabled={!!uploadingType || verificationStatus === "verified"}
-              onClick={() => document.getElementById("selfie-input")?.click()}
-              className="bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider text-white transition-all disabled:opacity-50"
-            >
-              {selfie ? "Tải lại" : "Tải ảnh lên"}
-            </button>
           </div>
 
         </div>
@@ -795,22 +947,10 @@ export default function EditInfoTab({
           </span>
         </div>
 
-        {uploadingType === "photos" && (
-          <div className="bg-slate-950 p-4 rounded-xl border border-white/5 space-y-2 text-xs">
-            <div className="flex justify-between items-center text-[10px]">
-              <span className="font-bold text-white uppercase">Đang đăng ảnh nghệ thuật lên máy chủ...</span>
-              <span className="font-mono text-purple-400 font-bold">{uploadProgress}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-purple-400 to-pink-500 rounded-full transition-all duration-100" style={{ width: `${uploadProgress}%` }} />
-            </div>
-          </div>
-        )}
-
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {displayedPhotos.map((imgUrl: string, idx: number) => (
             <div key={idx} className="relative aspect-[3/4] rounded-lg overflow-hidden border border-white/5 bg-slate-900 group shadow-md">
-              <img src={imgUrl} className="h-full w-full object-cover" />
+              <img src={normalizeBackendAssetUrl(imgUrl)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
               <button
                 type="button"
                 onClick={() => {
@@ -827,21 +967,35 @@ export default function EditInfoTab({
           ))}
 
           {/* Add photos trigger block (strictly limit <= 10) */}
-          <button
-            disabled={!!uploadingType || displayedPhotos.length >= 10}
-            onClick={() => document.getElementById("portfolio-photo-input")?.click()}
-            className={cn(
-              "aspect-[3/4] rounded-lg border border-dashed flex flex-col items-center justify-center gap-1.5 transition-all text-xs",
-              displayedPhotos.length >= 10
-                ? "border-red-500/25 bg-red-500/5 text-red-500/60 cursor-not-allowed"
-                : "border-white/10 hover:border-amber-400 bg-slate-900 text-slate-500 hover:text-amber-400 cursor-pointer disabled:opacity-50"
+          <div className="relative aspect-[3/4]">
+            <label
+              className={cn(
+                "h-full w-full rounded-lg border border-dashed flex flex-col items-center justify-center gap-1.5 transition-all text-xs",
+                displayedPhotos.length >= 10 || Object.keys(uploadingState).length > 0
+                  ? "border-red-500/25 bg-red-500/5 text-red-500/60 cursor-not-allowed"
+                  : "border-white/10 hover:border-amber-400 bg-slate-900 text-slate-500 hover:text-amber-400 cursor-pointer"
+              )}
+            >
+              <Plus className="h-6 w-6" />
+              <span className="text-[8px] font-black uppercase text-center">
+                {displayedPhotos.length >= 10 ? "Đầy 10 ảnh" : "Tải thêm ảnh"}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={Object.keys(uploadingState).length > 0 || displayedPhotos.length >= 10}
+                onChange={handlePortfolioPhotoUpload}
+              />
+            </label>
+
+            {uploadingState["photos"] && (
+              <ProgressBar
+                progress={uploadingState["photos"].progress}
+                message="Đang tải ảnh lên Art Portfolio..."
+              />
             )}
-          >
-            <Plus className="h-6 w-6" />
-            <span className="text-[8px] font-black uppercase text-center">
-              {displayedPhotos.length >= 10 ? "Đầy 10 ảnh" : "Tải thêm ảnh"}
-            </span>
-          </button>
+          </div>
         </div>
 
         {displayedPhotos.length >= 10 && (
@@ -854,34 +1008,6 @@ export default function EditInfoTab({
 
       {/* SUB-SECTION 4: VIDEO UPLOAD MANAGER (Commented out) */}
 
-      <input
-        type="file"
-        id="cccd-front-input"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handleCccdUpload(e, "cccd_front")}
-      />
-      <input
-        type="file"
-        id="cccd-back-input"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handleCccdUpload(e, "cccd_back")}
-      />
-      <input
-        type="file"
-        id="selfie-input"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handleCccdUpload(e, "cccd_selfie")}
-      />
-      <input
-        type="file"
-        id="portfolio-photo-input"
-        accept="image/*"
-        className="hidden"
-        onChange={handlePortfolioPhotoUpload}
-      />
     </div>
   );
 }

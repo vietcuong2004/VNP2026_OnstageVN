@@ -30,7 +30,7 @@ export default function RootLayout({
       <body className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
         <ThemeProvider>
           <AuthGuard>
-            <div className="flex flex-col h-screen w-full relative overflow-x-hidden">
+            <div className="flex flex-col h-dvh w-full relative overflow-hidden">
 
             {/* Ambient background glows */}
             <div className="absolute top-[-10%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none" />
@@ -48,7 +48,7 @@ export default function RootLayout({
               {/* MAIN APP CONTENT */}
               <div className="flex-1 flex flex-col min-h-0 min-w-0 w-full">
                 {/* Main scrollable body */}
-                <main className={`flex-1 overflow-y-auto ${isPublic ? "px-4 md:px-6 py-0" : "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-24 md:pb-8"}`}>
+                <main className={`flex-1 overflow-y-auto ${isPublic ? "px-4 md:px-6 py-0" : "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8"}`}>
                   <div className={`w-full ${isPublic ? "mx-auto max-w-none [@media(min-width:1600px)]:px-12" : "mx-0 max-w-none [@media(min-width:2400px)]:mx-auto [@media(min-width:2400px)]:max-w-[2040px] [@media(min-width:3200px)]:max-w-[2280px]"}`}>
                     {children}
                   </div>
