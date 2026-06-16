@@ -38,6 +38,7 @@ export default function JobsPage() {
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [showAllBenefits, setShowAllBenefits] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "info" }[]>([]);
   const [displayJobs, setDisplayJobs] = useState<any[]>([]);
 
@@ -67,6 +68,10 @@ export default function JobsPage() {
   const hasTalentApplication = (job: any) => {
     return Boolean(job.hasApplied || job.application || job.applicants?.some((a: any) => a.talentId === "tal-1"));
   };
+
+  useEffect(() => {
+    setShowAllBenefits(false);
+  }, [selectedJob?.id]);
 
   useEffect(() => {
     const mockCampaigns = [
@@ -861,10 +866,19 @@ export default function JobsPage() {
                     Quyền lợi & Đãi ngộ
                   </h4>
                   <ul className="list-disc pl-4 space-y-1.5 text-slate-400 text-xs font-medium leading-relaxed">
-                    {selectedJob.detail.benefits.map((benefit: string, idx: number) => (
+                    {(showAllBenefits ? selectedJob.detail.benefits : selectedJob.detail.benefits.slice(0, 5)).map((benefit: string, idx: number) => (
                       <li key={idx}>{sentenceCaseText(benefit)}</li>
                     ))}
                   </ul>
+                  {selectedJob.detail.benefits.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllBenefits((current) => !current)}
+                      className="text-[10px] font-black uppercase tracking-wider text-amber-300 transition-colors hover:text-amber-200"
+                    >
+                      {showAllBenefits ? "Thu gọn" : `Xem thêm ${selectedJob.detail.benefits.length - 5} phúc lợi`}
+                    </button>
+                  )}
                 </div>
               </div>
 
