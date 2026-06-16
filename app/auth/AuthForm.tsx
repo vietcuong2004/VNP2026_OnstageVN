@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Crown, Loader2, Lock, Mail, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Lock, Mail, User } from "lucide-react";
 
 type AuthMode = "login" | "register";
 type AccountType = "talent" | "brand";
@@ -162,22 +162,31 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   }
 
   return (
-    <div className="relative flex min-h-[85vh] flex-col items-center justify-center px-4 py-8 animate-in fade-in duration-700">
-      <div className="absolute -top-12 left-1/2 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+    <div
+      className="relative flex min-h-svh flex-col animate-in fade-in duration-700 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/hero_bg.png')" }}
+    >
+      {/* Dark overlay so the form stays readable */}
+      <div className="absolute inset-0 -z-10 bg-[#03050c]/70" />
 
-      <div className="mb-6 flex w-full max-w-md items-center justify-between">
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400 transition-colors hover:text-amber-300">
-          <ArrowLeft className="h-4 w-4" />
-          Trang chủ
-        </Link>
-        <span className="text-xs font-bold uppercase tracking-widest text-amber-300">ONSTAGEVN</span>
-      </div>
+      {/* Form centred in remaining vertical space */}
+      <div className="flex flex-1 flex-col items-center justify-center w-full px-6">
 
       <div className="w-full max-w-md rounded-2xl glass-panel border-glow-gold p-6 md:p-8">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-amber-400/20 bg-slate-950/60 shadow-[0_0_35px_rgba(245,158,11,0.18)]">
-            <Crown className="h-8 w-8 text-amber-300" />
-          </div>
+          {/* App icon — click to go home */}
+          <Link href="/" className="inline-flex flex-col items-center gap-0 mb-5 group">
+            <img
+              src="/icon.png"
+              alt="OnstageVN icon"
+              className="h-20 w-20 object-contain transition-transform duration-300 group-hover:scale-105"
+            />
+            <img
+              src="/logo_text.png"
+              alt="OnstageVN"
+              className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            />
+          </Link>
           <h1 className="text-2xl font-black uppercase tracking-widest text-white">
             {isRegister ? "Tạo tài khoản" : "Đăng nhập"}
           </h1>
@@ -192,7 +201,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
           {isRegister && (
             <label className="block">
               <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">Họ tên</span>
-              <div className="flex h-12 items-center gap-3 rounded-xl border border-white/10 bg-slate-950/50 px-4 focus-within:border-amber-400/50">
+              <div className="flex h-12 items-center gap-3 rounded-xl border border-white/10 bg-transparent px-4 focus-within:border-amber-400/50">
                 <User className="h-4 w-4 text-amber-300" />
                 <input
                   required
@@ -207,7 +216,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
 
           <label className="block">
             <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">Email</span>
-            <div className="flex h-12 items-center gap-3 rounded-xl border border-white/10 bg-slate-950/50 px-4 focus-within:border-amber-400/50">
+            <div className="flex h-12 items-center gap-3 rounded-xl border border-white/10 bg-transparent px-4 focus-within:border-amber-400/50">
               <Mail className="h-4 w-4 text-amber-300" />
               <input
                 required
@@ -222,7 +231,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
 
           <label className="block">
             <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">Mật khẩu</span>
-            <div className="flex h-12 items-center gap-3 rounded-xl border border-white/10 bg-slate-950/50 px-4 focus-within:border-amber-400/50">
+            <div className="flex h-12 items-center gap-3 rounded-xl border border-white/10 bg-transparent px-4 focus-within:border-amber-400/50">
               <Lock className="h-4 w-4 text-amber-300" />
               <input
                 required
@@ -282,6 +291,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
             {isRegister ? "Đăng nhập" : "Đăng ký"}
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );
