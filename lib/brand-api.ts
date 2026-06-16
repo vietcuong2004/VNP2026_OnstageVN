@@ -643,7 +643,7 @@ export function mapBackendBooking(booking: BackendBooking) {
 function buildCampaignPayload(form: CampaignForm) {
   const budget = parseBudgetRange(form.budget);
   const listFromText = (value?: string) => String(value || "")
-    .split(/\r?\n|,/)
+    .split(/\r?\n/)
     .map((item) => item.trim())
     .filter(Boolean);
 

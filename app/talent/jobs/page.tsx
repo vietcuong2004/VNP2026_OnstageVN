@@ -22,6 +22,16 @@ const stageFilterLabels: Record<StageFilter, string> = {
   confirmed: "Thành công",
 };
 
+function sentenceCaseText(value: string) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+
+  const firstLetterIndex = text.search(/\p{L}/u);
+  if (firstLetterIndex < 0) return text;
+
+  return `${text.slice(0, firstLetterIndex)}${text.charAt(firstLetterIndex).toLocaleUpperCase("vi-VN")}${text.slice(firstLetterIndex + 1)}`;
+}
+
 export default function JobsPage() {
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState("all");
   const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>("all");
@@ -749,7 +759,7 @@ export default function JobsPage() {
                       <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Đầu việc chính</p>
                       <ul className="list-disc space-y-1 pl-4 text-[10px] leading-relaxed text-slate-400">
                         {selectedJob.responsibilities.slice(0, 5).map((item: string, idx: number) => (
-                          <li key={`${item}-${idx}`}>{item}</li>
+                          <li key={`${item}-${idx}`}>{sentenceCaseText(item)}</li>
                         ))}
                       </ul>
                     </div>
@@ -822,7 +832,7 @@ export default function JobsPage() {
                         </div>
                         {spons.details && (
                           <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
-                            {spons.details}
+                            {sentenceCaseText(spons.details)}
                           </p>
                         )}
                       </div>
@@ -840,7 +850,7 @@ export default function JobsPage() {
                   </h4>
                   <ul className="list-disc pl-4 space-y-1.5 text-slate-400 text-xs font-medium leading-relaxed">
                     {selectedJob.detail.requirements.map((req: string, idx: number) => (
-                      <li key={idx}>{req}</li>
+                      <li key={idx}>{sentenceCaseText(req)}</li>
                     ))}
                   </ul>
                 </div>
@@ -852,7 +862,7 @@ export default function JobsPage() {
                   </h4>
                   <ul className="list-disc pl-4 space-y-1.5 text-slate-400 text-xs font-medium leading-relaxed">
                     {selectedJob.detail.benefits.map((benefit: string, idx: number) => (
-                      <li key={idx}>{benefit}</li>
+                      <li key={idx}>{sentenceCaseText(benefit)}</li>
                     ))}
                   </ul>
                 </div>

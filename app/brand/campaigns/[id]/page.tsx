@@ -62,6 +62,23 @@ function moneyText(value: number) {
   return `${Math.round(value).toLocaleString("vi-VN")} VND`;
 }
 
+function sentenceCaseText(value: string) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+
+  const firstLetterIndex = text.search(/\p{L}/u);
+  if (firstLetterIndex < 0) return text;
+
+  return `${text.slice(0, firstLetterIndex)}${text.charAt(firstLetterIndex).toLocaleUpperCase("vi-VN")}${text.slice(firstLetterIndex + 1)}`;
+}
+
+function displayListText(value?: string | null) {
+  return String(value || "")
+    .split(/\r?\n|;/)
+    .map((item) => sentenceCaseText(item))
+    .filter(Boolean);
+}
+
 function transactionRole(transaction: BrandCommissionTransaction) {
   if (transaction.source_type === "campaign_payout") {
     if (transaction.level === 1) return "Brand tổ chức";
@@ -503,9 +520,9 @@ export default function CampaignDetailPage() {
   return (
     <div className="space-y-6 pb-16">
       {/* Top Section: Header & Info Grid on Left + Mô tả chung on Right */}
-      <section className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+      <section className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
         {/* Left Side: Campaign Header & Grid of 5 Info Cards */}
-        <div className="xl:col-span-8 flex flex-col justify-between gap-6">
+        <div className="flex flex-col gap-4 xl:col-span-8">
           {/* Campaign Header Card */}
           <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-6 flex flex-col gap-4">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -529,7 +546,7 @@ export default function CampaignDetailPage() {
                       {[selectedCampaign.eventName, selectedCampaign.campaignType].filter(Boolean).join(" · ")}
                     </p>
                   )}
-                  <p className="mt-2 max-w-xl text-xs font-semibold leading-relaxed text-slate-400">{selectedCampaign.description}</p>
+                  <p className="mt-2 max-w-xl text-xs font-semibold leading-relaxed text-slate-400">{sentenceCaseText(selectedCampaign.description)}</p>
                 </div>
               </div>
 
@@ -567,7 +584,7 @@ export default function CampaignDetailPage() {
           </div>
 
           {/* Grid of 5 Info Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             {[
               { label: "Địa điểm", value: selectedCampaign.venueName || selectedCampaign.address, icon: MapPin, color: "text-amber-300" },
               { label: "Sự kiện", value: selectedCampaign.eventDate || `${selectedCampaign.startDate} - ${selectedCampaign.endDate}`, icon: Calendar, color: "text-cyan-300" },
@@ -580,7 +597,7 @@ export default function CampaignDetailPage() {
                 <div key={item.label} className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 text-left">
                   <Icon className={cn("mb-3 h-5 w-5", item.color)} />
                   <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-500">{item.label}</span>
-                  <span className="text-xs font-black text-white block mt-1 truncate" title={item.value}>{item.value}</span>
+                  <span className="mt-1 block truncate text-xs font-black text-white" title={item.value}>{item.value}</span>
                 </div>
               );
             })}
@@ -597,11 +614,22 @@ export default function CampaignDetailPage() {
             </div>
             <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
-              <p className="leading-relaxed text-slate-300" title={selectedCampaign.requirements}>{selectedCampaign.requirements}</p>
+              <p className="leading-relaxed text-slate-300" title={selectedCampaign.requirements}>{sentenceCaseText(selectedCampaign.requirements)}</p>
             </div>
             <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
-              <p className="leading-relaxed text-slate-300" title={selectedCampaign.benefits}>{selectedCampaign.benefits}</p>
+              {(() => {
+                const benefitItems = displayListText(selectedCampaign.benefits);
+                return benefitItems.length > 1 ? (
+                  <ul className="list-disc space-y-1 pl-4 leading-relaxed text-slate-300">
+                    {benefitItems.map((item, idx) => (
+                      <li key={`${item}-${idx}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="leading-relaxed text-slate-300" title={selectedCampaign.benefits}>{benefitItems[0] || "-"}</p>
+                );
+              })()}
             </div>
             {selectedCampaign.venueName && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
@@ -656,7 +684,7 @@ export default function CampaignDetailPage() {
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Đầu việc</span>
                 <ul className="list-disc space-y-1 pl-4 leading-relaxed text-slate-300">
                   {selectedCampaign.responsibilities.map((item, idx) => (
-                    <li key={`${item}-${idx}`}>{item}</li>
+                    <li key={`${item}-${idx}`}>{sentenceCaseText(item)}</li>
                   ))}
                 </ul>
               </div>
@@ -664,7 +692,7 @@ export default function CampaignDetailPage() {
             {selectedCampaign.contactNote && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Ứng tuyển</span>
-                <p className="leading-relaxed text-slate-300" title={selectedCampaign.contactNote}>{selectedCampaign.contactNote}</p>
+                <p className="leading-relaxed text-slate-300" title={selectedCampaign.contactNote}>{sentenceCaseText(selectedCampaign.contactNote)}</p>
               </div>
             )}
             {selectedCampaign.sponsorships && selectedCampaign.sponsorships.length > 0 && (

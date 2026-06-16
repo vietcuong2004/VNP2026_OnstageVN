@@ -107,7 +107,7 @@ const TARGET_PROFILE_OPTIONS = [
 
 function splitOptionText(value: string) {
   return value
-    .split(/\r?\n|,/)
+    .split(/\r?\n/)
     .map((item) => item.trim())
     .filter(Boolean);
 }

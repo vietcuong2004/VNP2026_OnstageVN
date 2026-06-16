@@ -220,6 +220,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
     loadTalentSurveyProgress().then((progress) => {
       if (cancelled || !progress) return;
+      if (progress.status && progress.status !== "draft") return;
 
       const savedStep = clampSurveyStep(progress.current_step);
       setStep(savedStep);
