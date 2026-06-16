@@ -27,6 +27,7 @@ export default function JobsPage() {
   const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>("all");
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "info" }[]>([]);
   const [displayJobs, setDisplayJobs] = useState<any[]>([]);
 
@@ -626,7 +627,6 @@ export default function JobsPage() {
       {selectedJob && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="relative w-full max-w-3xl max-h-[85vh] flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
-            
             {/* Modal Header */}
             <div className="flex items-start justify-between p-6 border-b border-[#151b2d]">
               <div className="space-y-1">
@@ -663,7 +663,6 @@ export default function JobsPage() {
 
             {/* Modal Body - Scrollable content */}
             <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 scrollbar-thin">
-              
               {/* Description / Brief */}
               <div className="space-y-2">
                 <h4 className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
@@ -697,6 +696,113 @@ export default function JobsPage() {
                   </div>
                 </div>
               </div>
+
+              {(selectedJob.type || selectedJob.eventName || selectedJob.eventDate || selectedJob.applicationDeadline || selectedJob.venueName || selectedJob.venueAddress || selectedJob.roles?.length > 0 || selectedJob.targetProfiles?.length > 0 || selectedJob.industries?.length > 0 || selectedJob.responsibilities?.length > 0 || selectedJob.contactNote) && (
+                <div className="space-y-3 rounded-2xl border border-[#151b2d] bg-[#050711]/50 p-4">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Thông tin tuyển chọn</h4>
+                  <div className="grid grid-cols-1 gap-3 text-[10px] text-slate-400 sm:grid-cols-2">
+                    {selectedJob.type && <span><b>Loại chiến dịch:</b> <span className="text-slate-200">{selectedJob.type}</span></span>}
+                    {selectedJob.eventName && <span><b>Sự kiện:</b> <span className="text-slate-200">{selectedJob.eventName}</span></span>}
+                    {selectedJob.eventDate && <span><b>Ngày diễn ra:</b> <span className="text-slate-200">{selectedJob.eventDate}</span></span>}
+                    {selectedJob.applicationDeadline && <span><b>Hạn ứng tuyển:</b> <span className="text-slate-200">{selectedJob.applicationDeadline}</span></span>}
+                    {selectedJob.venueName && <span><b>Địa điểm:</b> <span className="text-slate-200">{selectedJob.venueName}</span></span>}
+                    {selectedJob.venueAddress && <span><b>Địa chỉ:</b> <span className="text-slate-200">{selectedJob.venueAddress}</span></span>}
+                  </div>
+                  {selectedJob.roles?.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển</p>
+                      <div className="flex flex-wrap gap-1.5">
+                      {selectedJob.roles.map((role: string, idx: number) => (
+                        <span key={`${role}-${idx}`} className="rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-cyan-300">
+                          {role}
+                        </span>
+                      ))}
+                      </div>
+                    </div>
+                  )}
+                  {selectedJob.targetProfiles?.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Nhóm phù hợp</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedJob.targetProfiles.map((profile: string, idx: number) => (
+                          <span key={`${profile}-${idx}`} className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
+                            {profile}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {selectedJob.industries?.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedJob.industries.map((industry: string, idx: number) => (
+                          <span key={`${industry}-${idx}`} className="rounded-lg border border-amber-400/20 bg-amber-400/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+                            {industry}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {selectedJob.responsibilities?.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Đầu việc chính</p>
+                      <ul className="list-disc space-y-1 pl-4 text-[10px] leading-relaxed text-slate-400">
+                        {selectedJob.responsibilities.slice(0, 5).map((item: string, idx: number) => (
+                          <li key={`${item}-${idx}`}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {selectedJob.contactNote && (
+                    <div className="rounded-xl border border-amber-400/15 bg-amber-400/5 p-3 text-[10px] leading-relaxed text-slate-300">
+                      <b className="text-amber-300">Ghi chú ứng tuyển:</b> {selectedJob.contactNote}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(selectedJob.coverUrl || selectedJob.media?.length > 0) && (
+                <div className="space-y-3 rounded-2xl border border-[#151b2d] bg-[#050711]/50 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      Hình ảnh chiến dịch
+                    </h4>
+                    {selectedJob.coverUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setPreviewImageUrl(selectedJob.coverUrl)}
+                        className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[9px] font-black uppercase text-amber-300 hover:bg-amber-400/20"
+                      >
+                        Xem ảnh lớn
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-3 overflow-x-auto pb-1">
+                    {selectedJob.coverUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setPreviewImageUrl(selectedJob.coverUrl)}
+                        className="h-32 w-24 shrink-0 overflow-hidden rounded-xl border border-amber-400/30 bg-black hover:border-amber-300 sm:h-36 sm:w-28"
+                      >
+                        <img src={selectedJob.coverUrl} alt={selectedJob.title} className="h-full w-full object-cover" />
+                      </button>
+                    )}
+                    {(selectedJob.media || [])
+                      .filter((media: any) => media.url && media.url !== selectedJob.coverUrl)
+                      .map((media: any, idx: number) => (
+                        <button
+                          type="button"
+                          key={`${media.id || media.url || idx}`}
+                          onClick={() => setPreviewImageUrl(media.url)}
+                          className="h-32 w-24 shrink-0 overflow-hidden rounded-xl border border-[#151b2d] bg-black hover:border-amber-400/60 sm:h-36 sm:w-28"
+                        >
+                          <img src={media.url} alt={media.caption || selectedJob.title} className="h-full w-full object-cover" />
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              )}
 
               {/* Sponsorships Section */}
               {selectedJob.sponsorships && selectedJob.sponsorships.length > 0 && (
@@ -920,6 +1026,19 @@ export default function JobsPage() {
             </div>
 
           </div>
+        </div>
+      )}
+
+      {previewImageUrl && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-3">
+          <button
+            type="button"
+            onClick={() => setPreviewImageUrl(null)}
+            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <img src={previewImageUrl} alt="Campaign preview" className="max-h-full max-w-full object-contain" />
         </div>
       )}
 

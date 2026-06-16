@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import {
   Briefcase,
   ChevronRight,
+  ImagePlus,
   Plus,
   X,
 } from "lucide-react";
 import { campaigns as initialCampaigns, type Campaign, SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
-import { createBrandCampaign, loadBrandCampaigns, publishBrandCampaign } from "@/lib/brand-api";
+import { createBrandCampaign, loadBrandCampaigns, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
 type CampaignStatusTab = "all" | Campaign["status"];
@@ -17,16 +18,27 @@ type CampaignStatusTab = "all" | Campaign["status"];
 const emptyForm = {
   title: "",
   jobType: "KOL livestream",
+  eventName: "",
+  campaignType: "Tuyển cộng tác viên",
   city: "Hà Nội",
   address: "",
   startDate: "2026-06-15",
   endDate: "2026-06-30",
   deadline: "2026-06-10",
+  applicationDeadline: "2026-06-10",
+  eventDate: "2026-07-11",
+  venueName: "",
+  venueAddress: "",
   talentQuantity: "3",
   budget: "20.000.000đ - 40.000.000đ",
   benefits: "",
   requirements: "",
   description: "",
+  roles: "",
+  responsibilities: "",
+  industries: "",
+  targetProfiles: "",
+  contactNote: "",
   selectedSponsorships: [] as string[],
   escrowed: false,
 };
@@ -49,6 +61,12 @@ export default function CampaignsPage() {
   const [activeTab, setActiveTab] = useState<CampaignStatusTab>("all");
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [campaignImages, setCampaignImages] = useState<File[]>([]);
+
+  function closeCreateForm() {
+    setIsCreating(false);
+    setCampaignImages([]);
+  }
 
   const filteredCampaigns = useMemo(() => {
     if (activeTab === "all") return campaigns;
@@ -65,17 +83,43 @@ export default function CampaignsPage() {
       newCampaign = /^\d+$/.test(createdCampaign.id)
         ? await publishBrandCampaign(createdCampaign.id)
         : createdCampaign;
+
+      if (/^\d+$/.test(newCampaign.id) && campaignImages.length > 0) {
+        try {
+          const uploadedMedia = await Promise.all(
+            campaignImages.map((file, index) => uploadBrandCampaignMedia(newCampaign.id, file, {
+              category: "gallery",
+              isPrimary: index === 0,
+            }))
+          );
+
+          const media = uploadedMedia.filter(Boolean) as NonNullable<Campaign["media"]>;
+          newCampaign = {
+            ...newCampaign,
+            media,
+            coverMedia: media[0] || null,
+          };
+        } catch (uploadError) {
+          console.warn("Cannot upload campaign images after creation", uploadError);
+        }
+      }
     } catch (error) {
       console.warn("Cannot create campaign from API, using local fallback", error);
       newCampaign = {
         id: `camp-${Date.now()}`,
         title: form.title || "Campaign mới",
         jobType: form.jobType,
+        eventName: form.eventName,
+        campaignType: form.campaignType,
         city: form.city,
         address: form.address || form.city,
         startDate: form.startDate,
         endDate: form.endDate,
-        deadline: form.deadline,
+        deadline: form.applicationDeadline || form.deadline,
+        applicationDeadline: form.applicationDeadline || form.deadline,
+        eventDate: form.eventDate,
+        venueName: form.venueName,
+        venueAddress: form.venueAddress || form.address,
         talentQuantity: Number(form.talentQuantity) || 1,
         budget: form.budget,
         budgetValue: 40000000,
@@ -87,6 +131,11 @@ export default function CampaignsPage() {
         views: 0,
         description: form.description || "Chưa có mô tả brief.",
         requirements: form.requirements || "Chưa có yêu cầu chi tiết.",
+        roles: form.roles.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean),
+        responsibilities: form.responsibilities.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean),
+        industries: form.industries.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean),
+        targetProfiles: form.targetProfiles.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean),
+        contactNote: form.contactNote,
         sponsorships: (form.selectedSponsorships || []).map(id => {
           const cat = SPONSORSHIP_CATEGORIES.find(c => c.id === id);
           return {
@@ -102,6 +151,7 @@ export default function CampaignsPage() {
     setCampaigns(nextCampaigns);
     setIsCreating(false);
     setForm(emptyForm);
+    setCampaignImages([]);
 
     // Redirect to dynamic route details page of the newly created campaign
     router.push(`/brand/campaigns/${newCampaign.id}`);
@@ -193,7 +243,7 @@ export default function CampaignsPage() {
       {isCreating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
           <form onSubmit={handleCreateCampaign} className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-white/10 bg-[#070913] p-6 shadow-2xl">
-            <button type="button" onClick={() => setIsCreating(false)} className="absolute right-4 top-4 text-slate-400 hover:text-white cursor-pointer">
+            <button type="button" onClick={closeCreateForm} className="absolute right-4 top-4 text-slate-400 hover:text-white cursor-pointer">
               <X className="h-5 w-5" />
             </button>
 
@@ -204,9 +254,13 @@ export default function CampaignsPage() {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormInput label="Tiêu đề job *" value={form.title} onChange={(value) => setForm((current) => ({ ...current, title: value }))} required />
+              <FormInput label="Tên sự kiện / chương trình" value={form.eventName} onChange={(value) => setForm((current) => ({ ...current, eventName: value }))} />
               <label className="space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Loại hình *</span>
                 <select value={form.jobType} onChange={(event) => setForm((current) => ({ ...current, jobType: event.target.value }))} className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60">
+                  <option>Tuyển cộng tác viên</option>
+                  <option>Tuyển đại sứ</option>
+                  <option>Beauty KOL/KOC</option>
                   <option>KOL livestream</option>
                   <option>Model lookbook</option>
                   <option>PG event</option>
@@ -214,14 +268,32 @@ export default function CampaignsPage() {
                   <option>Dancer performance</option>
                 </select>
               </label>
+              <FormInput label="Nhóm chiến dịch" value={form.campaignType} onChange={(value) => setForm((current) => ({ ...current, campaignType: value }))} />
               <FormInput label="Số lượng cần tuyển *" type="number" value={form.talentQuantity} onChange={(value) => setForm((current) => ({ ...current, talentQuantity: value }))} />
               <FormInput label="Thành phố *" value={form.city} onChange={(value) => setForm((current) => ({ ...current, city: value }))} />
               <FormInput label="Địa điểm *" value={form.address} onChange={(value) => setForm((current) => ({ ...current, address: value }))} />
+              <FormInput label="Tên địa điểm tổ chức" value={form.venueName} onChange={(value) => setForm((current) => ({ ...current, venueName: value }))} />
+              <FormInput label="Địa chỉ tổ chức chi tiết" value={form.venueAddress} onChange={(value) => setForm((current) => ({ ...current, venueAddress: value }))} />
               <FormInput label="Ngân sách" value={form.budget} onChange={(value) => setForm((current) => ({ ...current, budget: value }))} />
               <FormInput label="Ngày bắt đầu" type="date" value={form.startDate} onChange={(value) => setForm((current) => ({ ...current, startDate: value }))} />
               <FormInput label="Ngày kết thúc" type="date" value={form.endDate} onChange={(value) => setForm((current) => ({ ...current, endDate: value }))} />
-              <FormInput label="Deadline ứng tuyển" type="date" value={form.deadline} onChange={(value) => setForm((current) => ({ ...current, deadline: value }))} />
+              <FormInput label="Hạn ứng tuyển" type="date" value={form.applicationDeadline} onChange={(value) => setForm((current) => ({ ...current, applicationDeadline: value, deadline: value }))} />
+              <FormInput label="Ngày sự kiện chính" type="date" value={form.eventDate} onChange={(value) => setForm((current) => ({ ...current, eventDate: value }))} />
               <FormInput label="Phúc lợi" value={form.benefits} onChange={(value) => setForm((current) => ({ ...current, benefits: value }))} />
+
+              <label className="space-y-1 md:col-span-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển dụng</span>
+                <textarea value={form.roles} onChange={(event) => setForm((current) => ({ ...current, roles: event.target.value }))} rows={3} placeholder={"Mỗi dòng một vị trí\nCTV Take Care nghệ sĩ\nCTV Check-in & đón tiếp khách mời"} className="w-full resize-none rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60" />
+              </label>
+
+              <label className="space-y-1 md:col-span-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mô tả đầu việc</span>
+                <textarea value={form.responsibilities} onChange={(event) => setForm((current) => ({ ...current, responsibilities: event.target.value }))} rows={3} placeholder={"Mỗi dòng một đầu việc\nHỗ trợ vận hành chương trình\nPhối hợp cùng bộ phận điều phối"} className="w-full resize-none rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60" />
+              </label>
+
+              <FormInput label="Lĩnh vực liên quan" value={form.industries} onChange={(value) => setForm((current) => ({ ...current, industries: value }))} />
+              <FormInput label="Nhóm Talent phù hợp" value={form.targetProfiles} onChange={(value) => setForm((current) => ({ ...current, targetProfiles: value }))} />
+              <FormInput label="Ghi chú ứng tuyển" value={form.contactNote} onChange={(value) => setForm((current) => ({ ...current, contactNote: value }))} />
 
               <label className="flex cursor-pointer items-center justify-between rounded-xl border border-white/5 bg-slate-900/30 p-2.5 md:col-span-2 hover:bg-slate-900/50 transition-colors">
                 <div className="flex flex-col gap-0.5 text-left">
@@ -277,10 +349,27 @@ export default function CampaignsPage() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mô tả công việc *</span>
                 <textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} required rows={4} className="w-full resize-none rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60" />
               </label>
+
+              <label className="group relative flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-white/20 bg-slate-900/60 p-5 text-center transition-all hover:border-amber-400 hover:bg-slate-900 md:col-span-2">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={(event) => setCampaignImages(Array.from(event.target.files || []))}
+                />
+                <ImagePlus className="mb-2 h-7 w-7 text-slate-400 transition-colors group-hover:text-amber-300" />
+                <span className="text-xs font-extrabold text-slate-100">Ảnh chiến dịch</span>
+                <span className="mt-1 text-[10px] font-medium text-slate-500">
+                  {campaignImages.length > 0
+                    ? `${campaignImages.length} ảnh đã chọn. Ảnh đầu tiên sẽ dùng làm ảnh đại diện.`
+                    : "Tải poster, moodboard hoặc ảnh brief. Có thể chọn nhiều ảnh."}
+                </span>
+              </label>
             </div>
 
             <div className="mt-5 flex justify-end gap-3 border-t border-white/5 pt-5">
-              <button type="button" onClick={() => setIsCreating(false)} className="h-10 rounded-xl border border-white/10 px-4 text-xs font-black text-white hover:bg-white/5 cursor-pointer">Hủy</button>
+              <button type="button" onClick={closeCreateForm} className="h-10 rounded-xl border border-white/10 px-4 text-xs font-black text-white hover:bg-white/5 cursor-pointer">Hủy</button>
               <button type="submit" className="flex h-10 items-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-5 text-xs font-black text-slate-950 cursor-pointer">
                 <Briefcase className="mr-2 h-4 w-4" />
                 Tạo Job

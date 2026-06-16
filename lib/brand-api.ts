@@ -1,8 +1,8 @@
 "use client";
 
-import { apiJson, getAuthToken } from "@/lib/api-client";
+import { apiForm, apiJson, getAuthToken } from "@/lib/api-client";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
-import type { Campaign, CampaignStage, TalentProfile } from "@/lib/brand-mvp-data";
+import type { Campaign, CampaignMedia, CampaignStage, TalentProfile } from "@/lib/brand-mvp-data";
 
 type BackendUser = {
   id?: number | string;
@@ -84,18 +84,42 @@ type BackendCampaign = {
   id: number | string;
   title?: string | null;
   job_type?: string | null;
+  event_name?: string | null;
+  campaign_type?: string | null;
   description?: string | null;
   city?: string | null;
   location?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+  application_deadline?: string | null;
+  event_date?: string | null;
+  venue_name?: string | null;
+  venue_address?: string | null;
   deadline?: string | null;
   talent_quantity?: number | string | null;
   budget_min?: number | string | null;
   budget_max?: number | string | null;
+  benefits?: string | null;
   requirements?: string | null;
+  roles?: string[] | null;
+  responsibilities?: string[] | null;
+  industries?: string[] | null;
+  target_profiles?: string[] | null;
+  contact_note?: string | null;
   status?: Campaign["status"] | string | null;
   talents?: BackendCampaignTalent[] | null;
+  media?: BackendCampaignMedia[] | null;
+  cover_media?: BackendCampaignMedia | null;
+  coverMedia?: BackendCampaignMedia | null;
+};
+
+type BackendCampaignMedia = {
+  id?: number | string;
+  url?: string | null;
+  path?: string | null;
+  category?: string | null;
+  caption?: string | null;
+  is_primary?: boolean | number | null;
 };
 
 type BackendPartnerProfile = {
@@ -247,16 +271,27 @@ export type BrandCampaignCommissionResponse = {
 type CampaignForm = {
   title: string;
   jobType: string;
+  eventName?: string;
+  campaignType?: string;
   city: string;
   address: string;
   startDate: string;
   endDate: string;
   deadline: string;
+  applicationDeadline?: string;
+  eventDate?: string;
+  venueName?: string;
+  venueAddress?: string;
   talentQuantity: string;
   budget: string;
   benefits: string;
   requirements: string;
   description: string;
+  roles?: string;
+  responsibilities?: string;
+  industries?: string;
+  targetProfiles?: string;
+  contactNote?: string;
 };
 
 type CampaignTalentWithProfile = Campaign["applicants"][number] & {
@@ -423,6 +458,19 @@ function mapCampaignStatus(status?: string | null): Campaign["status"] {
   return "draft";
 }
 
+function mapCampaignMedia(media?: BackendCampaignMedia | null): CampaignMedia | null {
+  if (!media) return null;
+
+  return {
+    id: media.id,
+    url: normalizeBackendAssetUrl(media.url) || media.url || null,
+    path: media.path || null,
+    category: media.category || null,
+    caption: media.caption || null,
+    is_primary: Boolean(media.is_primary),
+  };
+}
+
 function displayApplicationNote(value?: string | null) {
   const note = String(value || "").trim();
   if (note === "Toi rat quan tam va mong muon ung tuyen thuc hien chien dich nay.") {
@@ -474,27 +522,46 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     .map((item) => item.talentId);
   const budgetMax = numberOrNull(campaign.budget_max);
   const budgetMin = numberOrNull(campaign.budget_min);
+  const media = (campaign.media ?? []).map(mapCampaignMedia).filter(Boolean) as CampaignMedia[];
+  const coverMedia = mapCampaignMedia(campaign.cover_media ?? campaign.coverMedia ?? null)
+    ?? media.find((item) => item.category === "cover" && item.is_primary)
+    ?? media.find((item) => item.category === "cover")
+    ?? media[0]
+    ?? null;
 
   return {
     id: String(campaign.id),
     title: campaign.title || "Campaign mới",
     jobType: campaign.job_type || "Campaign",
+    eventName: campaign.event_name || "",
+    campaignType: campaign.campaign_type || campaign.job_type || "Campaign",
     city: campaign.city || "",
     address: campaign.location || campaign.city || "",
     startDate: campaign.start_date || "",
     endDate: campaign.end_date || "",
-    deadline: campaign.deadline || "",
+    deadline: campaign.application_deadline || campaign.deadline || "",
+    applicationDeadline: campaign.application_deadline || campaign.deadline || "",
+    eventDate: campaign.event_date || "",
+    venueName: campaign.venue_name || "",
+    venueAddress: campaign.venue_address || campaign.location || "",
     talentQuantity: Number(campaign.talent_quantity) || 1,
     budget: formatBudget(campaign.budget_min, campaign.budget_max),
     budgetValue: budgetMax ?? budgetMin ?? 0,
-    benefits: "Thỏa thuận theo brief",
+    benefits: campaign.benefits || "Thỏa thuận theo brief",
     status: mapCampaignStatus(campaign.status),
     shortlistedTalentIds,
     applicants,
     contactRequests: 0,
     description: campaign.description || "Chưa có mô tả brief.",
     requirements: campaign.requirements || "Chưa có yêu cầu chi tiết.",
+    roles: campaign.roles || [],
+    responsibilities: campaign.responsibilities || [],
+    industries: campaign.industries || [],
+    targetProfiles: campaign.target_profiles || [],
+    contactNote: campaign.contact_note || "",
     views: 0,
+    media,
+    coverMedia,
   };
 }
 
@@ -575,19 +642,35 @@ export function mapBackendBooking(booking: BackendBooking) {
 
 function buildCampaignPayload(form: CampaignForm) {
   const budget = parseBudgetRange(form.budget);
+  const listFromText = (value?: string) => String(value || "")
+    .split(/\r?\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 
   return {
     title: form.title || "Campaign mới",
     job_type: form.jobType,
     description: form.description || "Chưa có mô tả brief.",
+    event_name: form.eventName || null,
+    campaign_type: form.campaignType || form.jobType || null,
     city: form.city,
     location: form.address || form.city,
     start_date: form.startDate || null,
     end_date: form.endDate || null,
+    application_deadline: form.applicationDeadline || form.deadline || null,
+    event_date: form.eventDate || null,
+    venue_name: form.venueName || null,
+    venue_address: form.venueAddress || form.address || null,
     talent_quantity: Number(form.talentQuantity) || 1,
     budget_min: budget.budget_min,
     budget_max: budget.budget_max,
+    benefits: form.benefits || null,
     requirements: form.requirements || "Chưa có yêu cầu chi tiết.",
+    roles: listFromText(form.roles),
+    responsibilities: listFromText(form.responsibilities),
+    industries: listFromText(form.industries),
+    target_profiles: listFromText(form.targetProfiles),
+    contact_note: form.contactNote || null,
   };
 }
 
@@ -652,6 +735,34 @@ export async function closeBrandCampaign(id: string) {
   });
 
   return mapBackendCampaign(response.data);
+}
+
+export async function uploadBrandCampaignMedia(
+  campaignId: string,
+  file: File,
+  options: { category?: "cover" | "gallery" | "brief"; caption?: string; isPrimary?: boolean } = {},
+) {
+  requireBrandSession();
+  if (!isBackendRecordId(campaignId)) throw new Error("Campaign này đang là dữ liệu local, chưa có ID backend.");
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("category", options.category || "cover");
+  if (options.caption) formData.append("caption", options.caption);
+  if (options.isPrimary !== undefined) formData.append("is_primary", options.isPrimary ? "1" : "0");
+
+  const response = await apiForm<{ data: BackendCampaignMedia }>(`/campaigns/${campaignId}/media`, formData);
+
+  return mapCampaignMedia(response.data);
+}
+
+export async function deleteBrandCampaignMedia(campaignId: string, mediaId: string | number) {
+  requireBrandSession();
+  if (!isBackendRecordId(campaignId)) throw new Error("Campaign này đang là dữ liệu local, chưa có ID backend.");
+
+  await apiJson<void>(`/campaigns/${campaignId}/media/${mediaId}`, {
+    method: "DELETE",
+  });
 }
 
 export async function loadBrandTalents(fallback: TalentProfile[] = []) {

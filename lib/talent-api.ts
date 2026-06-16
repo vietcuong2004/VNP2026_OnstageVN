@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { apiForm, apiJson, getAuthToken, getStoredAuthUser } from "@/lib/api-client";
-import { avatarFallbackForUser, createInitialAvatarDataUrl, isUsableAvatarUrl } from "@/lib/avatar";
+import { avatarFallbackForUser, createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 
 const PROFILE_STORAGE_KEY = "vnp_talent_profile";
 export const TALENT_PROFILE_UPDATED_EVENT = "vnp_talent_profile_updated";
@@ -715,6 +715,16 @@ function campaignTheme(color: string) {
 export function mapCampaignToTalentJob(campaign: any) {
   const color = campaignColor(campaign.job_type);
   const theme = campaignTheme(color);
+  const media = Array.isArray(campaign.media)
+    ? campaign.media
+        .map((item: any) => ({
+          ...item,
+          url: normalizeBackendAssetUrl(item?.url) || item?.url || null,
+        }))
+        .filter((item: any) => item.url)
+    : [];
+  const coverMedia = campaign.cover_media || campaign.coverMedia || media.find((item: any) => item.category === "cover") || media[0] || null;
+  const coverUrl = normalizeBackendAssetUrl(coverMedia?.url) || coverMedia?.url || null;
   const requirements = String(campaign.requirements || campaign.description || "Brand sẽ cập nhật yêu cầu chi tiết sau.")
     .split(/\r?\n|;|\./)
     .map((item) => item.trim())
@@ -724,10 +734,22 @@ export function mapCampaignToTalentJob(campaign: any) {
     id: String(campaign.id),
     title: campaign.title,
     brand: campaign.brand || "Brand",
-    type: campaign.job_type || "Campaign",
+    type: campaign.campaign_type || campaign.job_type || "Campaign",
+    eventName: campaign.event_name || "",
+    eventDate: campaign.event_date || "",
+    applicationDeadline: campaign.application_deadline || "",
+    venueName: campaign.venue_name || "",
+    venueAddress: campaign.venue_address || "",
+    roles: campaign.roles || [],
+    responsibilities: campaign.responsibilities || [],
+    industries: campaign.industries || [],
+    targetProfiles: campaign.target_profiles || [],
+    contactNote: campaign.contact_note || "",
     budget: moneyRange(campaign.budget_min, campaign.budget_max),
-    location: campaign.location || campaign.city || "Linh hoạt",
+    location: campaign.venue_name || campaign.location || campaign.city || "Linh hoạt",
     brief: campaign.description || "Campaign đang tuyển talent phù hợp.",
+    coverUrl,
+    media,
     minHeight: 0,
     matchScore: campaign.match_score || 82,
     escrowed: true,
@@ -739,6 +761,7 @@ export function mapCampaignToTalentJob(campaign: any) {
     detail: {
       requirements: requirements.length ? requirements : ["Brand sẽ cập nhật yêu cầu chi tiết sau."],
       benefits: [
+        ...(campaign.benefits ? String(campaign.benefits).split(/\r?\n|;|\./).map((item) => item.trim()).filter(Boolean) : []),
         campaign.budget_min || campaign.budget_max ? `Cát-xê dự kiến: ${moneyRange(campaign.budget_min, campaign.budget_max)}.` : "Cát-xê trao đổi theo brief.",
         "Thông tin ứng tuyển được lưu trực tiếp vào backend để brand xử lý.",
       ],

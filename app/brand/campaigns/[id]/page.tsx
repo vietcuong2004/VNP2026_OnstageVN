@@ -11,18 +11,21 @@ import {
   MapPin,
   Users,
   X,
-  Sparkles,
   Plus,
+  ImagePlus,
+  Pencil,
 } from "lucide-react";
-import { campaigns as initialCampaigns, talents, type Campaign, type CampaignStage } from "@/lib/brand-mvp-data";
+import { campaigns as initialCampaigns, talents, type Campaign, type CampaignMedia, type CampaignStage } from "@/lib/brand-mvp-data";
 import {
   approveBrandCampaignCommissions,
   closeBrandCampaign,
+  deleteBrandCampaignMedia,
   loadBrandCampaign,
   loadBrandCampaignCommissions,
   loadBrandTalents,
   publishBrandCampaign,
   settleBrandCampaign,
+  uploadBrandCampaignMedia,
   type BrandCampaignCommissionResponse,
   type BrandCommissionTransaction,
   updateBrandCampaignTalent,
@@ -145,6 +148,8 @@ export default function CampaignDetailPage() {
   const [isShowingPayoutModal, setIsShowingPayoutModal] = useState(false);
   const [commissionData, setCommissionData] = useState<BrandCampaignCommissionResponse | null>(null);
   const [isCommissionLoading, setIsCommissionLoading] = useState(false);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [replacingMediaId, setReplacingMediaId] = useState<string | number | null>(null);
 
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [sentRequests, setSentRequests] = useState<Record<string, boolean>>({});
@@ -227,6 +232,57 @@ export default function CampaignDetailPage() {
   const selectedCampaign = useMemo(() => {
     return campaigns.find((c) => c.id === params.id);
   }, [campaigns, params.id]);
+
+  async function handleCampaignMediaUpload(event: React.ChangeEvent<HTMLInputElement>, replacingMedia?: CampaignMedia | null) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !selectedCampaign) return;
+
+    if (!isBackendRecordId(selectedCampaign.id)) {
+      window.alert("Campaign này đang là dữ liệu local, cần tạo campaign trên backend trước khi upload ảnh.");
+      return;
+    }
+
+    setIsUploadingMedia(true);
+    setReplacingMediaId(replacingMedia?.id ?? null);
+    try {
+      const uploadedMedia = await uploadBrandCampaignMedia(selectedCampaign.id, file, {
+        category: "gallery",
+        isPrimary: !selectedCampaign.media?.length || selectedCampaign.media?.[0]?.id === replacingMedia?.id,
+      });
+
+      if (!uploadedMedia) return;
+
+      if (replacingMedia?.id) {
+        try {
+          await deleteBrandCampaignMedia(selectedCampaign.id, replacingMedia.id);
+        } catch (deleteError) {
+          console.warn("Cannot delete old campaign media after replacement", deleteError);
+        }
+      }
+
+      setCampaigns((current) => current.map((campaign) => {
+        if (campaign.id !== selectedCampaign.id) return campaign;
+
+        const currentMedia = campaign.media || [];
+        const media = replacingMedia?.id
+          ? currentMedia.map((item) => item.id === replacingMedia.id ? uploadedMedia : item)
+          : [...currentMedia, uploadedMedia];
+
+        return {
+          ...campaign,
+          media,
+          coverMedia: media[0] || null,
+        };
+      }));
+    } catch (error) {
+      console.warn("Cannot upload campaign media", error);
+      window.alert(error instanceof Error ? error.message : "Chưa upload được ảnh chiến dịch.");
+    } finally {
+      setIsUploadingMedia(false);
+      setReplacingMediaId(null);
+    }
+  }
 
   async function openPayoutModal() {
     if (!selectedCampaign || !isBackendRecordId(selectedCampaign.id)) {
@@ -468,6 +524,11 @@ export default function CampaignDetailPage() {
                     </span>
                   </div>
                   <h1 className="font-display text-2xl font-black tracking-tight text-white">{selectedCampaign.title}</h1>
+                  {(selectedCampaign.eventName || selectedCampaign.campaignType) && (
+                    <p className="mt-1 text-[11px] font-black uppercase tracking-wider text-amber-300">
+                      {[selectedCampaign.eventName, selectedCampaign.campaignType].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
                   <p className="mt-2 max-w-xl text-xs font-semibold leading-relaxed text-slate-400">{selectedCampaign.description}</p>
                 </div>
               </div>
@@ -502,14 +563,15 @@ export default function CampaignDetailPage() {
                 )}
               </div>
             </div>
+
           </div>
 
           {/* Grid of 5 Info Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {[
-              { label: "Địa điểm", value: selectedCampaign.address, icon: MapPin, color: "text-amber-300" },
-              { label: "Thời gian", value: `${selectedCampaign.startDate} - ${selectedCampaign.endDate}`, icon: Calendar, color: "text-cyan-300" },
-              { label: "Deadline", value: selectedCampaign.deadline, icon: Clock, color: "text-purple-300" },
+              { label: "Địa điểm", value: selectedCampaign.venueName || selectedCampaign.address, icon: MapPin, color: "text-amber-300" },
+              { label: "Sự kiện", value: selectedCampaign.eventDate || `${selectedCampaign.startDate} - ${selectedCampaign.endDate}`, icon: Calendar, color: "text-cyan-300" },
+              { label: "Deadline", value: selectedCampaign.applicationDeadline || selectedCampaign.deadline, icon: Clock, color: "text-purple-300" },
               { label: "Ứng viên", value: `${selectedCampaign.applicants.length}/${selectedCampaign.talentQuantity}`, icon: Users, color: "text-emerald-300" },
               { label: "Lượt xem", value: selectedCampaign.views.toString(), icon: Briefcase, color: "text-rose-300" },
             ].map((item) => {
@@ -526,25 +588,89 @@ export default function CampaignDetailPage() {
         </div>
 
         {/* Right Side: Mô tả chung sidebar */}
-        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-5 xl:col-span-4 text-left">
-          <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-slate-300">MÔ TẢ CHUNG</h2>
-          <div className="space-y-4 text-xs">
-            <div>
-              <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Ngân sách</span>
-              <p className="mt-1 font-black text-amber-300 text-sm">{selectedCampaign.budget}</p>
+        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 xl:col-span-4 text-left">
+          <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-300">MÔ TẢ CHUNG</h2>
+          <div className="divide-y divide-white/5 text-xs">
+            <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2 first:pt-0">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Ngân sách</span>
+              <p className="font-black text-amber-300">{selectedCampaign.budget}</p>
             </div>
-            <div>
-              <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
-              <p className="mt-1 leading-relaxed text-slate-300">{selectedCampaign.requirements}</p>
+            <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
+              <p className="line-clamp-3 leading-relaxed text-slate-300" title={selectedCampaign.requirements}>{selectedCampaign.requirements}</p>
             </div>
-            <div>
-              <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
-              <p className="mt-1 leading-relaxed text-slate-300">{selectedCampaign.benefits}</p>
+            <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
+              <p className="line-clamp-3 leading-relaxed text-slate-300" title={selectedCampaign.benefits}>{selectedCampaign.benefits}</p>
             </div>
+            {selectedCampaign.venueName && (
+              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Địa điểm</span>
+                <p className="line-clamp-2 leading-relaxed text-slate-300" title={selectedCampaign.venueName}>{selectedCampaign.venueName}</p>
+              </div>
+            )}
+            {selectedCampaign.venueAddress && (
+              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Địa chỉ</span>
+                <p className="line-clamp-3 leading-relaxed text-slate-300" title={selectedCampaign.venueAddress}>{selectedCampaign.venueAddress}</p>
+              </div>
+            )}
+            {selectedCampaign.roles && selectedCampaign.roles.length > 0 && (
+              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí</span>
+                <div className="flex max-h-16 flex-wrap gap-1.5 overflow-hidden">
+                  {selectedCampaign.roles.map((role, idx) => (
+                    <span key={`${role}-${idx}`} className="rounded bg-cyan-400/10 border border-cyan-400/20 px-2 py-1 text-[8.5px] font-bold text-cyan-300 uppercase tracking-wider">
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {selectedCampaign.targetProfiles && selectedCampaign.targetProfiles.length > 0 && (
+              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Talent</span>
+                <div className="flex max-h-16 flex-wrap gap-1.5 overflow-hidden">
+                  {selectedCampaign.targetProfiles.map((profile, idx) => (
+                    <span key={`${profile}-${idx}`} className="rounded bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 text-[8.5px] font-bold text-emerald-300 uppercase tracking-wider">
+                      {profile}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {selectedCampaign.industries && selectedCampaign.industries.length > 0 && (
+              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực</span>
+                <div className="flex max-h-16 flex-wrap gap-1.5 overflow-hidden">
+                  {selectedCampaign.industries.map((industry, idx) => (
+                    <span key={`${industry}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
+                      {industry}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {selectedCampaign.responsibilities && selectedCampaign.responsibilities.length > 0 && (
+              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Đầu việc</span>
+                <ul className="line-clamp-5 list-disc space-y-1 pl-4 leading-relaxed text-slate-300">
+                  {selectedCampaign.responsibilities.slice(0, 5).map((item, idx) => (
+                    <li key={`${item}-${idx}`}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {selectedCampaign.contactNote && (
+              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Ứng tuyển</span>
+                <p className="line-clamp-3 leading-relaxed text-slate-300" title={selectedCampaign.contactNote}>{selectedCampaign.contactNote}</p>
+              </div>
+            )}
             {selectedCampaign.sponsorships && selectedCampaign.sponsorships.length > 0 && (
-              <div>
-                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Hạng mục tài trợ cam kết</span>
-                <div className="flex flex-wrap gap-1.5">
+              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Tài trợ</span>
+                <div className="flex max-h-16 flex-wrap gap-1.5 overflow-hidden">
                   {selectedCampaign.sponsorships.map((s, idx) => (
                     <span key={idx} className="inline-block rounded bg-amber-400/10 border border-amber-400/30 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
                       🎁 {s.category}
@@ -558,6 +684,76 @@ export default function CampaignDetailPage() {
             </div> */}
           </div>
         </aside>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-slate-950/25 p-5">
+        <div className="mb-5 flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/20 bg-amber-400/10">
+              <ImagePlus className="h-4.5 w-4.5 text-amber-300" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-wider text-white">Bộ ảnh chiến dịch</h2>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Tải lên các hình ảnh bạn muốn dùng cho chiến dịch
+              </p>
+            </div>
+          </div>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400">
+            {selectedCampaign.media?.length || 0} ảnh
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
+          <label className="group relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/20 bg-slate-900/60 p-4 text-center transition-all hover:border-amber-400 hover:bg-slate-900">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={isUploadingMedia}
+              onChange={handleCampaignMediaUpload}
+              className="hidden"
+            />
+            <ImagePlus className="mb-3 h-8 w-8 text-slate-400 transition-colors group-hover:text-amber-300" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-100">
+              {isUploadingMedia ? "Đang tải..." : "Tải ảnh lên"}
+            </span>
+            <span className="mt-1 text-[8.5px] font-medium leading-relaxed text-slate-500">
+              JPG, PNG hoặc WebP
+            </span>
+          </label>
+
+          {(selectedCampaign.media || []).map((media, index) => (
+            media.url ? (
+              <div key={`${media.id || media.url || index}`} className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 bg-slate-950">
+                <img
+                  src={media.url}
+                  alt={media.caption || selectedCampaign.title}
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                />
+                <label className="absolute right-3 top-3 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/60 text-white opacity-100 shadow-lg backdrop-blur transition hover:border-amber-300 hover:bg-amber-300 hover:text-slate-950 sm:opacity-0 sm:group-hover:opacity-100">
+                  {replacingMediaId === media.id ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  ) : (
+                    <Pencil className="h-4 w-4" />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={isUploadingMedia}
+                    onChange={(event) => handleCampaignMediaUpload(event, media)}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            ) : null
+          ))}
+
+          {!selectedCampaign.media?.length && (
+            <div className="col-span-1 flex aspect-[4/5] items-center justify-center rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-center text-[10px] font-semibold leading-relaxed text-slate-500">
+              Ảnh đã tải lên sẽ hiển thị tại đây.
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Bottom Section: KOC Candidates list (Full Width) */}

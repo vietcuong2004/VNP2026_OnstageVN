@@ -66,19 +66,39 @@ export type CampaignSponsorship = {
   details: string;
 };
 
+export type CampaignMedia = {
+  id?: string | number;
+  url?: string | null;
+  path?: string | null;
+  category?: string | null;
+  caption?: string | null;
+  is_primary?: boolean;
+};
+
 export type Campaign = {
   id: string;
   title: string;
   jobType: string;
+  eventName?: string;
+  campaignType?: string;
   city: string;
   address: string;
   startDate: string;
   endDate: string;
+  applicationDeadline?: string;
+  eventDate?: string;
+  venueName?: string;
+  venueAddress?: string;
   deadline: string;
   talentQuantity: number;
   budget: string;
   budgetValue: number;
   benefits: string;
+  roles?: string[];
+  responsibilities?: string[];
+  industries?: string[];
+  targetProfiles?: string[];
+  contactNote?: string;
   status: "draft" | "published" | "closed";
   shortlistedTalentIds: string[];
   applicants: CampaignTalent[];
@@ -88,6 +108,8 @@ export type Campaign = {
   views: number;
   sponsorships?: CampaignSponsorship[];
   escrowed?: boolean;
+  media?: CampaignMedia[];
+  coverMedia?: CampaignMedia | null;
 };
 
 export const LIFESTYLE_SERVICES_TEMPLATES = [
