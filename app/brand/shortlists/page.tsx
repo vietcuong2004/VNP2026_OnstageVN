@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { BookmarkCheck, Briefcase, FileText, HeartOff, Plus, Send, Eye } from "lucide-react";
 import { campaigns, savedTalentIds, talents } from "@/lib/brand-mvp-data";
 import { addTalentToBrandCampaign, createBrandContactRequest, loadBrandCampaigns, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist } from "@/lib/brand-api";
+import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
 function selectExistingCampaignId(current: string, items: typeof campaigns) {
@@ -14,7 +15,7 @@ function selectExistingCampaignId(current: string, items: typeof campaigns) {
 
 export default function BrandShortlistsPage() {
   const router = useRouter();
-  const [savedIds, setSavedIds] = useState(savedTalentIds);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
   const [talentList, setTalentList] = useState(talents);
   const [localCampaigns, setLocalCampaigns] = useState(campaigns);
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id ?? "");
@@ -45,9 +46,7 @@ export default function BrandShortlistsPage() {
         );
       } else {
         const hasSavedTalent = items.some((talent) => savedTalentIds.includes(talent.id));
-        if (!hasSavedTalent) {
-          setSavedIds(items.slice(0, 3).map((talent) => talent.id));
-        }
+        setSavedIds(hasSavedTalent ? savedTalentIds : []);
       }
     });
 
@@ -196,7 +195,14 @@ export default function BrandShortlistsPage() {
                         return (
                           <div key={id} className="flex items-center justify-between p-2 rounded-xl bg-slate-900/50 border border-white/5 text-xs">
                             <div className="flex items-center gap-2 min-w-0">
-                              <img src={t.avatar} alt={t.name} className="h-6 w-6 rounded-full object-cover shrink-0" />
+                              <img
+                                src={t.avatar}
+                                alt={t.name}
+                                onError={(event) => {
+                                  event.currentTarget.src = createInitialAvatarDataUrl(t.name, "");
+                                }}
+                                className="h-6 w-6 rounded-full object-cover shrink-0"
+                              />
                               <span className="font-extrabold text-white truncate">{t.name}</span>
                             </div>
                             <span className="rounded bg-amber-400/10 border border-amber-400/20 px-1.5 py-0.5 text-[8px] font-black text-amber-300 shrink-0">
@@ -227,7 +233,14 @@ export default function BrandShortlistsPage() {
               return (
                 <article key={talent.id} className="rounded-2xl border border-white/5 bg-slate-950/25 p-4">
                   <div className="flex flex-col gap-4 md:flex-row">
-                    <img src={talent.avatar} alt={talent.name} className="h-28 w-full rounded-2xl object-cover md:w-28" />
+                    <img
+                      src={talent.avatar}
+                      alt={talent.name}
+                      onError={(event) => {
+                        event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                      }}
+                      className="h-28 w-full rounded-2xl object-cover md:w-28"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="mb-2 flex flex-wrap items-center gap-2">
                         <h3 className="text-base font-black text-white">{talent.name}</h3>

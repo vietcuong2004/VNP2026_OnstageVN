@@ -8,6 +8,7 @@ import {
   Search, BarChart3, Users, Bell, Users2, Share2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logoutCurrentSession } from "@/lib/api-client";
 
 const talentMenuItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
@@ -45,25 +46,7 @@ export default function Sidebar() {
   const isGateway = pathname === "/";
 
   async function handleLogout() {
-    const token = localStorage.getItem("onstagevn_auth_token");
-
-    if (token) {
-      try {
-        const baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
-        await fetch(`${baseUrl}/auth/logout`, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      } catch {
-        // Local logout still clears browser session
-      }
-    }
-
-    localStorage.removeItem("onstagevn_auth_token");
-    localStorage.removeItem("onstagevn_auth_user");
+    await logoutCurrentSession();
     router.push("/auth/login");
   }
 

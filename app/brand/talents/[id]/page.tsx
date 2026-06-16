@@ -28,10 +28,11 @@ import {
   Plus,
   X,
 } from "lucide-react";
-import { campaigns, findTalentById, savedTalentIds } from "@/lib/brand-mvp-data";
+import { campaigns, findTalentById } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
-import { loadTalentProfile } from "@/lib/talent-api";
+import { loadBrandTalent } from "@/lib/brand-api";
+import { createInitialAvatarDataUrl } from "@/lib/avatar";
 
 const formatNumber = (num: number) => {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -69,33 +70,10 @@ export default function BrandTalentProfilePage() {
   useEffect(() => {
     let cancelled = false;
 
-    if (params.id === "tal-1") {
-      loadTalentProfile().then((parsed) => {
-        if (cancelled || !parsed) return;
-
-        setTalent({
-          ...staticTalent,
-          name: parsed.name || staticTalent?.name,
-          avatar: parsed.avatar || staticTalent?.avatar,
-          cover: parsed.cover || staticTalent?.cover,
-          height: parsed.height !== undefined ? Number(parsed.height) : staticTalent?.height,
-          weight: parsed.weight !== undefined ? Number(parsed.weight) : staticTalent?.weight,
-          bust: parsed.bust !== undefined ? Number(parsed.bust) : staticTalent?.bust,
-          waist: parsed.waist !== undefined ? Number(parsed.waist) : staticTalent?.waist,
-          hips: parsed.hips !== undefined ? Number(parsed.hips) : staticTalent?.hips,
-          gender: parsed.gender || staticTalent?.gender,
-          district: parsed.location || staticTalent?.district,
-          education: parsed.education || staticTalent?.education,
-          languages: parsed.languages || staticTalent?.languages,
-          skills: parsed.skills || staticTalent?.skills,
-          rateCard: parsed.rateCard || staticTalent?.rateCard,
-          lifestyleServices: parsed.lifestyleServices || staticTalent?.lifestyleServices,
-          yearsOfExperience: parsed.experience !== undefined ? Number(parsed.experience) : staticTalent?.yearsOfExperience,
-          verified: parsed.verifiedLevel === "Elite" || parsed.verifiedLevel === "Pro" || parsed.verifiedLevel === "Basic" || staticTalent?.verified,
-          tier: parsed.tier || staticTalent?.tier,
-        });
-      });
-    }
+    setTalent(staticTalent ?? null);
+    loadBrandTalent(params.id, staticTalent ?? null).then((loaded) => {
+      if (!cancelled && loaded) setTalent(loaded);
+    });
 
     return () => {
       cancelled = true;
@@ -234,7 +212,14 @@ export default function BrandTalentProfilePage() {
       {/* Cover Header */}
       <section className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#08090f] shadow-xl">
         <div className="relative h-56 w-full overflow-hidden bg-slate-950 md:h-72">
-          <img src={talent.cover} alt={`${talent.name} cover`} className="h-full w-full object-cover opacity-65" />
+          <img
+            src={talent.cover}
+            alt={`${talent.name} cover`}
+            onError={(event) => {
+              event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+            }}
+            className="h-full w-full object-cover opacity-65"
+          />
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-black/75" />
           <button
             onClick={() => router.push("/brand/search")}
@@ -251,7 +236,14 @@ export default function BrandTalentProfilePage() {
         <div className="relative flex flex-col gap-5 px-6 pb-6 pt-4 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-col gap-5 md:flex-row md:items-end">
             <div className="-mt-20 h-32 w-32 shrink-0 rounded-2xl border-4 border-[#08090f] bg-slate-900 p-0.5 shadow-2xl">
-              <img src={talent.avatar} alt={talent.name} className="h-full w-full rounded-xl object-cover" />
+              <img
+                src={talent.avatar}
+                alt={talent.name}
+                onError={(event) => {
+                  event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                }}
+                className="h-full w-full rounded-xl object-cover"
+              />
             </div>
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
@@ -302,6 +294,9 @@ export default function BrandTalentProfilePage() {
               <img
                 src={talent.fullBodyImage || talent.avatar}
                 alt="Model Full-body portrait"
+                onError={(event) => {
+                  event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                }}
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80" />
