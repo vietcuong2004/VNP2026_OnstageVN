@@ -5,7 +5,7 @@ deploy_production:
   stage: deploy
   image: node:20-alpine
   only:
-    - main #sửa tên nhánh ở đây, muốn push lên nhánh dev mới deploy thì sửa thành "dev"
+    - dev #sửa tên nhánh ở đây, muốn push lên nhánh dev mới deploy thì sửa thành "dev"
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
