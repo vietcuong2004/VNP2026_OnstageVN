@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Bell, Key, LogOut, RefreshCw, CheckCircle, Sparkles, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, SocialConnection, unlinkSocialConnection, updateAuthEmail } from "@/lib/api-client";
+import { getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, logoutCurrentSession, SocialConnection, unlinkSocialConnection, updateAuthEmail } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
 
 type AuthUser = {
@@ -91,12 +91,10 @@ export default function SettingsPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("vnp_talent_profile");
+  const handleLogout = async () => {
     addToast("Đang đăng xuất khỏi tài khoản...", "info");
-    setTimeout(() => {
-      router.push("/");
-    }, 800);
+    await logoutCurrentSession();
+    router.replace("/auth/login");
   };
 
   return (

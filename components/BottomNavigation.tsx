@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home, Briefcase, BookmarkCheck, Crown, Search, User,
   Sparkles, Trophy, Calendar, MessageSquare, Wallet, Menu, X, LogOut,
   BarChart3, Users, Bell, Settings, Share2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logoutCurrentSession } from "@/lib/api-client";
 
 const talentAllItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
@@ -41,8 +42,15 @@ const brandAllItems = [
 
 export default function BottomNavigation() {
   const pathname = usePathname();
+  const router = useRouter();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [visible, setVisible] = useState(true);
+
+  async function handleLogout() {
+    setShowMoreMenu(false);
+    await logoutCurrentSession();
+    router.replace("/auth/login");
+  }
 
   useEffect(() => {
     let prevScrollY = 0;
@@ -147,13 +155,8 @@ export default function BottomNavigation() {
                 const Icon = item.icon;
                 const isLogout = item.label === "Đăng xuất";
                 const isActive = !isLogout && (pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href)));
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => setShowMoreMenu(false)}
-                    className="flex flex-col items-center text-center group cursor-pointer"
-                  >
+                const content = (
+                  <>
                     <div className={cn(
                       "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300",
                       isActive
@@ -171,6 +174,30 @@ export default function BottomNavigation() {
                     )}>
                       {item.label}
                     </span>
+                  </>
+                );
+
+                if (isLogout) {
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex flex-col items-center text-center group cursor-pointer"
+                    >
+                      {content}
+                    </button>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setShowMoreMenu(false)}
+                    className="flex flex-col items-center text-center group cursor-pointer"
+                  >
+                    {content}
                   </Link>
                 );
               })}

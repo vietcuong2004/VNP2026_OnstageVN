@@ -47,7 +47,7 @@ export default function Sidebar() {
 
   async function handleLogout() {
     await logoutCurrentSession();
-    router.push("/auth/login");
+    router.replace("/auth/login");
   }
 
   const currentMenuItems = isTalent ? talentMenuItems : isBrand ? brandMenuItems : [];

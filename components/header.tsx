@@ -132,7 +132,7 @@ export default function Header() {
 
   async function handleLogout() {
     await logoutCurrentSession();
-    router.push("/auth/login");
+    router.replace("/auth/login");
   }
 
   return (

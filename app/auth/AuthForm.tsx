@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Loader2, Lock, Mail, User } from "lucide-react";
+import { storeAuthSession } from "@/lib/api-client";
 
 type AuthMode = "login" | "register";
 type AccountType = "talent" | "brand";
@@ -148,12 +149,11 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
         return;
       }
 
-      localStorage.setItem("onstagevn_auth_token", data.token);
-      localStorage.setItem("onstagevn_auth_user", JSON.stringify(data.user));
+      storeAuthSession(data.token, data.user);
       const redirectPath = typeof window !== "undefined"
         ? new URLSearchParams(window.location.search).get("redirect")
         : null;
-      router.push(redirectPath?.startsWith("/") ? redirectPath : getRedirectPath(data.user.type));
+      router.replace(redirectPath?.startsWith("/") ? redirectPath : getRedirectPath(data.user.type));
     } catch {
       setError("Không kết nối được backend Laravel. Hãy kiểm tra API server đã chạy chưa.");
     } finally {

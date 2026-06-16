@@ -29,6 +29,13 @@ export function storeAuthUser(user: unknown) {
   window.dispatchEvent(new Event(AUTH_USER_UPDATED_EVENT));
 }
 
+export function storeAuthSession(token: string, user: unknown) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem("onstagevn_auth_token", token);
+  window.localStorage.setItem("onstagevn_auth_user", JSON.stringify(user));
+  window.dispatchEvent(new Event(AUTH_USER_UPDATED_EVENT));
+}
+
 export function clearAuthSession() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("onstagevn_auth_token");

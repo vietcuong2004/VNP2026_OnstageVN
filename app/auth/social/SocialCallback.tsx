@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { avatarFallbackForUser, profileAvatarFromBackend } from "@/lib/avatar";
-import { storeAuthUser } from "@/lib/api-client";
+import { storeAuthSession } from "@/lib/api-client";
 
 type AccountType = "talent" | "brand";
 type SocialProvider = "google" | "facebook";
@@ -100,8 +100,6 @@ export default function SocialCallback() {
         return;
       }
 
-      localStorage.setItem("onstagevn_auth_token", token);
-
       try {
         const response = await fetch(`${apiUrl}/auth/me`, {
           headers: {
@@ -113,7 +111,7 @@ export default function SocialCallback() {
         if (response.ok) {
           const data = (await response.json()) as MeResponse;
           const user = await hydrateTalentAvatar(apiUrl, token, data.user);
-          storeAuthUser(user);
+          storeAuthSession(token, user);
           const loginProvider = provider ?? user.social_provider ?? null;
           if (!user.email && loginProvider === "facebook") {
             router.replace(getMissingEmailPath(user.type));
@@ -126,6 +124,13 @@ export default function SocialCallback() {
         // Token is already stored; fall back to the type from callback.
       }
 
+      storeAuthSession(token, {
+        id: 0,
+        name: "User",
+        email: null,
+        type: type ?? "talent",
+        status: "active",
+      });
       router.replace(getRedirectPath(type));
     }
 
