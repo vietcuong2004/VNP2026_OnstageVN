@@ -110,20 +110,43 @@ export function getDefaultTalentProfile() {
 
 export function sanitizeTalentProfile(profile: any) {
   const photos = Array.isArray(profile?.photos)
-    ? profile.photos.filter(isPortablePhotoUrl)
+    ? profile.photos.map(normalizeBackendAssetUrl).filter(isPortablePhotoUrl)
     : profile?.photos;
   const photoRecords = Array.isArray(profile?.photoRecords)
-    ? profile.photoRecords.filter((photo: BackendPhoto) => isPortablePhotoUrl(photo.url || photo.path))
+    ? profile.photoRecords
+        .map((photo: BackendPhoto) => ({
+          ...photo,
+          url: normalizeBackendAssetUrl(photo.url || photo.path),
+        }))
+        .filter((photo: BackendPhoto) => isPortablePhotoUrl(photo.url || photo.path))
     : profile?.photoRecords;
-  const avatar = isPortablePhotoUrl(profile?.avatar)
-    ? profile.avatar
+  const normalizedAvatar = normalizeBackendAssetUrl(profile?.avatar);
+  const normalizedCover = normalizeBackendAssetUrl(profile?.cover);
+  const normalizedFullBody = normalizeBackendAssetUrl(profile?.fullBody);
+  const normalizedCccdFront = normalizeBackendAssetUrl(profile?.cccdFront);
+  const normalizedCccdBack = normalizeBackendAssetUrl(profile?.cccdBack);
+  const normalizedCccdSelfie = normalizeBackendAssetUrl(profile?.cccdSelfie);
+  const normalizedLookbook1 = normalizeBackendAssetUrl(profile?.lookbook1);
+  const normalizedLookbook2 = normalizeBackendAssetUrl(profile?.lookbook2);
+  const normalizedLookbook3 = normalizeBackendAssetUrl(profile?.lookbook3);
+  const normalizedLookbook4 = normalizeBackendAssetUrl(profile?.lookbook4);
+  const avatar = isPortablePhotoUrl(normalizedAvatar)
+    ? normalizedAvatar
     : createInitialAvatarDataUrl(profile?.name, profile?.email);
-  const cover = isPortablePhotoUrl(profile?.cover) ? profile.cover : "/cover_image.png";
+  const cover = isPortablePhotoUrl(normalizedCover) ? normalizedCover : "/cover_image.png";
 
   return {
     ...profile,
     avatar,
     cover,
+    fullBody: isPortablePhotoUrl(normalizedFullBody) ? normalizedFullBody : "/fullbody_model.png",
+    cccdFront: isPortablePhotoUrl(normalizedCccdFront) ? normalizedCccdFront : "",
+    cccdBack: isPortablePhotoUrl(normalizedCccdBack) ? normalizedCccdBack : "",
+    cccdSelfie: isPortablePhotoUrl(normalizedCccdSelfie) ? normalizedCccdSelfie : "",
+    lookbook1: isPortablePhotoUrl(normalizedLookbook1) ? normalizedLookbook1 : "",
+    lookbook2: isPortablePhotoUrl(normalizedLookbook2) ? normalizedLookbook2 : "",
+    lookbook3: isPortablePhotoUrl(normalizedLookbook3) ? normalizedLookbook3 : "",
+    lookbook4: isPortablePhotoUrl(normalizedLookbook4) ? normalizedLookbook4 : "",
     photos,
     photoRecords,
   };
@@ -244,13 +267,31 @@ function averageEngagement(profile: BackendProfile) {
 }
 
 function isPortablePhotoUrl(value: unknown) {
-  const url = String(value || "");
-  return Boolean(url) && !url.startsWith("/storage/") && !url.startsWith("blob:");
+  const url = normalizeBackendAssetUrl(value);
+  return Boolean(url) && !url.startsWith("blob:") && !isRawBackendPhotoPath(url);
 }
 
 function photoUrl(photo?: BackendPhoto | null) {
-  const url = photo?.url || photo?.path || "";
+  const url = normalizeBackendAssetUrl(photo?.url || photo?.path || "");
   return isPortablePhotoUrl(url) ? url : "";
+}
+
+function isRawBackendPhotoPath(value: unknown) {
+  const url = String(value || "").trim();
+  if (/^\/?(profiles|avatars)\//i.test(url)) return true;
+
+  try {
+    const parsed = new URL(url);
+    return /^\/(profiles|avatars)\//i.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
+function bustAssetCache(url: string) {
+  if (!url || url.startsWith("data:") || url.startsWith("blob:")) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}v=${Date.now()}`;
 }
 
 function isPlaceholderTalentName(value?: string | null) {
@@ -424,7 +465,12 @@ export async function uploadTalentPhoto(profileId: number, file: File, category 
   formData.append("category", category);
 
   const response = await apiForm<{ data: BackendPhoto }>(`/profiles/${profileId}/photos`, formData);
-  return response.data;
+  const url = photoUrl(response.data);
+
+  return {
+    ...response.data,
+    url: bustAssetCache(url),
+  };
 }
 
 export async function deleteTalentPhoto(profileId: number, photoId: number) {
@@ -445,12 +491,17 @@ export async function loadTalentCalendar(profile: any) {
       const date = eventDate(event.starts_at);
       if (!date) return acc;
       acc[date] = acc[date] || [];
+      const isCampaignEvent = event.event_type === "campaign";
       acc[date].push({
         id: event.id,
         time: event.starts_at && event.ends_at ? `${event.starts_at.slice(11, 16)} - ${event.ends_at.slice(11, 16)}` : "Cả ngày",
         title: event.title,
         desc: event.description || "",
         status: event.status || "pending",
+        eventType: event.event_type || "personal",
+        campaignId: event.campaign_id || null,
+        campaignTalentId: event.campaign_talent_id || null,
+        locked: isCampaignEvent,
       });
       return acc;
     }, {});

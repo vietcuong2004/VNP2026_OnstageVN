@@ -729,7 +729,7 @@ export default function CampaignDetailPage() {
         </div>
 
         {/* Right Side: Mô tả chung sidebar */}
-        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 xl:col-span-4 xl:self-start text-left">
+        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 xl:col-span-4 xl:self-start xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto text-left scrollbar-thin">
           <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-300">MÔ TẢ CHUNG</h2>
           <div className="divide-y divide-white/5 text-xs">
             <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2 first:pt-0">
@@ -741,20 +741,20 @@ export default function CampaignDetailPage() {
               {(() => {
                 const benefitItems = displayListText(selectedCampaign.benefits);
                 return benefitItems.length > 1 ? (
-                  <ul className="max-h-36 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin">
+                  <ul className="max-h-28 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin">
                     {benefitItems.map((item, idx) => (
                       <li key={`${item}-${idx}`}>{item}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="max-h-36 overflow-y-auto pr-2 leading-relaxed text-slate-300 scrollbar-thin" title={selectedCampaign.benefits}>{benefitItems[0] || "-"}</p>
+                  <p className="max-h-28 overflow-y-auto pr-2 leading-relaxed text-slate-300 scrollbar-thin" title={selectedCampaign.benefits}>{benefitItems[0] || "-"}</p>
                 );
               })()}
             </div>
             {selectedCampaign.responsibilities && selectedCampaign.responsibilities.length > 0 && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Đầu việc</span>
-                <ul className="max-h-36 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin">
+                <ul className="max-h-28 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin">
                   {selectedCampaign.responsibilities.map((item, idx) => (
                     <li key={`${item}-${idx}`}>{sentenceCaseText(item)}</li>
                   ))}
