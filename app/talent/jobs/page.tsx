@@ -731,7 +731,7 @@ export default function JobsPage() {
                 </div>
               </div>
 
-              {(selectedJob.type || selectedJob.eventName || selectedJob.eventDate || selectedJob.applicationDeadline || selectedJob.venueName || selectedJob.venueAddress || selectedJob.roles?.length > 0 || selectedJob.targetProfiles?.length > 0 || selectedJob.industries?.length > 0 || selectedJob.responsibilities?.length > 0 || selectedJob.contactNote) && (
+              {(selectedJob.type || selectedJob.eventName || selectedJob.eventDate || selectedJob.startDate || selectedJob.endDate || selectedJob.applicationDeadline || selectedJob.deadline || selectedJob.venueName || selectedJob.venueAddress || selectedJob.roles?.length > 0 || selectedJob.targetProfiles?.length > 0 || selectedJob.industries?.length > 0 || selectedJob.responsibilities?.length > 0 || selectedJob.contactNote) && (
                 <div className="space-y-3 rounded-2xl border border-[#151b2d] bg-[#050711]/50 p-4">
                   <h4 className="text-xs font-bold text-white uppercase tracking-wider">Thông tin tuyển chọn</h4>
                   <div className="grid grid-cols-1 gap-3 text-[10px] text-slate-400 sm:grid-cols-2">

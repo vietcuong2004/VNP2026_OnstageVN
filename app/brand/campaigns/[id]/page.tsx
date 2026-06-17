@@ -673,14 +673,6 @@ export default function CampaignDetailPage() {
                     {displayCampaignDate(selectedCampaign.applicationDeadline || selectedCampaign.deadline)}
                   </p>
                 </div>
-                {selectedCampaign.requirements && (
-                  <div className="space-y-2 lg:col-span-2">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
-                    <p className="text-xs font-semibold leading-relaxed text-slate-300">
-                      {sentenceCaseText(selectedCampaign.requirements)}
-                    </p>
-                  </div>
-                )}
                 {selectedCampaign.roles && selectedCampaign.roles.length > 0 && (
                   <div className="space-y-2">
                     <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển</span>
@@ -748,6 +740,14 @@ export default function CampaignDetailPage() {
               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Ngân sách</span>
               <p className="font-black text-amber-300">{selectedCampaign.budget}</p>
             </div>
+            {selectedCampaign.requirements && (
+              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
+                <p className="max-h-28 overflow-y-auto pr-2 leading-relaxed text-slate-300 scrollbar-thin">
+                  {sentenceCaseText(selectedCampaign.requirements)}
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
               {(() => {
