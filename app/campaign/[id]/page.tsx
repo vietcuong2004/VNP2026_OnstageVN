@@ -22,6 +22,8 @@ type ReferralCampaignPayload = {
   location?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+  application_deadline?: string | null;
+  event_date?: string | null;
   max_talents?: number | string | null;
   talent_quantity?: number | string | null;
   benefits?: string | null;
@@ -33,6 +35,26 @@ type ReferralCampaignPayload = {
 function formatVND(value?: number | string | null) {
   const amount = Number(value || 0);
   return amount > 0 ? `${new Intl.NumberFormat("vi-VN").format(amount)}đ` : "Thỏa thuận";
+}
+
+function formatCampaignDate(value?: string | null) {
+  if (!value) return "-";
+
+  const raw = String(value);
+  const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
+  const date = new Date(normalized);
+
+  if (Number.isNaN(date.getTime())) {
+    const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+    return raw;
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
 }
 
 function mapReferralCampaign(raw?: ReferralCampaignPayload | null): Campaign | null {
@@ -48,7 +70,9 @@ function mapReferralCampaign(raw?: ReferralCampaignPayload | null): Campaign | n
     address: raw.location || raw.city || "Linh hoạt",
     startDate: raw.start_date || "",
     endDate: raw.end_date || "",
-    deadline: raw.end_date || raw.start_date || "Theo lịch Brand",
+    applicationDeadline: raw.application_deadline || "",
+    eventDate: raw.event_date || "",
+    deadline: raw.application_deadline || raw.end_date || raw.start_date || "Theo lịch Brand",
     talentQuantity: Number(raw.max_talents || raw.talent_quantity || 1),
     benefits: raw.benefits || "Thù lao và quyền lợi theo brief của Brand.",
     description: raw.description || "Brand sẽ cập nhật mô tả chi tiết.",
@@ -234,7 +258,7 @@ export default function CampaignReferralPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Hạn duyệt:</span>
-                <span className="text-amber-400 font-bold">{campaign.deadline}</span>
+                <span className="text-amber-400 font-bold">{formatCampaignDate(campaign.applicationDeadline || campaign.deadline)}</span>
               </div>
               <div className="border-t border-white/5 pt-2 text-[10px] text-emerald-400/80 italic text-center">
                 * Brand Manager (F0) sẽ nhận được thông báo giới thiệu của bạn trong danh sách ứng tuyển.
@@ -280,8 +304,10 @@ export default function CampaignReferralPage() {
                   <div className="flex items-center gap-2.5">
                     <Calendar className="h-4.5 w-4.5 text-slate-500 shrink-0" />
                     <div>
-                      <span className="block text-slate-500 text-[9px] uppercase tracking-wider">Thời gian</span>
-                      <span className="font-bold text-white text-xs">{campaign.startDate} ~ {campaign.endDate}</span>
+                      <span className="block text-slate-500 text-[9px] uppercase tracking-wider">Sự kiện chính</span>
+                      <span className="font-bold text-white text-xs">
+                        {campaign.eventDate ? formatCampaignDate(campaign.eventDate) : formatCampaignDate(campaign.startDate)}
+                      </span>
                     </div>
                   </div>
 
@@ -295,6 +321,31 @@ export default function CampaignReferralPage() {
                 </div>
 
                 <div className="border-t border-white/5 pt-6 space-y-4">
+                  <div className="space-y-3 rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                    <h3 className="text-xs font-black text-white uppercase tracking-wider">Mốc thời gian</h3>
+                    <div className="grid grid-cols-1 gap-3 text-[10px] text-slate-400 sm:grid-cols-2">
+                      <div className="rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-3">
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Bắt đầu campaign</span>
+                        <span className="mt-1 block text-xs font-black text-cyan-200">{formatCampaignDate(campaign.startDate)}</span>
+                      </div>
+                      <div className="rounded-xl border border-sky-400/15 bg-sky-400/5 p-3">
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Kết thúc campaign</span>
+                        <span className="mt-1 block text-xs font-black text-sky-200">{formatCampaignDate(campaign.endDate)}</span>
+                      </div>
+                      <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/5 p-3">
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Sự kiện chính</span>
+                        <span className="mt-1 block text-xs font-black text-emerald-200">
+                          {campaign.eventDate ? formatCampaignDate(campaign.eventDate) : formatCampaignDate(campaign.startDate)}
+                        </span>
+                      </div>
+                      <div className="rounded-xl border border-purple-400/15 bg-purple-400/5 p-3">
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Hạn ứng tuyển</span>
+                        <span className="mt-1 block text-xs font-black text-purple-200">
+                          {formatCampaignDate(campaign.applicationDeadline || campaign.deadline)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                   <div>
                     <h3 className="text-xs font-black text-white uppercase tracking-wider font-bold">Mô tả công việc</h3>
                     <p className="text-xs text-slate-400 mt-1.5 leading-relaxed font-medium">{campaign.description}</p>

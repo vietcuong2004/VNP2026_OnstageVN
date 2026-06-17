@@ -648,15 +648,27 @@ export default function CampaignDetailPage() {
               </div>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div className="space-y-2">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Sự kiện</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Bắt đầu campaign</span>
                   <p className="text-xs font-black leading-relaxed text-cyan-200">
+                    {displayCampaignDate(selectedCampaign.startDate)}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kết thúc campaign</span>
+                  <p className="text-xs font-black leading-relaxed text-sky-200">
+                    {displayCampaignDate(selectedCampaign.endDate)}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Sự kiện chính</span>
+                  <p className="text-xs font-black leading-relaxed text-emerald-200">
                     {selectedCampaign.eventDate
                       ? displayCampaignDate(selectedCampaign.eventDate)
                       : displayCampaignDateRange(selectedCampaign.startDate, selectedCampaign.endDate)}
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Deadline</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Hạn ứng tuyển</span>
                   <p className="text-xs font-black leading-relaxed text-purple-200">
                     {displayCampaignDate(selectedCampaign.applicationDeadline || selectedCampaign.deadline)}
                   </p>

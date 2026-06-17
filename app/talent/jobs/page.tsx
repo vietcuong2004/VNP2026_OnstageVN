@@ -32,6 +32,25 @@ function sentenceCaseText(value: string) {
   return `${text.slice(0, firstLetterIndex)}${text.charAt(firstLetterIndex).toLocaleUpperCase("vi-VN")}${text.slice(firstLetterIndex + 1)}`;
 }
 
+function displayCampaignDate(value?: string | null) {
+  if (!value) return "-";
+
+  const raw = String(value);
+  const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) {
+    const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+    return raw;
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
 export default function JobsPage() {
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState("all");
   const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>("all");
@@ -718,8 +737,10 @@ export default function JobsPage() {
                   <div className="grid grid-cols-1 gap-3 text-[10px] text-slate-400 sm:grid-cols-2">
                     {selectedJob.type && <span><b>Loại chiến dịch:</b> <span className="text-slate-200">{selectedJob.type}</span></span>}
                     {selectedJob.eventName && <span><b>Sự kiện:</b> <span className="text-slate-200">{selectedJob.eventName}</span></span>}
-                    {selectedJob.eventDate && <span><b>Ngày diễn ra:</b> <span className="text-slate-200">{selectedJob.eventDate}</span></span>}
-                    {selectedJob.applicationDeadline && <span><b>Hạn ứng tuyển:</b> <span className="text-slate-200">{selectedJob.applicationDeadline}</span></span>}
+                    <span><b>Bắt đầu campaign:</b> <span className="text-slate-200">{displayCampaignDate(selectedJob.startDate)}</span></span>
+                    <span><b>Kết thúc campaign:</b> <span className="text-slate-200">{displayCampaignDate(selectedJob.endDate)}</span></span>
+                    {(selectedJob.eventDate || selectedJob.startDate) && <span><b>Sự kiện chính:</b> <span className="text-slate-200">{displayCampaignDate(selectedJob.eventDate || selectedJob.startDate)}</span></span>}
+                    {(selectedJob.applicationDeadline || selectedJob.deadline) && <span><b>Hạn ứng tuyển:</b> <span className="text-slate-200">{displayCampaignDate(selectedJob.applicationDeadline || selectedJob.deadline)}</span></span>}
                     {selectedJob.venueName && <span><b>Địa điểm:</b> <span className="text-slate-200">{selectedJob.venueName}</span></span>}
                     {selectedJob.venueAddress && <span><b>Địa chỉ:</b> <span className="text-slate-200">{selectedJob.venueAddress}</span></span>}
                   </div>
