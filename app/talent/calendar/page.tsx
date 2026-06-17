@@ -8,7 +8,8 @@ import {
   Eye, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createTalentCalendarEvent, deleteTalentCalendarEvent, loadTalentCalendar, loadTalentProfile, updateTalentCalendarEvent } from "@/lib/talent-api";
+import { createTalentCalendarEvent, deleteTalentCalendarEvent, loadTalentCalendar, loadTalentProfile, persistTalentProfile, updateTalentCalendarEvent } from "@/lib/talent-api";
+import { busyDatesFromTodoLists, getTalentDayStatus, toggleManualBusyDate } from "@/lib/talent-calendar";
 
 // Contest data for the calendar page detail modal
 const CALENDAR_CONTESTS = [
@@ -180,6 +181,7 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(6); // Default June 2026
   const [selectedDate, setSelectedDate] = useState("2026-06-24"); // Default Selected Day
   const [todayDateStr, setTodayDateStr] = useState("");
+  const [busyDates, setBusyDates] = useState<string[]>([]);
 
   // To-do lists state
   const [todoLists, setTodoLists] = useState<any>({
@@ -190,107 +192,41 @@ export default function CalendarPage() {
 
   const [newTask, setNewTask] = useState({ time: "", title: "", desc: "" });
 
-  const getDayStatus = (dateStr: string) => {
-    const calendar = profile?.availabilityCalendar || [];
-    if (calendar.includes(dateStr) || calendar.includes(`${dateStr}:available`)) {
-      return "available";
-    }
-    if (calendar.includes(`${dateStr}:maybe`)) {
-      return "maybe";
-    }
-    return "busy"; // Default status
-  };
+  const getDayStatus = (dateStr: string) =>
+    getTalentDayStatus(dateStr, profile?.availabilityCalendar, busyDates);
 
-  const getTasksForDate = (dateStr: string) => {
-    const status = getDayStatus(dateStr);
-    const existing = todoLists[dateStr];
-    
-    if (status === "busy") {
-      if (existing && existing.length > 0) {
-        return existing;
-      }
-      // Return default mock tasks for busy days (at least 3 tasks per day, with completed, in_progress, and pending statuses)
-      const dayNum = parseInt(dateStr.split("-")[2]) || 1;
-      if (dayNum % 3 === 0) {
-        return [
-          {
-            id: `mock-b1-1-${dateStr}`,
-            time: "08:00 - 10:30",
-            title: "Trang điểm & Thử phục trang",
-            desc: "Gặp stylist thương hiệu tại Studio Cầu Giấy để chuẩn bị fitting đồ lookbook",
-            status: "completed"
-          },
-          {
-            id: `mock-b1-2-${dateStr}`,
-            time: "11:00 - 15:00",
-            title: "Chụp ảnh Lookbook BST Mùa Hè",
-            desc: "Thực hiện bộ ảnh ngoài trời quảng bá sản phẩm thời trang mới của nhãn hàng",
-            status: "in_progress"
-          },
-          {
-            id: `mock-b1-3-${dateStr}`,
-            time: "19:00 - 21:00",
-            title: "Họp feedback & Thống nhất ấn phẩm",
-            desc: "Thảo luận trực tuyến về chất lượng hình ảnh và kế hoạch đăng bài truyền thông",
-            status: "pending"
-          }
-        ];
-      } else if (dayNum % 3 === 1) {
-        return [
-          {
-            id: `mock-b2-1-${dateStr}`,
-            time: "09:00 - 11:30",
-            title: "Họp brief chiến dịch L'Oréal",
-            desc: "Thống nhất kịch bản livestream và danh mục sản phẩm chính thức",
-            status: "completed"
-          },
-          {
-            id: `mock-b2-2-${dateStr}`,
-            time: "14:00 - 16:30",
-            title: "Fitting Đầm Dạ Hội VIP",
-            desc: "Thử trang phục thiết kế chuẩn bị diễn diễn runway tối nay",
-            status: "in_progress"
-          },
-          {
-            id: `mock-b2-3-${dateStr}`,
-            time: "20:00 - 22:30",
-            title: "Biểu diễn tại Runway Gala Dinner",
-            desc: "Trình diễn bộ sưu tập Thu Đông tại khán phòng Gem Center",
-            status: "pending"
-          }
-        ];
-      } else {
-        return [
-          {
-            id: `mock-b3-1-${dateStr}`,
-            time: "10:00 - 12:00",
-            title: "Quay video giới thiệu sản phẩm",
-            desc: "Quay review son dưỡng mới tại nhà cho chiến dịch TikTok Shop",
-            status: "completed"
-          },
-          {
-            id: `mock-b3-2-${dateStr}`,
-            time: "15:00 - 17:30",
-            title: "Livestream Mega Sale Shopee Live",
-            desc: "Livestream bán hàng trực tiếp tại văn phòng đối tác nhãn hàng",
-            status: "in_progress"
-          },
-          {
-            id: `mock-b3-3-${dateStr}`,
-            time: "19:30 - 21:30",
-            title: "Tham dự sự kiện thảm đỏ Lancôme",
-            desc: "Khách mời VIP tại tiệc ra mắt dòng nước hoa cao cấp mới",
-            status: "pending"
-          }
-        ];
-      }
-    }
-    
-    return existing || [];
-  };
+  const getTasksForDate = (dateStr: string) => todoLists[dateStr] || [];
 
   const handleCalendarDayClick = (dateStr: string) => {
     setSelectedDate(dateStr);
+    if (!profile || busyDates.includes(dateStr)) return;
+
+    const nextAvailabilityCalendar = toggleManualBusyDate(
+      dateStr,
+      profile.availabilityCalendar,
+      busyDates,
+    );
+
+    const updatedProfile = persistTalentProfile({
+      ...profile,
+      availabilityCalendar: nextAvailabilityCalendar,
+      busyDates,
+    });
+    setProfile(updatedProfile);
+  };
+
+  const syncCalendarState = (nextTodoLists: Record<string, any[]>, nextAvailabilityCalendar?: string[]) => {
+    const computedBusyDates = busyDatesFromTodoLists(nextTodoLists);
+    setTodoLists(nextTodoLists);
+    setBusyDates(computedBusyDates);
+    setProfile((current: any) => {
+      if (!current) return current;
+      return persistTalentProfile({
+        ...current,
+        availabilityCalendar: nextAvailabilityCalendar ?? current.availabilityCalendar ?? [],
+        busyDates: computedBusyDates,
+      });
+    });
   };
 
   const handleGoToToday = () => {
@@ -318,8 +254,13 @@ export default function CalendarPage() {
       if (!active || !calendar) return;
 
       setTodoLists(calendar.todoLists);
+      setBusyDates(calendar.busyDates);
 
-      const updatedProfile = { ...loadedProfile, availabilityCalendar: calendar.availabilityCalendar };
+      const updatedProfile = persistTalentProfile({
+        ...loadedProfile,
+        availabilityCalendar: calendar.availabilityCalendar,
+        busyDates: calendar.busyDates,
+      });
       setProfile(updatedProfile);
     });
     return () => {
@@ -374,7 +315,7 @@ export default function CalendarPage() {
     });
 
     const newTodoLists = { ...todoLists, [date]: updated };
-    setTodoLists(newTodoLists);
+    syncCalendarState(newTodoLists);
 
     if (nextStatusForBackend && isBackendCalendarTaskId(taskId)) {
       try {
@@ -403,7 +344,7 @@ export default function CalendarPage() {
     });
 
     const newTodoLists = { ...todoLists, [date]: updated };
-    setTodoLists(newTodoLists);
+    syncCalendarState(newTodoLists);
 
     try {
       if (isBackendCalendarTaskId(taskId)) {
@@ -450,7 +391,7 @@ export default function CalendarPage() {
       [selectedDate]: [...dateTodos, taskItem]
     };
 
-    setTodoLists(newTodoLists);
+    syncCalendarState(newTodoLists);
     setNewTask({ time: "", title: "", desc: "" });
   };
 
@@ -463,7 +404,7 @@ export default function CalendarPage() {
     }
 
     const nextTasks = getTasksForDate(date).filter((todo: any) => String(todo.id) !== String(taskId));
-    setTodoLists({ ...todoLists, [date]: nextTasks });
+    syncCalendarState({ ...todoLists, [date]: nextTasks });
     setSelectedTask(null);
 
     if (!isBackendCalendarTaskId(taskId)) return;
@@ -472,7 +413,7 @@ export default function CalendarPage() {
       await deleteTalentCalendarEvent(taskId);
     } catch (error) {
       console.error(error);
-      setTodoLists(previousTodoLists);
+      syncCalendarState(previousTodoLists);
     }
   };
 
@@ -726,8 +667,6 @@ export default function CalendarPage() {
                         ? "border-amber-400 bg-amber-400/10 text-amber-300 ring-2 ring-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.25)] z-10"
                         : status === "available"
                         ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.1)] hover:border-emerald-400"
-                        : status === "maybe"
-                        ? "border-yellow-500/30 bg-yellow-500/5 text-yellow-300 shadow-[0_0_8px_rgba(234,179,8,0.1)] hover:border-yellow-400"
                         : "border-red-500/30 bg-red-500/5 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.1)] hover:border-red-500"
                     )}
                   >
@@ -739,7 +678,7 @@ export default function CalendarPage() {
                       </span>
                     )}
                     <span className="text-[7.5px] font-black uppercase tracking-wider scale-90">
-                      {status === "available" ? "Rảnh" : status === "maybe" ? "Chưa có lịch" : "Bận"}
+                      {status === "available" ? "Rảnh" : "Bận"}
                     </span>
                   </button>
                 );
@@ -1250,3 +1189,4 @@ export default function CalendarPage() {
     </div>
   );
 }
+

@@ -9,6 +9,15 @@ import { storeAuthSession } from "@/lib/api-client";
 type AccountType = "talent" | "brand";
 type SocialProvider = "google" | "facebook";
 
+type ImpersonationState = {
+  active: boolean;
+  admin?: {
+    id: number;
+    name: string | null;
+    email: string | null;
+  };
+};
+
 type MeResponse = {
   user: {
     id: number;
@@ -18,7 +27,9 @@ type MeResponse = {
     status: string;
     social_provider?: SocialProvider | null;
     external_avatar_url?: string | null;
+    impersonation?: ImpersonationState;
   };
+  impersonation?: ImpersonationState;
 };
 
 type ProfileResponse = {
@@ -110,7 +121,10 @@ export default function SocialCallback() {
 
         if (response.ok) {
           const data = (await response.json()) as MeResponse;
-          const user = await hydrateTalentAvatar(apiUrl, token, data.user);
+          const user = await hydrateTalentAvatar(apiUrl, token, {
+            ...data.user,
+            impersonation: data.impersonation,
+          } as MeResponse["user"]);
           storeAuthSession(token, user);
           const loginProvider = provider ?? user.social_provider ?? null;
           if (!user.email && loginProvider === "facebook") {

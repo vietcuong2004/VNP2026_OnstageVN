@@ -11,6 +11,7 @@ import RadarChart from "@/components/ui/RadarChart";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { ensureTalentProfile, persistTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
+import { getTalentDayStatus, toggleManualBusyDate } from "@/lib/talent-calendar";
 
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
@@ -426,43 +427,31 @@ export default function PersonalInfoTab({
     return firstDayIndex === 0 ? 6 : firstDayIndex - 1;
   };
 
-  const getDayStatus = (dateStr: string) => {
-    const calendar = profile.availabilityCalendar || [];
-    if (calendar.includes(dateStr) || calendar.includes(`${dateStr}:available`)) {
-      return "available";
-    }
-    if (calendar.includes(`${dateStr}:maybe`)) {
-      return "maybe";
-    }
-    return "busy";
-  };
+  const getDayStatus = (dateStr: string) =>
+    getTalentDayStatus(dateStr, profile.availabilityCalendar, profile.busyDates);
 
-  // Toggle calendar days availability cyclic: busy -> available -> maybe -> busy
   const handleCalendarDayClick = (dateStr: string) => {
-    const calendar = [...(profile.availabilityCalendar || [])];
-    const status = getDayStatus(dateStr);
     const dayNum = dateStr.split("-")[2];
-
-    const cleanedCalendar = calendar.filter((d: string) =>
-      d !== dateStr &&
-      d !== `${dateStr}:available` &&
-      d !== `${dateStr}:maybe` &&
-      d !== `${dateStr}:busy`
+    const nextAvailabilityCalendar = toggleManualBusyDate(
+      dateStr,
+      profile.availabilityCalendar,
+      profile.busyDates,
     );
 
-    if (status === "busy") {
-      cleanedCalendar.push(dateStr); // Busy -> Available (stored as YYYY-MM-DD for backwards compatibility)
-      addToast(`Đã chuyển ngày ${dayNum}/${currentMonth} thành trạng thái RẢNH (🟢)`, "success");
-    } else if (status === "available") {
-      cleanedCalendar.push(`${dateStr}:maybe`); // Available -> Chưa có lịch (Maybe)
-      addToast(`Đã chuyển ngày ${dayNum}/${currentMonth} thành trạng thái CHƯA CÓ LỊCH (🟡)`, "info");
-    } else {
-      cleanedCalendar.push(`${dateStr}:busy`); // Chưa có lịch -> Busy
-      addToast(`Đã chuyển ngày ${dayNum}/${currentMonth} thành trạng thái BẬN (🔴)`, "info");
+    if (Array.isArray(profile.busyDates) && profile.busyDates.includes(dateStr)) {
+      addToast(`Ngày ${dayNum}/${currentMonth} đang bận do lịch campaign hoặc công việc đã tạo.`, "info");
+      return;
     }
 
-    const updatedProfile = persistTalentProfile({ ...profile, availabilityCalendar: cleanedCalendar });
+    const updatedProfile = persistTalentProfile({
+      ...profile,
+      availabilityCalendar: nextAvailabilityCalendar,
+    });
     setProfile(updatedProfile);
+    addToast(
+      `Đã chuyển ngày ${dayNum}/${currentMonth} thành trạng thái ${nextAvailabilityCalendar.includes(dateStr) ? "Bận" : "Rảnh"}.`,
+      nextAvailabilityCalendar.includes(dateStr) ? "info" : "success",
+    );
   };
 
   if (!profile.isOnboarded) {
@@ -866,13 +855,12 @@ export default function PersonalInfoTab({
                     className={cn(
                       "flex flex-col items-center justify-center gap-0.5 p-1 h-16 rounded-xl border text-center transition-all cursor-pointer hover:scale-102 overflow-hidden",
                       status === "available" && "border-emerald-400/40 bg-emerald-400/5 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.1)] hover:border-emerald-400",
-                      status === "maybe" && "border-yellow-500/30 bg-yellow-500/5 text-yellow-300 shadow-[0_0_8px_rgba(234,179,8,0.1)] hover:border-yellow-400",
                       status === "busy" && "border-red-500/40 bg-red-500/5 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.1)] hover:border-red-500"
                     )}
                   >
                     <span className="text-[11px] font-mono font-bold leading-none">{dayStr}</span>
                     <span className="text-[8px] font-black uppercase tracking-wide leading-tight text-center block w-full px-0.5">
-                      {status === "available" ? "Rảnh" : status === "maybe" ? "Chưa\ncó lịch" : "Bận"}
+                      {status === "available" ? "Rảnh" : "Bận"}
                     </span>
                   </button>
                 );
@@ -882,7 +870,6 @@ export default function PersonalInfoTab({
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-slate-400 border-t border-white/5 pt-3 mt-1">
               <span>🟢 Rảnh</span>
               <span>🔴 Bận</span>
-              <span>🟡 Chưa có lịch</span>
             </div>
           </div>
         </div>
@@ -1330,3 +1317,4 @@ export default function PersonalInfoTab({
     </div>
   );
 }
+

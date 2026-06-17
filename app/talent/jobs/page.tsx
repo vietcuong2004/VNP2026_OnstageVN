@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   Search, MapPin, DollarSign, Sparkles, Filter, ShieldCheck, CheckCircle,
-  Eye, X, Info, Clock, Phone, Mail, Globe, MapPinned, Trophy, AlertCircle,
+  Eye, X, Info, Clock, Phone, Mail, Globe, MapPinned, AlertCircle,
   ArrowUpRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -720,10 +720,6 @@ export default function JobsPage() {
                   </div>
                 </div>
                 <div className="space-y-2.5">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-amber-400 shrink-0" />
-                    <span><b>Chiều cao tối thiểu:</b> <span className="text-slate-300">{selectedJob.minHeight} cm</span></span>
-                  </div>
                   <div className="flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
                     <span><b>Độ tương thích AI:</b> <span className="text-amber-400 font-bold">{selectedJob.matchScore}%</span></span>
