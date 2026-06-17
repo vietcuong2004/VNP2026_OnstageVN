@@ -4,6 +4,7 @@
 
 import { apiForm, apiJson, getAuthToken, getStoredAuthUser } from "@/lib/api-client";
 import { avatarFallbackForUser, createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
+import { busyDatesFromEvents, normalizeAvailabilityCalendar, normalizeBusyDates } from "@/lib/talent-calendar";
 
 const PROFILE_STORAGE_KEY = "vnp_talent_profile";
 export const TALENT_PROFILE_UPDATED_EVENT = "vnp_talent_profile_updated";
@@ -80,7 +81,8 @@ export function getDefaultTalentProfile() {
       "Event Appearance": 10000000,
       "Catwalk Show": 15000000,
     },
-    availabilityCalendar: ["2026-06-24", "2026-06-25", "2026-06-28"],
+    availabilityCalendar: [],
+    busyDates: [],
     reliability: 96,
     reviewsCount: 18,
     averageRating: 4.9,
@@ -137,6 +139,8 @@ export function sanitizeTalentProfile(profile: any) {
 
   return {
     ...profile,
+    availabilityCalendar: normalizeAvailabilityCalendar(profile?.availabilityCalendar),
+    busyDates: normalizeBusyDates(profile?.busyDates),
     avatar,
     cover,
     fullBody: isPortablePhotoUrl(normalizedFullBody) ? normalizedFullBody : "/fullbody_model.png",
@@ -350,6 +354,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
   const cccdSelfieUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_selfie"));
   const localPhotos = (Array.isArray(local.photos) ? local.photos : []).filter(isPortablePhotoUrl);
   const measurements = parseMeasurements(profile.measurements);
+  const busyDates = busyDatesFromEvents(profile.calendar_events);
 
   const mapped = {
     ...local,
@@ -382,6 +387,8 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     bio: profile.bio || local.bio,
     followersCount: sumFollowers(profile) ?? local.followersCount,
     engagementRate: averageEngagement(profile) ?? local.engagementRate,
+    availabilityCalendar: normalizeAvailabilityCalendar(local.availabilityCalendar),
+    busyDates,
     photos: photos.length ? photos : localPhotos.length ? localPhotos : ["/fullbody_model.png", "/cover_image.png"],
     photoRecords: portfolioPhotoRecords,
   };
@@ -506,9 +513,10 @@ export async function loadTalentCalendar(profile: any) {
       return acc;
     }, {});
 
-    const availabilityCalendar = Array.from(new Set([...(profile.availabilityCalendar || []), ...events.map((event) => eventDate(event.starts_at)).filter(Boolean)]));
+    const availabilityCalendar = normalizeAvailabilityCalendar(profile?.availabilityCalendar);
+    const busyDates = busyDatesFromEvents(events);
 
-    return { todoLists, availabilityCalendar };
+    return { todoLists, availabilityCalendar, busyDates };
   } catch (error) {
     console.warn(error);
     return null;

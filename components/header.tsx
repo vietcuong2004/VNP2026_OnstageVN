@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Bell, Calendar, ChevronDown, LogOut, Search, UserCircle, Building2, Settings } from "lucide-react";
+import { Bell, Calendar, ChevronDown, LogOut, Search, UserCircle, Building2, Settings, ShieldAlert } from "lucide-react";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
-import { AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
+import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 
 type AuthUser = {
@@ -14,6 +14,14 @@ type AuthUser = {
   status: string;
   capabilities?: Array<"talent" | "brand">;
   external_avatar_url?: string | null;
+  impersonation?: {
+    active: boolean;
+    admin?: {
+      id: number;
+      name: string | null;
+      email: string | null;
+    };
+  };
 };
 
 type TalentProfileStorage = {
@@ -135,7 +143,31 @@ export default function Header() {
     router.replace("/auth/login");
   }
 
+  async function handleStopImpersonation() {
+    await logoutCurrentSession();
+    window.location.href = API_BASE_URL.replace(/\/api$/, "") + "/admin";
+  }
+
   return (
+    <>
+    {user?.impersonation?.active && (
+      <div className="sticky top-0 z-[60] flex min-h-10 w-full items-center justify-between gap-3 border-b border-amber-400/20 bg-amber-400 px-4 py-2 text-slate-950 md:px-8">
+        <div className="flex min-w-0 items-center gap-2 text-xs font-black uppercase tracking-wide">
+          <ShieldAlert className="h-4 w-4 shrink-0" />
+          <span className="truncate">
+            Đang đăng nhập với tư cách {label.name}
+            {user.impersonation.admin?.name ? ` bởi ${user.impersonation.admin.name}` : ""}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={handleStopImpersonation}
+          className="shrink-0 rounded-lg border border-slate-950/20 bg-slate-950 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-amber-200 transition-colors hover:bg-slate-900"
+        >
+          Thoát giả lập
+        </button>
+      </div>
+    )}
     <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913]/80 px-4 md:px-8 backdrop-blur-md">
       <div className="flex w-auto md:w-72 shrink-0 items-center">
         <button
@@ -302,5 +334,6 @@ export default function Header() {
         </div>
       </div>
     </header>
+    </>
   );
 }
