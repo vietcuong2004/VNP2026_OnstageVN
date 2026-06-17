@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Edit3, ShieldCheck, CheckCircle, Camera, X, Plus, Info, Upload, Video, Trash2
+  Edit3, ShieldCheck, CheckCircle, Upload, Video, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { persistTalentProfile, ensureTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
@@ -44,10 +44,6 @@ export default function EditInfoTab({
   setProfile,
   addToast
 }: EditInfoTabProps) {
-
-  const displayedPhotos = (profile?.photos || []).filter(
-    (p: string) => profile?.isOnboarded || (!p.includes("fullbody_model.png") && !p.includes("cover_image.png"))
-  );
 
   // Identity card (CCCD) upload states
   const [cccdFront, setCccdFront] = useState<string | null>(null);
@@ -263,110 +259,6 @@ export default function EditInfoTab({
       });
       console.error(error);
       addToast(error instanceof Error ? error.message : "Có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.", "info");
-      URL.revokeObjectURL(previewUrl);
-    }
-  };
-
-  // Real lookbook/portfolio photo upload handler
-  const handlePortfolioPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-
-    if (displayedPhotos.length >= 10) {
-      addToast("Đã đạt giới hạn tối đa 10 ảnh nghệ thuật.", "info");
-      return;
-    }
-
-    const type = "photos";
-    const previewUrl = URL.createObjectURL(file);
-    setProfile((current: any) => ({
-      ...current,
-      photos: [...(current?.photos || []), previewUrl],
-    }));
-
-    setUploadingState(prev => ({
-      ...prev,
-      [type]: {
-        progress: 0,
-        fileName: file.name,
-        status: "uploading"
-      }
-    }));
-
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 8;
-      if (progress > 95) progress = 95;
-      setUploadingState(prev => {
-        if (!prev[type]) return prev;
-        return {
-          ...prev,
-          [type]: {
-            ...prev[type],
-            progress
-          }
-        };
-      });
-    }, 150);
-
-    try {
-      const syncedProfile = await ensureTalentProfile(profile);
-
-      let photoUrl = "";
-      if (syncedProfile.backendProfileId) {
-        const photo = await uploadTalentPhoto(syncedProfile.backendProfileId, file, "portfolio");
-        photoUrl = photo.url || photo.path || "";
-      }
-
-      if (!photoUrl) {
-        photoUrl = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = (err) => reject(err);
-          reader.readAsDataURL(file);
-        });
-      }
-
-      clearInterval(interval);
-      setUploadingState(prev => ({
-        ...prev,
-        [type]: {
-          ...prev[type],
-          progress: 100,
-          status: "done"
-        }
-      }));
-
-      setTimeout(() => {
-        setUploadingState(prev => {
-          const next = { ...prev };
-          delete next[type];
-          return next;
-        });
-      }, 800);
-
-      const currentPhotos = (profile.photos || []).filter((url: string) => url !== previewUrl);
-      currentPhotos.push(photoUrl);
-
-      const updatedProfile = {
-        ...syncedProfile,
-        ...profile,
-        photos: currentPhotos
-      };
-
-      setProfile(persistTalentProfile(updatedProfile));
-      URL.revokeObjectURL(previewUrl);
-      addToast("Đã tải ảnh mới lên Art Portfolio!", "success");
-    } catch (error) {
-      clearInterval(interval);
-      setUploadingState(prev => {
-        const next = { ...prev };
-        delete next[type];
-        return next;
-      });
-      console.error(error);
-      addToast(error instanceof Error ? error.message : "Có lỗi xảy ra khi tải ảnh lên Art Portfolio.", "info");
       URL.revokeObjectURL(previewUrl);
     }
   };
@@ -939,86 +831,6 @@ export default function EditInfoTab({
             </button>
           )}
         </div>
-      </div>
-
-      {/* SUB-SECTION 3: PORTFOLIO GALLERY (MAX 10 PHOTO STRICT LIMIT CONSTRAINT) */}
-      <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
-        <div className="border-b border-[#151b2d] pb-4 flex justify-between items-center flex-wrap gap-2">
-          <div>
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-              <Camera className="h-4.5 w-4.5 text-purple-400" /> Bộ Sưu Tập Ảnh Nghệ Thuật (Art Portfolio)
-            </h3>
-            <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-              Lưu trữ tối đa 10 bức ảnh. Tải ảnh mới hoặc xóa ảnh cũ sẽ cập nhật trực tiếp vào Hồ Sơ cá nhân.
-            </span>
-          </div>
-          <span className={cn(
-            "text-[10px] font-black px-2 py-0.5 rounded border font-mono",
-            displayedPhotos.length >= 10
-              ? "border-red-500/30 text-red-400 bg-red-500/10 animate-pulse"
-              : "border-purple-500/30 text-purple-400 bg-purple-500/10"
-          )}>
-            {displayedPhotos.length} / 10 Ảnh
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {displayedPhotos.map((imgUrl: string, idx: number) => (
-            <div key={idx} className="relative aspect-[3/4] rounded-lg overflow-hidden border border-white/5 bg-slate-900 group shadow-md">
-              <img src={normalizeBackendAssetUrl(imgUrl)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-              <button
-                type="button"
-                onClick={() => {
-                  const updatedPhotos = (profile.photos || []).filter((url: string) => url !== imgUrl);
-                  const updatedProfile = { ...profile, photos: updatedPhotos };
-                  setProfile(persistTalentProfile(updatedProfile));
-                  addToast("Đã xóa ảnh khỏi bộ ảnh nghệ thuật", "info");
-                }}
-                className="absolute top-1.5 right-1.5 h-6 w-6 sm:h-5 sm:w-5 bg-red-600/90 text-white rounded-full flex items-center justify-center text-[8px] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 cursor-pointer shadow-md"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-
-          {/* Add photos trigger block (strictly limit <= 10) */}
-          <div className="relative aspect-[3/4]">
-            <label
-              className={cn(
-                "h-full w-full rounded-lg border border-dashed flex flex-col items-center justify-center gap-1.5 transition-all text-xs",
-                displayedPhotos.length >= 10 || Object.keys(uploadingState).length > 0
-                  ? "border-red-500/25 bg-red-500/5 text-red-500/60 cursor-not-allowed"
-                  : "border-white/10 hover:border-amber-400 bg-slate-900 text-slate-500 hover:text-amber-400 cursor-pointer"
-              )}
-            >
-              <Plus className="h-6 w-6" />
-              <span className="text-[8px] font-black uppercase text-center">
-                {displayedPhotos.length >= 10 ? "Đầy 10 ảnh" : "Tải thêm ảnh"}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={Object.keys(uploadingState).length > 0 || displayedPhotos.length >= 10}
-                onChange={handlePortfolioPhotoUpload}
-              />
-            </label>
-
-            {uploadingState["photos"] && (
-              <ProgressBar
-                progress={uploadingState["photos"].progress}
-                message="Đang tải ảnh lên Art Portfolio..."
-              />
-            )}
-          </div>
-        </div>
-
-        {displayedPhotos.length >= 10 && (
-          <p className="text-[9px] text-red-400/80 font-bold bg-red-500/5 border border-red-500/10 p-2.5 rounded-lg flex items-center gap-2">
-            <Info className="h-4 w-4 shrink-0" />
-            Đã đạt giới hạn tối đa 10 ảnh nghệ thuật. Vui lòng xóa ảnh cũ để giải phóng dung lượng trước khi tải ảnh mới.
-          </p>
-        )}
       </div>
 
       {/* SUB-SECTION 4: VIDEO UPLOAD MANAGER (Commented out) */}

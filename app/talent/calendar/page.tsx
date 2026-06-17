@@ -674,7 +674,6 @@ export default function CalendarPage() {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[9.5px] text-slate-400 border-t border-white/5 pt-3 mt-1">
               <span>🟢 Rảnh</span>
               <span>🔴 Bận</span>
-              <span>🟡 Chưa có lịch</span>
             </div>
           </div>
         </div>

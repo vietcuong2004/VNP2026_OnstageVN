@@ -184,7 +184,11 @@ export default function PersonalInfoTab({
     const stateKey = `lookbook-${id}`;
     const fieldKey = `lookbook${id}`;
     const previewUrl = URL.createObjectURL(file);
-    setProfile((current: any) => ({ ...current, [fieldKey]: previewUrl }));
+    setProfile((current: any) => {
+      const nextPhotos = [...(current?.photos || [])];
+      nextPhotos[id - 1] = previewUrl;
+      return { ...current, [fieldKey]: previewUrl, photos: nextPhotos.filter(Boolean) };
+    });
 
     setUploadingState(prev => ({
       ...prev,
@@ -241,7 +245,14 @@ export default function PersonalInfoTab({
         return;
       }
 
-      const updatedProfile = persistTalentProfile({ ...syncedProfile, ...profile, [fieldKey]: photoUrl });
+      const nextPhotos = [...(profile.photos || [])];
+      nextPhotos[id - 1] = photoUrl;
+      const updatedProfile = persistTalentProfile({
+        ...syncedProfile,
+        ...profile,
+        [fieldKey]: photoUrl,
+        photos: nextPhotos.filter(Boolean),
+      });
       setProfile(updatedProfile);
       URL.revokeObjectURL(previewUrl);
 
@@ -350,49 +361,52 @@ export default function PersonalInfoTab({
     }, 3000);
   };
 
-  // Lookbook photos metadata (labeled exactly "Ảnh 1", "Ảnh 2", "Ảnh 3", "Ảnh 4")
-  const lookbookPhotos = [
+  const defaultLookbookPhotos = [
     {
       id: 1,
       label: "Ảnh 1",
-      title: "Beauty Portrait",
-      url: normalizeBackendAssetUrl(profile.lookbook1) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
-      photographer: "Lê Huy Studio",
-      concept: "Classic High-Fashion",
-      date: "20/05/2026",
-      device: "Fujifilm GFX 100S"
+      url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
     },
     {
       id: 2,
       label: "Ảnh 2",
-      title: "Runway Pose",
-      url: normalizeBackendAssetUrl(profile.lookbook2) || "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600",
-      photographer: "Minh Trần Portfolio",
-      concept: "Avant-Garde Runway",
-      date: "22/05/2026",
-      device: "Sony A7R V"
+      url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600",
     },
     {
       id: 3,
       label: "Ảnh 3",
-      title: "Close-up",
-      url: normalizeBackendAssetUrl(profile.lookbook3) || "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
-      photographer: "Kien Nguyen",
-      concept: "Editorial Makeup Glow",
-      date: "25/05/2026",
-      device: "Hasselblad X2D"
+      url: "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
     },
     {
       id: 4,
       label: "Ảnh 4",
-      title: "Streetwear Style",
-      url: normalizeBackendAssetUrl(profile.lookbook4) || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
-      photographer: "Alex Pham",
-      concept: "Cyberpunk Neon Street",
-      date: "28/05/2026",
-      device: "Canon EOS R5"
-    }
+      url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
+    },
   ];
+
+  const portfolioPhotoUrls = Array.from(new Set(
+    (profile.photos || [])
+      .map((url: string) => normalizeBackendAssetUrl(url))
+      .filter(Boolean)
+      .filter((url: string) => !url.includes("fullbody_model.png") && !url.includes("cover_image.png")),
+  ));
+
+  const lookbookPhotos = Array.from({ length: 8 }, (_, index) => {
+    const id = index + 1;
+    const preset = defaultLookbookPhotos[index];
+    const explicitUrl = normalizeBackendAssetUrl(profile["lookbook" + id]);
+    const url = explicitUrl || portfolioPhotoUrls[index] || preset?.url || "";
+
+    if (!url) return null;
+
+    return {
+      id,
+      label: "Ảnh " + id,
+      url,
+    };
+  }).filter(Boolean) as Array<{ id: number; label: string; url: string }>;
+
+  const nextLookbookSlot = lookbookPhotos.length < 8 ? lookbookPhotos.length + 1 : null;
 
   // State for Month-switching Calendar
   const [currentYear, setCurrentYear] = useState(2026);
@@ -887,25 +901,22 @@ export default function PersonalInfoTab({
             </div>
           </div>
 
-          {/* Sub-grid 1: 4 Lookbook Photos */}
+          {/* Sub-grid 1: Lookbook Photos */}
           <div className="space-y-3">
             <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
-              📸 Bộ Ảnh Lookbook Nghệ Thuật (4 Ảnh)
+              Bộ Ảnh Lookbook Nghệ Thuật ({lookbookPhotos.length}/8 Ảnh)
             </span>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {lookbookPhotos.map((img) => (
                 <div key={img.id} className="flex flex-col gap-2">
-                  <div
-                    className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md"
-                  >
+                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
                     <img
                       src={normalizeBackendAssetUrl(img.url)}
-                      alt={img.title}
+                      alt={img.label}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85 sm:block hidden" />
 
-                    {/* Hover Overlay upload trigger */}
                     <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
                       <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                         <Upload className="h-5 w-5 text-amber-400" />
@@ -920,7 +931,6 @@ export default function PersonalInfoTab({
                       </label>
                     </div>
 
-                    {/* Progress bar overlay */}
                     {uploadingState[`lookbook-${img.id}`] && (
                       <ProgressBar
                         progress={uploadingState[`lookbook-${img.id}`].progress}
@@ -928,30 +938,45 @@ export default function PersonalInfoTab({
                       />
                     )}
 
-                    {/* Labeled overlay info (Desktop only) */}
                     <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10 pointer-events-none hidden sm:block text-left">
                       <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
                         {img.label}
                       </span>
-                      <h4 className="text-[10px] font-black text-white">{img.title}</h4>
-                      <div className="text-[7.5px] text-slate-400 space-y-0.5 leading-normal opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <p>📷 {img.photographer}</p>
-                        <p>👗 Concept: {img.concept}</p>
-                        <p>⚙️ {img.device}</p>
-                        <p>📅 Ngày chụp: {img.date}</p>
-                      </div>
                     </div>
                   </div>
 
-                  {/* Labeled overlay info (Mobile only) */}
                   <div className="sm:hidden block space-y-1 px-1 text-left pb-1">
                     <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
                       {img.label}
                     </span>
-                    <h4 className="text-[10px] font-black text-white">{img.title}</h4>
                   </div>
                 </div>
               ))}
+
+              {nextLookbookSlot && (
+                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors">
+                  <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
+                    <Upload className="h-7 w-7" />
+                    <span className="text-[10px] font-black uppercase tracking-wider">Tải ảnh lên</span>
+                    <span className="rounded bg-[#f4c430] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-slate-950">
+                      Ảnh {nextLookbookSlot}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={!!uploadingState[`lookbook-${nextLookbookSlot}`]}
+                      onChange={(e) => handleLookbookUpload(e, nextLookbookSlot)}
+                    />
+                  </label>
+                  {uploadingState[`lookbook-${nextLookbookSlot}`] && (
+                    <ProgressBar
+                      progress={uploadingState[`lookbook-${nextLookbookSlot}`].progress}
+                      message="Đang tải ảnh lên..."
+                    />
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
