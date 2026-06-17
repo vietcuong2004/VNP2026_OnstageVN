@@ -12,8 +12,8 @@ import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { findTalentById } from "@/lib/brand-mvp-data";
-import { createInitialAvatarDataUrl } from "@/lib/avatar";
-import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
+import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
+import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, TALENT_PROFILE_UPDATED_EVENT, uploadTalentPhoto } from "@/lib/talent-api";
 
 export default function PortfolioPage() {
   const router = useRouter();
@@ -151,6 +151,18 @@ export default function PortfolioPage() {
     });
   }, []);
 
+  useEffect(() => {
+    const handleProfileUpdated = (event: Event) => {
+      const nextProfile = (event as CustomEvent).detail;
+      if (nextProfile) setProfile(nextProfile);
+    };
+
+    window.addEventListener(TALENT_PROFILE_UPDATED_EVENT, handleProfileUpdated as EventListener);
+    return () => {
+      window.removeEventListener(TALENT_PROFILE_UPDATED_EVENT, handleProfileUpdated as EventListener);
+    };
+  }, []);
+
   if (!profile) return null;
 
   // Social Badge computation
@@ -178,6 +190,8 @@ export default function PortfolioPage() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    const previewUrl = URL.createObjectURL(file);
+    setProfile((current: any) => ({ ...current, [type]: previewUrl }));
 
     setUploadingState(prev => ({
       ...prev,
@@ -233,8 +247,9 @@ export default function PortfolioPage() {
         return;
       }
 
-      const updatedProfile = persistTalentProfile({ ...syncedProfile, [type]: photoUrl });
+      const updatedProfile = persistTalentProfile({ ...syncedProfile, ...profile, [type]: photoUrl });
       setProfile(updatedProfile);
+      URL.revokeObjectURL(previewUrl);
 
       clearInterval(interval);
       setUploadingState(prev => ({
@@ -264,6 +279,7 @@ export default function PortfolioPage() {
       });
       console.error(error);
       addToast(error instanceof Error ? error.message : "Không tải được ảnh lên backend. Kiểm tra lại API/storage.", "info");
+      URL.revokeObjectURL(previewUrl);
     }
   };
 
@@ -327,7 +343,7 @@ export default function PortfolioPage() {
         ) : (
           <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-white/5 bg-slate-950 group">
             <img
-              src={profile.cover || "/cover_image.png"}
+              src={normalizeBackendAssetUrl(profile.cover) || "/cover_image.png"}
               alt="Cover banner"
               className="h-full w-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-[1.01]"
             />
@@ -367,7 +383,7 @@ export default function PortfolioPage() {
                 : "border-[#08090f]"
             )}>
               <img
-                src={profile.avatar}
+                src={normalizeBackendAssetUrl(profile.avatar)}
                 alt={profile.name}
                 onError={(event) => {
                   event.currentTarget.src = createInitialAvatarDataUrl(profile.name, profile.email);

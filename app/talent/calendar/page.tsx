@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { 
   Calendar as CalendarIcon, Clock, ArrowLeft, Check, Play, AlertCircle, ChevronLeft, ChevronRight,
   Trophy, CheckCircle, Sparkles, MapPin, ExternalLink, X, Info, Phone, Mail, Globe, MapPinned, Crown,
-  Eye
+  Eye, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createTalentCalendarEvent, deleteTalentCalendarEvent, loadTalentCalendar, loadTalentProfile, updateTalentCalendarEvent } from "@/lib/talent-api";
@@ -358,6 +358,9 @@ export default function CalendarPage() {
   // Todo tasks handlers
   const cycleTaskStatus = async (date: string, taskId: string) => {
     const dateTodos = getTasksForDate(date);
+    const currentTask = dateTodos.find((todo: any) => String(todo.id) === String(taskId));
+    if (currentTask?.locked) return;
+
     let nextStatusForBackend: string | null = null;
     const updated = dateTodos.map((todo: any) => {
       if (todo.id === taskId) {
@@ -386,6 +389,7 @@ export default function CalendarPage() {
     const dateTodos = getTasksForDate(date);
     const index = dateTodos.findIndex((todo: any) => todo.id === taskId);
     if (index === -1) return;
+    if (dateTodos[index]?.locked) return;
     const nextTodo = dateTodos[index + 1];
 
     const updated = dateTodos.map((todo: any, idx: number) => {
@@ -452,6 +456,12 @@ export default function CalendarPage() {
 
   const handleDeleteTask = async (date: string, taskId: string | number) => {
     const previousTodoLists = todoLists;
+    const currentTask = getTasksForDate(date).find((todo: any) => String(todo.id) === String(taskId));
+    if (currentTask?.locked) {
+      setSelectedTask(null);
+      return;
+    }
+
     const nextTasks = getTasksForDate(date).filter((todo: any) => String(todo.id) !== String(taskId));
     setTodoLists({ ...todoLists, [date]: nextTasks });
     setSelectedTask(null);
@@ -521,6 +531,7 @@ export default function CalendarPage() {
                 getTasksForDate(selectedDate).map((todo: any) => {
                   const isCompleted = todo.status === "completed";
                   const isInProgress = todo.status === "in_progress";
+                  const isCampaignEvent = todo.eventType === "campaign" || todo.locked;
                   
                   return (
                     <div key={todo.id} className="relative group animate-in fade-in slide-in-from-left-1 duration-200">
@@ -529,22 +540,27 @@ export default function CalendarPage() {
                       <button
                         type="button"
                         onClick={() => cycleTaskStatus(selectedDate, todo.id)}
+                        disabled={isCampaignEvent}
                         className={cn(
-                          "absolute -left-[23px] flex h-4.5 w-4.5 items-center justify-center rounded-full border bg-slate-950 hover:scale-110 transition-transform cursor-pointer",
+                          "absolute -left-[23px] flex h-4.5 w-4.5 items-center justify-center rounded-full border bg-slate-950 transition-transform",
+                          isCampaignEvent ? "cursor-default" : "hover:scale-110 cursor-pointer",
                           isInProgress ? "top-3.5" : "top-0.5",
+                          isCampaignEvent && "border-cyan-400 text-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.3)]",
                           isCompleted && "border-emerald-500 text-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.3)]",
                           isInProgress && "border-amber-400 text-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.3)]",
-                          todo.status === "pending" && "border-red-500 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
+                          !isCampaignEvent && todo.status === "pending" && "border-red-500 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
                         )}
-                        title="Đổi trạng thái (Bấm để xoay vòng)"
+                        title={isCampaignEvent ? "Lịch được đồng bộ từ campaign" : "Đổi trạng thái (Bấm để xoay vòng)"}
                       >
+                        {isCampaignEvent && <Briefcase className="h-2.5 w-2.5" />}
                         {isCompleted && <Check className="h-2.5 w-2.5" />}
                         {isInProgress && <Play className="h-2 w-2 fill-current" />}
-                        {todo.status === "pending" && <AlertCircle className="h-2.5 w-2.5" />}
+                        {!isCampaignEvent && todo.status === "pending" && <AlertCircle className="h-2.5 w-2.5" />}
                       </button>
 
                       <div className={cn(
                         "flex justify-between items-start gap-4 text-left transition-all",
+                        isCampaignEvent && "bg-cyan-400/5 border border-cyan-400/20 rounded-xl p-3 shadow-[0_0_15px_rgba(34,211,238,0.05)]",
                         isInProgress && "bg-amber-400/5 border border-amber-400/30 rounded-xl p-3 shadow-[0_0_15px_rgba(245,158,11,0.05)]"
                       )}>
                         <div className="space-y-1">
@@ -554,11 +570,12 @@ export default function CalendarPage() {
                             </span>
                             <span className={cn(
                               "text-[7.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border",
+                              isCampaignEvent && "bg-cyan-400/10 border-cyan-400/20 text-cyan-300",
                               isCompleted && "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
                               isInProgress && "bg-amber-400/10 border-amber-400/20 text-amber-400",
-                              todo.status === "pending" && "bg-red-500/10 border-red-500/20 text-red-400"
+                              !isCampaignEvent && todo.status === "pending" && "bg-red-500/10 border-red-500/20 text-red-400"
                             )}>
-                              {isCompleted ? "Đã hoàn thành" : isInProgress ? "Đang làm" : "Chưa hoàn thành"}
+                              {isCampaignEvent ? "Chiến dịch" : isCompleted ? "Đã hoàn thành" : isInProgress ? "Đang làm" : "Chưa hoàn thành"}
                             </span>
                           </div>
                           
@@ -573,7 +590,7 @@ export default function CalendarPage() {
                         </div>
 
                         {/* Task Action Button */}
-                        {todo.status === "in_progress" ? (
+                        {!isCampaignEvent && todo.status === "in_progress" ? (
                           <button
                             type="button"
                             onClick={() => completeTaskAndNext(selectedDate, todo.id)}
@@ -1165,15 +1182,16 @@ export default function CalendarPage() {
                   </span>
                   <span className={cn(
                     "text-[8px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded border",
+                    selectedTask.locked && "bg-cyan-400/10 border-cyan-400/20 text-cyan-300",
                     selectedTask.status === "completed" && "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
                     selectedTask.status === "in_progress" && "bg-amber-400/10 border-amber-400/20 text-amber-400",
-                    selectedTask.status === "pending" && "bg-red-500/10 border-red-500/20 text-red-400"
+                    !selectedTask.locked && selectedTask.status === "pending" && "bg-red-500/10 border-red-500/20 text-red-400"
                   )}>
-                    {selectedTask.status === "completed" ? "Đã hoàn thành" : selectedTask.status === "in_progress" ? "Đang làm" : "Chưa hoàn thành"}
+                    {selectedTask.locked ? "Chiến dịch" : selectedTask.status === "completed" ? "Đã hoàn thành" : selectedTask.status === "in_progress" ? "Đang làm" : "Chưa hoàn thành"}
                   </span>
                 </div>
                 <h2 className="font-display font-black text-lg text-white mt-2 leading-tight tracking-tight">
-                  Chi Tiết Công Việc
+                  {selectedTask.locked ? "Chi Tiết Chiến Dịch" : "Chi Tiết Công Việc"}
                 </h2>
               </div>
 
@@ -1206,12 +1224,18 @@ export default function CalendarPage() {
 
             {/* Modal Footer */}
             <div className="flex items-center justify-between gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
-              <button
-                onClick={() => handleDeleteTask(selectedDate, selectedTask.id)}
-                className="px-5 py-2.5 rounded-xl border border-red-500/20 bg-red-500/10 text-xs font-bold text-red-300 hover:bg-red-500/15 cursor-pointer transition-colors"
-              >
-                Xoá công việc
-              </button>
+              {selectedTask.locked ? (
+                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+                  Đồng bộ từ campaign
+                </span>
+              ) : (
+                <button
+                  onClick={() => handleDeleteTask(selectedDate, selectedTask.id)}
+                  className="px-5 py-2.5 rounded-xl border border-red-500/20 bg-red-500/10 text-xs font-bold text-red-300 hover:bg-red-500/15 cursor-pointer transition-colors"
+                >
+                  Xoá công việc
+                </button>
+              )}
               <button
                 onClick={() => setSelectedTask(null)}
                 className="px-5 py-2.5 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white hover:bg-white/2 cursor-pointer transition-colors"

@@ -161,6 +161,17 @@ export default function EditInfoTab({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    const fieldMap = {
+      cccd_front: "cccdFront",
+      cccd_back: "cccdBack",
+      cccd_selfie: "cccdSelfie"
+    };
+    const field = fieldMap[type];
+    const previewUrl = URL.createObjectURL(file);
+    setProfile((current: any) => ({ ...current, [field]: previewUrl }));
+    if (type === "cccd_front") setCccdFront(previewUrl);
+    if (type === "cccd_back") setCccdBack(previewUrl);
+    if (type === "cccd_selfie") setSelfie(previewUrl);
 
     setUploadingState(prev => ({
       ...prev,
@@ -224,19 +235,14 @@ export default function EditInfoTab({
         });
       }, 800);
 
-      const fieldMap = {
-        cccd_front: "cccdFront",
-        cccd_back: "cccdBack",
-        cccd_selfie: "cccdSelfie"
-      };
-      const field = fieldMap[type];
-
       const updatedProfile = {
         ...syncedProfile,
+        ...profile,
         [field]: photoUrl
       };
 
       setProfile(persistTalentProfile(updatedProfile));
+      URL.revokeObjectURL(previewUrl);
 
       if (type === "cccd_front") setCccdFront(photoUrl);
       if (type === "cccd_back") setCccdBack(photoUrl);
@@ -257,6 +263,7 @@ export default function EditInfoTab({
       });
       console.error(error);
       addToast(error instanceof Error ? error.message : "Có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.", "info");
+      URL.revokeObjectURL(previewUrl);
     }
   };
 
@@ -272,6 +279,11 @@ export default function EditInfoTab({
     }
 
     const type = "photos";
+    const previewUrl = URL.createObjectURL(file);
+    setProfile((current: any) => ({
+      ...current,
+      photos: [...(current?.photos || []), previewUrl],
+    }));
 
     setUploadingState(prev => ({
       ...prev,
@@ -334,15 +346,17 @@ export default function EditInfoTab({
         });
       }, 800);
 
-      const currentPhotos = [...(profile.photos || [])];
+      const currentPhotos = (profile.photos || []).filter((url: string) => url !== previewUrl);
       currentPhotos.push(photoUrl);
 
       const updatedProfile = {
         ...syncedProfile,
+        ...profile,
         photos: currentPhotos
       };
 
       setProfile(persistTalentProfile(updatedProfile));
+      URL.revokeObjectURL(previewUrl);
       addToast("Đã tải ảnh mới lên Art Portfolio!", "success");
     } catch (error) {
       clearInterval(interval);
@@ -353,6 +367,7 @@ export default function EditInfoTab({
       });
       console.error(error);
       addToast(error instanceof Error ? error.message : "Có lỗi xảy ra khi tải ảnh lên Art Portfolio.", "info");
+      URL.revokeObjectURL(previewUrl);
     }
   };
 

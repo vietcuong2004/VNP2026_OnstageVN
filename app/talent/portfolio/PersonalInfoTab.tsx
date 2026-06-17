@@ -75,7 +75,8 @@ export default function PersonalInfoTab({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-
+    const previewUrl = URL.createObjectURL(file);
+    setProfile((current: any) => ({ ...current, [type]: previewUrl }));
 
     setUploadingState(prev => ({
       ...prev,
@@ -104,7 +105,6 @@ export default function PersonalInfoTab({
 
     try {
       const syncedProfile = await ensureTalentProfile(profile);
-      setProfile(syncedProfile);
 
       if (!syncedProfile.backendProfileId) {
         clearInterval(interval);
@@ -114,6 +114,7 @@ export default function PersonalInfoTab({
           return next;
         });
         addToast("Vui lòng đăng nhập để tải ảnh lên.", "info");
+        URL.revokeObjectURL(previewUrl);
         return;
       }
 
@@ -129,11 +130,13 @@ export default function PersonalInfoTab({
           return next;
         });
         addToast("Backend chưa trả về URL ảnh.", "info");
+        URL.revokeObjectURL(previewUrl);
         return;
       }
 
-      const updatedProfile = persistTalentProfile({ ...syncedProfile, [type]: photoUrl });
+      const updatedProfile = persistTalentProfile({ ...syncedProfile, ...profile, [type]: photoUrl });
       setProfile(updatedProfile);
+      URL.revokeObjectURL(previewUrl);
 
       clearInterval(interval);
       setUploadingState(prev => ({
@@ -168,6 +171,7 @@ export default function PersonalInfoTab({
       });
       console.error(error);
       addToast(error instanceof Error ? error.message : "Không tải được ảnh lên, vui lòng thử lại.", "info");
+      URL.revokeObjectURL(previewUrl);
     }
   };
 
@@ -176,8 +180,10 @@ export default function PersonalInfoTab({
     e.target.value = "";
     if (!file) return;
 
-
     const stateKey = `lookbook-${id}`;
+    const fieldKey = `lookbook${id}`;
+    const previewUrl = URL.createObjectURL(file);
+    setProfile((current: any) => ({ ...current, [fieldKey]: previewUrl }));
 
     setUploadingState(prev => ({
       ...prev,
@@ -206,7 +212,6 @@ export default function PersonalInfoTab({
 
     try {
       const syncedProfile = await ensureTalentProfile(profile);
-      setProfile(syncedProfile);
 
       if (!syncedProfile.backendProfileId) {
         clearInterval(interval);
@@ -216,6 +221,7 @@ export default function PersonalInfoTab({
           return next;
         });
         addToast("Vui lòng đăng nhập để tải ảnh lên", "info");
+        URL.revokeObjectURL(previewUrl);
         return;
       }
 
@@ -230,11 +236,13 @@ export default function PersonalInfoTab({
           return next;
         });
         addToast("Backend chưa trả về URL ảnh.", "info");
+        URL.revokeObjectURL(previewUrl);
         return;
       }
 
-      const updatedProfile = persistTalentProfile({ ...syncedProfile, [`lookbook${id}`]: photoUrl });
+      const updatedProfile = persistTalentProfile({ ...syncedProfile, ...profile, [fieldKey]: photoUrl });
       setProfile(updatedProfile);
+      URL.revokeObjectURL(previewUrl);
 
       clearInterval(interval);
       setUploadingState(prev => ({
@@ -264,6 +272,7 @@ export default function PersonalInfoTab({
       });
       console.error(error);
       addToast(error instanceof Error ? error.message : "Không tải được ảnh lên, vui lòng thử lại.", "info");
+      URL.revokeObjectURL(previewUrl);
     }
   };
 
@@ -346,7 +355,7 @@ export default function PersonalInfoTab({
       id: 1,
       label: "Ảnh 1",
       title: "Beauty Portrait",
-      url: profile.lookbook1 || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
+      url: normalizeBackendAssetUrl(profile.lookbook1) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
       photographer: "Lê Huy Studio",
       concept: "Classic High-Fashion",
       date: "20/05/2026",
@@ -356,7 +365,7 @@ export default function PersonalInfoTab({
       id: 2,
       label: "Ảnh 2",
       title: "Runway Pose",
-      url: profile.lookbook2 || "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600",
+      url: normalizeBackendAssetUrl(profile.lookbook2) || "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600",
       photographer: "Minh Trần Portfolio",
       concept: "Avant-Garde Runway",
       date: "22/05/2026",
@@ -366,7 +375,7 @@ export default function PersonalInfoTab({
       id: 3,
       label: "Ảnh 3",
       title: "Close-up",
-      url: profile.lookbook3 || "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
+      url: normalizeBackendAssetUrl(profile.lookbook3) || "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
       photographer: "Kien Nguyen",
       concept: "Editorial Makeup Glow",
       date: "25/05/2026",
@@ -376,7 +385,7 @@ export default function PersonalInfoTab({
       id: 4,
       label: "Ảnh 4",
       title: "Streetwear Style",
-      url: profile.lookbook4 || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
+      url: normalizeBackendAssetUrl(profile.lookbook4) || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
       photographer: "Alex Pham",
       concept: "Cyberpunk Neon Street",
       date: "28/05/2026",

@@ -5,9 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Briefcase,
-  Calendar,
   CheckCircle2,
-  Clock,
   MapPin,
   Users,
   X,
@@ -77,6 +75,35 @@ function displayListText(value?: string | null) {
     .split(/\r?\n|;/)
     .map((item) => sentenceCaseText(item))
     .filter(Boolean);
+}
+
+function displayCampaignDate(value?: string | null) {
+  if (!value) return "-";
+
+  const raw = String(value);
+  const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) {
+    const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+    return raw;
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function displayCampaignDateRange(start?: string | null, end?: string | null) {
+  if (!start && !end) return "-";
+  if (!start) return displayCampaignDate(end);
+  if (!end) return displayCampaignDate(start);
+
+  const startText = displayCampaignDate(start);
+  const endText = displayCampaignDate(end);
+  return startText === endText ? startText : `${startText} - ${endText}`;
 }
 
 function transactionRole(transaction: BrandCommissionTransaction) {
@@ -583,12 +610,10 @@ export default function CampaignDetailPage() {
 
           </div>
 
-          {/* Grid of 5 Info Cards */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {/* Info Cards */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {[
               { label: "Địa điểm", value: selectedCampaign.venueName || selectedCampaign.address, icon: MapPin, color: "text-amber-300" },
-              { label: "Sự kiện", value: selectedCampaign.eventDate || `${selectedCampaign.startDate} - ${selectedCampaign.endDate}`, icon: Calendar, color: "text-cyan-300" },
-              { label: "Deadline", value: selectedCampaign.applicationDeadline || selectedCampaign.deadline, icon: Clock, color: "text-purple-300" },
               { label: "Ứng viên", value: `${selectedCampaign.applicants.length}/${selectedCampaign.talentQuantity}`, icon: Users, color: "text-emerald-300" },
               { label: "Lượt xem", value: selectedCampaign.views.toString(), icon: Briefcase, color: "text-rose-300" },
             ].map((item) => {
@@ -597,114 +622,155 @@ export default function CampaignDetailPage() {
                 <div key={item.label} className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 text-left">
                   <Icon className={cn("mb-3 h-5 w-5", item.color)} />
                   <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-500">{item.label}</span>
-                  <span className="mt-1 block truncate text-xs font-black text-white" title={item.value}>{item.value}</span>
+                  <span className="mt-1 block break-words text-[11px] font-black leading-snug text-white" title={item.value}>{item.value}</span>
                 </div>
               );
             })}
           </div>
+
+          {(Boolean(selectedCampaign.roles?.length) ||
+            Boolean(selectedCampaign.targetProfiles?.length) ||
+            Boolean(selectedCampaign.industries?.length) ||
+            selectedCampaign.requirements ||
+            selectedCampaign.eventDate ||
+            selectedCampaign.startDate ||
+            selectedCampaign.endDate ||
+            selectedCampaign.applicationDeadline ||
+            selectedCampaign.deadline ||
+            selectedCampaign.contactNote ||
+            Boolean(selectedCampaign.sponsorships?.length)) && (
+            <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-5 text-left">
+              <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/5 pb-3">
+                <h2 className="text-xs font-black uppercase tracking-widest text-slate-300">Thông tin tuyển chọn</h2>
+                <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-amber-300">
+                  Brief
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Bắt đầu campaign</span>
+                  <p className="text-xs font-black leading-relaxed text-cyan-200">
+                    {displayCampaignDate(selectedCampaign.startDate)}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kết thúc campaign</span>
+                  <p className="text-xs font-black leading-relaxed text-sky-200">
+                    {displayCampaignDate(selectedCampaign.endDate)}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Sự kiện chính</span>
+                  <p className="text-xs font-black leading-relaxed text-emerald-200">
+                    {selectedCampaign.eventDate
+                      ? displayCampaignDate(selectedCampaign.eventDate)
+                      : displayCampaignDateRange(selectedCampaign.startDate, selectedCampaign.endDate)}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Hạn ứng tuyển</span>
+                  <p className="text-xs font-black leading-relaxed text-purple-200">
+                    {displayCampaignDate(selectedCampaign.applicationDeadline || selectedCampaign.deadline)}
+                  </p>
+                </div>
+                {selectedCampaign.roles && selectedCampaign.roles.length > 0 && (
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedCampaign.roles.map((role, idx) => (
+                        <span key={`${role}-${idx}`} className="rounded bg-cyan-400/10 border border-cyan-400/20 px-2 py-1 text-[8.5px] font-bold text-cyan-300 uppercase tracking-wider">
+                          {role}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {selectedCampaign.targetProfiles && selectedCampaign.targetProfiles.length > 0 && (
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Nhóm talent phù hợp</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedCampaign.targetProfiles.map((profile, idx) => (
+                        <span key={`${profile}-${idx}`} className="rounded bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 text-[8.5px] font-bold text-emerald-300 uppercase tracking-wider">
+                          {profile}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {selectedCampaign.industries && selectedCampaign.industries.length > 0 && (
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedCampaign.industries.map((industry, idx) => (
+                        <span key={`${industry}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
+                          {industry}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {selectedCampaign.sponsorships && selectedCampaign.sponsorships.length > 0 && (
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Tài trợ</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedCampaign.sponsorships.map((s, idx) => (
+                        <span key={idx} className="inline-block rounded bg-amber-400/10 border border-amber-400/30 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
+                          {s.category}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {selectedCampaign.contactNote && (
+                  <div className="rounded-xl border border-amber-400/15 bg-amber-400/5 p-3 text-xs font-semibold leading-relaxed text-slate-300 lg:col-span-2">
+                    <span className="mr-2 text-[9px] font-black uppercase tracking-wider text-amber-300">Ứng tuyển</span>
+                    {sentenceCaseText(selectedCampaign.contactNote)}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Side: Mô tả chung sidebar */}
-        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 xl:col-span-4 xl:self-start text-left">
+        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 xl:col-span-4 xl:self-start xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto text-left scrollbar-thin">
           <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-300">MÔ TẢ CHUNG</h2>
           <div className="divide-y divide-white/5 text-xs">
             <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2 first:pt-0">
               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Ngân sách</span>
               <p className="font-black text-amber-300">{selectedCampaign.budget}</p>
             </div>
-            <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
-              <p className="leading-relaxed text-slate-300" title={selectedCampaign.requirements}>{sentenceCaseText(selectedCampaign.requirements)}</p>
-            </div>
+            {selectedCampaign.requirements && (
+              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
+                <p className="max-h-28 overflow-y-auto pr-2 leading-relaxed text-slate-300 scrollbar-thin">
+                  {sentenceCaseText(selectedCampaign.requirements)}
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
               {(() => {
                 const benefitItems = displayListText(selectedCampaign.benefits);
                 return benefitItems.length > 1 ? (
-                  <ul className="list-disc space-y-1 pl-4 leading-relaxed text-slate-300">
+                  <ul className="max-h-28 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin">
                     {benefitItems.map((item, idx) => (
                       <li key={`${item}-${idx}`}>{item}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="leading-relaxed text-slate-300" title={selectedCampaign.benefits}>{benefitItems[0] || "-"}</p>
+                  <p className="max-h-28 overflow-y-auto pr-2 leading-relaxed text-slate-300 scrollbar-thin" title={selectedCampaign.benefits}>{benefitItems[0] || "-"}</p>
                 );
               })()}
             </div>
-            {selectedCampaign.venueName && (
-              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Địa điểm</span>
-                <p className="leading-relaxed text-slate-300" title={selectedCampaign.venueName}>{selectedCampaign.venueName}</p>
-              </div>
-            )}
-            {selectedCampaign.venueAddress && (
-              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Địa chỉ</span>
-                <p className="leading-relaxed text-slate-300" title={selectedCampaign.venueAddress}>{selectedCampaign.venueAddress}</p>
-              </div>
-            )}
-            {selectedCampaign.roles && selectedCampaign.roles.length > 0 && (
-              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedCampaign.roles.map((role, idx) => (
-                    <span key={`${role}-${idx}`} className="rounded bg-cyan-400/10 border border-cyan-400/20 px-2 py-1 text-[8.5px] font-bold text-cyan-300 uppercase tracking-wider">
-                      {role}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {selectedCampaign.targetProfiles && selectedCampaign.targetProfiles.length > 0 && (
-              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Talent</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedCampaign.targetProfiles.map((profile, idx) => (
-                    <span key={`${profile}-${idx}`} className="rounded bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 text-[8.5px] font-bold text-emerald-300 uppercase tracking-wider">
-                      {profile}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {selectedCampaign.industries && selectedCampaign.industries.length > 0 && (
-              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedCampaign.industries.map((industry, idx) => (
-                    <span key={`${industry}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
-                      {industry}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
             {selectedCampaign.responsibilities && selectedCampaign.responsibilities.length > 0 && (
               <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Đầu việc</span>
-                <ul className="list-disc space-y-1 pl-4 leading-relaxed text-slate-300">
+                <ul className="max-h-28 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin">
                   {selectedCampaign.responsibilities.map((item, idx) => (
                     <li key={`${item}-${idx}`}>{sentenceCaseText(item)}</li>
                   ))}
                 </ul>
-              </div>
-            )}
-            {selectedCampaign.contactNote && (
-              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Ứng tuyển</span>
-                <p className="leading-relaxed text-slate-300" title={selectedCampaign.contactNote}>{sentenceCaseText(selectedCampaign.contactNote)}</p>
-              </div>
-            )}
-            {selectedCampaign.sponsorships && selectedCampaign.sponsorships.length > 0 && (
-              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Tài trợ</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedCampaign.sponsorships.map((s, idx) => (
-                    <span key={idx} className="inline-block rounded bg-amber-400/10 border border-amber-400/30 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
-                      🎁 {s.category}
-                    </span>
-                  ))}
-                </div>
               </div>
             )}
             {/* <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-[10px] leading-relaxed text-slate-500">
