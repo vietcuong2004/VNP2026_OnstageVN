@@ -13,7 +13,7 @@ export function normalizeAvailabilityCalendar(value: unknown) {
 
   const manualBusyDates = value
     .map((entry) => String(entry || "").trim())
-    .filter((entry) => entry.endsWith(":busy"))
+    .filter((entry) => Boolean(entry) && !entry.endsWith(":available") && !entry.endsWith(":maybe"))
     .map((entry) => normalizeDateKey(entry))
     .filter(Boolean);
 

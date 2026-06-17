@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createTalentCalendarEvent, deleteTalentCalendarEvent, loadTalentCalendar, loadTalentProfile, persistTalentProfile, updateTalentCalendarEvent } from "@/lib/talent-api";
-import { busyDatesFromTodoLists, getTalentDayStatus, toggleManualBusyDate } from "@/lib/talent-calendar";
+import { busyDatesFromTodoLists, getTalentDayStatus } from "@/lib/talent-calendar";
 
 // Contest data for the calendar page detail modal
 const CALENDAR_CONTESTS = [
@@ -199,20 +199,6 @@ export default function CalendarPage() {
 
   const handleCalendarDayClick = (dateStr: string) => {
     setSelectedDate(dateStr);
-    if (!profile || busyDates.includes(dateStr)) return;
-
-    const nextAvailabilityCalendar = toggleManualBusyDate(
-      dateStr,
-      profile.availabilityCalendar,
-      busyDates,
-    );
-
-    const updatedProfile = persistTalentProfile({
-      ...profile,
-      availabilityCalendar: nextAvailabilityCalendar,
-      busyDates,
-    });
-    setProfile(updatedProfile);
   };
 
   const syncCalendarState = (nextTodoLists: Record<string, any[]>, nextAvailabilityCalendar?: string[]) => {
