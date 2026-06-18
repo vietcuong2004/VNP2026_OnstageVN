@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Users2, Plus, Shield, MapPin, Eye, Briefcase, MessageSquare, Clock, X, Link2, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
@@ -74,6 +75,7 @@ export default function RosterTab({
   handleRemove,
   setShowInviteModal,
 }: RosterTabProps) {
+  const router = useRouter();
   return (
     <div className="space-y-4">
       <section className="relative overflow-hidden rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-400/10 via-[#111018] to-[#08090f] p-3.5 shadow-[0_0_20px_rgba(245,158,11,0.06)] md:p-4">
@@ -224,13 +226,22 @@ export default function RosterTab({
 
                     {/* Actions */}
                     <div className="mt-4 grid grid-cols-3 gap-2">
-                      <button className="flex h-10 md:h-9 items-center justify-center gap-1 md:gap-1.5 rounded-xl bg-[#050711] border border-[#151b2d] text-[9px] md:text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white hover:border-slate-700/50 cursor-pointer transition-all">
+                      <button
+                        onClick={() => router.push(`/brand/talents/${talent.id}`)}
+                        className="flex h-10 md:h-9 items-center justify-center gap-1 md:gap-1.5 rounded-xl bg-[#050711] border border-[#151b2d] text-[9px] md:text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white hover:border-slate-700/50 cursor-pointer transition-all"
+                      >
                         <Eye className="h-3.5 w-3.5 text-amber-400" /> Hồ sơ
                       </button>
-                      <button className="flex h-10 md:h-9 items-center justify-center gap-1 md:gap-1.5 rounded-xl bg-[#050711] border border-[#151b2d] text-[9px] md:text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white hover:border-slate-700/50 cursor-pointer transition-all">
+                      <button
+                        onClick={() => router.push(`/brand/campaigns`)}
+                        className="flex h-10 md:h-9 items-center justify-center gap-1 md:gap-1.5 rounded-xl bg-[#050711] border border-[#151b2d] text-[9px] md:text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white hover:border-slate-700/50 cursor-pointer transition-all"
+                      >
                         <Briefcase className="h-3.5 w-3.5 text-cyan-400" /> Assign Job
                       </button>
-                      <button className="flex h-10 md:h-9 items-center justify-center gap-1 md:gap-1.5 rounded-xl bg-[#050711] border border-[#151b2d] text-[9px] md:text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white hover:border-slate-700/50 cursor-pointer transition-all">
+                      <button
+                        onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
+                        className="flex h-10 md:h-9 items-center justify-center gap-1 md:gap-1.5 rounded-xl bg-[#050711] border border-[#151b2d] text-[9px] md:text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white hover:border-slate-700/50 cursor-pointer transition-all"
+                      >
                         <MessageSquare className="h-3.5 w-3.5 text-purple-400" /> Nhắn tin
                       </button>
                     </div>
