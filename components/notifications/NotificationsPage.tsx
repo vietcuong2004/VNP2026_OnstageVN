@@ -43,6 +43,10 @@ function notificationTarget(portal: Props["portal"], notification: UserNotificat
     return portal === "talent" ? "/talent/brands" : "/brand/my-talents";
   }
 
+  if (typeof notification.data.link === "string" && notification.data.link) {
+    return notification.data.link;
+  }
+
   return null;
 }
 

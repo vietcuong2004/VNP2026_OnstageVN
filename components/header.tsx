@@ -7,6 +7,7 @@ import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-ap
 import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { loadNotifications, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/messaging-api";
+import { ensureBrowserNotificationPermission, showBrowserNotification } from "@/lib/browser-notifications";
 import { getRealtimeClient } from "@/lib/realtime";
 
 type AuthUser = {
@@ -23,6 +24,28 @@ type AuthUser = {
       id: number;
       name: string | null;
       email: string | null;
+    };
+  };
+};
+
+type RealtimeNotificationPayload = {
+  type?: string;
+  title?: string;
+  body?: string;
+  link?: string | null;
+  conversation_id?: number;
+  sender_user_id?: number;
+  sent_by_admin_id?: number;
+};
+
+type RealtimeMessageEvent = {
+  message: {
+    id: number;
+    body: string;
+    conversation_id: number;
+    sender?: {
+      id: number;
+      name?: string | null;
     };
   };
 };
@@ -172,21 +195,46 @@ export default function Header() {
     window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, handleNotificationsUpdated);
 
     refreshUnreadCount();
+    ensureBrowserNotificationPermission().catch(() => undefined);
 
     const echo = getRealtimeClient();
     const channel = echo?.private(`users.${user.id}`);
-    const handleNotification = () => {
+    const portal = isBrandPath ? "brand" : "talent";
+    const handleNotification = (notification: RealtimeNotificationPayload) => {
       refreshUnreadCount();
+
+      if (!notification.sent_by_admin_id || !notification.title) return;
+
+      showBrowserNotification({
+        title: notification.title,
+        body: notification.body,
+        tag: `admin-notification-${notification.type ?? "general"}`,
+        url: notification.link || `/${portal}/notifications`,
+      });
+    };
+    const handleMessageSent = (event: RealtimeMessageEvent) => {
+      refreshUnreadCount();
+
+      const senderName = event.message.sender?.name || "Tin nhắn mới";
+
+      showBrowserNotification({
+        title: senderName,
+        body: event.message.body,
+        tag: `message-${event.message.conversation_id}`,
+        url: `/${portal}/messages?conversationId=${event.message.conversation_id}`,
+      });
     };
 
     channel?.notification(handleNotification);
+    channel?.listen(".message.sent", handleMessageSent);
 
     return () => {
       cancelled = true;
       window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, handleNotificationsUpdated);
       channel?.stopListeningForNotification(handleNotification);
+      channel?.stopListening(".message.sent", handleMessageSent);
     };
-  }, [pathname, user?.id]);
+  }, [isBrandPath, pathname, user?.id]);
 
   async function handleLogout() {
     await logoutCurrentSession();
