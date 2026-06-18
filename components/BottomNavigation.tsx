@@ -103,9 +103,9 @@ export default function BottomNavigation() {
 
   const brandPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
-    { label: "Tìm kiếm", icon: Search, href: "/brand/search" },
-    { label: "Shortlist", icon: BookmarkCheck, href: "/brand/shortlists" },
     { label: "Campaign", icon: Briefcase, href: "/brand/campaigns" },
+    { label: "Quản lý Talent", icon: Users, href: "/brand/my-talents" },
+    { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   ];
 
   const talentPrimaryItems = [

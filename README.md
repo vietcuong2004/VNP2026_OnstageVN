@@ -95,15 +95,21 @@ Ngân sách thanh toán của nhãn hàng được chuyển vào ví trung gian 
    ```bash
    npm run dev
    ```
-   *Truy cập [http://localhost:3000](http://localhost:3000) trên trình duyệt để kiểm tra.*
+   *Truy cập [http://localhost:3001](http://localhost:3001) trên trình duyệt để kiểm tra.*
 
 3. **Xây dựng phiên bản Production:**
    ```bash
    npm run build
    ```
 
+### Hoặc chuyển sang dự án backend trên terminal:
+```bash
+docker compose up -d --build frontend
+```
+Rồi *Truy cập [http://localhost:3000](http://localhost:3000) trên trình duyệt để kiểm tra.*
+
 ---
-## 💻 Hướng dẫn cập nhật code mới (push code lên main rồi chạy các lệnh dưới đây)
+## 💻 Hướng dẫn cập nhật code mới để deploy (push code lên main rồi chạy các lệnh dưới đây)
 ### Cách nhanh:
 **1. Truy cập vào server:**
 ```bash

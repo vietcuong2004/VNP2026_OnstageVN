@@ -2,8 +2,8 @@
 
 import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft, 
+import {
+  User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft,
   CheckCircle2, Info, Star, ChevronRight, Trophy, Heart,
   Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2
 } from "lucide-react";
@@ -92,7 +92,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const avatarPreviewUrlRef = useRef<string | null>(null);
   const portfolioPreviewUrlRef = useRef<string | null>(null);
   const introVideoPreviewUrlRef = useRef<string | null>(null);
-  
+
   // Track max step reached to allow click-to-navigation on header stepper
   React.useEffect(() => {
     setMaxStep((prev) => Math.max(prev, step));
@@ -123,9 +123,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     instagramUrl: "",
     facebookUrl: "",
     youtubeUrl: "",
-    tiktokFollowers: "80000",
-    instagramFollowers: "30000",
-    facebookFollowers: "10000",
+    tiktokFollowers: "0",
+    instagramFollowers: "0",
+    facebookFollowers: "0",
     youtubeFollowers: "0"
   });
 
@@ -252,7 +252,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   // Check completeness and provide real-time feedback: "Hồ sơ của bạn đã hoàn thiện [X]%"
   const getCompletenessPercent = () => {
     if (isSubmitted) return 100;
-    
+
     let basePct = 0;
     if (step === 1) {
       // Basic info inputs filled ratio
@@ -553,13 +553,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
           return option
             ? {
-                question_code: `Q${question.id}`,
-                answer_value: {
-                  option_index: answerIdx,
-                  group: option.group,
-                  text: option.text,
-                },
-              }
+              question_code: `Q${question.id}`,
+              answer_value: {
+                option_index: answerIdx,
+                group: option.group,
+                text: option.text,
+              },
+            }
             : null;
         })
         .filter(Boolean) as { question_code: string; answer_value: unknown }[];
@@ -709,8 +709,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     const fallbackJobs = JOBS_LIST.map((job) => {
       const matchScore = Math.round(
         results.pageant * job.weights.pageant +
-          results.runway * job.weights.runway +
-          results.kol * job.weights.kol
+        results.runway * job.weights.runway +
+        results.kol * job.weights.kol
       );
       return { ...job, matchScore };
     }).sort((a, b) => b.matchScore - a.matchScore);
@@ -725,9 +725,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       }));
     const sortedJobs = aiJobs.length
       ? [
-          ...aiJobs,
-          ...fallbackJobs.filter((job) => !aiJobs.some((aiJob) => aiJob.title === job.title)),
-        ].slice(0, 20)
+        ...aiJobs,
+        ...fallbackJobs.filter((job) => !aiJobs.some((aiJob) => aiJob.title === job.title)),
+      ].slice(0, 20)
       : fallbackJobs;
 
     const aiComps = (aiAnalysis?.pageants || [])
@@ -758,7 +758,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 Thời gian: {results.date || "Vừa thực hiện"}
               </div>
             </div>
-            
+
             <button
               type="button"
               onClick={onBackToDashboard}
@@ -830,7 +830,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   {results.mainCategory}
                 </span>
               </div>
-              
+
               <div className="flex gap-4">
                 <div className="flex-1 rounded-xl border border-white/5 bg-[#03050c]/80 p-3 text-center">
                   <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-black">Xếp Hạng Tier</span>
@@ -849,7 +849,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               {/* Hard Rules analysis section */}
               <div className="rounded-xl border border-white/5 bg-[#03050c]/40 p-4 space-y-2.5">
                 <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-black">Đánh Giá Điều Kiện Cần (Hard Rules Check)</span>
-                
+
                 <div className="flex items-start gap-2.5 text-[10px]">
                   {results.hardRules.strictPageantAllowed ? (
                     <>
@@ -908,7 +908,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 >
                   Chuyển đến hồ sơ cá nhân <ArrowRight className="ml-1.5 h-4 w-4" />
                 </button>
-                
+
                 <div className="text-center pt-1">
                   <button
                     type="button"
@@ -932,8 +932,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
                 {suggestedComps.map((comp, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="flex flex-col justify-between rounded-xl border border-white/5 bg-[#03050c]/80 p-3.5 hover:border-amber-400/25 transition-all duration-300 relative group"
                   >
                     <div>
@@ -1002,7 +1002,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                           </span>
                         </div>
                         <p className="text-[9.5px] text-slate-500 truncate mt-0.5">{job.desc}</p>
-                        
+
                         <div className="h-1 w-full bg-slate-950 rounded-full overflow-hidden mt-1.5">
                           <div
                             className={cn(
@@ -1026,7 +1026,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   return (
     <div className="w-full rounded-3xl border border-white/5 bg-[#070913]/95 p-6 md:p-8 shadow-2xl relative overflow-hidden transition-all duration-500">
-      
+
       {/* Top ambient glow light */}
       <div className="absolute top-0 right-0 -z-10 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -z-10 h-32 w-32 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
@@ -1069,8 +1069,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         <div className="w-full relative py-4 px-4">
           {/* Progress bar container (aligned to bubble centers) */}
           <div className="absolute top-8 left-8 right-8 h-[2px] bg-white/10 -translate-y-1/2 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 transition-all duration-500" 
+            <div
+              className="h-full bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 transition-all duration-500"
               style={{ width: `${((step - 1) / 4) * 100}%` }}
             />
           </div>
@@ -1080,7 +1080,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               const isCurrent = s === step;
               const isPast = s < step;
               const isClickable = s <= maxStep;
-              
+
               const stepNames = [
                 "Thông tin",
                 "Nhân trắc",
@@ -1107,13 +1107,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     isCurrent
                       ? "bg-[#070913] border-amber-400 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)] scale-110"
                       : isPast
-                      ? "bg-amber-400 border-amber-400 text-[#070913]"
-                      : isClickable
-                      ? "bg-[#070913] border-amber-400/50 text-amber-300/80 hover:border-amber-400 hover:text-amber-300 hover:scale-105 hover:shadow-[0_0_10px_rgba(245,158,11,0.2)]"
-                      : "bg-[#070913] border-white/10 text-slate-500"
+                        ? "bg-amber-400 border-amber-400 text-[#070913]"
+                        : isClickable
+                          ? "bg-[#070913] border-amber-400/50 text-amber-300/80 hover:border-amber-400 hover:text-amber-300 hover:scale-105 hover:shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+                          : "bg-[#070913] border-white/10 text-slate-500"
                   )}>
                     {isPast ? <Check className="h-4 w-4 stroke-[3.5]" /> : s}
-                    
+
                     {/* Ring highlight animation on active step */}
                     {isCurrent && (
                       <span className="absolute -inset-1 rounded-full border border-amber-400/30 animate-pulse pointer-events-none" />
@@ -1126,8 +1126,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     isCurrent
                       ? "text-amber-300 scale-105 font-extrabold"
                       : isClickable
-                      ? "text-slate-300 group-hover:text-amber-300"
-                      : "text-slate-500"
+                        ? "text-slate-300 group-hover:text-amber-300"
+                        : "text-slate-500"
                   )}>
                     {stepNames[s - 1]}
                   </span>
@@ -1139,20 +1139,20 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 text-left">
-        
+
         {/* STEP 1: BASIC INFO (Widescreen Two-Column Layout) */}
         {step === 1 && (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start animate-in fade-in duration-300">
             {/* Left: Avatar Dropzone */}
             <div className="md:col-span-4 flex flex-col items-center space-y-4">
               <span className="block text-[10px] text-slate-300 font-extrabold uppercase tracking-wider self-start">Ảnh Đại Diện *</span>
-              
-              <div 
+
+              <div
                 onClick={() => handleFileUploadClick("avatar")}
                 className={cn(
                   "w-full aspect-square max-w-[200px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative overflow-hidden group",
-                  mediaUploads.avatar 
-                    ? "border-emerald-400 bg-emerald-500/10" 
+                  mediaUploads.avatar
+                    ? "border-emerald-400 bg-emerald-500/10"
                     : "border-white/20 bg-slate-900/60 hover:border-amber-400 hover:bg-slate-900"
                 )}
               >
@@ -1272,7 +1272,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             {/* Left Column: Visual mannequin statistics showcase */}
             <div className="md:col-span-5 rounded-2xl border border-white/10 bg-slate-900/60 p-5 flex flex-col items-center justify-center space-y-4">
               <span className="block text-[10px] text-slate-300 font-extrabold uppercase tracking-wider self-start">Ngoại hình</span>
-              
+
               {/* Silhouette diagram with lines and custom measurement nodes */}
               <div className="relative w-full max-w-[160px] aspect-[1/2] border border-white/10 rounded-xl bg-[#070913]/80 flex items-center justify-center p-3">
                 {/* SVG Silhouette representation */}
@@ -1296,15 +1296,15 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                            C 61,102 57,92 57,84 
                            C 57,76 62,68 64,60 
                            C 65,54 67,42 66,36 
-                           C 64,32 58,30 50,30 Z" 
-                        fill="currentColor" />
-                  
+                           C 64,32 58,30 50,30 Z"
+                    fill="currentColor" />
+
                   {/* Indicator nodes circles */}
                   <circle cx="50" cy="60" r="3.5" fill="#f5a623" />
                   <circle cx="50" cy="84" r="3.5" fill="#a855f7" />
                   <circle cx="50" cy="108" r="3.5" fill="#14b8a6" />
                 </svg>
-                
+
                 {/* Measuring labels with direct values */}
                 <div className="absolute top-[28%] left-[-24px] bg-slate-900 px-2 py-1 rounded-lg border border-white/20 text-[9px] font-extrabold text-white shadow-lg">
                   Vòng 1: {formData.bust} cm
@@ -1487,11 +1487,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
         {/* STEP 4: SOCIAL & PORTFOLIO (Left Socials, Right Upload Zone) */}
         {step === 4 && (
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start animate-in fade-in duration-300">
+          <div className="animate-in fade-in duration-300">
             {/* Left: Social Media Profiles and Followers */}
-            <div className="md:col-span-6 space-y-4">
+            <div className="space-y-4 w-full max-w-xl mx-auto">
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Tổng số lượng Followers (Hệ thống tự tính) *</label>
+                <label className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Tổng số lượng Followers</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -1508,10 +1508,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
               <div className="space-y-2.5">
                 <span className="block text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Liên kết nền tảng & Số lượng Followers</span>
-                
+
                 {/* TikTok Row */}
                 <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-7 relative">
+                  <div className="col-span-7 relative min-w-0">
                     <span className="absolute left-3 top-3 text-slate-400">
                       <TiktokIcon className="h-3.5 w-3.5 text-slate-300" />
                     </span>
@@ -1520,19 +1520,19 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       name="tiktokUrl"
                       value={formData.tiktokUrl}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
                       placeholder="TikTok Profile URL"
                     />
                   </div>
-                  <div className="col-span-5 relative">
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
+                  <div className="col-span-5 relative min-w-0">
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
                     <input
                       type="number"
                       name="tiktokFollowers"
                       value={formData.tiktokFollowers}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                      placeholder="0"
+                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      placeholder="Điền số nguyên"
                       min="0"
                     />
                   </div>
@@ -1540,7 +1540,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
                 {/* Instagram Row */}
                 <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-7 relative">
+                  <div className="col-span-7 relative min-w-0">
                     <span className="absolute left-3 top-3 text-slate-400">
                       <InstagramIcon className="h-3.5 w-3.5 text-slate-300" />
                     </span>
@@ -1549,19 +1549,19 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       name="instagramUrl"
                       value={formData.instagramUrl}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
                       placeholder="Instagram Profile URL"
                     />
                   </div>
-                  <div className="col-span-5 relative">
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
+                  <div className="col-span-5 relative min-w-0">
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
                     <input
                       type="number"
                       name="instagramFollowers"
                       value={formData.instagramFollowers}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                      placeholder="0"
+                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      placeholder="Điền số nguyên"
                       min="0"
                     />
                   </div>
@@ -1569,7 +1569,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
                 {/* Facebook Row */}
                 <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-7 relative">
+                  <div className="col-span-7 relative min-w-0">
                     <span className="absolute left-3 top-3 text-slate-400">
                       <FacebookIcon className="h-3.5 w-3.5 text-slate-300" />
                     </span>
@@ -1578,19 +1578,19 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       name="facebookUrl"
                       value={formData.facebookUrl}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
                       placeholder="Facebook Profile URL"
                     />
                   </div>
-                  <div className="col-span-5 relative">
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
+                  <div className="col-span-5 relative min-w-0">
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
                     <input
                       type="number"
                       name="facebookFollowers"
                       value={formData.facebookFollowers}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                      placeholder="0"
+                      className="w-full min-w-0 rounded-xl border border-white/20 bg-[#070913]/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      placeholder="Điền số nguyên"
                       min="0"
                     />
                   </div>
@@ -1598,7 +1598,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
                 {/* YouTube Row */}
                 <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-7 relative">
+                  <div className="col-span-7 relative min-w-0">
                     <span className="absolute left-3 top-3 text-slate-400">
                       <YoutubeIcon className="h-3.5 w-3.5 text-slate-300" />
                     </span>
@@ -1607,18 +1607,18 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       name="youtubeUrl"
                       value={formData.youtubeUrl}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                      className="w-full min-w-0 rounded-xl border border-white/20 bg-[#070913]/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
                       placeholder="YouTube Channel URL"
                     />
                   </div>
-                  <div className="col-span-5 relative">
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase">Followers</span>
+                  <div className="col-span-5 relative min-w-0">
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
                     <input
                       type="number"
                       name="youtubeFollowers"
                       value={formData.youtubeFollowers}
                       onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[10px] text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
                       placeholder="0"
                       min="0"
                     />
@@ -1634,7 +1634,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               
               <div className="grid grid-cols-2 gap-3.5">
                 {/* Portfolio images / CV zone */}
-                {/* <div 
+            {/* <div 
                   onClick={() => handleFileUploadClick("portfolio")}
                   className={cn(
                     "rounded-xl border border-dashed p-5 cursor-pointer text-center transition-all duration-300 relative overflow-hidden group aspect-[9/16] w-full flex flex-col justify-center items-center",
@@ -1677,8 +1677,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   )}
                 </div> */}
 
-                {/* Intro video zone (Optional) */}
-                {/* <div 
+            {/* Intro video zone (Optional) */}
+            {/* <div 
                   onClick={() => handleFileUploadClick("introVideo")}
                   className={cn(
                     "rounded-xl border border-dashed p-5 cursor-pointer text-center transition-all duration-300 relative overflow-hidden group aspect-[9/16] w-full flex flex-col justify-center items-center",
@@ -1720,7 +1720,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     </button>
                   )}
                 </div> */}
-              {/* </div>
+            {/* </div>
             </div> */}
           </div>
         )}
@@ -1871,8 +1871,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                         isActive
                           ? "border-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.35)] scale-105"
                           : isAnswered
-                          ? "border-emerald-500/40 bg-emerald-500/20 text-emerald-200 font-extrabold hover:border-emerald-400 hover:bg-emerald-500/30"
-                          : "border-white/10 bg-[#070913]/40 text-slate-300 hover:border-white/20 hover:text-white",
+                            ? "border-emerald-500/40 bg-emerald-500/20 text-emerald-200 font-extrabold hover:border-emerald-400 hover:bg-emerald-500/30"
+                            : "border-white/10 bg-[#070913]/40 text-slate-300 hover:border-white/20 hover:text-white",
                         isAnalyzing && "cursor-not-allowed opacity-40 pointer-events-none"
                       )}
                     >
