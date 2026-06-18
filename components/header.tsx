@@ -6,8 +6,11 @@ import { Bell, Calendar, ChevronDown, LogOut, Search, UserCircle, Building2, Set
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
 import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
+import { loadNotifications, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/messaging-api";
+import { getRealtimeClient } from "@/lib/realtime";
 
 type AuthUser = {
+  id: number;
   name: string;
   email: string | null;
   type: "talent" | "brand";
@@ -81,6 +84,7 @@ export default function Header() {
   const authUserJson = useSyncExternalStore(subscribeAuthUser, authUserSnapshot, () => "");
   const user = authUserJson ? (JSON.parse(authUserJson) as AuthUser) : null;
   const [talentAvatar, setTalentAvatar] = useState<string | null>(null);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   // Header remains always visible
 
   useEffect(() => {
@@ -137,6 +141,52 @@ export default function Header() {
       cancelled = true;
     };
   }, [fallbackAvatarSrc, isBrandPath, user]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setUnreadNotifications(0);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function refreshUnreadCount() {
+      try {
+        const response = await loadNotifications();
+        if (!cancelled) setUnreadNotifications(response.unread_count);
+      } catch {
+        if (!cancelled) setUnreadNotifications(0);
+      }
+    }
+
+    const handleNotificationsUpdated = (event: Event) => {
+      const unreadCount = (event as CustomEvent<{ unreadCount?: number }>).detail?.unreadCount;
+      if (typeof unreadCount === "number") {
+        setUnreadNotifications(unreadCount);
+        return;
+      }
+
+      refreshUnreadCount();
+    };
+
+    window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, handleNotificationsUpdated);
+
+    refreshUnreadCount();
+
+    const echo = getRealtimeClient();
+    const channel = echo?.private(`users.${user.id}`);
+    const handleNotification = () => {
+      refreshUnreadCount();
+    };
+
+    channel?.notification(handleNotification);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, handleNotificationsUpdated);
+      channel?.stopListeningForNotification(handleNotification);
+    };
+  }, [pathname, user?.id]);
 
   async function handleLogout() {
     await logoutCurrentSession();
@@ -199,9 +249,18 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2 md:gap-6">
-        <button className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 transition-colors hover:text-white">
+        <button
+          type="button"
+          onClick={() => router.push(isBrandPath ? "/brand/notifications" : "/talent/notifications")}
+          className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 transition-colors hover:text-white"
+          aria-label="Thông báo"
+        >
           <Bell className="h-4.5 w-4.5" />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500" />
+          {unreadNotifications > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">
+              {unreadNotifications > 99 ? "99+" : unreadNotifications}
+            </span>
+          )}
         </button>
 
         <div className="relative border-l border-white/5 pl-3.5 md:pl-6">

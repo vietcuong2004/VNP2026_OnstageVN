@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
 import { applyTalentCampaign, loadTalentCampaigns, mapCampaignToTalentJob } from "@/lib/talent-api";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 type StageFilter = "all" | "pending" | "accepted" | "executing" | "completed" | "confirmed";
 
@@ -52,6 +53,8 @@ function displayCampaignDate(value?: string | null) {
 }
 
 export default function JobsPage() {
+  const searchParams = useSearchParams();
+  const campaignIdParam = searchParams.get("campaignId");
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState("all");
   const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>("all");
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
@@ -356,6 +359,17 @@ export default function JobsPage() {
       setDisplayJobs(mockCampaigns);
     });
   }, []);
+
+  useEffect(() => {
+    if (!campaignIdParam || !displayJobs.length) return;
+
+    const invitedJob = displayJobs.find((job) => String(job.id) === String(campaignIdParam));
+    if (invitedJob) {
+      setSelectedJob((current: any) => (
+        String(current?.id) === String(invitedJob.id) ? current : invitedJob
+      ));
+    }
+  }, [campaignIdParam, displayJobs]);
 
   const handleApply = async (id: string, title: string) => {
     if (appliedJobs.includes(id)) return;
