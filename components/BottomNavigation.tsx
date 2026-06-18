@@ -208,10 +208,10 @@ export default function BottomNavigation() {
 
       {/* Main Bottom Navigation Bar */}
       <div className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 flex justify-center px-4 pb-4 md:hidden transition-transform duration-300",
-        visible ? "translate-y-0" : "translate-y-24"
+        "fixed bottom-0 left-0 right-0 z-40 md:hidden transition-transform duration-300",
+        visible ? "translate-y-0" : "translate-y-full"
       )}>
-        <nav className="flex h-16 w-full max-w-md items-center justify-around rounded-2xl border border-white/10 bg-slate-950/75 px-2 shadow-2xl backdrop-blur-xl">
+        <nav className="flex h-[calc(4rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] w-full items-center justify-around border-t border-white/10 bg-[#03050c]/95 px-2 shadow-2xl backdrop-blur-xl">
           {primaryItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href));
             const Icon = item.icon;

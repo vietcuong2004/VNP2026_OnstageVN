@@ -172,7 +172,16 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       {/* Form centred in remaining vertical space */}
       <div className="flex flex-1 flex-col items-center justify-center w-full px-6">
 
-      <div className="w-full max-w-md rounded-2xl glass-panel border-glow-gold p-6 md:p-8">
+      <div className="w-full max-w-md rounded-2xl glass-panel border-glow-gold p-6 md:p-8 relative">
+        {/* Back to Home button */}
+        <Link
+          href="/"
+          className="absolute left-6 top-6 md:left-8 md:top-8 flex h-10 w-10 items-center justify-center rounded-xl border border-amber-400/30 bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)] transition-all duration-300 hover:border-amber-400 hover:bg-amber-500/20 hover:text-amber-300 hover:scale-105 active:scale-95"
+          title="Quay lại trang chủ"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+
         <div className="mb-8 text-center">
           {/* App icon — click to go home */}
           <Link href="/" className="inline-flex flex-col items-center gap-0 mb-5 group">
