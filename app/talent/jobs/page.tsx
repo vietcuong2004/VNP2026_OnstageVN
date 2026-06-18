@@ -1,26 +1,24 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
+import {
   Search, MapPin, DollarSign, Sparkles, Filter, ShieldCheck, CheckCircle,
   Eye, X, Info, Clock, Phone, Mail, Globe, MapPinned, AlertCircle,
   ArrowUpRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
-import { applyTalentCampaign, loadTalentCampaigns, mapCampaignToTalentJob } from "@/lib/talent-api";
+import { applyTalentCampaign, loadTalentCampaigns, mapCampaignToTalentJob, resolveCampaignReferralLink } from "@/lib/talent-api";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-type StageFilter = "all" | "pending" | "accepted" | "executing" | "completed" | "confirmed";
+type StageFilter = "executing" | "recruiting" | "completed" | "all";
 
 const stageFilterLabels: Record<StageFilter, string> = {
-  all: "Tất cả",
-  pending: "Chờ duyệt",
-  accepted: "Đã duyệt",
   executing: "Đang tham gia",
-  completed: "Nghiệm thu",
-  confirmed: "Thành công",
+  recruiting: "Đang tuyển dụng",
+  completed: "Đã hoàn thành",
+  all: "Tất cả",
 };
 
 function sentenceCaseText(value: string) {
@@ -56,13 +54,14 @@ export default function JobsPage() {
   const searchParams = useSearchParams();
   const campaignIdParam = searchParams.get("campaignId");
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState("all");
-  const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>("all");
+  const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>("executing");
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [showAllBenefits, setShowAllBenefits] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "info" }[]>([]);
   const [displayJobs, setDisplayJobs] = useState<any[]>([]);
+  const [pastedUrl, setPastedUrl] = useState("");
 
   const addToast = (message: string, type: "success" | "info" = "success") => {
     const id = Date.now().toString();
@@ -423,6 +422,191 @@ export default function JobsPage() {
     }
   };
 
+  const handleJoinCampaign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pastedUrl) return;
+
+    try {
+      let urlStr = pastedUrl.trim();
+      if (!urlStr.startsWith("http://") && !urlStr.startsWith("https://")) {
+        urlStr = "https://" + urlStr;
+      }
+
+      const urlObj = new URL(urlStr);
+      const pathname = urlObj.pathname;
+      const searchParams = urlObj.searchParams;
+      const refId = searchParams.get("ref") || "";
+
+      if (!pathname.includes("/campaign/")) {
+        addToast("Đường dẫn không chứa '/campaign/'. Vui lòng dán đúng link Affiliate.", "info");
+        return;
+      }
+
+      const pathParts = pathname.split("/campaign/");
+      const campaignPart = pathParts[pathParts.length - 1];
+
+      let campaignId = campaignPart.split("-").slice(-2).join("-") === "camp-1" ||
+        campaignPart.split("-").slice(-2).join("-") === "camp-2" ||
+        campaignPart.split("-").slice(-2).join("-") === "camp-3" ||
+        campaignPart.split("-").slice(-2).join("-") === "camp-4"
+        ? campaignPart.split("-").slice(-2).join("-")
+        : campaignPart.split("-").pop() || "";
+
+      if (campaignId === "c1") campaignId = "camp-1";
+      if (campaignId === "c2") campaignId = "camp-2";
+      if (campaignId === "c3") campaignId = "camp-3";
+      if (campaignId === "c4") campaignId = "camp-4";
+
+      if (refId) {
+        try {
+          const resolved = await resolveCampaignReferralLink(refId);
+          const resolvedCampaignId = resolved?.campaign?.id || resolved?.campaign_id || campaignId;
+
+          if (resolvedCampaignId) {
+            await applyTalentCampaign(resolvedCampaignId, "Đăng ký tham gia qua link giới thiệu Affiliate.", refId);
+
+            const refreshed = await loadTalentCampaigns();
+            if (refreshed?.length) {
+              const backendJobs = refreshed.map(mapCampaignToTalentJob);
+              setDisplayJobs(backendJobs);
+              const backendAppliedIds = backendJobs.filter((job) => job.hasApplied).map((job) => String(job.id));
+              setAppliedJobs((prev) => Array.from(new Set([...prev, ...backendAppliedIds])));
+            }
+
+            setPastedUrl("");
+            const referrerName = resolved?.referrer?.name || resolved?.owner?.name || "KOL đối tác";
+            addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
+            return;
+          }
+        } catch (error) {
+          console.warn("Cannot apply campaign referral via backend", error);
+          if (/^\d+$/.test(String(campaignId))) {
+            addToast(error instanceof Error ? error.message : "Không thể đăng ký campaign qua link backend.", "info");
+            return;
+          }
+        }
+      }
+
+      const allCampaigns = displayJobs;
+      const targetCamp = allCampaigns.find(c => c.id === campaignId);
+      if (!targetCamp) {
+        addToast("Không tìm thấy chiến dịch trong dữ liệu hệ thống.", "info");
+        return;
+      }
+
+      if (hasTalentApplication(targetCamp)) {
+        addToast("Bạn đã ứng tuyển hoặc đang tham gia chiến dịch này rồi.", "info");
+        return;
+      }
+
+      const updatedCampaigns = allCampaigns.map(c => {
+        const matchesCurrentId = c.id === campaignId;
+        const matchesMockId1 = (campaignId === "camp-1" && c.id === "c1") || (campaignId === "c1" && c.id === "camp-1");
+        const matchesMockId2 = (campaignId === "camp-2" && c.id === "c2") || (campaignId === "c2" && c.id === "camp-2");
+        const matchesMockId3 = (campaignId === "camp-3" && c.id === "c3") || (campaignId === "c3" && c.id === "camp-3");
+        const matchesMockId4 = (campaignId === "camp-4" && c.id === "c4") || (campaignId === "c4" && c.id === "camp-4");
+
+        if (matchesCurrentId || matchesMockId1 || matchesMockId2 || matchesMockId3 || matchesMockId4) {
+          const apps = c.applicants || [];
+          return {
+            ...c,
+            hasApplied: true,
+            application: { ...(c.application || {}), status: "new" },
+            applicants: [
+              ...apps,
+              {
+                talentId: "tal-1",
+                stage: "new" as const,
+                note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
+                referredByTalentId: refId || undefined
+              }
+            ]
+          };
+        }
+        return c;
+      });
+      setDisplayJobs(updatedCampaigns);
+      setAppliedJobs((prev) => [...prev, campaignId]);
+      setPastedUrl("");
+
+      const referrerName = "KOL đối tác";
+      addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
+    } catch (err) {
+      try {
+        let urlStr = pastedUrl.trim();
+        if (urlStr.includes("campaign/")) {
+          const parts = urlStr.split("campaign/");
+          const rightPart = parts[parts.length - 1];
+          const cleanPart = rightPart.split("?")[0];
+          const queryPart = rightPart.includes("?") ? rightPart.split("?")[1] : "";
+
+          let campaignId = cleanPart.split("-").slice(-2).join("-") === "camp-1" ||
+            cleanPart.split("-").slice(-2).join("-") === "camp-2" ||
+            cleanPart.split("-").slice(-2).join("-") === "camp-3" ||
+            cleanPart.split("-").slice(-2).join("-") === "camp-4"
+            ? cleanPart.split("-").slice(-2).join("-")
+            : cleanPart.split("-").pop() || "";
+
+          if (campaignId === "c1") campaignId = "camp-1";
+          if (campaignId === "c2") campaignId = "camp-2";
+          if (campaignId === "c3") campaignId = "camp-3";
+          if (campaignId === "c4") campaignId = "camp-4";
+
+          const queryParams = new URLSearchParams(queryPart);
+          const refId = queryParams.get("ref") || "";
+
+          const allCampaigns = displayJobs;
+          const targetCamp = allCampaigns.find(c => c.id === campaignId);
+          if (!targetCamp) {
+            addToast("Không tìm thấy chiến dịch trong dữ liệu hệ thống.", "info");
+            return;
+          }
+
+          if (hasTalentApplication(targetCamp)) {
+            addToast("Bạn đã ứng tuyển hoặc đang tham gia chiến dịch này rồi.", "info");
+            return;
+          }
+
+          const updatedCampaigns = allCampaigns.map(c => {
+            const matchesCurrentId = c.id === campaignId;
+            const matchesMockId1 = (campaignId === "camp-1" && c.id === "c1") || (campaignId === "c1" && c.id === "camp-1");
+            const matchesMockId2 = (campaignId === "camp-2" && c.id === "c2") || (campaignId === "c2" && c.id === "camp-2");
+            const matchesMockId3 = (campaignId === "camp-3" && c.id === "c3") || (campaignId === "c3" && c.id === "camp-3");
+            const matchesMockId4 = (campaignId === "camp-4" && c.id === "c4") || (campaignId === "c4" && c.id === "camp-4");
+
+            if (matchesCurrentId || matchesMockId1 || matchesMockId2 || matchesMockId3 || matchesMockId4) {
+              const apps = c.applicants || [];
+              return {
+                ...c,
+                hasApplied: true,
+                application: { ...(c.application || {}), status: "new" },
+                applicants: [
+                  ...apps,
+                  {
+                    talentId: "tal-1",
+                    stage: "new" as const,
+                    note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
+                    referredByTalentId: refId || undefined
+                  }
+                ]
+              };
+            }
+            return c;
+          });
+          setDisplayJobs(updatedCampaigns);
+          setAppliedJobs((prev) => [...prev, campaignId]);
+          setPastedUrl("");
+
+          const referrerName = "KOL đối tác";
+          addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
+          return;
+        }
+      } catch (e) { }
+
+      addToast("Đường dẫn không hợp lệ. Vui lòng kiểm tra lại.", "info");
+    }
+  };
+
   const filteredCampaigns = displayJobs.filter((camp) => {
     // 1. Sponsorship filter
     let matchesSponsorship = true;
@@ -440,39 +624,92 @@ export default function JobsPage() {
     let matchesStage = true;
     if (selectedStageFilter !== "all") {
       const stage = getTalentJobStage(camp);
-      if (selectedStageFilter === "pending") {
-        matchesStage = stage === "new";
-      } else {
-        matchesStage = stage === selectedStageFilter;
+      const applied = hasTalentApplication(camp);
+      if (selectedStageFilter === "executing") {
+        matchesStage = (stage === "executing" || stage === "accepted");
+      } else if (selectedStageFilter === "recruiting") {
+        matchesStage = (!applied || stage === "new");
+      } else if (selectedStageFilter === "completed") {
+        matchesStage = (stage === "completed" || stage === "confirmed");
       }
     }
 
     return matchesSponsorship && matchesStage;
   });
 
-  const stageFilterOptions: StageFilter[] = ["all", "pending", "accepted", "executing", "completed", "confirmed"];
+  const stageFilterOptions: StageFilter[] = ["executing", "recruiting", "completed", "all"];
 
   // Count jobs per stage for displaying badge counts
   const stageCounts = stageFilterOptions.reduce((acc, sf) => {
-    if (sf === "all") {
-      acc[sf] = displayJobs.length;
-    } else {
-      acc[sf] = displayJobs.filter((camp) => {
-        const stage = getTalentJobStage(camp);
-        if (sf === "pending") return stage === "new";
-        return stage === sf;
-      }).length;
-    }
+    acc[sf] = displayJobs.filter((camp) => {
+      if (sf === "all") return true;
+      const stage = getTalentJobStage(camp);
+      const applied = hasTalentApplication(camp);
+      if (sf === "executing") {
+        return stage === "executing" || stage === "accepted";
+      }
+      if (sf === "recruiting") {
+        return !applied || stage === "new";
+      }
+      if (sf === "completed") {
+        return stage === "completed" || stage === "confirmed";
+      }
+      return false;
+    }).length;
     return acc;
   }, {} as Record<StageFilter, number>);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      
+
       {/* Title block */}
       <div>
         <h1 className="font-display text-3xl font-black text-white tracking-tight uppercase leading-none">Chợ việc làm</h1>
         <p className="text-xs text-slate-400 mt-2 font-medium">Khám phá và ứng tuyển các job sắc đẹp phù hợp nhất với bản thân.</p>
+      </div>
+
+      {/* Tham gia qua link giới thiệu */}
+      <div className="rounded-3xl border border-amber-500/15 bg-gradient-to-br from-[#0c0f1d] to-[#07080e] p-6 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
+          <div className="space-y-1">
+            <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-amber-400 animate-pulse" />
+              Tham gia qua link giới thiệu
+            </h2>
+            <p className="text-[11px] text-slate-400 font-medium leading-relaxed max-w-2xl">
+              Dán đường dẫn Affiliate nhận từ đối tác (F1) để tham gia trực tiếp chiến dịch với vai trò F2 và nhận 70% cát-xê.
+            </p>
+          </div>
+
+          <form onSubmit={handleJoinCampaign} className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0 min-w-0 md:min-w-[450px]">
+            <div className="relative flex-1 min-w-0">
+              <input
+                type="text"
+                value={pastedUrl}
+                onChange={(e) => setPastedUrl(e.target.value)}
+                placeholder="Dán link chiến dịch tại đây..."
+                className="w-full bg-[#03050c] border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:border-amber-500/40 focus:outline-none pr-10 min-w-0"
+              />
+              {pastedUrl && (
+                <button
+                  type="button"
+                  onClick={() => setPastedUrl("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-[10px] uppercase font-bold"
+                >
+                  Xóa
+                </button>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={!pastedUrl.trim()}
+              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-slate-950 px-6 text-xs font-black uppercase tracking-wider transition-all hover:from-amber-300 hover:to-yellow-400 active:scale-[0.98] cursor-pointer whitespace-nowrap"
+            >
+              Tham gia ngay <ArrowUpRight className="h-4 w-4 text-slate-950" />
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Filter Tabs - same amber style as brand campaigns page */}
@@ -504,7 +741,7 @@ export default function JobsPage() {
         })}
       </div>
 
-      {/* Sponsorship Filter */}
+      {/* Sponsorship Filter
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-[#08090f] border border-[#151b2d] rounded-2xl p-4">
         <div className="flex items-center gap-2">
           <Filter className="h-4.5 w-4.5 text-amber-400" />
@@ -523,13 +760,13 @@ export default function JobsPage() {
             </option>
           ))}
         </select>
-      </div>
+      </div> */}
 
       {/* Campaigns Listing - Premium grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredCampaigns.map((camp) => {
           const isApplied = appliedJobs.includes(camp.id) || hasTalentApplication(camp);
-          
+
           return (
             <div
               key={camp.id}
@@ -601,70 +838,70 @@ export default function JobsPage() {
                   <Eye className="h-4 w-4 text-amber-400" />
                   Xem chi tiết
                 </button>
-                
-                  {(() => {
-                    if (!isApplied) {
-                      return (
-                        <button
-                          onClick={() => handleApply(camp.id, camp.title)}
-                          className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] cursor-pointer"
-                        >
-                          Ứng tuyển ngay
-                        </button>
-                      );
-                    }
-                    
-                    const stage = getTalentJobStage(camp) || "new";
 
-                    if (stage === "new") {
-                      return (
-                        <button
-                          disabled
-                          className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400 cursor-not-allowed"
-                        >
-                          Chờ duyệt hồ sơ
-                        </button>
-                      );
-                    }
-                    if (stage === "accepted") {
-                      return (
-                        <button
-                          onClick={() => handleUpdateStage(camp.id, "executing")}
-                          className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] cursor-pointer"
-                        >
-                          Bắt đầu tham gia
-                        </button>
-                      );
-                    }
-                    if (stage === "executing") {
-                      return (
-                        <button
-                          onClick={() => handleUpdateStage(camp.id, "completed")}
-                          className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] cursor-pointer"
-                        >
-                          Báo cáo hoàn thành
-                        </button>
-                      );
-                    }
-                    if (stage === "completed") {
-                      return (
-                        <button
-                          disabled
-                          className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 cursor-not-allowed"
-                        >
-                          Đang chờ nghiệm thu
-                        </button>
-                      );
-                    }
+                {(() => {
+                  if (!isApplied) {
+                    return (
+                      <button
+                        onClick={() => handleApply(camp.id, camp.title)}
+                        className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] cursor-pointer"
+                      >
+                        Ứng tuyển ngay
+                      </button>
+                    );
+                  }
+
+                  const stage = getTalentJobStage(camp) || "new";
+
+                  if (stage === "new") {
                     return (
                       <button
                         disabled
-                        className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 cursor-not-allowed"
+                        className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400 cursor-not-allowed"
                       >
-                        Thành công (Đã rút ví)
+                        Chờ duyệt hồ sơ
                       </button>
                     );
-                  })()}
+                  }
+                  if (stage === "accepted") {
+                    return (
+                      <button
+                        onClick={() => handleUpdateStage(camp.id, "executing")}
+                        className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] cursor-pointer"
+                      >
+                        Bắt đầu tham gia
+                      </button>
+                    );
+                  }
+                  if (stage === "executing") {
+                    return (
+                      <button
+                        onClick={() => handleUpdateStage(camp.id, "completed")}
+                        className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] cursor-pointer"
+                      >
+                        Báo cáo hoàn thành
+                      </button>
+                    );
+                  }
+                  if (stage === "completed") {
+                    return (
+                      <button
+                        disabled
+                        className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 cursor-not-allowed"
+                      >
+                        Đang chờ nghiệm thu
+                      </button>
+                    );
+                  }
+                  return (
+                    <button
+                      disabled
+                      className="flex h-11 items-center justify-center rounded-xl font-display text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 cursor-not-allowed"
+                    >
+                      Thành công (Đã rút ví)
+                    </button>
+                  );
+                })()}
               </div>
             </div>
           );
@@ -700,8 +937,8 @@ export default function JobsPage() {
                   Thương hiệu: <span className="text-slate-300">{selectedJob.brand}</span>
                 </p>
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => setSelectedJob(null)}
                 className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#151b2d] bg-[#050711] text-slate-400 hover:text-white transition-all cursor-pointer hover:border-slate-800"
               >
@@ -758,11 +995,11 @@ export default function JobsPage() {
                     <div className="space-y-1.5">
                       <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển</p>
                       <div className="flex flex-wrap gap-1.5">
-                      {selectedJob.roles.map((role: string, idx: number) => (
-                        <span key={`${role}-${idx}`} className="rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-cyan-300">
-                          {role}
-                        </span>
-                      ))}
+                        {selectedJob.roles.map((role: string, idx: number) => (
+                          <span key={`${role}-${idx}`} className="rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-cyan-300">
+                            {role}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -942,7 +1179,7 @@ export default function JobsPage() {
                 <h4 className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
                   <Clock className="h-4 w-4 text-amber-400" /> Quy trình tuyển chọn & Triển khai
                 </h4>
-                
+
                 {/* Timeline vertical flow */}
                 <div className="relative border-l border-[#151b2d] ml-3 pl-6 space-y-6">
                   {selectedJob.detail.phases.map((phase: any, idx: number) => (
@@ -951,7 +1188,7 @@ export default function JobsPage() {
                       <span className="absolute -left-[31px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#08090f] border-2 border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]">
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
                       </span>
-                      
+
                       <div className="space-y-2">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                           <span className="text-xs font-bold text-white">{phase.title}</span>
@@ -964,7 +1201,7 @@ export default function JobsPage() {
                             </span>
                           </div>
                         </div>
-                        
+
                         <ul className="list-disc pl-4 space-y-1 text-slate-400 text-xs font-medium">
                           {phase.items.map((item: string, i: number) => (
                             <li key={i} className="leading-relaxed">{item}</li>
@@ -1013,7 +1250,7 @@ export default function JobsPage() {
               >
                 Đóng lại
               </button>
-              
+
               {(() => {
                 const isApplied = appliedJobs.includes(selectedJob.id) || hasTalentApplication(selectedJob);
                 if (!isApplied) {
@@ -1026,7 +1263,7 @@ export default function JobsPage() {
                     </button>
                   );
                 }
-                
+
                 const stage = getTalentJobStage(selectedJob) || "new";
 
                 if (stage === "new") {
@@ -1100,7 +1337,7 @@ export default function JobsPage() {
       {/* Floating Toast Notification System */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
         {toasts.map((toast) => (
-          <div 
+          <div
             key={toast.id}
             className={cn(
               "glass-panel border-l-4 px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom duration-300 min-w-[280px] max-w-[400px]",
