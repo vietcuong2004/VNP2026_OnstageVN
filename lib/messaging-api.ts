@@ -37,12 +37,14 @@ export type UserNotification = {
     type?: string;
     title?: string;
     body?: string;
+    link?: string | null;
     conversation_id?: number;
     message_id?: number;
     campaign_id?: number;
     campaign_talent_id?: number;
     brand_user_id?: number;
     brand_talent_id?: number;
+    sent_by_admin_id?: number;
     [key: string]: unknown;
   };
   read_at: string | null;
