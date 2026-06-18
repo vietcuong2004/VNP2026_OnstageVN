@@ -104,7 +104,7 @@ export default function Header() {
       ? { name: "L'Oréal Vietnam", subtitle: "partner@loreal.com" }
       : { name: "Nguyễn Mai Anh", subtitle: "maianh@onstage.vn" };
   const fallbackAvatarSrc = createInitialAvatarDataUrl(label.name, user?.email);
-  const headerAvatarSrc = isBrandPath ? "/logo_icon.png" : talentAvatar || fallbackAvatarSrc;
+  const headerAvatarSrc = isBrandPath ? "/logo.png" : talentAvatar || fallbackAvatarSrc;
   const nextPlatform = isBrandPath ? "talent" : "brand";
   const nextPlatformPath = nextPlatform === "brand" ? "/brand/dashboard" : "/talent/dashboard";
   const nextPlatformLabel = nextPlatform === "brand" ? "Chuyển sang Brand" : "Chuyển sang Talent";

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { 
   User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft, 
   CheckCircle2, Info, Star, ChevronRight, Trophy, Heart,
-  Globe, Shield, Upload, FileText, Video, Check, Crown
+  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
@@ -150,6 +150,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   const [surveyAnswers, setSurveyAnswers] = useState<Record<number, number>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [registeredComp, setRegisteredComp] = useState<Record<string, boolean>>({});
   const [aiAnalysis, setAiAnalysis] = useState<TalentSurveyAnalysis | null>(null);
 
@@ -430,176 +431,183 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isStepValid()) return;
+    if (!isStepValid() || isAnalyzing) return;
+    setIsAnalyzing(true);
     setAiAnalysis(null);
 
-    // Hard Rules checks (Q1 - Q10)
-    // Rule 1: Married or Major Surgery -> Excluded from strict national pageants
-    const isMarriedOrChild = formData.maritalStatus === "Đã kết hôn / Đã sinh con";
-    const hasMajorSurgery = formData.plasticSurgery === "Đã đại phẫu (Nâng mũi, nâng ngực, gọt hàm...)";
-    const strictPageantAllowed = !isMarriedOrChild && !hasMajorSurgery;
+    try {
+      // Hard Rules checks (Q1 - Q10)
+      // Rule 1: Married or Major Surgery -> Excluded from strict national pageants
+      const isMarriedOrChild = formData.maritalStatus === "Đã kết hôn / Đã sinh con";
+      const hasMajorSurgery = formData.plasticSurgery === "Đã đại phẫu (Nâng mũi, nâng ngực, gọt hàm...)";
+      const strictPageantAllowed = !isMarriedOrChild && !hasMajorSurgery;
 
-    // Rule 2: Height < 165cm -> Excluded from Runway Model
-    const heightVal = parseFloat(formData.height) || 0;
-    const runwayAllowed = heightVal >= 165;
+      // Rule 2: Height < 165cm -> Excluded from Runway Model
+      const heightVal = parseFloat(formData.height) || 0;
+      const runwayAllowed = heightVal >= 165;
 
-    // Rule 3: English proficient -> priority points
-    const hasLanguagePriority = formData.languages.includes("Thành thạo");
+      // Rule 3: English proficient -> priority points
+      const hasLanguagePriority = formData.languages.includes("Thành thạo");
 
-    // Survey grading algorithm
-    let countA = 0;
-    let countB = 0;
-    let countC = 0;
+      // Survey grading algorithm
+      let countA = 0;
+      let countB = 0;
+      let countC = 0;
 
-    SURVEY_QUESTIONS.forEach((q) => {
-      const answerIdx = surveyAnswers[q.id];
-      if (answerIdx !== undefined) {
-        const group = q.options[answerIdx].group;
-        if (group === "A") countA++;
-        if (group === "B") countB++;
-        if (group === "C") countC++;
+      SURVEY_QUESTIONS.forEach((q) => {
+        const answerIdx = surveyAnswers[q.id];
+        if (answerIdx !== undefined) {
+          const group = q.options[answerIdx].group;
+          if (group === "A") countA++;
+          if (group === "B") countB++;
+          if (group === "C") countC++;
+        }
+      });
+
+      // 20 questions total. Each A/B/C choice is 3 points. Total maximum is 60.
+      const scoreA = countA * 3;
+      const scoreB = countB * 3;
+      const scoreC = countC * 3;
+
+      let pageantPct = Math.round((scoreA / 60) * 100);
+      let runwayPct = Math.round((scoreB / 60) * 100);
+      let kolPct = Math.round((scoreC / 60) * 100);
+
+      // Apply Hard Rules to the scores/outcomes
+      if (!runwayAllowed) {
+        runwayPct = Math.max(0, runwayPct - 30); // Heavily penalize runway if height is insufficient
       }
-    });
 
-    // 20 questions total. Each A/B/C choice is 3 points. Total maximum is 60.
-    const scoreA = countA * 3;
-    const scoreB = countB * 3;
-    const scoreC = countC * 3;
-
-    let pageantPct = Math.round((scoreA / 60) * 100);
-    let runwayPct = Math.round((scoreB / 60) * 100);
-    let kolPct = Math.round((scoreC / 60) * 100);
-
-    // Apply Hard Rules to the scores/outcomes
-    if (!runwayAllowed) {
-      runwayPct = Math.max(0, runwayPct - 30); // Heavily penalize runway if height is insufficient
-    }
-
-    if (hasLanguagePriority) {
-      pageantPct = Math.min(100, pageantPct + 5); // Add small priority bonus to pageant
-    }
-
-    // Determine highest score category
-    let mainCategory = "Người đẹp thương hiệu / KOLs / Giải trí & Thế hệ mới";
-    if (pageantPct >= runwayPct && pageantPct >= kolPct) {
-      mainCategory = "Hoa hậu / Hoa khôi truyền thống & Nhân ái";
-    } else if (runwayPct >= pageantPct && runwayPct >= kolPct && runwayAllowed) {
-      mainCategory = "Người mẫu Runway chuyên nghiệp";
-    }
-
-    // Profile completeness score
-    const completeness = getCompletenessPercent();
-
-    // Determine Tier rating based on evaluation score (0-100)
-    const evaluationScore = Math.max(pageantPct, runwayPct, kolPct);
-    let tier: "S" | "A" | "B" | "C" | "Potential" = "C";
-
-    if (evaluationScore >= 90) {
-      tier = "S";
-    } else if (evaluationScore >= 70) {
-      tier = "A";
-    } else if (evaluationScore >= 45) {
-      tier = "B";
-    } else if (evaluationScore >= 20) {
-      tier = "C";
-    } else {
-      tier = "Potential";
-    }
-
-    const computedResults = {
-      pageant: pageantPct,
-      runway: runwayPct,
-      kol: kolPct,
-      mainCategory,
-      tier,
-      profileScore: evaluationScore,
-      date: new Date().toLocaleString("vi-VN"),
-      hardRules: {
-        strictPageantAllowed,
-        runwayAllowed,
-        hasLanguagePriority
+      if (hasLanguagePriority) {
+        pageantPct = Math.min(100, pageantPct + 5); // Add small priority bonus to pageant
       }
-    };
 
-    setResults(computedResults);
+      // Determine highest score category
+      let mainCategory = "Người đẹp thương hiệu / KOLs / Giải trí & Thế hệ mới";
+      if (pageantPct >= runwayPct && pageantPct >= kolPct) {
+        mainCategory = "Hoa hậu / Hoa khôi truyền thống & Nhân ái";
+      } else if (runwayPct >= pageantPct && runwayPct >= kolPct && runwayAllowed) {
+        mainCategory = "Người mẫu Runway chuyên nghiệp";
+      }
 
-    // Save to local storage for other views in the application
-    const userProfile: Record<string, unknown> = {
-      ...formData,
-      followersCount: getTotalFollowers().toString(),
-      surveyScores: {
+      // Profile completeness score
+      const completeness = getCompletenessPercent();
+
+      // Determine Tier rating based on evaluation score (0-100)
+      const evaluationScore = Math.max(pageantPct, runwayPct, kolPct);
+      let tier: "S" | "A" | "B" | "C" | "Potential" = "C";
+
+      if (evaluationScore >= 90) {
+        tier = "S";
+      } else if (evaluationScore >= 70) {
+        tier = "A";
+      } else if (evaluationScore >= 45) {
+        tier = "B";
+      } else if (evaluationScore >= 20) {
+        tier = "C";
+      } else {
+        tier = "Potential";
+      }
+
+      const computedResults = {
         pageant: pageantPct,
         runway: runwayPct,
-        kol: kolPct
-      },
-      mainCategory,
-      profileScore: evaluationScore,
-      tier,
-      isOnboarded: true,
-      avatar: mediaUploads.avatar ? `/uploads/${mediaUploads.avatar}` : "/avatar.png",
-      skills: formData.skills.split(",").map(s => s.trim()),
-      languages: formData.languages.split(",").map(s => s.trim()),
-      mediaUploads
-    };
-    const savedProfile = await saveTalentProfile(userProfile);
-
-    const surveyQuestionAnswers = SURVEY_QUESTIONS
-      .map((question) => {
-        const answerIdx = surveyAnswers[question.id];
-        const option = answerIdx !== undefined ? question.options[answerIdx] : null;
-
-        return option
-          ? {
-              question_code: `Q${question.id}`,
-              answer_value: {
-                option_index: answerIdx,
-                group: option.group,
-                text: option.text,
-              },
-            }
-          : null;
-      })
-      .filter(Boolean) as { question_code: string; answer_value: unknown }[];
-
-    const experienceYears = parseInt(formData.experience.match(/\d+/)?.[0] || "0", 10);
-
-    await submitTalentSurvey("A", [
-      { question_code: "A1", answer_value: parseFloat(formData.height) || 0 },
-      { question_code: "B1", answer_value: experienceYears },
-      { question_code: "C1", answer_value: getTotalFollowers() },
-      { question_code: "D1", answer_value: mainCategory },
-    ]);
-    await submitTalentSurvey("S", surveyQuestionAnswers);
-    const aiResult = await analyzeTalentSurvey().catch((error) => {
-      console.warn(error);
-      return null;
-    });
-
-    setAiAnalysis(aiResult);
-
-    const finalResults = computedResults;
-
-    if (aiResult) {
-      userProfile.aiSurveyAnalysis = aiResult;
-      userProfile.recommendedPageants = aiResult.pageants || [];
-      userProfile.careerTrends = aiResult.career_trends || [];
-    }
-
-    if (aiResult) {
-      setResults(finalResults);
-      userProfile.surveyScores = {
-        pageant: finalResults.pageant,
-        runway: finalResults.runway,
-        kol: finalResults.kol
+        kol: kolPct,
+        mainCategory,
+        tier,
+        profileScore: evaluationScore,
+        date: new Date().toLocaleString("vi-VN"),
+        hardRules: {
+          strictPageantAllowed,
+          runwayAllowed,
+          hasLanguagePriority
+        }
       };
-      userProfile.profileScore = finalResults.profileScore;
-      userProfile.tier = finalResults.tier;
+
+      setResults(computedResults);
+
+      // Save to local storage for other views in the application
+      const userProfile: Record<string, unknown> = {
+        ...formData,
+        followersCount: getTotalFollowers().toString(),
+        surveyScores: {
+          pageant: pageantPct,
+          runway: runwayPct,
+          kol: kolPct
+        },
+        mainCategory,
+        profileScore: evaluationScore,
+        tier,
+        isOnboarded: true,
+        avatar: mediaUploads.avatar ? `/uploads/${mediaUploads.avatar}` : "/avatar.png",
+        skills: formData.skills.split(",").map(s => s.trim()),
+        languages: formData.languages.split(",").map(s => s.trim()),
+        mediaUploads
+      };
+      const savedProfile = await saveTalentProfile(userProfile);
+
+      const surveyQuestionAnswers = SURVEY_QUESTIONS
+        .map((question) => {
+          const answerIdx = surveyAnswers[question.id];
+          const option = answerIdx !== undefined ? question.options[answerIdx] : null;
+
+          return option
+            ? {
+                question_code: `Q${question.id}`,
+                answer_value: {
+                  option_index: answerIdx,
+                  group: option.group,
+                  text: option.text,
+                },
+              }
+            : null;
+        })
+        .filter(Boolean) as { question_code: string; answer_value: unknown }[];
+
+      const experienceYears = parseInt(formData.experience.match(/\d+/)?.[0] || "0", 10);
+
+      await submitTalentSurvey("A", [
+        { question_code: "A1", answer_value: parseFloat(formData.height) || 0 },
+        { question_code: "B1", answer_value: experienceYears },
+        { question_code: "C1", answer_value: getTotalFollowers() },
+        { question_code: "D1", answer_value: mainCategory },
+      ]);
+      await submitTalentSurvey("S", surveyQuestionAnswers);
+      const aiResult = await analyzeTalentSurvey().catch((error) => {
+        console.warn(error);
+        return null;
+      });
+
+      setAiAnalysis(aiResult);
+
+      const finalResults = computedResults;
+
+      if (aiResult) {
+        userProfile.aiSurveyAnalysis = aiResult;
+        userProfile.recommendedPageants = aiResult.pageants || [];
+        userProfile.careerTrends = aiResult.career_trends || [];
+      }
+
+      if (aiResult) {
+        setResults(finalResults);
+        userProfile.surveyScores = {
+          pageant: finalResults.pageant,
+          runway: finalResults.runway,
+          kol: finalResults.kol
+        };
+        userProfile.profileScore = finalResults.profileScore;
+        userProfile.tier = finalResults.tier;
+      }
+
+      persistTalentProfile({ ...savedProfile, ...userProfile });
+
+      void saveTalentSurveyProgress(5, "analyzed");
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error("Error submitting survey:", error);
+    } finally {
+      setIsAnalyzing(false);
     }
-
-    persistTalentProfile({ ...savedProfile, ...userProfile });
-
-    void saveTalentSurveyProgress(5, "analyzed");
-    setIsSubmitted(true);
   };
 
   // SVG Radar Points calculation (center at 100, 100, radius 70)
@@ -1777,6 +1785,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               <div className="flex justify-between items-center pt-2">
                 <button
                   type="button"
+                  disabled={isAnalyzing}
                   onClick={() => {
                     if (activeSurveyQIdx > 0) {
                       setActiveSurveyQIdx(prev => prev - 1);
@@ -1785,7 +1794,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       goToStep(4);
                     }
                   }}
-                  className="flex h-9 items-center justify-center rounded-lg border border-white/20 px-4 text-[10px] font-bold text-slate-200 hover:text-amber-300 hover:border-amber-400/50 hover:bg-white/5 transition-all gap-1 cursor-pointer"
+                  className={cn(
+                    "flex h-9 items-center justify-center rounded-lg border border-white/20 px-4 text-[10px] font-bold text-slate-200 hover:text-amber-300 hover:border-amber-400/50 hover:bg-white/5 transition-all gap-1 cursor-pointer",
+                    isAnalyzing && "cursor-not-allowed opacity-40"
+                  )}
                 >
                   <ArrowLeft className="h-3.5 w-3.5" /> Quay Lại
                 </button>
@@ -1794,25 +1806,33 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   // Câu cuối – nút "Hoàn Thành"
                   <button
                     type="submit"
-                    disabled={surveyAnswers[activeQuestion.id] === undefined || !isStepValid()}
+                    disabled={surveyAnswers[activeQuestion.id] === undefined || !isStepValid() || isAnalyzing}
                     className={cn(
                       "flex h-9 items-center justify-center rounded-lg px-5 text-[10px] font-black transition-all gap-1.5 cursor-pointer",
-                      surveyAnswers[activeQuestion.id] !== undefined && isStepValid()
+                      (surveyAnswers[activeQuestion.id] !== undefined && isStepValid() && !isAnalyzing)
                         ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 hover:brightness-110 shadow-[0_0_14px_rgba(52,211,153,0.35)] animate-pulse"
                         : "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40"
                     )}
                   >
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Hoàn Thành
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang phân tích...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Hoàn Thành
+                      </>
+                    )}
                   </button>
                 ) : (
                   // Các câu khác – nút "Tiếp Theo"
                   <button
                     type="button"
                     onClick={() => setActiveSurveyQIdx(prev => prev + 1)}
-                    disabled={surveyAnswers[activeQuestion.id] === undefined}
+                    disabled={surveyAnswers[activeQuestion.id] === undefined || isAnalyzing}
                     className={cn(
                       "flex h-9 items-center justify-center rounded-lg px-4 text-[10px] font-black transition-all gap-1 cursor-pointer",
-                      surveyAnswers[activeQuestion.id] !== undefined
+                      (surveyAnswers[activeQuestion.id] !== undefined && !isAnalyzing)
                         ? "bg-gradient-to-r from-amber-300 to-yellow-500 text-slate-950 hover:brightness-110 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
                         : "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40"
                     )}
@@ -1844,6 +1864,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     <button
                       type="button"
                       key={q.id}
+                      disabled={isAnalyzing}
                       onClick={() => setActiveSurveyQIdx(qIdx)}
                       className={cn(
                         "aspect-square rounded-xl text-[11px] font-bold flex items-center justify-center border transition-all duration-300 cursor-pointer",
@@ -1851,7 +1872,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                           ? "border-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.35)] scale-105"
                           : isAnswered
                           ? "border-emerald-500/40 bg-emerald-500/20 text-emerald-200 font-extrabold hover:border-emerald-400 hover:bg-emerald-500/30"
-                          : "border-white/10 bg-[#070913]/40 text-slate-300 hover:border-white/20 hover:text-white"
+                          : "border-white/10 bg-[#070913]/40 text-slate-300 hover:border-white/20 hover:text-white",
+                        isAnalyzing && "cursor-not-allowed opacity-40 pointer-events-none"
                       )}
                     >
                       {qIdx + 1}
