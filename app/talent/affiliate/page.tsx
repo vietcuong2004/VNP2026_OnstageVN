@@ -648,7 +648,7 @@ export default function TalentAffiliatePage() {
         {/* LIST OF ACTIVE CAMPAIGNS (LEFT COLUMN - 2/3 width) */}
         <div className="lg:col-span-2 space-y-6">
           <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 border-b border-white/5 pb-2">
-            <Briefcase className="h-4.5 w-4.5 text-amber-400" /> Danh sách chiến dịch của bạn
+            <Briefcase className="h-4.5 w-4.5 text-amber-400" /> Danh sách chiến dịch bạn đang tham gia
           </h2>
 
           {activeCampaigns.length === 0 ? (

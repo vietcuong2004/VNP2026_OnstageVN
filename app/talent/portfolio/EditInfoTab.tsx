@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Edit3, ShieldCheck, CheckCircle, Upload, Video, Trash2
+  Edit3, ShieldCheck, CheckCircle, Upload, Video, Trash2, ChevronDown, ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { persistTalentProfile, ensureTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
@@ -51,6 +51,7 @@ export default function EditInfoTab({
   const [selfie, setSelfie] = useState<string | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<"unverified" | "pending" | "verified">("unverified");
   const [lifestyleServices, setLifestyleServices] = useState<any[]>([]);
+  const [isLifestyleExpanded, setIsLifestyleExpanded] = useState(false);
 
   // Form states for profile editing
   const [editForm, setEditForm] = useState<any>({
@@ -132,7 +133,7 @@ export default function EditInfoTab({
         hasUploadedMC: onboarded ? (profile.hasUploadedMC || false) : false
       });
       setLifestyleServices(onboarded ? (profile.lifestyleServices || []) : []);
-      
+
       const front = profile.cccdFront || null;
       const back = profile.cccdBack || null;
       const self = profile.cccdSelfie || null;
@@ -593,51 +594,90 @@ export default function EditInfoTab({
 
           {/* Lifestyle Companion services config editing */}
           {lifestyleServices && lifestyleServices.length > 0 && (
-            <div className="border-t border-[#151b2d] pt-4 space-y-3">
-              <span className="block font-bold text-slate-300 uppercase tracking-wider text-[8px] text-left">Dịch Vụ Đồng Hành VIP & Phong Cách Sống (Lifestyle Co-Space)</span>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {lifestyleServices.map((service, index) => {
-                  return (
-                    <div key={service.id} className="rounded-xl border border-white/5 bg-slate-950 p-4 space-y-3 text-left">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-xs text-white">{service.title}</span>
-                        <label className="flex items-center gap-1.5 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={service.enabled}
-                            onChange={(e) => {
-                              const updated = [...lifestyleServices];
-                              updated[index] = { ...service, enabled: e.target.checked };
-                              setLifestyleServices(updated);
-                            }}
-                            className="rounded accent-[#f4c430] h-3.5 w-3.5 cursor-pointer"
-                          />
-                          <span className="text-[8px] font-black text-slate-400 uppercase">Kích hoạt</span>
-                        </label>
-                      </div>
-
-                      <p className="text-xs text-slate-500 leading-normal">{service.description}</p>
-
-                      {service.enabled && (
-                        <div className="space-y-1.5 animate-in fade-in duration-200">
-                          <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Giá dịch vụ đề xuất (VND / {service.unit})</label>
-                          <input
-                            type="number"
-                            required
-                            value={service.rate}
-                            onChange={(e) => {
-                              const updated = [...lifestyleServices];
-                              updated[index] = { ...service, rate: Number(e.target.value) };
-                              setLifestyleServices(updated);
-                            }}
-                            className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-amber-400 transition-colors"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            <div className="border-t border-[#151b2d] pt-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-300 uppercase tracking-wider text-[8px] text-left">
+                  Dịch Vụ Đồng Hành VIP
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsLifestyleExpanded(!isLifestyleExpanded)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 hover:border-amber-400/40 text-[9px] font-black uppercase transition-all duration-300 focus:outline-none hover:shadow-[0_0_10px_rgba(244,196,48,0.15)]"
+                >
+                  <span>{isLifestyleExpanded ? "Thu gọn" : "Cấu hình"}</span>
+                  {isLifestyleExpanded ? (
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  )}
+                </button>
               </div>
+
+              {isLifestyleExpanded && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* Select All Toggle - shown only when expanded */}
+                  <div className="flex justify-end">
+                    <label className="flex items-center gap-1.5 cursor-pointer select-none bg-slate-950/60 border border-white/5 px-2.5 py-1.5 rounded-lg hover:border-white/10 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={lifestyleServices.length > 0 && lifestyleServices.every(s => s.enabled)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          const updated = lifestyleServices.map(s => ({ ...s, enabled: checked }));
+                          setLifestyleServices(updated);
+                        }}
+                        className="rounded accent-[#f4c430] h-3.5 w-3.5 cursor-pointer"
+                      />
+                      <span className="text-[8px] font-black text-slate-400 uppercase">Chọn tất cả</span>
+                    </label>
+                  </div>
+
+                  {/* Grid of items */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {lifestyleServices.map((service, index) => {
+                      return (
+                        <div key={service.id} className="rounded-xl border border-white/5 bg-slate-950 p-4 space-y-3 text-left">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-xs text-white">{service.title}</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={service.enabled}
+                                onChange={(e) => {
+                                  const updated = [...lifestyleServices];
+                                  updated[index] = { ...service, enabled: e.target.checked };
+                                  setLifestyleServices(updated);
+                                }}
+                                className="rounded accent-[#f4c430] h-3.5 w-3.5 cursor-pointer"
+                              />
+                              <span className="text-[8px] font-black text-slate-400 uppercase">Kích hoạt</span>
+                            </label>
+                          </div>
+
+                          <p className="text-xs text-slate-500 leading-normal">{service.description}</p>
+
+                          {service.enabled && (
+                            <div className="space-y-1.5 animate-in fade-in duration-200">
+                              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Giá dịch vụ đề xuất (VND / {service.unit})</label>
+                              <input
+                                type="number"
+                                required
+                                value={service.rate}
+                                onChange={(e) => {
+                                  const updated = [...lifestyleServices];
+                                  updated[index] = { ...service, rate: Number(e.target.value) };
+                                  setLifestyleServices(updated);
+                                }}
+                                className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

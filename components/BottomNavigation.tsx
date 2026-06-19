@@ -14,12 +14,12 @@ import { logoutCurrentSession } from "@/lib/api-client";
 const talentAllItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
   { label: "Khám phá", icon: Sparkles, href: "/talent/survey" },
-  { label: "Hồ sơ số", icon: User, href: "/talent/portfolio" },
+  { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
   { label: "Cuộc thi", icon: Trophy, href: "/talent/contests" },
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Affiliate", icon: Share2, href: "/talent/affiliate" },
   { label: "Hợp tác Brand", icon: Users, href: "/talent/brands" },
-  { label: "Quỹ", icon: Crown, href: "/talent/crown" },
+  // { label: "Quỹ", icon: Crown, href: "/talent/crown" },
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },
   { label: "Thu nhập", icon: Wallet, href: "/talent/wallet" },
@@ -162,8 +162,8 @@ export default function BottomNavigation() {
                       isActive
                         ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
                         : isLogout
-                        ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.08)]"
-                        : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                          ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.08)]"
+                          : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
                     )}>
                       <Icon className="h-5 w-5 animate-none" />
                     </div>

@@ -612,7 +612,7 @@ export default function PortfolioPage() {
           )}
         >
           <User className="h-4 w-4 shrink-0" />
-          <span className="leading-tight">Thông tin<br className="sm:hidden" /> cá nhân</span>
+          <span className="leading-tight">Thông tin</span>
           {activeTab === "personal-info" && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400 rounded-full" />
           )}
@@ -625,7 +625,7 @@ export default function PortfolioPage() {
           )}
         >
           <Edit3 className="h-4 w-4 shrink-0" />
-          <span className="leading-tight">Cập nhật<br className="sm:hidden" /> thông tin</span>
+          <span className="leading-tight">Cập nhật</span>
           {activeTab === "edit-info" && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f4c430] rounded-full" />
           )}
@@ -638,7 +638,7 @@ export default function PortfolioPage() {
           )}
         >
           <Sparkles className="h-4 w-4 shrink-0 text-purple-400 animate-pulse" />
-          <span className="leading-tight">Dịch vụ<br className="sm:hidden" /> bổ trợ</span>
+          <span className="leading-tight">Dịch vụ</span>
           {activeTab === "addon-services" && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-400 rounded-full" />
           )}
