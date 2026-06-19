@@ -17,8 +17,8 @@ import {
   Award,
   MessageSquare
 } from "lucide-react";
-import { talents, campaigns, LIFESTYLE_SERVICES_TEMPLATES } from "@/lib/brand-mvp-data";
-import { addTalentToWishlist, createBrandWishlist, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist } from "@/lib/brand-api";
+import { LIFESTYLE_SERVICES_TEMPLATES } from "@/lib/brand-mvp-data";
+import { addTalentToWishlist, createBrandWishlist, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist, loadBrandCampaigns } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
@@ -65,8 +65,8 @@ export default function DiscoverTalentsPage() {
     physical: true,
     professional: true,
     social: true,
-    quality: true,
-    lifestyle: true,
+    quality: false,
+    lifestyle: false,
   });
 
   const toggleSection = (section: string) => {
@@ -79,12 +79,13 @@ export default function DiscoverTalentsPage() {
     );
   };
 
-  const [displayTalents, setDisplayTalents] = useState<any[]>(talents);
+  const [displayTalents, setDisplayTalents] = useState<any[]>([]);
+  const [brandCampaigns, setBrandCampaigns] = useState<any[]>([]);
 
   useEffect(() => {
     let cancelled = false;
 
-    loadBrandTalents(talents).then(async (items) => {
+    loadBrandTalents([]).then(async (items) => {
       if (cancelled) return;
       setDisplayTalents(items);
 
@@ -108,6 +109,10 @@ export default function DiscoverTalentsPage() {
           return acc;
         }, {})
       );
+    });
+
+    loadBrandCampaigns([]).then((items) => {
+      if (!cancelled) setBrandCampaigns(items);
     });
 
     return () => {
@@ -778,7 +783,7 @@ export default function DiscoverTalentsPage() {
                   className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60"
                 >
                   <option value="">-- Chọn chiến dịch --</option>
-                  {campaigns.map(c => (
+                  {brandCampaigns.map(c => (
                     <option key={c.id} value={c.id}>{c.title}</option>
                   ))}
                 </select>

@@ -235,7 +235,7 @@ export default function MessagesPage({ portal }: Props) {
         </button>
         <div>
           <h1 className="font-display text-2xl font-black uppercase tracking-tight text-white md:text-3xl">Tin nhắn</h1>
-          <p className="mt-1 text-xs text-slate-400">Trao đổi trực tiếp giữa Brand và Talent.</p>
+          <p className="mt-1 text-xs md:text-base text-slate-400">Trao đổi trực tiếp giữa Brand và Talent.</p>
         </div>
       </div>
 
@@ -258,7 +258,7 @@ export default function MessagesPage({ portal }: Props) {
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Tìm hội thoại..."
-                    className="w-full rounded-xl border border-[#151b2d] bg-slate-950/40 py-2 pl-9 pr-3 text-xs text-white outline-none focus:border-amber-400"
+                    className="w-full rounded-xl border border-[#151b2d] bg-slate-950/40 py-2 pl-9 pr-3 text-sm md:text-base text-white outline-none focus:border-amber-400"
                   />
                 </div>
               </div>
@@ -283,15 +283,15 @@ export default function MessagesPage({ portal }: Props) {
                       <img src={avatar} alt="" className="h-10 w-10 rounded-full border border-white/10 object-cover" />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-xs font-bold text-white">{other?.name || other?.email || "Người dùng"}</span>
-                          <span className="shrink-0 text-[9px] text-slate-500">{formatTime(conversation.last_message_at)}</span>
+                          <span className="truncate text-sm md:text-base font-bold text-white">{other?.name || other?.email || "Người dùng"}</span>
+                          <span className="shrink-0 text-[10px] md:text-xs text-slate-500">{formatTime(conversation.last_message_at)}</span>
                         </div>
-                        <p className="mt-1 truncate text-[10px] text-slate-500">
+                        <p className="mt-1 truncate text-xs md:text-sm text-slate-500">
                           {conversation.last_message?.body || conversation.campaign?.title || "Chưa có tin nhắn"}
                         </p>
                       </div>
                       {conversation.unread_count > 0 && (
-                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1 text-[9px] font-black text-slate-950">
+                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1 text-[10px] md:text-xs font-black text-slate-950">
                           {conversation.unread_count}
                         </span>
                       )}
@@ -299,7 +299,7 @@ export default function MessagesPage({ portal }: Props) {
                   );
                 })}
                 {!filteredConversations.length && (
-                  <div className="p-8 text-center text-xs text-slate-500">Chưa có hội thoại nào.</div>
+                  <div className="p-8 text-center text-sm md:text-base text-slate-500">Chưa có hội thoại nào.</div>
                 )}
               </div>
             </aside>
@@ -328,11 +328,11 @@ export default function MessagesPage({ portal }: Props) {
                             className="h-10 w-10 rounded-full border border-white/10 object-cover"
                           />
                           <div>
-                            <p className="flex items-center gap-1.5 text-xs font-bold text-white">
+                            <p className="flex items-center gap-1.5 text-sm md:text-base font-bold text-white">
                               {other?.name || other?.email || "Người dùng"}
-                              {other?.is_verified && <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />}
+                              {other?.is_verified && <ShieldCheck className="h-4 w-4 md:h-5 md:w-5 text-amber-400" />}
                             </p>
-                            <p className="mt-0.5 text-[9px] text-slate-500">{activeConversation.campaign?.title || "Trao đổi trực tiếp"}</p>
+                            <p className="mt-0.5 text-[10px] md:text-sm text-slate-500">{activeConversation.campaign?.title || "Trao đổi trực tiếp"}</p>
                           </div>
                         </>
                       );
@@ -349,18 +349,18 @@ export default function MessagesPage({ portal }: Props) {
                         return (
                           <div
                             key={message.id}
-                            className={cn("flex items-end gap-2 w-full", mine ? "justify-end" : "justify-start")}
+                            className={cn("flex items-start gap-2 w-full", mine ? "justify-end" : "justify-start")}
                           >
                             {!mine && (
                               <img
                                 src={otherAvatar}
                                 alt=""
-                                className="h-7 w-7 rounded-full border border-white/5 object-cover shrink-0 mb-1"
+                                className="h-7 w-7 rounded-full border border-white/5 object-cover shrink-0 mt-1"
                               />
                             )}
                             <div
                               className={cn(
-                                "flex max-w-[75%] md:max-w-[65%] flex-col rounded-2xl px-4 py-3 text-xs leading-relaxed",
+                                "flex max-w-[75%] md:max-w-[65%] flex-col rounded-2xl px-4 py-3 text-sm md:text-base leading-relaxed",
                                 mine
                                   ? "rounded-tr-none bg-[#f4c430] font-semibold text-slate-950"
                                   : "rounded-tl-none border border-[#313f63] bg-[#1f283f] text-slate-100",
@@ -376,7 +376,7 @@ export default function MessagesPage({ portal }: Props) {
                               ) : (
                                 <p className="whitespace-pre-wrap break-words">{message.body}</p>
                               )}
-                              <span className={cn("mt-1.5 flex items-center gap-1 self-end text-[8px]", mine ? "text-slate-700" : "text-slate-400")}>
+                              <span className={cn("mt-1.5 flex items-center gap-1 self-end text-[10px] md:text-xs", mine ? "text-slate-700" : "text-slate-400")}>
                                 {formatTime(message.created_at)} {mine && <Check className="h-2.5 w-2.5" />}
                               </span>
                             </div>
@@ -402,7 +402,7 @@ export default function MessagesPage({ portal }: Props) {
                         value={input}
                         onChange={(event) => setInput(event.target.value)}
                         placeholder="Nhập nội dung tin nhắn..."
-                        className="w-full rounded-xl border border-[#151b2d] bg-slate-950/50 pl-11 pr-4 py-3 text-xs text-white outline-none focus:border-amber-400"
+                        className="w-full rounded-xl border border-[#151b2d] bg-slate-950/50 pl-11 pr-4 py-3 text-sm md:text-base text-white outline-none focus:border-amber-400"
                       />
                       <label
                         htmlFor="chat-image-upload"
@@ -423,7 +423,7 @@ export default function MessagesPage({ portal }: Props) {
                   </form>
                 </>
               ) : (
-                <div className="flex flex-1 flex-col items-center justify-center gap-3 text-xs text-slate-500">
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 text-sm md:text-base text-slate-500">
                   <MessageSquare className="h-10 w-10" />
                   Chọn một hội thoại để bắt đầu.
                 </div>

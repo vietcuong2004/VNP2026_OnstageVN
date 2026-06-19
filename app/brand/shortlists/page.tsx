@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookmarkCheck, Briefcase, FileText, HeartOff, Plus, Send, Eye } from "lucide-react";
+import { BookmarkCheck, Briefcase, FileText, HeartOff, Plus, Send, Eye, MessageSquare } from "lucide-react";
 import { campaigns, savedTalentIds, talents } from "@/lib/brand-mvp-data";
-import { addTalentToBrandCampaign, createBrandContactRequest, loadBrandCampaigns, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist } from "@/lib/brand-api";
+import { addTalentToBrandCampaign, loadBrandCampaigns, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ export default function BrandShortlistsPage() {
     "tal-1": "Phù hợp campaign beauty, ưu tiên mời lịch livestream.",
     "tal-2": "Giữ cho lookbook thời trang.",
   });
-  const [requestedIds, setRequestedIds] = useState<string[]>([]);
+
 
   useEffect(() => {
     loadBrandTalents(talents).then(async (items) => {
@@ -102,14 +102,7 @@ export default function BrandShortlistsPage() {
     });
   }
 
-  async function sendRequest(id: string) {
-    try {
-      await createBrandContactRequest(id, selectedCampaignId, notes[id]);
-      setRequestedIds((current) => current.includes(id) ? current : [...current, id]);
-    } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Chưa thể gửi yêu cầu liên hệ. Vui lòng thử lại.");
-    }
-  }
+
 
   return (
     <div className="space-y-6 pb-16">
@@ -228,10 +221,17 @@ export default function BrandShortlistsPage() {
           ) : (
             savedTalents.map((talent) => {
               const alreadyInCampaign = selectedCampaign?.shortlistedTalentIds.includes(talent.id);
-              const requested = requestedIds.includes(talent.id);
+
 
               return (
-                <article key={talent.id} className="rounded-2xl border border-white/5 bg-slate-950/25 p-4">
+                <article key={talent.id} className="relative rounded-2xl border border-white/5 bg-slate-950/25 p-4">
+                  <button
+                    onClick={() => removeTalent(talent.id)}
+                    className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border border-rose-500/20 bg-rose-500/5 text-rose-300 hover:bg-rose-500/10 transition active:scale-95 cursor-pointer z-10"
+                    title="Xóa khỏi shortlist"
+                  >
+                    <HeartOff className="h-4 w-4" />
+                  </button>
                   <div className="flex flex-col gap-4 md:flex-row">
                     <img
                       src={talent.avatar}
@@ -242,7 +242,7 @@ export default function BrandShortlistsPage() {
                       className="h-28 w-full rounded-2xl object-cover md:w-28"
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <div className="mb-2 flex flex-wrap items-center gap-2 pr-8 md:pr-10">
                         <h3 className="text-base font-black text-white">{talent.name}</h3>
                         <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-400">{talent.type}</span>
                         <span className="rounded bg-amber-400 px-2 py-0.5 text-[9px] font-black uppercase text-slate-950">Hạng {talent.tier}</span>
@@ -270,24 +270,17 @@ export default function BrandShortlistsPage() {
                       />
                     </label>
 
-                    <div className="flex items-end gap-2">
+                    <div className="flex items-end">
                       <button
                         onClick={() => addTalentToCampaign(talent.id)}
                         disabled={alreadyInCampaign}
                         className={cn(
-                          "flex h-10 flex-1 items-center justify-center rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer transition active:scale-95",
+                          "flex h-10 w-full items-center justify-center rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer transition active:scale-95",
                           alreadyInCampaign ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border border-white/5 bg-white/[0.03] text-white hover:bg-white/10"
                         )}
                       >
                         <Plus className="mr-1.5 h-3.5 w-3.5" />
                         {alreadyInCampaign ? "Đã thêm" : "Thêm vào campaign"}
-                      </button>
-                      <button
-                        onClick={() => removeTalent(talent.id)}
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/5 text-rose-300 hover:bg-rose-500/10 cursor-pointer"
-                        title="Xóa khỏi shortlist"
-                      >
-                        <HeartOff className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -301,15 +294,11 @@ export default function BrandShortlistsPage() {
                       Xem hồ sơ
                     </button>
                     <button
-                      onClick={() => sendRequest(talent.id)}
-                      disabled={requested}
-                      className={cn(
-                        "flex h-10 items-center justify-center rounded-xl px-4 text-[10px] font-black uppercase tracking-wider cursor-pointer",
-                        requested ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950"
-                      )}
+                      onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
+                      className="flex h-10 items-center justify-center rounded-xl px-4 text-[10px] font-black uppercase tracking-wider cursor-pointer bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950"
                     >
-                      <Send className="mr-2 h-4 w-4" />
-                      {requested ? "Đã gửi yêu cầu" : "Gửi yêu cầu liên hệ"}
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Nhắn tin
                     </button>
                   </div>
                 </article>
