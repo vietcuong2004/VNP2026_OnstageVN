@@ -6,16 +6,20 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, profileAvatarFromBackend } from "@/lib/avatar";
-import { talents as allTalents, type TalentProfile } from "@/lib/brand-mvp-data";
+import { talents as allTalents, type Campaign, type TalentProfile } from "@/lib/brand-mvp-data";
 import {
   addBrandRosterTalent,
   createBrandTalentInviteLink,
+  loadBrandCampaignCommissions,
+  loadBrandCampaigns,
   loadBrandRosterTalents,
   loadBrandTalentInviteLink,
   loadBrandTalents,
   removeBrandRosterTalent,
   type BrandRosterTalent,
+  type BrandCommissionTransaction,
 } from "@/lib/brand-api";
+import { getStoredAuthUser } from "@/lib/api-client";
 
 import RosterTab, { type BrandTalentCard, type RosterTalent, type RosterStatus } from "./roster-tab";
 import CampaignsTab from "./campaigns-tab";
@@ -196,6 +200,23 @@ const MOCK_ROSTER: RosterTalent[] = [
 const formatVND = (n: number) =>
   new Intl.NumberFormat("vi-VN").format(n) + "đ";
 
+function isBackendCampaignId(id: string) {
+  return /^\d+$/.test(String(id || ""));
+}
+
+function toDate(value?: string | null) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function isInCurrentMonth(date: Date | null) {
+  if (!date) return false;
+
+  const now = new Date();
+  return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+}
+
 function rosterStatusFromBackend(status?: string | null): RosterStatus {
   if (status === "active") return "accepted";
   if (status === "inactive" || status === "blocked") return "declined";
@@ -277,6 +298,9 @@ export default function MyTalentsPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("roster");
   const [roster, setRoster] = useState<RosterTalent[]>([]);
   const [displayTalents, setDisplayTalents] = useState<BrandTalentCard[]>(extendedTalents);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [commissionTransactions, setCommissionTransactions] = useState<BrandCommissionTransaction[]>([]);
+  const [commissionLoading, setCommissionLoading] = useState(true);
   const [affiliateLink, setAffiliateLink] = useState(`https://onstage.vn/ref/${AFFILIATE_ID}`);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteSearch, setInviteSearch] = useState("");
@@ -290,10 +314,11 @@ export default function MyTalentsPage() {
 
     async function loadRoster() {
       try {
-        const [talentItems, rosterItems, link] = await Promise.all([
+        const [talentItems, rosterItems, link, campaignItems] = await Promise.all([
           loadBrandTalents(extendedTalents),
           loadBrandRosterTalents(),
           loadBrandTalentInviteLink().catch(() => createBrandTalentInviteLink()),
+          loadBrandCampaigns([]),
         ]);
 
         if (cancelled) return;
@@ -310,10 +335,12 @@ export default function MyTalentsPage() {
         const nextRoster = rosterItems.map(rosterFromBackend);
         setDisplayTalents(Array.from(talentsById.values()));
         setRoster(nextRoster.length ? nextRoster : MOCK_ROSTER);
+        setCampaigns(campaignItems);
         setAffiliateLink(link.url);
       } catch (error) {
         console.warn("Cannot load brand roster from API, using local fallback", error);
         setRoster(MOCK_ROSTER);
+        setCampaigns([]);
       }
     }
 
@@ -323,6 +350,51 @@ export default function MyTalentsPage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadCommissions() {
+      setCommissionLoading(true);
+
+      const authUser = getStoredAuthUser<{ id?: number | string }>();
+      const authUserId = authUser?.id ? String(authUser.id) : null;
+      const backendCampaigns = campaigns.filter((campaign) => isBackendCampaignId(String(campaign.id)));
+
+      if (!authUserId || backendCampaigns.length === 0) {
+        if (active) {
+          setCommissionTransactions([]);
+          setCommissionLoading(false);
+        }
+        return;
+      }
+
+      const responses = await Promise.all(
+        backendCampaigns.map(async (campaign) => {
+          try {
+            return await loadBrandCampaignCommissions(String(campaign.id));
+          } catch {
+            return null;
+          }
+        }),
+      );
+
+      if (!active) return;
+
+      const receiverTransactions = responses
+        .flatMap((response) => response?.data ?? [])
+        .filter((transaction) => String(transaction.receiver_user_id || "") === authUserId);
+
+      setCommissionTransactions(receiverTransactions);
+      setCommissionLoading(false);
+    }
+
+    void loadCommissions();
+
+    return () => {
+      active = false;
+    };
+  }, [campaigns]);
 
   const saveRoster = (r: RosterTalent[]) => {
     setRoster(r);
@@ -389,9 +461,13 @@ export default function MyTalentsPage() {
   // ── Derived stats ─────────────────────────────────────────────────────────
   const acceptedRoster = roster.filter(r => r.status === "accepted");
   const pendingRoster = roster.filter(r => r.status === "pending");
-  const totalF1Commission = roster.reduce((s, r) => s + r.earnedCommission, 0);
-  const passiveMLM = 3100000;            // mock passive
-  const totalRevenue = totalF1Commission + passiveMLM;
+  const monthTransactions = commissionTransactions.filter(
+    (transaction) => transaction.status !== "cancelled" && isInCurrentMonth(toDate(transaction.calculated_at))
+  );
+  const monthRevenue = monthTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const approvedBalance = commissionTransactions
+    .filter((transaction) => transaction.status === "approved")
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
 
   // Talents not yet in roster or whose status is declined (for invite modal)
   const availableToInvite = displayTalents.filter(
@@ -462,8 +538,8 @@ export default function MyTalentsPage() {
         {[
           { label: "Talent đã xác nhận", value: acceptedRoster.length, icon: CheckCircle, color: "text-emerald-400 border-emerald-500/15 bg-emerald-500/5", glow: "hover:shadow-[0_0_20px_rgba(16,185,129,0.08)]" },
           { label: "Đang chờ xác nhận", value: pendingRoster.length, icon: Clock, color: "text-amber-400 border-amber-500/15 bg-amber-500/5", glow: "hover:shadow-[0_0_20px_rgba(245,158,11,0.08)]" },
-          { label: "Hoa hồng F1 tháng này", value: formatVND(totalF1Commission), icon: Wallet, color: "text-cyan-400 border-cyan-500/15 bg-cyan-500/5", glow: "hover:shadow-[0_0_20px_rgba(6,182,212,0.08)]" },
-          { label: "Tổng doanh thu tháng này", value: formatVND(totalRevenue), icon: TrendingUp, color: "text-amber-300 border-amber-400/20 bg-amber-500/5", glow: "hover:shadow-[0_0_25px_rgba(244,196,48,0.12)]" },
+          { label: "Doanh thu th\u00e1ng n\u00e0y", value: commissionLoading ? "..." : formatVND(monthRevenue), icon: Wallet, color: "text-cyan-400 border-cyan-500/15 bg-cyan-500/5", glow: "hover:shadow-[0_0_20px_rgba(6,182,212,0.08)]" },
+          { label: "S\u1ed1 d\u01b0 \u0111\u00e3 duy\u1ec7t", value: commissionLoading ? "..." : formatVND(approvedBalance), icon: TrendingUp, color: "text-amber-300 border-amber-400/20 bg-amber-500/5", glow: "hover:shadow-[0_0_25px_rgba(244,196,48,0.12)]" },
         ].map((stat) => (
           <div key={stat.label} className={cn("rounded-2xl border p-3.5 md:p-5 bg-[#08090f] transition-all duration-300 hover:scale-[1.02] hover:border-slate-700/50", stat.glow)}>
             <div className={cn("flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl border mb-2.5 md:mb-3.5", stat.color)}>
@@ -515,6 +591,7 @@ export default function MyTalentsPage() {
       {activeTab === "campaigns" && (
         <CampaignsTab
           extendedTalents={displayTalents}
+          campaigns={campaigns}
           tierColor={tierColor}
           formatVND={formatVND}
         />
@@ -523,9 +600,8 @@ export default function MyTalentsPage() {
       {activeTab === "revenue" && (
         <RevenueTab
           roster={roster}
-          totalF1Commission={totalF1Commission}
-          passiveMLM={passiveMLM}
-          totalRevenue={totalRevenue}
+          transactions={commissionTransactions}
+          loading={commissionLoading}
           formatVND={formatVND}
         />
       )}

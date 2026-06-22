@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import AuthGuard from "@/components/auth-guard";
 import BottomNavigation from "@/components/BottomNavigation";
@@ -34,7 +35,9 @@ export default function RootLayout({
       <body className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
         <ThemeProvider>
           <AuthGuard>
-            <RouteScrollReset />
+            <Suspense fallback={null}>
+              <RouteScrollReset />
+            </Suspense>
             <div className="flex flex-col h-dvh w-full relative overflow-hidden">
 
             {/* Ambient background glows */}
@@ -53,7 +56,7 @@ export default function RootLayout({
               {/* MAIN APP CONTENT */}
               <div className="flex-1 flex flex-col min-h-0 min-w-0 w-full">
                 {/* Main scrollable body */}
-                <main className={`flex-1 ${isMessages ? "overflow-hidden" : "overflow-y-auto"} ${isPublic ? "p-0" : isMessages ? "p-0 pt-16" : "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8"}`}>
+                <main data-app-scroll-root className={`flex-1 ${isMessages ? "overflow-hidden" : "overflow-y-auto"} ${isPublic ? "p-0" : isMessages ? "p-0 pt-16" : "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8"}`}>
                   <div className={`w-full ${isPublic ? "mx-auto max-w-none" : "mx-0 max-w-none [@media(min-width:2400px)]:mx-auto [@media(min-width:2400px)]:max-w-[2040px] [@media(min-width:3200px)]:max-w-[2280px]"}`}>
                     {children}
                   </div>

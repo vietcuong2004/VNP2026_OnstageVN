@@ -21,10 +21,16 @@ import {
   MessageSquare
 } from "lucide-react";
 import { campaigns, savedTalentIds, talents, type Campaign } from "@/lib/brand-mvp-data";
-import { loadBrandCampaigns } from "@/lib/brand-api";
+import {
+  loadBrandCampaigns,
+  loadBrandCampaignCommissions,
+  loadBrandRosterTalents,
+  type BrandRosterTalent,
+} from "@/lib/brand-api";
+import { getStoredAuthUser } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
-const stats = [
+const dashboardFallbackStats = [
   {
     label: "Chiến dịch đang hoạt động",
     value: "3 chiến dịch",
@@ -179,21 +185,118 @@ const RECOMMENDED_TALENTS = [
   }
 ];
 
+function isBackendCampaignId(id: string) {
+  return /^\d+$/.test(String(id || ""));
+}
+
 export default function BrandDashboard() {
   const router = useRouter();
   const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
 
   const [campaignsList, setCampaignsList] = useState<Campaign[]>(campaigns);
+  const [rosterTalents, setRosterTalents] = useState<BrandRosterTalent[]>([]);
+  const [approvedRevenue, setApprovedRevenue] = useState(0);
+  const [pendingRevenue, setPendingRevenue] = useState(0);
 
   useEffect(() => {
     loadBrandCampaigns(campaigns).then((items) => {
       setCampaignsList(items);
     });
+
+    loadBrandRosterTalents()
+      .then((items) => setRosterTalents(items))
+      .catch(() => setRosterTalents([]));
   }, []);
+
+  useEffect(() => {
+    const authUser = getStoredAuthUser<{ id?: number | string }>();
+    const authUserId = authUser?.id ? String(authUser.id) : null;
+    const backendCampaigns = campaignsList.filter((campaign) => isBackendCampaignId(String(campaign.id)));
+
+    if (!authUserId || backendCampaigns.length === 0) {
+      setApprovedRevenue(0);
+      setPendingRevenue(0);
+      return;
+    }
+
+    let active = true;
+
+    Promise.all(
+      backendCampaigns.map(async (campaign) => {
+        try {
+          return await loadBrandCampaignCommissions(String(campaign.id));
+        } catch {
+          return null;
+        }
+      }),
+    ).then((responses) => {
+      if (!active) return;
+
+      const transactions = responses
+        .flatMap((response) => response?.data ?? [])
+        .filter((transaction) => String(transaction.receiver_user_id || "") === authUserId);
+
+      setApprovedRevenue(
+        transactions
+          .filter((transaction) => transaction.status === "approved")
+          .reduce((sum, transaction) => sum + transaction.amount, 0),
+      );
+      setPendingRevenue(
+        transactions
+          .filter((transaction) => transaction.status === "pending")
+          .reduce((sum, transaction) => sum + transaction.amount, 0),
+      );
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [campaignsList]);
 
   const openCampaigns = useMemo(() => {
     return campaignsList.filter((c) => c.status === "published");
   }, [campaignsList]);
+
+  const totalApplicants = useMemo(
+    () => campaignsList.reduce((sum, campaign) => sum + (campaign.applicants?.length ?? 0), 0),
+    [campaignsList],
+  );
+
+  const acceptedTalents = useMemo(
+    () => rosterTalents.filter((item) => item.status === "active").length,
+    [rosterTalents],
+  );
+
+  const stats = useMemo(() => [
+    {
+      label: "Chiến dịch đang hoạt động",
+      value: `${openCampaigns.length} chiến dịch`,
+      hint: `${campaignsList.length} chiến dịch tổng cộng`,
+      icon: Briefcase,
+      color: "text-amber-300 border-amber-500/25 bg-amber-500/10",
+    },
+    {
+      label: "Ứng viên nhận được",
+      value: `${totalApplicants} ứng viên`,
+      hint: `Từ ${openCampaigns.length} campaign đang mở`,
+      icon: BookmarkCheck,
+      color: "text-cyan-300 border-cyan-500/25 bg-cyan-500/10",
+    },
+    {
+      label: "Talent đang hợp tác",
+      value: `${acceptedTalents} xác nhận`,
+      hint: `${rosterTalents.length} talent trong roster`,
+      icon: UserRoundCheck,
+      color: "text-emerald-300 border-emerald-500/25 bg-emerald-500/10",
+    },
+    {
+      label: "Doanh thu đã duyệt",
+      value: new Intl.NumberFormat("vi-VN").format(approvedRevenue) + "đ",
+      hint: `Chờ duyệt: ${new Intl.NumberFormat("vi-VN").format(pendingRevenue)}đ`,
+      icon: Wallet,
+      color: "text-[#C9A86A] border-[#C9A86A]/25 bg-[#C9A86A]/10",
+    },
+  ], [acceptedTalents, approvedRevenue, campaignsList.length, openCampaigns.length, pendingRevenue, rosterTalents.length, totalApplicants]);
 
   const toggleSaved = (id: string) => {
     setSavedIds((current) =>

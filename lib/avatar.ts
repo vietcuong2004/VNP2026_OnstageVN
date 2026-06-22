@@ -11,6 +11,10 @@ export function normalizeBackendAssetUrl(value: unknown) {
   if (url.startsWith("data:") || /^https?:\/\//i.test(url)) return url;
   if (url.startsWith("/storage/")) return `${backendAssetBaseUrl()}${url}`;
   if (url.startsWith("storage/")) return `${backendAssetBaseUrl()}/${url}`;
+  if (url.startsWith("/")) return url;
+  if (/^(avatars|uploads|media|api-manager-kols)\//i.test(url)) {
+    return `${backendAssetBaseUrl()}/${url.replace(/^\/+/, "")}`;
+  }
   return url;
 }
 

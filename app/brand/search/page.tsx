@@ -3,19 +3,28 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Briefcase,
+  Coffee,
   CheckCircle2,
+  CircleEllipsis,
+  Gem,
   Eye,
   Filter,
   Heart,
   MapPin,
+  Palette,
+  PartyPopper,
   Search,
   SlidersHorizontal,
+  Smartphone,
   Star,
+  Trophy,
   X,
   ChevronDown,
   ChevronUp,
   Award,
-  MessageSquare
+  MessageSquare,
+  ShoppingBag,
 } from "lucide-react";
 import { LIFESTYLE_SERVICES_TEMPLATES } from "@/lib/brand-mvp-data";
 import { addTalentToWishlist, createBrandWishlist, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist, loadBrandCampaigns } from "@/lib/brand-api";
@@ -23,6 +32,19 @@ import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
 const allValue = "all";
+
+const lifestyleIconMap = {
+  default: Briefcase,
+  golf: Trophy,
+  pickleball: PartyPopper,
+  dining: Coffee,
+  cafe: Coffee,
+  redcarpet: Gem,
+  shopping: ShoppingBag,
+  art: Palette,
+  escort: CircleEllipsis,
+  content: Smartphone,
+} as const;
 
 export default function DiscoverTalentsPage() {
   const router = useRouter();
@@ -700,19 +722,10 @@ export default function DiscoverTalentsPage() {
                       {talent.lifestyleServices && talent.lifestyleServices.some((s: any) => s.enabled) && (
                         <div className="mb-2.5 flex flex-wrap gap-1">
                           {talent.lifestyleServices.filter((s: any) => s.enabled).map((s: any) => {
-                            let icon = "💼";
-                            if (s.id === "golf") icon = "⛳";
-                            else if (s.id === "pickleball") icon = "🎾";
-                            else if (s.id === "dining") icon = "🍷";
-                            else if (s.id === "cafe") icon = "☕";
-                            else if (s.id === "redcarpet") icon = "✨";
-                            else if (s.id === "shopping") icon = "🛍️";
-                            else if (s.id === "art") icon = "🎨";
-                            else if (s.id === "escort") icon = "🛥️";
-                            else if (s.id === "content") icon = "📱";
+                            const Icon = lifestyleIconMap[s.id as keyof typeof lifestyleIconMap] ?? lifestyleIconMap.default;
                             return (
                               <span key={s.id} className="rounded border border-amber-500/20 bg-amber-500/5 px-1.5 py-0.5 text-[8px] font-bold text-amber-400 flex items-center gap-1 uppercase tracking-wider" title={s.title}>
-                                <span>{icon}</span>
+                                <Icon className="h-3 w-3 shrink-0" />
                                 <span className="max-w-[80px] truncate">{s.title.replace(/(Sport Companion |Business |VIP |Luxury |Launching Event |Daily Content )/g, "")}</span>
                               </span>
                             );

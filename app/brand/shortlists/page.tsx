@@ -2,61 +2,81 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookmarkCheck, Briefcase, FileText, HeartOff, Plus, Send, Eye, MessageSquare } from "lucide-react";
-import { campaigns, savedTalentIds, talents } from "@/lib/brand-mvp-data";
-import { addTalentToBrandCampaign, loadBrandCampaigns, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist } from "@/lib/brand-api";
-import { createInitialAvatarDataUrl } from "@/lib/avatar";
+import { BookmarkCheck, Briefcase, FileText, HeartOff, Plus, Eye, MessageSquare } from "lucide-react";
+import {
+  addTalentToBrandCampaign,
+  loadBrandCampaigns,
+  loadBrandTalents,
+  loadBrandWishlists,
+  removeTalentFromWishlist,
+} from "@/lib/brand-api";
+import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
-function selectExistingCampaignId(current: string, items: typeof campaigns) {
+function selectExistingCampaignId(current: string, items: Array<{ id: string }>) {
   if (items.some((campaign) => campaign.id === current)) return current;
   return items[0]?.id || "";
+}
+
+function shortlistAvatar(talent: any) {
+  if (isUsableAvatarUrl(talent?.avatar)) return normalizeBackendAssetUrl(talent.avatar);
+  if (isUsableAvatarUrl(talent?.fullBodyImage)) return normalizeBackendAssetUrl(talent.fullBodyImage);
+  if (isUsableAvatarUrl(talent?.cover)) return normalizeBackendAssetUrl(talent.cover);
+  return createInitialAvatarDataUrl(String(talent?.name || "Talent"), "");
 }
 
 export default function BrandShortlistsPage() {
   const router = useRouter();
   const [savedIds, setSavedIds] = useState<string[]>([]);
-  const [talentList, setTalentList] = useState(talents);
-  const [localCampaigns, setLocalCampaigns] = useState(campaigns);
-  const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id ?? "");
+  const [talentList, setTalentList] = useState<any[]>([]);
+  const [localCampaigns, setLocalCampaigns] = useState<any[]>([]);
+  const [selectedCampaignId, setSelectedCampaignId] = useState("");
   const [wishlistId, setWishlistId] = useState<string | null>(null);
   const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
-  const [notes, setNotes] = useState<Record<string, string>>({
-    "tal-1": "Phù hợp campaign beauty, ưu tiên mời lịch livestream.",
-    "tal-2": "Giữ cho lookbook thời trang.",
-  });
-
+  const [notes, setNotes] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    loadBrandTalents(talents).then(async (items) => {
-      setTalentList(items);
-      const wishlists = await loadBrandWishlists(items);
+    Promise.all([loadBrandTalents([]), loadBrandWishlists([])]).then(([backendTalents, wishlists]) => {
       const primaryWishlist = wishlists[0];
 
-      if (primaryWishlist) {
-        setWishlistId(primaryWishlist.id);
-        setSavedIds(primaryWishlist.savedIds);
-        setNotes((current) => ({ ...current, ...primaryWishlist.notes }));
-        setWishlistItemIds(
-          primaryWishlist.items.reduce((acc: Record<string, string>, item) => {
-            const profileId = String(item.profile_id || item.profile?.id || "");
-            if (profileId) acc[profileId] = String(item.id);
-            return acc;
-          }, {})
-        );
-      } else {
-        const hasSavedTalent = items.some((talent) => savedTalentIds.includes(talent.id));
-        setSavedIds(hasSavedTalent ? savedTalentIds : []);
+      if (!primaryWishlist) {
+        setWishlistId(null);
+        setSavedIds([]);
+        setTalentList([]);
+        setNotes({});
+        setWishlistItemIds({});
+        return;
       }
+
+      const talentsById = new Map((backendTalents || []).map((talent: any) => [String(talent.id), talent]));
+      const mergedTalents = (primaryWishlist.talents || []).map((talent: any) => {
+        const enriched = talentsById.get(String(talent.id));
+        return enriched ? { ...talent, ...enriched } : talent;
+      });
+
+      setWishlistId(primaryWishlist.id);
+      setSavedIds(primaryWishlist.savedIds || []);
+      setTalentList(mergedTalents);
+      setNotes(primaryWishlist.notes || {});
+      setWishlistItemIds(
+        primaryWishlist.items.reduce((acc: Record<string, string>, item: any) => {
+          const profileId = String(item.profile_id || item.profile?.id || "");
+          if (profileId) acc[profileId] = String(item.id);
+          return acc;
+        }, {}),
+      );
     });
 
-    loadBrandCampaigns(campaigns).then((items) => {
+    loadBrandCampaigns([]).then((items) => {
       setLocalCampaigns(items);
       setSelectedCampaignId((current) => selectExistingCampaignId(current, items));
     });
   }, []);
 
-  const savedTalents = useMemo(() => talentList.filter((talent) => savedIds.includes(talent.id)), [savedIds, talentList]);
+  const savedTalents = useMemo(
+    () => talentList.filter((talent) => savedIds.includes(talent.id)),
+    [savedIds, talentList],
+  );
   const selectedCampaign = localCampaigns.find((campaign) => campaign.id === selectedCampaignId);
 
   async function removeTalent(id: string) {
@@ -71,6 +91,7 @@ export default function BrandShortlistsPage() {
     }
 
     setSavedIds((current) => current.filter((item) => item !== id));
+    setTalentList((current) => current.filter((item) => item.id !== id));
     setWishlistItemIds((current) => {
       const next = { ...current };
       delete next[id];
@@ -80,29 +101,26 @@ export default function BrandShortlistsPage() {
 
   async function addTalentToCampaign(talentId: string) {
     if (!selectedCampaignId) return;
+
     try {
       await addTalentToBrandCampaign(selectedCampaignId, talentId, notes[talentId]);
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Chưa thể thêm talent vào campaign. Vui lòng thử lại.");
       return;
     }
-    setLocalCampaigns((current) => {
-      const next = current.map((c) => {
-        if (c.id === selectedCampaignId) {
-          if (!c.shortlistedTalentIds.includes(talentId)) {
-            return {
-              ...c,
-              shortlistedTalentIds: [...c.shortlistedTalentIds, talentId],
-            };
-          }
-        }
-        return c;
-      });
-      return next;
-    });
+
+    setLocalCampaigns((current) =>
+      current.map((campaign) => {
+        if (campaign.id !== selectedCampaignId) return campaign;
+        if (campaign.shortlistedTalentIds.includes(talentId)) return campaign;
+
+        return {
+          ...campaign,
+          shortlistedTalentIds: [...campaign.shortlistedTalentIds, talentId],
+        };
+      }),
+    );
   }
-
-
 
   return (
     <div className="space-y-6 pb-16">
@@ -114,7 +132,7 @@ export default function BrandShortlistsPage() {
             </span>
           </div>
           <h1 className="font-display text-2xl font-black tracking-tight text-white">
-            DANH SÁCH  <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent">NGƯỜI MẪU YÊU THÍCH</span>
+            DANH SÁCH <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent">NGƯỜI MẪU YÊU THÍCH</span>
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
             Quản lý danh sách talent đã lưu, thêm ghi chú và thêm vào campaign đang mở.
@@ -128,7 +146,7 @@ export default function BrandShortlistsPage() {
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <aside className="h-fit rounded-2xl border border-white/5 bg-slate-950/25 p-5 lg:col-span-4 space-y-4">
+        <aside className="h-fit space-y-4 rounded-2xl border border-white/5 bg-slate-950/25 p-5 lg:col-span-4">
           <div className="flex items-center gap-2">
             <Briefcase className="h-4 w-4 text-amber-300" />
             <h2 className="text-xs font-black uppercase tracking-widest text-slate-300">Thêm vào campaign</h2>
@@ -139,67 +157,84 @@ export default function BrandShortlistsPage() {
             <select
               value={selectedCampaignId}
               onChange={(event) => setSelectedCampaignId(event.target.value)}
-              className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60"
+              disabled={localCampaigns.length === 0}
+              className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60 disabled:text-slate-500"
             >
-              {localCampaigns.map((campaign) => (
-                <option key={campaign.id} value={campaign.id}>{campaign.title}</option>
-              ))}
+              {localCampaigns.length === 0 ? (
+                <option value="">Chưa có campaign backend</option>
+              ) : (
+                localCampaigns.map((campaign) => (
+                  <option key={campaign.id} value={campaign.id}>
+                    {campaign.title}
+                  </option>
+                ))
+              )}
             </select>
           </label>
 
-          {selectedCampaign && (
-            <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-4 space-y-3">
+          {selectedCampaign ? (
+            <div className="space-y-3 rounded-2xl border border-white/5 bg-slate-950/40 p-4">
               <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-black text-white truncate">{selectedCampaign.title}</h3>
-                <span className={cn(
-                  "rounded px-2 py-0.5 text-[9px] font-black uppercase shrink-0",
-                  selectedCampaign.status === "published" ? "bg-emerald-500/10 text-emerald-300" : selectedCampaign.status === "closed" ? "bg-slate-500/10 text-slate-400" : "bg-amber-500/10 text-amber-300"
-                )}>
-                  {selectedCampaign.status === "published" ? "Đang mở" : selectedCampaign.status === "closed" ? "Đã đóng" : "Nháp"}
+                <h3 className="truncate text-sm font-black text-white">{selectedCampaign.title}</h3>
+                <span
+                  className={cn(
+                    "shrink-0 rounded px-2 py-0.5 text-[9px] font-black uppercase",
+                    selectedCampaign.status === "published"
+                      ? "bg-emerald-500/10 text-emerald-300"
+                      : selectedCampaign.status === "closed"
+                        ? "bg-slate-500/10 text-slate-400"
+                        : "bg-amber-500/10 text-amber-300",
+                  )}
+                >
+                  {selectedCampaign.status === "published"
+                    ? "Đang mở"
+                    : selectedCampaign.status === "closed"
+                      ? "Đã đóng"
+                      : "Nháp"}
                 </span>
               </div>
-              <p className="text-xs leading-relaxed text-slate-550">{selectedCampaign.description}</p>
+              <p className="text-xs leading-relaxed text-slate-400">{selectedCampaign.description}</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3">
-                  <span className="block text-[9px] font-bold uppercase text-slate-505">Cần tuyển</span>
+                  <span className="block text-[9px] font-bold uppercase text-slate-500">Cần tuyển</span>
                   <span className="font-black text-white">{selectedCampaign.talentQuantity} talent</span>
                 </div>
                 <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3">
-                  <span className="block text-[9px] font-bold uppercase text-slate-505">Đã thêm</span>
+                  <span className="block text-[9px] font-bold uppercase text-slate-500">Đã thêm</span>
                   <span className="font-black text-amber-300">{selectedCampaign.shortlistedTalentIds.length} talent</span>
                 </div>
               </div>
 
-              {/* Added Wishlist Talents List */}
-              <div className="pt-3 border-t border-white/5">
-                <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400 mb-2">
-                  Talent đã thêm ({selectedCampaign.shortlistedTalentIds.filter(id => savedIds.includes(id)).length})
+              <div className="border-t border-white/5 pt-3">
+                <span className="mb-2 block text-[9px] font-black uppercase tracking-wider text-slate-400">
+                  Talent đã thêm ({selectedCampaign.shortlistedTalentIds.filter((id: string) => savedIds.includes(id)).length})
                 </span>
 
-                {selectedCampaign.shortlistedTalentIds.filter(id => savedIds.includes(id)).length === 0 ? (
-                  <p className="text-[10px] text-slate-500 italic">Chưa có talent nào được thêm.</p>
+                {selectedCampaign.shortlistedTalentIds.filter((id: string) => savedIds.includes(id)).length === 0 ? (
+                  <p className="text-[10px] italic text-slate-500">Chưa có talent nào được thêm.</p>
                 ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
                     {selectedCampaign.shortlistedTalentIds
-                      .filter(id => savedIds.includes(id))
-                      .map(id => {
-                        const t = talentList.find(talent => talent.id === id);
-                        if (!t) return null;
+                      .filter((id: string) => savedIds.includes(id))
+                      .map((id: string) => {
+                        const talent = talentList.find((item) => item.id === id);
+                        if (!talent) return null;
+
                         return (
-                          <div key={id} className="flex items-center justify-between p-2 rounded-xl bg-slate-900/50 border border-white/5 text-xs">
-                            <div className="flex items-center gap-2 min-w-0">
+                          <div key={id} className="flex items-center justify-between rounded-xl border border-white/5 bg-slate-900/50 p-2 text-xs">
+                            <div className="flex min-w-0 items-center gap-2">
                               <img
-                                src={t.avatar}
-                                alt={t.name}
+                                src={shortlistAvatar(talent)}
+                                alt={talent.name}
                                 onError={(event) => {
-                                  event.currentTarget.src = createInitialAvatarDataUrl(t.name, "");
+                                  event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
                                 }}
-                                className="h-6 w-6 rounded-full object-cover shrink-0"
+                                className="h-6 w-6 shrink-0 rounded-full object-cover"
                               />
-                              <span className="font-extrabold text-white truncate">{t.name}</span>
+                              <span className="truncate font-extrabold text-white">{talent.name}</span>
                             </div>
-                            <span className="rounded bg-amber-400/10 border border-amber-400/20 px-1.5 py-0.5 text-[8px] font-black text-amber-300 shrink-0">
-                              Hạng {t.tier}
+                            <span className="shrink-0 rounded border border-amber-400/20 bg-amber-400/10 px-1.5 py-0.5 text-[8px] font-black text-amber-300">
+                              Hạng {talent.tier}
                             </span>
                           </div>
                         );
@@ -207,6 +242,12 @@ export default function BrandShortlistsPage() {
                   </div>
                 )}
               </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/40 p-4">
+              <p className="text-xs leading-relaxed text-slate-400">
+                Chưa có campaign backend để gắn talent. Hãy tạo campaign trước, sau đó quay lại màn này để thêm talent vào chiến dịch.
+              </p>
             </div>
           )}
         </aside>
@@ -220,21 +261,21 @@ export default function BrandShortlistsPage() {
             </div>
           ) : (
             savedTalents.map((talent) => {
-              const alreadyInCampaign = selectedCampaign?.shortlistedTalentIds.includes(talent.id);
-
+              const alreadyInCampaign = Boolean(selectedCampaign?.shortlistedTalentIds.includes(talent.id));
 
               return (
                 <article key={talent.id} className="relative rounded-2xl border border-white/5 bg-slate-950/25 p-4">
                   <button
                     onClick={() => removeTalent(talent.id)}
-                    className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border border-rose-500/20 bg-rose-500/5 text-rose-300 hover:bg-rose-500/10 transition active:scale-95 cursor-pointer z-10"
+                    className="absolute right-4 top-4 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-rose-500/20 bg-rose-500/5 text-rose-300 transition active:scale-95 hover:bg-rose-500/10"
                     title="Xóa khỏi shortlist"
                   >
                     <HeartOff className="h-4 w-4" />
                   </button>
+
                   <div className="flex flex-col gap-4 md:flex-row">
                     <img
-                      src={talent.avatar}
+                      src={shortlistAvatar(talent)}
                       alt={talent.name}
                       onError={(event) => {
                         event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
@@ -249,8 +290,13 @@ export default function BrandShortlistsPage() {
                       </div>
                       <p className="text-xs leading-relaxed text-slate-400">{talent.experience}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {talent.skills.map((skill) => (
-                          <span key={skill} className="rounded-lg border border-white/5 bg-white/[0.03] px-2 py-1 text-[10px] font-semibold text-slate-400">{skill}</span>
+                        {talent.skills.map((skill: string) => (
+                          <span
+                            key={skill}
+                            className="rounded-lg border border-white/5 bg-white/[0.03] px-2 py-1 text-[10px] font-semibold text-slate-400"
+                          >
+                            {skill}
+                          </span>
                         ))}
                       </div>
                     </div>
@@ -273,14 +319,18 @@ export default function BrandShortlistsPage() {
                     <div className="flex items-end">
                       <button
                         onClick={() => addTalentToCampaign(talent.id)}
-                        disabled={alreadyInCampaign}
+                        disabled={alreadyInCampaign || !selectedCampaignId}
                         className={cn(
-                          "flex h-10 w-full items-center justify-center rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer transition active:scale-95",
-                          alreadyInCampaign ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-300" : "border border-white/5 bg-white/[0.03] text-white hover:bg-white/10"
+                          "flex h-10 w-full items-center justify-center rounded-xl text-[10px] font-black uppercase tracking-wider transition active:scale-95",
+                          alreadyInCampaign
+                            ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+                            : !selectedCampaignId
+                              ? "cursor-not-allowed border border-white/5 bg-white/[0.03] text-slate-500"
+                              : "cursor-pointer border border-white/5 bg-white/[0.03] text-white hover:bg-white/10",
                         )}
                       >
                         <Plus className="mr-1.5 h-3.5 w-3.5" />
-                        {alreadyInCampaign ? "Đã thêm" : "Thêm vào campaign"}
+                        {alreadyInCampaign ? "Đã thêm" : !selectedCampaignId ? "Chưa có campaign" : "Thêm vào campaign"}
                       </button>
                     </div>
                   </div>
@@ -288,14 +338,14 @@ export default function BrandShortlistsPage() {
                   <div className="mt-4 flex justify-end gap-2 border-t border-white/5 pt-4">
                     <button
                       onClick={() => router.push(`/brand/talents/${talent.id}`)}
-                      className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition active:scale-95 cursor-pointer text-[10px] font-black uppercase px-4 tracking-wider"
+                      className="flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 text-[10px] font-black uppercase tracking-wider text-white transition active:scale-95 hover:bg-white/10"
                     >
                       <Eye className="h-4 w-4" />
                       Xem hồ sơ
                     </button>
                     <button
                       onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
-                      className="flex h-10 items-center justify-center rounded-xl px-4 text-[10px] font-black uppercase tracking-wider cursor-pointer bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950"
+                      className="flex h-10 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950"
                     >
                       <MessageSquare className="mr-2 h-4 w-4" />
                       Nhắn tin
@@ -310,4 +360,3 @@ export default function BrandShortlistsPage() {
     </div>
   );
 }
-

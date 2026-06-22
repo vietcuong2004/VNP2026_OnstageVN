@@ -329,6 +329,57 @@ function formatFollowers(value: number) {
   return String(value);
 }
 
+function repairMojibake(value: unknown) {
+  if (typeof value !== "string" || !value) return value ?? "";
+
+  const text = value.trim();
+  if (!/[ÃÂÄÆ]|á»/.test(text)) return text;
+
+  try {
+    const bytes = Uint8Array.from(Array.from(text).map((char) => char.charCodeAt(0) & 0xff));
+    const repaired = new TextDecoder("utf-8").decode(bytes).trim();
+
+    if (!repaired) return text;
+
+    const beforeNoise = (text.match(/[ÃÂÄÆ]|á»/g) || []).length;
+    const afterNoise = (repaired.match(/[ÃÂÄÆ]|á»/g) || []).length;
+
+    return afterNoise < beforeNoise ? repaired : text;
+  } catch {
+    return text;
+  }
+}
+
+function hasSuspiciousQuestionMojibake(value: unknown) {
+  const text = String(value ?? "").trim();
+  if (!text) return false;
+
+  const questionMarks = (text.match(/\?/g) || []).length;
+  return questionMarks >= 2 && /[A-Za-zÀ-ỹ]/u.test(text);
+}
+
+function fallbackTalentExperience(profile: BackendProfile, fallback?: TalentProfile) {
+  const fallbackText = String(fallback?.experience || "").trim();
+  if (fallbackText && !hasSuspiciousQuestionMojibake(fallbackText)) {
+    return fallbackText;
+  }
+
+  const talentType = String(repairMojibake(profile.talent_types?.[0] || fallback?.type || "Talent")).trim();
+  const city = String(repairMojibake(profile.city || fallback?.city || "")).trim();
+  const skills = (profile.skills?.length ? profile.skills : fallback?.skills || [])
+    .map((item) => String(repairMojibake(item)).trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  const parts = [
+    talentType ? `${talentType} chuyên nghiệp` : "Talent chuyên nghiệp",
+    city ? `hoạt động tại ${city}` : "",
+    skills.length ? `Kỹ năng nổi bật: ${skills.join(", ")}` : "",
+  ].filter(Boolean);
+
+  return parts.join(". ") || "Talent chuyên nghiệp đang cập nhật mô tả hồ sơ.";
+}
+
 function profileAge(birthDate?: string | null) {
   if (!birthDate) return 24;
   const birth = new Date(birthDate);
@@ -387,13 +438,18 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
   const portfolio = (profile.photos ?? [])
     .map((photo) => photo.url || photo.path || "")
     .filter(Boolean);
+  const rawExperience = String(profile.experience || profile.bio || fallback?.experience || "");
+  const repairedExperience = String(repairMojibake(rawExperience)).trim();
+  const displayExperience = repairedExperience && !hasSuspiciousQuestionMojibake(repairedExperience)
+    ? repairedExperience
+    : fallbackTalentExperience(profile, fallback);
 
   return {
     id: String(profile.id ?? fallback?.id ?? ""),
-    name: profile.full_name || profile.display_name || fallback?.name || profile.user?.name || "Talent",
-    type: profile.talent_types?.[0] || fallback?.type || "Talent",
-    city: profile.city || fallback?.city || "",
-    district: profile.district || fallback?.district || "",
+    name: String(repairMojibake(profile.full_name || profile.display_name || fallback?.name || profile.user?.name || "Talent")),
+    type: String(repairMojibake(profile.talent_types?.[0] || fallback?.type || "Talent")),
+    city: String(repairMojibake(profile.city || fallback?.city || "")),
+    district: String(repairMojibake(profile.district || fallback?.district || "")),
     gender: profile.gender === "male" ? "Nam" : profile.gender === "female" ? "Nữ" : fallback?.gender || "",
     age: profileAge(profile.birth_date) || fallback?.age || 24,
     height: Number(profile.height_cm) || fallback?.height || 0,
@@ -401,8 +457,8 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     bust: Number(measurements.bust) || fallback?.bust || 0,
     waist: Number(measurements.waist) || fallback?.waist || 0,
     hips: Number(measurements.hips) || fallback?.hips || 0,
-    skinTone: profile.skin_tone || fallback?.skinTone || "",
-    hairColor: profile.hair_color || fallback?.hairColor || "",
+    skinTone: String(repairMojibake(profile.skin_tone || fallback?.skinTone || "")),
+    hairColor: String(repairMojibake(profile.hair_color || fallback?.hairColor || "")),
     yearsOfExperience: Number(profile.experience_years) || fallback?.yearsOfExperience || 0,
     tier: mapTier(profile.tier) || fallback?.tier || "C",
     verified: profile.verification_status === "verified" || Boolean(profile.user?.is_verified) || fallback?.verified || false,
@@ -415,20 +471,20 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     platforms: (profile.social_accounts ?? []).map((account) => account.platform || "").filter(Boolean),
     rateValue: Number(profile.budget_max || profile.budget_min) || fallback?.rateValue || 0,
     rate: formatBudget(profile.budget_min, profile.budget_max),
-    rateUnit: fallback?.rateUnit || "dự án",
+    rateUnit: String(repairMojibake(fallback?.rateUnit || "dự án")),
     avatar,
     cover,
     fullBodyImage: firstPhoto(profile, "portfolio") || fallback?.fullBodyImage || avatar,
-    skills: profile.skills?.length ? profile.skills : fallback?.skills || [],
-    experience: profile.experience || profile.bio || fallback?.experience || "",
+    skills: (profile.skills?.length ? profile.skills : fallback?.skills || []).map((item) => String(repairMojibake(item))),
+    experience: displayExperience,
     portfolio: portfolio.length ? portfolio : fallback?.portfolio || [],
-    availability: fallback?.availability || "Chưa có lịch",
+    availability: String(repairMojibake(fallback?.availability || "Chưa có lịch")),
     availabilityDates: (profile.calendar_events ?? []).map((event) => String(event.starts_at || "").slice(0, 10)).filter(Boolean),
     completion: Number(profile.profile_completion) || fallback?.completion || 0,
     matchScore: Number(profile.profile_completion) || fallback?.matchScore || 0,
     reliability: fallback?.reliability || 0,
-    education: fallback?.education || "",
-    languages: profile.languages?.length ? profile.languages : fallback?.languages || [],
+    education: String(repairMojibake(fallback?.education || "")),
+    languages: (profile.languages?.length ? profile.languages : fallback?.languages || []).map((item) => String(repairMojibake(item))),
     rateCard: fallback?.rateCard || {},
   };
 }

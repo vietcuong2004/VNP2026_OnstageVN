@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
 import { applyTalentCampaign, loadTalentCampaigns, mapCampaignToTalentJob, resolveCampaignReferralLink } from "@/lib/talent-api";
+import { getStoredAuthUser } from "@/lib/api-client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -50,7 +51,33 @@ function displayCampaignDate(value?: string | null) {
   }).format(date);
 }
 
+function readCurrentTalentIdentity() {
+  if (typeof window === "undefined") {
+    return { userId: "", profileId: "", fallbackId: "tal-1" };
+  }
+
+  const user = getStoredAuthUser<{ id?: number | string }>();
+  let profileId = "";
+
+  try {
+    const storedProfile = window.localStorage.getItem("vnp_talent_profile");
+    if (storedProfile) {
+      const parsed = JSON.parse(storedProfile) as { backendProfileId?: number | string };
+      profileId = String(parsed.backendProfileId || "");
+    }
+  } catch {
+    profileId = "";
+  }
+
+  return {
+    userId: String(user?.id || ""),
+    profileId,
+    fallbackId: profileId || String(user?.id || "") || "tal-1",
+  };
+}
+
 export default function JobsPage() {
+  const currentTalent = readCurrentTalentIdentity();
   const searchParams = useSearchParams();
   const campaignIdParam = searchParams.get("campaignId");
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState("all");
@@ -82,12 +109,22 @@ export default function JobsPage() {
     const backendStage = normalizeJobStage(job.application?.status);
     if (backendStage) return backendStage;
 
-    const appItem = job.applicants?.find((a: any) => a.talentId === "tal-1");
+    const appItem = job.applicants?.find((a: any) => {
+      const talentId = String(a.talentId || a.profileId || a.userId || "");
+      return talentId === currentTalent.profileId || talentId === currentTalent.userId || talentId === currentTalent.fallbackId;
+    });
     return normalizeJobStage(appItem?.stage) || "";
   };
 
   const hasTalentApplication = (job: any) => {
-    return Boolean(job.hasApplied || job.application || job.applicants?.some((a: any) => a.talentId === "tal-1"));
+    return Boolean(
+      job.hasApplied
+      || job.application
+      || job.applicants?.some((a: any) => {
+        const talentId = String(a.talentId || a.profileId || a.userId || "");
+        return talentId === currentTalent.profileId || talentId === currentTalent.userId || talentId === currentTalent.fallbackId;
+      })
+    );
   };
 
   useEffect(() => {
@@ -400,7 +437,7 @@ export default function JobsPage() {
         ...job,
         application: job.application ? { ...job.application, status: nextStage } : job.application,
         applicants: (job.applicants || []).map((a: any) =>
-          a.talentId === "tal-1" ? { ...a, stage: nextStage } : a
+          String(a.talentId || a.profileId || a.userId || "") === currentTalent.fallbackId ? { ...a, stage: nextStage } : a
         )
       };
     }));
@@ -410,7 +447,7 @@ export default function JobsPage() {
         ...prev,
         application: prev.application ? { ...prev.application, status: nextStage } : prev.application,
         applicants: (prev.applicants || []).map((a: any) =>
-          a.talentId === "tal-1" ? { ...a, stage: nextStage } : a
+          String(a.talentId || a.profileId || a.userId || "") === currentTalent.fallbackId ? { ...a, stage: nextStage } : a
         )
       }));
     }

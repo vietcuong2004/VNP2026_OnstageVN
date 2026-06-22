@@ -633,12 +633,30 @@ export async function acceptBrandTalentInviteLink(code: string, talentSlug?: str
   return response.data;
 }
 
+export type TalentRecommendationPageant = {
+  name?: string | null;
+  match_score?: number | string | null;
+  reasoning?: string | null;
+};
+
+export type TalentRecommendationCareerTrend = {
+  title?: string | null;
+  match_score?: number | string | null;
+  reasoning?: string | null;
+  next_steps?: string[] | null;
+};
+
+export type TalentRecommendationsResponse = {
+  tier?: string | null;
+  pageants?: TalentRecommendationPageant[];
+  career_trends?: TalentRecommendationCareerTrend[];
+};
+
 export async function loadTalentRecommendations() {
   if (!getAuthToken()) return null;
 
   try {
-    const response = await apiJson<{ tier?: string | null; pageants?: any[] }>("/recommendations");
-    return response.pageants || [];
+    return await apiJson<TalentRecommendationsResponse>("/recommendations");
   } catch (error) {
     console.warn(error);
     return null;

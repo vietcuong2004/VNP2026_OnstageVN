@@ -16,6 +16,7 @@ import {
 } from "@/lib/talent-api";
 import Link from "next/link";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
+import { getStoredAuthUser } from "@/lib/api-client";
 
 type StageFilter = "all" | "new" | "accepted" | "executing" | "completed" | "confirmed";
 
@@ -40,6 +41,31 @@ const stageColors: Record<StageFilter, { text: string; bg: string; border: strin
 const fallbackAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80";
 const mockTalentId = "tal-1";
 const activeStages: StageFilter[] = ["new", "accepted", "executing", "completed", "confirmed"];
+
+function readCurrentTalentIdentity() {
+  if (typeof window === "undefined") {
+    return { userId: "", profileId: "", fallbackId: mockTalentId };
+  }
+
+  const user = getStoredAuthUser<{ id?: number | string }>();
+  let profileId = "";
+
+  try {
+    const storedProfile = window.localStorage.getItem("vnp_talent_profile");
+    if (storedProfile) {
+      const parsed = JSON.parse(storedProfile) as { backendProfileId?: number | string };
+      profileId = String(parsed.backendProfileId || "");
+    }
+  } catch {
+    profileId = "";
+  }
+
+  return {
+    userId: String(user?.id || ""),
+    profileId,
+    fallbackId: profileId || String(user?.id || "") || mockTalentId,
+  };
+}
 
 function normalizeStage(value?: string | null): StageFilter {
   if (value === "approved") return "accepted";
@@ -77,11 +103,16 @@ function currentCampaignApplicant(campaign: any) {
     };
   }
 
-  const applicant = campaign?.applicants?.find((item: any) => item.talentId === mockTalentId);
+  const identity = readCurrentTalentIdentity();
+  const applicant = campaign?.applicants?.find((item: any) => {
+    const talentId = String(item.talentId || item.profileId || item.userId || "");
+    return talentId === identity.profileId || talentId === identity.userId || talentId === identity.fallbackId;
+  });
   return applicant ? { ...applicant, stage: normalizeStage(applicant.stage) } : undefined;
 }
 
 export default function TalentAffiliatePage() {
+  const currentTalent = readCurrentTalentIdentity();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [activeCampaigns, setActiveCampaigns] = useState<any[]>([]);
   const [toasts, setToasts] = useState<{ id: string; msg: string; type: "success" | "info" }[]>([]);
@@ -248,7 +279,7 @@ export default function TalentAffiliatePage() {
             applicants: [
               ...apps,
               {
-                talentId: mockTalentId,
+                talentId: currentTalent.fallbackId,
                 stage: "accepted" as const,
                 note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
                 referredByTalentId: refId || undefined
@@ -314,7 +345,7 @@ export default function TalentAffiliatePage() {
                 applicants: [
                   ...apps,
                   {
-                    talentId: mockTalentId,
+                    talentId: currentTalent.fallbackId,
                     stage: "accepted" as const,
                     note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
                     referredByTalentId: refId || undefined
@@ -366,7 +397,17 @@ export default function TalentAffiliatePage() {
 
   const campaignF2Applicants = (campaign: any) => {
     if (Array.isArray(campaign.referrals) && campaign.referrals.length) return campaign.referrals;
-    return campaign.applicants?.filter((applicant: any) => applicant.referredByTalentId === mockTalentId) || [];
+    return campaign.applicants?.filter((applicant: any) => {
+      const referredBy = String(applicant.referredByTalentId || "");
+      return Boolean(
+        referredBy
+        && (
+          referredBy === currentTalent.userId
+          || referredBy === currentTalent.profileId
+          || referredBy === currentTalent.fallbackId
+        )
+      );
+    }) || [];
   };
 
   // Overall statistics calculation

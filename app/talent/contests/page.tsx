@@ -174,6 +174,7 @@ export default function ContestsPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
   const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+  const [recommendationTier, setRecommendationTier] = useState<string | null>(null);
 
   const [contests, setContests] = useState<Contest[]>(() => {
     const rawContests: Contest[] = [
@@ -858,20 +859,36 @@ export default function ContestsPage() {
   useEffect(() => {
     let active = true;
 
-    loadTalentRecommendations().then((pageants) => {
-      if (!active || !pageants?.length) return;
+    loadTalentRecommendations().then((recommendations) => {
+      if (!active || !recommendations) return;
+
+      setRecommendationTier(recommendations.tier || null);
+
+      const pageants = recommendations.pageants || [];
+      const careerTrends = recommendations.career_trends || [];
+      if (!pageants.length) return;
 
       setContests((prev) => {
         const mapped = pageants.map((pageant, index) => {
           const base = prev[index % prev.length];
+          const careerTrend = careerTrends[index];
+          const nextSteps = careerTrend?.next_steps?.filter(Boolean) || [];
 
           return {
             ...base,
             id: `backend-pageant-${index + 1}`,
             name: pageant.name || base.name,
-            organizer: "Backend recommendation",
+            organizer: careerTrend?.title || base.organizer,
             suitability: Math.round(Number(pageant.match_score || base.suitability)),
-            description: pageant.reasoning || base.description,
+            description: pageant.reasoning || careerTrend?.reasoning || base.description,
+            detail: {
+              ...base.detail,
+              notes: [
+                ...(careerTrend?.reasoning ? [careerTrend.reasoning] : []),
+                ...nextSteps,
+                ...base.detail.notes,
+              ].filter(Boolean),
+            },
           };
         });
 
@@ -932,6 +949,12 @@ export default function ContestsPage() {
         <div>
           <h1 className="font-display text-3xl font-black text-white tracking-tight uppercase leading-none">Danh Sách Cuộc Thi</h1>
           <p className="text-xs text-slate-400 mt-2 font-medium">Theo dõi các cuộc thi sắc đẹp đang diễn ra, xem độ phù hợp của bản thân và ứng tuyển trực tuyến.</p>
+          {recommendationTier ? (
+            <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-amber-300">
+              <Crown className="h-3.5 w-3.5" />
+              Tier đề xuất: {recommendationTier}
+            </div>
+          ) : null}
         </div>
       </div>
 
