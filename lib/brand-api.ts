@@ -433,7 +433,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     || normalizeBackendAssetUrl(profile.avatar_url)
     || normalizeBackendAssetUrl(profile.user?.external_avatar_url)
     || fallback?.avatar
-    || "/images/default-avatar.png";
+    || "";
   const cover = firstPhoto(profile, "cover") || fallback?.cover || avatar;
   const portfolio = (profile.photos ?? [])
     .map((photo) => photo.url || photo.path || "")
@@ -564,8 +564,8 @@ function mapCampaignTalent(item: BackendCampaignTalent, index: number): Campaign
         ? firstPhoto(profile, "avatar")
           || normalizeBackendAssetUrl(profile.avatar_url)
           || normalizeBackendAssetUrl(user?.external_avatar_url)
-          || "/images/default-avatar.png"
-        : normalizeBackendAssetUrl(user?.external_avatar_url) || "/images/default-avatar.png",
+          || ""
+        : normalizeBackendAssetUrl(user?.external_avatar_url) || "",
       matchScore: 0,
     },
   };

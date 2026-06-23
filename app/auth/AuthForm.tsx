@@ -73,9 +73,31 @@ async function parseError(response: Response) {
 export default function AuthForm({ mode }: { mode: AuthMode }) {
   const router = useRouter();
   const isRegister = mode === "register";
+  const pendingLogin = useMemo(() => {
+    if (typeof window === "undefined" || isRegister) {
+      return { email: "", password: "" };
+    }
+
+    const stored = sessionStorage.getItem(pendingLoginKey);
+    if (!stored) {
+      return { email: "", password: "" };
+    }
+
+    try {
+      const parsed = JSON.parse(stored) as { email?: string; password?: string };
+      return {
+        email: parsed.email || "",
+        password: parsed.password || "",
+      };
+    } catch {
+      return { email: "", password: "" };
+    } finally {
+      sessionStorage.removeItem(pendingLoginKey);
+    }
+  }, [isRegister]);
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(() => pendingLogin.email);
+  const [password, setPassword] = useState(() => pendingLogin.password);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -92,37 +114,23 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
     router.replace(redirectPath?.startsWith("/") ? redirectPath : getRedirectPath(storedUser.type));
   }, [router]);
 
-  useEffect(() => {
-    if (isRegister) return;
-
-    const stored = sessionStorage.getItem(pendingLoginKey);
-    if (!stored) return;
-
-    try {
-      const pendingLogin = JSON.parse(stored) as { email?: string; password?: string };
-      setEmail(pendingLogin.email || "");
-      setPassword(pendingLogin.password || "");
-    } catch {
-      // Ignore invalid temporary data.
-    } finally {
-      sessionStorage.removeItem(pendingLoginKey);
-    }
-  }, [isRegister]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setLoading(true);
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     const payload = isRegister
       ? {
           name,
-          email,
+          email: normalizedEmail,
           password,
           password_confirmation: password,
         }
       : {
-          email,
+          email: normalizedEmail,
           password,
         };
 
@@ -144,7 +152,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       const data = (await response.json()) as AuthResponse;
 
       if (isRegister) {
-        sessionStorage.setItem(pendingLoginKey, JSON.stringify({ email, password }));
+        sessionStorage.setItem(pendingLoginKey, JSON.stringify({ email: normalizedEmail, password }));
         router.push("/auth/login");
         return;
       }

@@ -22,9 +22,11 @@ import type {
 } from "@/app/talent/crownfunding/types";
 import { useCrownfundingToast } from "../_context/toast-context";
 import {
+  closeDonationCampaign,
   createDonationCampaign,
   createDonationPayoutRequest,
   createDonationUpdate,
+  deleteDonationCampaign,
   downloadDonationQrSvg,
   getDonationShareLink,
   isDonationCampaignEditable,
@@ -301,12 +303,54 @@ export default function DonatePage() {
     }
   };
 
-  const handleDeleteCampaign = () => {
-    addToast("Backend hiện chưa hỗ trợ xóa campaign donate từ giao diện talent.", "info");
+  const handleDeleteCampaign = async () => {
+    if (!campaign?.id) return;
+
+    if (!window.confirm("Bạn có chắc chắn muốn xóa chiến dịch gây quỹ này không?")) {
+      return;
+    }
+
+    try {
+      const message = await deleteDonationCampaign(Number(campaign.id));
+      const remaining = allCampaigns.filter((item) => item.id !== campaign.id);
+      const nextActive = remaining[0] ?? null;
+
+      setAllCampaigns(remaining);
+      setActiveCampaignId(nextActive?.id ?? null);
+      setCurrentImageIdx(0);
+      setShowDropdown(false);
+
+      if (nextActive) {
+        await loadCampaignDetails(nextActive);
+      } else {
+        setUpdates([]);
+        setSupporters([]);
+        setPayouts([]);
+      }
+
+      addToast(message, "success");
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : "Không thể xóa chiến dịch lúc này.", "info");
+    }
   };
 
-  const handleEndCampaign = () => {
-    addToast("Backend hiện chưa hỗ trợ kết thúc campaign donate từ giao diện talent.", "info");
+  const handleEndCampaign = async () => {
+    if (!campaign?.id) return;
+
+    if (!window.confirm("Bạn có chắc chắn muốn kết thúc chiến dịch gây quỹ này không?")) {
+      return;
+    }
+
+    try {
+      const nextCampaign = await closeDonationCampaign(Number(campaign.id));
+      setAllCampaigns((prev) => replaceCampaign(prev, nextCampaign));
+      setActiveCampaignId(nextCampaign.id ?? null);
+      await loadCampaignDetails(nextCampaign);
+      setShowDropdown(false);
+      addToast("Đã kết thúc chiến dịch gây quỹ.", "success");
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : "Không thể kết thúc chiến dịch lúc này.", "info");
+    }
   };
 
   return (

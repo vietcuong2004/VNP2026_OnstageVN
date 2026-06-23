@@ -288,6 +288,22 @@ export async function submitDonationCampaignReview(campaignId: number) {
   return mapBackendDonationCampaign(response.data);
 }
 
+export async function closeDonationCampaign(campaignId: number) {
+  const response = await apiJson<{ data: BackendDonationCampaign }>(`/donations/campaigns/${campaignId}/close`, {
+    method: "POST",
+  });
+
+  return mapBackendDonationCampaign(response.data);
+}
+
+export async function deleteDonationCampaign(campaignId: number) {
+  const response = await apiJson<{ message?: string }>(`/donations/campaigns/${campaignId}`, {
+    method: "DELETE",
+  });
+
+  return response.message || "Đã xóa chiến dịch gây quỹ.";
+}
+
 export async function loadDonationUpdates(campaignId: number) {
   const response = await apiJson<{ data: BackendDonationUpdate[] }>(`/donations/campaigns/${campaignId}/updates`, {
     clearAuthOnUnauthorized: false,
