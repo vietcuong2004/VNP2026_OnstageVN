@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { List, Radio, TrendingUp, BarChart3, Heart, Eye, CheckCircle, Trash2, Sparkles, X, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DonationCampaign } from "@/app/talent/crownfunding/types";
@@ -17,32 +17,16 @@ interface CampaignDialogProps {
 }
 
 export function CampaignDialog({ isOpen, onClose, onSubmit, campaign }: CampaignDialogProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [details, setDetails] = useState("");
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [goal, setGoal] = useState(100000000);
-  const [endDate, setEndDate] = useState("");
+  const [title, setTitle] = useState(() => campaign?.title || "");
+  const [description, setDescription] = useState(() => campaign?.description || "");
+  const [details, setDetails] = useState(() => campaign?.details || "");
+  const [uploadedImages, setUploadedImages] = useState<string[]>(
+    () => campaign?.coverImages || (campaign?.coverImage ? [campaign.coverImage] : []),
+  );
+  const [goal, setGoal] = useState(() => campaign?.goal || 100000000);
+  const [endDate, setEndDate] = useState(() => campaign?.endDate || "");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-
-  useEffect(() => {
-    if (campaign) {
-      setTitle(campaign.title);
-      setDescription(campaign.description);
-      setDetails(campaign.details || "");
-      setUploadedImages(campaign.coverImages || (campaign.coverImage ? [campaign.coverImage] : []));
-      setGoal(campaign.goal);
-      setEndDate(campaign.endDate);
-    } else {
-      setTitle("");
-      setDescription("");
-      setDetails("");
-      setUploadedImages([]);
-      setGoal(100000000);
-      setEndDate("");
-    }
-  }, [campaign, isOpen]);
 
   if (!isOpen) return null;
 
@@ -260,18 +244,17 @@ export function CampaignDialog({ isOpen, onClose, onSubmit, campaign }: Campaign
 // ==========================================
 interface CampaignListPanelProps {
   campaigns: DonationCampaign[];
-  activeCampaignId: string | null;
-  onSelect: (id: string) => void;
-  onCreate: () => void;
-  onDelete: (id: string) => void;
-  onEnd: (id: string) => void;
+  activeCampaignId: string | number | null;
+  onSelect: (id: string | number) => void;
+  onDelete: (id: string | number) => void;
+  onEnd: (id: string | number) => void;
 }
 
-export function CampaignListPanel({ campaigns, activeCampaignId, onSelect, onCreate, onDelete, onEnd }: CampaignListPanelProps) {
+export function CampaignListPanel({ campaigns, activeCampaignId, onSelect, onDelete, onEnd }: CampaignListPanelProps) {
   const totalRaised = campaigns.reduce((s, c) => s + c.raised, 0);
   const totalGoal = campaigns.reduce((s, c) => s + c.goal, 0);
   const activeCount = campaigns.filter(c => c.status === "active").length;
-  const completedCount = campaigns.filter(c => c.status === "completed").length;
+  const completedCount = campaigns.filter(c => c.status === "closed").length;
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-white/7 bg-gradient-to-b from-[#0d101b]/80 to-[#050712]/92 p-6 shadow-[0_18px_50px_rgba(0,0,0,0.42)] backdrop-blur-xl">

@@ -7,7 +7,7 @@ import {
   Bell, Check, AlertCircle, Link2, Network, Send, Copy, UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createInitialAvatarDataUrl, isUsableAvatarUrl, profileAvatarFromBackend } from "@/lib/avatar";
+import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl, profileAvatarFromBackend } from "@/lib/avatar";
 import { acceptBrandTalentInviteLink, loadTalentBrandInvitations, loadTalentBrandInviteLink, updateTalentBrandInvitation } from "@/lib/talent-api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -72,6 +72,12 @@ function usableText(value: unknown) {
   return text;
 }
 
+function brandAvatarSrc(brandName?: string, managerName?: string, rawAvatar?: unknown) {
+  const normalizedAvatar = normalizeBackendAssetUrl(rawAvatar);
+  if (isUsableAvatarUrl(normalizedAvatar)) return normalizedAvatar;
+  return createInitialAvatarDataUrl(brandName || managerName || "Brand", "");
+}
+
 function mapBackendInvitation(item: Record<string, unknown>): BrandInvitation {
   const brand = (item.brand || {}) as Record<string, unknown>;
   const partner = (brand.partner_profile || brand.partnerProfile || {}) as Record<string, unknown>;
@@ -87,12 +93,19 @@ function mapBackendInvitation(item: Record<string, unknown>): BrandInvitation {
     blocked: "declined",
   };
 
+  const managerName = String(brand.name || partner.contact_name || "Brand Manager");
+  const brandName = String(partner.organization_name || brand.name || "Brand");
+
   return {
     id: String(item.id),
     managerId: String(brand.id || item.brand_user_id || ""),
-    managerName: String(brand.name || partner.contact_name || "Brand Manager"),
-    managerBrand: String(partner.organization_name || brand.name || "Brand"),
-    managerAvatar: String(brand.external_avatar_url || "/avatar.png"),
+    managerName,
+    managerBrand: brandName,
+    managerAvatar: brandAvatarSrc(
+      brandName,
+      managerName,
+      brand.logo_url || brand.logo || brand.avatar_url || brand.external_avatar_url || partner.logo_url || partner.logo,
+    ),
     managerTier: String(partner.organization_type || "Brand"),
     commissionRate: Number(activeTerm.commission_rate || 10) / 100,
     sentAt: String(item.created_at || item.joined_at || new Date().toISOString()).slice(0, 10),
@@ -487,7 +500,14 @@ export default function TalentBrandsPage() {
                 <div className="flex items-start gap-4">
                   <div className="relative shrink-0">
                     <div className="h-16 w-16 rounded-2xl overflow-hidden border-2 border-amber-400/40 bg-gradient-to-br from-amber-400/20 to-transparent p-[2px] shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all duration-300">
-                      <img src={inv.managerAvatar} alt={inv.managerName} className="h-full w-full rounded-[12px] object-cover" />
+                      <img
+                        src={inv.managerAvatar}
+                        alt={inv.managerBrand}
+                        onError={(event) => {
+                          event.currentTarget.src = createInitialAvatarDataUrl(inv.managerBrand || inv.managerName || "Brand", "");
+                        }}
+                        className="h-full w-full rounded-[12px] object-cover"
+                      />
                     </div>
                     <div className="absolute -bottom-1.5 -right-1.5 h-6.5 w-6.5 rounded-full bg-[#08090f] border border-amber-400/40 flex items-center justify-center shadow-lg">
                       <Crown className="h-3.5 w-3.5 text-amber-400 fill-amber-400/20" />
@@ -572,7 +592,14 @@ export default function TalentBrandsPage() {
                 <div className="flex items-start gap-4 flex-1 min-w-0">
                   <div className="relative shrink-0">
                     <div className="h-16 w-16 rounded-2xl overflow-hidden border-2 border-emerald-400/40 bg-gradient-to-br from-emerald-400/20 to-transparent p-[2px] shadow-[0_0_15px_rgba(16,185,129,0.15)] group-hover:border-emerald-400 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300">
-                      <img src={inv.managerAvatar} alt={inv.managerName} className="h-full w-full rounded-[12px] object-cover" />
+                      <img
+                        src={inv.managerAvatar}
+                        alt={inv.managerBrand}
+                        onError={(event) => {
+                          event.currentTarget.src = createInitialAvatarDataUrl(inv.managerBrand || inv.managerName || "Brand", "");
+                        }}
+                        className="h-full w-full rounded-[12px] object-cover"
+                      />
                     </div>
                     <div className="absolute -bottom-1.5 -right-1.5 h-6.5 w-6.5 rounded-full bg-[#08090f] border border-emerald-400/40 flex items-center justify-center shadow-lg">
                       <CheckCircle className="h-3.5 w-3.5 text-emerald-400 fill-emerald-400/20" />
@@ -673,7 +700,14 @@ export default function TalentBrandsPage() {
           {declined.map(inv => (
             <div key={inv.id} className={cn("rounded-2xl border p-4 bg-[#08090f]/50 border-red-500/10 opacity-50 hover:opacity-75 transition-opacity")}>
               <div className="flex items-center gap-3">
-                <img src={inv.managerAvatar} alt={inv.managerName} className="h-10 w-10 rounded-xl object-cover border border-[#151b2d]" />
+                <img
+                  src={inv.managerAvatar}
+                  alt={inv.managerBrand}
+                  onError={(event) => {
+                    event.currentTarget.src = createInitialAvatarDataUrl(inv.managerBrand || inv.managerName || "Brand", "");
+                  }}
+                  className="h-10 w-10 rounded-xl object-cover border border-[#151b2d]"
+                />
                 <div>
                   <p className="text-xs font-black text-white">{inv.managerBrand}</p>
                   <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Người phụ trách: {inv.managerName}</p>

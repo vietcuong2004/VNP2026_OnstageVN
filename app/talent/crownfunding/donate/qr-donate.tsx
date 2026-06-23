@@ -2,10 +2,10 @@
 
 import React from "react";
 import { Crown, Users, Copy, Download, Share2, Link as LinkIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface QrDonateProps {
-  campaignTitle?: string;
+  campaignLink?: string;
+  qrCodeSvg?: string;
   showShareMenu: boolean;
   setShowShareMenu: (show: boolean) => void;
   onCopyLink: () => void;
@@ -16,7 +16,8 @@ interface QrDonateProps {
 }
 
 export function QrDonate({
-  campaignTitle,
+  campaignLink,
+  qrCodeSvg,
   showShareMenu,
   setShowShareMenu,
   onCopyLink,
@@ -43,13 +44,20 @@ export function QrDonate({
       {/* Centered Large QR Code */}
       <div className="flex flex-col items-center justify-center space-y-3">
         <div className="mx-auto h-48 w-48 rounded-2xl bg-white p-3 flex flex-col items-center justify-center relative shadow-2xl transition-transform duration-305 hover:scale-[1.02] shrink-0">
-          <div className="w-full h-full bg-slate-900 rounded-xl flex flex-col items-center justify-center text-white">
-            <Users className="h-12 w-12 text-amber-400/85 mb-2 animate-pulse" />
-            <span className="text-[8px] font-black font-mono tracking-widest text-slate-300">
-              ONSTAGE QR
-            </span>
-            <span className="text-[6px] font-mono text-slate-500 mt-1">BaoKim QR Gateway #185</span>
-          </div>
+          {qrCodeSvg ? (
+            <div
+              className="w-full h-full bg-white rounded-xl overflow-hidden [&_svg]:h-full [&_svg]:w-full"
+              dangerouslySetInnerHTML={{ __html: qrCodeSvg }}
+            />
+          ) : (
+            <div className="w-full h-full bg-slate-900 rounded-xl flex flex-col items-center justify-center text-white">
+              <Users className="h-12 w-12 text-amber-400/85 mb-2 animate-pulse" />
+              <span className="text-[8px] font-black font-mono tracking-widest text-slate-300">
+                ONSTAGE VIETQR
+              </span>
+              <span className="text-[6px] font-mono text-slate-500 mt-1">Mã QR sẽ xuất hiện sau khi campaign được duyệt.</span>
+            </div>
+          )}
           <div className="absolute h-9 w-9 rounded-full bg-slate-950 border-2 border-white flex items-center justify-center shadow-lg">
             <span className="text-[8px] font-black text-amber-400">OSN</span>
           </div>
@@ -70,7 +78,7 @@ export function QrDonate({
           Đường dẫn chuyển khoản nhanh
         </span>
         <div className="relative rounded-xl border border-white/5 bg-slate-950/60 backdrop-blur-md px-4 py-3 text-[10px] font-mono text-slate-300 flex items-center justify-between gap-2 overflow-hidden truncate">
-          <span className="truncate">https://onstage.vn/brand/crownfunding?campaign_id={campaignTitle ? "hagiang_library" : "new"}</span>
+          <span className="truncate">{campaignLink || "Chưa có liên kết chia sẻ"}</span>
           <button
             onClick={onCopyLink}
             className="p-1 hover:text-white text-slate-500 transition-colors cursor-pointer shrink-0"

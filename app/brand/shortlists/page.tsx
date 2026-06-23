@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookmarkCheck, Briefcase, FileText, HeartOff, Plus, Eye, MessageSquare } from "lucide-react";
+import { BookmarkCheck, Briefcase, Eye, FileText, HeartOff, MessageSquare, Plus } from "lucide-react";
 import {
   addTalentToBrandCampaign,
   loadBrandCampaigns,
@@ -25,6 +25,12 @@ function shortlistAvatar(talent: any) {
   return createInitialAvatarDataUrl(String(talent?.name || "Talent"), "");
 }
 
+type ToastItem = {
+  id: string;
+  message: string;
+  tone: "success" | "error";
+};
+
 export default function BrandShortlistsPage() {
   const router = useRouter();
   const [savedIds, setSavedIds] = useState<string[]>([]);
@@ -34,6 +40,7 @@ export default function BrandShortlistsPage() {
   const [wishlistId, setWishlistId] = useState<string | null>(null);
   const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   useEffect(() => {
     Promise.all([loadBrandTalents([]), loadBrandWishlists([])]).then(([backendTalents, wishlists]) => {
@@ -79,13 +86,38 @@ export default function BrandShortlistsPage() {
   );
   const selectedCampaign = localCampaigns.find((campaign) => campaign.id === selectedCampaignId);
 
+  function pushToast(message: string, tone: ToastItem["tone"] = "success") {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setToasts((current) => [...current, { id, message, tone }]);
+
+    window.setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id));
+    }, 3200);
+  }
+
+  function formatActionError(error: unknown, fallback: string) {
+    const message = error instanceof Error ? error.message : fallback;
+    const normalized = String(message || "").toLocaleLowerCase("vi-VN");
+
+    if (
+      normalized.includes("quyết toán") ||
+      normalized.includes("quyet toan") ||
+      normalized.includes("đã đóng") ||
+      normalized.includes("da dong")
+    ) {
+      return "Chiến dịch này đã đóng hoặc đã bắt đầu quyết toán nên không thể thêm talent nữa.";
+    }
+
+    return message || fallback;
+  }
+
   async function removeTalent(id: string) {
     const itemId = wishlistItemIds[id];
     if (wishlistId && itemId) {
       try {
         await removeTalentFromWishlist(wishlistId, itemId);
       } catch (error) {
-        window.alert(error instanceof Error ? error.message : "Chưa thể xóa talent khỏi danh sách lưu.");
+        pushToast(formatActionError(error, "Chưa thể xoá talent khỏi danh sách đã lưu."), "error");
         return;
       }
     }
@@ -97,6 +129,7 @@ export default function BrandShortlistsPage() {
       delete next[id];
       return next;
     });
+    pushToast("Đã xoá talent khỏi danh sách đã lưu.");
   }
 
   async function addTalentToCampaign(talentId: string) {
@@ -105,7 +138,7 @@ export default function BrandShortlistsPage() {
     try {
       await addTalentToBrandCampaign(selectedCampaignId, talentId, notes[talentId]);
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Chưa thể thêm talent vào campaign. Vui lòng thử lại.");
+      pushToast(formatActionError(error, "Chưa thể thêm talent vào chiến dịch. Vui lòng thử lại."), "error");
       return;
     }
 
@@ -120,6 +153,8 @@ export default function BrandShortlistsPage() {
         };
       }),
     );
+
+    pushToast("Đã thêm talent vào chiến dịch.");
   }
 
   return (
@@ -128,14 +163,17 @@ export default function BrandShortlistsPage() {
         <div>
           <div className="mb-2 flex items-center gap-2">
             <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-              DANH SÁCH ĐÃ LƯU
+              Danh sách đã lưu
             </span>
           </div>
           <h1 className="font-display text-2xl font-black tracking-tight text-white">
-            DANH SÁCH <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent">NGƯỜI MẪU YÊU THÍCH</span>
+            Danh sách{" "}
+            <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
+              người mẫu yêu thích
+            </span>
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
-            Quản lý danh sách talent đã lưu, thêm ghi chú và thêm vào campaign đang mở.
+            Quản lý danh sách talent đã lưu, thêm ghi chú và đưa talent vào chiến dịch đang mở.
           </p>
         </div>
 
@@ -149,11 +187,11 @@ export default function BrandShortlistsPage() {
         <aside className="h-fit space-y-4 rounded-2xl border border-white/5 bg-slate-950/25 p-5 lg:col-span-4">
           <div className="flex items-center gap-2">
             <Briefcase className="h-4 w-4 text-amber-300" />
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-300">Thêm vào campaign</h2>
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-300">Thêm vào chiến dịch</h2>
           </div>
 
           <label className="block space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Campaign mục tiêu</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Chiến dịch mục tiêu</span>
             <select
               value={selectedCampaignId}
               onChange={(event) => setSelectedCampaignId(event.target.value)}
@@ -161,7 +199,7 @@ export default function BrandShortlistsPage() {
               className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60 disabled:text-slate-500"
             >
               {localCampaigns.length === 0 ? (
-                <option value="">Chưa có campaign backend</option>
+                <option value="">Chưa có chiến dịch từ backend</option>
               ) : (
                 localCampaigns.map((campaign) => (
                   <option key={campaign.id} value={campaign.id}>
@@ -246,7 +284,8 @@ export default function BrandShortlistsPage() {
           ) : (
             <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/40 p-4">
               <p className="text-xs leading-relaxed text-slate-400">
-                Chưa có campaign backend để gắn talent. Hãy tạo campaign trước, sau đó quay lại màn này để thêm talent vào chiến dịch.
+                Chưa có chiến dịch từ backend để gắn talent. Hãy tạo chiến dịch trước, rồi quay lại màn này để thêm
+                talent vào.
               </p>
             </div>
           )}
@@ -257,7 +296,7 @@ export default function BrandShortlistsPage() {
             <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-10 text-center">
               <BookmarkCheck className="mx-auto mb-3 h-8 w-8 text-slate-600" />
               <h3 className="text-sm font-black text-white">Chưa có talent nào trong danh sách yêu thích</h3>
-              <p className="mt-2 text-xs text-slate-500">Hãy vào màn Tìm tài năng để lưu talent phù hợp.</p>
+              <p className="mt-2 text-xs text-slate-500">Hãy vào màn Tìm kiếm Talent để lưu talent phù hợp.</p>
             </div>
           ) : (
             savedTalents.map((talent) => {
@@ -268,7 +307,7 @@ export default function BrandShortlistsPage() {
                   <button
                     onClick={() => removeTalent(talent.id)}
                     className="absolute right-4 top-4 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-rose-500/20 bg-rose-500/5 text-rose-300 transition active:scale-95 hover:bg-rose-500/10"
-                    title="Xóa khỏi shortlist"
+                    title="Xoá khỏi shortlist"
                   >
                     <HeartOff className="h-4 w-4" />
                   </button>
@@ -330,7 +369,7 @@ export default function BrandShortlistsPage() {
                         )}
                       >
                         <Plus className="mr-1.5 h-3.5 w-3.5" />
-                        {alreadyInCampaign ? "Đã thêm" : !selectedCampaignId ? "Chưa có campaign" : "Thêm vào campaign"}
+                        {alreadyInCampaign ? "Đã thêm" : !selectedCampaignId ? "Chưa có chiến dịch" : "Thêm vào chiến dịch"}
                       </button>
                     </div>
                   </div>
@@ -357,6 +396,22 @@ export default function BrandShortlistsPage() {
           )}
         </main>
       </section>
+
+      <div className="pointer-events-none fixed bottom-6 right-6 z-[70] flex w-full max-w-sm flex-col gap-2 px-4 sm:px-0">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={cn(
+              "rounded-2xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-md",
+              toast.tone === "success"
+                ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-100"
+                : "border-rose-400/30 bg-rose-500/10 text-rose-100",
+            )}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

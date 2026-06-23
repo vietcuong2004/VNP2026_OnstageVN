@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { FileText, Plus, X, Upload } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { UpdateLog } from "@/app/talent/crownfunding/types";
 import ProgressBar from "@/components/ui/ProgressBar";
 

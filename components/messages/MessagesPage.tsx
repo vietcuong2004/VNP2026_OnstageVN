@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, SyntheticEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, Image, LoaderCircle, MessageSquare, Search, Send, ShieldCheck } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -176,6 +176,29 @@ export default function MessagesPage({ portal }: Props) {
     }
   };
 
+  const conversationAvatarSrc = (user?: { avatar_url?: string | null; external_avatar_url?: string | null; name?: string | null; email?: string | null } | null) => {
+    const rawAvatar = String(user?.avatar_url || user?.external_avatar_url || "").trim();
+    const normalizedAvatar = normalizeBackendAssetUrl(rawAvatar);
+
+    if (!normalizedAvatar) {
+      return createInitialAvatarDataUrl(user?.name, user?.email);
+    }
+
+    if (/^(avatar\.png|images\/default-avatar\.png)$/i.test(normalizedAvatar)) {
+      return `/${normalizedAvatar.replace(/^\/+/ , "")}`;
+    }
+
+    return normalizedAvatar;
+  };
+
+  const handleAvatarError = (
+    event: SyntheticEvent<HTMLImageElement>,
+    user?: { name?: string | null; email?: string | null } | null,
+  ) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = createInitialAvatarDataUrl(user?.name, user?.email);
+  };
+
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!activeId || !file) return;
@@ -265,8 +288,7 @@ export default function MessagesPage({ portal }: Props) {
               <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {filteredConversations.map((conversation) => {
                   const other = conversation.participants.find((user) => user.id !== authUser?.id);
-                  const avatar = normalizeBackendAssetUrl(other?.avatar_url || other?.external_avatar_url)
-                    || createInitialAvatarDataUrl(other?.name, other?.email);
+                  const avatar = conversationAvatarSrc(other);
                   return (
                     <button
                       type="button"
@@ -280,7 +302,12 @@ export default function MessagesPage({ portal }: Props) {
                         activeId === conversation.id ? "bg-slate-950/70" : "hover:bg-slate-950/40",
                       )}
                     >
-                      <img src={avatar} alt="" className="h-10 w-10 rounded-full border border-white/10 object-cover" />
+                      <img
+                        src={avatar}
+                        alt=""
+                        className="h-10 w-10 rounded-full border border-white/10 object-cover"
+                        onError={(event) => handleAvatarError(event, other)}
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <span className="truncate text-sm md:text-base font-bold text-white">{other?.name || other?.email || "Người dùng"}</span>
@@ -321,11 +348,11 @@ export default function MessagesPage({ portal }: Props) {
                         <>
                           <img
                             src={
-                              normalizeBackendAssetUrl(other?.avatar_url || other?.external_avatar_url)
-                              || createInitialAvatarDataUrl(other?.name, other?.email)
+                              conversationAvatarSrc(other)
                             }
                             alt=""
                             className="h-10 w-10 rounded-full border border-white/10 object-cover"
+                            onError={(event) => handleAvatarError(event, other)}
                           />
                           <div>
                             <p className="flex items-center gap-1.5 text-sm md:text-base font-bold text-white">
@@ -341,8 +368,7 @@ export default function MessagesPage({ portal }: Props) {
                   <div className="flex-1 space-y-3 overflow-y-auto p-4 custom-scrollbar md:p-6">
                     {(() => {
                       const other = activeConversation.participants.find((user) => user.id !== authUser?.id);
-                      const otherAvatar = normalizeBackendAssetUrl(other?.avatar_url || other?.external_avatar_url)
-                        || createInitialAvatarDataUrl(other?.name, other?.email);
+                      const otherAvatar = conversationAvatarSrc(other);
 
                       return activeMessages.map((message) => {
                         const mine = message.sender_user_id === authUser?.id;
@@ -356,6 +382,7 @@ export default function MessagesPage({ portal }: Props) {
                                 src={otherAvatar}
                                 alt=""
                                 className="h-7 w-7 rounded-full border border-white/5 object-cover shrink-0 mt-1"
+                                onError={(event) => handleAvatarError(event, other)}
                               />
                             )}
                             <div

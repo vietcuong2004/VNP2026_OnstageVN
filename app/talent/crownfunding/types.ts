@@ -1,5 +1,14 @@
+export type DonationCampaignStatus =
+  | "draft"
+  | "pending_review"
+  | "active"
+  | "paused"
+  | "closed"
+  | "rejected";
+
 export interface DonationCampaign {
-  id: string;
+  id?: string | number;
+  slug?: string;
   title: string;
   description: string;
   coverImage: string;
@@ -10,8 +19,18 @@ export interface DonationCampaign {
   disbursed: number;
   startDate: string;
   endDate: string;
-  status: "active" | "completed";
+  status: DonationCampaignStatus;
   details?: string;
+  progressPercent?: number;
+  qrCodeSvg?: string;
+  qrPayload?: string;
+  currency?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  approvedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  talentName?: string;
 }
 
 export interface UpdateLog {

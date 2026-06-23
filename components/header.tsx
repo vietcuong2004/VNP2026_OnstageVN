@@ -246,6 +246,10 @@ export default function Header() {
     window.location.href = API_BASE_URL.replace(/\/api$/, "") + "/admin";
   }
 
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
     <>
     {user?.impersonation?.active && (

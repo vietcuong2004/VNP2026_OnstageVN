@@ -17,6 +17,7 @@ export function getRealtimeClient() {
   const scheme = process.env.NEXT_PUBLIC_REVERB_SCHEME ?? "http";
   const forceTLS = scheme === "https";
   const port = Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? (forceTLS ? 443 : 8081));
+  const wsPath = process.env.NEXT_PUBLIC_REVERB_PATH;
 
   window.Pusher = Pusher;
   echo = new Echo({
@@ -25,6 +26,7 @@ export function getRealtimeClient() {
     wsHost: process.env.NEXT_PUBLIC_REVERB_HOST ?? "127.0.0.1",
     wsPort: port,
     wssPort: port,
+    wsPath,
     forceTLS,
     enabledTransports: ["ws", "wss"],
     authEndpoint: `${API_BASE_URL.replace(/\/api$/, "")}/broadcasting/auth`,
