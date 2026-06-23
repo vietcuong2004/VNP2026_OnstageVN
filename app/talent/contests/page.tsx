@@ -1243,7 +1243,7 @@ export default function ContestsPage() {
                             <button
                               onClick={() => {
                                 setSelectedContest(null);
-                                router.push("/talent/crown");
+                                router.push("/talent/crownfunding");
                               }}
                               className="text-amber-300 hover:text-amber-200 hover:underline flex items-center gap-0.5 cursor-pointer font-bold"
                             >

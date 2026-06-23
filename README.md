@@ -73,7 +73,7 @@ Ngân sách thanh toán của nhãn hàng được chuyển vào ví trung gian 
 │   │   ├── onboarding/    # Bộ câu hỏi khảo sát & Thiết lập hồ sơ số
 │   │   ├── portfolio/     # Trang hồ sơ điện tử công khai (PersonalInfoTab.tsx)
 │   │   ├── jobs/          # Sàn nhận việc và ứng tuyển chiến dịch nhãn hàng
-│   │   └── crown/         # Trang gây quỹ dự án nhân ái (Quỹ Vương Miện)
+│   │   └── crownfunding/  # Trang gây quỹ dự án nhân ái (Quỹ Vương Miện)
 │   ├── layout.tsx         # Khung giao diện responsive chung (Sidebar & Bottom Navigation)
 │   └── globals.css        # Cấu hình màu sắc, glassmorphism & style tokens
 ├── components/            # Các component dùng chung (BottomNavigation, OnboardingForm...)
