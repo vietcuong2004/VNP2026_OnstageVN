@@ -353,16 +353,16 @@ export function CampaignListPanel({ campaigns, activeCampaignId, onSelect, onDel
                       </div>
                     </div>
                     <div className="flex items-center gap-2 pt-3 border-t border-white/5">
-                      <button onClick={() => onSelect(camp.id)} className={cn("flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-200 cursor-pointer",
+                      <button onClick={() => onSelect(camp.id!)} className={cn("flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-205 cursor-pointer",
                         isActive ? "bg-amber-400/15 border border-amber-400/30 text-amber-300" : "bg-white/5 border border-white/10 text-slate-400")}>
                         <Eye className="h-3 w-3" /> {isActive ? "Đang xem" : "Xem chi tiết"}
                       </button>
                       {camp.status === "active" && (
-                        <button onClick={() => onEnd(camp.id)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 transition-colors cursor-pointer" title="Kết thúc">
+                        <button onClick={() => onEnd(camp.id!)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 transition-colors cursor-pointer" title="Kết thúc">
                           <CheckCircle className="h-3.5 w-3.5" />
                         </button>
                       )}
-                      <button onClick={() => onDelete(camp.id)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer" title="Xóa">
+                      <button onClick={() => onDelete(camp.id!)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer" title="Xóa">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -413,16 +413,16 @@ export function CampaignListPanel({ campaigns, activeCampaignId, onSelect, onDel
                     </div>
                   </div>
                   <div className="flex items-center gap-2 pt-3 border-t border-white/5">
-                    <button onClick={() => onSelect(camp.id)} className={cn("flex-1 flex items-center justify-center gap-1.5 h-7 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-200 cursor-pointer",
+                    <button onClick={() => onSelect(camp.id!)} className={cn("flex-1 flex items-center justify-center gap-1.5 h-7 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-200 cursor-pointer",
                       isActive ? "bg-amber-400/15 border border-amber-400/30 text-amber-300" : "bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10")}>
                       <Eye className="h-3 w-3" /> {isActive ? "Đang xem" : "Xem chi tiết"}
                     </button>
                     {camp.status === "active" && (
-                      <button onClick={() => onEnd(camp.id)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 transition-colors cursor-pointer" title="Kết thúc chiến dịch">
+                      <button onClick={() => onEnd(camp.id!)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 transition-colors cursor-pointer" title="Kết thúc chiến dịch">
                         <CheckCircle className="h-3.5 w-3.5" />
                       </button>
                     )}
-                    <button onClick={() => onDelete(camp.id)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer" title="Xóa chiến dịch">
+                    <button onClick={() => onDelete(camp.id!)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer" title="Xóa chiến dịch">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>

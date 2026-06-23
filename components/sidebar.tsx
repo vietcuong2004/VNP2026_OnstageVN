@@ -34,7 +34,7 @@ const brandMenuItems = [
   { label: "Báo cáo & Phân tích", icon: BarChart3, href: "/brand/analytics" },
   { label: "Quản lý thanh toán", icon: Wallet, href: "/brand/billing" },
   { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
-  { label: "Cài đặt", icon: Settings, href: "/brand/settings" },
+  { label: "Thông tin brand", icon: Settings, href: "/brand/settings" },
 ];
 
 export default function Sidebar() {

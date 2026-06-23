@@ -36,7 +36,7 @@ const brandAllItems = [
   { label: "Quản lý Talent", icon: Users, href: "/brand/my-talents" },
   { label: "Thanh toán", icon: Wallet, href: "/brand/billing" },
   { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
-  { label: "Cài đặt", icon: Settings, href: "/brand/settings" },
+  { label: "Thông tin brand", icon: Settings, href: "/brand/settings" },
   { label: "Đăng xuất", icon: LogOut, href: "/" },
 ];
 

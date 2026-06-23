@@ -131,7 +131,7 @@ export default function Header() {
       ? { name: "L'Oréal Vietnam", subtitle: "partner@loreal.com" }
       : { name: "Nguyễn Mai Anh", subtitle: "maianh@onstage.vn" };
   const fallbackAvatarSrc = createInitialAvatarDataUrl(label.name, user?.email);
-  const headerAvatarSrc = isBrandPath ? "/logo.png" : talentAvatar || fallbackAvatarSrc;
+  const headerAvatarSrc = isBrandPath ? (user?.external_avatar_url || "/logo.png") : (talentAvatar || fallbackAvatarSrc);
   const nextPlatform = isBrandPath ? "talent" : "brand";
   const nextPlatformPath = nextPlatform === "brand" ? "/brand/dashboard" : "/talent/dashboard";
   const nextPlatformLabel = nextPlatform === "brand" ? "Chuyển sang Brand" : "Chuyển sang Talent";
@@ -365,7 +365,7 @@ export default function Header() {
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
                   >
                     <Building2 className="h-4 w-4 text-slate-400" />
-                    Cài đặt
+                    Thông tin brand
                   </button>
                   <button
                     type="button"
