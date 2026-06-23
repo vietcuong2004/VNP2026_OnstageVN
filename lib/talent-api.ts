@@ -621,6 +621,15 @@ export async function loadTalentBrandInviteLink(brandId: number | string) {
   return response.data;
 }
 
+export async function resolveBrandTalentInviteLink(code: string, talentSlug?: string | null) {
+  const path = talentSlug
+    ? `/brand/talent-invite-links/${encodeURIComponent(code)}/${encodeURIComponent(talentSlug)}`
+    : `/brand/talent-invite-links/${encodeURIComponent(code)}`;
+
+  const response = await apiJson<{ data: any }>(path);
+  return response.data;
+}
+
 export async function acceptBrandTalentInviteLink(code: string, talentSlug?: string | null) {
   const path = talentSlug
     ? `/brand/talent-invite-links/${encodeURIComponent(code)}/${encodeURIComponent(talentSlug)}/accept`

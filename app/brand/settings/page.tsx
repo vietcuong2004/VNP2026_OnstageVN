@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound, Lock } from "lucide-react";
+import { Building2, CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound, Lock, AlertCircle, Upload } from "lucide-react";
 import { partnerProfile } from "@/lib/brand-mvp-data";
 import { loadBrandPartnerProfile, mapBackendPartnerProfile, saveBrandPartnerProfile } from "@/lib/brand-api";
 import { getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, SocialConnection, unlinkSocialConnection, updateAuthEmail, apiJson, storeAuthUser } from "@/lib/api-client";
@@ -50,6 +50,14 @@ export default function BrandSettingsPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [profileId, setProfileId] = useState<number | null>(null);
 
+  // Cover photo upload states
+  const [coverUrl, setCoverUrl] = useState("/cover_image.png");
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [coverProgress, setCoverProgress] = useState(0);
+
+  // Custom toast notification states
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
   // Change password states
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -75,10 +83,26 @@ export default function BrandSettingsPage() {
       if (p?.backendProfileId) {
         setProfileId(p.backendProfileId);
       }
+      if (p?.cover) {
+        setCoverUrl(p.cover);
+      }
     });
 
     return () => window.clearTimeout(timeout);
   }, []);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+  };
 
   const isLinked = (provider: SocialConnection["provider"]) => {
     return connections.some((connection) => connection.provider === provider);
@@ -93,9 +117,9 @@ export default function BrandSettingsPage() {
     try {
       await unlinkSocialConnection(provider);
       setConnections((current) => current.filter((connection) => connection.provider !== provider));
-      window.alert(`Đã hủy liên kết ${provider}.`);
+      showToast(`Đã hủy liên kết ${provider}.`, "success");
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Chưa thể hủy liên kết.");
+      showToast(error instanceof Error ? error.message : "Chưa thể hủy liên kết.", "error");
     } finally {
       setSocialLoading(false);
     }
@@ -112,10 +136,10 @@ export default function BrandSettingsPage() {
         ...current,
         contactEmail: current.contactEmail || user.email || "",
       }));
-      window.alert("Đã cập nhật email đăng nhập.");
+      showToast("Đã cập nhật email đăng nhập.", "success");
       router.replace("/brand/settings");
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật email.");
+      showToast(error instanceof Error ? error.message : "Chưa thể cập nhật email.", "error");
     } finally {
       setEmailSaving(false);
     }
@@ -126,7 +150,7 @@ export default function BrandSettingsPage() {
     if (!file) return;
 
     if (!profileId) {
-      window.alert("Hồ sơ chưa được đồng bộ, vui lòng thử lại sau.");
+      showToast("Hồ sơ chưa được đồng bộ, vui lòng thử lại sau.", "error");
       return;
     }
 
@@ -153,21 +177,62 @@ export default function BrandSettingsPage() {
         const updatedUser = { ...authUser, external_avatar_url: uploaded.url };
         setAuthUser(updatedUser);
         storeAuthUser(updatedUser);
-        window.alert("Đã cập nhật ảnh đại diện.");
+        showToast("Cập nhật ảnh đại diện thành công!", "success");
       }
     } catch (error) {
       window.clearInterval(progressInterval);
-      window.alert(error instanceof Error ? error.message : "Chưa thể tải ảnh đại diện lên.");
+      showToast(error instanceof Error ? error.message : "Chưa thể tải ảnh đại diện lên.", "error");
     } finally {
       setUploadingAvatar(false);
       setUploadProgress(0);
     }
   }
 
+  async function handleCoverUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!profileId) {
+      showToast("Hồ sơ chưa được đồng bộ, vui lòng thử lại sau.", "error");
+      return;
+    }
+
+    setUploadingCover(true);
+    setCoverProgress(0);
+
+    // Simulate upload progress
+    const progressInterval = window.setInterval(() => {
+      setCoverProgress((prev) => {
+        if (prev >= 90) return prev;
+        return prev + 10;
+      });
+    }, 100);
+
+    try {
+      const uploaded = await uploadTalentPhoto(profileId, file, "cover");
+      window.clearInterval(progressInterval);
+      setCoverProgress(100);
+      
+      // Delay slightly so the user sees 100% complete
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      if (uploaded?.url) {
+        setCoverUrl(uploaded.url);
+        showToast("Cập nhật ảnh bìa thành công!", "success");
+      }
+    } catch (error) {
+      window.clearInterval(progressInterval);
+      showToast(error instanceof Error ? error.message : "Chưa thể tải ảnh bìa lên.", "error");
+    } finally {
+      setUploadingCover(false);
+      setCoverProgress(0);
+    }
+  }
+
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      window.alert("Mật khẩu mới và xác nhận mật khẩu không trùng khớp.");
+      showToast("Mật khẩu mới và xác nhận mật khẩu không trùng khớp.", "error");
       return;
     }
     setPasswordSaving(true);
@@ -180,12 +245,12 @@ export default function BrandSettingsPage() {
           password_confirmation: confirmPassword,
         }),
       });
-      window.alert("Đã thay đổi mật khẩu thành công.");
+      showToast("Đã thay đổi mật khẩu thành công.", "success");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Chưa thể đổi mật khẩu.");
+      showToast(error instanceof Error ? error.message : "Chưa thể đổi mật khẩu.", "error");
     } finally {
       setPasswordSaving(false);
     }
@@ -202,9 +267,9 @@ export default function BrandSettingsPage() {
     try {
       const saved = await saveBrandPartnerProfile(profile);
       setProfile(saved);
-      window.alert("Đã lưu hồ sơ.");
+      showToast("Đã lưu hồ sơ thành công.", "success");
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Chưa thể lưu hồ sơ. Vui lòng thử lại.");
+      showToast(error instanceof Error ? error.message : "Chưa thể lưu hồ sơ. Vui lòng thử lại.", "error");
     } finally {
       setSaving(false);
     }
@@ -236,6 +301,42 @@ export default function BrandSettingsPage() {
           <div className="mt-1 text-lg font-black text-white">{partnerProfile.completion}% hoàn thiện</div>
         </div>
       </section>
+
+      {/* Brand Cover Banner Area */}
+      <div className="relative h-44 md:h-60 w-full rounded-2xl overflow-hidden border border-white/10 bg-slate-950 shadow-lg group">
+        <img
+          src={coverUrl}
+          alt="Brand Cover Banner"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.01]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+        
+        {/* Upload Button overlay / floating */}
+        <div className="absolute bottom-4 right-4 flex items-center gap-2">
+          <label
+            htmlFor="brand-cover-upload"
+            className="flex items-center gap-2 rounded-xl bg-slate-950/80 border border-white/10 px-4 py-2 text-xs font-black text-white hover:bg-slate-900 hover:border-amber-400/55 transition-all duration-300 cursor-pointer shadow-lg backdrop-blur-sm"
+          >
+            <Upload className="h-4 w-4 text-amber-300" />
+            <span>TẢI ẢNH BÌA LÊN</span>
+          </label>
+          <input
+            type="file"
+            id="brand-cover-upload"
+            accept="image/*"
+            className="hidden"
+            disabled={uploadingCover}
+            onChange={handleCoverUpload}
+          />
+        </div>
+        
+        {/* Cover upload progress */}
+        {uploadingCover && (
+          <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
+            <ProgressBar progress={coverProgress} message="Đang tải ảnh bìa..." />
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <aside className="h-fit rounded-2xl border border-white/10 bg-slate-950/45 p-6 lg:col-span-4 shadow-xl shadow-black/30 backdrop-blur-sm">
@@ -543,6 +644,19 @@ export default function BrandSettingsPage() {
           </div>
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex items-center gap-3 rounded-full border border-white/10 bg-[#0b0c16]/95 px-6 py-3.5 shadow-2xl shadow-black/80 backdrop-blur-md">
+            {toast.type === "success" ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertCircle className="h-5 w-5 text-rose-500 shrink-0" />
+            )}
+            <span className="text-xs font-semibold text-white tracking-wide">{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
