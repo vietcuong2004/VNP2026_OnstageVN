@@ -19,7 +19,7 @@ const talentMenuItems = [
   { label: "Chiến dịch Affiliate", icon: Share2, href: "/talent/affiliate" },
   { label: "Hợp tác Brand", icon: Users2, href: "/talent/brands" },
   { label: "Danh sách cuộc thi", icon: Trophy, href: "/talent/contests" },
-  // { label: "Quỹ vương miện", icon: Crown, href: "/talent/crownfunding" },
+  { label: "Crowdfunding", icon: Crown, href: "/talent/crownfunding" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },
   { label: "Thu nhập", icon: Wallet, href: "/talent/wallet" },
 ];

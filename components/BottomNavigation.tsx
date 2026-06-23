@@ -19,7 +19,7 @@ const talentAllItems = [
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Affiliate", icon: Share2, href: "/talent/affiliate" },
   { label: "Hợp tác Brand", icon: Users, href: "/talent/brands" },
-  // { label: "Quỹ", icon: Crown, href: "/talent/crownfunding" },
+  { label: "Crowdfunding", icon: Crown, href: "/talent/crownfunding" },
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },
   { label: "Thu nhập", icon: Wallet, href: "/talent/wallet" },

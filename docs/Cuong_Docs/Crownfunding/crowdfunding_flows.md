@@ -149,3 +149,17 @@ CREATE TABLE isa_contracts (
 *   `POST /api/crowdfunding/lending/lend` - Rót tiền cho Talent vay (Tab 3 Brand).
 *   `POST /api/crowdfunding/equity/pitch` - Tạo hồ sơ gọi vốn thương hiệu (Tab 4 Talent).
 *   `POST /api/crowdfunding/equity/invest` - Đầu tư mua cổ phần BCC (Tab 4 Brand).
+
+# Mapping Frontend:
+app/
+└── talent/
+    └── crownfunding/
+        ├── page.tsx                // Trang chính
+        ├── donate/
+        │   └── page.tsx
+        ├── rewards/
+        │   └── page.tsx
+        ├── lending/
+        │   └── page.tsx
+        ├── equity/
+        │   └── page.tsx
