@@ -11,7 +11,6 @@ interface Props {
   code: string;
   talentSlug?: string | null;
 }
-
 export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
   const router = useRouter();
   const [inviteData, setInviteData] = useState<any>(null);
@@ -67,7 +66,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
         <div className="absolute top-0 right-0 left-0 z-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
           <img src="/hero_bg.png" alt="Background" className="w-full h-full object-cover" />
         </div>
-        
+
         <div className="max-w-md rounded-3xl border border-rose-500/20 bg-rose-500/5 p-8 shadow-2xl backdrop-blur-md relative z-10">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-450">
             <X className="h-7 w-7" />
@@ -78,9 +77,9 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
           </p>
           <button
             onClick={() => router.push("/")}
-            className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-slate-950 border border-white/10 px-6 text-xs font-black uppercase tracking-widest text-white transition hover:bg-slate-900"
+            className="mt-6 inline-flex h-10 items-center justify-center rounded-xl bg-slate-950 border border-white/10 px-5 text-xs font-black uppercase tracking-widest text-white transition hover:bg-slate-900"
           >
-            Quay về trang chủ
+            Trang chủ
           </button>
         </div>
       </div>
@@ -153,14 +152,14 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
 
         <div className="max-w-md w-full rounded-3xl border border-[#D4A64A]/30 bg-[#092318]/25 p-8 shadow-2xl backdrop-blur-md relative z-10 overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-          
+
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-gold text-slate-950 shadow-lg shadow-amber-500/25">
             <Check className="h-9 w-9 stroke-[3]" />
           </div>
 
           <h2 className="mt-6 font-display text-xl md:text-2xl font-black uppercase tracking-wider text-white">🎉 Chúc mừng!</h2>
           <p className="mt-2 text-xs font-bold text-[#F0C56B] uppercase tracking-widest">Bạn đã gia nhập thành công</p>
-          
+
           <div className="mt-5 rounded-2xl border border-white/5 bg-slate-950/70 p-4 flex items-center gap-3 text-left">
             <img src={brandLogo} alt={brandName} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = createInitialAvatarDataUrl(brandName, ""); }} className="h-11 w-11 rounded-xl object-cover border border-[#D4A64A]/30" />
             <div className="min-w-0">
@@ -216,18 +215,18 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
       <header className="fixed top-0 left-0 w-full z-50 bg-[#02040a]/80 backdrop-blur-md border-b border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
         <div className="w-full max-w-[1550px] mx-auto flex items-center justify-between py-3 md:py-4 px-4 md:px-8">
           <div className="flex items-center hover:opacity-95 transition-opacity cursor-pointer" onClick={() => router.push("/")}>
-            <img src="/logo_icon.png" alt="OnstageVN Logo Icon" className="h-11 w-11 object-contain shrink-0" />
-            <img src="/logo_text.png" alt="OnstageVN Logo Text" className="h-9 object-contain shrink-0" />
-            <span className="ml-2.5 rounded bg-amber-400/10 border border-amber-400/25 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-amber-300">
+            <img src="/logo_icon.png" alt="OnstageVN Logo Icon" className="h-8 w-8 md:h-11 md:w-11 object-contain shrink-0" />
+            <img src="/logo_text.png" alt="OnstageVN Logo Text" className="h-6 md:h-9 object-contain shrink-0 ml-2" />
+            <span className="ml-2.5 rounded bg-amber-400/10 border border-amber-400/25 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-amber-300 hidden sm:inline-block">
               INVITE
             </span>
           </div>
           <div>
             <button
               onClick={() => router.push("/")}
-              className="px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-wider text-slate-300 border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-1.5 md:px-5 md:py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-wider text-slate-300 border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all cursor-pointer flex items-center gap-1"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> Về trang chủ
+              <ArrowLeft className="h-3.5 w-3.5" /> Trang chủ
             </button>
           </div>
         </div>
@@ -238,10 +237,10 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
 
       {/* Main Content Wrapper (z-10 to stay on top of background graphics) */}
       <main className="relative z-10 w-full max-w-[1550px] mx-auto px-4 md:px-8 py-6 md:py-10 flex-1 grid gap-8 lg:grid-cols-12 items-start">
-        
+
         {/* Left Column - Details */}
         <section className="lg:col-span-8 space-y-8 text-left">
-          
+
           {/* Brand Hero Card (Home page aesthetic) */}
           <div className="rounded-3xl border border-white/5 bg-[#090b16]/45 backdrop-blur-xl overflow-hidden shadow-2xl relative group hover:border-[#D4A64A]/20 transition-all duration-300">
             {/* Banner block containing default brand cover image */}
@@ -323,7 +322,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
               <span className="h-px w-6 bg-[#D4A64A]/50" />
               <h2 className="text-[10px] font-black uppercase tracking-widest text-[#F0C56B]">Quyền lợi khi gia nhập</h2>
             </div>
-            
+
             <div className="grid gap-4 sm:grid-cols-2">
               {[
                 { title: "Campaign nhận trực tiếp", desc: "Nhận các lời mời hợp tác trực tiếp từ Brand Manager với mức hoa hồng và chính sách minh bạch." },
@@ -345,14 +344,14 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
 
         {/* Right Column - Action Card (Sticky) */}
         <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24 text-left">
-          
+
           <div className="rounded-3xl border border-white/5 bg-[#090b16]/45 backdrop-blur-xl p-6 shadow-2xl relative overflow-hidden hover:border-[#D4A64A]/25 transition-colors duration-300">
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
 
             <span className="text-[9px] font-black uppercase tracking-widest bg-amber-400/15 border border-amber-400/30 px-3 py-1 rounded-full text-amber-300 shadow-sm inline-block mb-4">
               THAM GIA MẠNG LƯỚI
             </span>
-            
+
             {/* Commission display */}
             <div className="p-5 rounded-2xl bg-[#071B42]/40 border border-[#D4A64A]/20 text-center">
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Mức hoa hồng đề xuất</span>
@@ -391,9 +390,9 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
                 onClick={handleJoinClick}
                 className="w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest bg-gradient-gold text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.3)] hover:scale-102 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2"
               >
-                Chấp nhận tham gia <ArrowRight className="h-4 w-4" />
+                Chấp nhận <ArrowRight className="h-4 w-4" />
               </button>
-              
+
               <div className="relative w-full group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#D4A64A] to-[#F0C56B] rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300 pointer-events-none" />
                 <button
@@ -412,20 +411,20 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
       <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden p-4 border-t border-white/5 bg-[#02040a]/90 backdrop-blur-md shadow-2xl flex items-center gap-3">
         <button
           onClick={handleDecline}
-          className="flex-1 h-12 rounded-xl bg-slate-950 border border-[#D4A64A]/40 text-[10px] font-black uppercase tracking-widest text-[#F0C56B] active:scale-[0.98] transition cursor-pointer"
+          className="flex-1 h-11 rounded-xl bg-slate-950 border border-[#D4A64A]/40 text-[10px] font-black uppercase tracking-widest text-[#F0C56B] active:scale-[0.98] transition cursor-pointer"
         >
           Từ chối
         </button>
         <button
           onClick={handleJoinClick}
-          className="flex-[2] h-12 rounded-xl bg-gradient-gold text-[10px] font-black uppercase tracking-widest text-slate-950 active:scale-[0.98] transition flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/10 cursor-pointer"
+          className="flex-[2] h-11 rounded-xl bg-gradient-gold text-[10px] font-black uppercase tracking-widest text-slate-950 active:scale-[0.98] transition flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/10 cursor-pointer"
         >
-          Chấp nhận tham gia <ArrowRight className="h-3.5 w-3.5" />
+          Chấp nhận <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
 
       {/* Footer */}
-      <footer className="relative z-10 w-full border-t border-white/5 bg-[#02040a]/80 backdrop-blur-md pt-16 pb-12 px-4 md:px-8 mt-16 max-w-[1550px] mx-auto text-center">
+      <footer className="relative z-10 w-full border-t border-white/5 bg-[#02040a]/80 backdrop-blur-md pt-16 pb-24 md:pb-12 px-4 md:px-8 mt-16 max-w-[1550px] mx-auto text-center">
         <div className="flex flex-col items-center mb-12">
           <div className="flex items-center gap-2 mb-3 justify-center">
             <img src="/logo_icon.png" alt="OnstageVN Logo Icon" className="h-12 w-12 object-contain shrink-0" />
@@ -454,7 +453,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
 
             <h3 className="mt-4 text-center font-display text-lg font-black uppercase tracking-wider text-white">Xác nhận tham gia</h3>
             <p className="mt-2 text-center text-xs text-slate-400 leading-relaxed font-medium">
-              Bạn chuẩn bị tham gia mạng lưới của <strong className="text-white">{brandName}</strong>. 
+              Bạn chuẩn bị tham gia mạng lưới của <strong className="text-white">{brandName}</strong>.
             </p>
 
             <div className="mt-5 rounded-2xl border border-white/5 bg-slate-950/70 p-4 space-y-2.5 text-xs text-left text-slate-350 font-medium">

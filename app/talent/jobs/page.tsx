@@ -4,11 +4,11 @@ import React, { useState, useEffect } from "react";
 import {
   Search, MapPin, DollarSign, Sparkles, Filter, ShieldCheck, CheckCircle,
   Eye, X, Info, Clock, Phone, Mail, Globe, MapPinned, AlertCircle,
-  ArrowUpRight
+  ArrowUpRight, Copy, Users, UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
-import { applyTalentCampaign, loadTalentCampaigns, mapCampaignToTalentJob, resolveCampaignReferralLink } from "@/lib/talent-api";
+import { applyTalentCampaign, loadTalentCampaigns, mapCampaignToTalentJob, resolveCampaignReferralLink, getCampaignReferralLink } from "@/lib/talent-api";
 import { getStoredAuthUser } from "@/lib/api-client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -81,7 +81,7 @@ export default function JobsPage() {
   const searchParams = useSearchParams();
   const campaignIdParam = searchParams.get("campaignId");
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState("all");
-  const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>("executing");
+  const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>("all");
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
@@ -89,6 +89,47 @@ export default function JobsPage() {
   const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "info" }[]>([]);
   const [displayJobs, setDisplayJobs] = useState<any[]>([]);
   const [pastedUrl, setPastedUrl] = useState("");
+  const [activeReferralLink, setActiveReferralLink] = useState<{ [campId: string]: any }>({});
+  const [loadingReferral, setLoadingReferral] = useState<string | null>(null);
+  const [showInviteModal, setShowInviteModal] = useState<any>(null);
+
+  const handleInviteClick = async (camp: any) => {
+    setLoadingReferral(camp.id);
+    try {
+      const res = await getCampaignReferralLink(camp.id);
+      setActiveReferralLink(prev => ({ ...prev, [camp.id]: res }));
+      setShowInviteModal(camp);
+    } catch (err) {
+      console.warn("Error getting referral link:", err);
+      // Fallback code
+      const mockCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const mockLink = {
+        code: mockCode,
+        url: `${window.location.origin}/ref/${mockCode}`,
+        click_count: 0,
+        conversion_count: 0
+      };
+      setActiveReferralLink(prev => ({ ...prev, [camp.id]: mockLink }));
+      setShowInviteModal(camp);
+    } finally {
+      setLoadingReferral(null);
+    }
+  };
+
+  const handleCopyLink = (url: string) => {
+    navigator.clipboard.writeText(url);
+    addToast("Đã sao chép link giới thiệu vào bộ nhớ tạm!", "success");
+  };
+
+  const getSplitBudgetLabel = (budgetStr: string) => {
+    const matchNums = budgetStr.match(/\d+([\.\,]\d+)*/g);
+    if (matchNums && matchNums.length > 0) {
+      const minVal = parseInt(matchNums[0].replace(/[\.\,]/g, ""));
+      const splitVal = minVal / 2;
+      return `${splitVal.toLocaleString("vi-VN")}đ`;
+    }
+    return "10.000.000đ";
+  };
 
   const addToast = (message: string, type: "success" | "info" = "success") => {
     const id = Date.now().toString();
@@ -548,12 +589,12 @@ export default function JobsPage() {
           return {
             ...c,
             hasApplied: true,
-            application: { ...(c.application || {}), status: "new" },
+            application: { ...(c.application || {}), status: "approved" },
             applicants: [
               ...apps,
               {
                 talentId: "tal-1",
-                stage: "new" as const,
+                stage: "approved" as const,
                 note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
                 referredByTalentId: refId || undefined
               }
@@ -616,12 +657,12 @@ export default function JobsPage() {
               return {
                 ...c,
                 hasApplied: true,
-                application: { ...(c.application || {}), status: "new" },
+                application: { ...(c.application || {}), status: "approved" },
                 applicants: [
                   ...apps,
                   {
                     talentId: "tal-1",
-                    stage: "new" as const,
+                    stage: "approved" as const,
                     note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
                     referredByTalentId: refId || undefined
                   }
@@ -674,7 +715,7 @@ export default function JobsPage() {
     return matchesSponsorship && matchesStage;
   });
 
-  const stageFilterOptions: StageFilter[] = ["executing", "recruiting", "completed", "all"];
+  const stageFilterOptions: StageFilter[] = ["all", "executing", "recruiting", "completed"];
 
   // Count jobs per stage for displaying badge counts
   const stageCounts = stageFilterOptions.reduce((acc, sf) => {
@@ -818,14 +859,30 @@ export default function JobsPage() {
               <div className="flex justify-between items-start relative z-10">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={cn("rounded border px-2.5 py-0.5 text-[8px] font-bold uppercase tracking-wider", camp.badgeColor)}>
-                      {camp.type === "Runway" ? "Người mẫu sàn diễn" : camp.type}
-                    </span>
-                    {camp.escrowed && (
-                      <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-2.5 py-0.5 text-[8px] text-emerald-400 font-extrabold border border-emerald-500/20 uppercase tracking-wider">
-                        <ShieldCheck className="h-3 w-3" /> Đã đặt cọc
-                      </span>
-                    )}
+                    {(() => {
+                      const stage = getTalentJobStage(camp);
+                      const applied = hasTalentApplication(camp);
+
+                      let label = "Đang tuyển dụng";
+                      let colorClass = "bg-amber-500/10 border-amber-500/20 text-amber-400";
+
+                      if (stage === "completed" || stage === "confirmed") {
+                        label = "Đã hoàn thành";
+                        colorClass = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+                      } else if (stage === "executing" || stage === "accepted") {
+                        label = "Đang tham gia";
+                        colorClass = "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
+                      } else if (stage === "new" || (applied && !stage)) {
+                        label = "Chờ duyệt hồ sơ";
+                        colorClass = "bg-yellow-500/10 border-yellow-500/20 text-yellow-400";
+                      }
+
+                      return (
+                        <span className={cn("rounded border px-2.5 py-0.5 text-[8px] font-bold uppercase tracking-wider", colorClass)}>
+                          {label}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <h3 className="font-display font-extrabold text-sm text-white mt-2 group-hover:text-amber-400 transition-colors duration-300 leading-snug">{camp.title}</h3>
                   <p className="text-[10px] text-slate-500 font-bold">{camp.brand}</p>
@@ -940,6 +997,26 @@ export default function JobsPage() {
                   );
                 })()}
               </div>
+
+              <button
+                onClick={() => {
+                  if (isApplied) {
+                    handleInviteClick(camp);
+                  } else {
+                    addToast("Vui lòng ứng tuyển chiến dịch trước khi mời thành viên khác.", "info");
+                  }
+                }}
+                disabled={loadingReferral === camp.id}
+                className={cn(
+                  "mt-3 flex w-full h-11 items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition-all duration-300 cursor-pointer relative z-10",
+                  isApplied
+                    ? "border-amber-500/20 bg-amber-500/5 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                    : "border-white/5 bg-white/2 text-slate-400 hover:text-white hover:bg-white/5"
+                )}
+              >
+                <UserPlus className="h-4 w-4 text-amber-400" />
+                {loadingReferral === camp.id ? "Đang lấy link..." : "Mời tham gia (Affiliate)"}
+              </button>
             </div>
           );
         })}
@@ -953,19 +1030,30 @@ export default function JobsPage() {
             <div className="flex items-start justify-between p-6 border-b border-[#151b2d]">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className={cn("rounded border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider", selectedJob.badgeColor)}>
-                    {selectedJob.type === "Runway" ? "Người mẫu sàn diễn" : selectedJob.type}
-                  </span>
-                  {selectedJob.escrowed && (
-                    <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[8px] text-emerald-400 font-extrabold border border-emerald-500/20 uppercase tracking-wider">
-                      <ShieldCheck className="h-3 w-3" /> Đã ký quỹ Escrow
-                    </span>
-                  )}
-                  {(appliedJobs.includes(selectedJob.id) || hasTalentApplication(selectedJob)) && (
-                    <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[8px] text-emerald-400 font-extrabold border border-emerald-500/20 uppercase tracking-wider">
-                      <CheckCircle className="h-3 w-3" /> Đã ứng tuyển
-                    </span>
-                  )}
+                  {(() => {
+                    const stage = getTalentJobStage(selectedJob);
+                    const applied = hasTalentApplication(selectedJob);
+
+                    let label = "Đang tuyển dụng";
+                    let colorClass = "bg-amber-500/10 border-amber-500/20 text-amber-400";
+
+                    if (stage === "completed" || stage === "confirmed") {
+                      label = "Đã hoàn thành";
+                      colorClass = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+                    } else if (stage === "executing" || stage === "accepted") {
+                      label = "Đang tham gia";
+                      colorClass = "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
+                    } else if (stage === "new" || (applied && !stage)) {
+                      label = "Chờ duyệt hồ sơ";
+                      colorClass = "bg-yellow-500/10 border-yellow-500/20 text-yellow-400";
+                    }
+
+                    return (
+                      <span className={cn("rounded border px-2.5 py-0.5 text-[8px] font-bold uppercase tracking-wider", colorClass)}>
+                        {label}
+                      </span>
+                    );
+                  })()}
                 </div>
                 <h2 className="font-display font-black text-lg text-white mt-1.5 uppercase leading-tight tracking-tight">
                   {selectedJob.title}
@@ -1250,32 +1338,7 @@ export default function JobsPage() {
                 </div>
               </div>
 
-              {/* Campaign Affiliate Widget */}
-              {hasTalentApplication(selectedJob) && (
-                <div className="mt-6 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 space-y-3.5 text-left">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-4.5 w-4.5 text-amber-400" />
-                      <h4 className="text-xs font-black text-amber-400 uppercase tracking-wider">
-                        Lan tỏa chiến dịch nhận thưởng (5% Affiliate)
-                      </h4>
-                    </div>
-                    <span className="text-[9px] font-extrabold uppercase bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/20">
-                      Active Upline
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-300 leading-relaxed font-semibold">
-                    Chiến dịch này đã kích hoạt chương trình giới thiệu. Nhận ngay <span className="text-amber-400 font-bold">5% hoa hồng</span> thù lao khi mời các KOL khác cùng tham gia thành công.
-                  </p>
-                  <Link
-                    href="/talent/affiliate"
-                    onClick={() => setSelectedJob(null)}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-amber-400 text-slate-950 px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all hover:bg-amber-300 active:scale-[0.98] cursor-pointer"
-                  >
-                    Lấy link & Quản lý Affiliate <ArrowUpRight className="h-4 w-4 text-slate-950" />
-                  </Link>
-                </div>
-              )}
+
 
             </div>
 
@@ -1352,6 +1415,154 @@ export default function JobsPage() {
                   </button>
                 );
               })()}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* INVITATION AFFILIATE MODAL */}
+      {showInviteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-lg flex flex-col bg-[#08090f] border border-[#D4A64A]/30 rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300 p-5 sm:p-6 space-y-4 sm:space-y-6">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Modal Header */}
+            <div className="relative pr-8 text-left space-y-2">
+              <div className="space-y-1">
+                <h3 className="font-display font-black text-base sm:text-lg text-white uppercase leading-tight tracking-tight">
+                  {showInviteModal.title}
+                </h3>
+                <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wide">
+                  THƯƠNG HIỆU: <span className="text-slate-300">{showInviteModal.brand}</span>
+                </p>
+              </div>
+
+              <div>
+                <span className="inline-flex rounded-full bg-amber-400/10 border border-amber-400/30 px-2.5 py-1 text-[9px] font-black uppercase text-amber-300 tracking-wider">
+                  Cát-xê chia đều: {getSplitBudgetLabel(showInviteModal.budget)}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setShowInviteModal(null)}
+                className="absolute top-0 right-0 flex h-8 w-8 items-center justify-center rounded-xl border border-[#151b2d] bg-[#050711] text-slate-400 hover:text-white transition-all cursor-pointer hover:border-slate-800"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Affiliate Link Container */}
+            {(() => {
+              const code = activeReferralLink[showInviteModal.id]?.code || "";
+              const url = activeReferralLink[showInviteModal.id]?.url || `${window.location.origin}/ref/${code}`;
+              const referrals = showInviteModal.referrals || [];
+              const commission = 500000;
+
+              return (
+                <>
+                  <div className="space-y-2 text-left">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      LINK AFFILIATE GIỚI THIỆU (CAMPAIGN)
+                    </p>
+                    <div className="flex items-center gap-3 bg-[#03050c] border border-[#151b2d] rounded-xl p-2.5 min-w-0">
+                      <span className="text-xs text-[#F0C56B] font-mono select-all truncate flex-1 pl-1 min-w-0">
+                        {url}
+                      </span>
+                      <button
+                        onClick={() => handleCopyLink(url)}
+                        className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-gold text-slate-950 px-3 sm:px-4 text-xs font-black uppercase tracking-widest transition hover:brightness-110 active:scale-[0.98] cursor-pointer shrink-0"
+                      >
+                        <Copy className="h-3.5 w-3.5" /> Copy Link
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
+                      * Mẹo: Chia sẻ link này cho các KOL/KOC trong network của bạn. Khi họ đăng ký & được duyệt, bạn nhận ngay 5% hoa hồng từ việc làm của họ.
+                    </p>
+                  </div>
+
+                  {/* List of referred users */}
+                  <div className="space-y-3.5 text-left border-t border-[#151b2d] pt-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <Users className="h-4.5 w-4.5 text-amber-400 shrink-0" /> KOL F2 được bạn mời ({referrals.length})
+                      </h4>
+                      {referrals.length > 0 && (
+                        <span className="self-start sm:self-auto rounded bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 text-[9px] font-black uppercase text-amber-300">
+                          Hoa hồng từ campaign: +{(referrals.length * commission).toLocaleString("vi-VN")}đ
+                        </span>
+                      )}
+                    </div>
+
+                    {referrals.length === 0 ? (
+                      <div className="py-6 text-center text-slate-500 text-xs font-medium">
+                        Bạn chưa mời ai tham gia chiến dịch này. Hãy chia sẻ link trên để nhận 5% hoa hồng!
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
+                        {referrals.map((item: any, idx: number) => {
+                          const name = item.profile?.display_name || item.profile?.user?.name || "KOL F2";
+                          const avatar = item.profile?.user?.external_avatar_url || item.profile?.logo_url || "";
+                          const status = item.status || "new";
+
+                          let statusText = "CHỜ DUYỆT (F2)";
+                          let statusColor = "text-amber-400 bg-amber-400/10 border-amber-400/20";
+                          if (status === "accepted" || status === "executing") {
+                            statusText = "ĐANG THAM GIA (F2)";
+                            statusColor = "text-cyan-400 bg-cyan-400/10 border-cyan-400/20";
+                          } else if (status === "completed" || status === "confirmed") {
+                            statusText = "HOÀN THÀNH (F2)";
+                            statusColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+                          }
+
+                          return (
+                            <div
+                              key={item.id || idx}
+                              className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 p-3 rounded-xl bg-slate-950/60 border border-white/5 animate-in fade-in duration-200"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="h-10 w-10 rounded-xl overflow-hidden bg-slate-900 border border-[#D4A64A]/30 shrink-0">
+                                  {avatar ? (
+                                    <img src={avatar} alt={name} className="h-full w-full object-cover" />
+                                  ) : (
+                                    <div className="h-full w-full flex items-center justify-center text-xs font-black uppercase text-amber-300">
+                                      {name.charAt(0)}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="text-xs font-black text-white truncate max-w-[120px] sm:max-w-none">{name}</span>
+                                    <span className="rounded bg-cyan-500/10 border border-cyan-500/25 px-1.5 py-0.5 text-[8px] font-black uppercase text-cyan-300 whitespace-nowrap">
+                                      KOL F2
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-[#F0C56B] font-bold mt-1 whitespace-nowrap">
+                                    Hoa hồng giới thiệu: +{commission.toLocaleString("vi-VN")}đ
+                                  </p>
+                                </div>
+                              </div>
+
+                              <span className={cn("rounded border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider self-start sm:self-auto shrink-0", statusColor)}>
+                                {statusText}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setShowInviteModal(null)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-[#151b2d] bg-[#050711] text-xs font-bold text-slate-400 hover:text-white hover:bg-white/2 cursor-pointer transition-colors"
+              >
+                Đóng lại
+              </button>
             </div>
 
           </div>
