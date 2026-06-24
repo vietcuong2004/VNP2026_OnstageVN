@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getAuthToken } from "@/lib/api-client";
 import { resolveBrandTalentInviteLink, acceptBrandTalentInviteLink } from "@/lib/talent-api";
 import { Shield, CheckCircle, Clock, Sparkles, Building2, ChevronRight, Award, Info, Users, Star, ArrowLeft, Globe, MapPin, UserPlus, Check, X, ArrowRight } from "lucide-react";
-import { normalizeBackendAssetUrl } from "@/lib/avatar";
+import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 
 interface Props {
   code: string;
@@ -90,10 +90,16 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
   const brand = inviteData.brand || {};
   const partner = brand.partner_profile || brand.partnerProfile || {};
   const brandName = partner.organization_name || brand.name || "Brand Partner";
-  const brandLogo = brand.external_avatar_url || brand.avatar_url || "/favicon.png";
+  const brandLogo =
+    normalizeBackendAssetUrl(
+      partner.logo_url || brand.logo_url || brand.logo || brand.external_avatar_url || brand.avatar_url || "",
+    ) || "/favicon.png";
   const photos = brand.photos || partner.photos || [];
   const coverPhotoRecord = [...photos].reverse().find((photo: any) => photo.category === "cover");
-  const brandCover = coverPhotoRecord ? normalizeBackendAssetUrl(coverPhotoRecord.url || coverPhotoRecord.path) : "/cover_image.png";
+  const brandCover =
+    normalizeBackendAssetUrl(partner.cover_url || "")
+    || (coverPhotoRecord ? normalizeBackendAssetUrl(coverPhotoRecord.url || coverPhotoRecord.path) : "")
+    || "/cover_image.png";
   const brandDesc = partner.description || "Thành viên đối tác tin cậy của OnstageVN. Đang tìm kiếm các Talent, Model, MC và PG tiềm năng để đồng hành trong các chiến dịch quảng cáo và truyền thông.";
   const brandIndustry = partner.industry || "Thời trang & Đời sống";
   const brandCity = partner.city || "Hà Nội";
@@ -156,7 +162,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
           <p className="mt-2 text-xs font-bold text-[#F0C56B] uppercase tracking-widest">Bạn đã gia nhập thành công</p>
           
           <div className="mt-5 rounded-2xl border border-white/5 bg-slate-950/70 p-4 flex items-center gap-3 text-left">
-            <img src={brandLogo} alt={brandName} className="h-11 w-11 rounded-xl object-cover border border-[#D4A64A]/30" />
+            <img src={brandLogo} alt={brandName} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = createInitialAvatarDataUrl(brandName, ""); }} className="h-11 w-11 rounded-xl object-cover border border-[#D4A64A]/30" />
             <div className="min-w-0">
               <p className="text-sm font-black text-white truncate">{brandName}</p>
               <p className="text-[10px] text-slate-500 font-semibold truncate">{brandIndustry} • {brandCity}</p>
@@ -243,6 +249,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
               <img
                 src={brandCover}
                 alt="Brand Cover Banner"
+                onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/cover_image.png"; }}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
@@ -254,7 +261,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
               <div className="flex flex-col md:flex-row items-start md:items-end gap-5 -mt-16 md:-mt-20 relative z-10">
                 {/* Avatar position with gold glowing border */}
                 <div className="relative h-24 w-24 md:h-28 md:w-28 shrink-0 rounded-3xl overflow-hidden border-4 border-[#02040a] bg-slate-950 p-[3px] shadow-2xl shadow-black/80 group-hover:border-[#D4A64A]/30 transition-colors duration-300">
-                  <img src={brandLogo} alt={brandName} className="h-full w-full rounded-2xl object-cover bg-slate-900" />
+                  <img src={brandLogo} alt={brandName} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = createInitialAvatarDataUrl(brandName, ""); }} className="h-full w-full rounded-2xl object-cover bg-slate-900" />
                 </div>
 
                 {/* Text details */}

@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound, Lock, AlertCircle, Upload } from "lucide-react";
+import { CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound, Lock, AlertCircle, Upload } from "lucide-react";
 import { partnerProfile } from "@/lib/brand-mvp-data";
-import { loadBrandPartnerProfile, mapBackendPartnerProfile, saveBrandPartnerProfile } from "@/lib/brand-api";
+import { loadBrandPartnerProfile, mapBackendPartnerProfile, saveBrandPartnerProfile, uploadBrandProfileCover, uploadBrandProfileLogo } from "@/lib/brand-api";
 import { getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, SocialConnection, unlinkSocialConnection, updateAuthEmail, apiJson, storeAuthUser } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
-import { loadTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 import ProgressBar from "@/components/ui/ProgressBar";
 
 type AuthUser = {
@@ -48,7 +47,6 @@ export default function BrandSettingsPage() {
   // Avatar upload states
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [profileId, setProfileId] = useState<number | null>(null);
 
   // Cover photo upload states
   const [coverUrl, setCoverUrl] = useState("/cover_image.png");
@@ -72,21 +70,26 @@ export default function BrandSettingsPage() {
       setMissingEmailFromQuery(new URLSearchParams(window.location.search).get("missingEmail") === "1");
     }, 0);
 
-    loadBrandPartnerProfile(fallbackProfile).then(setProfile);
+    loadBrandPartnerProfile(fallbackProfile).then((loadedProfile) => {
+      setProfile(loadedProfile);
+      if (loadedProfile.coverUrl) {
+        setCoverUrl(loadedProfile.coverUrl);
+      }
+      if (loadedProfile.logoUrl) {
+        setAuthUser((current) => {
+          if (!current) return current;
+          const updatedUser = { ...current, external_avatar_url: loadedProfile.logoUrl };
+          storeAuthUser(updatedUser);
+          return updatedUser;
+        });
+      }
+    });
     loadSocialConnections()
       .then(setConnections)
       .catch(() => {
         // Keep settings usable if auth API is not ready.
       });
 
-    loadTalentProfile().then((p) => {
-      if (p?.backendProfileId) {
-        setProfileId(p.backendProfileId);
-      }
-      if (p?.cover) {
-        setCoverUrl(p.cover);
-      }
-    });
 
     return () => window.clearTimeout(timeout);
   }, []);
@@ -149,15 +152,9 @@ export default function BrandSettingsPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!profileId) {
-      showToast("Hồ sơ chưa được đồng bộ, vui lòng thử lại sau.", "error");
-      return;
-    }
-
     setUploadingAvatar(true);
     setUploadProgress(0);
 
-    // Simulate upload progress
     const progressInterval = window.setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 90) return prev;
@@ -166,19 +163,23 @@ export default function BrandSettingsPage() {
     }, 100);
 
     try {
-      const uploaded = await uploadTalentPhoto(profileId, file, "avatar");
+      const savedProfile = await uploadBrandProfileLogo(file);
       window.clearInterval(progressInterval);
       setUploadProgress(100);
-      
-      // Delay slightly so the user sees 100% complete
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      if (uploaded?.url && authUser) {
-        const updatedUser = { ...authUser, external_avatar_url: uploaded.url };
-        setAuthUser(updatedUser);
-        storeAuthUser(updatedUser);
-        showToast("Cập nhật ảnh đại diện thành công!", "success");
+      setProfile(savedProfile);
+
+      if (savedProfile.logoUrl) {
+        setAuthUser((current) => {
+          if (!current) return current;
+          const updatedUser = { ...current, external_avatar_url: savedProfile.logoUrl };
+          storeAuthUser(updatedUser);
+          return updatedUser;
+        });
       }
+
+      showToast("Cập nhật ảnh đại diện thành công!", "success");
     } catch (error) {
       window.clearInterval(progressInterval);
       showToast(error instanceof Error ? error.message : "Chưa thể tải ảnh đại diện lên.", "error");
@@ -192,15 +193,9 @@ export default function BrandSettingsPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!profileId) {
-      showToast("Hồ sơ chưa được đồng bộ, vui lòng thử lại sau.", "error");
-      return;
-    }
-
     setUploadingCover(true);
     setCoverProgress(0);
 
-    // Simulate upload progress
     const progressInterval = window.setInterval(() => {
       setCoverProgress((prev) => {
         if (prev >= 90) return prev;
@@ -209,17 +204,14 @@ export default function BrandSettingsPage() {
     }, 100);
 
     try {
-      const uploaded = await uploadTalentPhoto(profileId, file, "cover");
+      const savedProfile = await uploadBrandProfileCover(file);
       window.clearInterval(progressInterval);
       setCoverProgress(100);
-      
-      // Delay slightly so the user sees 100% complete
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      if (uploaded?.url) {
-        setCoverUrl(uploaded.url);
-        showToast("Cập nhật ảnh bìa thành công!", "success");
-      }
+      setProfile(savedProfile);
+      setCoverUrl(savedProfile.coverUrl || "/cover_image.png");
+      showToast("Cập nhật ảnh bìa thành công!", "success");
     } catch (error) {
       window.clearInterval(progressInterval);
       showToast(error instanceof Error ? error.message : "Chưa thể tải ảnh bìa lên.", "error");
@@ -343,7 +335,7 @@ export default function BrandSettingsPage() {
           <div className="mb-5 flex items-start gap-4 border-b border-white/5 pb-5">
             <div className="relative group h-28 w-28 shrink-0 rounded-3xl overflow-hidden border-2 border-amber-500/20 bg-[#08090f] p-[3px] transition-all duration-300 hover:border-amber-400/50 shadow-lg shadow-amber-500/5">
               <img
-                src={authUser?.external_avatar_url || "/logo.png"}
+                src={profile.logoUrl || authUser?.external_avatar_url || "/logo.png"}
                 alt={profile.organizationName}
                 className="h-full w-full rounded-[22px] object-cover"
               />

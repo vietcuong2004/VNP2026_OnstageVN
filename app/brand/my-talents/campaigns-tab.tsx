@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ChevronRight } from "lucide-react";
+import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import type { Campaign } from "@/lib/brand-mvp-data";
 
@@ -98,7 +99,7 @@ export default function CampaignsTab({
 
               return (
                 <div key={talentId} className="flex items-center gap-2 rounded-xl bg-[#050711] border border-[#151b2d] px-3 py-1.5 hover:border-slate-700/50 transition-colors">
-                  <img src={talent.avatar} alt={talent.name} className="h-6 w-6 rounded-full object-cover border border-white/10" />
+                  <img src={talent.avatar} alt={talent.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = createInitialAvatarDataUrl(talent.name, ""); }} className="h-6 w-6 rounded-full object-cover border border-white/10" />
                   <span className="text-[10px] font-bold text-slate-300">{talent.name}</span>
                   <span className={cn("text-[8px] font-black rounded px-1.5 py-0.5 border", tierColor(talent.tier ?? ""))}>
                     Tier {talent.tier}

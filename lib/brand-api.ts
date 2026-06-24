@@ -1,7 +1,7 @@
 "use client";
 
 import { apiForm, apiJson, getAuthToken } from "@/lib/api-client";
-import { normalizeBackendAssetUrl } from "@/lib/avatar";
+import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl, profileAvatarFromBackend } from "@/lib/avatar";
 import type { Campaign, CampaignMedia, CampaignStage, TalentProfile } from "@/lib/brand-mvp-data";
 
 type BackendUser = {
@@ -134,6 +134,8 @@ type BackendPartnerProfile = {
   city?: string | null;
   description?: string | null;
   verification_status?: string | null;
+  logo_url?: string | null;
+  cover_url?: string | null;
 };
 
 type BackendWishlistItem = {
@@ -429,12 +431,16 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
   const measurements = parseMeasurements(profile.measurements);
   const followersCount = sumFollowers(profile) || fallback?.followersCount || 0;
   const engagementRate = avgEngagement(profile) || fallback?.engagementRate || 0;
-  const avatar = firstPhoto(profile, "avatar")
+  const displayName = String(repairMojibake(profile.full_name || profile.display_name || fallback?.name || profile.user?.name || "Talent"));
+  const rawAvatar = profileAvatarFromBackend(profile)
     || normalizeBackendAssetUrl(profile.avatar_url)
     || normalizeBackendAssetUrl(profile.user?.external_avatar_url)
-    || fallback?.avatar
+    || normalizeBackendAssetUrl(fallback?.avatar)
     || "";
-  const cover = firstPhoto(profile, "cover") || fallback?.cover || avatar;
+  const avatar = isUsableAvatarUrl(rawAvatar)
+    ? rawAvatar
+    : createInitialAvatarDataUrl(displayName, profile.user?.email || fallback?.name || profile.user?.name);
+  const cover = firstPhoto(profile, "cover") || normalizeBackendAssetUrl(fallback?.cover) || avatar;
   const portfolio = (profile.photos ?? [])
     .map((photo) => photo.url || photo.path || "")
     .filter(Boolean);
@@ -446,7 +452,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
 
   return {
     id: String(profile.id ?? fallback?.id ?? ""),
-    name: String(repairMojibake(profile.full_name || profile.display_name || fallback?.name || profile.user?.name || "Talent")),
+    name: displayName,
     type: String(repairMojibake(profile.talent_types?.[0] || fallback?.type || "Talent")),
     city: String(repairMojibake(profile.city || fallback?.city || "")),
     district: String(repairMojibake(profile.district || fallback?.district || "")),
@@ -560,12 +566,18 @@ function mapCampaignTalent(item: BackendCampaignTalent, index: number): Campaign
       id,
       name,
       type: user?.type || "Talent",
-      avatar: profile
-        ? firstPhoto(profile, "avatar")
-          || normalizeBackendAssetUrl(profile.avatar_url)
-          || normalizeBackendAssetUrl(user?.external_avatar_url)
-          || ""
-        : normalizeBackendAssetUrl(user?.external_avatar_url) || "",
+      avatar: (() => {
+        const rawAvatar = profile
+          ? profileAvatarFromBackend(profile)
+            || normalizeBackendAssetUrl(profile.avatar_url)
+            || normalizeBackendAssetUrl(user?.external_avatar_url)
+            || ""
+          : normalizeBackendAssetUrl(user?.external_avatar_url) || "";
+
+        return isUsableAvatarUrl(rawAvatar)
+          ? rawAvatar
+          : createInitialAvatarDataUrl(name, user?.email || user?.name || "");
+      })(),
       matchScore: 0,
     },
   };
@@ -634,6 +646,8 @@ export function mapBackendPartnerProfile(profile: BackendPartnerProfile | null |
     city: profile?.city || "",
     description: profile?.description || "",
     verificationStatus: profile?.verification_status || "pending",
+    logoUrl: normalizeBackendAssetUrl(profile?.logo_url || ""),
+    coverUrl: normalizeBackendAssetUrl(profile?.cover_url || ""),
   };
 }
 
@@ -925,6 +939,28 @@ export async function saveBrandPartnerProfile(profile: ReturnType<typeof mapBack
     method: "PUT",
     body: JSON.stringify(buildPartnerProfilePayload(profile)),
   });
+
+  return mapBackendPartnerProfile(response.data);
+}
+
+export async function uploadBrandProfileLogo(file: File) {
+  requireBrandSession();
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await apiForm<{ data: BackendPartnerProfile }>("/partner/profile/logo", formData);
+
+  return mapBackendPartnerProfile(response.data);
+}
+
+export async function uploadBrandProfileCover(file: File) {
+  requireBrandSession();
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await apiForm<{ data: BackendPartnerProfile }>("/partner/profile/cover", formData);
 
   return mapBackendPartnerProfile(response.data);
 }

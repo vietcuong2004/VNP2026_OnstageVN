@@ -104,7 +104,7 @@ function mapBackendInvitation(item: Record<string, unknown>): BrandInvitation {
     managerAvatar: brandAvatarSrc(
       brandName,
       managerName,
-      brand.logo_url || brand.logo || brand.avatar_url || brand.external_avatar_url || partner.logo_url || partner.logo,
+      partner.logo_url || partner.logo || brand.logo_url || brand.logo || brand.avatar_url || brand.external_avatar_url,
     ),
     managerTier: String(partner.organization_type || "Brand"),
     commissionRate: Number(activeTerm.commission_rate || 10) / 100,
@@ -127,7 +127,10 @@ function mapBackendInvitation(item: Record<string, unknown>): BrandInvitation {
           usableText(user.name) ||
           usableText(user.email) ||
           `Talent #${String(profile.id || user.id || childRecord.id || "").trim() || "mới"}`;
-        const avatar = String(profileAvatarFromBackend(profile) || profile.avatar_url || user.external_avatar_url || "");
+        const avatar = profileAvatarFromBackend(profile)
+          || normalizeBackendAssetUrl(profile.avatar_url)
+          || normalizeBackendAssetUrl(user.external_avatar_url)
+          || "";
 
         return {
           id: String(childRecord.id || profile.id || user.id || ""),
@@ -848,7 +851,15 @@ export default function TalentBrandsPage() {
                   {selectedInvitation.members?.length ? (
                     selectedInvitation.members.map((member) => (
                       <div key={member.id} className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950/60 p-3">
-                        <img src={member.avatar} alt={member.name} className="h-10 w-10 rounded-xl object-cover" />
+                        <img
+                          src={member.avatar}
+                          alt={member.name}
+                          onError={(event) => {
+                            event.currentTarget.onerror = null;
+                            event.currentTarget.src = createInitialAvatarDataUrl(member.name, "");
+                          }}
+                          className="h-10 w-10 rounded-xl object-cover"
+                        />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-xs font-black text-white">{member.name}</p>
                           <p className="mt-0.5 text-[10px] font-semibold text-slate-500">
