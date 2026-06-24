@@ -76,12 +76,9 @@ export default function BrandSettingsPage() {
         setCoverUrl(loadedProfile.coverUrl);
       }
       if (loadedProfile.logoUrl) {
-        setAuthUser((current) => {
-          if (!current) return current;
-          const updatedUser = { ...current, external_avatar_url: loadedProfile.logoUrl };
-          storeAuthUser(updatedUser);
-          return updatedUser;
-        });
+        setAuthUser((current) => (
+          current ? { ...current, external_avatar_url: loadedProfile.logoUrl } : current
+        ));
       }
     });
     loadSocialConnections()
@@ -102,6 +99,19 @@ export default function BrandSettingsPage() {
       return () => clearTimeout(timer);
     }
   }, [toast]);
+
+  useEffect(() => {
+    if (!authUser) return;
+
+    const storedUser = getStoredAuthUser<AuthUser>();
+    const nextSerialized = JSON.stringify(authUser);
+    const currentSerialized = storedUser ? JSON.stringify(storedUser) : "";
+
+    if (nextSerialized !== currentSerialized) {
+      storeAuthUser(authUser);
+    }
+  }, [authUser]);
+
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
@@ -171,12 +181,9 @@ export default function BrandSettingsPage() {
       setProfile(savedProfile);
 
       if (savedProfile.logoUrl) {
-        setAuthUser((current) => {
-          if (!current) return current;
-          const updatedUser = { ...current, external_avatar_url: savedProfile.logoUrl };
-          storeAuthUser(updatedUser);
-          return updatedUser;
-        });
+        setAuthUser((current) => (
+          current ? { ...current, external_avatar_url: savedProfile.logoUrl } : current
+        ));
       }
 
       showToast("Cập nhật ảnh đại diện thành công!", "success");
