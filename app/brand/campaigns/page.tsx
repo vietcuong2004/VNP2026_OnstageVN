@@ -13,8 +13,10 @@ import {
   Users,
   UserCheck,
   ShieldCheck,
+  MapPin,
+  Calendar,
 } from "lucide-react";
-import { campaigns as initialCampaigns, type Campaign } from "@/lib/brand-mvp-data";
+import { type Campaign } from "@/lib/brand-mvp-data";
 import { createBrandCampaign, loadBrandCampaigns, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 
@@ -153,12 +155,23 @@ function statusLabel(status: Campaign["status"]) {
   return "Nháp";
 }
 
+function formatDate(dateStr?: string) {
+  if (!dateStr) return "N/A";
+  const datePart = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+  const parts = datePart.split("-");
+  if (parts.length === 3) {
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+  }
+  return datePart;
+}
+
 export default function CampaignsPage() {
   const router = useRouter();
-  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
-    loadBrandCampaigns(initialCampaigns).then((items) => {
+    loadBrandCampaigns([]).then((items) => {
       setCampaigns(items);
     });
   }, []);
@@ -293,88 +306,39 @@ export default function CampaignsPage() {
         </div>
       </div>
 
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Thẻ 1: Tổng chiến dịch */}
-        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#111421]/88 to-[#070913]/96 p-5 border-amber-400/25 shadow-[0_0_22px_rgba(245,158,11,0.12)] text-left">
-          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600"></div>
-          <div className="flex items-start justify-between gap-4">
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Tổng chiến dịch</span>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/25 bg-amber-400/10 text-amber-300">
-              <Briefcase className="h-4.5 w-4.5" />
-            </div>
-          </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
-            {campaigns.length}
-          </strong>
-          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Chiến dịch đã tạo</span>
-        </div>
-
-        {/* Thẻ 2: Tổng ứng viên */}
-        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#1a1305]/88 to-[#070913]/96 p-5 border-amber-400/35 shadow-[0_0_22px_rgba(245,158,11,0.18)] text-left">
-          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-15 blur-2xl bg-gradient-to-br from-amber-300 to-yellow-600"></div>
-          <div className="flex items-start justify-between gap-4">
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Tổng ứng viên</span>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/35 bg-amber-400/15 text-amber-300">
-              <Users className="h-4.5 w-4.5" />
-            </div>
-          </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
-            {campaigns.reduce((acc, c) => acc + (c.applicants?.length || 0), 0)}
-          </strong>
-          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Nộp hồ sơ ứng tuyển</span>
-        </div>
-
-        {/* Thẻ 3: Đã shortlist */}
-        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#14100a]/88 to-[#070913]/96 p-5 border-yellow-500/30 shadow-[0_0_22px_rgba(234,179,8,0.14)] text-left">
-          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-12 blur-2xl bg-gradient-to-br from-yellow-300 to-amber-600"></div>
-          <div className="flex items-start justify-between gap-4">
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Đã chọn sơ tuyển</span>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-300">
-              <UserCheck className="h-4.5 w-4.5" />
-            </div>
-          </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
-            {campaigns.reduce((acc, c) => acc + (c.shortlistedTalentIds?.length || 0), 0)}
-          </strong>
-          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Talent được duyệt</span>
-        </div>
-
-        {/* Thẻ 4: Ký quỹ */}
-        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#1a1508]/88 to-[#070913]/96 p-5 border-amber-300/30 shadow-[0_0_22px_rgba(253,230,138,0.12)] text-left">
-          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-100 to-amber-500"></div>
-          <div className="flex items-start justify-between gap-4">
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Bảo chứng thanh toán</span>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 text-amber-200">
-              <ShieldCheck className="h-4.5 w-4.5" />
-            </div>
-          </div>
-          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
-            {campaigns.filter(c => c.escrowed).length}
-          </strong>
-          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Chiến dịch đã ký quỹ</span>
-        </div>
-      </div>
-
       <section className="flex flex-wrap gap-2 pb-2 text-left">
         {[
           { id: "all", label: "Tất cả" },
           { id: "published", label: "Đang mở" },
           { id: "closed", label: "Đã đóng" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as CampaignStatusTab)}
-            className={cn(
-              "rounded-xl px-4 py-2 text-xs font-black transition-all duration-300 cursor-pointer border",
-              activeTab === tab.id
-                ? "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 border-amber-400/30 shadow-md shadow-amber-500/10 scale-[1.02]"
-                : "bg-[#0c101b]/60 border-white/5 text-slate-400 hover:text-white hover:bg-white/5"
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
+        ].map((tab) => {
+          const count = tab.id === "all"
+            ? campaigns.length
+            : campaigns.filter((c) => c.status === tab.id).length;
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as CampaignStatusTab)}
+              className={cn(
+                "rounded-xl px-4 py-2 text-xs font-black transition-all duration-300 cursor-pointer border flex items-center gap-1.5",
+                activeTab === tab.id
+                  ? "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 border-amber-400/30 shadow-md shadow-amber-500/10 scale-[1.02]"
+                  : "bg-[#0c101b]/60 border-white/5 text-slate-400 hover:text-white hover:bg-white/5"
+              )}
+            >
+              <span>{tab.label}</span>
+              <span className={cn(
+                "rounded px-1.5 py-0.5 text-[9px] font-black leading-none",
+                activeTab === tab.id
+                  ? "bg-slate-950/15 text-slate-950"
+                  : "bg-white/5 text-slate-400"
+              )}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </section>
 
       <section className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -386,7 +350,7 @@ export default function CampaignsPage() {
             <article
               key={campaign.id}
               className={cn(
-                "flex flex-col justify-between rounded-3xl border p-5 transition-all duration-300 hover:-translate-y-0.5 flex-1 w-full text-left relative overflow-hidden group h-64",
+                "flex flex-col justify-between rounded-3xl border p-5 transition-all duration-300 hover:-translate-y-0.5 flex-1 w-full text-left relative overflow-hidden group h-[320px]",
                 isClosed
                   ? "border-white/5 bg-[#0b0c10]/40 hover:border-white/15 hover:shadow-[0_8px_30px_rgba(255,255,255,0.01)]"
                   : "border-[#151b2d] bg-gradient-to-b from-[#111421]/80 to-[#070913]/95 hover:border-amber-400/30 hover:shadow-[0_12px_40px_rgba(245,158,11,0.08)]"
@@ -427,13 +391,33 @@ export default function CampaignsPage() {
                 <h3 className="line-clamp-1 text-base font-black text-white group-hover:text-amber-300 transition-colors duration-300 leading-snug">
                   {campaign.title}
                 </h3>
-                <p className="mt-2.5 line-clamp-3 text-xs leading-relaxed text-slate-500 font-medium">
-                  {campaign.description}
+                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-500 font-medium min-h-[32px]">
+                  {campaign.description || "Chưa có mô tả chi tiết."}
                 </p>
+
+                {/* Info Metadata Grid */}
+                <div className="mt-3.5 grid grid-cols-2 gap-x-3 gap-y-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Briefcase className="h-3.5 w-3.5 text-amber-400/80 shrink-0" />
+                    <span className="text-[10px] font-bold text-slate-300 truncate" title={campaign.budget}>{campaign.budget || "Thỏa thuận"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <MapPin className="h-3.5 w-3.5 text-amber-400/80 shrink-0" />
+                    <span className="text-[10px] font-bold text-slate-300 truncate">{campaign.city || "Toàn quốc"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Users className="h-3.5 w-3.5 text-amber-400/80 shrink-0" />
+                    <span className="text-[10px] font-bold text-slate-300">Tuyển: {campaign.talentQuantity}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Calendar className="h-3.5 w-3.5 text-amber-400/80 shrink-0" />
+                    <span className="text-[10px] font-bold text-slate-300 truncate">Hạn: {formatDate(campaign.applicationDeadline || campaign.deadline)}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-5 border-t border-white/5 pt-4 relative z-10">
-                <div className="mb-4.5 grid grid-cols-4 gap-2 text-center text-xs">
+              <div className="mt-4 border-t border-white/5 pt-3 relative z-10">
+                <div className="mb-4 grid grid-cols-2 gap-2 text-center text-xs">
                   <div>
                     <span className="block text-[7.5px] font-black uppercase text-slate-500 tracking-widest">Views</span>
                     <span className="font-mono font-black text-amber-300 mt-0.5 block">{campaign.views}</span>
@@ -441,14 +425,6 @@ export default function CampaignsPage() {
                   <div className="border-l border-white/5">
                     <span className="block text-[7.5px] font-black uppercase text-slate-500 tracking-widest">Ứng viên</span>
                     <span className="font-mono font-black text-emerald-400 mt-0.5 block">{campaign.applicants.length}</span>
-                  </div>
-                  <div className="border-l border-white/5">
-                    <span className="block text-[7.5px] font-black uppercase text-slate-500 tracking-widest">Shortlist</span>
-                    <span className="font-mono font-black text-cyan-300 mt-0.5 block">{campaign.shortlistedTalentIds.length}</span>
-                  </div>
-                  <div className="border-l border-white/5">
-                    <span className="block text-[7.5px] font-black uppercase text-slate-500 tracking-widest">Liên hệ</span>
-                    <span className="font-mono font-black text-violet-300 mt-0.5 block">{campaign.contactRequests}</span>
                   </div>
                 </div>
                 

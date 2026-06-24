@@ -98,7 +98,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
   const brandCover =
     normalizeBackendAssetUrl(partner.cover_url || "")
     || (coverPhotoRecord ? normalizeBackendAssetUrl(coverPhotoRecord.url || coverPhotoRecord.path) : "")
-    || "/cover_image.png";
+    || "/brand_cover_default.png";
   const brandDesc = partner.description || "Thành viên đối tác tin cậy của OnstageVN. Đang tìm kiếm các Talent, Model, MC và PG tiềm năng để đồng hành trong các chiến dịch quảng cáo và truyền thông.";
   const brandIndustry = partner.industry || "Thời trang & Đời sống";
   const brandCity = partner.city || "Hà Nội";
@@ -248,7 +248,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
               <img
                 src={brandCover}
                 alt="Brand Cover Banner"
-                onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/cover_image.png"; }}
+                onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/brand_cover_default.png"; }}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
