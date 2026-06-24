@@ -101,22 +101,19 @@ export default function JobsPage() {
       setShowInviteModal(camp);
     } catch (err) {
       console.warn("Error getting referral link:", err);
-      // Fallback code
-      const mockCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const mockLink = {
-        code: mockCode,
-        url: `${window.location.origin}/ref/${mockCode}`,
-        click_count: 0,
-        conversion_count: 0
-      };
-      setActiveReferralLink(prev => ({ ...prev, [camp.id]: mockLink }));
+      setActiveReferralLink(prev => ({ ...prev, [camp.id]: null }));
       setShowInviteModal(camp);
+      addToast("Chưa tạo được link giới thiệu campaign. Vui lòng thử lại sau.", "info");
     } finally {
       setLoadingReferral(null);
     }
   };
 
   const handleCopyLink = (url: string) => {
+    if (!url) {
+      addToast("Link giới thiệu chưa sẵn sàng. Vui lòng thử lại sau.", "info");
+      return;
+    }
     navigator.clipboard.writeText(url);
     addToast("Đã sao chép link giới thiệu vào bộ nhớ tạm!", "success");
   };
@@ -1454,8 +1451,7 @@ export default function JobsPage() {
 
             {/* Affiliate Link Container */}
             {(() => {
-              const code = activeReferralLink[showInviteModal.id]?.code || "";
-              const url = activeReferralLink[showInviteModal.id]?.url || `${window.location.origin}/ref/${code}`;
+              const url = activeReferralLink[showInviteModal.id]?.url || "";
               const referrals = showInviteModal.referrals || [];
               const commission = 500000;
 
@@ -1467,11 +1463,12 @@ export default function JobsPage() {
                     </p>
                     <div className="flex items-center gap-3 bg-[#03050c] border border-[#151b2d] rounded-xl p-2.5 min-w-0">
                       <span className="text-xs text-[#F0C56B] font-mono select-all truncate flex-1 pl-1 min-w-0">
-                        {url}
+                        {url || "Chưa tạo liên kết giới thiệu"}
                       </span>
                       <button
                         onClick={() => handleCopyLink(url)}
-                        className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-gold text-slate-950 px-3 sm:px-4 text-xs font-black uppercase tracking-widest transition hover:brightness-110 active:scale-[0.98] cursor-pointer shrink-0"
+                        disabled={!url}
+                        className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-gold text-slate-950 px-3 sm:px-4 text-xs font-black uppercase tracking-widest transition hover:brightness-110 active:scale-[0.98] cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Copy className="h-3.5 w-3.5" /> Copy Link
                       </button>

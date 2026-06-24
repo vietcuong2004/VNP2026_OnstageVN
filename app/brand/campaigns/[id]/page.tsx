@@ -305,12 +305,12 @@ export default function CampaignDetailPage() {
       if (res && res.url) {
         setReferralLink(res.url);
       } else {
-        setReferralLink(`${window.location.origin}/ref/${selectedCampaign.id}`);
+        setReferralLink("");
       }
     }).catch((err) => {
       console.warn("Failed to fetch referral link:", err);
       if (!isMounted) return;
-      setReferralLink(`${window.location.origin}/ref/${selectedCampaign.id}`);
+      setReferralLink("");
     }).finally(() => {
       if (isMounted) {
         setIsGeneratingLink(false);

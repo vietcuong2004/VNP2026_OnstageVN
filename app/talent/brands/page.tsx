@@ -35,35 +35,6 @@ interface BrandInvitation {
   }>;
 }
 
-// ─── Mock invitations (as if received from Brands) ────────────────────────────
-const MOCK_INVITATIONS: BrandInvitation[] = [
-  {
-    id: "inv-1",
-    managerId: "mgr-loreal",
-    managerName: "Nguyễn Văn Hùng",
-    managerBrand: "L'Oréal Vietnam Cosmetics",
-    managerAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&h=100&q=80",
-    managerTier: "Agency A+",
-    commissionRate: 0.10,
-    sentAt: "2026-06-08",
-    status: "pending",
-  },
-  {
-    id: "inv-2",
-    managerId: "mgr-diamond",
-    managerName: "Trần Thị Lan",
-    managerBrand: "Diamond Luxury Fashion",
-    managerAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&h=100&q=80",
-    managerTier: "Agency S",
-    commissionRate: 0.10,
-    sentAt: "2026-06-05",
-    status: "accepted",
-    invitedBy: "Nguyễn Minh Thư (KOL Elite)",
-    acceptedInviteLink: "https://onstage.vn/ref/diamond-luxury/minh-thu",
-    inviteLink: "https://onstage.vn/ref/diamond-luxury/maianh",
-  },
-];
-
 const formatVND = (n: number) => new Intl.NumberFormat("vi-VN").format(n) + "đ";
 
 function usableText(value: unknown) {
@@ -198,7 +169,7 @@ export default function TalentBrandsPage() {
   const loadInvitations = useCallback(async () => {
     try {
       const items = await loadTalentBrandInvitations();
-      const mapped = items?.length ? items.map(mapBackendInvitation) : MOCK_INVITATIONS;
+      const mapped = items?.length ? items.map(mapBackendInvitation) : [];
       setInvitations(mapped);
 
       // Pre-load invite links for accepted partnerships in the background
@@ -224,7 +195,7 @@ export default function TalentBrandsPage() {
         }
       }
     } catch {
-      setInvitations(MOCK_INVITATIONS);
+      setInvitations([]);
     }
   }, []);
 
