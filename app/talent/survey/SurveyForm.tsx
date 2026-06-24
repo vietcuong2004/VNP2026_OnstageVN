@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
 import {
   analyzeTalentSurvey,
+  loadTalentProfile,
   loadTalentSurveyProgress,
   persistTalentProfile,
   saveTalentProfile,
@@ -97,6 +98,18 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   React.useEffect(() => {
     setMaxStep((prev) => Math.max(prev, step));
   }, [step]);
+
+  React.useEffect(() => {
+    let active = true;
+    loadTalentProfile().then((profile) => {
+      if (active && profile && profile.name) {
+        setFormData((prev) => ({ ...prev, name: profile.name }));
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Outer Step 5 (Orientation survey) inner question tracker (0 to 19)
   const [activeSurveyQIdx, setActiveSurveyQIdx] = useState(0);
@@ -1189,8 +1202,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   type="text"
                   name="name"
                   value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                  readOnly
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-xs text-slate-400 cursor-not-allowed hover:border-white/20 transition-all placeholder-slate-500 font-medium opacity-70 focus:outline-none"
                   placeholder="Nguyễn Mai Anh"
                   required
                 />

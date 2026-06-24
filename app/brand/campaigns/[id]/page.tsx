@@ -12,6 +12,9 @@ import {
   Plus,
   ImagePlus,
   Pencil,
+  Link,
+  Copy,
+  Check,
 } from "lucide-react";
 import { campaigns as initialCampaigns, talents, type Campaign, type CampaignMedia, type CampaignStage } from "@/lib/brand-mvp-data";
 import {
@@ -199,6 +202,19 @@ export default function CampaignDetailPage() {
   const [sentRequests, setSentRequests] = useState<Record<string, boolean>>({});
   const [displayTalents, setDisplayTalents] = useState<any[]>(talents);
 
+  const [referralLink, setReferralLink] = useState<string>("");
+  const [isGeneratingLink, setIsGeneratingLink] = useState<boolean>(false);
+  const [copiedLink, setCopiedLink] = useState<boolean>(false);
+
+  const handleCopyReferralLink = () => {
+    if (!referralLink) return;
+    navigator.clipboard.writeText(referralLink);
+    setCopiedLink(true);
+    setTimeout(() => {
+      setCopiedLink(false);
+    }, 2000);
+  };
+
   useEffect(() => {
     const fallbackCampaigns = initialCampaigns;
 
@@ -276,6 +292,35 @@ export default function CampaignDetailPage() {
   const selectedCampaign = useMemo(() => {
     return campaigns.find((c) => c.id === params.id);
   }, [campaigns, params.id]);
+
+  useEffect(() => {
+    if (!selectedCampaign) return;
+    let isMounted = true;
+    setIsGeneratingLink(true);
+    
+    import("@/lib/talent-api").then(({ getCampaignReferralLink }) => {
+      return getCampaignReferralLink(selectedCampaign.id);
+    }).then((res) => {
+      if (!isMounted) return;
+      if (res && res.url) {
+        setReferralLink(res.url);
+      } else {
+        setReferralLink(`${window.location.origin}/ref/${selectedCampaign.id}`);
+      }
+    }).catch((err) => {
+      console.warn("Failed to fetch referral link:", err);
+      if (!isMounted) return;
+      setReferralLink(`${window.location.origin}/ref/${selectedCampaign.id}`);
+    }).finally(() => {
+      if (isMounted) {
+        setIsGeneratingLink(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCampaign?.id]);
 
   async function handleCampaignMediaUpload(event: React.ChangeEvent<HTMLInputElement>, replacingMedia?: CampaignMedia | null) {
     const file = event.target.files?.[0];
@@ -553,11 +598,11 @@ export default function CampaignDetailPage() {
           {/* Campaign Header Card */}
           <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-6 flex flex-col gap-4">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div className="flex gap-3">
-                <button onClick={() => router.push("/brand/campaigns")} className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 hover:text-white cursor-pointer">
+              <div className="flex flex-col sm:flex-row gap-4 items-start w-full">
+                <button onClick={() => router.push("/brand/campaigns")} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 hover:text-white cursor-pointer">
                   <ArrowLeft className="h-4 w-4" />
                 </button>
-                <div>
+                <div className="flex-1 min-w-0 w-full text-left">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-400">{selectedCampaign.jobType}</span>
                     <span className={cn(
@@ -577,9 +622,9 @@ export default function CampaignDetailPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 shrink-0">
+              <div className="flex flex-row gap-2 w-full md:w-auto md:flex-wrap md:shrink-0 [&>*]:flex-1 md:[&>*]:flex-none">
                 {selectedCampaign.status === "draft" && (
-                  <button onClick={() => updateCampaignStatus(selectedCampaign.id, "published")} className="flex h-10 items-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-xs font-black text-slate-950 cursor-pointer">
+                  <button onClick={() => updateCampaignStatus(selectedCampaign.id, "published")} className="flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-xs font-black text-slate-950 cursor-pointer">
                     <CheckCircle2 className="mr-2 h-4 w-4" />
                     Publish
                   </button>
@@ -588,7 +633,7 @@ export default function CampaignDetailPage() {
                   <>
                     <button
                       onClick={openPayoutModal}
-                      className="flex h-10 items-center rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 px-4 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                      className="flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 px-4 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.2)]"
                     >
                       Quyết Toán
                     </button>
@@ -599,7 +644,7 @@ export default function CampaignDetailPage() {
                           updateCampaignStatus(selectedCampaign.id, "closed");
                         }
                       }}
-                      className="flex h-10 items-center rounded-xl border border-red-500/20 bg-red-500/10 px-4 text-xs font-black text-red-400 hover:bg-red-500/20 hover:border-red-500/40 active:scale-95 transition-all cursor-pointer"
+                      className="flex h-10 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 px-4 text-xs font-black text-red-400 hover:bg-red-500/20 hover:border-red-500/40 active:scale-95 transition-all cursor-pointer"
                     >
                       Đóng campaign
                     </button>
@@ -611,7 +656,7 @@ export default function CampaignDetailPage() {
           </div>
 
           {/* Info Cards */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2.5 md:gap-3">
             {[
               { label: "Địa điểm", value: selectedCampaign.venueName || selectedCampaign.address, icon: MapPin, color: "text-amber-300" },
               { label: "Ứng viên", value: `${selectedCampaign.applicants.length}/${selectedCampaign.talentQuantity}`, icon: Users, color: "text-emerald-300" },
@@ -626,6 +671,52 @@ export default function CampaignDetailPage() {
                 </div>
               );
             })}
+          </div>
+
+          {/* Referral Link Card */}
+          <div className="rounded-2xl border border-[#D4A64A]/30 bg-gradient-to-br from-[#1a1305]/60 via-[#070913]/90 to-[#070913]/95 p-5 text-left relative overflow-hidden shadow-[0_8px_30px_rgba(212,166,74,0.05)]">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-400/20 bg-amber-400/10">
+                  <Link className="h-4 w-4 text-amber-300" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-white">Mời Talent Tham Gia Chiến Dịch</h3>
+                  <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                    Affiliate & Campaign Invitation Link
+                  </span>
+                </div>
+              </div>
+              
+              <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
+                Gửi link giới thiệu này cho các Talent để họ đăng ký tham gia trực tiếp chiến dịch.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center mt-1">
+                <div className="flex-1 flex items-center gap-2 bg-slate-950/80 border border-white/5 rounded-xl px-3.5 py-2.5 min-w-0">
+                  <span className="text-xs text-amber-300 font-mono select-all truncate flex-1 min-w-0">
+                    {referralLink || (isGeneratingLink ? "Đang tạo liên kết..." : "Chưa tạo liên kết")}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyReferralLink}
+                  disabled={!referralLink || isGeneratingLink}
+                  className="flex h-[42px] sm:h-10 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 px-5 text-xs font-black uppercase tracking-wider transition-all hover:brightness-105 active:scale-95 cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {copiedLink ? (
+                    <>
+                      <Check className="h-4 w-4 stroke-[3]" /> Đã sao chép
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" /> Copy Link
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
 
           {(Boolean(selectedCampaign.roles?.length) ||
@@ -852,18 +943,18 @@ export default function CampaignDetailPage() {
 
       {/* Bottom Section: KOC Candidates list (Full Width) */}
       <section className="space-y-4 pt-4 border-t border-white/5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-black uppercase tracking-widest text-slate-300">NHÂN SỰ CAMPAIGN</h2>
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-baseline justify-between sm:justify-start gap-3 w-full sm:w-auto">
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-300">NHÂN SỰ CAMPAIGN</h2>
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{selectedCampaign.applicants.length + 1} nhân sự</span>
-            <button
-              onClick={() => setIsAddingStaff(true)}
-              className="flex h-9 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
-            >
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
-              Thêm nhân sự
-            </button>
           </div>
+          <button
+            onClick={() => setIsAddingStaff(true)}
+            className="flex w-full sm:w-auto h-9 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+          >
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            Thêm nhân sự
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -910,8 +1001,8 @@ export default function CampaignDetailPage() {
             </div>
 
             {/* Actions row */}
-            <div className="flex flex-wrap gap-3 pt-3.5 border-t border-white/5 justify-between items-center">
-              <div className="flex flex-wrap gap-2">
+            <div className="pt-3.5 border-t border-white/5 w-full">
+              <div className="grid grid-cols-2 gap-2 w-full">
                 <button
                   onClick={openPayoutModal}
                   className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
@@ -1001,7 +1092,7 @@ export default function CampaignDetailPage() {
                   </div>
 
                   {/* Micro stages list */}
-                  <div className="grid grid-cols-5 gap-1 pt-1.5 text-[8.5px] font-bold text-center">
+                  <div className="grid grid-cols-5 gap-0.5 pt-1.5 text-[7.5px] xs:text-[8.5px] font-bold text-center">
                     <span className={cn("transition-colors", isStagePassed(stage, "new") ? "text-amber-400" : "text-slate-600")}>Chờ duyệt</span>
                     <span className={cn("transition-colors", isStagePassed(stage, "accepted") ? "text-amber-400" : "text-slate-600")}>Đã duyệt</span>
                     <span className={cn("transition-colors", isStagePassed(stage, "executing") ? "text-amber-400" : "text-slate-600")}>Đang tham gia</span>
@@ -1011,28 +1102,28 @@ export default function CampaignDetailPage() {
                 </div>
 
                 {/* Actions row */}
-                <div className="flex flex-wrap gap-3 pt-3.5 border-t border-white/5 justify-between items-center">
-                  <div className="flex flex-wrap gap-2">
+                <div className="pt-3.5 border-t border-white/5 w-full">
+                  <div className="grid grid-cols-2 gap-2 w-full">
                     {stage === "new" ? (
                       <button
                         onClick={() => {
                           setSelectedProfileTalent(talent);
                           setCurrentApplicantItem(item);
                         }}
-                        className="rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95"
+                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 px-3 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95"
                       >
                         Xem hồ sơ
                       </button>
                     ) : stage === "completed" ? (
                       <button
                         onClick={() => setReviewApplicant({ talentId: talent.id, talentName: talent.name })}
-                        className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-3 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
                       >
                         Nghiệm thu
                       </button>
                     ) : stage === "confirmed" ? (
-                      <span className="flex items-center gap-1.5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider">
-                        <CheckCircle2 className="h-4 w-4" /> Đã giải ngân
+                      <span className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider">
+                        <CheckCircle2 className="h-4 w-4 shrink-0" /> Đã giải ngân
                       </span>
                     ) : (
                       <button
@@ -1040,7 +1131,7 @@ export default function CampaignDetailPage() {
                           setSelectedProfileTalent(talent);
                           setCurrentApplicantItem(item);
                         }}
-                        className="rounded-xl bg-white/5 border border-white/10 text-slate-355 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 active:scale-95"
+                        className="w-full flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300 px-3 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 active:scale-95"
                       >
                         Xem hồ sơ
                       </button>
@@ -1048,7 +1139,7 @@ export default function CampaignDetailPage() {
 
                     <button
                       onClick={() => router.push("/brand/messages")}
-                      className="rounded-xl px-3 py-2 text-[10px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
+                      className="w-full flex items-center justify-center rounded-xl px-3 py-2 text-[10px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
                     >
                       Nhắn tin
                     </button>
@@ -1191,7 +1282,7 @@ export default function CampaignDetailPage() {
 
               <div className="space-y-2">
                 <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Chỉ số hình thể</h4>
-                <div className="grid grid-cols-5 gap-2 bg-[#050711] border border-white/5 rounded-xl p-3 text-center text-[10px]">
+                <div className="grid grid-cols-5 gap-1 xs:gap-2 bg-[#050711] border border-white/5 rounded-xl p-3 text-center text-[9px] xs:text-[10px]">
                   <div>
                     <span className="block text-slate-500">Chiều cao</span>
                     <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.height} cm</span>
@@ -1235,7 +1326,7 @@ export default function CampaignDetailPage() {
 
               <div className="space-y-2">
                 <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bảng Giá Dịch Vụ Cơ Bản (Basic)</h4>
-                <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 text-xs">
                   {Object.entries(selectedProfileTalent.rateCard || {}).map(([key, value]: any) => (
                     <div key={key} className="flex justify-between p-2.5 bg-[#050711]/40 border border-white/5 rounded-lg items-center">
                       <span className="text-slate-400">{key}</span>
@@ -1354,12 +1445,12 @@ export default function CampaignDetailPage() {
 
             </div>
 
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-slate-950/45">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end gap-3 p-6 border-t border-[#151b2d] bg-slate-950/45">
               {currentApplicantItem.stage === "new" ? (
-                <>
+                <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
                   <button
                     onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}
-                    className="px-5 py-2 rounded-xl border border-rose-500/20 bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 transition active:scale-95 cursor-pointer text-xs font-bold"
+                    className="w-full sm:w-auto px-5 py-2 rounded-xl border border-rose-500/20 bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 transition active:scale-95 cursor-pointer text-xs font-bold flex items-center justify-center"
                   >
                     Không duyệt
                   </button>
@@ -1369,15 +1460,15 @@ export default function CampaignDetailPage() {
                       setSelectedProfileTalent(null);
                       setCurrentApplicantItem(null);
                     }}
-                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all"
+                    className="w-full sm:w-auto px-6 py-2 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all flex items-center justify-center"
                   >
                     Duyệt ứng viên
                   </button>
-                </>
+                </div>
               ) : (
                 <button
                   onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}
-                  className="px-5 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:text-white cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:text-white cursor-pointer flex items-center justify-center"
                 >
                   Đóng
                 </button>
@@ -1756,21 +1847,21 @@ export default function CampaignDetailPage() {
                         <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Campaign</span>
                         <span className="text-xs font-black text-white mt-1 block truncate">{selectedCampaign.title}</span>
                       </div>
-                      <div className="border-l border-white/5 pl-4">
+                      <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
                         <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Brand</span>
                         <span className="text-xs font-black text-white mt-1 block">Nguyễn Ngọc Anh</span>
                       </div>
-                      <div className="border-l border-white/5 pl-4">
+                      <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
                         <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Số dòng</span>
                         <span className="text-xs font-black text-white mt-1 block font-mono">{allRows.length}</span>
                       </div>
-                      <div className="border-l border-white/5 pl-4">
+                      <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
                         <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Tổng tiền</span>
                         <span className="text-xs font-black text-emerald-400 mt-1 block font-mono">
                           {Math.round(totalCalculatedPayout).toLocaleString("vi-VN")} VND
                         </span>
                       </div>
-                      <div className="border-l border-white/5 pl-4">
+                      <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
                         <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Chờ duyệt</span>
                         <span className="text-xs font-black text-amber-400 mt-1 block font-mono">
                           {Math.round(pendingPayout).toLocaleString("vi-VN")} VND
@@ -1786,11 +1877,11 @@ export default function CampaignDetailPage() {
                             {Math.round(platformFeeAmount).toLocaleString("vi-VN")} VND
                           </span>
                         </div>
-                        <div className="border-l border-white/5 pl-4">
+                        <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
                           <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Tỷ lệ phí sàn</span>
                           <span className="text-xs font-black text-white mt-1 block font-mono">{platformFeeRate}%</span>
                         </div>
-                        <div className="border-l border-white/5 pl-4">
+                        <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
                           <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Brand cần thanh toán</span>
                           <span className="text-xs font-black text-emerald-400 mt-1 block font-mono">
                             {Math.round(brandTotalPayable).toLocaleString("vi-VN")} VND
