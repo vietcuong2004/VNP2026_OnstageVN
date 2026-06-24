@@ -10,6 +10,9 @@ import {
   Plus,
   X,
   Sparkles,
+  Users,
+  UserCheck,
+  ShieldCheck,
 } from "lucide-react";
 import { campaigns as initialCampaigns, type Campaign } from "@/lib/brand-mvp-data";
 import { createBrandCampaign, loadBrandCampaigns, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
@@ -287,6 +290,69 @@ export default function CampaignsPage() {
             <Plus className="mr-2 h-4 w-4 stroke-[3]" />
             Tạo job/campaign
           </button>
+        </div>
+      </div>
+
+      {/* Quick Stats Grid */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Thẻ 1: Tổng chiến dịch */}
+        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#111421]/88 to-[#070913]/96 p-5 border-amber-400/25 shadow-[0_0_22px_rgba(245,158,11,0.12)] text-left">
+          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600"></div>
+          <div className="flex items-start justify-between gap-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Tổng chiến dịch</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/25 bg-amber-400/10 text-amber-300">
+              <Briefcase className="h-4.5 w-4.5" />
+            </div>
+          </div>
+          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
+            {campaigns.length}
+          </strong>
+          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Chiến dịch đã tạo</span>
+        </div>
+
+        {/* Thẻ 2: Tổng ứng viên */}
+        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#1a1305]/88 to-[#070913]/96 p-5 border-amber-400/35 shadow-[0_0_22px_rgba(245,158,11,0.18)] text-left">
+          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-15 blur-2xl bg-gradient-to-br from-amber-300 to-yellow-600"></div>
+          <div className="flex items-start justify-between gap-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Tổng ứng viên</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/35 bg-amber-400/15 text-amber-300">
+              <Users className="h-4.5 w-4.5" />
+            </div>
+          </div>
+          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
+            {campaigns.reduce((acc, c) => acc + (c.applicants?.length || 0), 0)}
+          </strong>
+          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Nộp hồ sơ ứng tuyển</span>
+        </div>
+
+        {/* Thẻ 3: Đã shortlist */}
+        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#14100a]/88 to-[#070913]/96 p-5 border-yellow-500/30 shadow-[0_0_22px_rgba(234,179,8,0.14)] text-left">
+          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-12 blur-2xl bg-gradient-to-br from-yellow-300 to-amber-600"></div>
+          <div className="flex items-start justify-between gap-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Đã chọn sơ tuyển</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-300">
+              <UserCheck className="h-4.5 w-4.5" />
+            </div>
+          </div>
+          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
+            {campaigns.reduce((acc, c) => acc + (c.shortlistedTalentIds?.length || 0), 0)}
+          </strong>
+          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Talent được duyệt</span>
+        </div>
+
+        {/* Thẻ 4: Ký quỹ */}
+        <div className="group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-[#1a1508]/88 to-[#070913]/96 p-5 border-amber-300/30 shadow-[0_0_22px_rgba(253,230,138,0.12)] text-left">
+          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-100 to-amber-500"></div>
+          <div className="flex items-start justify-between gap-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Bảo chứng thanh toán</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 text-amber-200">
+              <ShieldCheck className="h-4.5 w-4.5" />
+            </div>
+          </div>
+          <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
+            {campaigns.filter(c => c.escrowed).length}
+          </strong>
+          <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Chiến dịch đã ký quỹ</span>
         </div>
       </div>
 
