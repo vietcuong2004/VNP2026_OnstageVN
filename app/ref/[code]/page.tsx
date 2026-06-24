@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import BrandInviteLandingClient from "./BrandInviteLandingClient";
+import InviteLandingRouterClient from "./InviteLandingRouterClient";
 
 export const metadata: Metadata = {
   title: "OnstageVN - Lời mời hợp tác",
@@ -24,7 +24,7 @@ interface Props {
   }>;
 }
 
-export default async function BrandInviteRedirectPage({ params }: Props) {
+export default async function InviteLandingPage({ params }: Props) {
   const { code } = await params;
-  return <BrandInviteLandingClient code={code} />;
+  return <InviteLandingRouterClient code={code} />;
 }
