@@ -749,7 +749,7 @@ export default function JobsPage() {
       {/* Tham gia qua link giới thiệu */}
       <div className="rounded-3xl border border-amber-500/15 bg-gradient-to-br from-[#0c0f1d] to-[#07080e] p-6 shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
+        <div className="flex flex-col gap-4 relative z-10 w-full text-left">
           <div className="space-y-1">
             <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-amber-400 animate-pulse" />
@@ -760,14 +760,14 @@ export default function JobsPage() {
             </p>
           </div>
 
-          <form onSubmit={handleJoinCampaign} className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0 min-w-0 md:min-w-[450px]">
+          <form onSubmit={handleJoinCampaign} className="flex flex-col sm:flex-row gap-3 w-full max-w-xl">
             <div className="relative flex-1 min-w-0">
               <input
                 type="text"
                 value={pastedUrl}
                 onChange={(e) => setPastedUrl(e.target.value)}
                 placeholder="Dán link chiến dịch tại đây..."
-                className="w-full bg-[#03050c] border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:border-amber-500/40 focus:outline-none pr-10 min-w-0"
+                className="w-full bg-slate-950/80 border border-amber-500/35 hover:border-amber-500/60 focus:border-amber-400 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none pr-10 min-w-0 transition-all"
               />
               {pastedUrl && (
                 <button
