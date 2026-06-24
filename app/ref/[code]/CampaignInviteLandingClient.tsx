@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuthToken } from "@/lib/api-client";
-import { applyTalentCampaign, resolveCampaignReferralLink } from "@/lib/talent-api";
+import { applyTalentCampaign, resolveCampaignReferralLink, resolveCampaignReferralLinkBySlug } from "@/lib/talent-api";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import {
   AlertCircle,
@@ -20,11 +20,12 @@ import {
   Shield,
   Sparkles,
   UserRoundPlus,
-  Users,
 } from "lucide-react";
 
 type Props = {
-  code: string;
+  code?: string;
+  campaignSlug?: string;
+  referrerSlug?: string;
 };
 
 type InvitePartnerProfile = {
@@ -116,7 +117,7 @@ function toBulletList(value?: string | null) {
     .slice(0, 6);
 }
 
-export default function CampaignInviteLandingClient({ code }: Props) {
+export default function CampaignInviteLandingClient({ code, campaignSlug, referrerSlug }: Props) {
   const router = useRouter();
   const [inviteData, setInviteData] = useState<CampaignInvitePayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -128,7 +129,11 @@ export default function CampaignInviteLandingClient({ code }: Props) {
   useEffect(() => {
     let isMounted = true;
 
-    resolveCampaignReferralLink(code)
+    const resolver = campaignSlug && referrerSlug
+      ? resolveCampaignReferralLinkBySlug(campaignSlug, referrerSlug)
+      : resolveCampaignReferralLink(String(code || ""));
+
+    resolver
       .then((data) => {
         if (!isMounted) return;
 
@@ -154,11 +159,13 @@ export default function CampaignInviteLandingClient({ code }: Props) {
     return () => {
       isMounted = false;
     };
-  }, [code]);
+  }, [campaignSlug, code, referrerSlug]);
+
+  const inviteStorageKey = code || (campaignSlug && referrerSlug ? `${campaignSlug}/${referrerSlug}` : "");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (localStorage.getItem("pendingCampaignInviteCode") !== code || !getAuthToken()) return;
+    if (!inviteStorageKey || localStorage.getItem("pendingCampaignInviteCode") !== inviteStorageKey || !getAuthToken()) return;
 
     const frame = window.requestAnimationFrame(() => {
       setShowConfirmDialog(true);
@@ -167,7 +174,7 @@ export default function CampaignInviteLandingClient({ code }: Props) {
     return () => {
       window.cancelAnimationFrame(frame);
     };
-  }, [code, inviteData]);
+  }, [inviteData, inviteStorageKey]);
 
   const campaign = useMemo<InviteCampaign>(() => inviteData?.campaign ?? {}, [inviteData]);
   const brand = campaign.owner ?? {};
@@ -210,7 +217,7 @@ export default function CampaignInviteLandingClient({ code }: Props) {
   const handlePrimaryClick = () => {
     if (!getAuthToken()) {
       const redirectPath = `${window.location.pathname}${window.location.search}`;
-      localStorage.setItem("pendingCampaignInviteCode", code);
+      localStorage.setItem("pendingCampaignInviteCode", inviteStorageKey);
       localStorage.setItem("pendingCampaignInvitePath", redirectPath);
       router.push(`/auth/login?redirect=${encodeURIComponent(redirectPath)}`);
       return;

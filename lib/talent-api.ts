@@ -594,6 +594,14 @@ export async function resolveCampaignReferralLink(code: string) {
   return response.data;
 }
 
+export async function resolveCampaignReferralLinkBySlug(campaignSlug: string, referrerSlug: string) {
+  const response = await apiJson<{ data: any }>(
+    `/referral-links/campaign/${encodeURIComponent(campaignSlug)}/${encodeURIComponent(referrerSlug)}`
+  );
+
+  return response.data;
+}
+
 export async function loadTalentBrandInvitations() {
   if (!getAuthToken()) return null;
 
