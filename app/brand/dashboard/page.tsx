@@ -62,6 +62,8 @@ const emptyPartnerProfile = {
   city: "",
   description: "",
   verificationStatus: "pending",
+  logoUrl: "",
+  coverUrl: "",
 };
 
 function isBackendCampaignId(id: string) {
