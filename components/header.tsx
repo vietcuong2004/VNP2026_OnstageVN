@@ -253,7 +253,7 @@ export default function Header() {
   return (
     <>
     {user?.impersonation?.active && (
-      <div className="sticky top-0 z-[60] flex min-h-10 w-full items-center justify-between gap-3 border-b border-amber-400/20 bg-amber-400 px-4 py-2 text-slate-950 md:px-8">
+      <div className="relative z-[60] flex min-h-10 w-full items-center justify-between gap-3 border-b border-amber-400/20 bg-amber-400 px-4 py-2 text-slate-950 md:px-8">
         <div className="flex min-w-0 items-center gap-2 text-xs font-black uppercase tracking-wide">
           <ShieldAlert className="h-4 w-4 shrink-0" />
           <span className="truncate">
@@ -270,7 +270,7 @@ export default function Header() {
         </button>
       </div>
     )}
-    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913]/80 px-4 md:px-8 backdrop-blur-md">
+    <header className="relative z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913]/80 px-4 md:px-8 backdrop-blur-md">
       <div className="flex w-auto md:w-72 shrink-0 items-center">
         <button
           onClick={() => router.push("/")}

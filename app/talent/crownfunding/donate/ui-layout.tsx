@@ -15,80 +15,55 @@ interface CampaignStatsGridProps {
 }
 
 export function CampaignStatsGrid({ raised, goal, supportersCount, disbursed }: CampaignStatsGridProps) {
-  const stats = [
-    {
-      label: "Tổng Đã Nhận",
-      val: raised.toLocaleString() + "đ",
-      desc: "Nạp qua ví Bảo Kim",
-      color: "text-amber-400",
-      border: "border-amber-400/35 shadow-[0_0_22px_rgba(245,158,11,0.18)]",
-      bg: "from-[#1a1305]/88 to-[#070913]/96",
-      icon: <Coins className="h-4.5 w-4.5" />
-    },
-    {
-      label: "Mục Tiêu Quỹ",
-      val: goal.toLocaleString() + "đ",
-      desc: "Kế hoạch định mức",
-      color: "text-white",
-      border: "border-white/10 shadow-md",
-      bg: "from-[#111421]/88 to-[#070913]/96",
-      icon: <Crown className="h-4.5 w-4.5" />
-    },
-    {
-      label: "Lượt Ủng Hộ",
-      val: supportersCount.toString(),
-      desc: "Người ủng hộ",
-      color: "text-cyan-400",
-      border: "border-cyan-500/30 shadow-[0_0_22px_rgba(34,211,238,0.1)]",
-      bg: "from-[#0d1628]/88 to-[#070913]/96",
-      icon: <Users className="h-4.5 w-4.5" />
-    },
-    {
-      label: "Đã Giải Ngân",
-      val: disbursed.toLocaleString() + "đ",
-      desc: "Nghiệm thu thực tế",
-      color: "text-emerald-400",
-      border: "border-emerald-500/30 shadow-[0_0_22px_rgba(16,185,129,0.1)]",
-      bg: "from-[#0a1c17]/88 to-[#070913]/96",
-      icon: <CheckCircle className="h-4.5 w-4.5" />
-    },
-    {
-      label: "Còn Khả Dụng",
-      val: (raised - disbursed).toLocaleString() + "đ",
-      desc: "Số dư khả dụng rút",
-      color: "text-[#F0C56B] font-extrabold animate-pulse",
-      border: "border-amber-300/40 shadow-[0_0_22px_rgba(245,158,11,0.22)]",
-      bg: "from-[#1c180a]/90 to-[#070913]/96",
-      icon: <Award className="h-4.5 w-4.5" />
-    }
-  ];
+  const progressPct = Math.min(100, Math.round((raised / (goal || 1)) * 100));
+  const availableToRequest = Math.max(raised - disbursed, 0);
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-      {stats.map((stat, idx) => (
-        <div
-          key={idx}
-          className={cn(
-            "group relative overflow-hidden rounded-2xl border p-5 transition-all duration-305 hover:-translate-y-0.5 bg-gradient-to-b hover:scale-[1.02]",
-            stat.border,
-            stat.bg
-          )}
-        >
-          {/* Glows */}
-          <div className="absolute -right-8 -top-8 h-20 w-20 rounded-full opacity-10 blur-xl bg-gradient-to-br from-amber-200 to-yellow-600"></div>
-
-          <div className="flex items-start justify-between gap-4">
-            <span className="block text-[8px] text-slate-500 font-black uppercase tracking-widest">
-              {stat.label}
-            </span>
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-400 group-hover:border-amber-400/30 group-hover:bg-amber-400/10 group-hover:text-amber-300 transition-colors">
-              {stat.icon}
-            </div>
+    <div className="bg-[#050711]/60 border border-white/5 rounded-2xl p-4 sm:p-5 space-y-4">
+      {/* Header: Raised & Percentage */}
+      <div className="flex flex-col xs:flex-row justify-between items-start xs:items-end gap-3 xs:gap-4">
+        <div className="space-y-1">
+          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Tổng số tiền quyên góp</span>
+          <div className="flex flex-wrap items-baseline gap-1.5">
+            <span className="text-2xl font-black text-amber-400 font-display">{raised.toLocaleString()}đ</span>
+            <span className="text-[10px] sm:text-xs text-slate-500 font-bold">/ {goal.toLocaleString()}đ mục tiêu</span>
           </div>
-          <span className={cn("block font-display font-black text-sm mt-3", stat.color)}>{stat.val}</span>
-          <span className="block text-[8px] text-slate-500 mt-0.5 leading-snug font-bold uppercase">{stat.desc}</span>
         </div>
-      ))}
+        <div className="text-left xs:text-right shrink-0">
+          <span className="text-2xl font-display font-black text-gradient-gold block leading-none">{progressPct}%</span>
+          <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest block mt-1">Tiến độ chiến dịch</span>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="h-2.5 w-full rounded-full bg-slate-950 border border-white/5 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-gradient-gold shadow-[0_0_15px_rgba(240,197,107,0.4)] transition-all duration-500"
+          style={{ width: `${progressPct}%` }}
+        />
+      </div>
+
+      {/* Row of supporting stats */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 border-t border-white/5 text-xs font-semibold text-slate-400">
+        <div className="space-y-1">
+          <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1">
+            <Users className="h-3.5 w-3.5 text-cyan-400 shrink-0" /> Lượt ủng hộ
+          </span>
+          <span className="text-white font-mono font-extrabold text-xs xs:text-sm sm:text-base">{supportersCount}</span>
+        </div>
+        <div className="space-y-1 border-l border-white/5 pl-2.5 sm:pl-4">
+          <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1">
+            <CheckCircle className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Đã giải ngân
+          </span>
+          <span className="text-emerald-400 font-mono font-extrabold text-xs xs:text-sm sm:text-base">{disbursed.toLocaleString()}đ</span>
+        </div>
+        <div className="space-y-1 border-l border-white/5 pl-2.5 sm:pl-4">
+          <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1">
+            <Award className="h-3.5 w-3.5 text-[#F0C56B] shrink-0" /> Còn khả dụng
+          </span>
+          <span className="text-amber-300 font-mono font-extrabold text-xs xs:text-sm sm:text-base">{availableToRequest.toLocaleString()}đ</span>
+        </div>
+      </div>
     </div>
   );
 }

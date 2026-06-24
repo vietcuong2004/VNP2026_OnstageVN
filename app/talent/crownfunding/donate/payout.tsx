@@ -24,12 +24,12 @@ export function MilestoneList({ raised, disbursed, payouts, onRequestPayout }: M
       <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent"></div>
       <div className="absolute top-0 left-0 w-32 h-32 bg-amber-400/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
 
-      <div className="mb-5 flex items-center justify-between border-b border-white/5 pb-3">
+      <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-3">
         <h3 className="font-display font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
           <Coins className="h-4.5 w-4.5 text-amber-400" /> Luồng giải ngân dòng tiền
         </h3>
-        <div className="flex items-center">
-          <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-emerald-400/30 bg-emerald-400/10 text-emerald-300 mr-3">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
             Tài Chính
           </span>
           <button
@@ -66,7 +66,7 @@ export function MilestoneList({ raised, disbursed, payouts, onRequestPayout }: M
         ) : (
           <div className="space-y-3">
             {payouts.map((pay) => (
-              <div key={pay.id} className="flex justify-between items-center gap-4 bg-slate-950/40 border border-white/5 rounded-2xl p-4 text-xs hover:border-amber-400/20 transition-all duration-300">
+              <div key={pay.id} className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-slate-950/40 border border-white/5 rounded-2xl p-4 text-xs hover:border-amber-400/20 transition-all duration-300">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-extrabold text-white">{pay.amount.toLocaleString()}đ</span>
@@ -74,13 +74,13 @@ export function MilestoneList({ raised, disbursed, payouts, onRequestPayout }: M
                   </div>
                   <p className="text-[10px] text-slate-400 font-medium line-clamp-1">{pay.reason}</p>
                   {pay.filesCount > 0 && (
-                    <span className="inline-flex items-center gap-1.5 text-[8px] text-[#F0C56B] bg-[#071B42]/30 px-2.5 py-0.5 rounded border border-[#D4A64A]/20 font-bold uppercase tracking-wider">
+                    <span className="inline-flex items-center gap-1.5 text-[8px] text-[#F0C56B] bg-[#071B42]/30 px-2.5 py-0.5 rounded border border-[#D4A64A]/20 font-bold uppercase tracking-wider w-fit">
                       <FileText className="h-3 w-3" /> Đính kèm {pay.filesCount} chứng từ
                     </span>
                   )}
                 </div>
 
-                <div className="shrink-0 text-right">
+                <div className="shrink-0 text-left sm:text-right self-start sm:self-auto">
                   {pay.status === "approved" && (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-[9px] font-black uppercase text-emerald-400 tracking-wider">
                       <CheckCircle className="h-3 w-3" /> Đã Duyệt

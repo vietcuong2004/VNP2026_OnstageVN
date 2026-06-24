@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { List, Radio, TrendingUp, BarChart3, Heart, Eye, CheckCircle, Trash2, Sparkles, X, Upload } from "lucide-react";
+import { List, Radio, TrendingUp, BarChart3, Heart, Eye, CheckCircle, Trash2, Sparkles, X, Upload, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DonationCampaign } from "@/app/talent/crownfunding/types";
 import ProgressBar from "@/components/ui/ProgressBar";
@@ -251,6 +251,7 @@ interface CampaignListPanelProps {
 }
 
 export function CampaignListPanel({ campaigns, activeCampaignId, onSelect, onDelete, onEnd }: CampaignListPanelProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const totalRaised = campaigns.reduce((s, c) => s + c.raised, 0);
   const totalGoal = campaigns.reduce((s, c) => s + c.goal, 0);
   const activeCount = campaigns.filter(c => c.status === "active").length;
@@ -272,164 +273,224 @@ export function CampaignListPanel({ campaigns, activeCampaignId, onSelect, onDel
             <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{campaigns.length} chiến dịch · {activeCount} đang hoạt động · {completedCount} đã kết thúc</p>
           </div>
         </div>
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          title={isCollapsed ? "Mở rộng" : "Thu gọn"}
+        >
+          {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+        </button>
       </div>
 
-      {/* Summary row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: "Tổng chiến dịch", val: campaigns.length.toString(), color: "text-white", icon: <List className="h-3.5 w-3.5" /> },
-          { label: "Đang hoạt động", val: activeCount.toString(), color: "text-amber-400", icon: <Radio className="h-3.5 w-3.5" /> },
-          { label: "Tổng đã nhận", val: totalRaised.toLocaleString() + "đ", color: "text-amber-300", icon: <TrendingUp className="h-3.5 w-3.5" /> },
-          { label: "Tổng mục tiêu", val: totalGoal.toLocaleString() + "đ", color: "text-slate-300", icon: <BarChart3 className="h-3.5 w-3.5" /> },
-        ].map((s, i) => (
-          <div key={i} className="bg-slate-950/50 border border-white/5 rounded-2xl px-3 py-3 flex items-center gap-2.5">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-400">
-              {s.icon}
-            </div>
-            <div>
-              <span className="block text-[7px] text-slate-500 font-black uppercase tracking-widest">{s.label}</span>
-              <span className={cn("block font-display font-black text-xs mt-0.5", s.color)}>{s.val}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Campaign cards - horizontal scroll on mobile, grid on md+ */}
-      {campaigns.length === 0 ? (
-        <div className="text-center py-10 space-y-3">
-          <div className="h-12 w-12 mx-auto rounded-full bg-amber-400/10 flex items-center justify-center border border-amber-400/20">
-            <Heart className="h-6 w-6 text-amber-400/60 animate-pulse" />
-          </div>
-          <p className="text-xs text-slate-500 font-medium">Chưa có chiến dịch nào. Hãy tạo chiến dịch đầu tiên!</p>
-        </div>
-      ) : (
+      {!isCollapsed && (
         <>
-          {/* Mobile: horizontal scroll with snap */}
-          <div className="md:hidden -mx-6 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <div className="flex snap-x snap-mandatory gap-4 pb-3 pl-6 pr-6">
-              {campaigns.map((camp) => {
-                const isActive = camp.id === activeCampaignId;
-                const progressPct = Math.min(100, Math.round((camp.raised / camp.goal) * 100));
-                return (
-                  <div
-                    key={camp.id}
-                    className={cn(
-                      "group relative flex-shrink-0 snap-center overflow-hidden rounded-2xl border p-4 transition-all duration-300 bg-gradient-to-b w-[calc(100vw-5.5rem)]",
-                      isActive
-                        ? "border-amber-400/50 from-[#1a1305]/88 to-[#070913]/96 shadow-[0_0_22px_rgba(245,158,11,0.18)]"
-                        : "border-white/8 from-[#0d101b]/80 to-[#050712]/92"
-                    )}
-                  >
-                    {isActive && <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-amber-400/15 blur-xl pointer-events-none" />}
-                    <div className="h-36 w-full rounded-xl overflow-hidden mb-3 bg-slate-950 border border-white/5 relative">
-                      <img src={camp.coverImage} alt={camp.title} className="w-full h-full object-cover opacity-70" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                      <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
-                        <span className={cn("inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider",
-                          camp.status === "active" ? "border-amber-400/30 bg-amber-400/15 text-amber-300" : "border-slate-500/30 bg-slate-800/60 text-slate-400")}>
-                          <span className={cn("h-1 w-1 rounded-full", camp.status === "active" ? "bg-amber-400 animate-pulse" : "bg-slate-500")} />
-                          {camp.status === "active" ? "Đang hoạt động" : "Đã kết thúc"}
-                        </span>
-                        {isActive && (
-                          <span className="inline-flex items-center gap-1 rounded border border-cyan-400/30 bg-cyan-400/10 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-cyan-300">
-                            <Eye className="h-2.5 w-2.5" /> Đang xem
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <h4 className="text-[11px] font-extrabold text-white leading-snug mb-1 line-clamp-2">{camp.title}</h4>
-                    <p className="text-[9px] text-slate-500 font-mono mb-3">{camp.startDate} → {camp.endDate}</p>
-                    <div className="space-y-1.5 mb-3">
-                      <div className="flex justify-between text-[8px] text-slate-500 font-bold uppercase tracking-wider">
-                        <span>{camp.raised.toLocaleString()}đ nhận được</span>
-                        <span className="text-amber-400">{progressPct}%</span>
-                      </div>
-                      <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden border border-white/5">
-                        <div className="h-full rounded-full bg-gradient-gold shadow-[0_0_8px_rgba(245,158,11,0.4)] transition-all duration-500" style={{ width: `${progressPct}%` }} />
-                      </div>
-                      <div className="flex justify-between text-[8px] text-slate-600 font-bold">
-                        <span>{camp.supportersCount} lượt ủng hộ</span>
-                        <span>Mục tiêu: {camp.goal.toLocaleString()}đ</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 pt-3 border-t border-white/5">
-                      <button onClick={() => onSelect(camp.id!)} className={cn("flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-205 cursor-pointer",
-                        isActive ? "bg-amber-400/15 border border-amber-400/30 text-amber-300" : "bg-white/5 border border-white/10 text-slate-400")}>
-                        <Eye className="h-3 w-3" /> {isActive ? "Đang xem" : "Xem chi tiết"}
-                      </button>
-                      {camp.status === "active" && (
-                        <button onClick={() => onEnd(camp.id!)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 transition-colors cursor-pointer" title="Kết thúc">
-                          <CheckCircle className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                      <button onClick={() => onDelete(camp.id!)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer" title="Xóa">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          {/* Summary row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mb-5">
+            {[
+              { label: "Tổng chiến dịch", val: campaigns.length.toString(), color: "text-white", icon: <List className="h-3.5 w-3.5" /> },
+              { label: "Đang hoạt động", val: activeCount.toString(), color: "text-amber-400", icon: <Radio className="h-3.5 w-3.5" /> },
+              { label: "Tổng đã nhận", val: totalRaised.toLocaleString() + "đ", color: "text-amber-300", icon: <TrendingUp className="h-3.5 w-3.5" /> },
+              { label: "Tổng mục tiêu", val: totalGoal.toLocaleString() + "đ", color: "text-slate-300", icon: <BarChart3 className="h-3.5 w-3.5" /> },
+            ].map((s, i) => (
+              <div key={i} className="bg-slate-950/50 border border-white/5 rounded-2xl px-2.5 py-2.5 sm:px-3 sm:py-3 flex items-center gap-2 sm:gap-2.5">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[#d4af37]">
+                  {s.icon}
+                </div>
+                <div>
+                  <span className="block text-[7px] text-slate-500 font-black uppercase tracking-widest">{s.label}</span>
+                  <span className={cn("block font-display font-black text-[10px] xs:text-xs mt-0.5", s.color)}>{s.val}</span>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Tablet/Desktop: grid layout */}
-          <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {campaigns.map((camp) => {
-              const isActive = camp.id === activeCampaignId;
-              const progressPct = Math.min(100, Math.round((camp.raised / camp.goal) * 100));
-              return (
-                <div key={camp.id} className={cn("group relative overflow-hidden rounded-2xl border p-4 transition-all duration-305 cursor-pointer bg-gradient-to-b",
-                  isActive ? "border-amber-400/50 from-[#1a1305]/88 to-[#070913]/96 shadow-[0_0_22px_rgba(245,158,11,0.18)]" : "border-white/8 from-[#0d101b]/80 to-[#050712]/92 hover:border-white/15 hover:shadow-md")}>
-                  {isActive && <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-amber-400/15 blur-xl pointer-events-none" />}
-                  <div className="h-28 w-full rounded-xl overflow-hidden mb-3 bg-slate-950 border border-white/5 relative">
-                    <img src={camp.coverImage} alt={camp.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-85 transition-opacity duration-300" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                    <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
-                      <span className={cn("inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider",
-                        camp.status === "active" ? "border-amber-400/30 bg-amber-400/15 text-amber-300" : "border-slate-500/30 bg-slate-800/60 text-slate-400")}>
-                        <span className={cn("h-1 w-1 rounded-full", camp.status === "active" ? "bg-amber-400 animate-pulse" : "bg-slate-500")} />
-                        {camp.status === "active" ? "Đang hoạt động" : "Đã kết thúc"}
-                      </span>
-                      {isActive && (
-                        <span className="inline-flex items-center gap-1 rounded border border-cyan-400/30 bg-cyan-400/10 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-cyan-300">
-                          <Eye className="h-2.5 w-2.5" /> Đang xem
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <h4 className="text-[11px] font-extrabold text-white leading-snug mb-1 line-clamp-2 hover:text-amber-300 transition-colors">{camp.title}</h4>
-                  <p className="text-[9px] text-slate-500 font-mono mb-3">{camp.startDate} → {camp.endDate}</p>
-                  <div className="space-y-1.5 mb-3">
-                    <div className="flex justify-between text-[8px] text-slate-500 font-bold uppercase tracking-wider">
-                      <span>{camp.raised.toLocaleString()}đ nhận được</span>
-                      <span className="text-amber-400">{progressPct}%</span>
-                    </div>
-                    <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden border border-white/5">
-                      <div className="h-full rounded-full bg-gradient-gold shadow-[0_0_8px_rgba(245,158,11,0.4)] transition-all duration-500" style={{ width: `${progressPct}%` }} />
-                    </div>
-                    <div className="flex justify-between text-[8px] text-slate-600 font-bold">
-                      <span>{camp.supportersCount} lượt ủng hộ</span>
-                      <span>Mục tiêu: {camp.goal.toLocaleString()}đ</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 pt-3 border-t border-white/5">
-                    <button onClick={() => onSelect(camp.id!)} className={cn("flex-1 flex items-center justify-center gap-1.5 h-7 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-200 cursor-pointer",
-                      isActive ? "bg-amber-400/15 border border-amber-400/30 text-amber-300" : "bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10")}>
-                      <Eye className="h-3 w-3" /> {isActive ? "Đang xem" : "Xem chi tiết"}
-                    </button>
-                    {camp.status === "active" && (
-                      <button onClick={() => onEnd(camp.id!)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 transition-colors cursor-pointer" title="Kết thúc chiến dịch">
-                        <CheckCircle className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                    <button onClick={() => onDelete(camp.id!)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer" title="Xóa chiến dịch">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+          {/* Campaign cards - horizontal scroll on mobile, grid on md+ */}
+          {campaigns.length === 0 ? (
+            <div className="text-center py-10 space-y-3">
+              <div className="h-12 w-12 mx-auto rounded-full bg-amber-400/10 flex items-center justify-center border border-amber-400/20">
+                <Heart className="h-6 w-6 text-amber-400/60 animate-pulse" />
+              </div>
+              <p className="text-xs text-slate-500 font-medium">Chưa có chiến dịch nào. Hãy tạo chiến dịch đầu tiên!</p>
+            </div>
+          ) : (
+            <>
+              {/* Mobile: horizontal scroll with snap */}
+              <div className="md:hidden -mx-6 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div className="flex snap-x snap-mandatory gap-4 pb-3 pl-6 pr-6">
+                  {campaigns.map((camp) => {
+                    const isActive = camp.id === activeCampaignId;
+                    const progressPct = Math.min(100, Math.round((camp.raised / camp.goal) * 100));
+                    return (
+                      <div
+                        key={camp.id}
+                        onClick={() => onSelect(camp.id!)}
+                        className={cn(
+                          "group relative flex-shrink-0 snap-center overflow-hidden rounded-2xl border p-4 transition-all duration-305 bg-gradient-to-b w-[calc(100vw-5.5rem)] cursor-pointer hover:border-white/12",
+                          isActive
+                            ? "border-amber-400/50 from-[#1a1305]/88 to-[#070913]/96 shadow-[0_0_22px_rgba(245,158,11,0.18)]"
+                            : "border-white/8 from-[#0d101b]/80 to-[#050712]/92"
+                        )}
+                      >
+                        {isActive && <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-amber-400/15 blur-xl pointer-events-none" />}
+                        <div className="h-36 w-full rounded-xl overflow-hidden mb-3 bg-slate-950 border border-white/5 relative">
+                          <img src={camp.coverImage} alt={camp.title} className="w-full h-full object-cover opacity-70" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                          <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
+                            <span className={cn("inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider",
+                              camp.status === "active" ? "border-amber-400/30 bg-amber-400/15 text-amber-300" : "border-slate-500/30 bg-slate-800/60 text-slate-400")}>
+                              <span className={cn("h-1 w-1 rounded-full", camp.status === "active" ? "bg-amber-400 animate-pulse" : "bg-slate-500")} />
+                              {camp.status === "active" ? "Đang hoạt động" : "Đã kết thúc"}
+                            </span>
+                            {isActive && (
+                              <span className="inline-flex items-center gap-1 rounded border border-cyan-400/30 bg-cyan-400/10 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-cyan-300">
+                                <Eye className="h-2.5 w-2.5" /> Đang xem
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <h4 className="text-[11px] font-extrabold text-white leading-snug mb-1 line-clamp-2">{camp.title}</h4>
+                        <p className="text-[9px] text-slate-500 font-mono mb-3">{camp.startDate} → {camp.endDate}</p>
+                        <div className="space-y-1.5 mb-3">
+                          <div className="flex justify-between text-[8px] text-slate-500 font-bold uppercase tracking-wider">
+                            <span>{camp.raised.toLocaleString()}đ nhận được</span>
+                            <span className="text-amber-400">{progressPct}%</span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden border border-white/5">
+                            <div className="h-full rounded-full bg-gradient-gold shadow-[0_0_8px_rgba(245,158,11,0.4)] transition-all duration-500" style={{ width: `${progressPct}%` }} />
+                          </div>
+                          <div className="flex justify-between text-[8px] text-slate-600 font-bold">
+                            <span>{camp.supportersCount} lượt ủng hộ</span>
+                            <span>Mục tiêu: {camp.goal.toLocaleString()}đ</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 pt-3 border-t border-white/5">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelect(camp.id!);
+                            }}
+                            className={cn("flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-205 cursor-pointer",
+                              isActive ? "bg-amber-400/15 border border-amber-400/30 text-amber-300" : "bg-white/5 border border-white/10 text-slate-400")}
+                          >
+                            <Eye className="h-3 w-3" /> {isActive ? "Đang xem" : "Xem chi tiết"}
+                          </button>
+                          {camp.status === "active" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEnd(camp.id!);
+                              }}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                              title="Kết thúc"
+                            >
+                              <CheckCircle className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete(camp.id!);
+                            }}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer"
+                            title="Xóa"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+
+              {/* Tablet/Desktop: grid layout */}
+              <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {campaigns.map((camp) => {
+                  const isActive = camp.id === activeCampaignId;
+                  const progressPct = Math.min(100, Math.round((camp.raised / camp.goal) * 100));
+                  return (
+                    <div
+                      key={camp.id}
+                      onClick={() => onSelect(camp.id!)}
+                      className={cn(
+                        "group relative overflow-hidden rounded-2xl border p-4 transition-all duration-305 cursor-pointer bg-gradient-to-b hover:border-white/15 hover:shadow-md",
+                        isActive
+                          ? "border-amber-400/50 from-[#1a1305]/88 to-[#070913]/96 shadow-[0_0_22px_rgba(245,158,11,0.18)]"
+                          : "border-white/8 from-[#0d101b]/80 to-[#050712]/92"
+                      )}
+                    >
+                      {isActive && <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-amber-400/15 blur-xl pointer-events-none" />}
+                      <div className="h-28 w-full rounded-xl overflow-hidden mb-3 bg-slate-950 border border-white/5 relative">
+                        <img src={camp.coverImage} alt={camp.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-85 transition-opacity duration-300" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                        <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
+                          <span className={cn("inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider",
+                            camp.status === "active" ? "border-amber-400/30 bg-amber-400/15 text-amber-300" : "border-slate-500/30 bg-slate-800/60 text-slate-400")}>
+                            <span className={cn("h-1 w-1 rounded-full", camp.status === "active" ? "bg-amber-400 animate-pulse" : "bg-slate-500")} />
+                            {camp.status === "active" ? "Đang hoạt động" : "Đã kết thúc"}
+                          </span>
+                          {isActive && (
+                            <span className="inline-flex items-center gap-1 rounded border border-cyan-400/30 bg-cyan-400/10 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-cyan-300">
+                              <Eye className="h-2.5 w-2.5" /> Đang xem
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <h4 className="text-[11px] font-extrabold text-white leading-snug mb-1 line-clamp-2 hover:text-amber-300 transition-colors">{camp.title}</h4>
+                      <p className="text-[9px] text-slate-500 font-mono mb-3">{camp.startDate} → {camp.endDate}</p>
+                      <div className="space-y-1.5 mb-3">
+                        <div className="flex justify-between text-[8px] text-slate-500 font-bold uppercase tracking-wider">
+                          <span>{camp.raised.toLocaleString()}đ nhận được</span>
+                          <span className="text-amber-400">{progressPct}%</span>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden border border-white/5">
+                          <div className="h-full rounded-full bg-gradient-gold shadow-[0_0_8px_rgba(245,158,11,0.4)] transition-all duration-500" style={{ width: `${progressPct}%` }} />
+                        </div>
+                        <div className="flex justify-between text-[8px] text-slate-600 font-bold">
+                          <span>{camp.supportersCount} lượt ủng hộ</span>
+                          <span>Mục tiêu: {camp.goal.toLocaleString()}đ</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 pt-3 border-t border-white/5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelect(camp.id!);
+                          }}
+                          className={cn("flex-1 flex items-center justify-center gap-1.5 h-7 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-200 cursor-pointer",
+                            isActive ? "bg-amber-400/15 border border-amber-400/30 text-amber-300" : "bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10")}
+                        >
+                          <Eye className="h-3 w-3" /> {isActive ? "Đang xem" : "Xem chi tiết"}
+                        </button>
+                        {camp.status === "active" && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEnd(camp.id!);
+                            }}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                            title="Kết thúc chiến dịch"
+                          >
+                            <CheckCircle className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(camp.id!);
+                          }}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 transition-colors cursor-pointer"
+                          title="Xóa chiến dịch"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </>
       )}
     </section>

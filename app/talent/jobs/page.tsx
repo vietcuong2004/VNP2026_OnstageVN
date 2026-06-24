@@ -12,6 +12,7 @@ import { applyTalentCampaign, loadTalentCampaigns, mapCampaignToTalentJob, resol
 import { getStoredAuthUser } from "@/lib/api-client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import QRCodeContainer from "@/components/QR_Code";
 
 type StageFilter = "executing" | "recruiting" | "completed" | "all";
 
@@ -1421,142 +1422,170 @@ export default function JobsPage() {
       {/* INVITATION AFFILIATE MODAL */}
       {showInviteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-lg flex flex-col bg-[#08090f] border border-[#D4A64A]/30 rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300 p-5 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col bg-[#08090f] border border-[#D4A64A]/30 rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] p-5 sm:p-6 space-y-6 animate-in zoom-in-95 duration-300 scrollbar-thin">
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Modal Header */}
-            <div className="relative pr-8 text-left space-y-2">
-              <div className="space-y-1">
-                <h3 className="font-display font-black text-base sm:text-lg text-white uppercase leading-tight tracking-tight">
-                  {showInviteModal.title}
-                </h3>
-                <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wide">
-                  THƯƠNG HIỆU: <span className="text-slate-300">{showInviteModal.brand}</span>
-                </p>
+            <button
+              onClick={() => setShowInviteModal(null)}
+              className="absolute top-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-xl border border-[#151b2d] bg-[#050711] text-slate-400 hover:text-white transition-all cursor-pointer hover:border-slate-800"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Grid for two columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              
+              {/* Left Column: Affiliate Link & referred users */}
+              <div className="space-y-6 text-left">
+                {/* Modal Header */}
+                <div className="relative pr-8 space-y-2">
+                  <div className="space-y-1">
+                    <h3 className="font-display font-black text-base sm:text-lg text-white uppercase leading-tight tracking-tight">
+                      {showInviteModal.title}
+                    </h3>
+                    <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wide">
+                      THƯƠNG HIỆU: <span className="text-slate-300">{showInviteModal.brand}</span>
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="inline-flex rounded-full bg-amber-400/10 border border-amber-400/30 px-2.5 py-1 text-[9px] font-black uppercase text-amber-300 tracking-wider">
+                      Cát-xê chia đều: {getSplitBudgetLabel(showInviteModal.budget)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Link & referrals generator */}
+                {(() => {
+                  const url = activeReferralLink[showInviteModal.id]?.url || "";
+                  const referrals = showInviteModal.referrals || [];
+                  const commission = 500000;
+
+                  return (
+                    <>
+                      {/* Affiliate Link Container */}
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                          LINK AFFILIATE GIỚI THIỆU (CAMPAIGN)
+                        </p>
+                        <div className="flex items-center gap-3 bg-[#03050c] border border-[#151b2d] rounded-xl p-2.5 min-w-0">
+                          <span className="text-xs text-[#F0C56B] font-mono select-all truncate flex-1 pl-1 min-w-0">
+                            {url || "Chưa tạo liên kết giới thiệu"}
+                          </span>
+                          <button
+                            onClick={() => handleCopyLink(url)}
+                            disabled={!url}
+                            className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-gold text-slate-950 px-3 sm:px-4 text-xs font-black uppercase tracking-widest transition hover:brightness-110 active:scale-[0.98] cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            <Copy className="h-3.5 w-3.5" /> Copy Link
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
+                          * Mẹo: Chia sẻ link này cho các KOL/KOC trong network của bạn. Khi họ đăng ký & được duyệt, bạn nhận ngay 5% hoa hồng từ việc làm của họ.
+                        </p>
+                      </div>
+
+                      {/* List of referred users */}
+                      <div className="space-y-3.5 border-t border-[#151b2d] pt-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                            <Users className="h-4.5 w-4.5 text-amber-400 shrink-0" /> KOL F2 được bạn mời ({referrals.length})
+                          </h4>
+                          {referrals.length > 0 && (
+                            <span className="self-start sm:self-auto rounded bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 text-[9px] font-black uppercase text-amber-300">
+                              Hoa hồng từ campaign: +{(referrals.length * commission).toLocaleString("vi-VN")}đ
+                            </span>
+                          )}
+                        </div>
+
+                        {referrals.length === 0 ? (
+                          <div className="py-6 text-center text-slate-500 text-xs font-medium">
+                            Bạn chưa mời ai tham gia chiến dịch này. Hãy chia sẻ link trên để nhận 5% hoa hồng!
+                          </div>
+                        ) : (
+                          <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
+                            {referrals.map((item: any, idx: number) => {
+                              const name = item.profile?.display_name || item.profile?.user?.name || "KOL F2";
+                              const avatar = item.profile?.user?.external_avatar_url || item.profile?.logo_url || "";
+                              const status = item.status || "new";
+
+                              let statusText = "CHỜ DUYỆT (F2)";
+                              let statusColor = "text-amber-400 bg-amber-400/10 border-amber-400/20";
+                              if (status === "accepted" || status === "executing") {
+                                statusText = "ĐANG THAM GIA (F2)";
+                                statusColor = "text-cyan-400 bg-cyan-400/10 border-cyan-400/20";
+                              } else if (status === "completed" || status === "confirmed") {
+                                statusText = "HOÀN THÀNH (F2)";
+                                statusColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+                              }
+
+                              return (
+                                <div
+                                  key={item.id || idx}
+                                  className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 p-3 rounded-xl bg-slate-950/60 border border-white/5 animate-in fade-in duration-200"
+                                >
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className="h-10 w-10 rounded-xl overflow-hidden bg-slate-900 border border-[#D4A64A]/30 shrink-0">
+                                      {avatar ? (
+                                        <img src={avatar} alt={name} className="h-full w-full object-cover" />
+                                      ) : (
+                                        <div className="h-full w-full flex items-center justify-center text-xs font-black uppercase text-amber-300">
+                                          {name.charAt(0)}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <div className="flex flex-wrap items-center gap-1.5">
+                                        <span className="text-xs font-black text-white truncate max-w-[120px] sm:max-w-none">{name}</span>
+                                        <span className="rounded bg-cyan-500/10 border border-cyan-500/25 px-1.5 py-0.5 text-[8px] font-black uppercase text-cyan-300 whitespace-nowrap">
+                                          KOL F2
+                                        </span>
+                                      </div>
+                                      <p className="text-[10px] text-[#F0C56B] font-bold mt-1 whitespace-nowrap">
+                                        Hoa hồng giới thiệu: +{commission.toLocaleString("vi-VN")}đ
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <span className={cn("rounded border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider self-start sm:self-auto shrink-0", statusColor)}>
+                                    {statusText}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
-              <div>
-                <span className="inline-flex rounded-full bg-amber-400/10 border border-amber-400/30 px-2.5 py-1 text-[9px] font-black uppercase text-amber-300 tracking-wider">
-                  Cát-xê chia đều: {getSplitBudgetLabel(showInviteModal.budget)}
-                </span>
+              {/* Right Column: QR Code Container */}
+              <div className="flex flex-col justify-center">
+                {(() => {
+                  const url = activeReferralLink[showInviteModal.id]?.url || "";
+                  return (
+                    <QRCodeContainer
+                      campaignLink={url}
+                      title="Mã QR Tuyển Dụng"
+                      subtitle="Quét mã để tham gia ngay"
+                      badgeText="Affiliate QR Code"
+                      shareButtonLabel="Chia sẻ"
+                      onCopyLink={() => handleCopyLink(url)}
+                      className="border-[#D4A64A]/20 bg-gradient-to-br from-[#1a1305]/40 via-[#070913]/80 to-[#070913]/90 shadow-[0_8px_30px_rgba(212,166,74,0.05)]"
+                    />
+                  );
+                })()}
               </div>
 
-              <button
-                onClick={() => setShowInviteModal(null)}
-                className="absolute top-0 right-0 flex h-8 w-8 items-center justify-center rounded-xl border border-[#151b2d] bg-[#050711] text-slate-400 hover:text-white transition-all cursor-pointer hover:border-slate-800"
-              >
-                <X className="h-4 w-4" />
-              </button>
             </div>
 
-            {/* Affiliate Link Container */}
-            {(() => {
-              const url = activeReferralLink[showInviteModal.id]?.url || "";
-              const referrals = showInviteModal.referrals || [];
-              const commission = 500000;
-
-              return (
-                <>
-                  <div className="space-y-2 text-left">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                      LINK AFFILIATE GIỚI THIỆU (CAMPAIGN)
-                    </p>
-                    <div className="flex items-center gap-3 bg-[#03050c] border border-[#151b2d] rounded-xl p-2.5 min-w-0">
-                      <span className="text-xs text-[#F0C56B] font-mono select-all truncate flex-1 pl-1 min-w-0">
-                        {url || "Chưa tạo liên kết giới thiệu"}
-                      </span>
-                      <button
-                        onClick={() => handleCopyLink(url)}
-                        disabled={!url}
-                        className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-gold text-slate-950 px-3 sm:px-4 text-xs font-black uppercase tracking-widest transition hover:brightness-110 active:scale-[0.98] cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <Copy className="h-3.5 w-3.5" /> Copy Link
-                      </button>
-                    </div>
-                    <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
-                      * Mẹo: Chia sẻ link này cho các KOL/KOC trong network của bạn. Khi họ đăng ký & được duyệt, bạn nhận ngay 5% hoa hồng từ việc làm của họ.
-                    </p>
-                  </div>
-
-                  {/* List of referred users */}
-                  <div className="space-y-3.5 text-left border-t border-[#151b2d] pt-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
-                        <Users className="h-4.5 w-4.5 text-amber-400 shrink-0" /> KOL F2 được bạn mời ({referrals.length})
-                      </h4>
-                      {referrals.length > 0 && (
-                        <span className="self-start sm:self-auto rounded bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 text-[9px] font-black uppercase text-amber-300">
-                          Hoa hồng từ campaign: +{(referrals.length * commission).toLocaleString("vi-VN")}đ
-                        </span>
-                      )}
-                    </div>
-
-                    {referrals.length === 0 ? (
-                      <div className="py-6 text-center text-slate-500 text-xs font-medium">
-                        Bạn chưa mời ai tham gia chiến dịch này. Hãy chia sẻ link trên để nhận 5% hoa hồng!
-                      </div>
-                    ) : (
-                      <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
-                        {referrals.map((item: any, idx: number) => {
-                          const name = item.profile?.display_name || item.profile?.user?.name || "KOL F2";
-                          const avatar = item.profile?.user?.external_avatar_url || item.profile?.logo_url || "";
-                          const status = item.status || "new";
-
-                          let statusText = "CHỜ DUYỆT (F2)";
-                          let statusColor = "text-amber-400 bg-amber-400/10 border-amber-400/20";
-                          if (status === "accepted" || status === "executing") {
-                            statusText = "ĐANG THAM GIA (F2)";
-                            statusColor = "text-cyan-400 bg-cyan-400/10 border-cyan-400/20";
-                          } else if (status === "completed" || status === "confirmed") {
-                            statusText = "HOÀN THÀNH (F2)";
-                            statusColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
-                          }
-
-                          return (
-                            <div
-                              key={item.id || idx}
-                              className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 p-3 rounded-xl bg-slate-950/60 border border-white/5 animate-in fade-in duration-200"
-                            >
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className="h-10 w-10 rounded-xl overflow-hidden bg-slate-900 border border-[#D4A64A]/30 shrink-0">
-                                  {avatar ? (
-                                    <img src={avatar} alt={name} className="h-full w-full object-cover" />
-                                  ) : (
-                                    <div className="h-full w-full flex items-center justify-center text-xs font-black uppercase text-amber-300">
-                                      {name.charAt(0)}
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="min-w-0">
-                                  <div className="flex flex-wrap items-center gap-1.5">
-                                    <span className="text-xs font-black text-white truncate max-w-[120px] sm:max-w-none">{name}</span>
-                                    <span className="rounded bg-cyan-500/10 border border-cyan-500/25 px-1.5 py-0.5 text-[8px] font-black uppercase text-cyan-300 whitespace-nowrap">
-                                      KOL F2
-                                    </span>
-                                  </div>
-                                  <p className="text-[10px] text-[#F0C56B] font-bold mt-1 whitespace-nowrap">
-                                    Hoa hồng giới thiệu: +{commission.toLocaleString("vi-VN")}đ
-                                  </p>
-                                </div>
-                              </div>
-
-                              <span className={cn("rounded border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider self-start sm:self-auto shrink-0", statusColor)}>
-                                {statusText}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </>
-              );
-            })()}
-
-            <div className="flex justify-end pt-2">
+            {/* Bottom Footer Actions */}
+            <div className="flex justify-end pt-4 border-t border-[#151b2d]">
               <button
                 onClick={() => setShowInviteModal(null)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-[#151b2d] bg-[#050711] text-xs font-bold text-slate-400 hover:text-white hover:bg-white/2 cursor-pointer transition-colors"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl border border-[#151b2d] bg-[#050711] text-xs font-bold text-slate-400 hover:text-white hover:bg-white/2 cursor-pointer transition-colors"
               >
                 Đóng lại
               </button>
