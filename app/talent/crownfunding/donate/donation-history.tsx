@@ -15,11 +15,11 @@ export function DonationHistory({ supporters }: DonationHistoryProps) {
       <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent"></div>
       <div className="absolute top-0 left-0 w-32 h-32 bg-amber-400/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
 
-      <div className="mb-5 flex items-center justify-between border-b border-white/5 pb-3">
+      <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-3">
         <h3 className="font-display font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
           <Award className="h-4.5 w-4.5 text-amber-400" /> Lịch sử quyên góp từ nhà hảo tâm
         </h3>
-        <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-amber-400/30 bg-amber-400/10 text-amber-300 mr-2 whitespace-nowrap">
+        <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-amber-400/30 bg-amber-400/10 text-amber-300 w-fit">
           Nhà hảo tâm
         </span>
       </div>
@@ -41,7 +41,7 @@ export function DonationHistory({ supporters }: DonationHistoryProps) {
                 <div className="space-y-1">
                   <span
                     className={cn(
-                      "block font-extrabold text-white text-xs whitespace-nowrap",
+                      "block font-extrabold text-white text-xs break-words",
                       sup.isAnonymous && "text-slate-500 font-normal italic"
                     )}
                   >

@@ -185,7 +185,7 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
   const brandLogo =
     normalizeBackendAssetUrl(partner.logo_url || brand.external_avatar_url || "") ||
     createInitialAvatarDataUrl(brandName, "");
-  const coverImage = normalizeBackendAssetUrl(partner.cover_url || "") || "/cover_image.png";
+  const coverImage = normalizeBackendAssetUrl(partner.cover_url || "") || "/brand_cover_default.png";
 
   const requirementItems = useMemo(() => {
     const items = [
@@ -404,7 +404,7 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
               <img
                 src={coverImage}
                 alt="Campaign Cover Banner"
-                onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/cover_image.png"; }}
+                onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = "/brand_cover_default.png"; }}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />

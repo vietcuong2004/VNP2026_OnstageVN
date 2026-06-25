@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Users2, Briefcase, DollarSign, CheckCircle, Clock, Wallet, TrendingUp, UserPlus
+  Users2, Briefcase, DollarSign, CheckCircle, Clock, Wallet, TrendingUp, UserPlus, Link2, Copy, Check, Download, Share2, X, Plus, Shield, MapPin, Eye, MessageSquare, QrCode
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import QRCodeContainer from "@/components/QR_Code";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, profileAvatarFromBackend } from "@/lib/avatar";
 import { talents as allTalents, type Campaign, type TalentProfile } from "@/lib/brand-mvp-data";
 import {
@@ -21,181 +23,54 @@ import {
 } from "@/lib/brand-api";
 import { getStoredAuthUser } from "@/lib/api-client";
 
-import RosterTab, { type BrandTalentCard, type RosterTalent, type RosterStatus } from "./roster-tab";
-import CampaignsTab from "./campaigns-tab";
-import RevenueTab from "./revenue-tab";
 import InviteModal from "./invite-modal";
 
-// ─── Extended mock talents local to this page so that invite list has candidates ────
-const extendedTalents: TalentProfile[] = [
-  ...allTalents,
-  {
-    id: "tal-6",
-    name: "Vương Việt Cường",
-    type: "Model/KOL",
-    city: "TP. Hồ Chí Minh",
-    district: "Quận 7",
-    gender: "Nam",
-    age: 25,
-    height: 180,
-    weight: 70,
-    bust: 95,
-    waist: 76,
-    hips: 96,
-    skinTone: "Rám nắng",
-    hairColor: "Đen",
-    yearsOfExperience: 4,
-    tier: "A",
-    verified: true,
-    rating: 4.8,
-    completedJobs: 15,
-    responseRate: 95,
-    followersCount: 320000,
-    followers: "320K",
-    engagementRate: 5.1,
-    platforms: ["TikTok", "Instagram"],
-    rateValue: 6000000,
-    rate: "từ 6.000.000đ",
-    rateUnit: "buổi",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&h=500&q=80",
-    cover: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1200&q=80",
-    fullBodyImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&q=80",
-    skills: ["Lookbook", "Runway show", "Livestream", "Sport Companion"],
-    experience: "Model ảnh chuyên nghiệp cho các thương hiệu thời trang nam cao cấp, đại sứ thương hiệu golf.",
-    portfolio: ["Golf Tournament 2026", "Men's Luxury Lookbook"],
-    availability: "Rảnh các ngày trong tuần",
-    availabilityDates: ["2026-06-10", "2026-06-12", "2026-06-14"],
-    completion: 92,
-    matchScore: 94,
-    reliability: 95,
-    education: "Đại học Thể dục Thể thao",
-    languages: ["Tiếng Việt", "Tiếng Anh IELTS 6.5"],
-    rateCard: {
-      "Lookbook 1 ngày": 6000000,
-      "Golf Companion 4h": 4000000,
-    },
-    lifestyleServices: [
-      { id: "golf", title: "Sport Companion (Golf)", rate: 1000000, unit: "giờ", description: "Người đẹp đồng hành, am hiểu văn hóa ứng xử sân golf VIP.", enabled: true },
-      { id: "dining", title: "Business Dining (Fine Dining)", rate: 2000000, unit: "buổi", description: "Giao tiếp ngoại giao xuất sắc, nâng tầm các buổi tiệc chiêu đãi đối tác.", enabled: true },
-      { id: "pickleball", title: "Sport Companion (Pickleball)", rate: 800000, unit: "giờ", description: "Hot Influencer năng động, lan tỏa phong cách sống khỏe khoắn.", enabled: true },
-    ]
-  },
-  {
-    id: "tal-7",
-    name: "Nguyễn Hải Yến",
-    type: "KOC/Beauty",
-    city: "Hà Nội",
-    district: "Cầu Giấy",
-    gender: "Nữ",
-    age: 23,
-    height: 165,
-    weight: 48,
-    bust: 82,
-    waist: 58,
-    hips: 88,
-    skinTone: "Sáng hồng",
-    hairColor: "Nâu hạt dẻ",
-    yearsOfExperience: 2,
-    tier: "B",
-    verified: true,
-    rating: 4.7,
-    completedJobs: 24,
-    responseRate: 98,
-    followersCount: 150000,
-    followers: "150K",
-    engagementRate: 6.4,
-    platforms: ["TikTok", "Instagram", "Shopee"],
-    rateValue: 3500000,
-    rate: "từ 3.500.000đ",
-    rateUnit: "video",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=500&h=500&q=80",
-    cover: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=1200&q=80",
-    fullBodyImage: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=700&q=80",
-    skills: ["Review mỹ phẩm", "Livestream bán hàng", "Tạo nội dung TikTok"],
-    experience: "KOC hàng đầu phân khúc skincare học đường và makeup hằng ngày, lượng fan trung thành cao.",
-    portfolio: ["L'Oreal Skincare Campaign", "Maybelline Lipstick Swatch"],
-    availability: "Nhận job hằng ngày",
-    availabilityDates: ["2026-06-11", "2026-06-13", "2026-06-16"],
-    completion: 96,
-    matchScore: 97,
-    reliability: 97,
-    education: "Đại học Thương mại",
-    languages: ["Tiếng Việt", "Tiếng Anh giao tiếp"],
-    rateCard: {
-      "TikTok Video 60s": 3500000,
-      "Livestream Shopee 2h": 5000000,
-    },
-    lifestyleServices: [
-      { id: "cafe", title: "VIP Cafe & Networking", rate: 1000000, unit: "giờ", description: "Kết nối tư duy tri thức, trò chuyện tại các không gian Luxury Hub.", enabled: true },
-      { id: "shopping", title: "Luxury Shopping Advisor", rate: 1500000, unit: "buổi", description: "Fashionista/Stylist đồng hành mua sắm tại các Boutique xa xỉ.", enabled: true },
-      { id: "content", title: "Daily Content Companion", rate: 3000000, unit: "ngày", description: "KOC đồng hành sáng tạo nội dung, xây dựng thương hiệu cá nhân cho CEO.", enabled: true }
-    ]
-  },
-  {
-    id: "tal-8",
-    name: "Phạm Minh Hoàng",
-    type: "KOL/TikToker",
-    city: "Hà Nội",
-    district: "Đống Đa",
-    gender: "Nam",
-    age: 26,
-    height: 178,
-    weight: 68,
-    bust: 92,
-    waist: 74,
-    hips: 94,
-    skinTone: "Sáng",
-    hairColor: "Đen",
-    yearsOfExperience: 3,
-    tier: "A",
-    verified: false,
-    rating: 4.6,
-    completedJobs: 12,
-    responseRate: 90,
-    followersCount: 450000,
-    followers: "450K",
-    engagementRate: 4.2,
-    platforms: ["TikTok", "Facebook"],
-    rateValue: 5000000,
-    rate: "từ 5.000.000đ",
-    rateUnit: "dự án",
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=500&h=500&q=80",
-    cover: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=1200&q=80",
-    fullBodyImage: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=700&q=80",
-    skills: ["Comedy video", "Street fashion style", "Sự kiện thảm đỏ"],
-    experience: "Tạo nội dung hài hước ngắn, kết hợp khéo léo giới thiệu sản phẩm công nghệ và lifestyle nam giới.",
-    portfolio: ["Galaxy S26 Launching", "Luxury Suit Show"],
-    availability: "Cần báo trước 3 ngày",
-    availabilityDates: ["2026-06-12", "2026-06-18", "2026-06-19"],
-    completion: 90,
-    matchScore: 88,
-    reliability: 92,
-    education: "Đại học Bách Khoa",
-    languages: ["Tiếng Việt"],
-    rateCard: {
-      "TikTok Video review": 5000000,
-      "Event Appearance": 8000000,
-    },
-    lifestyleServices: [
-      { id: "golf", title: "Sport Companion (Golf)", rate: 1200000, unit: "giờ", description: "Người đẹp đồng hành, am hiểu văn hóa ứng xử sân golf VIP.", enabled: true },
-      { id: "travel", title: "Business Travel Companion", rate: 5000000, unit: "ngày", description: "Tháp tùng công tác dài ngày, bảo mật tuyệt đối bằng hợp đồng NDA.", enabled: true }
-    ]
-  }
-];
+export type RosterStatus = "accepted" | "pending" | "declined";
 
-type ActiveTab = "roster" | "campaigns" | "revenue";
+export interface BrandTalentCard {
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+  type?: string;
+  city?: string;
+  district?: string;
+  gender?: string;
+  age?: number;
+  height?: number;
+  weight?: number;
+  bust?: number;
+  waist?: number;
+  hips?: number;
+  tier?: string;
+  verified?: boolean;
+  rating?: number | string;
+  followers?: string;
+  followersCount?: number;
+  engagementRate?: number;
+  cover?: string;
+  fullBodyImage?: string;
+  experience?: string;
+  skills?: string[];
+  languages?: string[];
+  completion?: number;
+  matchScore?: number;
+  [key: string]: unknown;
+}
+
+export interface RosterTalent {
+  rosterId?: string;
+  talentId: string;
+  status: RosterStatus;
+  addedAt: string;
+  earnedCommission: number;
+  activeJobs: number;
+  completedJobs: number;
+  invitedBy?: string;
+}
 
 const COMMISSION_RATE = 0.10; // F1 = 10%
 const AFFILIATE_ID = "mgr-loreal-vn-2026";
-
-// ─── Mock roster data used only as in-memory demo fallback ───────────────────
-const MOCK_ROSTER: RosterTalent[] = [
-  { talentId: "tal-1", status: "accepted", addedAt: "2026-05-01", earnedCommission: 2400000, activeJobs: 2, completedJobs: 8 },
-  { talentId: "tal-2", status: "accepted", addedAt: "2026-05-10", earnedCommission: 1800000, activeJobs: 1, completedJobs: 5 },
-  { talentId: "tal-3", status: "pending", addedAt: "2026-06-08", earnedCommission: 0, activeJobs: 0, completedJobs: 0 },
-  { talentId: "tal-4", status: "accepted", addedAt: "2026-05-20", earnedCommission: 950000, activeJobs: 0, completedJobs: 3 },
-  { talentId: "tal-5", status: "declined", addedAt: "2026-06-01", earnedCommission: 0, activeJobs: 0, completedJobs: 0 },
-];
 
 const formatVND = (n: number) =>
   new Intl.NumberFormat("vi-VN").format(n) + "đ";
@@ -295,9 +170,9 @@ function rosterFromBackend(item: BrandRosterTalent): RosterTalent {
 }
 
 export default function MyTalentsPage() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>("roster");
+  const router = useRouter();
   const [roster, setRoster] = useState<RosterTalent[]>([]);
-  const [displayTalents, setDisplayTalents] = useState<BrandTalentCard[]>(extendedTalents);
+  const [displayTalents, setDisplayTalents] = useState<BrandTalentCard[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [commissionTransactions, setCommissionTransactions] = useState<BrandCommissionTransaction[]>([]);
   const [commissionLoading, setCommissionLoading] = useState(true);
@@ -306,6 +181,8 @@ export default function MyTalentsPage() {
   const [inviteSearch, setInviteSearch] = useState("");
   const [inviteSent, setInviteSent] = useState<string[]>([]);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; msg: string }[]>([]);
 
   // Load roster from backend, with local fallback while API is offline.
@@ -315,7 +192,7 @@ export default function MyTalentsPage() {
     async function loadRoster() {
       try {
         const [talentItems, rosterItems, link, campaignItems] = await Promise.all([
-          loadBrandTalents(extendedTalents),
+          loadBrandTalents([]),
           loadBrandRosterTalents(),
           loadBrandTalentInviteLink().catch(() => createBrandTalentInviteLink()),
           loadBrandCampaigns([]),
@@ -334,13 +211,14 @@ export default function MyTalentsPage() {
 
         const nextRoster = rosterItems.map(rosterFromBackend);
         setDisplayTalents(Array.from(talentsById.values()));
-        setRoster(nextRoster.length ? nextRoster : MOCK_ROSTER);
+        setRoster(nextRoster);
         setCampaigns(campaignItems);
         setAffiliateLink(link.url);
       } catch (error) {
-        console.warn("Cannot load brand roster from API, using local fallback", error);
-        setRoster(MOCK_ROSTER);
+        console.warn("Cannot load brand roster from API", error);
+        setRoster([]);
         setCampaigns([]);
+        setDisplayTalents([]);
       }
     }
 
@@ -458,6 +336,38 @@ export default function MyTalentsPage() {
     addToast("Đã sao chép Affiliate Link!");
   };
 
+  const downloadQr = async () => {
+    if (!affiliateLink) return;
+    const targetUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(affiliateLink)}`;
+    try {
+      const response = await fetch(targetUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `qr-code.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      addToast("Đã tải xuống mã QR tuyển dụng!");
+    } catch (err) {
+      console.warn("Failed to download QR code directly, opening in new tab:", err);
+      window.open(targetUrl, "_blank");
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: "Tuyển dụng Talent vào Brand",
+        url: affiliateLink,
+      }).catch(() => {});
+    } else {
+      setShowShareMenu(true);
+    }
+  };
+
   // ── Derived stats ─────────────────────────────────────────────────────────
   const acceptedRoster = roster.filter(r => r.status === "accepted");
   const pendingRoster = roster.filter(r => r.status === "pending");
@@ -500,110 +410,386 @@ export default function MyTalentsPage() {
     declined: { label: "Đã từ chối", dot: "bg-red-400", text: "text-red-400" },
   };
 
-  // ── TABS CONTENT ──────────────────────────────────────────────────────────
-  const TABS = [
-    { id: "roster" as ActiveTab, label: "Danh sách Talent hợp tác", icon: Users2 },
-    { id: "campaigns" as ActiveTab, label: "Chiến dịch", icon: Briefcase },
-    { id: "revenue" as ActiveTab, label: "Doanh thu & Affiliate", icon: DollarSign },
-  ];
-
   return (
-    <div className="space-y-5 pb-20 md:space-y-8 md:pb-0 animate-in fade-in duration-300">
-      {/* ── Header ── */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b border-white/5 pb-4 md:pb-5">
-        <div>
-          <div className="mb-2 flex items-center gap-2">
-            <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-              TALENT MANAGEMENT
+    <div className="relative space-y-6 pb-20 md:space-y-8 md:pb-0 animate-in fade-in duration-500">
+      {/* Immersive Background Image & Dark Overlay */}
+      <div className="absolute inset-0 -mx-4 -mt-5 -mb-24 md:-mx-8 md:-mt-7 md:-mb-8 lg:-mx-10 lg:-mt-8 2xl:-mx-12 z-0 overflow-hidden pointer-events-none">
+        <img
+          src="/hero_bg.png"
+          alt="OnstageVN Background Graphics"
+          className="w-full h-full object-cover object-center absolute inset-0 opacity-40"
+        />
+        {/* Subtle overlay for contrast */}
+        <div className="absolute inset-0 bg-[#02040a]/40 pointer-events-none" />
+      </div>
+
+      {/* ── Welcome Header Banner ── */}
+      <div className="relative z-10 overflow-hidden rounded-3xl border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.14),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-amber-400/40 bg-amber-400/10 text-amber-300">
+                TALENT MANAGEMENT
+              </span>
+              <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-yellow-400/30 bg-yellow-400/10 text-yellow-200">
+                Gateway Active
+              </span>
+            </div>
+            <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-4xl uppercase">
+              Quản lý <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">Talent</span>
+            </h1>
+            <p className="mt-3 text-xs leading-5 text-slate-400">
+              Quản lý đội ngũ KOL độc quyền, theo dõi tiến độ chiến dịch và hoa hồng giới thiệu Affiliate.
+            </p>
+          </div>
+          
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="flex w-full lg:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(244,196,48,0.25)] hover:shadow-[0_0_25px_rgba(244,196,48,0.45)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-300 shrink-0"
+          >
+            <UserPlus className="h-4 w-4" />
+            Thêm Talent
+          </button>
+        </div>
+      </div>
+
+
+      {/* ── Content Area ── */}
+      <div className="relative z-10 space-y-6 animate-in fade-in duration-300">
+        {/* 🔗 Tuyển Talent */}
+        <div className="rounded-3xl border border-amber-500/20 bg-gradient-to-b from-[#150f02]/90 to-[#050712]/95 shadow-[0_0_30px_rgba(245,158,11,0.08)] p-6 space-y-5">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+            {/* Left section */}
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/5 text-amber-400">
+                <Link2 className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-400">
+                  AFFILIATE LINK
+                </span>
+                <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
+                  Tuyển Dụng Talent
+                </h3>
+                <p className="text-[11px] text-slate-400 leading-normal">
+                  Chia sẻ link này cho Talent để họ đăng ký tham gia mạng lưới của Brand.
+                </p>
+              </div>
+            </div>
+
+            {/* Right section (Buttons) */}
+            <div className="grid grid-cols-2 gap-2 w-full xl:flex xl:w-auto shrink-0">
+              <button
+                onClick={handleCopyLink}
+                className={cn(
+                  "flex h-10 items-center justify-center gap-2 rounded-2xl px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer w-full xl:w-auto",
+                  copiedLink
+                    ? "border border-emerald-400/30 bg-emerald-400/15 text-emerald-300"
+                    : "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105"
+                )}
+              >
+                {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copiedLink ? "Đã copy" : "Sao chép Link"}
+              </button>
+
+              <button
+                onClick={() => setShowQrModal(true)}
+                className="flex h-10 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105 px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer active:scale-[0.98] w-full xl:w-auto"
+              >
+                <QrCode className="h-4 w-4" /> Hiện QR
+              </button>
+            </div>
+          </div>
+
+          {/* Bottom section (URL display) */}
+          <div className="flex items-center gap-3 rounded-2xl bg-[#04060a]/90 border border-amber-500/10 px-4 py-3 font-mono text-xs font-bold text-amber-100/90">
+            <Link2 className="h-4 w-4 text-amber-400 shrink-0" />
+            <span className="truncate select-all">{affiliateLink}</span>
+          </div>
+        </div>
+
+        {/* 👥 Danh sách Talent */}
+        <div className="space-y-4 pt-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
+              <Users2 className="h-4.5 w-4.5 text-amber-400 fill-amber-400/20 animate-pulse" /> Đội ngũ Talent hợp tác
+            </h3>
+            <span className="text-[9px] font-bold text-amber-400 bg-amber-400/10 border border-amber-500/20 px-3 py-1 rounded uppercase tracking-wider">
+              {acceptedRoster.length} Đang hoạt động
             </span>
           </div>
-          <h1 className="font-display text-xl md:text-2xl font-black tracking-tight text-white uppercase leading-none">
-            Quản lý Talent
-          </h1>
-          <p className="text-[11px] md:text-xs text-slate-400 mt-2 font-medium leading-relaxed">
-            Quản lý đội ngũ KOL độc quyền, theo dõi tiến độ chiến dịch và hoa hồng giới thiệu Affiliate.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowInviteModal(true)}
-          className="flex w-full md:w-auto items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(244,196,48,0.2)] hover:shadow-[0_0_25px_rgba(244,196,48,0.4)] hover:brightness-105 active:scale-[0.98] cursor-pointer transition-all duration-300"
-        >
-          <UserPlus className="h-4 w-4" />
-          Thêm Talent
-        </button>
-      </div>
 
-      {/* ── Summary Stats ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        {[
-          { label: "Talent đã xác nhận", value: acceptedRoster.length, icon: CheckCircle, color: "text-emerald-400 border-emerald-500/15 bg-emerald-500/5", glow: "hover:shadow-[0_0_20px_rgba(16,185,129,0.08)]" },
-          { label: "Đang chờ xác nhận", value: pendingRoster.length, icon: Clock, color: "text-amber-400 border-amber-500/15 bg-amber-500/5", glow: "hover:shadow-[0_0_20px_rgba(245,158,11,0.08)]" },
-          { label: "Doanh thu th\u00e1ng n\u00e0y", value: commissionLoading ? "..." : formatVND(monthRevenue), icon: Wallet, color: "text-cyan-400 border-cyan-500/15 bg-cyan-500/5", glow: "hover:shadow-[0_0_20px_rgba(6,182,212,0.08)]" },
-          { label: "S\u1ed1 d\u01b0 \u0111\u00e3 duy\u1ec7t", value: commissionLoading ? "..." : formatVND(approvedBalance), icon: TrendingUp, color: "text-amber-300 border-amber-400/20 bg-amber-500/5", glow: "hover:shadow-[0_0_25px_rgba(244,196,48,0.12)]" },
-        ].map((stat) => (
-          <div key={stat.label} className={cn("rounded-2xl border p-3.5 md:p-5 bg-[#08090f] transition-all duration-300 hover:scale-[1.02] hover:border-slate-700/50", stat.glow)}>
-            <div className={cn("flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-xl border mb-2.5 md:mb-3.5", stat.color)}>
-              <stat.icon className="h-4.5 w-4.5" />
+          {roster.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 md:py-20 px-4 text-center rounded-3xl border border-dashed border-white/5 bg-[#08090f]/40">
+              <Users2 className="h-12 w-12 text-slate-700 mb-4 animate-pulse" />
+              <p className="text-white font-black text-sm uppercase tracking-wider">Chưa có Talent nào</p>
+              <p className="text-slate-400 text-xs mt-2 max-w-sm font-semibold leading-relaxed">
+                Hãy mời Talent đầu tiên tham gia mạng lưới của Brand bằng link hoặc mã QR bên phải.
+              </p>
+              <button
+                onClick={() => setShowInviteModal(true)}
+                className="mt-6 flex w-full max-w-xs items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 cursor-pointer shadow-[0_0_15px_rgba(244,196,48,0.2)] hover:shadow-[0_0_25px_rgba(244,196,48,0.3)] hover:brightness-105 active:scale-[0.98] transition-all duration-300 md:w-auto"
+              >
+                <Plus className="h-4 w-4" /> Thêm Talent
+              </button>
             </div>
-            <p className="text-base md:text-xl font-black text-white tracking-tight font-mono break-words">{stat.value}</p>
-            <p className="text-[8.5px] md:text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1 leading-tight">{stat.label}</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {roster.map((entry) => {
+                const cleanId = (id: string | number) => String(id || "").replace(/^tal-/, "");
+                const talent = displayTalents.find((t) => cleanId(t.id) === cleanId(entry.talentId));
+                if (!talent) return null;
+                const sc = statusConfig[entry.status];
+                const isAccepted = entry.status === "accepted";
+                const isPending = entry.status === "pending";
+                return (
+                  <div
+                    key={entry.talentId}
+                    className={cn(
+                      "relative rounded-2xl border p-4 md:p-6 transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-b from-[#111421]/90 to-[#070913]/98 shadow-[0_0_22px_rgba(0,0,0,0.4)]",
+                      isAccepted
+                        ? "border-emerald-500/35 hover:border-emerald-500/60"
+                        : isPending
+                          ? "border-amber-500/25 hover:border-amber-500/50"
+                          : "border-red-500/25 opacity-60 hover:opacity-80"
+                    )}
+                  >
+                    {/* Glow burst background */}
+                    <div className={cn("absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl", 
+                      isAccepted ? "bg-gradient-to-br from-emerald-300 to-green-600" : "bg-gradient-to-br from-amber-300 to-yellow-600"
+                    )}></div>
+
+                    {/* Status indicator */}
+                    <div className="mb-3 inline-flex items-center gap-1.5 bg-slate-950/80 border border-white/5 px-2.5 py-1 rounded-full md:absolute md:top-4 md:right-5 md:mb-0 md:py-0.5 backdrop-blur-md">
+                      <span className={cn("h-1.5 w-1.5 rounded-full", sc.dot)} />
+                      <span className={cn("text-[9px] font-black uppercase tracking-wider", sc.text)}>{sc.label}</span>
+                    </div>
+
+                    <div className="flex items-start gap-4 relative z-10">
+                      {/* Avatar */}
+                      <div className="relative shrink-0">
+                        <div className={cn(
+                          "h-16 w-16 rounded-2xl overflow-hidden border-2 p-[2px] transition-colors duration-300",
+                          isAccepted ? "border-emerald-500/30 bg-emerald-500/10" : "border-amber-500/30 bg-amber-500/10"
+                        )}>
+                          <img
+                            src={talent.avatar}
+                            alt={talent.name}
+                            onError={(event) => {
+                              event.currentTarget.src = createInitialAvatarDataUrl(talent.name, talent.email);
+                            }}
+                            className="h-full w-full rounded-[14px] object-cover"
+                          />
+                        </div>
+                        {talent.verified && (
+                          <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-[#08090f] border border-[#151b2d] flex items-center justify-center shadow-md">
+                            <Shield className="h-3.5 w-3.5 text-emerald-400" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0 md:pr-16">
+                        <h3 className="text-base font-black text-white truncate hover:text-amber-400 transition-colors cursor-pointer">{talent.name}</h3>
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider", tierColor(talent.tier ?? ""))}>
+                            Tier {talent.tier}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{talent.type}</span>
+                          <span className="flex items-center gap-1 text-[10px] text-slate-500 font-semibold">
+                            <MapPin className="h-3 w-3 text-slate-500" />{talent.city}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2.5 text-[10px] text-slate-400 font-semibold">
+                          <span className="flex items-center gap-1">👥 <strong className="text-white">{talent.followers}</strong> followers</span>
+                          <span className="flex items-center gap-1">⭐ <strong className="text-white">{talent.rating}</strong>/5</span>
+                        </div>
+                        <p className="mt-2 text-[10px] font-semibold text-slate-500">
+                          Được mời bởi: <span className="font-bold text-slate-300">{entry.invitedBy || "Brand"}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {isAccepted && (
+                      <>
+                        {/* Stats row */}
+                        <div className="mt-5 pt-4 border-t border-white/5 grid grid-cols-3 gap-2 text-center relative z-10">
+                          <div className="bg-slate-950/70 rounded-xl p-2 border border-white/5">
+                            <p className="text-[11px] font-black text-emerald-400 font-mono break-words">{formatVND(entry.earnedCommission)}</p>
+                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Hoa hồng</p>
+                          </div>
+                          <div className="bg-slate-950/70 rounded-xl p-2 border border-white/5">
+                            <p className="text-sm font-black text-cyan-400 font-mono">{entry.activeJobs}</p>
+                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Đang làm</p>
+                          </div>
+                          <div className="bg-slate-950/70 rounded-xl p-2 border border-white/5">
+                            <p className="text-sm font-black text-white font-mono">{entry.completedJobs}</p>
+                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Đã xong</p>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="mt-4 grid grid-cols-3 gap-2 relative z-10">
+                          <button
+                            onClick={() => router.push(`/brand/talents/${talent.id}`)}
+                            className="flex h-9 items-center justify-center gap-1 rounded-xl bg-slate-950 border border-white/10 hover:border-amber-400/30 text-[9px] font-black uppercase tracking-wider text-slate-300 hover:text-amber-400 transition-all cursor-pointer"
+                          >
+                            <Eye className="h-3.5 w-3.5 text-amber-400" /> Hồ sơ
+                          </button>
+                          <button
+                            onClick={() => router.push(`/brand/campaigns`)}
+                            className="flex h-9 items-center justify-center gap-1 rounded-xl bg-slate-950 border border-white/10 hover:border-cyan-400/30 text-[9px] font-black uppercase tracking-wider text-slate-300 hover:text-cyan-400 transition-all cursor-pointer"
+                          >
+                            <Briefcase className="h-3.5 w-3.5 text-cyan-400" /> Assign Job
+                          </button>
+                          <button
+                            onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
+                            className="flex h-9 items-center justify-center gap-1 rounded-xl bg-slate-950 border border-white/10 hover:border-purple-400/30 text-[9px] font-black uppercase tracking-wider text-slate-300 hover:text-purple-400 transition-all cursor-pointer"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5 text-purple-400" /> Nhắn tin
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    {isPending && (
+                      <div className="mt-5 flex flex-col gap-3 rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+                        <div className="flex min-w-0 items-start gap-3">
+                          <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                          <p className="text-[10px] font-semibold leading-relaxed text-amber-300/80">
+                            Mời lúc <span className="font-bold text-white">{entry.addedAt}</span>. Chờ Talent xác nhận.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleRemove(entry.talentId)}
+                          className="flex h-8 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg border border-red-500/25 bg-red-500/10 px-3 text-[9px] font-black uppercase tracking-wider text-red-300 transition-all hover:bg-red-500/20 hover:text-red-200 sm:w-auto"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          Hủy lời mời
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Remove button */}
+                    {!isAccepted && !isPending && (
+                      <button
+                        onClick={() => handleRemove(entry.talentId)}
+                        className="absolute bottom-5 right-5 h-7 w-7 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 cursor-pointer transition-all"
+                        title="Hủy lời mời"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── QR Code Popover Dialog Modal ── */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm flex flex-col bg-[#0b0c15] border border-[#1d2238] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Close button top right */}
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="absolute right-4 top-4 text-slate-400 hover:text-white cursor-pointer transition-colors z-10 p-1 bg-white/5 hover:bg-white/10 rounded-full"
+            >
+              <X className="h-4.5 w-4.5" />
+            </button>
+
+            <QRCodeContainer
+              campaignLink={affiliateLink}
+              title="Mã QR Tuyển Dụng"
+              subtitle="Quét mã để gia nhập"
+              badgeText="OSN Gateway"
+              shareButtonLabel="Chia sẻ"
+              onCopyLink={handleCopyLink}
+              className="border-0 bg-transparent shadow-none p-6"
+            />
           </div>
-        ))}
-      </div>
-
-      {/* ── Tabs ── */}
-      <div className="border-b border-[#151b2d] flex gap-2 md:gap-8 overflow-x-auto scrollbar-none">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              "rounded-t-xl px-3 py-3 md:px-0 md:pb-4 md:pt-0 text-[10px] md:text-[11px] font-black uppercase tracking-wider md:tracking-widest transition-all relative cursor-pointer flex items-center gap-1.5 md:gap-2 shrink-0",
-              activeTab === tab.id ? "bg-amber-400/5 text-amber-400 font-black md:bg-transparent" : "text-slate-500 hover:text-slate-300"
-            )}
-          >
-            <tab.icon className="h-4 w-4" />
-            <span className="md:hidden">{tab.id === "roster" ? "Talent" : tab.id === "campaigns" ? "Campaign" : "Doanh thu"}</span>
-            <span className="hidden md:inline">{tab.label}</span>
-            {activeTab === tab.id && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-300 to-yellow-500 rounded-full shadow-[0_0_8px_rgba(244,196,48,0.5)]" />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* ══════════════════════════ TABS CONTENT ══════════════════════════ */}
-      {activeTab === "roster" && (
-        <RosterTab
-          roster={roster}
-          extendedTalents={displayTalents}
-          statusConfig={statusConfig}
-          tierColor={tierColor}
-          formatVND={formatVND}
-          affiliateLink={affiliateLink}
-          copiedLink={copiedLink}
-          handleCopyLink={handleCopyLink}
-          handleRemove={handleRemove}
-          setShowInviteModal={setShowInviteModal}
-        />
+        </div>
       )}
 
-      {activeTab === "campaigns" && (
-        <CampaignsTab
-          extendedTalents={displayTalents}
-          campaigns={campaigns}
-          tierColor={tierColor}
-          formatVND={formatVND}
-        />
-      )}
+      {/* ── Share Menu Dialog Modal ── */}
+      {showShareMenu && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm flex flex-col bg-[#0b0c15] border border-[#1d2238] rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] p-6 text-left animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/5 pb-3.5 mb-4">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                Chia sẻ link tuyển dụng
+              </h3>
+              <button
+                onClick={() => setShowShareMenu(false)}
+                className="text-slate-400 hover:text-white cursor-pointer transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
 
-      {activeTab === "revenue" && (
-        <RevenueTab
-          roster={roster}
-          transactions={commissionTransactions}
-          loading={commissionLoading}
-          formatVND={formatVND}
-        />
+            <p className="text-xs text-slate-400 mb-5 leading-normal">
+              Chọn nền tảng để chia sẻ liên kết tuyển dụng của Brand:
+            </p>
+
+            {/* Grid of options */}
+            <div className="grid grid-cols-4 gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">
+              <button
+                onClick={() => {
+                  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(affiliateLink)}`, "_blank");
+                  setShowShareMenu(false);
+                }}
+                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+              >
+                <svg className="h-6 w-6 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                <span className="text-[8px] mt-1">Facebook</span>
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(affiliateLink);
+                  setShowShareMenu(false);
+                  addToast("Đã sao chép liên kết! Bạn có thể chia sẻ lên Instagram.");
+                }}
+                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+              >
+                <Share2 className="h-6 w-6 text-pink-500" />
+                <span className="text-[8px] mt-1">Instagram</span>
+              </button>
+              <button
+                onClick={() => {
+                  window.open(`https://sp.zalo.me/share?vt=1&url=${encodeURIComponent(affiliateLink)}`, "_blank");
+                  setShowShareMenu(false);
+                }}
+                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-[#08090f]/20 border border-white/5 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+              >
+                <Share2 className="h-6 w-6 text-sky-400" />
+                <span className="text-[8px] mt-1">Zalo</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleCopyLink();
+                  setShowShareMenu(false);
+                }}
+                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+              >
+                <Link2 className="h-6 w-6 text-[#F0C56B]" />
+                <span className="text-[8px] mt-1">Copy Link</span>
+              </button>
+            </div>
+
+            {/* Cancel button */}
+            <button
+              onClick={() => setShowShareMenu(false)}
+              className="mt-6 w-full h-10 rounded-xl border border-white/5 bg-white/5 text-xs font-black uppercase text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer transition-all"
+            >
+              Hủy
+            </button>
+          </div>
+        </div>
       )}
 
       <InviteModal

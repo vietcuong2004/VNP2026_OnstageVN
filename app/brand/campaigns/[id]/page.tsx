@@ -8,13 +8,17 @@ import {
   CheckCircle2,
   MapPin,
   Users,
-  X,
-  Plus,
   ImagePlus,
   Pencil,
-  Link,
+  Link as LinkIcon,
+  Link2,
   Copy,
   Check,
+  Calendar,
+  Sparkles,
+  Download,
+  QrCode,
+  X,
 } from "lucide-react";
 import { campaigns as initialCampaigns, talents, type Campaign, type CampaignMedia, type CampaignStage } from "@/lib/brand-mvp-data";
 import {
@@ -28,11 +32,31 @@ import {
   settleBrandCampaign,
   uploadBrandCampaignMedia,
   type BrandCampaignCommissionResponse,
-  type BrandCommissionTransaction,
   updateBrandCampaignTalent,
 } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
+import { getStoredAuthUser } from "@/lib/api-client";
+import QRCodeContainer from "@/components/QR_Code";
+
+interface StaffMember {
+  id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  phone: string;
+  email: string;
+  bio?: string;
+  location?: string;
+}
+
+// Sub-components split to reduce file size
+import Hero from "./components/Hero";
+import ProfileModal from "./components/ProfileModal";
+import ChecklistModal from "./components/ChecklistModal";
+import AddStaffModal from "./components/AddStaffModal";
+import PayoutSuccessModal from "./components/PayoutSuccessModal";
+import PayoutTableModal from "./components/PayoutTableModal";
 
 const stageLabels: Record<CampaignStage, string> = {
   new: "Chờ duyệt",
@@ -42,14 +66,6 @@ const stageLabels: Record<CampaignStage, string> = {
   confirmed: "Thành công",
 };
 
-const getTalentStatus = (id: string) => {
-  if (id === "tal-1" || id === "tal-2") return "available";
-  if (id === "tal-3") return "busy";
-  return "maybe";
-};
-
-const DEFAULT_PLATFORM_FEE_RATE = 5;
-
 function isBackendRecordId(id?: string | number | null) {
   return /^\d+$/.test(String(id || ""));
 }
@@ -57,10 +73,6 @@ function isBackendRecordId(id?: string | number | null) {
 function backendStage(stage: CampaignStage) {
   if (stage === "executing" || stage === "completed") return null;
   return stage;
-}
-
-function moneyText(value: number) {
-  return `${Math.round(value).toLocaleString("vi-VN")} VND`;
 }
 
 function sentenceCaseText(value: string) {
@@ -109,57 +121,10 @@ function displayCampaignDateRange(start?: string | null, end?: string | null) {
   return startText === endText ? startText : `${startText} - ${endText}`;
 }
 
-function transactionRole(transaction: BrandCommissionTransaction) {
-  if (transaction.source_type === "campaign_payout") {
-    if (transaction.level === 1) return "Brand tổ chức";
-    return `Talent thực hiện${transaction.metadata?.eligible_talent_count ? ` (${transaction.metadata.eligible_talent_count} talent)` : ""}`;
-  }
-
-  if (transaction.source_type === "roster_management") return "Brand quản lý talent";
-
-  return `F${transaction.level}`;
-}
-
-function transactionRelatedTalent(transaction: BrandCommissionTransaction) {
-  return transaction.talent?.name
-    || transaction.campaign_talent?.profile?.display_name
-    || transaction.campaign_talent?.profile?.full_name
-    || transaction.campaign_talent?.profile?.user?.name
-    || "-";
-}
-
-function transactionRow(transaction: BrandCommissionTransaction) {
-  return {
-    role: transactionRole(transaction),
-    recipient: transaction.receiver?.name || "-",
-    relatedTalent: transactionRelatedTalent(transaction),
-    base: Number(transaction.base_amount) || 0,
-    rate: Number(transaction.rate) || 0,
-    amount: Number(transaction.amount) || 0,
-    status: transaction.status === "approved" ? "Đã duyệt" : transaction.status === "cancelled" ? "Đã hủy" : "Chờ duyệt",
-  };
-}
-
-
 function statusLabel(status: Campaign["status"]) {
   if (status === "published") return "Đang mở";
   if (status === "closed") return "Đã đóng";
   return "Nháp";
-}
-
-function nextStage(stage: CampaignStage): CampaignStage {
-  if (stage === "new") return "accepted";
-  if (stage === "accepted") return "executing";
-  if (stage === "executing") return "completed";
-  return "confirmed";
-}
-
-function stageActionLabel(stage: CampaignStage): string {
-  if (stage === "new") return "Duyệt ứng viên";
-  if (stage === "accepted") return "Bắt đầu tham gia (Check-in)";
-  if (stage === "executing") return "Báo cáo hoàn thành";
-  if (stage === "completed") return "Nghiệm thu & Giải ngân";
-  return "";
 }
 
 function getProgressPercent(stage: CampaignStage): string {
@@ -197,6 +162,57 @@ export default function CampaignDetailPage() {
   const [isCommissionLoading, setIsCommissionLoading] = useState(false);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [replacingMediaId, setReplacingMediaId] = useState<string | number | null>(null);
+  const [showQrModal, setShowQrModal] = useState(false);
+
+  const [isShowingOwnerTransferModal, setIsShowingOwnerTransferModal] = useState(false);
+  const [campaignOwnerId, setCampaignOwnerId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(`campaign_owner_${params.id}`);
+      return stored || "me";
+    }
+    return "me";
+  });
+
+  const changeCampaignOwner = (newOwnerId: string) => {
+    setCampaignOwnerId(newOwnerId);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(`campaign_owner_${params.id}`, newOwnerId);
+    }
+  };
+
+  const authUser = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      return getStoredAuthUser<{
+        id?: string | number;
+        name?: string;
+        email?: string;
+        external_avatar_url?: string | null;
+        avatar?: string | null;
+        phone?: string | null;
+        location?: string | null;
+        brand_representative?: string | null;
+        role?: string;
+      }>();
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const myProfile = useMemo<StaffMember>(() => {
+    const name = authUser?.brand_representative || authUser?.name || "Nguyễn Ngọc Anh";
+    const email = authUser?.email || "ngocanh.nguyen@loreal.com";
+    return {
+      id: "me",
+      name: name,
+      avatar: authUser?.external_avatar_url || authUser?.avatar || createInitialAvatarDataUrl(name, email),
+      role: authUser?.role || "Brand Representative",
+      phone: authUser?.phone || "090.123.4567",
+      email: email,
+      bio: "Người đại diện cho Brand. Chịu trách nhiệm vận hành, đối soát và giải ngân chiến dịch.",
+      location: authUser?.location || "Hà Nội",
+    };
+  }, [authUser]);
 
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [sentRequests, setSentRequests] = useState<Record<string, boolean>>({});
@@ -215,11 +231,29 @@ export default function CampaignDetailPage() {
     }, 2000);
   };
 
+  const handleDownloadQRCode = async () => {
+    if (!referralLink || !selectedCampaign) return;
+    try {
+      const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(referralLink)}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `qr-code-${selectedCampaign.id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.warn("Failed to download QR code directly, opening in new tab:", err);
+      window.open(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(referralLink)}`, "_blank");
+    }
+  };
+
   useEffect(() => {
     const fallbackCampaigns = initialCampaigns;
 
     if (typeof window !== "undefined") {
-
       const storedRequests = window.localStorage.getItem("onstagevn_sent_requests");
       if (storedRequests) {
         try {
@@ -269,9 +303,6 @@ export default function CampaignDetailPage() {
 
       setCampaigns((current) => {
         const mergedApplicants = [...loadedCampaign.applicants];
-
-
-
         const mergedCampaign = {
           ...loadedCampaign,
           applicants: mergedApplicants
@@ -282,8 +313,6 @@ export default function CampaignDetailPage() {
           ? current.map((item) => item.id === loadedCampaign.id ? mergedCampaign : item)
           : [mergedCampaign, ...current];
 
-
-
         return next;
       });
     });
@@ -293,11 +322,41 @@ export default function CampaignDetailPage() {
     return campaigns.find((c) => c.id === params.id);
   }, [campaigns, params.id]);
 
+  const availableOwners = useMemo<StaffMember[]>(() => {
+    const list: StaffMember[] = [
+      myProfile
+    ];
+
+    if (selectedCampaign) {
+      selectedCampaign.applicants.forEach((applicant) => {
+        const talent = displayTalents.find((t) => t.id === applicant.talentId) || talents.find((t) => t.id === applicant.talentId);
+        if (talent) {
+          list.push({
+            id: talent.id,
+            name: talent.name,
+            avatar: talent.avatar,
+            role: `Campaign Talent (${talent.type})`,
+            phone: "090.999.8888",
+            email: `${talent.id}@onstage.vn`,
+            bio: `Thành viên tham gia chiến dịch. Rank ${talent.tier} - ${talent.city}.`,
+            location: talent.city,
+          });
+        }
+      });
+    }
+
+    return list;
+  }, [myProfile, selectedCampaign, displayTalents]);
+
+  const activeOwner = useMemo<StaffMember>(() => {
+    return availableOwners.find(o => o.id === campaignOwnerId) || myProfile;
+  }, [availableOwners, campaignOwnerId, myProfile]);
+
   useEffect(() => {
     if (!selectedCampaign) return;
     let isMounted = true;
     setIsGeneratingLink(true);
-    
+
     import("@/lib/talent-api").then(({ getCampaignReferralLink }) => {
       return getCampaignReferralLink(selectedCampaign.id);
     }).then((res) => {
@@ -326,6 +385,11 @@ export default function CampaignDetailPage() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || !selectedCampaign) return;
+
+    if (!replacingMedia && (selectedCampaign.media?.length || 0) >= 10) {
+      window.alert("Chiến dịch chỉ được phép tải lên tối đa 10 ảnh.");
+      return;
+    }
 
     if (!isBackendRecordId(selectedCampaign.id)) {
       window.alert("Campaign này đang là dữ liệu local, cần tạo campaign trên backend trước khi upload ảnh.");
@@ -373,6 +437,33 @@ export default function CampaignDetailPage() {
     }
   }
 
+  async function handleCampaignMediaDelete(media: CampaignMedia) {
+    if (!selectedCampaign) return;
+
+    if (isBackendRecordId(selectedCampaign.id) && media.id) {
+      try {
+        await deleteBrandCampaignMedia(selectedCampaign.id, media.id);
+      } catch (error) {
+        console.warn("Cannot delete campaign media", error);
+        window.alert(error instanceof Error ? error.message : "Chưa xóa được ảnh.");
+        return;
+      }
+    }
+
+    setCampaigns((current) => current.map((campaign) => {
+      if (campaign.id !== selectedCampaign.id) return campaign;
+
+      const currentMedia = campaign.media || [];
+      const mediaList = currentMedia.filter((item) => item.id !== media.id && item.url !== media.url);
+
+      return {
+        ...campaign,
+        media: mediaList,
+        coverMedia: mediaList[0] || null,
+      };
+    }));
+  }
+
   async function openPayoutModal() {
     if (!selectedCampaign || !isBackendRecordId(selectedCampaign.id)) {
       setIsShowingPayoutModal(true);
@@ -400,7 +491,8 @@ export default function CampaignDetailPage() {
 
   async function confirmCampaignDisbursement(totalBudget: number) {
     if (!selectedCampaign || !isBackendRecordId(selectedCampaign.id)) {
-      window.alert(`Đã xác nhận giải ngân thành công tổng cộng ${moneyText(totalBudget)}!`);
+      const formattedBudget = `${Math.round(totalBudget).toLocaleString("vi-VN")} VND`;
+      window.alert(`Đã xác nhận giải ngân thành công tổng cộng ${formattedBudget}!`);
       setIsShowingPayoutModal(false);
       return;
     }
@@ -419,7 +511,8 @@ export default function CampaignDetailPage() {
         : current;
 
       setCommissionData(approved);
-      window.alert(`Đã xác nhận giải ngân thành công tổng cộng ${moneyText(approved.summary.total)} cho ${approved.data.length} đối tượng nhận tiền!`);
+      const formattedTotal = `${Math.round(approved.summary.total).toLocaleString("vi-VN")} VND`;
+      window.alert(`Đã xác nhận giải ngân thành công tổng cộng ${formattedTotal} cho ${approved.data.length} đối tượng nhận tiền!`);
       setIsShowingPayoutModal(false);
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Chưa thể xác nhận giải ngân.");
@@ -439,7 +532,6 @@ export default function CampaignDetailPage() {
           campaign.id === id ? updatedCampaign : campaign
         );
         setCampaigns(nextCampaigns);
-
         return;
       } catch (error) {
         window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật trạng thái campaign.");
@@ -451,7 +543,6 @@ export default function CampaignDetailPage() {
       campaign.id === id ? { ...campaign, status } : campaign
     );
     setCampaigns(nextCampaigns);
-
   }
 
   async function moveApplicant(campaignId: string, talentId: string, stage: CampaignStage) {
@@ -483,7 +574,6 @@ export default function CampaignDetailPage() {
     });
 
     setCampaigns(nextCampaigns);
-
 
     if (stage === "confirmed") {
       const campaign = campaigns.find(c => c.id === campaignId);
@@ -554,24 +644,6 @@ export default function CampaignDetailPage() {
     });
 
     setCampaigns(nextCampaigns);
-
-  }
-
-  function sendContactRequest(campaignId: string, talentId: string) {
-    const key = `${campaignId}-${talentId}`;
-    const nextRequests = { ...sentRequests, [key]: true };
-    setSentRequests(nextRequests);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("onstagevn_sent_requests", JSON.stringify(nextRequests));
-    }
-
-    const nextCampaigns = campaigns.map((campaign) =>
-      campaign.id === campaignId
-        ? { ...campaign, contactRequests: campaign.contactRequests + 1 }
-        : campaign
-    );
-    setCampaigns(nextCampaigns);
-
   }
 
   if (!selectedCampaign) {
@@ -591,134 +663,72 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="space-y-6 pb-16">
-      {/* Top Section: Header & Info Grid on Left + Mô tả chung on Right */}
+      {/* 1. HERO MỞ RỘNG (HERO + KPI) */}
+      <Hero
+        selectedCampaign={selectedCampaign}
+        onBack={() => router.push("/brand/campaigns")}
+        onOpenPayoutModal={openPayoutModal}
+        onUpdateStatus={(status) => updateCampaignStatus(selectedCampaign.id, status)}
+      />
+
+      {/* 2. HÀNG THÔNG TIN CHÍNH (MÔ TẢ CHUNG & THÔNG TIN TUYỂN CHỌN) */}
       <section className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
-        {/* Left Side: Campaign Header & Grid of 5 Info Cards */}
-        <div className="flex flex-col gap-4 xl:col-span-8">
-          {/* Campaign Header Card */}
-          <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-6 flex flex-col gap-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div className="flex flex-col sm:flex-row gap-4 items-start w-full">
-                <button onClick={() => router.push("/brand/campaigns")} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 hover:text-white cursor-pointer">
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-                <div className="flex-1 min-w-0 w-full text-left">
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-400">{selectedCampaign.jobType}</span>
-                    <span className={cn(
-                      "rounded px-2 py-0.5 text-[9px] font-black uppercase",
-                      selectedCampaign.status === "published" ? "bg-emerald-500/10 text-emerald-300" : selectedCampaign.status === "closed" ? "bg-slate-500/10 text-slate-400" : "bg-amber-500/10 text-amber-300"
-                    )}>
-                      {statusLabel(selectedCampaign.status)}
-                    </span>
-                  </div>
-                  <h1 className="font-display text-2xl font-black tracking-tight text-white">{selectedCampaign.title}</h1>
-                  {(selectedCampaign.eventName || selectedCampaign.campaignType) && (
-                    <p className="mt-1 text-[11px] font-black uppercase tracking-wider text-amber-300">
-                      {[selectedCampaign.eventName, selectedCampaign.campaignType].filter(Boolean).join(" · ")}
-                    </p>
-                  )}
-                  <p className="mt-2 max-w-xl text-xs font-semibold leading-relaxed text-slate-400">{sentenceCaseText(selectedCampaign.description)}</p>
-                </div>
-              </div>
 
-              <div className="flex flex-row gap-2 w-full md:w-auto md:flex-wrap md:shrink-0 [&>*]:flex-1 md:[&>*]:flex-none">
-                {selectedCampaign.status === "draft" && (
-                  <button onClick={() => updateCampaignStatus(selectedCampaign.id, "published")} className="flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-xs font-black text-slate-950 cursor-pointer">
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Publish
-                  </button>
-                )}
-                {selectedCampaign.status !== "closed" && (
-                  <>
-                    <button
-                      onClick={openPayoutModal}
-                      className="flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 px-4 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.2)]"
-                    >
-                      Quyết Toán
-                    </button>
-                    <button
-                      onClick={() => {
-                        const confirmed = window.confirm("Bạn có muốn đóng campaign không?");
-                        if (confirmed) {
-                          updateCampaignStatus(selectedCampaign.id, "closed");
-                        }
-                      }}
-                      className="flex h-10 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 px-4 text-xs font-black text-red-400 hover:bg-red-500/20 hover:border-red-500/40 active:scale-95 transition-all cursor-pointer"
-                    >
-                      Đóng campaign
-                    </button>
-                  </>
-                )}
-              </div>
+        {/* Left Column (7 columns): Mô tả chung */}
+        <div className="xl:col-span-7 rounded-3xl border border-white/5 bg-slate-950/25 p-6 text-left self-stretch flex flex-col justify-between">
+          <div className="mb-5 flex items-center justify-between border-b border-white/5 pb-3">
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-350 flex items-center gap-1.5">
+              <Briefcase className="h-4.5 w-4.5 text-amber-400" /> Mô tả công việc
+            </h2>
+          </div>
+
+          <div className="divide-y divide-white/5 text-xs flex-1 flex flex-col justify-around">
+            <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5 first:pt-0">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Ngân sách</span>
+              <p className="font-black text-amber-300 text-sm leading-none">{selectedCampaign.budget}</p>
             </div>
 
-          </div>
 
-          {/* Info Cards */}
-          <div className="grid grid-cols-3 gap-2.5 md:gap-3">
-            {[
-              { label: "Địa điểm", value: selectedCampaign.venueName || selectedCampaign.address, icon: MapPin, color: "text-amber-300" },
-              { label: "Ứng viên", value: `${selectedCampaign.applicants.length}/${selectedCampaign.talentQuantity}`, icon: Users, color: "text-emerald-300" },
-              { label: "Lượt xem", value: selectedCampaign.views.toString(), icon: Briefcase, color: "text-rose-300" },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.label} className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 text-left">
-                  <Icon className={cn("mb-3 h-5 w-5", item.color)} />
-                  <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-500">{item.label}</span>
-                  <span className="mt-1 block break-words text-[11px] font-black leading-snug text-white" title={item.value}>{item.value}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Referral Link Card */}
-          <div className="rounded-2xl border border-[#D4A64A]/30 bg-gradient-to-br from-[#1a1305]/60 via-[#070913]/90 to-[#070913]/95 p-5 text-left relative overflow-hidden shadow-[0_8px_30px_rgba(212,166,74,0.05)]">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-400/20 bg-amber-400/10">
-                  <Link className="h-4 w-4 text-amber-300" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-white">Mời Talent Tham Gia Chiến Dịch</h3>
-                  <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                    Affiliate & Campaign Invitation Link
-                  </span>
-                </div>
-              </div>
-              
-              <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-                Gửi link giới thiệu này cho các Talent để họ đăng ký tham gia trực tiếp chiến dịch.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center mt-1">
-                <div className="flex-1 flex items-center gap-2 bg-slate-950/80 border border-white/5 rounded-xl px-3.5 py-2.5 min-w-0">
-                  <span className="text-xs text-amber-300 font-mono select-all truncate flex-1 min-w-0">
-                    {referralLink || (isGeneratingLink ? "Đang tạo liên kết..." : "Chưa tạo liên kết")}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCopyReferralLink}
-                  disabled={!referralLink || isGeneratingLink}
-                  className="flex h-[42px] sm:h-10 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 px-5 text-xs font-black uppercase tracking-wider transition-all hover:brightness-105 active:scale-95 cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {copiedLink ? (
-                    <>
-                      <Check className="h-4 w-4 stroke-[3]" /> Đã sao chép
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5" /> Copy Link
-                    </>
-                  )}
-                </button>
-              </div>
+            <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
+              {(() => {
+                const benefitItems = displayListText(selectedCampaign.benefits);
+                return benefitItems.length > 1 ? (
+                  <ul className="max-h-36 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin text-justify">
+                    {benefitItems.map((item, idx) => (
+                      <li key={`${item}-${idx}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="max-h-36 overflow-y-auto pr-2 leading-relaxed text-slate-300 scrollbar-thin text-justify" title={selectedCampaign.benefits}>{benefitItems[0] || "-"}</p>
+                );
+              })()}
             </div>
-          </div>
 
+            {selectedCampaign.description && (
+              <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Mô tả</span>
+                <p className="leading-relaxed text-slate-300 text-justify">
+                  {sentenceCaseText(selectedCampaign.description)}
+                </p>
+              </div>
+            )}
+
+            {selectedCampaign.responsibilities && selectedCampaign.responsibilities.length > 0 && (
+              <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5 last:pb-0">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Đầu việc</span>
+                <ul className="max-h-36 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin text-justify">
+                  {selectedCampaign.responsibilities.map((item, idx) => (
+                    <li key={`${item}-${idx}`}>{sentenceCaseText(item)}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column (5 columns): Thông tin tuyển chọn */}
+        <div className="xl:col-span-5">
           {(Boolean(selectedCampaign.roles?.length) ||
             Boolean(selectedCampaign.targetProfiles?.length) ||
             Boolean(selectedCampaign.industries?.length) ||
@@ -730,229 +740,306 @@ export default function CampaignDetailPage() {
             selectedCampaign.deadline ||
             selectedCampaign.contactNote ||
             Boolean(selectedCampaign.sponsorships?.length)) && (
-            <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-5 text-left">
-              <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/5 pb-3">
-                <h2 className="text-xs font-black uppercase tracking-widest text-slate-300">Thông tin tuyển chọn</h2>
-                <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-amber-300">
-                  Brief
-                </span>
-              </div>
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <div className="space-y-2">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Bắt đầu campaign</span>
-                  <p className="text-xs font-black leading-relaxed text-cyan-200">
-                    {displayCampaignDate(selectedCampaign.startDate)}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kết thúc campaign</span>
-                  <p className="text-xs font-black leading-relaxed text-sky-200">
-                    {displayCampaignDate(selectedCampaign.endDate)}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Sự kiện chính</span>
-                  <p className="text-xs font-black leading-relaxed text-emerald-200">
-                    {selectedCampaign.eventDate
-                      ? displayCampaignDate(selectedCampaign.eventDate)
-                      : displayCampaignDateRange(selectedCampaign.startDate, selectedCampaign.endDate)}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Hạn ứng tuyển</span>
-                  <p className="text-xs font-black leading-relaxed text-purple-200">
-                    {displayCampaignDate(selectedCampaign.applicationDeadline || selectedCampaign.deadline)}
-                  </p>
-                </div>
-                {selectedCampaign.roles && selectedCampaign.roles.length > 0 && (
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedCampaign.roles.map((role, idx) => (
-                        <span key={`${role}-${idx}`} className="rounded bg-cyan-400/10 border border-cyan-400/20 px-2 py-1 text-[8.5px] font-bold text-cyan-300 uppercase tracking-wider">
-                          {role}
-                        </span>
-                      ))}
-                    </div>
+              <div className="rounded-3xl border border-white/5 bg-slate-950/25 p-6 text-left h-full flex flex-col justify-between">
+                <div>
+                  <div className="mb-5 flex items-center justify-between gap-3 border-b border-white/5 pb-3">
+                    <h2 className="text-xs font-black uppercase tracking-widest text-slate-350 flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4 text-amber-400" /> Thông tin tuyển chọn
+                    </h2>
                   </div>
-                )}
-                {selectedCampaign.targetProfiles && selectedCampaign.targetProfiles.length > 0 && (
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Nhóm talent phù hợp</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedCampaign.targetProfiles.map((profile, idx) => (
-                        <span key={`${profile}-${idx}`} className="rounded bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 text-[8.5px] font-bold text-emerald-300 uppercase tracking-wider">
-                          {profile}
-                        </span>
-                      ))}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Bắt đầu campaign</span>
+                      <p className="text-xs font-black leading-relaxed text-cyan-200">
+                        {displayCampaignDate(selectedCampaign.startDate)}
+                      </p>
                     </div>
-                  </div>
-                )}
-                {selectedCampaign.industries && selectedCampaign.industries.length > 0 && (
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedCampaign.industries.map((industry, idx) => (
-                        <span key={`${industry}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
-                          {industry}
-                        </span>
-                      ))}
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kết thúc campaign</span>
+                      <p className="text-xs font-black leading-relaxed text-sky-200">
+                        {displayCampaignDate(selectedCampaign.endDate)}
+                      </p>
                     </div>
-                  </div>
-                )}
-                {selectedCampaign.sponsorships && selectedCampaign.sponsorships.length > 0 && (
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Tài trợ</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedCampaign.sponsorships.map((s, idx) => (
-                        <span key={idx} className="inline-block rounded bg-amber-400/10 border border-amber-400/30 px-2 py-1 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
-                          {s.category}
-                        </span>
-                      ))}
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Sự kiện chính</span>
+                      <p className="text-xs font-black leading-relaxed text-emerald-200">
+                        {selectedCampaign.eventDate
+                          ? displayCampaignDate(selectedCampaign.eventDate)
+                          : displayCampaignDateRange(selectedCampaign.startDate, selectedCampaign.endDate)}
+                      </p>
                     </div>
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Hạn ứng tuyển</span>
+                      <p className="text-xs font-black leading-relaxed text-purple-200">
+                        {displayCampaignDate(selectedCampaign.applicationDeadline || selectedCampaign.deadline)}
+                      </p>
+                    </div>
+
+                    {selectedCampaign.roles && selectedCampaign.roles.length > 0 && (
+                      <div className="space-y-1.5 col-span-2">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedCampaign.roles.map((role, idx) => (
+                            <span key={`${role}-${idx}`} className="rounded bg-cyan-400/10 border border-cyan-400/20 px-2 py-0.5 text-[8.5px] font-bold text-cyan-300 uppercase tracking-wider">
+                              {role}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedCampaign.targetProfiles && selectedCampaign.targetProfiles.length > 0 && (
+                      <div className="space-y-1.5 col-span-2">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Nhóm talent phù hợp</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedCampaign.targetProfiles.map((profile, idx) => (
+                            <span key={`${profile}-${idx}`} className="rounded bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-[8.5px] font-bold text-emerald-300 uppercase tracking-wider">
+                              {profile}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedCampaign.industries && selectedCampaign.industries.length > 0 && (
+                      <div className="space-y-1.5 col-span-2">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedCampaign.industries.map((industry, idx) => (
+                            <span key={`${industry}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
+                              {industry}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedCampaign.sponsorships && selectedCampaign.sponsorships.length > 0 && (
+                      <div className="space-y-1.5 col-span-2">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Tài trợ</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedCampaign.sponsorships.map((s, idx) => (
+                            <span key={idx} className="inline-block rounded bg-amber-400/10 border border-amber-400/30 px-2 py-0.5 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
+                              {s.category}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedCampaign.requirements && (
+                      <div className="space-y-1.5 col-span-2">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
+                        <p className="text-xs leading-relaxed text-slate-300 text-justify">
+                          {sentenceCaseText(selectedCampaign.requirements)}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
+
                 {selectedCampaign.contactNote && (
-                  <div className="rounded-xl border border-amber-400/15 bg-amber-400/5 p-3 text-xs font-semibold leading-relaxed text-slate-300 lg:col-span-2">
+                  <div className="mt-5 rounded-2xl border border-amber-400/15 bg-amber-400/5 p-4 text-xs font-semibold leading-relaxed text-slate-300">
                     <span className="mr-2 text-[9px] font-black uppercase tracking-wider text-amber-300">Ứng tuyển</span>
                     {sentenceCaseText(selectedCampaign.contactNote)}
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
         </div>
+      </section>
 
-        {/* Right Side: Mô tả chung sidebar */}
-        <aside className="rounded-2xl border border-white/5 bg-slate-950/25 p-4 xl:col-span-4 xl:self-start xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto text-left scrollbar-thin">
-          <h2 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-300">MÔ TẢ CHUNG</h2>
-          <div className="divide-y divide-white/5 text-xs">
-            <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2 first:pt-0">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Ngân sách</span>
-              <p className="font-black text-amber-300">{selectedCampaign.budget}</p>
-            </div>
-            {selectedCampaign.requirements && (
-              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
-                <p className="max-h-28 overflow-y-auto pr-2 leading-relaxed text-slate-300 scrollbar-thin">
-                  {sentenceCaseText(selectedCampaign.requirements)}
+      {/* 3. AFFILIATE LINK + BỘ ẢNH CHIẾN DỊCH */}
+      <section className="space-y-5">
+        {/* Affiliate Link Bar (full width, horizontal) */}
+        <div className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-gradient-to-b from-[#150f02]/90 to-[#050712]/95 shadow-[0_0_30px_rgba(245,158,11,0.08)] p-5">
+          <div className="absolute right-[-60px] top-[-60px] h-40 w-40 rounded-full bg-amber-300/6 blur-3xl pointer-events-none" />
+          <div className="relative flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+            {/* Left: Icon + Label + Description */}
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-amber-400/25 bg-amber-400/10 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.1)]">
+                <Link2 className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-400/25 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
+                  AFFILIATE LINK
+                </span>
+                <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
+                  Ứng tuyển Campaign
+                </h3>
+                <p className="text-[11px] text-slate-400 leading-normal">
+                  Chia sẻ link này cho Talent để họ xem chi tiết chiến dịch và đăng ký tham gia.
                 </p>
               </div>
-            )}
-            <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
-              {(() => {
-                const benefitItems = displayListText(selectedCampaign.benefits);
-                return benefitItems.length > 1 ? (
-                  <ul className="max-h-28 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin">
-                    {benefitItems.map((item, idx) => (
-                      <li key={`${item}-${idx}`}>{item}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="max-h-28 overflow-y-auto pr-2 leading-relaxed text-slate-300 scrollbar-thin" title={selectedCampaign.benefits}>{benefitItems[0] || "-"}</p>
-                );
-              })()}
             </div>
-            {selectedCampaign.responsibilities && selectedCampaign.responsibilities.length > 0 && (
-              <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 py-2">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Đầu việc</span>
-                <ul className="max-h-28 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin">
-                  {selectedCampaign.responsibilities.map((item, idx) => (
-                    <li key={`${item}-${idx}`}>{sentenceCaseText(item)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {/* <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-[10px] leading-relaxed text-slate-500">
-              Hệ thống ATS đã được đồng bộ chuẩn theo BRD: Chờ duyệt (New), Đã duyệt (Approved), Đang tham gia (Executing), Nghiệm thu (Completed), và Thành công (Paid & MLM).
-            </div> */}
-          </div>
-        </aside>
-      </section>
 
-      <section className="rounded-2xl border border-white/10 bg-slate-950/25 p-5">
-        <div className="mb-5 flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/20 bg-amber-400/10">
-              <ImagePlus className="h-4.5 w-4.5 text-amber-300" />
-            </div>
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-wider text-white">Bộ ảnh chiến dịch</h2>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Tải lên các hình ảnh bạn muốn dùng cho chiến dịch
-              </p>
+            {/* Right: Buttons */}
+            <div className="grid grid-cols-2 gap-2 w-full xl:flex xl:w-auto shrink-0">
+              <button
+                type="button"
+                onClick={handleCopyReferralLink}
+                disabled={!referralLink}
+                className={cn(
+                  "flex h-10 items-center justify-center gap-2 rounded-2xl px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer w-full xl:w-auto disabled:opacity-50",
+                  copiedLink
+                    ? "border border-emerald-400/30 bg-emerald-400/15 text-emerald-300"
+                    : "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105"
+                )}
+              >
+                {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copiedLink ? "Đã copy" : "Sao chép Link"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowQrModal(true)}
+                disabled={!referralLink}
+                className="flex h-10 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105 px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer active:scale-[0.98] w-full xl:w-auto disabled:opacity-50"
+              >
+                <QrCode className="h-4 w-4" /> Hiện QR
+              </button>
             </div>
           </div>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400">
-            {selectedCampaign.media?.length || 0} ảnh
-          </span>
+
+          {/* URL display */}
+          <div className="relative mt-4 flex min-w-0 items-center gap-3 rounded-2xl bg-[#04060a]/90 border border-amber-400/10 px-4 py-3 font-mono text-xs font-bold text-amber-100/90">
+            <Link2 className="h-4 w-4 text-amber-400 shrink-0" />
+            <span className="truncate select-all flex-1">
+              {referralLink || (isGeneratingLink ? "Đang tạo link ứng tuyển..." : "Chưa có liên kết ứng tuyển")}
+            </span>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
-          <label className="group relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/20 bg-slate-900/60 p-4 text-center transition-all hover:border-amber-400 hover:bg-slate-900">
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              disabled={isUploadingMedia}
-              onChange={handleCampaignMediaUpload}
-              className="hidden"
-            />
-            <ImagePlus className="mb-3 h-8 w-8 text-slate-400 transition-colors group-hover:text-amber-300" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-100">
-              {isUploadingMedia ? "Đang tải..." : "Tải ảnh lên"}
+        {/* Bộ ảnh chiến dịch (full width) */}
+        <div className="rounded-3xl border border-white/10 bg-slate-950/25 p-6 text-left">
+          <div className="mb-6 flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between text-left">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/20 bg-amber-400/10">
+                <ImagePlus className="h-4.5 w-4.5 text-amber-300" />
+              </div>
+              <div>
+                <h2 className="text-sm font-black uppercase tracking-wider text-white">Bộ ảnh chiến dịch</h2>
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  Tải lên các hình ảnh bạn muốn dùng cho chiến dịch (Tối đa 10 ảnh)
+                </p>
+              </div>
+            </div>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400 shrink-0">
+              {selectedCampaign.media?.length || 0}/10 ảnh
             </span>
-            <span className="mt-1 text-[8.5px] font-medium leading-relaxed text-slate-500">
-              JPG, PNG hoặc WebP
-            </span>
-          </label>
+          </div>
 
-          {(selectedCampaign.media || []).map((media, index) => (
-            media.url ? (
-              <div key={`${media.id || media.url || index}`} className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 bg-slate-950">
-                <img
-                  src={media.url}
-                  alt={media.caption || selectedCampaign.title}
-                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {/* Upload block (only show if < 10 images) */}
+            {(selectedCampaign.media?.length || 0) < 10 && (
+              <label className="group relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/20 bg-slate-900/60 p-4 text-center transition-all hover:border-amber-400 hover:bg-slate-900">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={isUploadingMedia}
+                  onChange={handleCampaignMediaUpload}
+                  className="hidden"
                 />
-                <label className="absolute right-3 top-3 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/60 text-white opacity-100 shadow-lg backdrop-blur transition hover:border-amber-300 hover:bg-amber-300 hover:text-slate-950 sm:opacity-0 sm:group-hover:opacity-100">
-                  {replacingMediaId === media.id ? (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : (
-                    <Pencil className="h-4 w-4" />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    disabled={isUploadingMedia}
-                    onChange={(event) => handleCampaignMediaUpload(event, media)}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-            ) : null
-          ))}
+                <ImagePlus className="mb-3 h-8 w-8 text-slate-400 transition-colors group-hover:text-amber-300" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-100">
+                  {isUploadingMedia ? "Đang tải..." : "Tải ảnh lên"}
+                </span>
+                <span className="mt-1 text-[8.5px] font-medium leading-relaxed text-slate-500">
+                  JPG, PNG hoặc WebP
+                </span>
+              </label>
+            )}
 
-          {!selectedCampaign.media?.length && (
-            <div className="col-span-1 flex aspect-[4/5] items-center justify-center rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-center text-[10px] font-semibold leading-relaxed text-slate-500">
-              Ảnh đã tải lên sẽ hiển thị tại đây.
-            </div>
-          )}
+            {(selectedCampaign.media || []).map((media, index) => (
+              media.url ? (
+                <div key={`${media.id || media.url || index}`} className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 bg-slate-950">
+                  <img
+                    src={media.url}
+                    alt={media.caption || selectedCampaign.title}
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                  />
+
+                  {/* Delete button (X) */}
+                  <button
+                    type="button"
+                    onClick={() => handleCampaignMediaDelete(media)}
+                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white opacity-100 shadow-lg backdrop-blur transition hover:border-red-500 hover:bg-red-500 hover:text-white sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
+                    title="Xóa ảnh"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+
+                  {/* Edit button (Pencil) */}
+                  <label className="absolute right-14 top-3 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/60 text-white opacity-100 shadow-lg backdrop-blur transition hover:border-amber-300 hover:bg-amber-300 hover:text-slate-950 sm:opacity-0 sm:group-hover:opacity-100">
+                    {replacingMediaId === media.id ? (
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      <Pencil className="h-4 w-4" />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      disabled={isUploadingMedia}
+                      onChange={(event) => handleCampaignMediaUpload(event, media)}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              ) : null
+            ))}
+
+            {!selectedCampaign.media?.length && (
+              <div className="col-span-2 sm:col-span-3 lg:col-span-4 xl:col-span-5 flex aspect-[4/5] sm:aspect-video items-center justify-center rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-center text-[10px] font-semibold leading-relaxed text-slate-500">
+                Ảnh đã tải lên sẽ hiển thị tại đây.
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
-      {/* Bottom Section: KOC Candidates list (Full Width) */}
+      {/* QR Modal */}
+      {showQrModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowQrModal(false)}
+        >
+          <div
+            className="relative w-full max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowQrModal(false)}
+              className="absolute -top-3 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <QRCodeContainer
+              campaignLink={referralLink}
+              title="Mã QR Tuyển Dụng Campaign"
+              subtitle="Quét mã để ứng tuyển nhanh"
+              badgeText="OnStage Campaign Gateway"
+              shareButtonLabel="Chia sẻ"
+              onCopyLink={handleCopyReferralLink}
+              onDownloadQr={handleDownloadQRCode}
+              className="border-[#D4A64A]/30 bg-gradient-to-br from-[#1a1305]/60 via-[#070913]/90 to-[#070913]/95 shadow-[0_8px_40px_rgba(212,166,74,0.08)] overflow-hidden"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 5. NHÂN SỰ CAMPAIGN */}
       <section className="space-y-4 pt-4 border-t border-white/5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-baseline justify-between sm:justify-start gap-3 w-full sm:w-auto">
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-300">NHÂN SỰ CAMPAIGN</h2>
+          <div className="flex items-baseline justify-between sm:justify-start gap-3 w-full sm:w-auto text-left">
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-350">NHÂN SỰ CAMPAIGN</h2>
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{selectedCampaign.applicants.length + 1} nhân sự</span>
           </div>
           <button
             onClick={() => setIsAddingStaff(true)}
             className="flex w-full sm:w-auto h-9 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
           >
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
             Thêm nhân sự
           </button>
         </div>
@@ -965,21 +1052,28 @@ export default function CampaignDetailPage() {
             {/* Top info */}
             <div className="flex gap-4 items-start text-left">
               <img
-                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400"
-                alt="Nguyễn Ngọc Anh"
-                className="h-16 w-16 rounded-xl object-cover border border-emerald-500/20 shrink-0"
+                src={activeOwner.avatar}
+                alt={activeOwner.name}
+                onError={(event) => {
+                  event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
+                }}
+                className="h-16 w-16 rounded-xl object-cover border border-emerald-500/20 shrink-0 bg-slate-900"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col items-start gap-1">
-                  <h3 className="text-sm font-black text-white">Nguyễn Ngọc Anh</h3>
+                  <h3 className="text-sm font-black text-white">{activeOwner.name}</h3>
                   <span className="font-display font-extrabold text-[9px] text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded shrink-0">
                     Người phụ trách Campaign
                   </span>
                 </div>
-                <p className="text-[10px] text-emerald-400/80 mt-1">Brand Representative · Hà Nội</p>
-                <p className="text-[10.5px] text-slate-400 leading-relaxed mt-2.5 italic font-medium">
-                  "Người đại diện cho Brand. Chịu trách nhiệm vận hành, đối soát và giải ngân chiến dịch."
+                <p className="text-[10px] text-emerald-400/80 mt-1">
+                  {activeOwner.role} · {activeOwner.location || "Hà Nội"}
                 </p>
+                {activeOwner.bio && (
+                  <p className="text-[10.5px] text-slate-400 leading-relaxed mt-2.5 italic font-medium">
+                    "{activeOwner.bio}"
+                  </p>
+                )}
               </div>
             </div>
 
@@ -991,33 +1085,26 @@ export default function CampaignDetailPage() {
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center gap-2 text-slate-300">
                   <span className="text-[10px] text-slate-500">📞 Số điện thoại:</span>
-                  <span className="font-bold text-white font-mono">090.123.4567</span>
+                  <span className="font-bold text-white font-mono">{activeOwner.phone}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-300">
                   <span className="text-[10px] text-slate-500">✉️ Email:</span>
-                  <span className="font-bold text-white font-mono">ngocanh.nguyen@loreal.com</span>
+                  <span className="font-bold text-white font-mono truncate max-w-[200px]" title={activeOwner.email}>
+                    {activeOwner.email}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Actions row */}
             <div className="pt-3.5 border-t border-white/5 w-full">
-              <div className="grid grid-cols-2 gap-2 w-full">
-                <button
-                  onClick={openPayoutModal}
-                  className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-4 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
-                >
-                  Quyết Toán
-                </button>
-                <button
-                  onClick={() => router.push("/brand/messages")}
-                  className="rounded-xl px-3 py-2 text-[10px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
-                >
-                  Nhắn tin nhóm
-                </button>
-              </div>
-
-
+              <button
+                onClick={() => setIsShowingOwnerTransferModal(true)}
+                className="flex w-full h-9 items-center justify-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 text-[10px] font-black uppercase tracking-wider text-amber-400 hover:bg-amber-500/20 active:scale-95 transition-all cursor-pointer"
+              >
+                <Users className="h-3.5 w-3.5" />
+                Chuyển quyền phụ trách
+              </button>
             </div>
           </article>
 
@@ -1026,7 +1113,6 @@ export default function CampaignDetailPage() {
               || talents.find((candidate) => candidate.id === item.talentId)
               || (item as any).talent;
             if (!talent) return null;
-            const requestKey = `${selectedCampaign.id}-${talent.id}`;
             const stage = item.stage;
             const referredByName = (item as any).referredByName;
             const referrer = item.referredByTalentId
@@ -1059,7 +1145,7 @@ export default function CampaignDetailPage() {
                       <span className="text-[10px] text-slate-400">{talent.type} · {talent.city}</span>
                       {referrerName && (
                         <span className="inline-flex items-center gap-1 rounded bg-cyan-400/10 border border-cyan-500/20 px-2 py-0.5 text-[8.5px] font-bold text-cyan-400 uppercase tracking-wider">
-                          Giới thiệu bởi: {referrer.name}
+                          Giới thiệu: {referrerName}
                         </span>
                       )}
                     </div>
@@ -1151,885 +1237,163 @@ export default function CampaignDetailPage() {
         </div>
       </section>
 
-      {/* Payout Modal Dialog for MLM and F0 */}
-      {payoutDetails && (() => {
-        const rawBudget = payoutDetails.budget;
-        const cleanBudgetStr = rawBudget.split("-").pop().replace(/[^0-9]/g, "");
-        const parsedVal = parseInt(cleanBudgetStr, 10) || 10000000;
-        const poolVal = parsedVal / (selectedCampaign.applicants.length || 1);
-
-        const appEntry = selectedCampaign.applicants.find(a => {
-          const t = displayTalents.find(dt => dt.id === a.talentId) || talents.find(dt => dt.id === a.talentId);
-          return t && t.name === payoutDetails.talentName;
-        });
-
-        const hasReferrer = appEntry ? !!appEntry.referredByTalentId : false;
-        const referrer = (appEntry && appEntry.referredByTalentId) ? (displayTalents.find(t => t.id === appEntry.referredByTalentId) || talents.find(t => t.id === appEntry.referredByTalentId)) : null;
-
-        const talentAmount = hasReferrer ? poolVal * 0.70 : poolVal * 0.75;
-        const brandAmount = poolVal * 0.10;
-        const referralAmount = hasReferrer ? poolVal * 0.05 : 0;
-        const platformAmount = poolVal * 0.15;
-
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-emerald-500/30 rounded-3xl shadow-[0_24px_60px_rgba(16,185,129,0.15)] overflow-hidden animate-in zoom-in-95 duration-300 text-left">
-              <div className="flex items-center gap-3 p-6 border-b border-[#151b2d] bg-emerald-500/5">
-                <CheckCircle2 className="h-6 w-6 text-emerald-400 shrink-0" />
-                <div>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider">Nghiệm Thu & Giải Ngân Thành Công</h3>
-                  <p className="text-[10px] text-emerald-400/80 mt-0.5">Hợp đồng thông minh đã tự động phân bổ dòng tiền</p>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-4 text-xs">
-                <div className="space-y-1 bg-[#050711] border border-white/5 rounded-xl p-3.5">
-                  <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Thông tin thanh toán</span>
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="text-slate-300 font-medium">Thù lao Talent ({hasReferrer ? "KOL F2" : "KOL F1"} - {hasReferrer ? "70%" : "75%"}):</span>
-                    <span className="font-extrabold text-white font-mono text-sm text-emerald-400">+{moneyText(talentAmount)}</span>
-                  </div>
-                  <p className="text-[9px] text-slate-500 mt-1 leading-relaxed">Đã cộng vào ví khả dụng của: <b>{payoutDetails.talentName}</b></p>
-                </div>
-
-                <div className="space-y-3 bg-[#050711] border border-white/5 rounded-xl p-3.5">
-                  <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Phân bổ hoa hồng chi tiết (Campaign Affiliate)</span>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="text-slate-400">Phí quản lý Brand F0 (10%):</span>
-                      <span className="font-bold text-amber-400 font-mono">+{moneyText(brandAmount)}</span>
-                    </div>
-                    {hasReferrer && referrer && (
-                      <div className="flex justify-between items-center text-[10px]">
-                        <span className="text-slate-400">Hoa hồng F1 Giới thiệu ({referrer.name} - 5%):</span>
-                        <span className="font-bold text-cyan-400 font-mono">+{moneyText(referralAmount)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="text-slate-400">Phí nền tảng OnStage Platform (15%):</span>
-                      <span className="font-bold text-slate-450 font-mono">+{moneyText(platformAmount)}</span>
-                    </div>
-                  </div>
-                  <div className="border-t border-[#151b2d] pt-2 text-[9px] text-slate-500 italic">
-                    * Áp dụng quy tắc trích thưởng và giải ngân tự động từ số dư bảo chứng (Escrow).
-                  </div>
-                </div>
-
-                <div className="flex gap-2 items-start text-[9.5px] text-slate-400 bg-amber-400/5 border border-amber-400/10 rounded-xl p-3">
-                  <span>🛡️</span>
-                  <p className="leading-normal">
-                    <b>Lịch sử giao dịch (Audit Logs)</b> đã được ghi nhận: <i>"Quyết toán thù lao cho {payoutDetails.talentName} thuộc chiến dịch {payoutDetails.campaignTitle}"</i>.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end p-6 border-t border-[#151b2d] bg-[#050711]">
-                <button
-                  onClick={() => setPayoutDetails(null)}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all"
-                >
-                  Hoàn tất
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
       {/* Profile Detail Modal */}
       {selectedProfileTalent && currentApplicantItem && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
-
-            <div className="flex items-center justify-between p-6 border-b border-[#151b2d] bg-slate-950/45">
-              <div className="flex items-center gap-3">
-                <img
-                  src={selectedProfileTalent.avatar}
-                  alt={selectedProfileTalent.name}
-                  onError={(event) => {
-                    event.currentTarget.src = createInitialAvatarDataUrl(selectedProfileTalent.name, "");
-                  }}
-                  className="h-12 w-12 rounded-xl object-cover border border-white/5 bg-slate-950"
-                />
-                <div className="text-left">
-                  <h3 className="text-sm font-black text-white">{selectedProfileTalent.name}</h3>
-                  <p className="text-[10px] text-slate-400">{selectedProfileTalent.type} · {selectedProfileTalent.city}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}
-                className="text-slate-400 hover:text-white cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 text-left scrollbar-thin">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-[#050711] border border-white/5 rounded-xl p-3 text-center">
-                  <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Hạng Profile</span>
-                  <span className="block text-xs font-black text-amber-400 mt-1">Tier {selectedProfileTalent.tier}</span>
-                </div>
-                <div className="bg-[#050711] border border-white/5 rounded-xl p-3 text-center">
-                  <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Đánh Giá</span>
-                  <span className="block text-xs font-black text-white mt-1">{selectedProfileTalent.rating} ★</span>
-                </div>
-                <div className="bg-[#050711] border border-white/5 rounded-xl p-3 text-center">
-                  <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Hoàn Thành</span>
-                  <span className="block text-xs font-black text-white mt-1">{selectedProfileTalent.completedJobs} Jobs</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Chỉ số hình thể</h4>
-                <div className="grid grid-cols-5 gap-1 xs:gap-2 bg-[#050711] border border-white/5 rounded-xl p-3 text-center text-[9px] xs:text-[10px]">
-                  <div>
-                    <span className="block text-slate-500">Chiều cao</span>
-                    <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.height} cm</span>
-                  </div>
-                  <div>
-                    <span className="block text-slate-500">Cân nặng</span>
-                    <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.weight} kg</span>
-                  </div>
-                  <div>
-                    <span className="block text-slate-500">Vòng 1</span>
-                    <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.bust} cm</span>
-                  </div>
-                  <div>
-                    <span className="block text-slate-500">Vòng 2</span>
-                    <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.waist} cm</span>
-                  </div>
-                  <div>
-                    <span className="block text-slate-500">Vòng 3</span>
-                    <span className="font-bold text-white mt-0.5 block">{selectedProfileTalent.hips} cm</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kỹ năng nổi bật</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedProfileTalent.skills?.map((s: string, idx: number) => (
-                      <span key={idx} className="rounded bg-white/5 border border-white/5 px-2 py-0.5 text-[9.5px] text-slate-300">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Học vấn & Ngôn ngữ</span>
-                  <p className="text-xs text-slate-300 leading-relaxed font-medium">{selectedProfileTalent.education}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Ngôn ngữ: {selectedProfileTalent.languages?.join(", ") || "Tiếng Việt, Tiếng Anh"}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bảng Giá Dịch Vụ Cơ Bản (Basic)</h4>
-                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 text-xs">
-                  {Object.entries(selectedProfileTalent.rateCard || {}).map(([key, value]: any) => (
-                    <div key={key} className="flex justify-between p-2.5 bg-[#050711]/40 border border-white/5 rounded-lg items-center">
-                      <span className="text-slate-400">{key}</span>
-                      <span className="font-bold text-amber-400 font-mono">từ {value.toLocaleString()}đ</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {selectedProfileTalent.lifestyleServices && selectedProfileTalent.lifestyleServices.some((s: any) => s.enabled) && (
-                <div className="space-y-2">
-                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dịch Vụ Đồng Hành VIP</h4>
-                  <div className="space-y-2">
-                    {selectedProfileTalent.lifestyleServices.filter((s: any) => s.enabled).map((service: any) => (
-                      <div key={service.id} className="flex justify-between items-start p-3 bg-[#050711] border border-white/5 rounded-xl">
-                        <div>
-                          <span className="text-xs font-bold text-white block">⛳ {service.title}</span>
-                          <span className="text-xs text-slate-500 leading-normal block mt-1">{service.description}</span>
-                        </div>
-                        <span className="text-[10px] font-black text-amber-400 font-mono bg-amber-400/10 px-2 py-0.5 rounded shrink-0">
-                          {service.rate.toLocaleString()}đ/{service.unit}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Lookbook Photos Section */}
-              <div className="space-y-3 border-t border-[#151b2d] pt-4">
-                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  📸 Bộ Ảnh Lookbook Nghệ Thuật (4 Ảnh)
-                </span>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
-                    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600",
-                    "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
-                    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600"
-                  ].map((url, idx) => (
-                    <div key={idx} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
-                      <img src={url} alt={`Lookbook ${idx + 1}`} className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
-                      <div className="absolute bottom-2 left-2">
-                        <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                          Ảnh {idx + 1}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Videos Section - Commented out as requested
-              <div className="space-y-3 border-t border-[#151b2d] pt-4">
-                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  🎥 Video Giới Thiệu & Demo Thực Tế (3 Videos)
-                </span>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 flex flex-col justify-end">
-                    <video
-                      src="https://assets.mixkit.co/videos/preview/mixkit-beautiful-woman-smiling-at-the-camera-40898-large.mp4"
-                      className="absolute inset-0 h-full w-full object-cover"
-                      playsInline
-                      loop
-                      muted
-                      autoPlay
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10">
-                      <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                        INTRO VIDEO
-                      </span>
-                      <h4 className="text-[10px] font-black text-white">Video Giới Thiệu</h4>
-                    </div>
-                  </div>
-
-                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 flex flex-col justify-end">
-                    <video
-                      src="https://assets.mixkit.co/videos/preview/mixkit-fashion-model-walking-on-a-runway-show-39871-large.mp4"
-                      className="absolute inset-0 h-full w-full object-cover"
-                      playsInline
-                      loop
-                      muted
-                      autoPlay
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10">
-                      <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                        CATWALK POLAROID
-                      </span>
-                      <h4 className="text-[10px] font-black text-white">Catwalk Video</h4>
-                    </div>
-                  </div>
-
-                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 flex flex-col justify-end">
-                    <video
-                      src="https://assets.mixkit.co/videos/preview/mixkit-young-woman-talking-to-camera-in-interview-42358-large.mp4"
-                      className="absolute inset-0 h-full w-full object-cover"
-                      playsInline
-                      loop
-                      muted
-                      autoPlay
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10">
-                      <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                        DEMO MC / LIVE
-                      </span>
-                      <h4 className="text-[10px] font-black text-white">MC / Livestream Demo</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              */}
-
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end gap-3 p-6 border-t border-[#151b2d] bg-slate-950/45">
-              {currentApplicantItem.stage === "new" ? (
-                <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
-                  <button
-                    onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}
-                    className="w-full sm:w-auto px-5 py-2 rounded-xl border border-rose-500/20 bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 transition active:scale-95 cursor-pointer text-xs font-bold flex items-center justify-center"
-                  >
-                    Không duyệt
-                  </button>
-                  <button
-                    onClick={() => {
-                      moveApplicant(selectedCampaign.id, selectedProfileTalent.id, "accepted");
-                      setSelectedProfileTalent(null);
-                      setCurrentApplicantItem(null);
-                    }}
-                    className="w-full sm:w-auto px-6 py-2 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all flex items-center justify-center"
-                  >
-                    Duyệt ứng viên
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => { setSelectedProfileTalent(null); setCurrentApplicantItem(null); }}
-                  className="w-full sm:w-auto px-5 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:text-white cursor-pointer flex items-center justify-center"
-                >
-                  Đóng
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        <ProfileModal
+          talent={selectedProfileTalent}
+          currentApplicantItem={currentApplicantItem}
+          selectedCampaign={selectedCampaign}
+          onClose={() => {
+            setSelectedProfileTalent(null);
+            setCurrentApplicantItem(null);
+          }}
+          onMoveApplicant={moveApplicant}
+        />
       )}
 
       {/* Review Checklist Photos Modal */}
       {reviewApplicant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300 text-left">
-            <div className="flex items-center justify-between p-6 border-b border-[#151b2d] bg-slate-950/45">
-              <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Nghiệm Thu Kết Quả Job</h3>
-                <p className="text-[10px] text-slate-500 mt-1">Đối soát hình ảnh và lịch trình thực tế của {reviewApplicant.talentName}</p>
-              </div>
-              <button onClick={() => setReviewApplicant(null)} className="text-slate-400 hover:text-white cursor-pointer"><X className="h-4.5 w-4.5" /></button>
-            </div>
-
-            <div className="p-6 space-y-4 text-xs">
-              <div className="bg-[#050711] border border-white/5 rounded-xl p-3.5 space-y-2">
-                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Đối soát hành trình GPS</span>
-                <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-slate-400">Địa điểm check-in:</span>
-                  <span className="text-white font-semibold">📍 Studio Cầu Giấy, Hà Nội</span>
-                </div>
-                <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-slate-400">Thời gian làm việc:</span>
-                  <span className="text-white font-mono font-semibold">08/06/2026 (08:00 - 12:00)</span>
-                </div>
-                <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-slate-400">Hợp đồng thông minh:</span>
-                  <span className="text-emerald-400 font-semibold">✍️ Đã ký số NDA & Lịch trình</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Hình ảnh check-in thực tế</span>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-950 border border-white/5">
-                    <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=400&q=80" alt="Check-in 1" className="w-full h-full object-cover" />
-                    <span className="absolute bottom-1 left-1 bg-black/75 px-1 rounded text-[7px] text-white">Check-in bắt đầu</span>
-                  </div>
-                  <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-950 border border-white/5">
-                    <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=400&q=80" alt="Check-out 1" className="w-full h-full object-cover" />
-                    <span className="absolute bottom-1 left-1 bg-black/75 px-1 rounded text-[7px] text-white">Báo cáo hoàn thành</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2 items-start text-[9.5px] text-slate-400 bg-amber-400/5 border border-amber-400/10 rounded-xl p-3">
-                <span>🔔</span>
-                <p className="leading-normal">
-                  Bấm <b>"Xác nhận nghiệm thu"</b> để kết thúc công việc của ứng viên này, tự động giải ngân cát-xê ký quỹ và thực hiện cascade hoa hồng đa cấp.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
-              <button onClick={() => setReviewApplicant(null)} className="px-4 py-2 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Hủy</button>
-              <button
-                onClick={() => {
-                  moveApplicant(selectedCampaign.id, reviewApplicant.talentId, "confirmed");
-                  setReviewApplicant(null);
-                }}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all"
-              >
-                Xác nhận nghiệm thu
-              </button>
-            </div>
-          </div>
-        </div>
+        <ChecklistModal
+          reviewApplicant={reviewApplicant}
+          onClose={() => setReviewApplicant(null)}
+          onConfirm={(talentId) => moveApplicant(selectedCampaign.id, talentId, "confirmed")}
+        />
       )}
 
       {/* Add Staff Modal */}
       {isAddingStaff && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-4xl max-h-[85vh] flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-[#151b2d] bg-slate-950/45">
-              <div className="text-left">
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Thêm Nhân Sự Vào Chiến Dịch</h3>
-                <p className="text-[10px] text-slate-500 mt-1">Chọn từ danh sách các Talent xuất sắc để đề xuất hoặc thêm trực tiếp</p>
-              </div>
-              <button onClick={() => setIsAddingStaff(false)} className="text-slate-400 hover:text-white cursor-pointer">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+        <AddStaffModal
+          selectedCampaign={selectedCampaign}
+          displayTalents={displayTalents}
+          onClose={() => setIsAddingStaff(false)}
+          onAddDirect={addTalentToCampaignDirect}
+          onPreviewTalent={(talent, applicantItem) => {
+            setSelectedProfileTalent(talent);
+            setCurrentApplicantItem(applicantItem);
+          }}
+        />
+      )}
 
-            {/* Modal Content - Scrollable grid of talent cards */}
-            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin space-y-4">
-              {(() => {
-                const applicantIds = selectedCampaign.applicants.map((a: any) => a.talentId);
-                const availableTalents = displayTalents.filter((t: any) => !applicantIds.includes(t.id));
-
-                if (availableTalents.length === 0) {
-                  return (
-                    <div className="text-center py-12 space-y-2">
-                      <p className="text-xs text-slate-500 italic">Tất cả talent đã được thêm vào chiến dịch này.</p>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {availableTalents.map((talent) => {
-                      const status = getTalentStatus(talent.id);
-                      return (
-                        <article key={talent.id} className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg hover:border-[#C9A86A]/30 transition-all duration-300 group flex flex-col justify-between min-w-0 text-left">
-                          <div>
-                            {/* Image Top Area */}
-                            <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-900 border border-white/5 mb-3.5">
-                              <img
-                                src={talent.avatar}
-                                alt={talent.name}
-                                onError={(event) => {
-                                  event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
-                                }}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 bg-slate-950"
-                              />
-
-                              {/* Overlay top badges */}
-                              <div className="absolute top-2 left-2 flex flex-col gap-1.5">
-                                <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-md">
-                                  Hạng {talent.tier}
-                                </span>
-                              </div>
-
-                              {/* Floating calendar status at bottom of image */}
-                              <div className="absolute bottom-2 left-2">
-                                <span className={cn(
-                                  "inline-flex items-center gap-1 rounded bg-[#0F1115]/80 border backdrop-blur-sm px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white",
-                                  status === "available" && "border-emerald-500/30 text-emerald-400",
-                                  status === "busy" && "border-red-500/30 text-red-400",
-                                  status === "maybe" && "border-yellow-500/30 text-yellow-400"
-                                )}>
-                                  <span className={cn(
-                                    "h-1 w-1 rounded-full",
-                                    status === "available" && "bg-emerald-400",
-                                    status === "busy" && "bg-red-400",
-                                    status === "maybe" && "bg-yellow-400"
-                                  )} />
-                                  {status === "available" ? "Rảnh" : status === "busy" ? "Bận" : "Chưa có lịch"}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Header details */}
-                            <div className="space-y-1 min-w-0">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <h3 className="text-xs font-black text-white truncate flex-1">{talent.name}</h3>
-                                {talent.verified && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />}
-                              </div>
-
-                              <div className="flex items-center gap-1 text-[9px] text-slate-500 font-bold uppercase tracking-wider">
-                                <MapPin className="h-3 w-3 shrink-0" />
-                                <span className="truncate">{talent.district}, {talent.city}</span>
-                              </div>
-                            </div>
-
-                            {/* Info badges row */}
-                            <div className="my-2.5 flex flex-wrap gap-1">
-                              <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.type}</span>
-                              <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.age} tuổi</span>
-                              <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.height}cm</span>
-                              <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.weight}kg</span>
-                            </div>
-
-                            {/* Lifestyle services badges */}
-                            {talent.lifestyleServices && talent.lifestyleServices.some((s: any) => s.enabled) && (
-                              <div className="mb-2.5 flex flex-wrap gap-1">
-                                {talent.lifestyleServices.filter((s: any) => s.enabled).map((s: any) => {
-                                  let icon = "💼";
-                                  if (s.id === "golf") icon = "⛳";
-                                  else if (s.id === "pickleball") icon = "🎾";
-                                  else if (s.id === "dining") icon = "🍷";
-                                  else if (s.id === "cafe") icon = "☕";
-                                  else if (s.id === "redcarpet") icon = "✨";
-                                  else if (s.id === "shopping") icon = "🛍️";
-                                  else if (s.id === "art") icon = "🎨";
-                                  else if (s.id === "escort") icon = "🛥️";
-                                  else if (s.id === "content") icon = "📱";
-                                  return (
-                                    <span key={s.id} className="rounded border border-amber-500/20 bg-amber-500/5 px-1.5 py-0.5 text-[8px] font-bold text-amber-400 flex items-center gap-1 uppercase tracking-wider" title={s.title}>
-                                      <span>{icon}</span>
-                                      <span className="max-w-[80px] truncate">{s.title.replace(/(Sport Companion |Business |VIP |Luxury |Launching Event |Daily Content )/g, "")}</span>
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            {/* Social stats row */}
-                            <div className="grid grid-cols-2 gap-2 bg-[#0F1115]/50 border border-white/5 rounded-xl p-2 text-center text-[10px] my-3">
-                              <div>
-                                <span className="block text-[7px] font-bold uppercase text-slate-500 tracking-wider">Followers</span>
-                                <span className="font-mono font-black text-amber-300 mt-0.5 block">{talent.followers}</span>
-                              </div>
-                              <div className="border-l border-white/5">
-                                <span className="block text-[7px] font-bold uppercase text-slate-500 tracking-wider">Engagement</span>
-                                <span className="font-mono font-black text-cyan-300 mt-0.5 block">{talent.engagementRate}%</span>
-                              </div>
-                            </div>
-
-                            {/* Bio brief */}
-                            <p className="line-clamp-2 text-[10px] leading-relaxed text-slate-400 mt-2 min-h-7">{talent.experience}</p>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="mt-4 pt-3.5 border-t border-white/5 flex gap-2">
-                            <button
-                              onClick={() => {
-                                setSelectedProfileTalent(talent);
-                                setCurrentApplicantItem({ talentId: talent.id, stage: "new", note: "Được đề xuất thêm từ hệ thống." });
-                              }}
-                              className="flex h-10 px-3 items-center justify-center gap-1 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:text-white transition active:scale-90 cursor-pointer text-[10px] font-black uppercase tracking-wider"
-                              title="Xem hồ sơ"
-                            >
-                              <span>Xem hồ sơ</span>
-                            </button>
-                            <button
-                              onClick={() => addTalentToCampaignDirect(talent.id)}
-                              className="flex-1 flex h-10 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-[10px] uppercase tracking-wider transition active:scale-95 cursor-pointer"
-                            >
-                              Thêm vào Campaigns
-                            </button>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        </div>
+      {/* Payout Modal Dialog for MLM and F0 */}
+      {payoutDetails && (
+        <PayoutSuccessModal
+          payoutDetails={payoutDetails}
+          selectedCampaign={selectedCampaign}
+          displayTalents={displayTalents}
+          onClose={() => setPayoutDetails(null)}
+        />
       )}
 
       {/* Payout Table Modal Dialog */}
       {isShowingPayoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-5xl max-h-[90vh] flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300 text-left">
+        <PayoutTableModal
+          selectedCampaign={selectedCampaign}
+          displayTalents={displayTalents}
+          commissionData={commissionData}
+          isCommissionLoading={isCommissionLoading}
+          onClose={() => setIsShowingPayoutModal(false)}
+          onConfirmDisbursement={confirmCampaignDisbursement}
+        />
+      )}
 
+      {/* Owner Transfer Modal Dialog */}
+      {isShowingOwnerTransferModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-xl max-h-[80vh] flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-[#151b2d] bg-slate-950/45">
-              <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Đối soát & Chia tiền campaign</h3>
-                <p className="text-[10px] text-slate-500 mt-1">Thông tin giải ngân dòng tiền cho đại diện Brand, KOCs và Uplines theo phân bổ MLM</p>
+            <div className="flex items-center justify-between p-5 border-b border-[#151b2d] bg-slate-950/45">
+              <div className="text-left">
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">Chuyển quyền phụ trách Campaign</h3>
+                <p className="text-[10px] text-slate-500 mt-1">Chọn nhân sự để bàn giao quản lý chiến dịch này</p>
               </div>
-              <button
-                onClick={() => setIsShowingPayoutModal(false)}
-                className="text-slate-400 hover:text-white cursor-pointer"
-              >
+              <button onClick={() => setIsShowingOwnerTransferModal(false)} className="text-slate-400 hover:text-white cursor-pointer transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin">
-              {/* Summary Stats Row */}
-              {(() => {
-                const totalBudget = selectedCampaign.budgetValue || 20000000;
-
-                // Get active applicants
-                const activeApplicants = selectedCampaign.applicants.filter(
-                  (a) => a.stage === "accepted" || a.stage === "executing" || a.stage === "completed" || a.stage === "confirmed"
-                );
-
-                // Map display applicants
-                const displayApplicants = activeApplicants.length > 0 ? activeApplicants.map(a => ({
-                  talentId: a.talentId,
-                  referredByTalentId: a.referredByTalentId
-                })) : [
-                  { talentId: "tal-1", referredByTalentId: undefined },
-                  { talentId: "tal-4", referredByTalentId: "tal-1" },
-                  { talentId: "tal-5", referredByTalentId: "tal-3" }
-                ];
-
-                const N = displayApplicants.length;
-                const poolPerTalent = totalBudget / N;
-
-                let campaignRows: any[] = [];
-                let referralRows: any[] = [];
-                let rosterRows: any[] = [];
-
-                displayApplicants.forEach((appl) => {
-                  const talent = displayTalents.find(t => t.id === appl.talentId) || talents.find(t => t.id === appl.talentId) || { name: appl.talentId };
-                  const hasReferrer = !!appl.referredByTalentId;
-                  const referrer = hasReferrer ? (displayTalents.find(t => t.id === appl.referredByTalentId) || talents.find(t => t.id === appl.referredByTalentId)) : null;
-
-                  if (hasReferrer && referrer) {
-                    // F2 referred candidate
-                    campaignRows.push({
-                      role: "KOL F2 (Thực hiện - 70%)",
-                      recipient: talent.name,
-                      relatedTalent: talent.name,
-                      base: poolPerTalent,
-                      rate: 70,
-                      amount: poolPerTalent * 0.7,
-                      status: "Chờ duyệt"
-                    });
-                    campaignRows.push({
-                      role: "Brand F0 (Phí quản lý - 10%)",
-                      recipient: "Nguyễn Ngọc Anh",
-                      relatedTalent: talent.name,
-                      base: poolPerTalent,
-                      rate: 10,
-                      amount: poolPerTalent * 0.1,
-                      status: "Chờ duyệt"
-                    });
-                    referralRows.push({
-                      role: "F1 (Giới thiệu Campaign - 5%)",
-                      recipient: referrer.name,
-                      relatedTalent: talent.name,
-                      base: poolPerTalent,
-                      rate: 5,
-                      amount: poolPerTalent * 0.05,
-                      status: "Chờ duyệt"
-                    });
-                  } else {
-                    // F1 direct candidate
-                    campaignRows.push({
-                      role: "KOL F1 (Thực hiện - 75%)",
-                      recipient: talent.name,
-                      relatedTalent: talent.name,
-                      base: poolPerTalent,
-                      rate: 75,
-                      amount: poolPerTalent * 0.75,
-                      status: "Chờ duyệt"
-                    });
-                    campaignRows.push({
-                      role: "Brand F0 (Phí quản lý - 10%)",
-                      recipient: "Nguyễn Ngọc Anh",
-                      relatedTalent: talent.name,
-                      base: poolPerTalent,
-                      rate: 10,
-                      amount: poolPerTalent * 0.1,
-                      status: "Chờ duyệt"
-                    });
-                  }
-                });
-
-                if (commissionData?.data?.length) {
-                  campaignRows = commissionData.data
-                    .filter((transaction) => transaction.source_type === "campaign_payout")
-                    .map(transactionRow);
-                  referralRows = commissionData.data
-                    .filter((transaction) => transaction.source_type === "referral")
-                    .map(transactionRow);
-                  rosterRows = commissionData.data
-                    .filter((transaction) => transaction.source_type === "roster_management")
-                    .map(transactionRow);
-                }
-
-                const allRows = [...campaignRows, ...referralRows, ...rosterRows];
-                const totalCalculatedPayout = commissionData?.data?.length
-                  ? commissionData.summary.total
-                  : allRows.reduce((sum, r) => sum + r.amount, 0);
-                const pendingPayout = commissionData?.data?.length
-                  ? commissionData.summary.pending
-                  : totalCalculatedPayout;
-                const shouldShowPlatformFee = Boolean(commissionData);
-                const platformFee = commissionData?.platform_fee;
-                const platformFeeRate = Number(platformFee?.rate || DEFAULT_PLATFORM_FEE_RATE);
-                const platformFeeBaseAmount = Number(platformFee?.base_amount || totalBudget);
-                const platformFeeAmount = Number(platformFee?.amount || Math.round(platformFeeBaseAmount * (platformFeeRate / 100)));
-                const brandTotalPayable = Number(platformFee?.brand_total_payable || totalBudget + platformFeeAmount);
-
-                return (
-                  <div className="space-y-6">
-                    {/* Top Stats Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 bg-[#0F1115]/60 border border-white/5 rounded-2xl p-5">
-                      <div>
-                        <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Campaign</span>
-                        <span className="text-xs font-black text-white mt-1 block truncate">{selectedCampaign.title}</span>
-                      </div>
-                      <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
-                        <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Brand</span>
-                        <span className="text-xs font-black text-white mt-1 block">Nguyễn Ngọc Anh</span>
-                      </div>
-                      <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
-                        <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Số dòng</span>
-                        <span className="text-xs font-black text-white mt-1 block font-mono">{allRows.length}</span>
-                      </div>
-                      <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
-                        <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Tổng tiền</span>
-                        <span className="text-xs font-black text-emerald-400 mt-1 block font-mono">
-                          {Math.round(totalCalculatedPayout).toLocaleString("vi-VN")} VND
-                        </span>
-                      </div>
-                      <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
-                        <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Chờ duyệt</span>
-                        <span className="text-xs font-black text-amber-400 mt-1 block font-mono">
-                          {Math.round(pendingPayout).toLocaleString("vi-VN")} VND
-                        </span>
-                      </div>
-                    </div>
-
-                    {shouldShowPlatformFee && (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#0F1115]/60 border border-white/5 rounded-2xl p-5">
-                        <div>
-                          <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Phí sàn brand</span>
-                          <span className="text-xs font-black text-violet-300 mt-1 block font-mono">
-                            {Math.round(platformFeeAmount).toLocaleString("vi-VN")} VND
-                          </span>
-                        </div>
-                        <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
-                          <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Tỷ lệ phí sàn</span>
-                          <span className="text-xs font-black text-white mt-1 block font-mono">{platformFeeRate}%</span>
-                        </div>
-                        <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
-                          <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Brand cần thanh toán</span>
-                          <span className="text-xs font-black text-emerald-400 mt-1 block font-mono">
-                            {Math.round(brandTotalPayable).toLocaleString("vi-VN")} VND
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Table 1: Chia tiền campaign */}
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                        Chia tiền campaign
-                      </h4>
-                      <div className="overflow-x-auto rounded-xl border border-white/5 bg-[#0F1115]/30">
-                        <table className="w-full text-left text-xs border-collapse font-medium">
-                          <thead>
-                            <tr className="border-b border-white/5 bg-slate-950/45 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                              <th className="p-3">Vai trò/F</th>
-                              <th className="p-3">Người nhận</th>
-                              <th className="p-3">Talent liên quan</th>
-                              <th className="p-3">Cơ sở tính</th>
-                              <th className="p-3 text-center">Tỷ lệ</th>
-                              <th className="p-3 text-right">Số tiền</th>
-                              <th className="p-3 text-center">Trạng thái</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {campaignRows.map((row, idx) => (
-                              <tr key={idx} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                                <td className="p-3 font-semibold text-slate-300">{row.role}</td>
-                                <td className="p-3 font-bold text-white">{row.recipient}</td>
-                                <td className="p-3 text-slate-400">{row.relatedTalent}</td>
-                                <td className="p-3 font-mono text-slate-400">{Math.round(row.base).toLocaleString("vi-VN")} VND</td>
-                                <td className="p-3 text-center font-bold text-[#C9A86A]">{row.rate}%</td>
-                                <td className="p-3 text-right font-mono font-black text-white">{Math.round(row.amount).toLocaleString("vi-VN")} VND</td>
-                                <td className="p-3 text-center">
-                                  <span className="inline-block rounded bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-400 uppercase tracking-wide">
-                                    {row.status}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    {/* Table 2: Giới thiệu */}
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-cyan-400" />
-                        Giới thiệu
-                      </h4>
-                      <div className="overflow-x-auto rounded-xl border border-white/5 bg-[#0F1115]/30">
-                        <table className="w-full text-left text-xs border-collapse font-medium">
-                          <thead>
-                            <tr className="border-b border-white/5 bg-slate-950/45 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                              <th className="p-3">Vai trò/F</th>
-                              <th className="p-3">Người nhận</th>
-                              <th className="p-3">Talent liên quan</th>
-                              <th className="p-3">Cơ sở tính</th>
-                              <th className="p-3 text-center">Tỷ lệ</th>
-                              <th className="p-3 text-right">Số tiền</th>
-                              <th className="p-3 text-center">Trạng thái</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {referralRows.map((row, idx) => (
-                              <tr key={idx} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                                <td className="p-3 font-semibold text-cyan-400 font-mono">{row.role}</td>
-                                <td className="p-3 font-bold text-white">{row.recipient}</td>
-                                <td className="p-3 text-slate-400">{row.relatedTalent}</td>
-                                <td className="p-3 font-mono text-slate-400">{Math.round(row.base).toLocaleString("vi-VN")} VND</td>
-                                <td className="p-3 text-center font-bold text-cyan-400">{row.rate}%</td>
-                                <td className="p-3 text-right font-mono font-black text-white">{Math.round(row.amount).toLocaleString("vi-VN")} VND</td>
-                                <td className="p-3 text-center">
-                                  <span className="inline-block rounded bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-400 uppercase tracking-wide">
-                                    {row.status}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    {rosterRows.length > 0 && (
-                      <div className="space-y-2">
-                        <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full bg-violet-400" />
-                          Brand quản lý talent
-                        </h4>
-                        <div className="overflow-x-auto rounded-xl border border-white/5 bg-[#0F1115]/30">
-                          <table className="w-full text-left text-xs border-collapse font-medium">
-                            <thead>
-                              <tr className="border-b border-white/5 bg-slate-950/45 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                                <th className="p-3">Vai trò/F</th>
-                                <th className="p-3">Người nhận</th>
-                                <th className="p-3">Talent liên quan</th>
-                                <th className="p-3">Cơ sở tính</th>
-                                <th className="p-3 text-center">Tỷ lệ</th>
-                                <th className="p-3 text-right">Số tiền</th>
-                                <th className="p-3 text-center">Trạng thái</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {rosterRows.map((row, idx) => (
-                                <tr key={idx} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                                  <td className="p-3 font-semibold text-violet-300">{row.role}</td>
-                                  <td className="p-3 font-bold text-white">{row.recipient}</td>
-                                  <td className="p-3 text-slate-400">{row.relatedTalent}</td>
-                                  <td className="p-3 font-mono text-slate-400">{Math.round(row.base).toLocaleString("vi-VN")} VND</td>
-                                  <td className="p-3 text-center font-bold text-violet-300">{row.rate}%</td>
-                                  <td className="p-3 text-right font-mono font-black text-white">{Math.round(row.amount).toLocaleString("vi-VN")} VND</td>
-                                  <td className="p-3 text-center">
-                                    <span className="inline-block rounded bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-400 uppercase tracking-wide">
-                                      {row.status}
-                                    </span>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Footer Actions inside Content */}
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#151b2d]">
-                      <button
-                        onClick={() => setIsShowingPayoutModal(false)}
-                        className="px-5 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer transition-colors"
-                      >
-                        Đóng
-                      </button>
-                      <button
-                        onClick={() => confirmCampaignDisbursement(totalBudget)}
-                        disabled={isCommissionLoading}
-                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {isCommissionLoading ? "Đang xử lý..." : "Xác nhận giải ngân"}
-                      </button>
-                    </div>
+            <div className="flex-1 overflow-y-auto p-5 scrollbar-thin space-y-4">
+              {/* Current Owner Highlight */}
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-left">
+                <span className="block text-[8px] font-black uppercase tracking-wider text-emerald-400 mb-2">Đang phụ trách hiện tại</span>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={activeOwner.avatar}
+                    alt={activeOwner.name}
+                    className="h-10 w-10 rounded-lg object-cover border border-emerald-500/20 shrink-0"
+                    onError={(event) => {
+                      event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
+                    }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs font-black text-white">{activeOwner.name}</h4>
+                    <p className="text-[9.5px] text-emerald-400/80 mt-0.5">{activeOwner.role} · {activeOwner.location}</p>
                   </div>
-                );
-              })()}
+                </div>
+              </div>
+
+              {/* List of candidates to transfer to */}
+              <div className="space-y-2.5">
+                <span className="block text-[8px] font-black uppercase tracking-wider text-slate-500 text-left">Danh sách nhân sự chuyển giao</span>
+                <div className="space-y-2">
+                  {availableOwners.map((owner) => {
+                    const isCurrent = owner.id === campaignOwnerId;
+                    return (
+                      <div
+                        key={owner.id}
+                        className={cn(
+                          "flex items-center justify-between p-3.5 rounded-xl border transition-all duration-300 text-left gap-3",
+                          isCurrent
+                            ? "border-emerald-500/20 bg-emerald-500/5 cursor-default"
+                            : "border-white/5 bg-slate-900/20 hover:border-amber-500/20 hover:bg-slate-900/40 cursor-pointer"
+                        )}
+                        onClick={() => {
+                          if (!isCurrent) {
+                            changeCampaignOwner(owner.id);
+                            setIsShowingOwnerTransferModal(false);
+                          }
+                        }}
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <img
+                            src={owner.avatar}
+                            alt={owner.name}
+                            className="h-9 w-9 rounded-lg object-cover border border-white/5 shrink-0 bg-slate-800"
+                            onError={(event) => {
+                              event.currentTarget.src = createInitialAvatarDataUrl(owner.name, "");
+                            }}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="text-xs font-black text-white truncate">{owner.name}</h4>
+                              {owner.id === "me" && (
+                                <span className="rounded bg-blue-500/10 px-1 py-0.5 text-[7px] font-black uppercase tracking-wider text-blue-400">
+                                  Bạn
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[9.5px] text-slate-400 mt-0.5 truncate">{owner.role} · {owner.location}</p>
+                          </div>
+                        </div>
+
+                        <div>
+                          {isCurrent ? (
+                            <span className="inline-flex h-7 items-center justify-center rounded-lg bg-emerald-500/15 border border-emerald-500/20 px-3 text-[9px] font-extrabold uppercase tracking-wider text-emerald-400">
+                              Đang phụ trách
+                            </span>
+                          ) : (
+                            <button
+                              className="h-7 rounded-lg bg-amber-400 px-3 text-[9px] font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+                            >
+                              Chọn
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>

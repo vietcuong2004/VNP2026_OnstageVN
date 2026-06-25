@@ -19,12 +19,12 @@ export function ActivityLog({ updates, onAddUpdate }: ActivityLogProps) {
       <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent"></div>
       <div className="absolute top-0 left-0 w-32 h-32 bg-amber-400/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
 
-      <div className="mb-5 flex items-center justify-between border-b border-white/5 pb-3">
+      <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-3">
         <h3 className="font-display font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
           <FileText className="h-4.5 w-4.5 text-amber-400" /> Nhật ký cập nhật tiến độ
         </h3>
-        <div className="flex items-center">
-          <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-amber-400/30 bg-amber-400/10 text-amber-300 mr-3">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-amber-400/30 bg-amber-400/10 text-amber-300">
             Cập Nhật
           </span>
           <button
@@ -43,9 +43,9 @@ export function ActivityLog({ updates, onAddUpdate }: ActivityLogProps) {
         ) : (
           updates.map((log) => (
             <div key={log.id} className="border-b border-white/5 last:border-transparent pb-6 last:pb-0 space-y-3 animate-in fade-in duration-300">
-              <div className="flex justify-between items-start gap-2">
+              <div className="flex flex-col xs:flex-row xs:items-start justify-between gap-2">
                 <h4 className="text-xs font-extrabold text-white leading-snug hover:text-amber-300 transition-colors">{log.title}</h4>
-                <span className="text-[9px] font-mono font-bold text-[#F0C56B] bg-[#071B42]/45 px-2 py-0.5 rounded border border-[#D4A64A]/30 shrink-0">
+                <span className="text-[9px] font-mono font-bold text-[#F0C56B] bg-[#071B42]/45 px-2 py-0.5 rounded border border-[#D4A64A]/30 shrink-0 self-start xs:self-auto">
                   {log.date}
                 </span>
               </div>

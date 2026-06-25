@@ -354,8 +354,8 @@ export default function DonatePage() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-8">
-      <div className="relative overflow-hidden rounded-3xl border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.14),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-8">
+      <div className="relative overflow-hidden rounded-3xl border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.14),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] p-5 sm:p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -363,13 +363,13 @@ export default function DonatePage() {
                 Cổng quyên góp
               </span>
               <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-yellow-400/30 bg-yellow-400/10 text-yellow-200">
-                VietQR Gateway
+                QR Gateway
               </span>
               <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-cyan-400/30 bg-cyan-400/10 text-cyan-200">
                 {allCampaigns.length} chiến dịch
               </span>
             </div>
-            <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-4xl uppercase leading-none">
+            <h1 className="font-display text-2xl xs:text-3xl font-black tracking-tight text-white md:text-4xl uppercase leading-none">
               Chiến dịch <span className="text-gradient-gold">Gây quỹ nhân ái</span>
             </h1>
             <p className="mt-3 text-xs leading-relaxed text-slate-400 font-medium">
@@ -381,7 +381,7 @@ export default function DonatePage() {
               setActiveCampaignId(null);
               setShowCampaignModal(true);
             }}
-            className="shrink-0 flex items-center gap-1.5 px-6 py-3.5 bg-gradient-gold hover:shadow-[0_0_20px_rgba(240,197,107,0.35)] hover:scale-[1.02] active:scale-98 rounded-xl font-display text-[10px] font-black text-slate-950 uppercase tracking-widest transition-all duration-300 cursor-pointer shadow-lg"
+            className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-1.5 px-6 py-3.5 bg-gradient-gold hover:shadow-[0_0_20px_rgba(240,197,107,0.35)] hover:scale-[1.02] active:scale-98 rounded-xl font-display text-[10px] font-black text-slate-950 uppercase tracking-widest transition-all duration-300 cursor-pointer shadow-lg"
             style={{ color: "#02040a" }}
           >
             <Plus className="h-4 w-4 stroke-[3]" /> Tạo chiến dịch mới
@@ -441,33 +441,13 @@ export default function DonatePage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <QrDonate
-              campaignLink={getDonationShareLink(campaign)}
-              qrCodeSvg={campaign.qrCodeSvg}
-              showShareMenu={showShareMenu}
-              setShowShareMenu={setShowShareMenu}
-              onCopyLink={handleCopyLink}
-              onDownloadQr={handleDownloadQr}
-              onShareFacebook={() => {
-                addToast("Đã chia sẻ lên Facebook!", "success");
-                setShowShareMenu(false);
-              }}
-              onShareInstagram={() => {
-                addToast("Đã chia sẻ lên Instagram!", "success");
-                setShowShareMenu(false);
-              }}
-              onShareZalo={() => {
-                addToast("Đã tạo liên kết chia sẻ Zalo!", "success");
-                setShowShareMenu(false);
-              }}
-            />
-
-            <div className="lg:col-span-8 group relative overflow-hidden rounded-3xl border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.08),transparent_40%),linear-gradient(135deg,rgba(15,23,42,0.85),rgba(2,6,23,0.98))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)] space-y-6 backdrop-blur-xl transition-all duration-300 hover:border-white/12 animate-in fade-in slide-in-from-right duration-500">
+        <div className="space-y-6 sm:space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 lg:items-stretch">
+            {/* Left side: Campaign Details + Stats */}
+            <div className="lg:col-span-8 group relative overflow-hidden rounded-3xl border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.08),transparent_40%),linear-gradient(135deg,rgba(15,23,42,0.85),rgba(2,6,23,0.98))] p-4 sm:p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-300 hover:border-white/12 animate-in fade-in slide-in-from-left duration-500 flex flex-col justify-between h-full">
               <div className="absolute top-0 left-0 w-48 h-48 bg-amber-400/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
 
-              <div className="absolute top-6 right-6 z-10">
+              <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
                 <button
                   onClick={() => setShowDropdown((prev) => !prev)}
                   className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[#08090f]/90 text-slate-300 hover:text-white hover:bg-slate-900 hover:border-white/20 transition-all cursor-pointer shadow-md"
@@ -530,82 +510,108 @@ export default function DonatePage() {
                 )}
               </div>
 
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className={cn("inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider", campaignTone?.badge)}>
-                    <span className={cn("mr-1.5 h-1.5 w-1.5 rounded-full", campaignTone?.dot)} />
-                    {statusLabel(campaign.status)}
-                  </span>
-                  {campaign.approvedAt && (
-                    <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
-                      Đã duyệt
-                    </span>
-                  )}
+              <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch h-full">
+                {/* Left col inside details: Badge, Title, Description, Stats Progress (≈ 65%) */}
+                <div className="flex-1 flex flex-col justify-between space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={cn("inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider", campaignTone?.badge)}>
+                        <span className={cn("mr-1.5 h-1.5 w-1.5 rounded-full", campaignTone?.dot)} />
+                        {statusLabel(campaign.status)}
+                      </span>
+                      {campaign.approvedAt && (
+                        <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
+                          Đã duyệt
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <h2 className="font-display text-xl xs:text-2xl font-black text-white leading-tight uppercase">{campaign.title}</h2>
+                      <p className="mt-3 text-xs leading-relaxed text-slate-400 font-medium line-clamp-4 lg:line-clamp-6">
+                        {campaign.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <CampaignStatsGrid
+                    raised={campaign.raised}
+                    goal={campaign.goal}
+                    supportersCount={campaign.supportersCount}
+                    disbursed={campaign.disbursed}
+                  />
                 </div>
 
-                <div>
-                  <h2 className="font-display text-2xl font-black text-white leading-tight uppercase">{campaign.title}</h2>
-                  <p className="mt-3 max-w-3xl text-xs leading-relaxed text-slate-400 font-medium">
-                    {campaign.description}
-                  </p>
-                </div>
-              </div>
-
-              {campaignImages.length > 0 && (
-                <div className="space-y-4">
-                  <div className="relative overflow-hidden rounded-3xl border border-white/8 bg-slate-950">
-                    <div className="aspect-[16/8] w-full">
+                {/* Right col inside details: Image Gallery with 9:16 aspect ratio (≈ 35% on desktop, max-width 240px) */}
+                {campaignImages.length > 0 && (
+                  <div className="w-full lg:w-[240px] md:w-[200px] shrink-0 flex flex-col justify-between gap-4 self-center lg:self-stretch">
+                    <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-slate-950 w-full aspect-[9/16] max-h-[380px] lg:max-h-none lg:flex-1 flex items-center justify-center">
                       <img
                         src={campaignImages[currentImageIdx] || campaignImages[0]}
                         alt={campaign.title}
-                        className="h-full w-full object-cover"
+                        className="w-full h-full object-cover absolute inset-0"
                       />
+                      {campaignImages.length > 1 && (
+                        <>
+                          <button
+                            onClick={() => setCurrentImageIdx((prev) => (prev === 0 ? campaignImages.length - 1 : prev - 1))}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white hover:bg-black/65 transition-colors z-10"
+                          >
+                            <ChevronLeft className="h-4.5 w-4.5" />
+                          </button>
+                          <button
+                            onClick={() => setCurrentImageIdx((prev) => (prev === campaignImages.length - 1 ? 0 : prev + 1))}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white hover:bg-black/65 transition-colors z-10"
+                          >
+                            <ChevronRight className="h-4.5 w-4.5" />
+                          </button>
+                        </>
+                      )}
                     </div>
+
                     {campaignImages.length > 1 && (
-                      <>
-                        <button
-                          onClick={() => setCurrentImageIdx((prev) => (prev === 0 ? campaignImages.length - 1 : prev - 1))}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white hover:bg-black/65 transition-colors"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => setCurrentImageIdx((prev) => (prev === campaignImages.length - 1 ? 0 : prev + 1))}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white hover:bg-black/65 transition-colors"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </button>
-                      </>
+                      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none justify-center lg:justify-start">
+                        {campaignImages.map((image, index) => (
+                          <button
+                            key={`${image}-${index}`}
+                            onClick={() => setCurrentImageIdx(index)}
+                            className={cn(
+                              "relative h-14 w-8 shrink-0 overflow-hidden rounded-lg border transition-all aspect-[9/16]",
+                              currentImageIdx === index ? "border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]" : "border-white/10 opacity-70 hover:opacity-100",
+                            )}
+                          >
+                            <img src={image} alt={`${campaign.title}-${index + 1}`} className="h-full w-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
-
-                  {campaignImages.length > 1 && (
-                    <div className="flex gap-3 overflow-x-auto pb-1">
-                      {campaignImages.map((image, index) => (
-                        <button
-                          key={`${image}-${index}`}
-                          onClick={() => setCurrentImageIdx(index)}
-                          className={cn(
-                            "relative h-16 w-24 shrink-0 overflow-hidden rounded-2xl border transition-all",
-                            currentImageIdx === index ? "border-amber-400/60 shadow-[0_0_18px_rgba(245,158,11,0.2)]" : "border-white/10 opacity-70 hover:opacity-100",
-                          )}
-                        >
-                          <img src={image} alt={`${campaign.title}-${index + 1}`} className="h-full w-full object-cover" />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-          <CampaignStatsGrid
-            raised={campaign.raised}
-            goal={campaign.goal}
-            supportersCount={campaign.supportersCount}
-            disbursed={campaign.disbursed}
-          />
+            {/* Right side: QR Donate */}
+            <QrDonate
+              campaignLink={getDonationShareLink(campaign)}
+              qrCodeSvg={campaign.qrCodeSvg}
+              showShareMenu={showShareMenu}
+              setShowShareMenu={setShowShareMenu}
+              onCopyLink={handleCopyLink}
+              onDownloadQr={handleDownloadQr}
+              onShareFacebook={() => {
+                addToast("Đã chia sẻ lên Facebook!", "success");
+                setShowShareMenu(false);
+              }}
+              onShareInstagram={() => {
+                addToast("Đã chia sẻ lên Instagram!", "success");
+                setShowShareMenu(false);
+              }}
+              onShareZalo={() => {
+                addToast("Đã tạo liên kết chia sẻ Zalo!", "success");
+                setShowShareMenu(false);
+              }}
+            />
+          </div>
 
           <DonationHistory supporters={supporters} />
           <ActivityLog updates={updates} onAddUpdate={() => setShowUpdateModal(true)} />

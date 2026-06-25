@@ -49,7 +49,7 @@ export default function BrandSettingsPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Cover photo upload states
-  const [coverUrl, setCoverUrl] = useState("/cover_image.png");
+  const [coverUrl, setCoverUrl] = useState("/brand_cover_default.png");
   const [uploadingCover, setUploadingCover] = useState(false);
   const [coverProgress, setCoverProgress] = useState(0);
 
@@ -217,7 +217,7 @@ export default function BrandSettingsPage() {
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       setProfile(savedProfile);
-      setCoverUrl(savedProfile.coverUrl || "/cover_image.png");
+      setCoverUrl(savedProfile.coverUrl || "/brand_cover_default.png");
       showToast("Cập nhật ảnh bìa thành công!", "success");
     } catch (error) {
       window.clearInterval(progressInterval);
