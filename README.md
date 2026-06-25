@@ -1,11 +1,11 @@
-# 👑 VNP BeautyTalent — Nền tảng Quản trị & Kết nối Tài năng Giải trí 4.0
+# 👑 OnstageVN — Nền tảng Quản trị & Kết nối Tài năng Giải trí 4.0
 
-**VNP BeautyTalent** là hệ sinh thái vòng đời (Lifecycle Ecosystem) đồng hành cùng các thí sinh, người mẫu và nghệ sĩ trong ngành sắc đẹp - giải trí từ bước khởi đầu cho đến khi tỏa sáng và khai thác thương mại bền vững.
+**OnstageVN** là hệ sinh thái vòng đời (Lifecycle Ecosystem) đồng hành cùng các thí sinh, người mẫu và nghệ sĩ trong ngành sắc đẹp - giải trí từ bước khởi đầu cho đến khi tỏa sáng và khai thác thương mại bền vững.
 
 Hệ thống số hóa quy trình quản trị, tự động chấm điểm xếp hạng tài năng (Talent Tiering), và tạo kênh kết nối trực tiếp (Match-making) giữa nhãn hàng (Brands) và người đẹp bằng các hợp đồng đặt cọc an toàn (Escrow Payment).
 
 ## Link deploy UI web: 
-https://vnp-2026-beuty-talent.vercel.app/
+https://onstagevn.vercel.app/
 ---
 
 ## 💎 Các Giai Đoạn Vòng Đời Hệ Thống (Lifecycle Phases)
@@ -97,185 +97,46 @@ Ngân sách thanh toán của nhãn hàng được chuyển vào ví trung gian 
    ```
    *Truy cập [http://localhost:3001](http://localhost:3001) trên trình duyệt để kiểm tra.*
 
-3. **Xây dựng phiên bản Production:**
-   ```bash
-   npm run build
-   ```
-
-### Hoặc chuyển sang dự án backend trên terminal:
-```bash
-docker compose up -d --build frontend
-```
-Rồi *Truy cập [http://localhost:3000](http://localhost:3000) trên trình duyệt để kiểm tra.*
-
----
-## 💻 Hướng dẫn cập nhật code mới để deploy (push code lên main rồi chạy các lệnh dưới đây)
-### Cách nhanh:
-**1. Truy cập vào server:**
-```bash
-ssh ssh_code@118.70.132.119 -p 4522
-```
-**2. Truy cập thư mục code trên server:**
-```bash
-cd /var/www/manager-kol-model/web-main/current
-```
-
-**3.Chạy script:**
-```bash
-./deploy.sh
-```
-
-### Cách thủ công:
-**1. Truy cập vào server:**
-```bash
-ssh ssh_code@118.70.132.119 -p 4522
-```
-**2. Truy cập thư mục code trên server:**
-```bash
-cd /var/www/manager-kol-model/web-main/current
-```
-
-**3. Kéo code mới nhất từ nhánh main trên GitHub về server:**
-```bash
-git pull origin main
-```
-
-**4. Cài đặt thư viện mới (nếu có cập nhật package.json):**
-```bash
-npm install
-```
-
-**5. Xây dựng (Build) lại dự án Next.js:**
-```bash
-npm run build
-```
-
-### 5. Khởi động lại tiến trình PM2 để áp dụng code mới
-```bash
-pm2 restart onstage-web --update-env
-```
-
 ## 🌐 Hướng Dẫn Deploy & Vận Hành Hệ Thống
 
-Dự án hỗ trợ song song hai môi trường triển khai:
+Dự án hỗ trợ chạy song song hai môi trường độc lập hoàn toàn để đảm bảo an toàn dữ liệu và thuận tiện trong quá trình phát triển:
 
-### 1. Triển khai Preview/UI trên Vercel (Môi trường test nhanh)
-Quy trình tích hợp và triển khai liên tục (CI/CD) tự động hóa thông qua liên kết giữa repository GitHub và tài khoản Vercel.
-* **Link quản lý dự án trên Vercel:** [VNP 2026 Beauty Talent Deployment](https://vercel.com/vietcuong2004s-projects/vnp-2026-beuty-talent)
-* **Link ứng dụng Vercel:** [https://vnp-2026-beuty-talent.vercel.app/](https://vnp-2026-beuty-talent.vercel.app/)
-* **Luồng hoạt động:**
-  1. Khi đẩy (push) code mới lên nhánh chính (`cuong` hoặc `main`) trên GitHub.
-  2. Vercel tự động phát hiện, chạy tiến trình build và kiểm tra lỗi Next.js/TypeScript.
-  3. Bản dựng mới sẽ tự động cập nhật lên link môi trường live trong vòng dưới 1 phút.
+### 1. Môi trường Test/Staging (Vercel — Nhánh `dev`)
+* **Mục đích:** Dành cho lập trình viên kiểm tra giao diện và tính năng mới trên các thiết bị khác nhau (như điện thoại) trước khi merge lên production.
+* **Link ứng dụng:** [https://onstagevn.vercel.app/](https://onstagevn.vercel.app/)
+* **Nhánh deploy:** `dev` (Vercel tự động build và cập nhật mỗi khi có code mới push lên nhánh `dev`).
+* **Cơ chế hoạt động:**
+  * Frontend trên Vercel gọi API dev thông qua URL Cloudflare Tunnel trỏ thẳng về máy tính cá nhân của lập trình viên (dữ liệu test local, không ảnh hưởng tới database thật).
+  * Chi tiết cách cấu hình và chạy xem ở mục: **[HƯỚNG DẪN TEST REAL-TIME TRÊN ĐIỆN THOẠI](#-huong-dan-test-real-time-tren-dien-thoai-qua-cloudflare-tunnel)**.
 
-### 2. Triển khai Production trên Server riêng (Self-Hosted VPS với PM2 & Nginx)
-Ứng dụng chính thức chạy trên máy chủ VPS tự quản lý, cấu hình tại tên miền: **[https://onstage.freeroute.store/](https://onstage.freeroute.store/)**
-
-#### 📄 Các File Cấu Hình Quan Trọng
-* **`pm2.yml`**: Định nghĩa tiến trình PM2 chạy Next.js (tên tiến trình: `onstage-web`, chạy ở `fork` mode).
-* **`.env.production`**: Cấu hình địa chỉ API Backend Production:
-  ```env
-  NEXT_PUBLIC_API_URL=https://onstage.freeroute.store/api
-  ```
-
-#### 🛠️ Các Bước Triển Khai trên VPS
-Khi SSH vào máy chủ VPS (`ssh ssh_code@118.70.132.119 -p 4522`), thực hiện các bước sau để cập nhật ứng dụng:
-
-1. **Truy cập thư mục chứa mã nguồn:**
-   ```bash
-   cd /var/www/manager-kol-model/web-main/current
-   ```
-2. **Cập nhật mã nguồn mới nhất:**
-   ```bash
-   git pull origin dev # Hoặc main tùy thuộc vào nhánh deploy
-   ```
-3. **Cài đặt thư viện & chuẩn bị Node.js:**
-   * *Yêu cầu*: Node.js >= v20.9.0 (Có thể dùng NVM: `nvm use 20` để nâng cấp/chuyển đổi phiên bản).
-   ```bash
-   npm install
-   ```
-4. **Build ứng dụng:**
-   ```bash
-   npm run build
-   ```
-5. **Khởi chạy hoặc khởi động lại bằng PM2:**
-   * Nếu khởi chạy lần đầu:
-     ```bash
-     npm install -g pm2
-     pm2 start pm2.yml
-     ```
-   * Nếu cập nhật phiên bản mới:
-     ```bash
-     pm2 restart onstage-web --update-env
-     ```
-
-#### 🔀 Cấu Hình Nginx Reverse Proxy (Tham khảo)
-Để ánh xạ tên miền `onstage.freeroute.store` vào cổng `3000` của Next.js, sử dụng cấu hình block server sau:
-```nginx
-server {
-    listen 80;
-    server_name onstage.freeroute.store;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-Lệnh deploy:
-./vendor/bin/dep deploy:onstage.vn onstage.vn:frontend-server-local-45 -vvv
+### 2. Môi trường Production (Server riêng — Nhánh `main`)
+* **Mục đích:** Bản chạy chính thức ổn định dành cho khách hàng thật sử dụng.
+* **Link ứng dụng:** [https://onstage.vn](https://onstage.vn)
+* **Link API:** `https://onstage.vn/api`
+* **Nhánh deploy:** `main` (Deploy thủ công bằng script Deployer từ máy local của lập trình viên).
+* **Hạ tầng:** VPS Ubuntu `118.70.132.119` (cổng `4522`), tiến trình quản lý bằng PM2 (`onstage-web`) và proxy ngược qua Nginx.
 
 ---
 
-## 🚀 Quy Trình Deploy Sau Khi Sửa Code
+## ⚡ Quy Trình Deploy Lên Production (Nhánh `main`)
 
-Sau khi chỉnh sửa code frontend, có **2 cách** để deploy lên server production (`onstage.vn`):
+Sau khi code đã được kiểm tra chạy ổn định trên nhánh `dev`, thực hiện các bước sau để deploy lên server chạy thật:
 
----
-
-### ⚡ Cách 1 — Tự Động bằng Deployer (Khuyến nghị)
-
-Hệ thống sử dụng [Deployer PHP](https://deployer.org/) để tự động hoá toàn bộ quy trình.
-
-> **Yêu cầu trước:** Có PHP cài sẵn trên máy local & đã clone repo `deploy` về máy.
-
-**Bước 1 — Push code lên nhánh `main` (GitLab):**
+### Bước 1 — Merge code dev vào main và push lên Git:
 ```bash
-git add .
-git commit -m "feat: mô tả thay đổi"
+git checkout main
+git merge dev
 git push origin main
 ```
 
-**Bước 2 — Chạy lệnh deploy từ thư mục `deploy/` trên máy local:**
+### Bước 2 — Chạy Deployer script từ local (Khuyên dùng):
+Chạy lệnh deploy từ thư mục `deploy/` trên máy tính local của bạn (yêu cầu máy có cài sẵn PHP và Composer):
 ```bash
 cd C:\CONG_VIEC\VNP_OnstageVN\deploy
 
 # Cài đặt Deployer lần đầu (chỉ cần chạy 1 lần):
 composer install
 
-# Deploy lên server production:
-./vendor/bin/dep deploy:onstage.vn onstage.vn:frontend-server-local-45 -vvv
-```
-
-**Những gì Deployer tự động làm:**
-
-| Bước | Mô tả |
-|------|--------|
-| `deploy:update_code` | Pull code mới nhất từ nhánh `main` trên GitLab |
-| `upload` | Upload file `.env` và `pm2.yml` lên server |
-| `npm:frontend` | Chạy `npm install && npm run build` (dùng Node.js v22 qua NVM) |
-| `deploy:symlink` | Symlink `current/` sang release mới |
-| `pm2:restart` | Chạy `pm2 flush && pm2 restart pm2.yml` để áp dụng code mới |
-
-**Thông tin server (được cấu hình sẵn trong `deploy/`):**
-
-| Thông số | Giá trị |
-|----------|---------|
 | Host | `118.70.132.119` |
 | Port SSH | `4522` |
 | User | `ssh_code` |

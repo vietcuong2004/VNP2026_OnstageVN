@@ -1,4 +1,4 @@
-# Ý Tưởng Hệ Thống — VNP BeautyTalent
+# Ý Tưởng Hệ Thống — OnstageVN
 
 > **Hệ sinh thái vòng đời (Lifecycle Ecosystem)** đồng hành cùng người đẹp từ con số 0 cho đến khi tỏa sáng và khai thác thương mại bền vững.
 

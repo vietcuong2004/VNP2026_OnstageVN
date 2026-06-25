@@ -21,3 +21,11 @@ deploy_production:
     - vercel pull --yes --environment=production --token=$VERCEL_TOKEN
     - vercel build --prod --token=$VERCEL_TOKEN
     - vercel deploy --prebuilt --prod --archive=tgz --token=$VERCEL_TOKEN
+    # Tự động đồng bộ sang nhánh main của GitHub
+    - "[ -z \"$GITHUB_TOKEN\" ] && { echo \"ERROR: GITHUB_TOKEN is empty in GitLab Variables! Please add it to Settings -> CI/CD -> Variables.\"; exit 1; }"
+    - apk add --no-cache git
+    - git config --global user.email "ci@gitlab.com"
+    - git config --global user.name "GitLab CI"
+    - git remote add github https://${GITHUB_TOKEN}@github.com/vietcuong2004/VNP2026_OnstageVN.git || true
+    - git push github HEAD:main --force
+
