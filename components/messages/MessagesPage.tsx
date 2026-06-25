@@ -47,6 +47,10 @@ export default function MessagesPage({ portal }: Props) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const directConversationRequestRef = useRef<{
+    key: string;
+    promise: ReturnType<typeof createConversation>;
+  } | null>(null);
 
   const refreshConversations = async () => {
     const response = await loadConversations();
@@ -61,7 +65,16 @@ export default function MessagesPage({ portal }: Props) {
       try {
         setLoading(true);
         if (portal === "brand" && talentProfileId) {
-          const response = await createConversation({ profile_id: Number(talentProfileId) });
+          const requestKey = `brand:${talentProfileId}`;
+
+          if (!directConversationRequestRef.current || directConversationRequestRef.current.key !== requestKey) {
+            directConversationRequestRef.current = {
+              key: requestKey,
+              promise: createConversation({ profile_id: Number(talentProfileId) }),
+            };
+          }
+
+          const response = await directConversationRequestRef.current.promise;
           if (!cancelled) {
             setActiveId(response.data.id);
             setShowMobileChat(true);
@@ -75,6 +88,9 @@ export default function MessagesPage({ portal }: Props) {
         }
         await refreshConversations();
       } catch (reason) {
+        if (portal === "brand" && talentProfileId) {
+          directConversationRequestRef.current = null;
+        }
         if (!cancelled) setError(reason instanceof Error ? reason.message : "Không tải được tin nhắn.");
       } finally {
         if (!cancelled) setLoading(false);
@@ -137,7 +153,7 @@ export default function MessagesPage({ portal }: Props) {
   const activeConversation = conversations.find((item) => item.id === activeId) ?? null;
   const activeMessages = activeId ? messages[activeId] ?? [] : [];
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesListRef = useRef<HTMLDivElement>(null);
   const [prevActiveId, setPrevActiveId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -146,12 +162,16 @@ export default function MessagesPage({ portal }: Props) {
     if (activeId !== prevActiveId) {
       setPrevActiveId(activeId);
       const timer = setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+        const container = messagesListRef.current;
+        if (container) container.scrollTop = container.scrollHeight;
       }, 50);
       return () => clearTimeout(timer);
     } else {
       const timer = setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        const container = messagesListRef.current;
+        if (container) {
+          container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+        }
       }, 50);
       return () => clearTimeout(timer);
     }
@@ -365,7 +385,7 @@ export default function MessagesPage({ portal }: Props) {
                       );
                     })()}
                   </div>
-                  <div className="flex-1 space-y-3 overflow-y-auto p-4 custom-scrollbar md:p-6">
+                  <div ref={messagesListRef} className="flex-1 space-y-3 overflow-y-auto p-4 custom-scrollbar md:p-6">
                     {(() => {
                       const other = activeConversation.participants.find((user) => user.id !== authUser?.id);
                       const otherAvatar = conversationAvatarSrc(other);
@@ -411,7 +431,6 @@ export default function MessagesPage({ portal }: Props) {
                         );
                       });
                     })()}
-                    <div ref={messagesEndRef} />
                     {!activeMessages.length && (
                       <div className="flex h-full items-center justify-center text-xs text-slate-500">Hãy gửi tin nhắn đầu tiên.</div>
                     )}

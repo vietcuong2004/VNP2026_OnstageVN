@@ -602,6 +602,72 @@ export async function resolveCampaignReferralLinkBySlug(campaignSlug: string, re
   return response.data;
 }
 
+function normalizeLegacyCampaignId(rawId: string) {
+  let campaignId = rawId;
+
+  if (campaignId === "c1") campaignId = "camp-1";
+  if (campaignId === "c2") campaignId = "camp-2";
+  if (campaignId === "c3") campaignId = "camp-3";
+  if (campaignId === "c4") campaignId = "camp-4";
+
+  return campaignId;
+}
+
+export type ParsedCampaignReferralUrl =
+  | {
+      mode: "slug";
+      campaignSlug: string;
+      referrerSlug: string;
+      referralCode: string;
+    }
+  | {
+      mode: "legacy";
+      campaignId: string;
+      referralCode: string;
+    };
+
+export function parseCampaignReferralUrl(rawUrl: string): ParsedCampaignReferralUrl {
+  let urlStr = String(rawUrl || "").trim();
+  if (!urlStr) {
+    throw new Error("Vui lòng dán link affiliate chiến dịch.");
+  }
+
+  if (!urlStr.startsWith("http://") && !urlStr.startsWith("https://")) {
+    urlStr = `https://${urlStr}`;
+  }
+
+  const urlObj = new URL(urlStr);
+  const segments = urlObj.pathname.split("/").filter(Boolean);
+  const referralCode = urlObj.searchParams.get("ref") || "";
+
+  if (segments[0] === "ref" && segments.length >= 3) {
+    return {
+      mode: "slug",
+      campaignSlug: segments[1],
+      referrerSlug: segments[2],
+      referralCode,
+    };
+  }
+
+  if (segments[0] === "campaign" && segments[1]) {
+    const campaignPart = segments[1];
+    const campaignId = campaignPart.split("-").slice(-2).join("-") === "camp-1" ||
+      campaignPart.split("-").slice(-2).join("-") === "camp-2" ||
+      campaignPart.split("-").slice(-2).join("-") === "camp-3" ||
+      campaignPart.split("-").slice(-2).join("-") === "camp-4"
+      ? campaignPart.split("-").slice(-2).join("-")
+      : campaignPart.split("-").pop() || "";
+
+    return {
+      mode: "legacy",
+      campaignId: normalizeLegacyCampaignId(campaignId),
+      referralCode,
+    };
+  }
+
+  throw new Error("Link affiliate chiến dịch chưa đúng định dạng.");
+}
+
 export async function loadTalentBrandInvitations() {
   if (!getAuthToken()) return null;
 

@@ -12,7 +12,9 @@ import {
   getCampaignReferralLink,
   loadTalentCampaigns,
   mapCampaignToTalentJob,
+  parseCampaignReferralUrl,
   resolveCampaignReferralLink,
+  resolveCampaignReferralLinkBySlug,
 } from "@/lib/talent-api";
 import Link from "next/link";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
@@ -113,6 +115,7 @@ function currentCampaignApplicant(campaign: any) {
 
 export default function TalentAffiliatePage() {
   const currentTalent = readCurrentTalentIdentity();
+  const currentAuthUser = getStoredAuthUser<{ name?: string }>();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [activeCampaigns, setActiveCampaigns] = useState<any[]>([]);
   const [toasts, setToasts] = useState<{ id: string; msg: string; type: "success" | "info" }[]>([]);
@@ -196,35 +199,40 @@ export default function TalentAffiliatePage() {
     if (!pastedUrl) return;
 
     try {
-      let urlStr = pastedUrl.trim();
-      if (!urlStr.startsWith("http://") && !urlStr.startsWith("https://")) {
-        urlStr = "https://" + urlStr;
-      }
+      const parsedLink = parseCampaignReferralUrl(pastedUrl);
+      let campaignId = parsedLink.mode === "legacy" ? parsedLink.campaignId : "";
 
-      const urlObj = new URL(urlStr);
-      const pathname = urlObj.pathname;
-      const searchParams = urlObj.searchParams;
-      const refId = searchParams.get("ref") || "";
+      if (parsedLink.mode === "slug") {
+        const resolved = await resolveCampaignReferralLinkBySlug(
+          parsedLink.campaignSlug,
+          parsedLink.referrerSlug,
+        );
+        const resolvedCampaignId = String(resolved?.campaign?.id || resolved?.campaign_id || "");
+        const referralCode = String(resolved?.code || resolved?.referral_code || parsedLink.referralCode || "");
 
-      if (!pathname.includes("/campaign/")) {
-        addToast("Đường dẫn không chứa '/campaign/'. Vui lòng dán đúng link Affiliate.", "info");
+        if (!resolvedCampaignId || !referralCode) {
+          addToast("Không đọc được link affiliate chiến dịch. Vui lòng kiểm tra lại.", "info");
+          return;
+        }
+
+        await applyTalentCampaign(
+          resolvedCampaignId,
+          "Đăng ký tham gia qua link giới thiệu Affiliate.",
+          referralCode,
+        );
+
+        const refreshed = await loadTalentCampaigns();
+        if (refreshed?.length) {
+          setCampaigns(refreshed.map(mapCampaignToTalentJob));
+        }
+
+        setPastedUrl("");
+        const referrerName = resolved?.referrer?.name || resolved?.owner?.name || parsedLink.referrerSlug.replace(/-/g, " ");
+        addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
         return;
       }
 
-      const pathParts = pathname.split("/campaign/");
-      const campaignPart = pathParts[pathParts.length - 1];
-
-      let campaignId = campaignPart.split("-").slice(-2).join("-") === "camp-1" ||
-        campaignPart.split("-").slice(-2).join("-") === "camp-2" ||
-        campaignPart.split("-").slice(-2).join("-") === "camp-3" ||
-        campaignPart.split("-").slice(-2).join("-") === "camp-4"
-        ? campaignPart.split("-").slice(-2).join("-")
-        : campaignPart.split("-").pop() || "";
-
-      if (campaignId === "c1") campaignId = "camp-1";
-      if (campaignId === "c2") campaignId = "camp-2";
-      if (campaignId === "c3") campaignId = "camp-3";
-      if (campaignId === "c4") campaignId = "camp-4";
+      const refId = parsedLink.referralCode;
 
       if (refId) {
         try {
@@ -296,76 +304,7 @@ export default function TalentAffiliatePage() {
       const referrerName = referrerTalent ? referrerTalent.name : "KOL đối tác";
       addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
     } catch (err) {
-      try {
-        let urlStr = pastedUrl.trim();
-        if (urlStr.includes("campaign/")) {
-          const parts = urlStr.split("campaign/");
-          const rightPart = parts[parts.length - 1];
-          const cleanPart = rightPart.split("?")[0];
-          const queryPart = rightPart.includes("?") ? rightPart.split("?")[1] : "";
-
-          let campaignId = cleanPart.split("-").slice(-2).join("-") === "camp-1" ||
-            cleanPart.split("-").slice(-2).join("-") === "camp-2" ||
-            cleanPart.split("-").slice(-2).join("-") === "camp-3" ||
-            cleanPart.split("-").slice(-2).join("-") === "camp-4"
-            ? cleanPart.split("-").slice(-2).join("-")
-            : cleanPart.split("-").pop() || "";
-
-          if (campaignId === "c1") campaignId = "camp-1";
-          if (campaignId === "c2") campaignId = "camp-2";
-          if (campaignId === "c3") campaignId = "camp-3";
-          if (campaignId === "c4") campaignId = "camp-4";
-
-          const queryParams = new URLSearchParams(queryPart);
-          const refId = queryParams.get("ref") || "";
-
-          const allCampaigns = campaigns.length ? campaigns : initialCampaigns;
-          const targetCamp = allCampaigns.find(c => c.id === campaignId);
-          if (!targetCamp) {
-            addToast("Không tìm thấy chiến dịch trong dữ liệu hệ thống.", "info");
-            return;
-          }
-
-          if (currentCampaignApplicant(targetCamp)) {
-            addToast("Bạn đã ứng tuyển hoặc đang tham gia chiến dịch này rồi.", "info");
-            return;
-          }
-
-          const updatedCampaigns = allCampaigns.map(c => {
-            const matchesCurrentId = c.id === campaignId;
-            const matchesMockId1 = (campaignId === "camp-1" && c.id === "c1") || (campaignId === "c1" && c.id === "camp-1");
-            const matchesMockId2 = (campaignId === "camp-2" && c.id === "c2") || (campaignId === "c2" && c.id === "camp-2");
-            const matchesMockId3 = (campaignId === "camp-3" && c.id === "c3") || (campaignId === "c3" && c.id === "camp-3");
-            const matchesMockId4 = (campaignId === "camp-4" && c.id === "c4") || (campaignId === "c4" && c.id === "camp-4");
-
-            if (matchesCurrentId || matchesMockId1 || matchesMockId2 || matchesMockId3 || matchesMockId4) {
-              const apps = c.applicants || [];
-              return {
-                ...c,
-                applicants: [
-                  ...apps,
-                  {
-                    talentId: currentTalent.fallbackId,
-                    stage: "accepted" as const,
-                    note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
-                    referredByTalentId: refId || undefined
-                  }
-                ]
-              };
-            }
-            return c;
-          });
-          setCampaigns(updatedCampaigns);
-          setPastedUrl("");
-
-          const referrerTalent = talents.find(t => t.id === refId);
-          const referrerName = referrerTalent ? referrerTalent.name : "KOL đối tác";
-          addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
-          return;
-        }
-      } catch (e) { }
-
-      addToast("Đường dẫn không hợp lệ. Vui lòng kiểm tra lại.", "info");
+      addToast(err instanceof Error ? err.message : "Đường dẫn không hợp lệ. Vui lòng kiểm tra lại.", "info");
     }
   };
 
@@ -720,9 +659,10 @@ export default function TalentAffiliatePage() {
                 const expectedComm = f2Applicants.reduce((sum: number) => sum + (poolVal * 0.05), 0);
 
                 // Generate referral URL
+                const fallbackReferrerSlug = slugify(currentAuthUser?.name || "talent-moi");
                 const referralUrl = referralLinks[String(c.id)] || (typeof window !== "undefined"
-                  ? `${window.location.origin}/campaign/${slugify(c.title || "chien-dich")}-${c.id}?ref=demo-talent&name=talent`
-                  : `https://onstage.vn/campaign/${slugify(c.title || "chien-dich")}-${c.id}?ref=demo-talent&name=talent`);
+                  ? `${window.location.origin}/ref/${slugify(c.title || "chien-dich")}/${fallbackReferrerSlug}`
+                  : `https://onstage.vn/ref/${slugify(c.title || "chien-dich")}/${fallbackReferrerSlug}`);
 
                 return (
                   <div key={c.id} className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#08090f] p-6 hover:border-amber-500/20 transition-all duration-300 shadow-lg space-y-5">

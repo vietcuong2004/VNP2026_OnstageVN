@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import { QRCodeCanvas } from "qrcode.react";
 import { Crown, Users, Copy, Download, Share2, Link as LinkIcon, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,26 +38,47 @@ export default function QRCodeContainer({
 }: QRCodeProps) {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copied, setCopied] = useState(false);
+  const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const qrPayload = React.useMemo(() => {
+    const rawLink = campaignLink.trim();
+    if (!rawLink) return "";
+    if (rawLink.startsWith("/") && typeof window !== "undefined") {
+      return `${window.location.origin}${rawLink}`;
+    }
+    return rawLink;
+  }, [campaignLink]);
 
   const defaultCopyLink = () => {
-    if (!campaignLink) return;
+    if (!qrPayload) return;
     if (onCopyLink) {
       onCopyLink();
     } else {
-      navigator.clipboard.writeText(campaignLink);
+      navigator.clipboard.writeText(qrPayload);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   const defaultDownloadQr = async () => {
+    if (!qrPayload) return;
+
+    const canvas = qrCanvasRef.current;
+    if (canvas) {
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = `qr-code.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
     if (onDownloadQr) {
       onDownloadQr();
       return;
     }
 
-    if (!campaignLink) return;
-    const targetUrl = qrImageUrl || `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(campaignLink)}`;
+    const targetUrl = qrImageUrl || `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrPayload)}`;
     try {
       const response = await fetch(targetUrl);
       const blob = await response.blob();
@@ -77,16 +99,16 @@ export default function QRCodeContainer({
   const defaultShareFacebook = () => {
     if (onShareFacebook) {
       onShareFacebook();
-    } else if (campaignLink) {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(campaignLink)}`, "_blank");
+    } else if (qrPayload) {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(qrPayload)}`, "_blank");
     }
   };
 
   const defaultShareInstagram = () => {
     if (onShareInstagram) {
       onShareInstagram();
-    } else if (campaignLink) {
-      navigator.clipboard.writeText(campaignLink);
+    } else if (qrPayload) {
+      navigator.clipboard.writeText(qrPayload);
       alert("Đã sao chép liên kết! Bạn có thể chia sẻ lên Instagram.");
     }
   };
@@ -94,8 +116,8 @@ export default function QRCodeContainer({
   const defaultShareZalo = () => {
     if (onShareZalo) {
       onShareZalo();
-    } else if (campaignLink) {
-      window.open(`https://sp.zalo.me/share?vt=1&url=${encodeURIComponent(campaignLink)}`, "_blank");
+    } else if (qrPayload) {
+      window.open(`https://sp.zalo.me/share?vt=1&url=${encodeURIComponent(qrPayload)}`, "_blank");
     }
   };
 
@@ -117,7 +139,7 @@ export default function QRCodeContainer({
     return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="${encodeURIComponent(color)}"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="36" font-weight="bold" fill="white">${encodeURIComponent(initials)}</text></svg>`;
   };
 
-  const resolvedQrImageUrl = qrImageUrl || (campaignLink ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(campaignLink)}` : undefined);
+  const resolvedQrImageUrl = qrImageUrl;
 
   return (
     <div className={cn(
@@ -150,6 +172,17 @@ export default function QRCodeContainer({
               src={resolvedQrImageUrl}
               alt="Campaign QR Code"
               className="w-full h-full object-contain rounded-xl"
+            />
+          ) : qrPayload ? (
+            <QRCodeCanvas
+              ref={qrCanvasRef}
+              value={qrPayload}
+              size={168}
+              bgColor="#ffffff"
+              fgColor="#020617"
+              level="H"
+              includeMargin={false}
+              className="h-full w-full rounded-xl"
             />
           ) : (
             <div className="w-full h-full bg-slate-900 rounded-xl flex flex-col items-center justify-center text-white p-2">
@@ -188,14 +221,14 @@ export default function QRCodeContainer({
       <div className="flex flex-row items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-bold uppercase tracking-widest">
         <button
           onClick={defaultDownloadQr}
-          disabled={!campaignLink}
+          disabled={!qrPayload}
           className="flex-1 flex h-11 items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-slate-200 hover:text-white hover:border-slate-400 transition-all cursor-pointer disabled:opacity-50 px-2"
         >
           <Download className="h-4 w-4 shrink-0" /> Tải QR PNG
         </button>
         <button
           onClick={() => setShowShareMenu(!showShareMenu)}
-          disabled={!campaignLink}
+          disabled={!qrPayload}
           className="flex-1 flex h-11 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[#F0C56B] text-[#02040a] hover:bg-[#d6af5d] hover:shadow-[0_0_15px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all duration-300 cursor-pointer shadow-lg disabled:opacity-50 px-2"
         >
           <Share2 className="h-4 w-4 shrink-0" /> {shareButtonLabel}
@@ -203,7 +236,7 @@ export default function QRCodeContainer({
       </div>
 
       {/* Share menu Dialog Modal (prevents card height expansion) */}
-      {showShareMenu && campaignLink && (
+      {showShareMenu && qrPayload && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="relative w-full max-w-sm flex flex-col bg-[#0b0c15] border border-[#1d2238] rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] p-6 text-left animate-in zoom-in-95 duration-200">
             {/* Header */}

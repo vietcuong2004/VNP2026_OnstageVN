@@ -707,6 +707,7 @@ export default function MyTalentsPage() {
               badgeText="OSN Gateway"
               shareButtonLabel="Chia sẻ"
               onCopyLink={handleCopyLink}
+              onDownloadQr={downloadQr}
               className="border-0 bg-transparent shadow-none p-6"
             />
           </div>
