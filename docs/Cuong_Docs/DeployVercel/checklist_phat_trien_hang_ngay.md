@@ -17,23 +17,12 @@ Mỗi ngày khi bắt đầu code, bạn cần khởi động các công cụ th
     docker compose up -d
     ```
 
-- [ ] **Khởi chạy Cloudflare Tunnel:**
+- [ ] **Khởi chạy Ngrok Tunnel cố định:**
   * Mở một cửa sổ Powershell local tại thư mục `frontend` và chạy:
     ```powershell
-    .\cloudflared.exe tunnel --url http://localhost:8080
+    .\ngrok.exe http 8080 --domain=crispy-prewashed-preformed.ngrok-free.dev
     ```
-  * *Lưu ý: Giữ nguyên cửa sổ Powershell này để duy trì kết nối.*
-
-- [ ] **Kiểm tra xem URL Tunnel có bị đổi không:**
-  * So sánh URL vừa sinh ra trong log với cấu hình của ngày hôm trước. 
-  * **NẾU URL BỊ THAY ĐỔI**, hãy thực hiện cập nhật nhanh 2 chỗ sau:
-    1. Sửa `APP_URL` và các link redirect trong file [backend/.env](file:///C:/CONG_VIEC/VNP_OnstageVN/backend/.env#L5) trỏ về URL tunnel mới.
-    2. Cập nhật biến `NEXT_PUBLIC_API_URL` trên **Vercel Settings** -> **Environment Variables** thành `https://[URL-tunnel-moi]/api` -> Bấm **Save**.
-    3. Chạy lệnh trigger build lại Vercel:
-       ```bash
-       git commit --allow-empty -m "deploy: update to new local tunnel URL"
-       git push origin dev
-       ```
+  * *Lưu ý: Giữ nguyên cửa sổ Powershell này để duy trì kết nối. Vì dùng tên miền cố định nên bạn sẽ không cần phải sửa file backend/.env hay biến môi trường trên Vercel mỗi khi bật máy nữa.*
 
 ---
 
@@ -50,7 +39,18 @@ Mỗi ngày khi bắt đầu code, bạn cần khởi động các công cụ th
   * Tiến hành chỉnh sửa UI, viết API mới...
   * Mở trình duyệt trên máy tính cá nhân truy cập `http://localhost:3000` để code và xem trước.
 
-- [ ] **Đẩy code lên để test trên Điện thoại (Deploy Staging):**
+- [ ] **Khi có chỉnh sửa code ở backend thì build lại:**
+```bash
+docker compose up -d --build        
+docker compose exec app php artisan migrate --force                     
+docker compose exec app php artisan db:seed --force
+```
+- [ ] **Khi chỉ chỉnh sửa frontend:**
+```bash
+    docker compose up -d --build frontend
+```
+
+- [ ] **Đẩy code lên để test trên máy khác (Deploy Staging):**
   * Sau khi code xong một phần tính năng, push code lên Git nhánh `dev`:
     ```bash
     git add .
@@ -58,7 +58,7 @@ Mỗi ngày khi bắt đầu code, bạn cần khởi động các công cụ th
     git push origin dev
     ```
   * Vercel sẽ tự động phát hiện code mới ở nhánh `dev` và build lại.
-  * Mở điện thoại truy cập [https://onstagevn.vercel.app/](https://onstagevn.vercel.app/) để test trực tiếp giao diện và các API (dữ liệu lúc này sẽ chạy thẳng vào máy tính cá nhân của bạn).
+  * Mở máy khác truy cập [https://onstagevn.vercel.app/](https://onstagevn.vercel.app/) để test trực tiếp giao diện và các API (dữ liệu lúc này sẽ chạy thẳng vào máy tính cá nhân của bạn).
 
 ---
 
