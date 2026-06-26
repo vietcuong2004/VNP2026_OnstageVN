@@ -216,7 +216,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
         {isAccepted && isManaged && (
           <div className="flex items-start gap-3 rounded-xl border border-dashed border-amber-400/30 bg-amber-400/[0.05] px-3 py-2.5">
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-white leading-tight">Tài khoản chưa kích hoạt</p>
+              <p className="text-[11px] font-bold text-white leading-tight">Mời Talent tham gia OnstageVN</p>
               <p
                 onClick={() => setDescExpanded(v => !v)}
                 className={cn(
@@ -225,7 +225,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
                 )}
                 title="Click để xem chi tiết mô tả"
               >
-                Đây là tài khoản do Brand tự thêm, Talent chưa kích hoạt tài khoản này, nhấn &ldquo;Mời nhận TK&rdquo; để gửi yêu cầu.
+                Hiện tại chỉ Brand có thể quản lý hồ sơ này. Gửi lời mời để Talent tự đăng nhập và cập nhật thông tin của mình.
               </p>
             </div>
             <button
@@ -233,7 +233,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
               onClick={() => onActivateClick(talent)}
               className="shrink-0 h-8 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[9px] uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-[0.97] transition-all whitespace-nowrap mt-0.5"
             >
-              Mời nhận TK
+              Gửi lời mời
             </button>
           </div>
         )}

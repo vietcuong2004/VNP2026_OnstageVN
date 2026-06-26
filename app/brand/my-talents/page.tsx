@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QRCodeContainer from "@/components/QR_Code";
+import { QRCodeCanvas } from "qrcode.react";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, profileAvatarFromBackend } from "@/lib/avatar";
 import { talents as allTalents, type Campaign, type TalentProfile } from "@/lib/brand-mvp-data";
 import {
@@ -425,7 +426,7 @@ export default function MyTalentsPage() {
     navigator.clipboard.writeText(affiliateLink).catch(() => { });
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
-    addToast("Đã sao chép Affiliate Link!");
+    addToast("Đã sao chép link mời!");
   };
 
   const downloadQr = async () => {
@@ -567,7 +568,7 @@ export default function MyTalentsPage() {
               </div>
               <div className="space-y-1">
                 <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-400">
-                  AFFILIATE LINK
+                  LINK MỜI VÀO BRAND
                 </span>
                 <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
                   Tuyển Dụng Talent
@@ -615,39 +616,41 @@ export default function MyTalentsPage() {
             <h3 className="font-display font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
               <Users2 className="h-4.5 w-4.5 text-amber-400 fill-amber-400/20 animate-pulse" /> Danh sách talent của tôi
             </h3>
-            {/* Search Input with a button */}
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:w-60">
-                <input
-                  type="text"
-                  value={searchInputValue}
-                  onChange={(e) => setSearchInputValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      setSearchQuery(searchInputValue);
-                    }
+            {/* Search Input with nested button */}
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                value={searchInputValue}
+                onChange={(e) => setSearchInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setSearchQuery(searchInputValue);
+                  }
+                }}
+                placeholder="Nhập tên để tìm kiếm..."
+                className="w-full h-9 pl-9 pr-20 rounded-xl border border-white/10 bg-slate-950 text-xs font-semibold text-white focus:outline-none focus:border-white/30 placeholder:text-slate-500"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+
+              {/* Clear button X */}
+              {searchInputValue && (
+                <button
+                  onClick={() => {
+                    setSearchInputValue("");
+                    setSearchQuery("");
                   }}
-                  placeholder="Nhập tên để tìm kiếm..."
-                  className="w-full h-9 pl-9 pr-8 rounded-xl border border-white/10 bg-slate-950 text-xs font-semibold text-white focus:outline-none focus:border-amber-400/50 placeholder:text-slate-500"
-                />
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
-                {searchInputValue && (
-                  <button
-                    onClick={() => {
-                      setSearchInputValue("");
-                      setSearchQuery("");
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
+                  className="absolute right-14 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+
+              {/* "Tìm" button inside search box on the right */}
               <button
                 onClick={() => setSearchQuery(searchInputValue)}
-                className="h-9 px-4 rounded-xl text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_10px_rgba(244,196,48,0.15)] hover:shadow-[0_0_18px_rgba(244,196,48,0.3)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 shrink-0"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-400/10 border border-amber-400/20 hover:bg-amber-400/20 text-amber-400 hover:text-amber-300 transition-all cursor-pointer"
               >
-                Tìm kiếm
+                Tìm
               </button>
             </div>
           </div>
@@ -732,7 +735,7 @@ export default function MyTalentsPage() {
               campaignLink={affiliateLink}
               title="Mã QR Tuyển Dụng"
               subtitle="Quét mã để gia nhập"
-              badgeText="OSN Gateway"
+              badgeText="OnstageVN Gateway"
               shareButtonLabel="Chia sẻ"
               onCopyLink={handleCopyLink}
               onDownloadQr={downloadQr}
@@ -851,9 +854,8 @@ export default function MyTalentsPage() {
         </div>
       )}
 
-      {/* ── Activation Modal for Managed Talents (QR flow) ── */}
       {showActivateModal && activatingTalent && (() => {
-        const activateLink = `${typeof window !== "undefined" ? window.location.origin : ""}/auth/register?claim=${activatingTalent.id}&name=${encodeURIComponent(activatingTalent.name)}`;
+        const activateLink = affiliateLink;
         const handleCopyActivateLink = () => {
           navigator.clipboard.writeText(activateLink).catch(() => { });
           addToast("Đã sao chép liên kết mời nhận tài khoản!");
@@ -885,25 +887,106 @@ export default function MyTalentsPage() {
         };
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="relative w-full max-w-sm flex flex-col bg-[#0b0c15] border border-[#1d2238] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-200">
-              {/* Close button */}
+            <div className="relative w-full max-w-sm max-h-[90vh] overflow-y-auto scrollbar-thin flex flex-col bg-[#0b0c15] border border-[#1d2238] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] p-5 sm:p-6 space-y-4 sm:space-y-5 animate-in zoom-in-95 duration-200">
+
+              {/* Close Button top-right */}
               <button
                 onClick={() => { setShowActivateModal(false); setActivatingTalent(null); }}
-                className="absolute right-4 top-4 text-slate-400 hover:text-white cursor-pointer transition-colors z-10 p-1 bg-white/5 hover:bg-white/10 rounded-full"
+                className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer transition-colors p-1.5 hover:bg-white/5 rounded-full z-10"
               >
                 <X className="h-4 w-4" />
               </button>
 
-              <QRCodeContainer
-                campaignLink={activateLink}
-                title={`MỜI ${activatingTalent.name.toUpperCase()}`}
-                subtitle="Quét mã để nhận tài khoản"
-                badgeText="CLAIM ACCOUNT"
-                shareButtonLabel="Chia sẻ"
-                onCopyLink={handleCopyActivateLink}
-                onDownloadQr={handleDownloadActivateQr}
-                className="border-0 bg-transparent shadow-none p-6"
-              />
+              {/* Header */}
+              <div className="flex flex-col items-center justify-center border-b border-white/5 pb-3 shrink-0 pt-2">
+                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest border-amber-400/40 bg-amber-400/10 text-amber-300 mb-2">
+                  ONSTAGEVN GATEWAY
+                </span>
+                <h3 className="font-display font-black text-[11px] sm:text-xs text-white uppercase tracking-normal flex items-center justify-center gap-1.5 whitespace-nowrap">
+                  Mời Talent tham gia OnstageVN
+                </h3>
+              </div>
+
+              {/* Sub-header description */}
+              <p className="text-xs text-slate-300 font-semibold leading-relaxed text-justify px-1 shrink-0">
+                Gửi mã QR hoặc liên kết này cho <strong className="text-yellow-400 font-black">{activatingTalent.name}</strong> để nhận tài khoản. Talent nhận tài khoản, đăng ký/đăng nhập và hoàn thiện hồ sơ của mình.
+              </p>
+
+              {/* URL + Copy button */}
+              <div className="flex items-center justify-between gap-2 rounded-2xl bg-[#04060a]/90 border border-white/5 px-2.5 py-1.5 sm:px-3 sm:py-2 font-mono text-[10px] sm:text-[11px] font-bold text-slate-350 shrink-0">
+                <span className="truncate select-all text-left flex-1">{activateLink}</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(activateLink);
+                    addToast("Đã sao chép liên kết mời!");
+                  }}
+                  className="p-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-amber-400 hover:text-amber-300 transition-all cursor-pointer shrink-0"
+                  title="Sao chép liên kết"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* QR Code Container */}
+              <div className="flex flex-col items-center justify-center shrink-0">
+                <div className="relative h-40 w-40 sm:h-48 sm:w-48 rounded-[2rem] bg-white p-3.5 sm:p-4 flex flex-col items-center justify-center shadow-2xl shrink-0">
+                  <QRCodeCanvas
+                    value={activateLink}
+                    size={180}
+                    bgColor="#ffffff"
+                    fgColor="#020617"
+                    level="H"
+                    includeMargin={false}
+                    className="h-full w-full rounded-2xl"
+                  />
+                  <div className="absolute h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-[#02040a] border-2 border-white flex items-center justify-center shadow-lg overflow-hidden">
+                    <img
+                      src="/logo_new.png"
+                      alt="ONSTAGE"
+                      className="h-full w-full object-contain p-1"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Instruction Steps */}
+              <div className="rounded-2xl bg-slate-950/60 border border-white/5 p-3 sm:p-4 space-y-1.5 sm:space-y-2 text-left shrink-0">
+                <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-slate-300 font-semibold leading-relaxed">
+                  <div className="flex gap-2">
+                    <span className="text-amber-400 font-bold">1.</span>
+                    <span>Gửi mã cho Talent</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-amber-400 font-bold">2.</span>
+                    <span>Talent quét mã</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-amber-400 font-bold">3.</span>
+                    <span>Talent đăng nhập và hoàn thiện hồ sơ</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-amber-400 font-bold">4.</span>
+                    <span>Hồ sơ của Talent được cập nhật cho bạn xem</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3 text-[10px] sm:text-xs font-bold uppercase tracking-widest pt-2 shrink-0">
+                <button
+                  onClick={handleDownloadActivateQr}
+                  className="flex-1 flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-slate-200 hover:text-white hover:border-slate-400 transition-all cursor-pointer"
+                >
+                  <Download className="h-4 w-4 shrink-0" /> Tải về
+                </button>
+                <button
+                  onClick={handleShareActivate}
+                  className="flex-1 flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl bg-[#F0C56B] text-[#02040a] font-black hover:bg-[#d6af5d] hover:shadow-[0_0_15px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all duration-300 cursor-pointer shadow-lg"
+                >
+                  <Share2 className="h-4 w-4 shrink-0" /> Chia sẻ
+                </button>
+              </div>
             </div>
           </div>
         );

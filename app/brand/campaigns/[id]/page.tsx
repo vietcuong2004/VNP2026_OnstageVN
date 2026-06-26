@@ -163,6 +163,7 @@ export default function CampaignDetailPage() {
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [replacingMediaId, setReplacingMediaId] = useState<string | number | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [deletingApplicant, setDeletingApplicant] = useState<{ talentId: string; talentName: string } | null>(null);
 
   const [isShowingOwnerTransferModal, setIsShowingOwnerTransferModal] = useState(false);
   const [campaignOwnerId, setCampaignOwnerId] = useState<string>(() => {
@@ -606,6 +607,42 @@ export default function CampaignDetailPage() {
         }
       }
     }
+  }
+
+  async function removeApplicant(campaignId: string, talentId: string) {
+    const campaign = campaigns.find((item) => item.id === campaignId);
+    const applicant = campaign?.applicants.find((item: any) => item.talentId === talentId);
+    const talent = displayTalents.find(t => t.id === talentId) || talents.find(t => t.id === talentId) || (applicant as any)?.talent;
+    const name = talent?.name || "Talent";
+    setDeletingApplicant({ talentId, talentName: name });
+  }
+
+  async function handleConfirmRemoveApplicant() {
+    if (!deletingApplicant || !selectedCampaign) return;
+    const { talentId } = deletingApplicant;
+    const campaignId = selectedCampaign.id;
+    const applicant = selectedCampaign.applicants.find((item: any) => item.talentId === talentId);
+
+    if (isBackendRecordId(campaignId) && applicant && isBackendRecordId((applicant as any).id)) {
+      try {
+        const { removeBrandCampaignTalent } = await import("@/lib/brand-api");
+        await removeBrandCampaignTalent(campaignId, String((applicant as any).id));
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Chưa thể xóa ứng viên khỏi chiến dịch.");
+        return;
+      }
+    }
+
+    const nextCampaigns = campaigns.map((campaign) => {
+      if (campaign.id !== campaignId) return campaign;
+      return {
+        ...campaign,
+        applicants: campaign.applicants.filter((item) => item.talentId !== talentId),
+      };
+    });
+
+    setCampaigns(nextCampaigns);
+    setDeletingApplicant(null);
   }
 
   async function addTalentToCampaignDirect(talentId: string) {
@@ -1189,27 +1226,27 @@ export default function CampaignDetailPage() {
 
                 {/* Actions row */}
                 <div className="pt-3.5 border-t border-white/5 w-full">
-                  <div className="grid grid-cols-2 gap-2 w-full">
+                  <div className="grid grid-cols-3 gap-1.5 w-full">
                     {stage === "new" ? (
                       <button
                         onClick={() => {
                           setSelectedProfileTalent(talent);
                           setCurrentApplicantItem(item);
                         }}
-                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 px-3 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95"
+                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95"
                       >
                         Xem hồ sơ
                       </button>
                     ) : stage === "completed" ? (
                       <button
                         onClick={() => setReviewApplicant({ talentId: talent.id, talentName: talent.name })}
-                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-3 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
                       >
                         Nghiệm thu
                       </button>
                     ) : stage === "confirmed" ? (
-                      <span className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider">
-                        <CheckCircle2 className="h-4 w-4 shrink-0" /> Đã giải ngân
+                      <span className="w-full flex items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-1 py-2 text-[9px] sm:text-[9.5px] text-emerald-400 font-extrabold uppercase tracking-normal text-center whitespace-nowrap">
+                        Đã giải ngân
                       </span>
                     ) : (
                       <button
@@ -1217,7 +1254,7 @@ export default function CampaignDetailPage() {
                           setSelectedProfileTalent(talent);
                           setCurrentApplicantItem(item);
                         }}
-                        className="w-full flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300 px-3 py-2 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 active:scale-95"
+                        className="w-full flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 active:scale-95"
                       >
                         Xem hồ sơ
                       </button>
@@ -1225,9 +1262,16 @@ export default function CampaignDetailPage() {
 
                     <button
                       onClick={() => router.push("/brand/messages")}
-                      className="w-full flex items-center justify-center rounded-xl px-3 py-2 text-[10px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
+                      className="w-full flex items-center justify-center rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
                     >
                       Nhắn tin
+                    </button>
+
+                    <button
+                      onClick={() => removeApplicant(selectedCampaign.id, talent.id)}
+                      className="w-full flex items-center justify-center rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-red-950/20 text-red-400 border border-red-900/30 hover:bg-red-900/20 hover:text-red-300 transition-all cursor-pointer"
+                    >
+                      Xóa
                     </button>
                   </div>
                 </div>
@@ -1249,6 +1293,32 @@ export default function CampaignDetailPage() {
           }}
           onMoveApplicant={moveApplicant}
         />
+      )}
+
+      {/* ── Confirm Delete Applicant Modal ── */}
+      {deletingApplicant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl p-6 text-center space-y-5 shadow-[0_24px_60px_rgba(0,0,0,0.9)] overflow-hidden animate-in zoom-in-95 duration-300">
+            <h3 className="font-display font-black text-base text-white uppercase tracking-tight">Xác nhận xóa</h3>
+            <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+              Bạn có chắc chắn muốn xóa Talent <strong className="text-white">"{deletingApplicant.talentName}"</strong> khỏi chiến dịch không?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleConfirmRemoveApplicant}
+                className="flex-1 rounded-xl h-10 bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase transition-all cursor-pointer font-bold"
+              >
+                Xóa
+              </button>
+              <button
+                onClick={() => setDeletingApplicant(null)}
+                className="flex-1 rounded-xl h-10 border border-white/5 bg-white/5 text-slate-400 hover:text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer font-bold"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Review Checklist Photos Modal */}

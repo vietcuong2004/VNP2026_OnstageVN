@@ -69,7 +69,7 @@ export default function Hero({
           <div className="flex-1 min-w-0 w-full">
             <button
               onClick={onBack}
-              className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
+              className="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto sm:mb-2 inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Quay lại
             </button>

@@ -809,6 +809,15 @@ export async function closeBrandCampaign(id: string) {
   return mapBackendCampaign(response.data);
 }
 
+export async function deleteBrandCampaign(id: string) {
+  requireBrandSession();
+  if (!isBackendRecordId(id)) throw new Error("Campaign này đang là dữ liệu local, chưa có ID backend.");
+
+  await apiJson<void>(`/campaigns/${id}`, {
+    method: "DELETE",
+  });
+}
+
 export async function uploadBrandCampaignMedia(
   campaignId: string,
   file: File,
@@ -1128,6 +1137,17 @@ export async function updateBrandCampaignTalent(
   });
 
   return response.data;
+}
+
+export async function removeBrandCampaignTalent(campaignId: string, campaignTalentId: string) {
+  requireBrandSession();
+  if (!isBackendRecordId(campaignId) || !isBackendRecordId(campaignTalentId)) {
+    return true;
+  }
+
+  await apiJson(`/campaigns/${campaignId}/talents/${campaignTalentId}`, {
+    method: "DELETE",
+  });
 }
 
 export async function createBrandContactRequest(profileId: string, campaignId?: string, message?: string) {

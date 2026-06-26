@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutCurrentSession } from "@/lib/api-client";
+import { Avatar } from "@base-ui/react";
 
 const talentMenuItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
@@ -26,15 +27,15 @@ const talentMenuItems = [
 
 const brandMenuItems = [
   { label: "Tổng quan", icon: LayoutDashboard, href: "/brand/dashboard" },
-  { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
-  { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Chiến dịch", icon: Briefcase, href: "/brand/campaigns" },
   { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
+  { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
+  { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
-  { label: "Báo cáo & Phân tích", icon: BarChart3, href: "/brand/analytics" },
-  { label: "Quản lý thanh toán", icon: Wallet, href: "/brand/billing" },
+  // { label: "Báo cáo & Phân tích", icon: BarChart3, href: "/brand/analytics" },
+  // { label: "Quản lý thanh toán", icon: Wallet, href: "/brand/billing" },
   { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
-  { label: "Thông tin brand", icon: Settings, href: "/brand/settings" },
+  { label: "Thông tin brand", icon: User, href: "/brand/settings" },
 ];
 
 export default function Sidebar() {
