@@ -39,8 +39,8 @@ export default function InviteModal({
             <span className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-300">
               RECRUITMENT
             </span>
-            <h2 className="font-display font-black text-lg text-white uppercase tracking-tight mt-1">Mời Talent vào Roster</h2>
-            <p className="text-[10px] text-slate-500 mt-1 font-semibold">Chọn từ danh sách các Talent xuất sắc để gửi lời mời tham gia Roster</p>
+            <h2 className="font-display font-black text-lg text-white uppercase tracking-tight mt-1">Mời Talent vào Brand</h2>
+            <p className="text-[10px] text-slate-500 mt-1 font-semibold">Chọn từ danh sách các Talent xuất sắc để gửi lời mời tham gia Brand</p>
           </div>
           <button
             onClick={onClose}
@@ -190,7 +190,7 @@ export default function InviteModal({
                         )}
                       >
                         {alreadyInvited ? <Check className="h-3.5 w-3.5" /> : <Send className="h-3.5 w-3.5" />}
-                        {alreadyInvited ? "Đã gửi" : "Mời vào Roster"}
+                        {alreadyInvited ? "Đã gửi" : "Mời vào Brand"}
                       </button>
                     </div>
                   </article>

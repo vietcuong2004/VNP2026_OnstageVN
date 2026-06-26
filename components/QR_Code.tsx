@@ -253,7 +253,7 @@ export default function QRCodeContainer({
             </div>
 
             <p className="text-xs text-slate-400 mb-5 leading-normal">
-              Chọn nền tảng để chia sẻ liên kết tuyển dụng của chiến dịch này:
+              Chọn nền tảng để chia sẻ liên kết:
             </p>
 
             {/* Grid of options */}

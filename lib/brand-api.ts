@@ -8,7 +8,9 @@ type BackendUser = {
   id?: number | string;
   name?: string | null;
   email?: string | null;
+  phone?: string | null;
   type?: string | null;
+  status?: string | null;
   is_verified?: boolean | number | null;
   external_avatar_url?: string | null;
   parent_id?: number | string | null;
@@ -569,9 +571,9 @@ function mapCampaignTalent(item: BackendCampaignTalent, index: number): Campaign
       avatar: (() => {
         const rawAvatar = profile
           ? profileAvatarFromBackend(profile)
-            || normalizeBackendAssetUrl(profile.avatar_url)
-            || normalizeBackendAssetUrl(user?.external_avatar_url)
-            || ""
+          || normalizeBackendAssetUrl(profile.avatar_url)
+          || normalizeBackendAssetUrl(user?.external_avatar_url)
+          || ""
           : normalizeBackendAssetUrl(user?.external_avatar_url) || "";
 
         return isUsableAvatarUrl(rawAvatar)
@@ -869,9 +871,56 @@ export async function addBrandRosterTalent(profileId: string, notes?: string) {
   return response.data;
 }
 
+export interface CreateManagedTalentPayload {
+  name: string;
+  phone?: string;
+  city: string;
+  talent_types: string[];
+  notes?: string;
+}
+
+export async function createBrandManagedTalent(payload: CreateManagedTalentPayload) {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BrandRosterTalent }>("/brand/talents", {
+    method: "POST",
+    body: JSON.stringify({
+      name: payload.name,
+      phone: payload.phone || undefined,
+      city: payload.city,
+      talent_types: payload.talent_types,
+      notes: payload.notes || undefined,
+    }),
+  });
+
+  return response.data;
+}
+
 export async function updateBrandRosterTalent(
   rosterTalentId: string,
   payload: { status?: BrandRosterTalent["status"]; notes?: string | null },
+) {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: BrandRosterTalent }>(`/brand/talents/${rosterTalentId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+
+  return response.data;
+}
+
+export interface UpdateManagedTalentPayload {
+  name?: string;
+  phone?: string;
+  city?: string;
+  talent_types?: string[];
+  notes?: string | null;
+}
+
+export async function updateBrandManagedTalent(
+  rosterTalentId: string,
+  payload: UpdateManagedTalentPayload,
 ) {
   requireBrandSession();
 
@@ -1042,7 +1091,7 @@ export async function addTalentToBrandCampaign(campaignId: string, profileId: st
       id: `local-${campaignId}-${profileId}`,
       campaign_id: campaignId,
       profile_id: profileId,
-      status: "new",
+      status: "accepted",
       notes,
     } as BackendCampaignTalent;
   }
@@ -1051,7 +1100,7 @@ export async function addTalentToBrandCampaign(campaignId: string, profileId: st
     method: "POST",
     body: JSON.stringify({
       profile_id: profileId,
-      status: "new",
+      status: "accepted",
       notes,
     }),
   });
