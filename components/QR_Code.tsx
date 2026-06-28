@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface QRCodeProps {
   campaignLink?: string;
+  qrPayload?: string;
   qrCodeSvg?: string; // Optional raw SVG string
   qrImageUrl?: string; // Optional direct image URL
   title?: string;
@@ -23,6 +24,7 @@ interface QRCodeProps {
 
 export default function QRCodeContainer({
   campaignLink = "",
+  qrPayload: rawQrPayload,
   qrCodeSvg,
   qrImageUrl,
   title = "Mã QR nhận Ủng Hộ (Donate)",
@@ -40,13 +42,16 @@ export default function QRCodeContainer({
   const [copied, setCopied] = useState(false);
   const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const qrPayload = React.useMemo(() => {
+    const directPayload = String(rawQrPayload || "").trim();
+    if (directPayload) return directPayload;
+
     const rawLink = campaignLink.trim();
     if (!rawLink) return "";
     if (rawLink.startsWith("/") && typeof window !== "undefined") {
       return `${window.location.origin}${rawLink}`;
     }
     return rawLink;
-  }, [campaignLink]);
+  }, [campaignLink, rawQrPayload]);
 
   const defaultCopyLink = () => {
     if (!qrPayload) return;

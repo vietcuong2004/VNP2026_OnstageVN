@@ -22,6 +22,13 @@ export interface DonationCampaign {
   status: DonationCampaignStatus;
   details?: string;
   progressPercent?: number;
+  collectionChannel?: {
+    provider?: string;
+    channelCode?: string;
+    status?: string;
+    qrCodeSvg?: string;
+    qrPayload?: string;
+  };
   qrCodeSvg?: string;
   qrPayload?: string;
   currency?: string;

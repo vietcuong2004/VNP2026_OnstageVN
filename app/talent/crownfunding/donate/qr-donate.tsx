@@ -6,6 +6,7 @@ import QRCodeContainer from "@/components/QR_Code";
 interface QrDonateProps {
   campaignLink?: string;
   qrCodeSvg?: string;
+  qrPayload?: string;
   showShareMenu?: boolean;
   setShowShareMenu?: (show: boolean) => void;
   onCopyLink?: () => void;
@@ -18,6 +19,7 @@ interface QrDonateProps {
 export function QrDonate({
   campaignLink,
   qrCodeSvg,
+  qrPayload,
   onCopyLink,
   onDownloadQr,
   onShareFacebook,
@@ -27,7 +29,12 @@ export function QrDonate({
   return (
     <QRCodeContainer
       campaignLink={campaignLink}
+      qrPayload={qrPayload}
       qrCodeSvg={qrCodeSvg}
+      qrImageUrl={undefined}
+      title="Mã QR nhận ủng hộ (Donate)"
+      subtitle={qrPayload ? "Quét mã để mở luồng thu hộ của campaign" : "Campaign chưa có QR thu hộ, đang dùng link chia sẻ dự phòng"}
+      badgeText={qrPayload ? "QR Thu Hộ Mock" : "Link Chia Sẻ Dự Phòng"}
       onCopyLink={onCopyLink}
       onDownloadQr={onDownloadQr}
       onShareFacebook={onShareFacebook}

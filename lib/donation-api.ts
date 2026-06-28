@@ -29,6 +29,13 @@ type BackendDonationCampaign = {
   progress_percent?: number | null;
   donation_qr_payload?: string | null;
   donation_qr_code?: string | null;
+  collection_channel?: {
+    provider?: string | null;
+    channel_code?: string | null;
+    status?: string | null;
+    qr_payload?: string | null;
+    qr_code?: string | null;
+  } | null;
   currency?: string | null;
   starts_at?: string | null;
   ends_at?: string | null;
@@ -176,6 +183,10 @@ export function mapBackendDonationCampaign(campaign: BackendDonationCampaign): D
   const goal = Number(campaign.goal_amount || 0);
   const raised = Number(campaign.raised_amount || 0);
   const coverImages = [...DEFAULT_CAMPAIGN_IMAGES];
+  const activeCollectionChannel =
+    campaign.collection_channel && campaign.collection_channel.status === "active"
+      ? campaign.collection_channel
+      : null;
 
   return {
     id: campaign.id,
@@ -193,8 +204,15 @@ export function mapBackendDonationCampaign(campaign: BackendDonationCampaign): D
     endDate: formatIsoDate(campaign.ends_at),
     status,
     progressPercent: Number(campaign.progress_percent || 0),
-    qrCodeSvg: campaign.donation_qr_code || undefined,
-    qrPayload: campaign.donation_qr_payload || undefined,
+    collectionChannel: activeCollectionChannel ? {
+      provider: activeCollectionChannel.provider || undefined,
+      channelCode: activeCollectionChannel.channel_code || undefined,
+      status: activeCollectionChannel.status || undefined,
+      qrCodeSvg: activeCollectionChannel.qr_code || undefined,
+      qrPayload: activeCollectionChannel.qr_payload || undefined,
+    } : undefined,
+    qrCodeSvg: activeCollectionChannel?.qr_code || undefined,
+    qrPayload: activeCollectionChannel?.qr_payload || undefined,
     currency: campaign.currency || "VND",
     createdAt: campaign.created_at || undefined,
     updatedAt: campaign.updated_at || undefined,

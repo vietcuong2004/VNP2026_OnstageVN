@@ -94,6 +94,9 @@ export default function CampaignReferralPage() {
 
   const refId = searchParams.get("ref") || "";
   const refNameSlug = searchParams.get("name") || "";
+  const donateSuccess = searchParams.get("donate_success") === "1";
+  const donationCampaignTitle = (searchParams.get("title") || "").trim();
+  const donationAmount = Math.max(1000, Number(searchParams.get("mock_amount") || 100000) || 100000);
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [resolvedReferrerName, setResolvedReferrerName] = useState("");
@@ -147,6 +150,58 @@ export default function CampaignReferralPage() {
     : "Một KOL uy tín";
   const referrerName = resolvedReferrerName || referrerTalent?.name || fallbackReferrerName;
 
+  const renderDonateSuccessScreen = (campaignTitle: string) => (
+    <div className="min-h-screen bg-[#020408] text-slate-100 py-10 px-4 md:px-8 relative overflow-x-hidden">
+      <div className="absolute top-[-10%] right-[-10%] -z-10 h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-amber-500/10 blur-[160px] pointer-events-none" />
+
+      <div className="max-w-3xl mx-auto">
+        <div className="rounded-3xl border border-emerald-500/25 bg-emerald-500/5 p-8 md:p-10 text-center space-y-6 shadow-[0_24px_60px_rgba(16,185,129,0.12)]">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 mx-auto">
+            <CheckCircle className="h-10 w-10" />
+          </div>
+
+          <div className="space-y-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/10 border border-emerald-400/20 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.28em] text-emerald-300">
+              <ShieldCheck className="h-4 w-4" />
+              Donate Thành Công
+            </span>
+            <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight">
+              Bạn đã donate thành công
+            </h1>
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed max-w-2xl mx-auto">
+              Cảm ơn bạn đã ủng hộ <span className="font-black text-white">{campaignTitle}</span>.
+              Khoản đóng góp <span className="font-black text-emerald-300">{formatVND(donationAmount)}</span> đã được ghi nhận vào chiến dịch.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 text-left md:grid-cols-2">
+            <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+              <span className="block text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Chiến dịch</span>
+              <span className="mt-2 block text-lg font-black text-white">{campaignTitle}</span>
+            </div>
+            <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+              <span className="block text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Số tiền ghi nhận</span>
+              <span className="mt-2 block text-lg font-black text-emerald-300">{formatVND(donationAmount)}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <button
+              onClick={() => router.push("/")}
+              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-300 to-teal-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:brightness-105 active:scale-[0.98] transition-all shadow-lg cursor-pointer"
+            >
+              Về trang chủ
+            </button>
+            <p className="text-xs text-slate-400 font-medium">
+              Đây là màn xác nhận dành cho người ủng hộ từ link QR donate.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!campaign) return;
@@ -188,6 +243,10 @@ export default function CampaignReferralPage() {
     setIsApplied(true);
     setError("");
   };
+  if (!campaign && donateSuccess) {
+    return renderDonateSuccessScreen(donationCampaignTitle || "chiến dịch này");
+  }
+
   if (!campaign) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#020408] text-slate-100 p-6">
@@ -208,6 +267,10 @@ export default function CampaignReferralPage() {
 
   // Get selected talent's name for success view
   const applicantName = talents.find(t => t.id === selectedTalentId)?.name || "KOL";
+
+  if (donateSuccess) {
+    return renderDonateSuccessScreen(donationCampaignTitle || campaign.title);
+  }
 
   return (
     <div className="min-h-screen bg-[#020408] text-slate-100 py-10 px-4 md:px-8 relative overflow-x-hidden">

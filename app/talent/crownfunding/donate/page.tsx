@@ -128,6 +128,7 @@ export default function DonatePage() {
   );
 
   const campaignTone = campaign ? statusTone(campaign.status) : null;
+  const hasCollectionQr = Boolean(campaign?.collectionChannel?.qrPayload || campaign?.collectionChannel?.qrCodeSvg);
   const campaignImages = campaign?.coverImages?.length
     ? campaign.coverImages
     : campaign?.coverImage
@@ -202,11 +203,18 @@ export default function DonatePage() {
   };
 
   const handleCopyLink = async () => {
+    const valueToCopy = campaign?.qrPayload || getDonationShareLink(campaign);
+
     try {
-      await navigator.clipboard.writeText(getDonationShareLink(campaign));
-      addToast("Đã sao chép liên kết gây quỹ vào clipboard.", "info");
+      await navigator.clipboard.writeText(valueToCopy);
+      addToast(
+        campaign?.qrPayload
+          ? "Đã sao chép payload QR thu hộ vào clipboard."
+          : "Đã sao chép liên kết gây quỹ vào clipboard.",
+        "info",
+      );
     } catch {
-      addToast("Không thể sao chép liên kết lúc này.", "info");
+      addToast("Không thể sao chép dữ liệu QR lúc này.", "info");
     }
   };
 
@@ -591,26 +599,32 @@ export default function DonatePage() {
             </div>
 
             {/* Right side: QR Donate */}
-            <QrDonate
-              campaignLink={getDonationShareLink(campaign)}
-              qrCodeSvg={campaign.qrCodeSvg}
-              showShareMenu={showShareMenu}
-              setShowShareMenu={setShowShareMenu}
-              onCopyLink={handleCopyLink}
-              onDownloadQr={handleDownloadQr}
-              onShareFacebook={() => {
-                addToast("Đã chia sẻ lên Facebook!", "success");
-                setShowShareMenu(false);
-              }}
-              onShareInstagram={() => {
-                addToast("Đã chia sẻ lên Instagram!", "success");
-                setShowShareMenu(false);
-              }}
-              onShareZalo={() => {
-                addToast("Đã tạo liên kết chia sẻ Zalo!", "success");
-                setShowShareMenu(false);
-              }}
-            />
+            {hasCollectionQr ? (
+              <QrDonate
+                campaignLink={getDonationShareLink(campaign)}
+                qrCodeSvg={campaign.qrCodeSvg}
+                qrPayload={campaign.qrPayload}
+                showShareMenu={showShareMenu}
+                setShowShareMenu={setShowShareMenu}
+                onCopyLink={handleCopyLink}
+                onDownloadQr={handleDownloadQr}
+              />
+            ) : (
+              <div className="lg:col-span-4 relative overflow-hidden rounded-3xl border border-dashed border-white/10 bg-gradient-to-br from-slate-900/95 via-[#0b1220] to-[#04070d] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+                <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-sky-400/10 blur-2xl pointer-events-none" />
+                <div className="space-y-3">
+                  <span className="inline-flex items-center rounded-md border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-sky-300">
+                    Chờ admin tạo QR thu hộ
+                  </span>
+                  <h3 className="font-display text-sm font-black uppercase tracking-wider text-white">
+                    Campaign này chưa hiển thị QR donate
+                  </h3>
+                  <p className="text-xs font-medium leading-relaxed text-slate-400">
+                    Khi admin bấm <span className="text-slate-200">Sync QR thu hộ</span> ở trang quản trị, QR mới sẽ hiện ở đây và quét sẽ đi vào luồng mock cộng tiền ngay.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <DonationHistory supporters={supporters} />
