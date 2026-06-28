@@ -1,4 +1,4 @@
-const PUBLIC_PREFIXES = ["/auth", "/campaign", "/ref"];
+const PUBLIC_PREFIXES = ["/auth", "/campaign", "/ref", "/activate-talent"];
 
 export function normalizePath(path: string) {
   const [withoutQuery] = path.split(/[?#]/);

@@ -185,18 +185,6 @@ export default function CampaignReferralPage() {
               <span className="mt-2 block text-lg font-black text-emerald-300">{formatVND(donationAmount)}</span>
             </div>
           </div>
-
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <button
-              onClick={() => router.push("/")}
-              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-300 to-teal-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:brightness-105 active:scale-[0.98] transition-all shadow-lg cursor-pointer"
-            >
-              Về trang chủ
-            </button>
-            <p className="text-xs text-slate-400 font-medium">
-              Đây là màn xác nhận dành cho người ủng hộ từ link QR donate.
-            </p>
-          </div>
         </div>
       </div>
     </div>

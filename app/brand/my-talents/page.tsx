@@ -31,6 +31,7 @@ import InviteModal from "./invite-modal";
 import CreateTalentModal from "./create-modal";
 import EditTalentModal from "./edit-modal";
 import TalentCard from "./talent-card";
+import ActivationCard from "./activation-card";
 
 export type RosterStatus = "accepted" | "pending" | "declined";
 
@@ -64,6 +65,8 @@ export interface BrandTalentCard {
   completion?: number;
   matchScore?: number;
   userStatus?: string;
+  userId?: string;
+  isGhost?: boolean;
   [key: string]: unknown;
 }
 
@@ -150,6 +153,8 @@ function profileToTalent(
     id: String(profile.id || fallback?.id || ""),
     name: displayName,
     userStatus: profile.user?.status || fallback?.userStatus || "",
+    userId: profile.user?.id ? String(profile.user.id) : fallback?.userId,
+    isGhost: typeof profile.user?.is_ghost !== "undefined" ? Boolean(profile.user.is_ghost) : Boolean(fallback?.isGhost),
     phone: profile.user?.phone || fallback?.phone || "",
     type: profile.talent_types?.[0] || fallback?.type || "Talent",
     city: profile.city || fallback?.city || "",
@@ -504,6 +509,14 @@ export default function MyTalentsPage() {
     return searchQuery === "" || talent.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
+  const activationTalentItems = roster
+    .map((entry) => {
+      const cleanId = (id: string | number) => String(id || "").replace(/^tal-/, "");
+      const talent = displayTalents.find((t) => cleanId(t.id) === cleanId(entry.talentId));
+      return talent && entry.rosterId && talent.isGhost ? { entry, talent } : null;
+    })
+    .filter((item): item is { entry: RosterTalent; talent: BrandTalentCard } => Boolean(item));
+
   return (
     <div className="relative space-y-6 pb-20 md:space-y-8 md:pb-0 animate-in fade-in duration-500">
       {/* Immersive Background Image & Dark Overlay */}
@@ -609,6 +622,9 @@ export default function MyTalentsPage() {
             <span className="truncate select-all">{affiliateLink}</span>
           </div>
         </div>
+        <ActivationCard items={activationTalentItems} addToast={addToast} />
+
+
 
         {/* 👥 Danh sách Talent */}
         <div className="space-y-4 pt-4">

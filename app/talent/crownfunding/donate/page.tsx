@@ -620,7 +620,7 @@ export default function DonatePage() {
                     Campaign này chưa hiển thị QR donate
                   </h3>
                   <p className="text-xs font-medium leading-relaxed text-slate-400">
-                    Khi admin bấm <span className="text-slate-200">Sync QR thu hộ</span> ở trang quản trị, QR mới sẽ hiện ở đây và quét sẽ đi vào luồng mock cộng tiền ngay.
+                    Mã QR ủng hộ sẽ hiển thị tại đây ngay khi hệ thống sẵn sàng. Khi có QR, bạn chỉ cần chia sẻ để người ủng hộ quét và đóng góp cho chiến dịch.
                   </p>
                 </div>
               </div>

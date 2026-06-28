@@ -12,6 +12,7 @@ type BackendUser = {
   type?: string | null;
   status?: string | null;
   is_verified?: boolean | number | null;
+  is_ghost?: boolean | number | null;
   external_avatar_url?: string | null;
   parent_id?: number | string | null;
   parent?: BackendUser | null;
@@ -191,6 +192,20 @@ export type BrandRosterTalent = {
     commission_base?: string | null;
     status?: string | null;
   } | null;
+};
+
+export type ManagedTalentActivationLink = {
+  id: number | string;
+  brand_talent_id: number | string;
+  talent_user_id: number | string;
+  token: string;
+  url: string;
+  expires_at?: string | null;
+  used_at?: string | null;
+  is_expired: boolean;
+  conversation_id?: number | string | null;
+  brand?: { id?: number | string; name?: string | null; avatar_url?: string | null } | null;
+  talent?: { id?: number | string; name?: string | null; email?: string | null; phone?: string | null; is_ghost?: boolean } | null;
 };
 
 export type BrandTalentInviteLink = {
@@ -891,12 +906,12 @@ export interface CreateManagedTalentPayload {
 export async function createBrandManagedTalent(payload: CreateManagedTalentPayload) {
   requireBrandSession();
 
-  const response = await apiJson<{ data: BrandRosterTalent }>("/brand/talents", {
+  const response = await apiJson<{ data: BrandRosterTalent }>("/brand/talents/quick-create", {
     method: "POST",
     body: JSON.stringify({
-      name: payload.name,
+      display_name: payload.name,
       phone: payload.phone || undefined,
-      city: payload.city,
+      city: payload.city || undefined,
       talent_types: payload.talent_types,
       notes: payload.notes || undefined,
     }),
@@ -935,7 +950,13 @@ export async function updateBrandManagedTalent(
 
   const response = await apiJson<{ data: BrandRosterTalent }>(`/brand/talents/${rosterTalentId}`, {
     method: "PUT",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      display_name: payload.name,
+      phone: payload.phone || null,
+      city: payload.city || null,
+      talent_types: payload.talent_types,
+      notes: payload.notes ?? null,
+    }),
   });
 
   return response.data;
@@ -947,6 +968,16 @@ export async function removeBrandRosterTalent(rosterTalentId: string) {
   await apiJson(`/brand/talents/${rosterTalentId}`, {
     method: "DELETE",
   });
+}
+
+export async function createManagedTalentActivationLink(rosterTalentId: string) {
+  requireBrandSession();
+
+  const response = await apiJson<{ data: ManagedTalentActivationLink }>(`/brand/talents/${rosterTalentId}/activation-link`, {
+    method: "POST",
+  });
+
+  return response.data;
 }
 
 export async function loadBrandTalentInviteLink() {
