@@ -126,6 +126,18 @@ export default function QRCodeContainer({
     }
   };
 
+  const defaultShare = () => {
+    if (!qrPayload) return;
+    if (navigator.share) {
+      navigator.share({
+        title: title || "Chia sẻ",
+        url: qrPayload,
+      }).catch(() => { });
+    } else {
+      setShowShareMenu(true);
+    }
+  };
+
   const createInitialAvatarDataUrl = (name: string, email?: string) => {
     const text = String(name || "").trim();
     const initials = text ? text.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase() : "QR";
@@ -229,12 +241,12 @@ export default function QRCodeContainer({
           disabled={!qrPayload}
           className="flex-1 flex h-11 items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-slate-200 hover:text-white hover:border-slate-400 transition-all cursor-pointer disabled:opacity-50 px-2"
         >
-          <Download className="h-4 w-4 shrink-0" /> Tải QR PNG
+          <Download className="h-4 w-4 shrink-0" /> Tải về
         </button>
         <button
-          onClick={() => setShowShareMenu(!showShareMenu)}
+          onClick={defaultShare}
           disabled={!qrPayload}
-          className="flex-1 flex h-11 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[#F0C56B] text-[#02040a] hover:bg-[#d6af5d] hover:shadow-[0_0_15px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all duration-300 cursor-pointer shadow-lg disabled:opacity-50 px-2"
+          className="flex-1 flex h-11 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[#F0C56B] text-[#02040a] font-black hover:bg-[#d6af5d] hover:shadow-[0_0_15px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all duration-300 cursor-pointer shadow-lg disabled:opacity-50 px-2"
         >
           <Share2 className="h-4 w-4 shrink-0" /> {shareButtonLabel}
         </button>
@@ -258,7 +270,7 @@ export default function QRCodeContainer({
             </div>
 
             <p className="text-xs text-slate-400 mb-5 leading-normal">
-              Chọn nền tảng để chia sẻ liên kết tuyển dụng của chiến dịch này:
+              Chọn nền tảng để chia sẻ liên kết:
             </p>
 
             {/* Grid of options */}

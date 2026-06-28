@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Users2, Briefcase, DollarSign, CheckCircle, Clock, Wallet, TrendingUp, UserPlus, Link2, Copy, Check, Download, Share2, X, Plus, Shield, MapPin, Eye, MessageSquare, QrCode
+  Users2, Briefcase, DollarSign, CheckCircle, Clock, Wallet, TrendingUp, UserPlus, Link2, Copy, Check, Download, Share2, X, Plus, Shield, MapPin, Eye, MessageSquare, QrCode, Search, Phone, Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QRCodeContainer from "@/components/QR_Code";
+import { QRCodeCanvas } from "qrcode.react";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, profileAvatarFromBackend } from "@/lib/avatar";
 import { talents as allTalents, type Campaign, type TalentProfile } from "@/lib/brand-mvp-data";
 import {
@@ -18,12 +19,18 @@ import {
   loadBrandTalentInviteLink,
   loadBrandTalents,
   removeBrandRosterTalent,
+  createBrandManagedTalent,
+  updateBrandManagedTalent,
+  addTalentToBrandCampaign,
   type BrandRosterTalent,
   type BrandCommissionTransaction,
 } from "@/lib/brand-api";
 import { getStoredAuthUser } from "@/lib/api-client";
 
 import InviteModal from "./invite-modal";
+import CreateTalentModal from "./create-modal";
+import EditTalentModal from "./edit-modal";
+import TalentCard from "./talent-card";
 
 export type RosterStatus = "accepted" | "pending" | "declined";
 
@@ -31,6 +38,7 @@ export interface BrandTalentCard {
   id: string;
   name: string;
   email?: string;
+  phone?: string;
   avatar?: string;
   type?: string;
   city?: string;
@@ -55,6 +63,7 @@ export interface BrandTalentCard {
   languages?: string[];
   completion?: number;
   matchScore?: number;
+  userStatus?: string;
   [key: string]: unknown;
 }
 
@@ -67,6 +76,7 @@ export interface RosterTalent {
   activeJobs: number;
   completedJobs: number;
   invitedBy?: string;
+  notes?: string | null;
 }
 
 const COMMISSION_RATE = 0.10; // F1 = 10%
@@ -104,6 +114,15 @@ function usableText(value: unknown) {
   return text;
 }
 
+function formatDisplayDate(dateStr: string) {
+  if (!dateStr) return "";
+  const parts = dateStr.split("-");
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateStr;
+}
+
 function profileToTalent(
   profile: BrandRosterTalent["talent_profile"],
   fallback?: BrandTalentCard,
@@ -130,6 +149,8 @@ function profileToTalent(
     ...fallback,
     id: String(profile.id || fallback?.id || ""),
     name: displayName,
+    userStatus: profile.user?.status || fallback?.userStatus || "",
+    phone: profile.user?.phone || fallback?.phone || "",
     type: profile.talent_types?.[0] || fallback?.type || "Talent",
     city: profile.city || fallback?.city || "",
     district: profile.district || fallback?.district || "",
@@ -166,6 +187,7 @@ function rosterFromBackend(item: BrandRosterTalent): RosterTalent {
     activeJobs: 0,
     completedJobs: 0,
     invitedBy,
+    notes: item.notes,
   };
 }
 
@@ -178,6 +200,51 @@ export default function MyTalentsPage() {
   const [commissionLoading, setCommissionLoading] = useState(true);
   const [affiliateLink, setAffiliateLink] = useState(`https://onstage.vn/ref/${AFFILIATE_ID}`);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showActivateModal, setShowActivateModal] = useState(false);
+  const [activatingTalent, setActivatingTalent] = useState<BrandTalentCard | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingTalentId, setDeletingTalentId] = useState<string | null>(null);
+  const [deletingTalentName, setDeletingTalentName] = useState("");
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingTalent, setEditingTalent] = useState<BrandTalentCard | null>(null);
+  const [editingEntry, setEditingEntry] = useState<RosterTalent | null>(null);
+
+  const [showAssignJobModal, setShowAssignJobModal] = useState(false);
+  const [assigningTalent, setAssigningTalent] = useState<BrandTalentCard | null>(null);
+  const [selectedCampaignId, setSelectedCampaignId] = useState("");
+  const [assignNotes, setAssignNotes] = useState("");
+  const [assigningLoading, setAssigningLoading] = useState(false);
+  const [searchInputValue, setSearchInputValue] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleAssignJobConfirm = async () => {
+    if (!assigningTalent) return;
+    if (!selectedCampaignId) {
+      addToast("Vui lòng chọn chiến dịch!");
+      return;
+    }
+    setAssigningLoading(true);
+    try {
+      await addTalentToBrandCampaign(selectedCampaignId, assigningTalent.id, assignNotes);
+      const campaign = campaigns.find(c => String(c.id) === String(selectedCampaignId));
+      addToast(`Đã thêm ${assigningTalent.name} vào chiến dịch ${campaign?.title || ""} thành công!`);
+      setShowAssignJobModal(false);
+      setAssigningTalent(null);
+      setSelectedCampaignId("");
+      setAssignNotes("");
+    } catch (error: any) {
+      console.error("Failed to assign job:", error);
+      const errMsg = error?.message || "";
+      if (errMsg.includes("Talent nay da nam trong campaign.")) {
+        addToast("Talent này đã có trong chiến dịch!");
+      } else {
+        addToast("Không thể gán job cho talent. Vui lòng thử lại!");
+      }
+    } finally {
+      setAssigningLoading(false);
+    }
+  };
   const [inviteSearch, setInviteSearch] = useState("");
   const [inviteSent, setInviteSent] = useState<string[]>([]);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -329,11 +396,37 @@ export default function MyTalentsPage() {
     addToast("Đã xoá Talent khỏi danh sách hợp tác.");
   };
 
+  const handleEditClick = (talent: BrandTalentCard, entry: RosterTalent) => {
+    setEditingTalent(talent);
+    setEditingEntry(entry);
+    setShowEditModal(true);
+  };
+
+  const handleEditSuccess = (updatedEntry: RosterTalent, updatedTalentPartial: Partial<BrandTalentCard>) => {
+    setRoster(prev => prev.map(r => r.talentId === updatedEntry.talentId ? updatedEntry : r));
+    setDisplayTalents(prev => prev.map(t => t.id === editingTalent?.id ? { ...t, ...updatedTalentPartial } : t));
+  };
+
+  const handleDeleteClick = (talentId: string, name: string) => {
+    setDeletingTalentId(talentId);
+    setDeletingTalentName(name);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deletingTalentId) {
+      await handleRemove(deletingTalentId);
+    }
+    setShowDeleteConfirm(false);
+    setDeletingTalentId(null);
+    setDeletingTalentName("");
+  };
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(affiliateLink).catch(() => { });
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
-    addToast("Đã sao chép Affiliate Link!");
+    addToast("Đã sao chép link mời!");
   };
 
   const downloadQr = async () => {
@@ -362,7 +455,7 @@ export default function MyTalentsPage() {
       navigator.share({
         title: "Tuyển dụng Talent vào Brand",
         url: affiliateLink,
-      }).catch(() => {});
+      }).catch(() => { });
     } else {
       setShowShareMenu(true);
     }
@@ -404,11 +497,12 @@ export default function MyTalentsPage() {
     return "maybe";
   };
 
-  const statusConfig = {
-    accepted: { label: "Đã chấp nhận", dot: "bg-emerald-400", text: "text-emerald-400" },
-    pending: { label: "Đang chờ xác nhận", dot: "bg-amber-400 animate-pulse", text: "text-amber-400" },
-    declined: { label: "Đã từ chối", dot: "bg-red-400", text: "text-red-400" },
-  };
+  const filteredRoster = roster.filter((entry) => {
+    const cleanId = (id: string | number) => String(id || "").replace(/^tal-/, "");
+    const talent = displayTalents.find((t) => cleanId(t.id) === cleanId(entry.talentId));
+    if (!talent) return false;
+    return searchQuery === "" || talent.name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   return (
     <div className="relative space-y-6 pb-20 md:space-y-8 md:pb-0 animate-in fade-in duration-500">
@@ -432,7 +526,7 @@ export default function MyTalentsPage() {
                 TALENT MANAGEMENT
               </span>
               <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-yellow-400/30 bg-yellow-400/10 text-yellow-200">
-                Gateway Active
+                Brand Portal
               </span>
             </div>
             <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-4xl uppercase">
@@ -442,17 +536,25 @@ export default function MyTalentsPage() {
               Quản lý đội ngũ KOL độc quyền, theo dõi tiến độ chiến dịch và hoa hồng giới thiệu Affiliate.
             </p>
           </div>
-          
-          <button
-            onClick={() => setShowInviteModal(true)}
-            className="flex w-full lg:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(244,196,48,0.25)] hover:shadow-[0_0_25px_rgba(244,196,48,0.45)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-300 shrink-0"
-          >
-            <UserPlus className="h-4 w-4" />
-            Thêm Talent
-          </button>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(244,196,48,0.25)] hover:shadow-[0_0_25px_rgba(244,196,48,0.45)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-300 shrink-0"
+            >
+              <UserPlus className="h-4 w-4" />
+              Thêm Talent mới
+            </button>
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-slate-950 border border-white/10 hover:border-amber-400/30 text-white hover:text-amber-300 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
+            >
+              <Search className="h-4 w-4 text-amber-400" />
+              Thêm từ hệ thống
+            </button>
+          </div>
         </div>
       </div>
-
 
       {/* ── Content Area ── */}
       <div className="relative z-10 space-y-6 animate-in fade-in duration-300">
@@ -466,7 +568,7 @@ export default function MyTalentsPage() {
               </div>
               <div className="space-y-1">
                 <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-400">
-                  AFFILIATE LINK
+                  LINK MỜI VÀO BRAND
                 </span>
                 <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
                   Tuyển Dụng Talent
@@ -510,13 +612,47 @@ export default function MyTalentsPage() {
 
         {/* 👥 Danh sách Talent */}
         <div className="space-y-4 pt-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h3 className="font-display font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
-              <Users2 className="h-4.5 w-4.5 text-amber-400 fill-amber-400/20 animate-pulse" /> Đội ngũ Talent hợp tác
+              <Users2 className="h-4.5 w-4.5 text-amber-400 fill-amber-400/20 animate-pulse" /> Danh sách talent của tôi
             </h3>
-            <span className="text-[9px] font-bold text-amber-400 bg-amber-400/10 border border-amber-500/20 px-3 py-1 rounded uppercase tracking-wider">
-              {acceptedRoster.length} Đang hoạt động
-            </span>
+            {/* Search Input with nested button */}
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                value={searchInputValue}
+                onChange={(e) => setSearchInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setSearchQuery(searchInputValue);
+                  }
+                }}
+                placeholder="Nhập tên để tìm kiếm..."
+                className="w-full h-9 pl-9 pr-20 rounded-xl border border-white/10 bg-slate-950 text-xs font-semibold text-white focus:outline-none focus:border-white/30 placeholder:text-slate-500"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+
+              {/* Clear button X */}
+              {searchInputValue && (
+                <button
+                  onClick={() => {
+                    setSearchInputValue("");
+                    setSearchQuery("");
+                  }}
+                  className="absolute right-14 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+
+              {/* "Tìm" button inside search box on the right */}
+              <button
+                onClick={() => setSearchQuery(searchInputValue)}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-400/10 border border-amber-400/20 hover:bg-amber-400/20 text-amber-400 hover:text-amber-300 transition-all cursor-pointer"
+              >
+                Tìm
+              </button>
+            </div>
           </div>
 
           {roster.length === 0 ? (
@@ -534,159 +670,54 @@ export default function MyTalentsPage() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {roster.map((entry) => {
-                const cleanId = (id: string | number) => String(id || "").replace(/^tal-/, "");
-                const talent = displayTalents.find((t) => cleanId(t.id) === cleanId(entry.talentId));
-                if (!talent) return null;
-                const sc = statusConfig[entry.status];
-                const isAccepted = entry.status === "accepted";
-                const isPending = entry.status === "pending";
-                return (
-                  <div
-                    key={entry.talentId}
-                    className={cn(
-                      "relative rounded-2xl border p-4 md:p-6 transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-b from-[#111421]/90 to-[#070913]/98 shadow-[0_0_22px_rgba(0,0,0,0.4)]",
-                      isAccepted
-                        ? "border-emerald-500/35 hover:border-emerald-500/60"
-                        : isPending
-                          ? "border-amber-500/25 hover:border-amber-500/50"
-                          : "border-red-500/25 opacity-60 hover:opacity-80"
-                    )}
-                  >
-                    {/* Glow burst background */}
-                    <div className={cn("absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl", 
-                      isAccepted ? "bg-gradient-to-br from-emerald-300 to-green-600" : "bg-gradient-to-br from-amber-300 to-yellow-600"
-                    )}></div>
-
-                    {/* Status indicator */}
-                    <div className="mb-3 inline-flex items-center gap-1.5 bg-slate-950/80 border border-white/5 px-2.5 py-1 rounded-full md:absolute md:top-4 md:right-5 md:mb-0 md:py-0.5 backdrop-blur-md">
-                      <span className={cn("h-1.5 w-1.5 rounded-full", sc.dot)} />
-                      <span className={cn("text-[9px] font-black uppercase tracking-wider", sc.text)}>{sc.label}</span>
-                    </div>
-
-                    <div className="flex items-start gap-4 relative z-10">
-                      {/* Avatar */}
-                      <div className="relative shrink-0">
-                        <div className={cn(
-                          "h-16 w-16 rounded-2xl overflow-hidden border-2 p-[2px] transition-colors duration-300",
-                          isAccepted ? "border-emerald-500/30 bg-emerald-500/10" : "border-amber-500/30 bg-amber-500/10"
-                        )}>
-                          <img
-                            src={talent.avatar}
-                            alt={talent.name}
-                            onError={(event) => {
-                              event.currentTarget.src = createInitialAvatarDataUrl(talent.name, talent.email);
-                            }}
-                            className="h-full w-full rounded-[14px] object-cover"
-                          />
-                        </div>
-                        {talent.verified && (
-                          <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-[#08090f] border border-[#151b2d] flex items-center justify-center shadow-md">
-                            <Shield className="h-3.5 w-3.5 text-emerald-400" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0 md:pr-16">
-                        <h3 className="text-base font-black text-white truncate hover:text-amber-400 transition-colors cursor-pointer">{talent.name}</h3>
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                          <span className={cn("rounded border px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider", tierColor(talent.tier ?? ""))}>
-                            Tier {talent.tier}
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{talent.type}</span>
-                          <span className="flex items-center gap-1 text-[10px] text-slate-500 font-semibold">
-                            <MapPin className="h-3 w-3 text-slate-500" />{talent.city}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2.5 text-[10px] text-slate-400 font-semibold">
-                          <span className="flex items-center gap-1">👥 <strong className="text-white">{talent.followers}</strong> followers</span>
-                          <span className="flex items-center gap-1">⭐ <strong className="text-white">{talent.rating}</strong>/5</span>
-                        </div>
-                        <p className="mt-2 text-[10px] font-semibold text-slate-500">
-                          Được mời bởi: <span className="font-bold text-slate-300">{entry.invitedBy || "Brand"}</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    {isAccepted && (
-                      <>
-                        {/* Stats row */}
-                        <div className="mt-5 pt-4 border-t border-white/5 grid grid-cols-3 gap-2 text-center relative z-10">
-                          <div className="bg-slate-950/70 rounded-xl p-2 border border-white/5">
-                            <p className="text-[11px] font-black text-emerald-400 font-mono break-words">{formatVND(entry.earnedCommission)}</p>
-                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Hoa hồng</p>
-                          </div>
-                          <div className="bg-slate-950/70 rounded-xl p-2 border border-white/5">
-                            <p className="text-sm font-black text-cyan-400 font-mono">{entry.activeJobs}</p>
-                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Đang làm</p>
-                          </div>
-                          <div className="bg-slate-950/70 rounded-xl p-2 border border-white/5">
-                            <p className="text-sm font-black text-white font-mono">{entry.completedJobs}</p>
-                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Đã xong</p>
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="mt-4 grid grid-cols-3 gap-2 relative z-10">
-                          <button
-                            onClick={() => router.push(`/brand/talents/${talent.id}`)}
-                            className="flex h-9 items-center justify-center gap-1 rounded-xl bg-slate-950 border border-white/10 hover:border-amber-400/30 text-[9px] font-black uppercase tracking-wider text-slate-300 hover:text-amber-400 transition-all cursor-pointer"
-                          >
-                            <Eye className="h-3.5 w-3.5 text-amber-400" /> Hồ sơ
-                          </button>
-                          <button
-                            onClick={() => router.push(`/brand/campaigns`)}
-                            className="flex h-9 items-center justify-center gap-1 rounded-xl bg-slate-950 border border-white/10 hover:border-cyan-400/30 text-[9px] font-black uppercase tracking-wider text-slate-300 hover:text-cyan-400 transition-all cursor-pointer"
-                          >
-                            <Briefcase className="h-3.5 w-3.5 text-cyan-400" /> Assign Job
-                          </button>
-                          <button
-                            onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
-                            className="flex h-9 items-center justify-center gap-1 rounded-xl bg-slate-950 border border-white/10 hover:border-purple-400/30 text-[9px] font-black uppercase tracking-wider text-slate-300 hover:text-purple-400 transition-all cursor-pointer"
-                          >
-                            <MessageSquare className="h-3.5 w-3.5 text-purple-400" /> Nhắn tin
-                          </button>
-                        </div>
-                      </>
-                    )}
-
-                    {isPending && (
-                      <div className="mt-5 flex flex-col gap-3 rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
-                        <div className="flex min-w-0 items-start gap-3">
-                          <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
-                          <p className="text-[10px] font-semibold leading-relaxed text-amber-300/80">
-                            Mời lúc <span className="font-bold text-white">{entry.addedAt}</span>. Chờ Talent xác nhận.
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleRemove(entry.talentId)}
-                          className="flex h-8 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg border border-red-500/25 bg-red-500/10 px-3 text-[9px] font-black uppercase tracking-wider text-red-300 transition-all hover:bg-red-500/20 hover:text-red-200 sm:w-auto"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                          Hủy lời mời
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Remove button */}
-                    {!isAccepted && !isPending && (
-                      <button
-                        onClick={() => handleRemove(entry.talentId)}
-                        className="absolute bottom-5 right-5 h-7 w-7 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 cursor-pointer transition-all"
-                        title="Hủy lời mời"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <>
+              {filteredRoster.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-14 px-4 text-center rounded-3xl border border-[#1d2238] bg-[#08090f]/20">
+                  <p className="text-slate-400 text-xs font-semibold">Không tìm thấy Talent nào phù hợp với từ khóa tìm kiếm.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredRoster.map((entry) => {
+                    const cleanId = (id: string | number) => String(id || "").replace(/^tal-/, "");
+                    const talent = displayTalents.find((t) => cleanId(t.id) === cleanId(entry.talentId));
+                    if (!talent) return null;
+                    return (
+                      <TalentCard
+                        key={entry.talentId}
+                        entry={entry}
+                        talent={talent}
+                        onDeleteClick={handleDeleteClick}
+                        onEditClick={handleEditClick}
+                        onActivateClick={(t: BrandTalentCard) => {
+                          setActivatingTalent(t);
+                          setShowActivateModal(true);
+                        }}
+                        onAssignJobClick={(t: BrandTalentCard) => {
+                          setAssigningTalent(t);
+                          setShowAssignJobModal(true);
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
+
+      {/* ── Edit Talent Modal ── */}
+      <EditTalentModal
+        isOpen={showEditModal}
+        onClose={() => { setShowEditModal(false); setEditingTalent(null); setEditingEntry(null); }}
+        onSuccess={(updatedEntry, updatedTalent) => {
+          handleEditSuccess(updatedEntry, updatedTalent);
+          setShowEditModal(false);
+        }}
+        addToast={addToast}
+        talent={editingTalent}
+        entry={editingEntry}
+      />
 
       {/* ── QR Code Popover Dialog Modal ── */}
       {showQrModal && (
@@ -704,7 +735,7 @@ export default function MyTalentsPage() {
               campaignLink={affiliateLink}
               title="Mã QR Tuyển Dụng"
               subtitle="Quét mã để gia nhập"
-              badgeText="OSN Gateway"
+              badgeText="OnstageVN Gateway"
               shareButtonLabel="Chia sẻ"
               onCopyLink={handleCopyLink}
               onDownloadQr={downloadQr}
@@ -732,7 +763,7 @@ export default function MyTalentsPage() {
             </div>
 
             <p className="text-xs text-slate-400 mb-5 leading-normal">
-              Chọn nền tảng để chia sẻ liên kết tuyển dụng của Brand:
+              Chọn nền tảng để chia sẻ liên kết:
             </p>
 
             {/* Grid of options */}
@@ -793,6 +824,174 @@ export default function MyTalentsPage() {
         </div>
       )}
 
+      {/* ── Delete Confirmation Dialog Modal ── */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl p-6 text-center space-y-5 shadow-[0_24px_60px_rgba(0,0,0,0.9)] overflow-hidden animate-in zoom-in-95 duration-300">
+            <h3 className="font-display font-black text-base text-white uppercase tracking-tight">Xác nhận xóa</h3>
+            <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+              Bạn có chắc chắn muốn xóa Talent <strong className="text-white">"{deletingTalentName}"</strong> khỏi danh sách hợp tác không?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleConfirmDelete}
+                className="flex-1 rounded-xl h-10 bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase transition-all cursor-pointer font-bold"
+              >
+                Xóa
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeletingTalentId(null);
+                  setDeletingTalentName("");
+                }}
+                className="flex-1 rounded-xl h-10 border border-white/5 bg-white/5 text-slate-400 hover:text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer font-bold"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showActivateModal && activatingTalent && (() => {
+        const activateLink = affiliateLink;
+        const handleCopyActivateLink = () => {
+          navigator.clipboard.writeText(activateLink).catch(() => { });
+          addToast("Đã sao chép liên kết mời nhận tài khoản!");
+        };
+        const handleShareActivate = () => {
+          if (navigator.share) {
+            navigator.share({ title: `Mời ${activatingTalent.name} nhận tài khoản`, url: activateLink }).catch(() => { });
+          } else {
+            handleCopyActivateLink();
+          }
+        };
+        const handleDownloadActivateQr = async () => {
+          const targetUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(activateLink)}`;
+          try {
+            const res = await fetch(targetUrl);
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = `qr-invite-${activatingTalent.name.replace(/\s+/g, "-")}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+            addToast("Đã tải xuống mã QR mời nhận tài khoản!");
+          } catch {
+            window.open(targetUrl, "_blank");
+          }
+        };
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="relative w-full max-w-sm max-h-[90vh] overflow-y-auto scrollbar-thin flex flex-col bg-[#0b0c15] border border-[#1d2238] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] p-5 sm:p-6 space-y-4 sm:space-y-5 animate-in zoom-in-95 duration-200">
+
+              {/* Close Button top-right */}
+              <button
+                onClick={() => { setShowActivateModal(false); setActivatingTalent(null); }}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer transition-colors p-1.5 hover:bg-white/5 rounded-full z-10"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              {/* Header */}
+              <div className="flex flex-col items-center justify-center border-b border-white/5 pb-3 shrink-0 pt-2">
+                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest border-amber-400/40 bg-amber-400/10 text-amber-300 mb-2">
+                  ONSTAGEVN GATEWAY
+                </span>
+                <h3 className="font-display font-black text-[11px] sm:text-xs text-white uppercase tracking-normal flex items-center justify-center gap-1.5 whitespace-nowrap">
+                  Mời Talent tham gia OnstageVN
+                </h3>
+              </div>
+
+              {/* Sub-header description */}
+              <p className="text-xs text-slate-300 font-semibold leading-relaxed text-justify px-1 shrink-0">
+                Gửi mã QR hoặc liên kết này cho <strong className="text-yellow-400 font-black">{activatingTalent.name}</strong> để nhận tài khoản. Talent nhận tài khoản, đăng ký/đăng nhập và hoàn thiện hồ sơ của mình.
+              </p>
+
+              {/* URL + Copy button */}
+              <div className="flex items-center justify-between gap-2 rounded-2xl bg-[#04060a]/90 border border-white/5 px-2.5 py-1.5 sm:px-3 sm:py-2 font-mono text-[10px] sm:text-[11px] font-bold text-slate-350 shrink-0">
+                <span className="truncate select-all text-left flex-1">{activateLink}</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(activateLink);
+                    addToast("Đã sao chép liên kết mời!");
+                  }}
+                  className="p-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-amber-400 hover:text-amber-300 transition-all cursor-pointer shrink-0"
+                  title="Sao chép liên kết"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* QR Code Container */}
+              <div className="flex flex-col items-center justify-center shrink-0">
+                <div className="relative h-40 w-40 sm:h-48 sm:w-48 rounded-[2rem] bg-white p-3.5 sm:p-4 flex flex-col items-center justify-center shadow-2xl shrink-0">
+                  <QRCodeCanvas
+                    value={activateLink}
+                    size={180}
+                    bgColor="#ffffff"
+                    fgColor="#020617"
+                    level="H"
+                    includeMargin={false}
+                    className="h-full w-full rounded-2xl"
+                  />
+                  <div className="absolute h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-[#02040a] border-2 border-white flex items-center justify-center shadow-lg overflow-hidden">
+                    <img
+                      src="/logo_new.png"
+                      alt="ONSTAGE"
+                      className="h-full w-full object-contain p-1"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Instruction Steps */}
+              <div className="rounded-2xl bg-slate-950/60 border border-white/5 p-3 sm:p-4 space-y-1.5 sm:space-y-2 text-left shrink-0">
+                <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-slate-300 font-semibold leading-relaxed">
+                  <div className="flex gap-2">
+                    <span className="text-amber-400 font-bold">1.</span>
+                    <span>Gửi mã cho Talent</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-amber-400 font-bold">2.</span>
+                    <span>Talent quét mã</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-amber-400 font-bold">3.</span>
+                    <span>Talent đăng nhập và hoàn thiện hồ sơ</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-amber-400 font-bold">4.</span>
+                    <span>Hồ sơ của Talent được cập nhật cho bạn xem</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3 text-[10px] sm:text-xs font-bold uppercase tracking-widest pt-2 shrink-0">
+                <button
+                  onClick={handleDownloadActivateQr}
+                  className="flex-1 flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-slate-200 hover:text-white hover:border-slate-400 transition-all cursor-pointer"
+                >
+                  <Download className="h-4 w-4 shrink-0" /> Tải về
+                </button>
+                <button
+                  onClick={handleShareActivate}
+                  className="flex-1 flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl bg-[#F0C56B] text-[#02040a] font-black hover:bg-[#d6af5d] hover:shadow-[0_0_15px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all duration-300 cursor-pointer shadow-lg"
+                >
+                  <Share2 className="h-4 w-4 shrink-0" /> Chia sẻ
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       <InviteModal
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
@@ -804,6 +1003,92 @@ export default function MyTalentsPage() {
         getTalentStatus={getTalentStatus}
         tierColor={tierColor}
       />
+
+      <CreateTalentModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        addToast={addToast}
+        onSuccess={(newRosterItem) => {
+          const nextRosterEntry = rosterFromBackend(newRosterItem);
+          const nextTalentCard = profileToTalent(newRosterItem.talent_profile);
+          if (nextTalentCard) {
+            setDisplayTalents((prev) => [nextTalentCard, ...prev]);
+          }
+          setRoster((prev) => [nextRosterEntry, ...prev]);
+        }}
+      />
+
+      {/* ── Assign Job Modal ── */}
+      {showAssignJobModal && assigningTalent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md flex flex-col bg-[#0b0c15] border border-[#1d2238] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-white/5 bg-[#080911]/40">
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <Briefcase className="h-4.5 w-4.5 text-yellow-400" /> Assign Job cho Talent
+                </h3>
+                <span className="block text-xs font-semibold text-slate-300 mt-1.5 leading-normal">
+                  Thêm <span className="text-yellow-400 font-black">{assigningTalent.name}</span> vào chiến dịch của bạn
+                </span>
+              </div>
+              <button
+                onClick={() => { setShowAssignJobModal(false); setAssigningTalent(null); setSelectedCampaignId(""); setAssignNotes(""); }}
+                className="text-slate-400 hover:text-white cursor-pointer transition-colors p-1 hover:bg-white/5 rounded-full"
+              >
+                <X className="h-4.5 w-4.5" />
+              </button>
+            </div>
+
+            {/* Form Content */}
+            <div className="p-6 space-y-4">
+              {/* Campaign Select */}
+              <label className="block text-left space-y-1.5">
+                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">Chọn chiến dịch</span>
+                <select
+                  value={selectedCampaignId}
+                  onChange={(e) => setSelectedCampaignId(e.target.value)}
+                  className="w-full h-11 px-3.5 rounded-xl border border-[#1d2238] bg-slate-900 text-xs font-semibold text-white focus:outline-none focus:border-amber-400/50 cursor-pointer"
+                >
+                  <option value="">-- Chọn chiến dịch --</option>
+                  {campaigns.map(c => (
+                    <option key={c.id} value={c.id}>{c.title}</option>
+                  ))}
+                </select>
+              </label>
+
+              {/* Notes */}
+              <label className="block text-left space-y-1.5">
+                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">Ghi chú công việc (Tùy chọn)</span>
+                <textarea
+                  value={assignNotes}
+                  onChange={(e) => setAssignNotes(e.target.value)}
+                  placeholder="Nhập ghi chú hoặc brief nhanh cho talent..."
+                  className="w-full h-24 px-3.5 py-2.5 rounded-xl border border-[#1d2238] bg-slate-900 text-xs font-semibold text-white focus:outline-none focus:border-amber-400/50 resize-none"
+                />
+              </label>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-white/5 bg-[#050711]">
+              <button
+                onClick={() => { setShowAssignJobModal(false); setAssigningTalent(null); setSelectedCampaignId(""); setAssignNotes(""); }}
+                className="px-4 py-2 rounded-xl border border-[#1d2238] text-xs font-bold text-slate-400 hover:text-white cursor-pointer"
+                disabled={assigningLoading}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleAssignJobConfirm}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer disabled:opacity-50"
+                disabled={assigningLoading}
+              >
+                {assigningLoading ? "Đang xử lý..." : "Xác nhận thêm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Toast Notifications ── */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">

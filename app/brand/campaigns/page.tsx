@@ -11,7 +11,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { type Campaign } from "@/lib/brand-mvp-data";
-import { loadBrandCampaigns } from "@/lib/brand-api";
+import { loadBrandCampaigns, deleteBrandCampaign } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 import FormCreateJob from "./FormCreateJob";
 
@@ -37,6 +37,18 @@ function formatDate(dateStr?: string) {
 export default function CampaignsPage() {
   const router = useRouter();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [deletingCampaign, setDeletingCampaign] = useState<{ id: string; title: string } | null>(null);
+
+  const handleDeleteCampaign = async () => {
+    if (!deletingCampaign) return;
+    try {
+      await deleteBrandCampaign(deletingCampaign.id);
+      setCampaigns((prev) => prev.filter((c) => c.id !== deletingCampaign.id));
+      setDeletingCampaign(null);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Chưa thể xóa chiến dịch.");
+    }
+  };
 
   useEffect(() => {
     loadBrandCampaigns([]).then((items) => {
@@ -208,12 +220,20 @@ export default function CampaignsPage() {
                   </div>
                 </div>
                 
-                <button
-                  onClick={() => router.push(`/brand/campaigns/${campaign.id}`)}
-                  className="flex h-10 w-full items-center justify-center rounded-xl bg-white/5 border border-white/5 hover:border-white/10 text-[9.5px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 cursor-pointer"
-                >
-                  Xem thông tin <ChevronRight className="ml-1 h-3.5 w-3.5" />
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => router.push(`/brand/campaigns/${campaign.id}`)}
+                    className="flex-1 flex h-10 items-center justify-center rounded-xl bg-white/5 border border-white/5 hover:border-white/10 text-[9.5px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 cursor-pointer"
+                  >
+                    Xem thông tin <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setDeletingCampaign({ id: campaign.id, title: campaign.title })}
+                    className="w-16 flex h-10 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-600 hover:border-red-500 hover:text-white text-[9.5px] font-black uppercase tracking-widest text-red-400 transition-all duration-300 cursor-pointer"
+                  >
+                    Xóa
+                  </button>
+                </div>
               </div>
             </article>
           );
@@ -225,6 +245,31 @@ export default function CampaignsPage() {
         onClose={() => setIsCreating(false)}
         onCampaignCreated={(newCampaign) => setCampaigns((prev) => [newCampaign, ...prev])}
       />
+
+      {deletingCampaign && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl p-6 text-center space-y-5 shadow-[0_24px_60px_rgba(0,0,0,0.9)] overflow-hidden animate-in zoom-in-95 duration-300">
+            <h3 className="font-display font-black text-base text-white uppercase tracking-tight">Xác nhận xóa</h3>
+            <p className="text-xs text-slate-400 font-semibold leading-relaxed text-center">
+              Bạn có chắc chắn muốn xóa chiến dịch <strong className="text-white">"{deletingCampaign.title}"</strong> không?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDeleteCampaign}
+                className="flex-1 rounded-xl h-10 bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase transition-all cursor-pointer font-bold"
+              >
+                Xóa
+              </button>
+              <button
+                onClick={() => setDeletingCampaign(null)}
+                className="flex-1 rounded-xl h-10 border border-white/5 bg-white/5 text-slate-400 hover:text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer font-bold"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

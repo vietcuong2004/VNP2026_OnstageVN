@@ -66,13 +66,23 @@ export default function BrandTalentProfilePage() {
   const params = useParams<{ id: string }>();
   const staticTalent = useMemo(() => findTalentById(params.id), [params.id]);
   const [talent, setTalent] = useState<any>(staticTalent);
+  const [loading, setLoading] = useState(!staticTalent);
 
   useEffect(() => {
     let cancelled = false;
+    if (!staticTalent) {
+      setLoading(true);
+    }
 
-    setTalent(staticTalent ?? null);
     loadBrandTalent(params.id, staticTalent ?? null).then((loaded) => {
-      if (!cancelled && loaded) setTalent(loaded);
+      if (!cancelled) {
+        if (loaded) {
+          setTalent(loaded);
+        } else if (!staticTalent) {
+          setTalent(null);
+        }
+        setLoading(false);
+      }
     });
 
     return () => {
@@ -159,13 +169,24 @@ export default function BrandTalentProfilePage() {
     return firstDayIndex === 0 ? 6 : firstDayIndex - 1;
   };
 
+  if (loading) {
+    return (
+      <div className="flex min-h-[65vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-yellow-400 border-t-transparent" />
+          <p className="text-xs font-semibold text-slate-400">Đang tải hồ sơ...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!talent) {
     return (
       <div className="flex min-h-[65vh] items-center justify-center">
         <div className="rounded-2xl border border-white/5 bg-slate-950/30 p-8 text-center">
           <h1 className="text-xl font-black text-white">Không tìm thấy hồ sơ talent</h1>
-          <button onClick={() => router.push("/brand/search")} className="mt-5 rounded-xl bg-white/10 px-4 py-2 text-xs font-bold text-white">
-            Quay lại tìm kiếm
+          <button onClick={() => router.back()} className="mt-5 rounded-xl bg-white/10 px-4 py-2 text-xs font-bold text-white">
+            Quay lại
           </button>
         </div>
       </div>
@@ -222,11 +243,11 @@ export default function BrandTalentProfilePage() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-black/75" />
           <button
-            onClick={() => router.push("/brand/search")}
-            className="absolute left-4 top-4 flex h-10 items-center rounded-xl border border-white/10 bg-slate-950/70 px-3 text-xs font-bold text-slate-200 backdrop-blur hover:text-white"
+            onClick={() => router.back()}
+            className="absolute left-4 top-4 z-10 flex h-9 items-center rounded-full border border-yellow-400/25 bg-[#0c1120]/80 backdrop-blur-md px-4 text-xs font-black text-yellow-400 hover:text-yellow-300 hover:bg-[#0c1120] hover:border-yellow-400/40 shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer uppercase tracking-wider gap-1.5"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Quay lại tìm kiếm
+            <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
+            <span>Quay lại</span>
           </button>
           <div className="absolute right-4 top-4 rounded-md border border-amber-400/25 bg-amber-400/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-amber-300">
             Brand view
@@ -259,19 +280,19 @@ export default function BrandTalentProfilePage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
-              className="flex h-10 items-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-4 text-xs font-black uppercase tracking-wider text-slate-950 transition active:scale-95 cursor-pointer"
+              className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-3.5 sm:px-4 text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-950 transition active:scale-95 cursor-pointer whitespace-nowrap"
             >
-              <MessageSquare className="mr-2 h-4 w-4" />
+              <MessageSquare className="mr-1.5 h-3.5 w-3.5 shrink-0" />
               Nhắn tin
             </button>
             <button
               onClick={() => setShowInviteModal(true)}
-              className="flex h-10 items-center rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-4 text-xs font-black uppercase tracking-wider text-[#C9A86A] transition active:scale-95 cursor-pointer hover:bg-[#C9A86A]/20"
+              className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-3.5 sm:px-4 text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#C9A86A] transition active:scale-95 cursor-pointer hover:bg-[#C9A86A]/20 whitespace-nowrap"
             >
-              <Briefcase className="mr-2 h-4 w-4" />
+              <Briefcase className="mr-1.5 h-3.5 w-3.5 shrink-0" />
               Thêm vào chiến dịch
             </button>
           </div>

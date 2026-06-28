@@ -57,6 +57,7 @@ export async function logoutCurrentSession() {
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true",
         },
       });
     } catch {
@@ -124,6 +125,8 @@ function buildHeaders(defaultHeaders: Record<string, string>, extraHeaders?: Hea
   Object.entries(portalHeader()).forEach(([key, value]) => {
     headers.set(key, value);
   });
+
+  headers.set("ngrok-skip-browser-warning", "true");
 
   return headers;
 }
