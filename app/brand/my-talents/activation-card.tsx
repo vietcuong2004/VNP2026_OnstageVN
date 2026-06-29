@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useMemo, useState } from "react";
 import { Check, Copy, Link2, QrCode, RefreshCw, Search, Send, UserCheck, X } from "lucide-react";
@@ -28,7 +28,7 @@ function formatExpiry(value?: string | null) {
 export default function ActivationCard({ items, addToast }: ActivationCardProps) {
   const [search, setSearch] = useState("");
   const [selectedRosterId, setSelectedRosterId] = useState(items[0]?.entry.rosterId || "");
-  const [activationLink, setActivationLink] = useState<ManagedTalentActivationLink | null>(null);
+  const [activationLinksByRosterId, setActivationLinksByRosterId] = useState<Record<string, ManagedTalentActivationLink>>({});
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -41,16 +41,20 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
   }, [items, search]);
 
   const selected = items.find(({ entry }) => entry.rosterId === selectedRosterId) || items[0] || null;
+  const selectedRosterIdForLink = selected?.entry.rosterId || "";
+  const activationLink = selectedRosterIdForLink
+    ? activationLinksByRosterId[selectedRosterIdForLink] ?? selected?.entry.activeActivationLink ?? null
+    : null;
 
-  async function handleCreateLink() {
+  async function handleCreateLink(force = false) {
     const rosterId = selected?.entry.rosterId;
     if (!rosterId) return;
 
     setLoading(true);
     try {
-      const link = await createManagedTalentActivationLink(rosterId);
-      setActivationLink(link);
-      addToast(link.is_expired ? "Đã tạo lại link kích hoạt." : "Đã tạo link kích hoạt tài khoản.");
+      const link = await createManagedTalentActivationLink(rosterId, { force });
+      setActivationLinksByRosterId((prev) => ({ ...prev, [rosterId]: link }));
+      addToast(force ? "Đã tạo lại link kích hoạt." : "Đã tạo link kích hoạt tài khoản.");
     } catch (error) {
       console.error("Cannot create managed talent activation link", error);
       addToast("Không thể tạo link kích hoạt. Vui lòng thử lại.");
@@ -58,7 +62,6 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
       setLoading(false);
     }
   }
-
   async function handleCopy() {
     if (!activationLink?.url) return;
     await navigator.clipboard.writeText(activationLink.url);
@@ -126,7 +129,6 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
                 value={selectedRosterId}
                 onChange={(event) => {
                   setSelectedRosterId(event.target.value);
-                  setActivationLink(null);
                 }}
                 className="h-11 w-full rounded-2xl border border-white/10 bg-slate-950 px-3 text-xs font-bold text-white outline-none focus:border-amber-400/40"
               >
@@ -158,7 +160,6 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
                   type="button"
                   onClick={() => {
                     setSelectedRosterId(entry.rosterId || "");
-                    setActivationLink(null);
                   }}
                   className={cn(
                     "rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-all",
@@ -187,7 +188,7 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
             </div>
             <button
               type="button"
-              onClick={handleCreateLink}
+              onClick={() => handleCreateLink(Boolean(activationLink))}
               disabled={loading || !selected?.entry.rosterId}
               className="h-10 shrink-0 rounded-xl bg-gradient-to-r from-amber-200 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
             >
@@ -214,7 +215,7 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
                     <Send className="h-3.5 w-3.5" /> {sending ? "Đang gửi" : "Gửi qua tin nhắn"}
                   </button>
                 )}
-                <button type="button" onClick={handleCreateLink} disabled={loading} className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 text-[10px] font-black uppercase tracking-wider text-slate-300 hover:bg-white/10 hover:text-white disabled:opacity-60">
+                <button type="button" onClick={() => handleCreateLink(true)} disabled={loading} className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 text-[10px] font-black uppercase tracking-wider text-slate-300 hover:bg-white/10 hover:text-white disabled:opacity-60">
                   <RefreshCw className="h-3.5 w-3.5" /> Tạo lại link
                 </button>
               </div>

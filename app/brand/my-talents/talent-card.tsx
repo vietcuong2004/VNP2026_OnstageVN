@@ -208,7 +208,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
               {entry.notes}
             </p>
           ) : (
-            <p className="text-[11px] text-slate-500 italic flex-1">Chưa có ghi chú.</p>
+            <p className="text-[11px] text-slate-500 italic flex-1">Talent được tạo bởi Brand.</p>
           )}
         </div>
 

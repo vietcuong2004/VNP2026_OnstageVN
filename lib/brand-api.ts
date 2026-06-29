@@ -192,6 +192,8 @@ export type BrandRosterTalent = {
     commission_base?: string | null;
     status?: string | null;
   } | null;
+  active_activation_link?: ManagedTalentActivationLink | null;
+  activeActivationLink?: ManagedTalentActivationLink | null;
 };
 
 export type ManagedTalentActivationLink = {
@@ -901,21 +903,21 @@ export interface CreateManagedTalentPayload {
   city: string;
   talent_types: string[];
   notes?: string;
+  avatar?: File | null;
 }
 
 export async function createBrandManagedTalent(payload: CreateManagedTalentPayload) {
   requireBrandSession();
 
-  const response = await apiJson<{ data: BrandRosterTalent }>("/brand/talents/quick-create", {
-    method: "POST",
-    body: JSON.stringify({
-      display_name: payload.name,
-      phone: payload.phone || undefined,
-      city: payload.city || undefined,
-      talent_types: payload.talent_types,
-      notes: payload.notes || undefined,
-    }),
-  });
+  const formData = new FormData();
+  formData.append("display_name", payload.name);
+  if (payload.phone) formData.append("phone", payload.phone);
+  if (payload.city) formData.append("city", payload.city);
+  payload.talent_types.forEach((type) => formData.append("talent_types[]", type));
+  if (payload.notes) formData.append("notes", payload.notes);
+  if (payload.avatar) formData.append("avatar", payload.avatar);
+
+  const response = await apiForm<{ data: BrandRosterTalent }>("/brand/talents/quick-create", formData);
 
   return response.data;
 }
@@ -970,11 +972,12 @@ export async function removeBrandRosterTalent(rosterTalentId: string) {
   });
 }
 
-export async function createManagedTalentActivationLink(rosterTalentId: string) {
+export async function createManagedTalentActivationLink(rosterTalentId: string, options: { force?: boolean } = {}) {
   requireBrandSession();
 
   const response = await apiJson<{ data: ManagedTalentActivationLink }>(`/brand/talents/${rosterTalentId}/activation-link`, {
     method: "POST",
+    body: JSON.stringify({ force: Boolean(options.force) }),
   });
 
   return response.data;

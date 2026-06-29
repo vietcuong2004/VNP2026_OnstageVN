@@ -24,6 +24,7 @@ import {
   addTalentToBrandCampaign,
   type BrandRosterTalent,
   type BrandCommissionTransaction,
+  type ManagedTalentActivationLink,
 } from "@/lib/brand-api";
 import { getStoredAuthUser } from "@/lib/api-client";
 
@@ -80,6 +81,7 @@ export interface RosterTalent {
   completedJobs: number;
   invitedBy?: string;
   notes?: string | null;
+  activeActivationLink?: ManagedTalentActivationLink | null;
 }
 
 const COMMISSION_RATE = 0.10; // F1 = 10%
@@ -193,6 +195,7 @@ function rosterFromBackend(item: BrandRosterTalent): RosterTalent {
     completedJobs: 0,
     invitedBy,
     notes: item.notes,
+    activeActivationLink: item.active_activation_link ?? item.activeActivationLink ?? null,
   };
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, UserPlus, MapPin, Phone, Briefcase, FileText, Check } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { X, UserPlus, MapPin, Phone, Briefcase, FileText, Check, ImagePlus } from "lucide-react";
 import { createBrandManagedTalent, type BrandRosterTalent } from "@/lib/brand-api";
 
 interface CreateModalProps {
@@ -45,9 +45,41 @@ export default function CreateTalentModal({
   const [city, setCity] = useState("Hà Nội");
   const [talentType, setTalentType] = useState("Model");
   const [notes, setNotes] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setErrorMsg("Vui lòng chọn tệp ảnh hợp lệ.");
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      setErrorMsg("Ảnh tải lên vượt quá giới hạn 25MB.");
+      return;
+    }
+
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const clearAvatar = () => {
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarFile(null);
+    setAvatarPreview("");
+  };
 
   if (!isOpen) return null;
 
@@ -68,6 +100,7 @@ export default function CreateTalentModal({
         city,
         talent_types: [talentType],
         notes: notes.trim() || undefined,
+        avatar: avatarFile,
       });
 
       addToast("Đã thêm Talent thành công");
@@ -80,6 +113,7 @@ export default function CreateTalentModal({
       setCity("Hà Nội");
       setTalentType("Model");
       setNotes("");
+      clearAvatar();
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || "Có lỗi xảy ra khi tạo Talent.");
@@ -124,9 +158,9 @@ export default function CreateTalentModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="relative w-full max-w-lg flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.9)] overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="relative flex max-h-[calc(100dvh-32px)] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-[#151b2d] bg-[#08090f] shadow-[0_24px_60px_rgba(0,0,0,0.9)] animate-in zoom-in-95 duration-300">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#151b2d]/60 bg-slate-950/45">
+        <div className="flex shrink-0 items-center justify-between border-b border-[#151b2d]/60 bg-slate-950/45 p-5 sm:p-6">
           <div>
             <span className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-amber-300">
               CREATE TALENT
@@ -147,13 +181,49 @@ export default function CreateTalentModal({
         </div>
 
         {/* Modal Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5 sm:p-6">
           {errorMsg && (
             <div className="p-3 rounded-xl bg-red-950/50 border border-red-500/30 text-red-300 text-xs font-bold">
               {errorMsg}
             </div>
           )}
 
+          {/* Avatar Field */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <ImagePlus className="h-3.5 w-3.5 text-slate-500" /> Ảnh đại diện
+            </label>
+            <div className="flex items-center gap-3 rounded-2xl border border-[#151b2d] bg-[#050711] p-3">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-amber-500/25 bg-slate-950 flex items-center justify-center">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar preview" className="h-full w-full object-cover" />
+                ) : (
+                  <ImagePlus className="h-7 w-7 text-slate-600" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1 space-y-2">
+                <p className="text-[10px] font-semibold text-slate-500 leading-relaxed">
+                  Ảnh này sẽ được dùng làm avatar ban đầu của Talent sau khi kích hoạt tài khoản.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <label className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-amber-300 hover:bg-amber-500/15 transition">
+                    Tải ảnh lên
+                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatarChange} className="hidden" />
+                  </label>
+                  {avatarPreview && (
+                    <button
+                      type="button"
+                      onClick={clearAvatar}
+                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white transition"
+                    >
+                      Bỏ ảnh
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
           {/* Name Field */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
@@ -250,8 +320,10 @@ export default function CreateTalentModal({
             />
           </div>
 
+          </div>
+
           {/* Footer Actions */}
-          <div className="pt-4 border-t border-[#151b2d]/60 flex justify-end gap-3">
+          <div className="flex shrink-0 justify-end gap-3 border-t border-[#151b2d]/60 bg-[#08090f]/95 p-5 backdrop-blur sm:p-6">
             <button
               type="button"
               onClick={onClose}
