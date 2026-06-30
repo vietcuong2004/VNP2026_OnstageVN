@@ -215,6 +215,33 @@ export type SocialConnection = {
   created_at?: string | null;
 };
 
+export type ZaloLinkStatus = {
+  linked: boolean;
+  status: "linked" | "pending" | "not_requested";
+  code?: string | null;
+  expires_at?: string | null;
+  instructions?: string | null;
+  zalo_account?: {
+    id: number;
+    display_name?: string | null;
+    last_seen_at?: string | null;
+  } | null;
+};
+
+export async function loadZaloLinkStatus() {
+  const response = await apiJson<{ data: ZaloLinkStatus }>("/my/zalo-link");
+
+  return response.data;
+}
+
+export async function createZaloLinkCode() {
+  const response = await apiJson<{ data: ZaloLinkStatus }>("/my/zalo-link", {
+    method: "POST",
+  });
+
+  return response.data;
+}
+
 export async function loadSocialConnections() {
   const response = await apiJson<{ connections: SocialConnection[] }>("/auth/social/connections");
 
