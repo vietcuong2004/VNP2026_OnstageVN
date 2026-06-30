@@ -220,6 +220,8 @@ export type ZaloLinkStatus = {
   status: "linked" | "pending" | "not_requested";
   code?: string | null;
   expires_at?: string | null;
+  bot_phone?: string | null;
+  bot_url?: string | null;
   instructions?: string | null;
   zalo_account?: {
     id: number;

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Bell, Key, LogOut, RefreshCw, CheckCircle, Sparkles, Mail, MessageCircle, Copy } from "lucide-react";
+import { ArrowLeft, Bell, Key, LogOut, RefreshCw, CheckCircle, Sparkles, Mail, MessageCircle, Copy, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createZaloLinkCode, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, logoutCurrentSession, SocialConnection, unlinkSocialConnection, updateAuthEmail, ZaloLinkStatus } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
@@ -13,6 +13,15 @@ type AuthUser = {
   email?: string | null;
   type?: "talent" | "brand";
 };
+
+const DEFAULT_ZALO_BOT_URL = "https://zalo.me/0559829078";
+
+function getZaloBotUrl(status?: ZaloLinkStatus | null) {
+  if (status?.bot_url) return status.bot_url;
+  if (status?.bot_phone) return `https://zalo.me/${status.bot_phone}`;
+
+  return DEFAULT_ZALO_BOT_URL;
+}
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -82,12 +91,40 @@ export default function SettingsPage() {
     }
   };
 
+  const copyZaloCodeToClipboard = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const openZaloBot = (status: ZaloLinkStatus) => {
+    const botUrl = getZaloBotUrl(status);
+
+    const opened = window.open(botUrl, "_blank", "noopener,noreferrer");
+    if (!opened) {
+      addToast("Trình duyệt đang chặn mở tab mới. Hãy cho phép popup hoặc copy link Zalo bot để mở thủ công.", "info");
+    }
+  };
+
   const handleCreateZaloCode = async () => {
     setZaloLoading(true);
     try {
       const status = await createZaloLinkCode();
       setZaloLink(status);
-      addToast("Đã tạo mã liên kết Zalo. Hãy nhắn mã này cho Zalo bot.", "success");
+      const copied = status.code ? await copyZaloCodeToClipboard(status.code) : false;
+
+      if (status.bot_url) {
+        openZaloBot(status);
+      }
+      addToast(
+        copied
+          ? "Đã tạo và copy mã liên kết Zalo. Hãy dán mã đó vào chat với bot."
+          : "Đã tạo mã liên kết Zalo. Hãy copy mã và gửi cho bot.",
+        "success",
+      );
     } catch (error) {
       addToast(error instanceof Error ? error.message : "Chưa thể tạo mã liên kết Zalo.", "info");
     } finally {
@@ -98,12 +135,23 @@ export default function SettingsPage() {
   const handleCopyZaloCode = async () => {
     if (!zaloLink?.code) return;
 
-    try {
-      await navigator.clipboard.writeText(zaloLink.code);
-      addToast("Đã copy mã liên kết Zalo.", "success");
-    } catch {
-      addToast("Không thể copy tự động, bạn copy thủ công giúp mình nhé.", "info");
+    const copied = await copyZaloCodeToClipboard(zaloLink.code);
+    addToast(
+      copied
+        ? "Đã copy mã liên kết Zalo."
+        : "Không thể copy tự động, bạn copy thủ công giúp mình nhé.",
+      copied ? "success" : "info",
+    );
+  };
+
+  const handleOpenZaloBot = async () => {
+    if (!zaloLink) return;
+
+    if (zaloLink.code) {
+      await copyZaloCodeToClipboard(zaloLink.code);
     }
+
+    openZaloBot(zaloLink);
   };
 
   const handleSaveEmail = async (event: React.FormEvent) => {
@@ -242,7 +290,7 @@ export default function SettingsPage() {
                 ) : null}
               </div>
               <p className="mt-1 text-xs leading-relaxed text-slate-500">
-                Dùng Zalo bot để tự động gửi thông tin, link social và ảnh portfolio vào đúng hồ sơ OnstageVN của bạn.
+                Dùng Zalo bot để gửi ảnh đại diện, ảnh bìa, full body và portfolio vào đúng hồ sơ OnstageVN của bạn.
               </p>
 
               {zaloLink?.linked ? (
@@ -253,7 +301,7 @@ export default function SettingsPage() {
                 <div className="mt-4 rounded-2xl border border-sky-400/15 bg-sky-400/[0.04] p-4">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-sky-200">Mã liên kết của bạn</p>
                   <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <code className="inline-flex w-fit rounded-xl border border-white/10 bg-slate-950 px-4 py-2 font-mono text-lg font-black tracking-[0.3em] text-white">
+                    <code className="inline-flex max-w-full break-all rounded-xl border border-white/10 bg-slate-950 px-3 py-2 font-mono text-sm font-black tracking-[0.16em] text-white sm:w-fit sm:px-4 sm:text-lg sm:tracking-[0.3em]">
                       {zaloLink.code}
                     </code>
                     <button
@@ -264,9 +312,17 @@ export default function SettingsPage() {
                       <Copy className="h-4 w-4" />
                       Copy mã
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleOpenZaloBot}
+                      className="inline-flex h-10 w-fit items-center justify-center gap-2 rounded-xl bg-sky-400 px-4 text-xs font-black text-slate-950 transition-colors hover:bg-sky-300"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Mở Zalo bot
+                    </button>
                   </div>
                   <p className="mt-3 text-xs leading-relaxed text-slate-400">
-                    Mở Zalo, nhắn mã này cho tài khoản Zalo bot của OnstageVN. Mã sẽ hết hạn sau khoảng 15 phút.
+                    Bấm nút Mở Zalo bot để sang chat với bot, rồi dán mã này và gửi. Mã sẽ hết hạn sau khoảng 15 phút.
                   </p>
                 </div>
               ) : null}
@@ -280,7 +336,7 @@ export default function SettingsPage() {
               onClick={handleCreateZaloCode}
               className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-sky-400 px-4 text-xs font-black text-slate-950 transition-colors hover:bg-sky-300 disabled:cursor-wait disabled:opacity-60"
             >
-              {zaloLoading ? "Đang tạo..." : zaloLink?.code ? "Tạo mã mới" : "Tạo mã liên kết"}
+              {zaloLoading ? "Đang tạo..." : zaloLink?.code ? "Tạo mã mới & mở Zalo" : "Tạo mã & mở Zalo"}
             </button>
           )}
         </div>
