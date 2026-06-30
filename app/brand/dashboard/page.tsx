@@ -38,7 +38,7 @@ const nextActions = [
   },
   {
     title: "Tìm talent phù hợp",
-    description: "Lọc talent theo vai trò, khu vực, tier và độ hoàn thiện hồ sơ để thêm vào roster hoặc campaign.",
+    description: "Lọc talent theo vai trò, khu vực, tier và độ hoàn thiện hồ sơ để thêm vào Brand hoặc campaign.",
     href: "/brand/search",
     icon: Search,
   },
@@ -104,7 +104,7 @@ function getRosterSourceLabel(source?: string | null) {
     case "referral":
       return "Từ link mời";
     default:
-      return "Trong roster";
+      return "Trong Brand";
   }
 }
 
@@ -122,10 +122,10 @@ function resolveRosterTalentAvatar(item: BrandRosterTalent) {
   const avatarPhoto = profile?.photos?.find((photo) => photo?.category === "avatar");
   const avatarUrl = normalizeBackendAssetUrl(
     avatarPhoto?.url
-      || avatarPhoto?.path
-      || profile?.avatar_url
-      || profile?.user?.external_avatar_url
-      || "",
+    || avatarPhoto?.path
+    || profile?.avatar_url
+    || profile?.user?.external_avatar_url
+    || "",
   );
 
   if (isUsableAvatarUrl(avatarUrl)) return avatarUrl;
@@ -279,7 +279,7 @@ export default function BrandDashboard() {
     {
       label: "Talent đang hợp tác",
       value: `${acceptedTalents} talent`,
-      hint: `${rosterTalents.length} talent trong roster`,
+      hint: `${rosterTalents.length} talent trong brand`,
       icon: UserRoundCheck,
       color: "text-emerald-300 border-emerald-500/25 bg-emerald-500/10",
     },
@@ -315,7 +315,7 @@ export default function BrandDashboard() {
             !
           </h1>
           <p className="mt-2 max-w-2xl text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Theo dõi campaign đang mở, roster talent hiện có và những gương mặt phù hợp nhất để triển khai chiến dịch tiếp theo.
+            Theo dõi campaign đang mở, talent hiện có và những gương mặt phù hợp nhất để triển khai chiến dịch tiếp theo.
           </p>
         </div>
 
@@ -480,8 +480,8 @@ export default function BrandDashboard() {
           {rosterPreview.length === 0 ? (
             <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-8 text-center">
               <Building2 className="mx-auto mb-3 h-8 w-8 text-slate-600" />
-              <h3 className="text-sm font-black text-white">Roster chưa có talent hoạt động</h3>
-              <p className="mt-2 text-xs text-slate-500">Thêm talent vào roster hoặc duyệt link mời để bắt đầu xây mạng lưới cộng tác.</p>
+              <h3 className="text-sm font-black text-white">Brand chưa có talent hoạt động</h3>
+              <p className="mt-2 text-xs text-slate-500">Thêm talent vào Brand hoặc duyệt link mời để bắt đầu xây mạng lưới cộng tác.</p>
             </div>
           ) : (
             <div className="space-y-3">

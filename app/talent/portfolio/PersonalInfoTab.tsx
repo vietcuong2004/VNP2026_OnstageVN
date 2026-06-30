@@ -1202,7 +1202,7 @@ export default function PersonalInfoTab({
             </div>
           </div>
 
-          {!profile.isOnboarded || profile.tier === "Potential" ? (
+          {!profile.isOnboarded ? (
             <div className="flex flex-col items-center justify-center text-center p-8 py-12 rounded-xl border border-purple-500/15 bg-slate-950/45 max-w-md mx-auto space-y-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400">
                 <Sparkles className="h-5.5 w-5.5 animate-pulse" />

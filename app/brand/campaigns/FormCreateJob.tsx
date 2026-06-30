@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { X, ImagePlus, Briefcase, ChevronDown } from "lucide-react";
+import { X, ImagePlus, Briefcase, ChevronDown, Upload, Pencil } from "lucide-react";
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { createBrandCampaign, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
@@ -144,12 +144,81 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   const router = useRouter();
   const [form, setForm] = useState(emptyForm);
   const [campaignImages, setCampaignImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [formStep, setFormStep] = useState(1);
+
+  useEffect(() => {
+    const urls = campaignImages.map((file) => URL.createObjectURL(file));
+    setImagePreviews(urls);
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [campaignImages]);
+
+  const handleImagesAdd = (files: File[]) => {
+    setCampaignImages((prev) => {
+      const next = [...prev, ...files];
+      return next.slice(0, 10);
+    });
+  };
+
+  const handleImageReplace = (index: number, file: File) => {
+    setCampaignImages((prev) => {
+      const next = [...prev];
+      next[index] = file;
+      return next;
+    });
+  };
+
+  const handleImageDelete = (index: number) => {
+    setCampaignImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const TOTAL_STEPS = 5;
 
-  const STEP_LABELS = ["Cơ bản", "Địa điểm", "Mô tả", "Quyền lợi", "Hoàn tất"];
+  const STEP_LABELS = ["Cơ bản", "Địa điểm", "Mô tả", "Yêu cầu", "Hoàn tất"];
+
+  const [budgetFrom, setBudgetFrom] = useState("20.000.000đ");
+  const [budgetTo, setBudgetTo] = useState("40.000.000đ");
+
+  const updateBudgetState = (fromVal: string, toVal: string, isFrom: boolean) => {
+    const f = isFrom ? fromVal : budgetFrom;
+    const t = isFrom ? budgetTo : toVal;
+
+    let budgetString = "";
+    if (f && t) {
+      budgetString = `${f} - ${t}`;
+    } else if (f) {
+      budgetString = f;
+    } else if (t) {
+      budgetString = t;
+    }
+    setForm((c) => ({ ...c, budget: budgetString }));
+  };
+
+  const handleBudgetChange = (
+    val: string,
+    oldVal: string,
+    setter: (v: string) => void,
+    otherVal: string,
+    isFrom: boolean
+  ) => {
+    if (oldVal.endsWith("đ") && !val.endsWith("đ") && val === oldVal.slice(0, -1)) {
+      const digits = val.replace(/[^\d]/g, "");
+      const nextDigits = digits.slice(0, -1);
+      const formatted = nextDigits ? Number(nextDigits).toLocaleString("vi-VN") + "đ" : "";
+      setter(formatted);
+      updateBudgetState(formatted, otherVal, isFrom);
+      return;
+    }
+
+    const digits = val.replace(/[^\d]/g, "");
+    const formatted = digits ? Number(digits).toLocaleString("vi-VN") + "đ" : "";
+    setter(formatted);
+    updateBudgetState(formatted, otherVal, isFrom);
+  };
 
   const isStepValid = () => {
     if (formStep === 1) return form.title.trim() !== "";
@@ -160,6 +229,8 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
 
   function handleClose() {
     setForm(emptyForm);
+    setBudgetFrom("20.000.000đ");
+    setBudgetTo("40.000.000đ");
     setCampaignImages([]);
     setOpenDropdown(null);
     setFormStep(1);
@@ -288,14 +359,14 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 <div key={label} className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => stepNum <= formStep && setFormStep(stepNum)}
+                    onClick={() => setFormStep(stepNum)}
                     className={cn(
-                      "flex h-6 w-6 items-center justify-center rounded-full text-[9px] font-black transition-all",
+                      "flex h-6 w-6 items-center justify-center rounded-full text-[9px] font-black transition-all cursor-pointer",
                       isDone
-                        ? "bg-amber-400/20 border border-amber-400/40 text-amber-300 cursor-pointer"
+                        ? "bg-amber-400/20 border border-amber-400/40 text-amber-300"
                         : isActive
                           ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.3)]"
-                          : "bg-white/5 border border-white/10 text-slate-600 cursor-default"
+                          : "bg-white/5 border border-white/10 text-slate-400 hover:border-white/20"
                     )}
                   >
                     {isDone ? "✓" : stepNum}
@@ -341,7 +412,26 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
               <FormInput label="Nhóm chiến dịch" value={form.campaignType} onChange={(value) => setForm((c) => ({ ...c, campaignType: value }))} />
               <FormInput label="Tên sự kiện / chương trình" value={form.eventName} onChange={(value) => setForm((c) => ({ ...c, eventName: value }))} />
               <FormInput label="Số lượng cần tuyển *" type="number" value={form.talentQuantity} onChange={(value) => setForm((c) => ({ ...c, talentQuantity: value }))} />
-              <FormInput label="Ngân sách" value={form.budget} onChange={(value) => setForm((c) => ({ ...c, budget: value }))} />
+              <label className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ngân sách tối thiểu</span>
+                <input
+                  type="text"
+                  value={budgetFrom}
+                  onChange={(e) => handleBudgetChange(e.target.value, budgetFrom, setBudgetFrom, budgetTo, true)}
+                  className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60"
+                  placeholder="Từ"
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ngân sách tối đa</span>
+                <input
+                  type="text"
+                  value={budgetTo}
+                  onChange={(e) => handleBudgetChange(e.target.value, budgetTo, setBudgetTo, budgetFrom, false)}
+                  className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60"
+                  placeholder="Đến"
+                />
+              </label>
             </div>
           )}
 
@@ -382,17 +472,42 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                   className="w-full resize-none rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60 placeholder:text-slate-600 leading-relaxed"
                 />
               </label>
-              <MultiChoiceField
-                id="responsibilities"
-                label="Đầu việc chi tiết"
-                value={form.responsibilities}
-                options={RESPONSIBILITY_OPTIONS}
-                placeholder={"Nhập thêm đầu việc khác, mỗi dòng một mục"}
-                onChange={(value) => setForm((c) => ({ ...c, responsibilities: value }))}
-                openDropdown={openDropdown}
-                setOpenDropdown={setOpenDropdown}
-                showCustomInput
-              />
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+                <div className="md:col-span-7">
+                  <MultiChoiceField
+                    id="responsibilities"
+                    label="Đầu việc chi tiết"
+                    value={form.responsibilities}
+                    options={RESPONSIBILITY_OPTIONS}
+                    placeholder={"Nhập thêm đầu việc khác, mỗi dòng một mục"}
+                    onChange={(value) => setForm((c) => ({ ...c, responsibilities: value }))}
+                    openDropdown={openDropdown}
+                    setOpenDropdown={setOpenDropdown}
+                    showCustomInput
+                  />
+                </div>
+                <div className="md:col-span-5 rounded-2xl border border-white/5 bg-white/[0.02] p-4 flex flex-col justify-start h-full">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-300">
+                    Xem trước đầu việc ({splitOptionText(form.responsibilities).length})
+                  </span>
+                  <div className="overflow-y-auto max-h-[220px] custom-scrollbar mt-3 space-y-2 pr-1 flex-1">
+                    {splitOptionText(form.responsibilities).length === 0 ? (
+                      <span className="text-[11px] text-slate-500 italic block">
+                        Chưa chọn đầu việc nào.
+                      </span>
+                    ) : (
+                      <ul className="list-none space-y-2">
+                        {splitOptionText(form.responsibilities).map((item, index) => (
+                          <li key={index} className="text-[11px] text-slate-300 leading-normal flex items-start gap-1.5">
+                            <span className="text-amber-400 shrink-0 select-none">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -446,39 +561,93 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           {/* STEP 5: Hoàn tất */}
           {formStep === 5 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-              <label className="group relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-slate-900/60 p-8 text-center transition-all hover:border-amber-400/50 hover:bg-slate-900">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => setCampaignImages(Array.from(e.target.files || []))}
-                />
-                <ImagePlus className="mb-3 h-8 w-8 text-slate-400 transition-colors group-hover:text-amber-300" />
-                <span className="text-sm font-black text-slate-100">Ảnh chiến dịch</span>
-                <span className="mt-1.5 text-[10px] font-medium text-slate-500">
-                  {campaignImages.length > 0
-                    ? `✅ ${campaignImages.length} ảnh đã chọn. Ảnh đầu tiên sẽ làm ảnh đại diện.`
-                    : "Tải poster, moodboard hoặc ảnh brief. Có thể chọn nhiều ảnh."}
-                </span>
-              </label>
-
-              <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-white/5 bg-slate-900/30 p-4 hover:bg-slate-900/50 transition-colors">
-                <div className="flex flex-col gap-0.5 text-left">
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
-                    🛡️ Ký quỹ chiến dịch (Escrow Payment)
-                  </span>
-                  <span className="text-[9.5px] text-slate-500 font-medium leading-normal">
-                    Tạm giữ chi phí thù lao để bảo chứng thanh toán tự động khi nghiệm thu (Khuyên dùng).
+              <div className="rounded-3xl border border-white/10 bg-slate-950/25 p-5 text-left space-y-4">
+                {/* Header */}
+                <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between text-left">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/20 bg-amber-400/10">
+                      <ImagePlus className="h-4.5 w-4.5 text-amber-300" />
+                    </div>
+                    <div>
+                      <h2 className="text-xs font-black uppercase tracking-wider text-white">Bộ ảnh chiến dịch</h2>
+                      <p className="mt-1 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                        Tải lên các hình ảnh bạn muốn dùng cho chiến dịch (Tối đa 10 ảnh)
+                      </p>
+                    </div>
+                  </div>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400 shrink-0">
+                    {campaignImages.length}/10 ảnh
                   </span>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={form.escrowed}
-                  onChange={(e) => setForm((c) => ({ ...c, escrowed: e.target.checked }))}
-                  className="rounded accent-amber-400 h-4 w-4 shrink-0 cursor-pointer"
-                />
-              </label>
+
+                {/* Horizontal Scroll List */}
+                <div className="flex gap-4 overflow-x-auto pb-3 custom-scrollbar snap-x">
+                  {/* Upload card (only show if < 10 images) */}
+                  {campaignImages.length < 10 && (
+                    <label className="group relative flex aspect-[4/5] w-[130px] shrink-0 snap-start cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/20 bg-slate-900/60 p-4 text-center transition-all hover:border-amber-400 hover:bg-slate-900">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          handleImagesAdd(files);
+                        }}
+                        className="hidden"
+                      />
+                      <ImagePlus className="mb-2 h-7 w-7 text-slate-400 transition-colors group-hover:text-amber-300" />
+                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-100">
+                        Tải ảnh lên
+                      </span>
+                      <span className="mt-1 text-[8px] font-medium leading-relaxed text-slate-500">
+                        JPG, PNG hoặc WebP
+                      </span>
+                    </label>
+                  )}
+
+                  {/* Previews */}
+                  {imagePreviews.map((url, idx) => (
+                    <div key={idx} className="group relative aspect-[4/5] w-[130px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-slate-950">
+                      <img
+                        src={url}
+                        alt="Campaign preview"
+                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                      />
+
+                      {/* Delete button (X) */}
+                      <button
+                        type="button"
+                        onClick={() => handleImageDelete(idx)}
+                        className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white opacity-100 shadow-lg backdrop-blur transition hover:border-red-500 hover:bg-red-500 hover:text-white cursor-pointer"
+                        title="Xóa ảnh"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+
+                      {/* Edit button (Pencil) */}
+                      <label className="absolute right-12 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/60 text-white opacity-100 shadow-lg backdrop-blur transition hover:border-amber-300 hover:bg-amber-300 hover:text-slate-950">
+                        <Pencil className="h-3.5 w-3.5" />
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageReplace(idx, file);
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {idx === 0 && (
+                        <span className="absolute bottom-2 left-2 bg-amber-400 text-slate-950 text-[8px] font-black uppercase px-1.5 py-0.5 rounded shadow">
+                          Cover
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
 
               {/* Summary preview */}
               <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 space-y-2">
@@ -526,9 +695,8 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
             {formStep < TOTAL_STEPS ? (
               <button
                 type="button"
-                onClick={() => isStepValid() && setFormStep(formStep + 1)}
-                disabled={!isStepValid()}
-                className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-5 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                onClick={() => setFormStep(formStep + 1)}
+                className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-5 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 cursor-pointer transition-all"
               >
                 Tiếp theo →
               </button>
@@ -575,10 +743,36 @@ function MultiChoiceField({
   const selectedSet = new Set(selectedItems);
   const optionSet = new Set(options);
   const customItems = selectedItems.filter((item) => !optionSet.has(item));
-  const customValue = customItems.join("\n");
+
+  const [localText, setLocalText] = useState("");
+
+  useEffect(() => {
+    const currentCustomValue = customItems.join("\n");
+    const cleanLocal = splitOptionText(localText).join("\n");
+
+    if (currentCustomValue !== cleanLocal) {
+      setLocalText(currentCustomValue);
+    }
+  }, [value, options]);
+
   const summary = selectedItems.length > 0
-    ? selectedItems.slice(0, 2).join(", ") + (selectedItems.length > 2 ? ` +${selectedItems.length - 2}` : "")
+    ? id === "responsibilities"
+      ? `Đã chọn ${selectedItems.length} đầu việc`
+      : selectedItems.slice(0, 2).join(", ") + (selectedItems.length > 2 ? ` +${selectedItems.length - 2}` : "")
     : "Chọn từ danh sách";
+
+  const allSelected = options.every((option) => selectedSet.has(option));
+  const someSelected = options.some((option) => selectedSet.has(option)) && !allSelected;
+
+  function toggleAll() {
+    if (allSelected) {
+      const next = selectedItems.filter((item) => !optionSet.has(item));
+      onChange(joinOptionText(next));
+    } else {
+      const next = [...options, ...customItems];
+      onChange(joinOptionText(next));
+    }
+  }
 
   function toggleOption(option: string) {
     const next = selectedSet.has(option)
@@ -588,9 +782,13 @@ function MultiChoiceField({
     onChange(joinOptionText(next));
   }
 
-  function updateCustomItems(nextValue: string) {
+  function handleTextChange(newVal: string) {
+    setLocalText(newVal);
+
     const selectedOptions = options.filter((option) => selectedSet.has(option));
-    onChange(joinOptionText([...selectedOptions, ...splitOptionText(nextValue)]));
+    const selectedString = selectedOptions.join("\n");
+
+    onChange(selectedString ? `${selectedString}\n${newVal}` : newVal);
   }
 
   return (
@@ -613,6 +811,22 @@ function MultiChoiceField({
 
         {open && (
           <div className="absolute left-0 right-0 top-full z-[70] mt-2 rounded-xl border border-white/10 bg-[#070913] p-3 shadow-2xl">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/5">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-300 hover:text-white transition-colors">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(input) => {
+                    if (input) {
+                      input.indeterminate = someSelected;
+                    }
+                  }}
+                  onChange={toggleAll}
+                  className="h-3.5 w-3.5 shrink-0 rounded accent-amber-400"
+                />
+                <span>{allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}</span>
+              </label>
+            </div>
             <div className="grid max-h-56 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 custom-scrollbar">
               {options.map((option) => {
                 const checked = selectedSet.has(option);
@@ -640,8 +854,8 @@ function MultiChoiceField({
             </div>
             {!showCustomInput && (
               <textarea
-                value={customValue}
-                onChange={(event) => updateCustomItems(event.target.value)}
+                value={localText}
+                onChange={(event) => handleTextChange(event.target.value)}
                 rows={2}
                 placeholder={placeholder}
                 className="mt-3 w-full resize-none rounded-lg border border-white/5 bg-slate-950/70 px-3 py-2 text-xs text-white outline-none placeholder:text-slate-600 focus:border-amber-400/60"
@@ -661,8 +875,8 @@ function MultiChoiceField({
       </div>
       {showCustomInput && (
         <textarea
-          value={customValue}
-          onChange={(event) => updateCustomItems(event.target.value)}
+          value={localText}
+          onChange={(event) => handleTextChange(event.target.value)}
           rows={3}
           placeholder={placeholder}
           className="w-full resize-none rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none placeholder:text-slate-600 focus:border-amber-400/60"
