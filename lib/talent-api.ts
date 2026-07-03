@@ -102,7 +102,7 @@ export function getDefaultTalentProfile() {
     isAvailable: true,
     isSuperBoosted: false,
     isPremiumBoosted: false,
-    photos: ["/fullbody_model.png", "/cover_image.png"],
+    photos: [],
     photoRecords: [],
     hasUploadedCatwalk: true,
     hasUploadedIntro: true,
@@ -112,7 +112,7 @@ export function getDefaultTalentProfile() {
 
 export function sanitizeTalentProfile(profile: any) {
   const photos = Array.isArray(profile?.photos)
-    ? profile.photos.map(normalizeBackendAssetUrl).filter(isPortablePhotoUrl)
+    ? profile.photos.map(normalizeBackendAssetUrl).filter(isRealProfileImage)
     : profile?.photos;
   const photoRecords = Array.isArray(profile?.photoRecords)
     ? profile.photoRecords
@@ -120,7 +120,7 @@ export function sanitizeTalentProfile(profile: any) {
           ...photo,
           url: normalizeBackendAssetUrl(photo.url || photo.path),
         }))
-        .filter((photo: BackendPhoto) => isPortablePhotoUrl(photo.url || photo.path))
+        .filter((photo: BackendPhoto) => isRealProfileImage(photo.url || photo.path))
     : profile?.photoRecords;
   const normalizedAvatar = normalizeBackendAssetUrl(profile?.avatar);
   const normalizedCover = normalizeBackendAssetUrl(profile?.cover);
@@ -135,7 +135,7 @@ export function sanitizeTalentProfile(profile: any) {
   const avatar = isPortablePhotoUrl(normalizedAvatar)
     ? normalizedAvatar
     : createInitialAvatarDataUrl(profile?.name, profile?.email);
-  const cover = isPortablePhotoUrl(normalizedCover) ? normalizedCover : "/cover_image.png";
+  const cover = isRealProfileImage(normalizedCover) ? normalizedCover : "";
 
   return {
     ...profile,
@@ -143,14 +143,14 @@ export function sanitizeTalentProfile(profile: any) {
     busyDates: normalizeBusyDates(profile?.busyDates),
     avatar,
     cover,
-    fullBody: isPortablePhotoUrl(normalizedFullBody) ? normalizedFullBody : "/fullbody_model.png",
+    fullBody: isRealProfileImage(normalizedFullBody) ? normalizedFullBody : "",
     cccdFront: isPortablePhotoUrl(normalizedCccdFront) ? normalizedCccdFront : "",
     cccdBack: isPortablePhotoUrl(normalizedCccdBack) ? normalizedCccdBack : "",
     cccdSelfie: isPortablePhotoUrl(normalizedCccdSelfie) ? normalizedCccdSelfie : "",
-    lookbook1: isPortablePhotoUrl(normalizedLookbook1) ? normalizedLookbook1 : "",
-    lookbook2: isPortablePhotoUrl(normalizedLookbook2) ? normalizedLookbook2 : "",
-    lookbook3: isPortablePhotoUrl(normalizedLookbook3) ? normalizedLookbook3 : "",
-    lookbook4: isPortablePhotoUrl(normalizedLookbook4) ? normalizedLookbook4 : "",
+    lookbook1: isRealProfileImage(normalizedLookbook1) ? normalizedLookbook1 : "",
+    lookbook2: isRealProfileImage(normalizedLookbook2) ? normalizedLookbook2 : "",
+    lookbook3: isRealProfileImage(normalizedLookbook3) ? normalizedLookbook3 : "",
+    lookbook4: isRealProfileImage(normalizedLookbook4) ? normalizedLookbook4 : "",
     photos,
     photoRecords,
   };
@@ -275,9 +275,18 @@ function isPortablePhotoUrl(value: unknown) {
   return Boolean(url) && !url.startsWith("blob:") && !isRawBackendPhotoPath(url);
 }
 
+function isMockProfileImage(value: unknown) {
+  const url = String(value || "").trim();
+  return url.includes("fullbody_model.png") || url.includes("cover_image.png");
+}
+
+function isRealProfileImage(value: unknown) {
+  return isPortablePhotoUrl(value) && !isMockProfileImage(value);
+}
+
 function photoUrl(photo?: BackendPhoto | null) {
   const url = normalizeBackendAssetUrl(photo?.url || photo?.path || "");
-  return isPortablePhotoUrl(url) ? url : "";
+  return isRealProfileImage(url) ? url : "";
 }
 
 function isRawBackendPhotoPath(value: unknown) {
@@ -345,14 +354,14 @@ export function mapBackendProfile(profile: BackendProfile | null) {
   const portfolioPhotoRecords = backendPhotos.filter((photo) => !photo.category || photo.category === "portfolio");
   const photos = portfolioPhotoRecords
     .map(photoUrl)
-    .filter(isPortablePhotoUrl) as string[];
+    .filter(isRealProfileImage) as string[];
   const avatarUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "avatar"));
   const coverUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cover"));
   const fullBodyUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "full_body"));
   const cccdFrontUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_front"));
   const cccdBackUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_back"));
   const cccdSelfieUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_selfie"));
-  const localPhotos = (Array.isArray(local.photos) ? local.photos : []).filter(isPortablePhotoUrl);
+  const localPhotos = (Array.isArray(local.photos) ? local.photos : []).filter(isRealProfileImage);
   const measurements = parseMeasurements(profile.measurements);
   const busyDates = busyDatesFromEvents(profile.calendar_events);
 
@@ -362,8 +371,8 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     name: profileDisplayName(profile, local.name),
     email: profile.user?.email || local.email,
     avatar: avatarUrl || local.avatar || createInitialAvatarDataUrl(profileDisplayName(profile, local.name), profile.user?.email),
-    cover: coverUrl || local.cover || "/cover_image.png",
-    fullBody: fullBodyUrl || local.fullBody || "/fullbody_model.png",
+    cover: coverUrl || local.cover || "",
+    fullBody: fullBodyUrl || local.fullBody || "",
     cccdFront: cccdFrontUrl || local.cccdFront || "",
     cccdBack: cccdBackUrl || local.cccdBack || "",
     cccdSelfie: cccdSelfieUrl || local.cccdSelfie || "",
@@ -389,7 +398,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     engagementRate: averageEngagement(profile) ?? local.engagementRate,
     availabilityCalendar: normalizeAvailabilityCalendar(local.availabilityCalendar),
     busyDates,
-    photos: photos.length ? photos : localPhotos.length ? localPhotos : ["/fullbody_model.png", "/cover_image.png"],
+    photos: photos.length ? photos : localPhotos,
     photoRecords: portfolioPhotoRecords,
   };
 
@@ -602,17 +611,6 @@ export async function resolveCampaignReferralLinkBySlug(campaignSlug: string, re
   return response.data;
 }
 
-function normalizeLegacyCampaignId(rawId: string) {
-  let campaignId = rawId;
-
-  if (campaignId === "c1") campaignId = "camp-1";
-  if (campaignId === "c2") campaignId = "camp-2";
-  if (campaignId === "c3") campaignId = "camp-3";
-  if (campaignId === "c4") campaignId = "camp-4";
-
-  return campaignId;
-}
-
 export type ParsedCampaignReferralUrl =
   | {
       mode: "slug";
@@ -651,16 +649,10 @@ export function parseCampaignReferralUrl(rawUrl: string): ParsedCampaignReferral
 
   if (segments[0] === "campaign" && segments[1]) {
     const campaignPart = segments[1];
-    const campaignId = campaignPart.split("-").slice(-2).join("-") === "camp-1" ||
-      campaignPart.split("-").slice(-2).join("-") === "camp-2" ||
-      campaignPart.split("-").slice(-2).join("-") === "camp-3" ||
-      campaignPart.split("-").slice(-2).join("-") === "camp-4"
-      ? campaignPart.split("-").slice(-2).join("-")
-      : campaignPart.split("-").pop() || "";
 
     return {
       mode: "legacy",
-      campaignId: normalizeLegacyCampaignId(campaignId),
+      campaignId: campaignPart,
       referralCode,
     };
   }

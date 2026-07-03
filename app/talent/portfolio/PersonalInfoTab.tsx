@@ -362,41 +362,16 @@ export default function PersonalInfoTab({
     }, 3000);
   };
 
-  const defaultLookbookPhotos = [
-    {
-      id: 1,
-      label: "Ảnh 1",
-      url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: 2,
-      label: "Ảnh 2",
-      url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: 3,
-      label: "Ảnh 3",
-      url: "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: 4,
-      label: "Ảnh 4",
-      url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600",
-    },
-  ];
-
   const portfolioPhotoUrls = Array.from(new Set(
     (profile.photos || [])
       .map((url: string) => normalizeBackendAssetUrl(url))
-      .filter(Boolean)
-      .filter((url: string) => !url.includes("fullbody_model.png") && !url.includes("cover_image.png")),
+      .filter(Boolean),
   ));
 
   const lookbookPhotos = Array.from({ length: 8 }, (_, index) => {
     const id = index + 1;
-    const preset = defaultLookbookPhotos[index];
     const explicitUrl = normalizeBackendAssetUrl(profile["lookbook" + id]);
-    const url = explicitUrl || portfolioPhotoUrls[index] || preset?.url || "";
+    const url = explicitUrl || portfolioPhotoUrls[index] || "";
 
     if (!url) return null;
 
@@ -511,11 +486,21 @@ export default function PersonalInfoTab({
           </h3>
 
           <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-inner">
-            <img
-              src={normalizeBackendAssetUrl(profile.fullBody) || "/fullbody_model.png"}
-              alt="Model Full-body portrait"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-            />
+            {normalizeBackendAssetUrl(profile.fullBody) ? (
+              <img
+                src={normalizeBackendAssetUrl(profile.fullBody)}
+                alt="Model Full-body portrait"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              />
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-600">
+                <Upload className="h-10 w-10" />
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Chưa có ảnh full-body</p>
+                  <p className="mt-1 text-[10px] font-semibold leading-relaxed text-slate-600">Tải ảnh lên để hoàn thiện hồ sơ người mẫu.</p>
+                </div>
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80" />
 
             {/* Desktop Hover Overlay upload trigger */}

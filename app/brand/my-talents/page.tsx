@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import QRCodeContainer from "@/components/QR_Code";
 import { QRCodeCanvas } from "qrcode.react";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, profileAvatarFromBackend } from "@/lib/avatar";
-import { talents as allTalents, type Campaign, type TalentProfile } from "@/lib/brand-mvp-data";
+import { type Campaign, type TalentProfile } from "@/lib/brand-mvp-data";
 import {
   addBrandRosterTalent,
   createBrandTalentInviteLink,
@@ -679,7 +679,7 @@ export default function MyTalentsPage() {
               <Users2 className="h-12 w-12 text-slate-700 mb-4 animate-pulse" />
               <p className="text-white font-black text-sm uppercase tracking-wider">Chưa có Talent nào</p>
               <p className="text-slate-400 text-xs mt-2 max-w-sm font-semibold leading-relaxed">
-                Hãy mời Talent đầu tiên tham gia mạng lưới của Brand bằng link hoặc mã QR bên phải.
+                Hãy mời Talent đầu tiên tham gia mạng lưới của Brand bằng link hoặc mã QR.
               </p>
               <button
                 onClick={() => setShowInviteModal(true)}

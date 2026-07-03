@@ -20,7 +20,7 @@ import {
   QrCode,
   X,
 } from "lucide-react";
-import { campaigns as initialCampaigns, talents, type Campaign, type CampaignMedia, type CampaignStage } from "@/lib/brand-mvp-data";
+import { type Campaign, type CampaignMedia, type CampaignStage } from "@/lib/brand-mvp-data";
 import {
   approveBrandCampaignCommissions,
   closeBrandCampaign,
@@ -215,9 +215,10 @@ export default function CampaignDetailPage() {
     };
   }, [authUser]);
 
-  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaignLoading, setCampaignLoading] = useState(true);
   const [sentRequests, setSentRequests] = useState<Record<string, boolean>>({});
-  const [displayTalents, setDisplayTalents] = useState<any[]>(talents);
+  const [displayTalents, setDisplayTalents] = useState<any[]>([]);
 
   const [referralLink, setReferralLink] = useState<string>("");
   const [isGeneratingLink, setIsGeneratingLink] = useState<boolean>(false);
@@ -252,53 +253,14 @@ export default function CampaignDetailPage() {
   };
 
   useEffect(() => {
-    const fallbackCampaigns = initialCampaigns;
+    let cancelled = false;
 
-    if (typeof window !== "undefined") {
-      const storedRequests = window.localStorage.getItem("onstagevn_sent_requests");
-      if (storedRequests) {
-        try {
-          setSentRequests(JSON.parse(storedRequests));
-        } catch (e) { }
-      }
-      const storedProfile = window.localStorage.getItem("vnp_talent_profile");
-      if (storedProfile) {
-        try {
-          const parsed = JSON.parse(storedProfile);
-          if (parsed) {
-            setDisplayTalents(prev => prev.map(t => {
-              if (t.id === "tal-1") {
-                return {
-                  ...t,
-                  name: parsed.name || t.name,
-                  avatar: parsed.avatar || t.avatar,
-                  cover: parsed.cover || t.cover,
-                  height: parsed.height !== undefined ? Number(parsed.height) : t.height,
-                  weight: parsed.weight !== undefined ? Number(parsed.weight) : t.weight,
-                  bust: parsed.bust !== undefined ? Number(parsed.bust) : t.bust,
-                  waist: parsed.waist !== undefined ? Number(parsed.waist) : t.waist,
-                  hips: parsed.hips !== undefined ? Number(parsed.hips) : t.hips,
-                  gender: parsed.gender || t.gender,
-                  district: parsed.location || t.district,
-                  education: parsed.education || t.education,
-                  languages: parsed.languages || t.languages,
-                  skills: parsed.skills || t.skills,
-                  rateCard: parsed.rateCard || t.rateCard,
-                  lifestyleServices: parsed.lifestyleServices || t.lifestyleServices,
-                  yearsOfExperience: parsed.experience !== undefined ? Number(parsed.experience) : t.yearsOfExperience,
-                  verified: parsed.verifiedLevel === "Elite" || parsed.verifiedLevel === "Pro" || parsed.verifiedLevel === "Basic" || t.verified,
-                  tier: parsed.tier || t.tier,
-                };
-              }
-              return t;
-            }));
-          }
-        } catch (e) { }
-      }
-    }
-
-    loadBrandTalents(talents).then(setDisplayTalents);
-    loadBrandCampaign(params.id, fallbackCampaigns).then((campaign) => {
+    loadBrandTalents([]).then((talents) => {
+      if (!cancelled) setDisplayTalents(talents);
+    });
+    setCampaignLoading(true);
+    loadBrandCampaign(params.id, []).then((campaign) => {
+      if (cancelled) return;
       if (!campaign) return;
       const loadedCampaign = campaign;
 
@@ -316,7 +278,13 @@ export default function CampaignDetailPage() {
 
         return next;
       });
+    }).finally(() => {
+      if (!cancelled) setCampaignLoading(false);
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [params.id]);
 
   const selectedCampaign = useMemo(() => {
@@ -330,7 +298,7 @@ export default function CampaignDetailPage() {
 
     if (selectedCampaign) {
       selectedCampaign.applicants.forEach((applicant) => {
-        const talent = displayTalents.find((t) => t.id === applicant.talentId) || talents.find((t) => t.id === applicant.talentId);
+        const talent = displayTalents.find((t) => t.id === applicant.talentId) || (applicant as any)?.talent;
         if (talent) {
           list.push({
             id: talent.id,
@@ -578,7 +546,7 @@ export default function CampaignDetailPage() {
 
     if (stage === "confirmed") {
       const campaign = campaigns.find(c => c.id === campaignId);
-      const talent = displayTalents.find(t => t.id === talentId) || talents.find(t => t.id === talentId);
+      const talent = displayTalents.find(t => t.id === talentId);
       if (campaign && talent) {
         setPayoutDetails({
           talentName: talent.name,
@@ -612,7 +580,7 @@ export default function CampaignDetailPage() {
   async function removeApplicant(campaignId: string, talentId: string) {
     const campaign = campaigns.find((item) => item.id === campaignId);
     const applicant = campaign?.applicants.find((item: any) => item.talentId === talentId);
-    const talent = displayTalents.find(t => t.id === talentId) || talents.find(t => t.id === talentId) || (applicant as any)?.talent;
+    const talent = displayTalents.find(t => t.id === talentId) || (applicant as any)?.talent;
     const name = talent?.name || "Talent";
     setDeletingApplicant({ talentId, talentName: name });
   }
@@ -681,6 +649,14 @@ export default function CampaignDetailPage() {
     });
 
     setCampaigns(nextCampaigns);
+  }
+
+  if (campaignLoading && !selectedCampaign) {
+    return (
+      <div className="space-y-6 py-20 text-center">
+        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Đang tải thông tin chiến dịch...</p>
+      </div>
+    );
   }
 
   if (!selectedCampaign) {
@@ -1147,13 +1123,13 @@ export default function CampaignDetailPage() {
 
           {selectedCampaign.applicants.map((item) => {
             const talent = displayTalents.find((candidate) => candidate.id === item.talentId)
-              || talents.find((candidate) => candidate.id === item.talentId)
+              || (item as any)?.talent
               || (item as any).talent;
             if (!talent) return null;
             const stage = item.stage;
             const referredByName = (item as any).referredByName;
             const referrer = item.referredByTalentId
-              ? displayTalents.find((candidate) => candidate.id === item.referredByTalentId) || talents.find((candidate) => candidate.id === item.referredByTalentId) || (referredByName ? { name: referredByName } : null)
+              ? displayTalents.find((candidate) => candidate.id === item.referredByTalentId) || (referredByName ? { name: referredByName } : null)
               : (referredByName ? { name: referredByName } : null);
             const referrerName = referrer?.name;
             return (

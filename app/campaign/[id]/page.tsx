@@ -7,7 +7,7 @@ import {
   Sparkles, Award, ArrowLeft, Send, ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { campaigns as initialCampaigns, talents, Campaign } from "@/lib/brand-mvp-data";
+import { Campaign } from "@/lib/brand-mvp-data";
 import { loadBrandCampaign } from "@/lib/brand-api";
 import { getAuthToken } from "@/lib/api-client";
 import { applyTalentCampaign, resolveCampaignReferralLink } from "@/lib/talent-api";
@@ -99,31 +99,23 @@ export default function CampaignReferralPage() {
   const donationAmount = Math.max(1000, Number(searchParams.get("mock_amount") || 100000) || 100000);
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [campaignLoading, setCampaignLoading] = useState(true);
   const [resolvedReferrerName, setResolvedReferrerName] = useState("");
-  const [selectedTalentId, setSelectedTalentId] = useState("tal-2");
   const [note, setNote] = useState("Tôi rất quan tâm và mong muốn thực hiện chiến dịch này qua giới thiệu.");
   const [isApplied, setIsApplied] = useState(false);
   const [error, setError] = useState("");
   const [resolvedReferralCode, setResolvedReferralCode] = useState("");
 
-  // Parse campaign ID from slug (e.g. "beauty-mega-live-camp-1" -> "camp-1")
   const paramId = params.id || "";
-  let campaignId = paramId.split("-").slice(-2).join("-") === "camp-1" || 
-                     paramId.split("-").slice(-2).join("-") === "camp-2" || 
-                     paramId.split("-").slice(-2).join("-") === "camp-3" || 
-                     paramId.split("-").slice(-2).join("-") === "camp-4"
-                     ? paramId.split("-").slice(-2).join("-")
-                     : paramId.split("-").pop() || "";
-
-  // Map talent page mock IDs to brand database campaign IDs
-  if (campaignId === "c1") campaignId = "camp-1";
-  if (campaignId === "c2") campaignId = "camp-2";
-  if (campaignId === "c3") campaignId = "camp-3";
-  if (campaignId === "c4") campaignId = "camp-4";
+  const campaignId = paramId;
 
   useEffect(() => {
-    if (refId) {
-      resolveCampaignReferralLink(refId).then((resolved) => {
+    let cancelled = false;
+    setCampaignLoading(true);
+
+    const resolveInvite = refId
+      ? resolveCampaignReferralLink(refId).then((resolved) => {
+        if (cancelled) return;
         if (resolved?.type === "campaign") {
           setResolvedReferralCode(resolved.code || refId);
           const resolvedCampaign = mapReferralCampaign(resolved.campaign);
@@ -132,23 +124,30 @@ export default function CampaignReferralPage() {
         }
       }).catch((error) => {
         console.warn("Cannot resolve campaign referral link", error);
-      });
-    }
+      })
+      : Promise.resolve();
 
-    loadBrandCampaign(campaignId, initialCampaigns).then((loaded) => {
+    const loadCampaign = loadBrandCampaign(campaignId, []).then((loaded) => {
+      if (cancelled) return;
       if (loaded) setCampaign(loaded);
     });
 
+    Promise.allSettled([resolveInvite, loadCampaign]).finally(() => {
+      if (!cancelled) setCampaignLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [campaignId, paramId, refId, refNameSlug]);
 
-  const referrerTalent = talents.find(t => t.id === refId);
   const fallbackReferrerName = refNameSlug
     ? refNameSlug
         .split("-")
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
     : "Một KOL uy tín";
-  const referrerName = resolvedReferrerName || referrerTalent?.name || fallbackReferrerName;
+  const referrerName = resolvedReferrerName || fallbackReferrerName;
 
   const renderDonateSuccessScreen = (campaignTitle: string) => (
     <div className="min-h-screen bg-[#020408] text-slate-100 py-10 px-4 md:px-8 relative overflow-x-hidden">
@@ -211,28 +210,18 @@ export default function CampaignReferralPage() {
       }
     }
 
-    if (campaign.applicants.some(a => a.talentId === selectedTalentId)) {
-      setError("Tài khoản KOL này đã ứng tuyển chiến dịch này rồi.");
-      return;
-    }
-
-    setCampaign({
-      ...campaign,
-      applicants: [
-        ...campaign.applicants,
-        {
-          talentId: selectedTalentId,
-          stage: "new" as const,
-          note,
-          referredByTalentId: refId || undefined
-        }
-      ]
-    });
-    setIsApplied(true);
-    setError("");
+    setError("Chiến dịch này chưa sẵn sàng nhận ứng tuyển qua hệ thống. Vui lòng kiểm tra lại đường dẫn hoặc liên hệ Brand.");
   };
   if (!campaign && donateSuccess) {
     return renderDonateSuccessScreen(donationCampaignTitle || "chiến dịch này");
+  }
+
+  if (campaignLoading && !campaign) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#020408] text-slate-100 p-6">
+        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Đang tải thông tin chiến dịch...</p>
+      </div>
+    );
   }
 
   if (!campaign) {
@@ -252,9 +241,6 @@ export default function CampaignReferralPage() {
       </div>
     );
   }
-
-  // Get selected talent's name for success view
-  const applicantName = talents.find(t => t.id === selectedTalentId)?.name || "KOL";
 
   if (donateSuccess) {
     return renderDonateSuccessScreen(donationCampaignTitle || campaign.title);
@@ -295,7 +281,7 @@ export default function CampaignReferralPage() {
             <div className="space-y-2">
               <h3 className="text-xl font-black text-white uppercase tracking-wider">Ứng Tuyển Thành Công!</h3>
               <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                Hồ sơ của <b>{applicantName}</b> đã được lưu vào danh sách ứng viên chiến dịch <b>{campaign.title}</b>.
+                Hồ sơ của bạn đã được lưu vào danh sách ứng viên chiến dịch <b>{campaign.title}</b>.
               </p>
             </div>
             <div className="bg-[#050711] border border-white/5 rounded-2xl p-4 max-w-md mx-auto text-left text-xs space-y-2">
@@ -441,25 +427,6 @@ export default function CampaignReferralPage() {
                     <span>{error}</span>
                   </div>
                 )}
-
-                <div className="space-y-2">
-                  <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                    Chọn KOL ứng tuyển (Mô phỏng F2)
-                  </label>
-                  <select
-                    value={selectedTalentId}
-                    onChange={(e) => setSelectedTalentId(e.target.value)}
-                    className="w-full bg-[#050711] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400"
-                  >
-                    {talents
-                      .filter(t => t.id !== refId) // cannot refer self
-                      .map(t => (
-                        <option key={t.id} value={t.id}>
-                          {t.name} ({t.type})
-                        </option>
-                      ))}
-                  </select>
-                </div>
 
                 <div className="space-y-2">
                   <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">

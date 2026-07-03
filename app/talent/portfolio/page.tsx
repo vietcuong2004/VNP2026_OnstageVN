@@ -11,7 +11,6 @@ import PersonalInfoTab from "./PersonalInfoTab";
 import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
 import ProgressBar from "@/components/ui/ProgressBar";
-import { findTalentById } from "@/lib/brand-mvp-data";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, TALENT_PROFILE_UPDATED_EVENT, uploadTalentPhoto } from "@/lib/talent-api";
 
@@ -110,16 +109,11 @@ export default function PortfolioPage() {
       isAvailable: true,
       isSuperBoosted: false,
       isPremiumBoosted: false,
-      photos: [
-        "/fullbody_model.png",
-        "/cover_image.png",
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600",
-        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=600"
-      ],
+      photos: [],
       hasUploadedCatwalk: true,
       hasUploadedIntro: true,
       hasUploadedMC: true,
-      lifestyleServices: findTalentById("tal-1")?.lifestyleServices || []
+      lifestyleServices: []
     };
 
     void loadTalentProfile().then((loadedProfile) => {
@@ -134,13 +128,13 @@ export default function PortfolioPage() {
           ...defaultMock.rateCard,
           ...(loadedProfile?.rateCard || {}),
         },
-        photos: loadedProfile?.photos?.length ? loadedProfile.photos : defaultMock.photos,
+        photos: loadedProfile?.photos?.length ? loadedProfile.photos : [],
         hasUploadedCatwalk: loadedProfile?.hasUploadedCatwalk ?? true,
         hasUploadedIntro: loadedProfile?.hasUploadedIntro ?? true,
         hasUploadedMC: loadedProfile?.hasUploadedMC ?? true,
         lifestyleServices: loadedProfile?.lifestyleServices?.length
           ? loadedProfile.lifestyleServices
-          : findTalentById("tal-1")?.lifestyleServices || [],
+          : [],
       };
 
       if (!nextProfile.avatar) {
@@ -342,11 +336,18 @@ export default function PortfolioPage() {
           </div>
         ) : (
           <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-white/5 bg-slate-950 group">
-            <img
-              src={normalizeBackendAssetUrl(profile.cover) || "/cover_image.png"}
-              alt="Cover banner"
-              className="h-full w-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-[1.01]"
-            />
+            {normalizeBackendAssetUrl(profile.cover) ? (
+              <img
+                src={normalizeBackendAssetUrl(profile.cover)}
+                alt="Cover banner"
+                className="h-full w-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-[1.01]"
+              />
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-600">
+                <Camera className="h-8 w-8" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Chưa có ảnh bìa</span>
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80" />
             {/* Cover Hover Overlay upload trigger */}
             <div className="absolute inset-0 bg-black/25 sm:bg-black/40 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
