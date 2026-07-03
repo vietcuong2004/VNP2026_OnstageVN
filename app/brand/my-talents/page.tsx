@@ -136,9 +136,9 @@ function profileToTalent(
 
   const followersCount = fallback?.followersCount || 0;
   const displayName =
+    usableText(profile.user?.name) ||
     usableText(profile.display_name) ||
     usableText(profile.full_name) ||
-    usableText(profile.user?.name) ||
     usableText(profile.user?.email) ||
     usableText(fallback?.name) ||
     `Talent #${String(profile.id || fallback?.id || "").trim() || "mới"}`;

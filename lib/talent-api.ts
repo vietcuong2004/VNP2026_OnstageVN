@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { apiForm, apiJson, getAuthToken, getStoredAuthUser } from "@/lib/api-client";
+import { apiForm, apiJson, getAuthToken, getStoredAuthUser, storeAuthUser } from "@/lib/api-client";
 import { avatarFallbackForUser, createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { busyDatesFromEvents, normalizeAvailabilityCalendar, normalizeBusyDates } from "@/lib/talent-calendar";
 
@@ -313,8 +313,8 @@ function isPlaceholderTalentName(value?: string | null) {
 }
 
 function profileDisplayName(profile: BackendProfile, localName?: string) {
-  if (!isPlaceholderTalentName(profile.display_name)) return profile.display_name;
   if (!isPlaceholderTalentName(profile.user?.name)) return profile.user?.name;
+  if (!isPlaceholderTalentName(profile.display_name)) return profile.display_name;
   if (!isPlaceholderTalentName(localName)) return localName;
   return "Talent";
 }
@@ -349,6 +349,11 @@ function parseMeasurements(value: BackendProfile["measurements"] | string | null
 export function mapBackendProfile(profile: BackendProfile | null) {
   const local = readLocalProfile();
   if (!profile) return persistTalentProfile(local);
+
+  const authUser = getStoredAuthUser<Record<string, unknown>>();
+  if (authUser && profile.user?.name && authUser.name !== profile.user.name) {
+    storeAuthUser({ ...authUser, name: profile.user.name });
+  }
 
   const backendPhotos = profile.photos || [];
   const portfolioPhotoRecords = backendPhotos.filter((photo) => !photo.category || photo.category === "portfolio");
