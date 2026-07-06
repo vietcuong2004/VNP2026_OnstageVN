@@ -29,7 +29,7 @@ export function getRealtimeClient() {
     wsPath,
     forceTLS,
     enabledTransports: ["ws", "wss"],
-    authEndpoint: `${API_BASE_URL.replace(/\/api$/, "")}/broadcasting/auth`,
+    authEndpoint: `${API_BASE_URL}/broadcasting/auth`,
     auth: {
       headers: {
         Authorization: `Bearer ${token}`,
