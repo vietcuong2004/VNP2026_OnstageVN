@@ -1,7 +1,6 @@
-/** @type {import('next').NextConfig} */
+﻿/** @type {import('next').NextConfig} */
 const apiProxyTarget = process.env.API_PROXY_TARGET ?? "http://127.0.0.1:8080";
 const staticProxyTarget = process.env.STATIC_PROXY_TARGET ?? "http://127.0.0.1:9000/api-manager-kols";
-const reverbProxyTarget = process.env.REVERB_PROXY_TARGET ?? "http://127.0.0.1:8081";
 
 const nextConfig = {
   devIndicators: {
@@ -22,24 +21,16 @@ const nextConfig = {
         source: "/static/:path*",
         destination: `${staticProxyTarget}/:path*`,
       },
-      {
-        source: "/app/:path*",
-        destination: `${reverbProxyTarget}/app/:path*`,
-      },
-      {
-        source: "/apps/:path*",
-        destination: `${reverbProxyTarget}/apps/:path*`,
-      },
     ];
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.optimization.splitChunks = {
         ...config.optimization.splitChunks,
-        minSize: 30000, // Nâng lên 30KB để loại bỏ các file quá nhỏ
-        maxSize: 250000, // Giới hạn file tối đa không vượt quá 250KB
-        maxAsyncRequests: 5, // Tối đa 5 file JS tải đồng thời khi lazy load
-        maxInitialRequests: 3, // Tối đa 3 file JS tải đồng thời khi load trang lần đầu
+        minSize: 30000, // NÃ¢ng lÃªn 30KB Ä‘á»ƒ loáº¡i bá» cÃ¡c file quÃ¡ nhá»
+        maxSize: 250000, // Giá»›i háº¡n file tá»‘i Ä‘a khÃ´ng vÆ°á»£t quÃ¡ 250KB
+        maxAsyncRequests: 5, // Tá»‘i Ä‘a 5 file JS táº£i Ä‘á»“ng thá»i khi lazy load
+        maxInitialRequests: 3, // Tá»‘i Ä‘a 3 file JS táº£i Ä‘á»“ng thá»i khi load trang láº§n Ä‘áº§u
       };
     }
     return config;
