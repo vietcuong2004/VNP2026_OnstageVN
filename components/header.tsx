@@ -270,14 +270,14 @@ export default function Header() {
         </button>
       </div>
     )}
-    <header className="relative z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913]/80 px-4 md:px-8 backdrop-blur-md">
+    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913] px-4 md:px-8 transform translate-z-0">
       <div className="flex w-auto md:w-72 shrink-0 items-center">
         <button
           onClick={() => router.push("/")}
           className="flex items-center gap-1.5 hover:opacity-95 transition-opacity focus:outline-none cursor-pointer"
         >
           <img
-            src="/logo_icon.png"
+            src="/logo_new.png"
             alt="OnstageVN Logo Icon"
             className="h-9 w-auto sm:h-10 object-contain shrink-0"
           />
