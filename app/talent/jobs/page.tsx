@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import {
   Search, MapPin, DollarSign, Sparkles, Filter, ShieldCheck, CheckCircle,
   Eye, X, Info, Clock, Phone, Mail, Globe, MapPinned, AlertCircle,
-  ArrowUpRight, Copy, Users, UserPlus
+  ArrowUpRight, Copy, Users, UserPlus, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
@@ -62,7 +62,7 @@ function displayCampaignDate(value?: string | null) {
 
 function readCurrentTalentIdentity() {
   if (typeof window === "undefined") {
-    return { userId: "", profileId: "", fallbackId: "tal-1" };
+    return { userId: "", profileId: "" };
   }
 
   const user = getStoredAuthUser<{ id?: number | string }>();
@@ -81,12 +81,12 @@ function readCurrentTalentIdentity() {
   return {
     userId: String(user?.id || ""),
     profileId,
-    fallbackId: profileId || String(user?.id || "") || "tal-1",
   };
 }
 
 export default function JobsPage() {
   const currentTalent = readCurrentTalentIdentity();
+  const currentTalentId = currentTalent.profileId || currentTalent.userId;
   const searchParams = useSearchParams();
   const campaignIdParam = searchParams.get("campaignId");
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState("all");
@@ -158,7 +158,7 @@ export default function JobsPage() {
 
     const appItem = job.applicants?.find((a: any) => {
       const talentId = String(a.talentId || a.profileId || a.userId || "");
-      return talentId === currentTalent.profileId || talentId === currentTalent.userId || talentId === currentTalent.fallbackId;
+      return talentId === currentTalent.profileId || talentId === currentTalent.userId;
     });
     return normalizeJobStage(appItem?.stage) || "";
   };
@@ -169,7 +169,7 @@ export default function JobsPage() {
       || job.application
       || job.applicants?.some((a: any) => {
         const talentId = String(a.talentId || a.profileId || a.userId || "");
-        return talentId === currentTalent.profileId || talentId === currentTalent.userId || talentId === currentTalent.fallbackId;
+        return talentId === currentTalent.profileId || talentId === currentTalent.userId;
       })
     );
   };
@@ -179,254 +179,9 @@ export default function JobsPage() {
   }, [selectedJob?.id]);
 
   useEffect(() => {
-    const mockCampaigns = [
-      {
-        id: "c1",
-        title: "Beauty Mega Live 06/2026",
-        brand: "Glow Beauty Cosmetics",
-        type: "Livestream",
-        budget: "12.000.000đ",
-        location: "Studio Cầu Giấy, Hà Nội",
-        brief: "Livestream giới thiệu dòng son dưỡng mới và phấn phủ glowy skin. Cần Talent có khả năng tương tác tốt, am hiểu mỹ phẩm và năng động.",
-        minHeight: 165,
-        matchScore: 94,
-        escrowed: true,
-        color: "cyan",
-        borderColor: "border-[#143d4d] hover:border-cyan-400/40 shadow-[0_0_15px_rgba(34,211,238,0.02)]",
-        badgeColor: "bg-cyan-500/10 border-cyan-500/20 text-cyan-400",
-        glowColor: "from-cyan-500/5 to-transparent",
-        sponsorships: [
-          { category: "Tài trợ Trang điểm (Makeup)", details: "Cung cấp trọn gói dịch vụ trang điểm chuyên nghiệp tại studio." },
-          { category: "Tài trợ Mỹ phẩm dưỡng da", details: "Tặng bộ kit mỹ phẩm dưỡng da Glow Beauty trị giá 5.000.000đ." }
-        ],
-        detail: {
-          requirements: [
-            "Chiều cao tối thiểu từ 1m65 trở lên, ngoại hình sáng, da đẹp ít khuyết điểm.",
-            "Khả năng tương tác trực tiếp tốt, tự tin trước ống kính và giọng nói truyền cảm, rõ ràng.",
-            "Ưu tiên ứng viên có kinh nghiệm làm livestream bán hàng ngành mỹ phẩm hoặc có lượng follower ổn định trên các nền tảng mạng xã hội."
-          ],
-          benefits: [
-            "Mức cát-xê đề xuất hấp dẫn: 12.000.000đ cho mỗi buổi live 2 tiếng.",
-            "Được thương hiệu cung cấp toàn bộ trang phục, mỹ phẩm và các sản phẩm skincare hỗ trợ chuẩn bị.",
-            "Hợp tác lâu dài với nhãn hàng Glow Beauty Cosmetics trong các chiến dịch tiếp theo."
-          ],
-          phases: [
-            {
-              title: "Vòng Tuyển Chọn (Casting Online)",
-              timeline: "29/05/2026 - 05/06/2026",
-              location: "Gửi clip test giới thiệu sản phẩm online",
-              items: [
-                "Nộp hồ sơ trực tuyến đính kèm clip 1 phút tự giới thiệu và test giọng đọc giới thiệu dòng son dưỡng mới.",
-                "Ban tuyển chọn sẽ đánh giá giọng nói, thần thái và kỹ năng tương tác trước máy quay."
-              ]
-            },
-            {
-              title: "Vòng Phỏng Vấn Trực Tiếp (Interview)",
-              timeline: "08/06/2026",
-              location: "Văn phòng Glow Beauty, Cầu Giấy, Hà Nội",
-              items: [
-                "Phỏng vấn trực tiếp với Giám đốc Sáng tạo và Đại diện Thương hiệu.",
-                "Thử thách kỹ năng xử lý tình huống trực tiếp trên sóng livestream giải lập."
-              ]
-            },
-            {
-              title: "Vòng Live Thực Tế (Execution)",
-              timeline: "15/06/2026 - 20/06/2026",
-              location: "Studio Cầu Giấy, Hà Nội",
-              items: [
-                "Tiến hành các buổi livestream chính thức giới thiệu dòng son dưỡng mới và phấn phủ glowy skin.",
-                "Lịch live chia làm 3 buổi, mỗi buổi kéo dài 2 tiếng theo khung giờ vàng."
-              ]
-            }
-          ],
-          address: "Tòa nhà Lotte Center, 54 Liễu Giai, Ba Đình, Hà Nội",
-          phone: "024.7300.7979",
-          email: "contact@glowbeauty.vn",
-          website: "glowbeauty.com.vn"
-        }
-      },
-      {
-        id: "c2",
-        title: "Summer Runway Collection 2026",
-        brand: "Diamond Luxury Fashion",
-        type: "Runway",
-        budget: "20.000.000đ",
-        location: "Gem Center, TP. Hồ Chí Minh",
-        brief: "Trình diễn bộ sưu tập đầm dạ hội Haute Couture mùa hè. Yêu cầu catwalk phong thái sang trọng, uyển chuyển và đúng nhịp nhạc.",
-        minHeight: 172,
-        matchScore: 89,
-        escrowed: true,
-        color: "purple",
-        borderColor: "border-[#2f1c4f] hover:border-[#a855f7]/40 shadow-[0_0_15px_rgba(168,85,247,0.02)]",
-        badgeColor: "bg-[#a855f7]/10 border-[#a855f7]/20 text-[#a855f7]",
-        glowColor: "from-purple-500/5 to-transparent",
-        sponsorships: [
-          { category: "Tài trợ Trang phục dạ hội", details: "Cung cấp đầm dạ hội may đo thiết kế Haute Couture." },
-          { category: "Tài trợ Khách sạn/Lưu trú VIP", details: "Đài thọ phòng nghỉ Deluxe tại khách sạn 5 sao." }
-        ],
-        detail: {
-          requirements: [
-            "Chiều cao tối thiểu từ 1m72 trở lên, số đo hình thể chuẩn mẫu thời trang dạ hội.",
-            "Kỹ năng catwalk tốt, biểu cảm khuôn mặt lạnh lùng sang trọng, thần thái chuẩn Haute Couture.",
-            "Ưu tiên ứng viên đã từng trình diễn tại các tuần lễ thời trang uy tín."
-          ],
-          benefits: [
-            "Cát-xê đề xuất: 20.000.000đ cho buổi diễn chính thức.",
-            "Được tài trợ trang phục biểu diễn Haute Couture may đo riêng theo số đo cơ thể.",
-            "Cơ hội xuất hiện trên các trang tạp chí thời trang nổi tiếng đưa tin về sự kiện."
-          ],
-          phases: [
-            {
-              title: "Vòng Casting Trực Tiếp",
-              timeline: "05/06/2026",
-              location: "Gem Center, Quận 1, TP. HCM",
-              items: [
-                "Kiểm tra chỉ số hình thể (chiều cao, cân nặng, ba vòng).",
-                "Catwalk thử với giày cao gót theo nhạc yêu cầu của đạo diễn catwalk."
-              ]
-            },
-            {
-              title: "Vòng Fitting (Thử Đồ)",
-              timeline: "12/06/2026",
-              location: "Atelier Diamond Luxury, Quận 3, TP. HCM",
-              items: [
-                "Thử trang phục chính thức và chỉnh sửa may đo để vừa vặn hoàn hảo.",
-                "Tập dượt tuyến đi sân khấu (blocking) sơ bộ với trang phục."
-              ]
-            },
-            {
-              title: "Đêm Diễn Chính Thức (Show Day)",
-              timeline: "20/06/2026",
-              location: "Grand Ballroom, Gem Center, TP. HCM",
-              items: [
-                "Rehearsal tổng duyệt sân khấu với ánh sáng và âm nhạc từ chiều.",
-                "Trình diễn chính thức bộ sưu tập đầm dạ hội trước 500 khách mời VIP."
-              ]
-            }
-          ],
-          address: "172 Nguyễn Đình Chiểu, Phường Võ Thị Sáu, Quận 3, TP. HCM",
-          phone: "028.3824.6868",
-          email: "show@diamondluxury.vn",
-          website: "diamondluxury.vn"
-        }
-      },
-      {
-        id: "c3",
-        title: "Luxury Jewelry Launch Event",
-        brand: "Luxury Diamonds Co.",
-        type: "Event MC",
-        budget: "45.000.000đ",
-        location: "Metropole Hotel, Hà Nội",
-        brief: "Tham gia với tư cách MC song ngữ và khách mời danh dự (Celeb). Chụp ảnh check-in thảm đỏ, mang trang sức kim cương của thương hiệu.",
-        minHeight: 170,
-        matchScore: 78,
-        escrowed: false,
-        color: "rose",
-        borderColor: "border-[#4f1a2d] hover:border-rose-400/40 shadow-[0_0_15px_rgba(236,72,153,0.02)]",
-        badgeColor: "bg-rose-500/10 border-rose-500/20 text-rose-400",
-        glowColor: "from-rose-500/5 to-transparent",
-        sponsorships: [
-          { category: "Tài trợ Trang sức cao cấp", details: "Bảo đảm đeo bộ trang sức kim cương trị giá 5 tỷ đồng." },
-          { category: "Tài trợ Làm tóc (Hair Styling)", details: "Hỗ trợ làm tóc từ chuyên gia làm tóc riêng." }
-        ],
-        detail: {
-          requirements: [
-            "Khả năng dẫn chương trình song ngữ Anh - Việt trôi chảy, phát âm chuẩn phát thanh.",
-            "Ngoại hình sang trọng, quý phái phù hợp với tính chất sự kiện trang sức kim cương cao cấp.",
-            "Kinh nghiệm làm MC các sự kiện cao cấp tối thiểu 3 năm."
-          ],
-          benefits: [
-            "Cát-xê đề xuất: 45.000.000đ trọn gói cho đêm sự kiện.",
-            "Được bảo hiểm và hỗ trợ an ninh khi đeo bộ trang sức kim cương trị giá 5 tỷ đồng trong suốt sự kiện.",
-            "Cung cấp chuyên gia trang điểm và làm tóc riêng chuẩn sao hạng A."
-          ],
-          phases: [
-            {
-              title: "Duyệt Kịch Bản & Khớp Chương Trình",
-              timeline: "14/06/2026",
-              location: "Metropole Hotel, Hoàn Kiếm, Hà Nội",
-              items: [
-                "Họp thống nhất kịch bản chi tiết MC tiếng Anh và tiếng Việt với đạo diễn sự kiện.",
-                "Khớp giọng đọc với hệ thống âm thanh chính và chỉnh sửa văn phong kịch bản."
-              ]
-            },
-            {
-              title: "Đêm Sự Kiện Chính Thức",
-              timeline: "15/06/2026",
-              location: "Metropole Hotel, Hoàn Kiếm, Hà Nội",
-              items: [
-                "Check-in thảm đỏ, chụp ảnh PR with trang sức kim cương của thương hiệu.",
-                "Dẫn chương trình chính thức ra mắt bộ sưu tập trang sức mới kéo dài 3 tiếng."
-              ]
-            }
-          ],
-          address: "15 Ngô Quyền, Hoàn Kiếm, Hà Nội",
-          phone: "024.3826.6919",
-          email: "event@luxurydiamonds.com",
-          website: "luxurydiamonds.com"
-        }
-      },
-      {
-        id: "c4",
-        title: "BST Lookbook Mùa Thu Streetwear",
-        brand: "Maison Design Studio",
-        type: "Lookbook",
-        budget: "8.000.000đ",
-        location: "Hồ Tây, Hà Nội",
-        brief: "Chụp bộ ảnh thời trang dạo phố mùa thu. Phong cách nhẹ nhàng, thơ mộng. Cần biểu cảm tốt trước máy ảnh cơ.",
-        minHeight: 165,
-        matchScore: 82,
-        escrowed: true,
-        color: "gold",
-        borderColor: "border-[#3e3415] hover:border-amber-400/40 shadow-[0_0_15px_rgba(244,196,48,0.02)]",
-        badgeColor: "bg-amber-400/10 border-amber-400/20 text-amber-400",
-        glowColor: "from-amber-400/5 to-transparent",
-        sponsorships: [
-          { category: "Tài trợ Trang phục thường ngày", details: "Tặng 2 bộ streetwear thời trang dạo phố mùa thu." },
-          { category: "Tài trợ Chụp ảnh & Studio", details: "Hỗ trợ chụp hình miễn phí từ nhiếp ảnh gia nổi tiếng." }
-        ],
-        detail: {
-          requirements: [
-            "Chiều cao tối thiểu từ 1m65 trở lên, phong cách trẻ trung năng động phù hợp thời trang streetwear dạo phố.",
-            "Khả năng biểu cảm đa dạng trước ống kính máy ảnh, tạo dáng tự nhiên, phóng khoáng.",
-            "Không kén góc chụp, có khả năng tự phối phụ kiện cơ bản nếu cần."
-          ],
-          benefits: [
-            "Cát-xê đề xuất: 8.000.000đ cho buổi chụp hình 1 ngày.",
-            "Được tặng 2 bộ trang phục từ BST Lookbook Mùa Thu sau khi hoàn thành buổi chụp.",
-            "Nhận file ảnh gốc chất lượng cao và toàn quyền sử dụng hình ảnh cho portfolio cá nhân."
-          ],
-          phases: [
-            {
-              title: "Duyệt Concept & Fitting",
-              timeline: "24/09/2026",
-              location: "Studio Maison, Tây Hồ, Hà Nội",
-              items: [
-                "Thử các set đồ thuộc bộ sưu tập streetwear mùa thu.",
-                "Thống nhất danh sách phụ kiện đi kèm cho từng layout chụp."
-              ]
-            },
-            {
-              title: "Buổi Chụp Lookbook Ngoại Cảnh",
-              timeline: "26/09/2026",
-              location: "Hồ Tây & Phố cổ Hà Nội",
-              items: [
-                "Chụp ảnh ngoại cảnh tại các địa điểm thơ mộng quanh Hồ Tây từ sáng sớm.",
-                "Hoàn thành chụp tối thiểu 8 set đồ thời trang dạo phố."
-              ]
-            }
-          ],
-          address: "Trích Sài, Tây Hồ, Hà Nội",
-          phone: "0987.654.321",
-          email: "hello@maisonstudio.vn",
-          website: "maisonstudio.vn"
-        }
-      }
-    ];
-
     loadTalentCampaigns().then((items) => {
       if (!items?.length) {
-        setDisplayJobs(mockCampaigns);
+        setDisplayJobs([]);
         return;
       }
 
@@ -439,7 +194,7 @@ export default function JobsPage() {
       });
     }).catch((error) => {
       console.warn("Cannot load talent campaigns from backend", error);
-      setDisplayJobs(mockCampaigns);
+      setDisplayJobs([]);
     });
   }, []);
 
@@ -484,7 +239,7 @@ export default function JobsPage() {
         ...job,
         application: job.application ? { ...job.application, status: nextStage } : job.application,
         applicants: (job.applicants || []).map((a: any) =>
-          String(a.talentId || a.profileId || a.userId || "") === currentTalent.fallbackId ? { ...a, stage: nextStage } : a
+          String(a.talentId || a.profileId || a.userId || "") === currentTalentId ? { ...a, stage: nextStage } : a
         )
       };
     }));
@@ -494,7 +249,7 @@ export default function JobsPage() {
         ...prev,
         application: prev.application ? { ...prev.application, status: nextStage } : prev.application,
         applicants: (prev.applicants || []).map((a: any) =>
-          String(a.talentId || a.profileId || a.userId || "") === currentTalent.fallbackId ? { ...a, stage: nextStage } : a
+          String(a.talentId || a.profileId || a.userId || "") === currentTalentId ? { ...a, stage: nextStage } : a
         )
       }));
     }
@@ -591,14 +346,16 @@ export default function JobsPage() {
         return;
       }
 
+      if (!currentTalentId) {
+        addToast("Không xác định được tài khoản Talent hiện tại. Vui lòng đăng nhập lại.", "info");
+        return;
+      }
+
       const updatedCampaigns = allCampaigns.map(c => {
         const matchesCurrentId = c.id === campaignId;
-        const matchesMockId1 = (campaignId === "camp-1" && c.id === "c1") || (campaignId === "c1" && c.id === "camp-1");
-        const matchesMockId2 = (campaignId === "camp-2" && c.id === "c2") || (campaignId === "c2" && c.id === "camp-2");
-        const matchesMockId3 = (campaignId === "camp-3" && c.id === "c3") || (campaignId === "c3" && c.id === "camp-3");
-        const matchesMockId4 = (campaignId === "camp-4" && c.id === "c4") || (campaignId === "c4" && c.id === "camp-4");
 
-        if (matchesCurrentId || matchesMockId1 || matchesMockId2 || matchesMockId3 || matchesMockId4) {
+        if (matchesCurrentId) {
+          if (!currentTalentId) return c;
           const apps = c.applicants || [];
           return {
             ...c,
@@ -607,7 +364,7 @@ export default function JobsPage() {
             applicants: [
               ...apps,
               {
-                talentId: "tal-1",
+                talentId: currentTalentId,
                 stage: "approved" as const,
                 note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
                 referredByTalentId: refId || undefined
@@ -641,7 +398,7 @@ export default function JobsPage() {
       );
     }
 
-    // 2. Stage filter — based on tal-1’s applicant stage in this campaign
+    // 2. Stage filter — based on the signed-in talent's applicant stage in this campaign
     let matchesStage = true;
     if (selectedStageFilter !== "all") {
       const stage = getTalentJobStage(camp);
@@ -785,7 +542,17 @@ export default function JobsPage() {
 
       {/* Campaigns Listing - Premium grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredCampaigns.map((camp) => {
+        {filteredCampaigns.length === 0 ? (
+          <div className="md:col-span-2 rounded-3xl border border-dashed border-white/10 bg-[#08090f]/60 px-6 py-16 text-center">
+            <Briefcase className="mx-auto mb-4 h-12 w-12 text-slate-700" />
+            <p className="text-sm font-black uppercase tracking-wider text-slate-300">
+              Chưa có chiến dịch phù hợp
+            </p>
+            <p className="mx-auto mt-2 max-w-md text-xs font-medium leading-relaxed text-slate-500">
+              Hiện chưa có chiến dịch tuyển dụng nào khớp với bộ lọc của bạn. Hãy quay lại sau hoặc thử đổi bộ lọc.
+            </p>
+          </div>
+        ) : filteredCampaigns.map((camp) => {
           const isApplied = appliedJobs.includes(camp.id) || hasTalentApplication(camp);
 
           return (

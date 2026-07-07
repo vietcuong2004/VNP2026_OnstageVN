@@ -450,7 +450,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
   const measurements = parseMeasurements(profile.measurements);
   const followersCount = sumFollowers(profile) || fallback?.followersCount || 0;
   const engagementRate = avgEngagement(profile) || fallback?.engagementRate || 0;
-  const displayName = String(repairMojibake(profile.full_name || profile.display_name || fallback?.name || profile.user?.name || "Talent"));
+  const displayName = String(repairMojibake(profile.user?.name || profile.display_name || profile.full_name || fallback?.name || "Talent"));
   const rawAvatar = profileAvatarFromBackend(profile)
     || normalizeBackendAssetUrl(profile.avatar_url)
     || normalizeBackendAssetUrl(profile.user?.external_avatar_url)
@@ -569,7 +569,7 @@ function mapCampaignTalent(item: BackendCampaignTalent, index: number): Campaign
   const profile = item.profile;
   const user = profile?.user;
   const id = String(profile?.id ?? item.id ?? `talent-${index + 1}`);
-  const name = profile?.display_name || user?.name || `Talent #${id}`;
+  const name = user?.name || profile?.display_name || profile?.full_name || `Talent #${id}`;
   const stage = mapTalentStage(item.status);
 
   return {

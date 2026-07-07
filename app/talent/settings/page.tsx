@@ -116,9 +116,6 @@ export default function SettingsPage() {
       setZaloLink(status);
       const copied = status.code ? await copyZaloCodeToClipboard(status.code) : false;
 
-      if (status.bot_url) {
-        openZaloBot(status);
-      }
       addToast(
         copied
           ? "Đã tạo và copy mã liên kết Zalo. Hãy dán mã đó vào chat với bot."
@@ -336,7 +333,7 @@ export default function SettingsPage() {
               onClick={handleCreateZaloCode}
               className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-sky-400 px-4 text-xs font-black text-slate-950 transition-colors hover:bg-sky-300 disabled:cursor-wait disabled:opacity-60"
             >
-              {zaloLoading ? "Đang tạo..." : zaloLink?.code ? "Tạo mã mới & mở Zalo" : "Tạo mã & mở Zalo"}
+              {zaloLoading ? "Đang tạo..." : zaloLink?.code ? "Tạo mã mới" : "Tạo mã liên kết"}
             </button>
           )}
         </div>

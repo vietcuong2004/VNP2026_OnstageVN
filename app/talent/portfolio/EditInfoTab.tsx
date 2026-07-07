@@ -5,7 +5,7 @@ import {
   Edit3, ShieldCheck, CheckCircle, Upload, Video, Trash2, ChevronDown, ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { persistTalentProfile, ensureTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
+import { persistTalentProfile, ensureTalentProfile, saveTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import ProgressBar from "@/components/ui/ProgressBar";
 
@@ -293,7 +293,7 @@ export default function EditInfoTab({
           </span>
         </div>
 
-        <form onSubmit={(e) => {
+        <form onSubmit={async (e) => {
           e.preventDefault();
           const updated = {
             ...profile,
@@ -321,7 +321,8 @@ export default function EditInfoTab({
             skills: editForm.specialSkills.split(",").map((s: string) => s.trim()),
             lifestyleServices: lifestyleServices
           };
-          setProfile(persistTalentProfile(updated));
+          const syncedProfile = await saveTalentProfile(updated);
+          setProfile(syncedProfile);
           addToast("Cập nhật thông tin cá nhân và ngoại hình thành công!", "success");
         }} className="space-y-4 text-xs">
 

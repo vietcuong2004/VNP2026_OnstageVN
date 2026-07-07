@@ -110,9 +110,9 @@ function getRosterSourceLabel(source?: string | null) {
 
 function resolveRosterTalentName(item: BrandRosterTalent) {
   return (
-    item.talent_profile?.display_name
+    item.talent_profile?.user?.name
+    || item.talent_profile?.display_name
     || item.talent_profile?.full_name
-    || item.talent_profile?.user?.name
     || `Talent #${item.talent_profile_id}`
   );
 }

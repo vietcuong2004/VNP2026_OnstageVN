@@ -52,9 +52,10 @@ type RealtimeMessageEvent = {
 
 type TalentProfileStorage = {
   avatar?: string | null;
+  name?: string | null;
 };
 
-function readTalentAvatar() {
+function readTalentProfileHeader() {
   if (typeof window === "undefined") return null;
 
   const stored = window.localStorage.getItem("vnp_talent_profile");
@@ -62,7 +63,10 @@ function readTalentAvatar() {
 
   try {
     const profile = JSON.parse(stored) as TalentProfileStorage;
-    return profile.avatar || null;
+    return {
+      avatar: profile.avatar || null,
+      name: profile.name || null,
+    };
   } catch {
     return null;
   }
@@ -107,26 +111,29 @@ export default function Header() {
   const authUserJson = useSyncExternalStore(subscribeAuthUser, authUserSnapshot, () => "");
   const user = authUserJson ? (JSON.parse(authUserJson) as AuthUser) : null;
   const [talentAvatar, setTalentAvatar] = useState<string | null>(null);
+  const [talentName, setTalentName] = useState<string | null>(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   // Header remains always visible
 
   useEffect(() => {
-    function syncTalentAvatar() {
-      setTalentAvatar(readTalentAvatar());
+    function syncTalentProfileHeader() {
+      const profile = readTalentProfileHeader();
+      setTalentAvatar(profile?.avatar || null);
+      setTalentName(profile?.name || null);
     }
 
-    syncTalentAvatar();
-    window.addEventListener(TALENT_PROFILE_UPDATED_EVENT, syncTalentAvatar);
-    window.addEventListener("storage", syncTalentAvatar);
+    syncTalentProfileHeader();
+    window.addEventListener(TALENT_PROFILE_UPDATED_EVENT, syncTalentProfileHeader);
+    window.addEventListener("storage", syncTalentProfileHeader);
 
     return () => {
-      window.removeEventListener(TALENT_PROFILE_UPDATED_EVENT, syncTalentAvatar);
-      window.removeEventListener("storage", syncTalentAvatar);
+      window.removeEventListener(TALENT_PROFILE_UPDATED_EVENT, syncTalentProfileHeader);
+      window.removeEventListener("storage", syncTalentProfileHeader);
     };
   }, []);
 
   const label = user
-    ? { name: user.name, subtitle: user.email || "" }
+    ? { name: !isBrandPath && talentName ? talentName : user.name, subtitle: user.email || "" }
     : isBrandPath
       ? { name: "L'Oréal Vietnam", subtitle: "partner@loreal.com" }
       : { name: "Nguyễn Mai Anh", subtitle: "maianh@onstage.vn" };
@@ -153,8 +160,12 @@ export default function Header() {
         const profile = await loadTalentProfile();
         if (cancelled) return;
         setTalentAvatar(profile?.avatar || fallbackAvatarSrc);
+        setTalentName(profile?.name || null);
       } catch {
-        if (!cancelled) setTalentAvatar(fallbackAvatarSrc);
+        if (!cancelled) {
+          setTalentAvatar(fallbackAvatarSrc);
+          setTalentName(null);
+        }
       }
     }
 

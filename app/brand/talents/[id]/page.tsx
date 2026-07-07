@@ -184,7 +184,7 @@ export default function BrandTalentProfilePage() {
     return (
       <div className="flex min-h-[65vh] items-center justify-center">
         <div className="rounded-2xl border border-white/5 bg-slate-950/30 p-8 text-center">
-          <h1 className="text-xl font-black text-white">Không tìm thấy hồ sơ talent</h1>
+          <h1 className="text-xl font-black text-white">Talent chưa kích hoạt hồ sơ</h1>
           <button onClick={() => router.back()} className="mt-5 rounded-xl bg-white/10 px-4 py-2 text-xs font-bold text-white">
             Quay lại
           </button>

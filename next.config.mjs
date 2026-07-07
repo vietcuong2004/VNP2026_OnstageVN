@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+const apiProxyTarget = process.env.API_PROXY_TARGET ?? "http://127.0.0.1:8080";
+const staticProxyTarget = process.env.STATIC_PROXY_TARGET ?? "http://127.0.0.1:9000/api-manager-kols";
+
 const nextConfig = {
   devIndicators: {
     buildActivity: false,
@@ -7,12 +10,16 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: "/api/broadcasting/auth",
+        destination: `${apiProxyTarget}/broadcasting/auth`,
+      },
+      {
         source: "/api/:path*",
-        destination: `${process.env.API_PROXY_TARGET || "http://127.0.0.1:8080"}/api/:path*`,
+        destination: `${apiProxyTarget}/api/:path*`,
       },
       {
         source: "/static/:path*",
-        destination: `${process.env.STATIC_PROXY_TARGET || "http://127.0.0.1:9000/api-manager-kols"}/:path*`,
+        destination: `${staticProxyTarget}/:path*`,
       },
     ];
   },
