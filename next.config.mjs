@@ -4,6 +4,18 @@ const nextConfig = {
     buildActivity: false,
     appIsrStatus: false,
   },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${process.env.API_PROXY_TARGET || "http://127.0.0.1:8080"}/api/:path*`,
+      },
+      {
+        source: "/static/:path*",
+        destination: `${process.env.STATIC_PROXY_TARGET || "http://127.0.0.1:9000/api-manager-kols"}/:path*`,
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.optimization.splitChunks = {
