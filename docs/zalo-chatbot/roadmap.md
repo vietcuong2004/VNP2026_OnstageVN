@@ -96,8 +96,8 @@ Cho phép Talent quản lý hồ sơ hoàn toàn bằng hội thoại.
 ## Tính năng
 
 * Cập nhật thông tin cá nhân.
-* Thay đổi Avatar.
-* Thêm hoặc xóa Portfolio.
+* Thay đổi Avatar & Ảnh bìa (Cover).
+* Quản lý Portfolio (Thêm, xóa, thay thế ảnh qua Webview/Zalo Mini App hoặc qua chat).
 * Đồng bộ mạng xã hội.
 * Hiển thị mức độ hoàn thiện hồ sơ.
 * Nhắc bổ sung thông tin còn thiếu.

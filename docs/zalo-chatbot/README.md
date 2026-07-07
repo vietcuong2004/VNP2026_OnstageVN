@@ -180,7 +180,7 @@ Mọi thay đổi đều được cập nhật theo thời gian thực.
 
 ```
 docs/
-└── talent-assistant/
+└── zalo-chatbot/
     ├── README.md
     ├── architecture.md        # Kiến trúc tổng thể
     ├── conversation-flow.md   # Luồng hội thoại
