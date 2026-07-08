@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import {
   Award, User, GraduationCap, BookOpen,
   ShieldCheck, Calendar, Image, Sparkles, Star, Crown, Video,
-  ChevronLeft, ChevronRight, Upload, ChevronDown, ChevronUp, Camera
+  ChevronLeft, ChevronRight, Upload, ChevronDown, ChevronUp, Camera,
+  Ruler, Scale
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
@@ -12,6 +13,27 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import { ensureTalentProfile, persistTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import { getTalentDayStatus, toggleManualBusyDate } from "@/lib/talent-calendar";
+
+const convertToDisplayDate = (dateStr: string) => {
+  if (!dateStr) return "Chưa cập nhật";
+  const dateOnly = dateStr.split(/[T ]/)[0];
+  if (dateOnly.includes("-")) {
+    const parts = dateOnly.split("-");
+    if (parts.length === 3) {
+      const [y, m, d] = parts;
+      return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+    }
+  }
+  return dateOnly;
+};
+
+const formatHeight = (h: number | string) => {
+  const val = Number(h);
+  if (!val) return "—";
+  const m = Math.floor(val / 100);
+  const cm = val % 100;
+  return `${m}m${String(cm).padStart(2, '0')}`;
+};
 
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
@@ -638,79 +660,100 @@ export default function PersonalInfoTab({
             <User className="h-4.5 w-4.5 text-slate-400" /> Thông tin cơ bản
           </h3>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-xl bg-slate-950 p-3.5 text-center border border-white/2">
-              <span className="block text-[11px] text-slate-500 font-bold uppercase tracking-wider">Chiều Cao</span>
-              <span className="text-sm font-extrabold text-white mt-1 block">{profile.height} cm</span>
+          <div className="grid grid-cols-3 gap-2">
+            {/* Chiều Cao */}
+            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
+              <Ruler className="h-5 w-5 text-[#f4c430]" />
+              <div className="space-y-1.5 my-2">
+                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Chiều Cao</span>
+                <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
+                  {profile.height ? formatHeight(profile.height) : "—"}
+                </span>
+              </div>
+              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">CM</span>
             </div>
-            <div className="rounded-xl bg-slate-950 p-3.5 text-center border border-white/2">
-              <span className="block text-[11px] text-slate-500 font-bold uppercase tracking-wider">Cân Nặng</span>
-              <span className="text-sm font-extrabold text-white mt-1 block">{profile.weight} kg</span>
+
+            {/* Cân Nặng */}
+            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
+              <Scale className="h-5 w-5 text-[#f4c430]" />
+              <div className="space-y-1.5 my-2">
+                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cân Nặng</span>
+                <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
+                  {profile.weight ? profile.weight : "—"}
+                </span>
+              </div>
+              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">KG</span>
+            </div>
+
+            {/* Số đo 3 vòng */}
+            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
+              <User className="h-5 w-5 text-[#f4c430]" />
+              <div className="space-y-1.5 my-2">
+                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Số đo 3 vòng</span>
+                <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
+                  {profile.bust && profile.waist && profile.hips
+                    ? `${profile.bust}-${profile.waist}-${profile.hips}`
+                    : "—"}
+                </span>
+              </div>
+              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">CM</span>
             </div>
           </div>
 
           <div className="space-y-3.5 border-t border-[#151b2d] pt-4 text-left">
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Họ và tên</span>
-              <span className="font-bold text-white">{profile.name}</span>
+              <span className="font-bold text-white">{profile.name || "Chưa cập nhật"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Giới tính</span>
-              <span className="font-bold text-white">{profile.gender || "Nữ"}</span>
+              <span className="font-bold text-white">{profile.gender || "Chưa cập nhật"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Ngày sinh</span>
-              <span className="font-bold text-white font-mono">{profile.dob || "15/05/2002"}</span>
+              <span className="font-bold text-white font-mono">{profile.dob ? convertToDisplayDate(profile.dob) : "Chưa cập nhật"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Khu vực hoạt động</span>
-              <span className="font-bold text-white">{profile.location}</span>
+              <span className="font-bold text-white">{profile.location || "Chưa cập nhật"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Quê quán</span>
-              <span className="font-bold text-white">{profile.hometown}</span>
+              <span className="font-bold text-white">{profile.hometown || "Chưa cập nhật"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Số điện thoại</span>
-              <span className="font-bold text-white font-mono">{profile.phone}</span>
+              <span className="font-bold text-white font-mono">{profile.phone || "Chưa cập nhật"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Email</span>
-              <span className="font-bold text-white">{profile.email}</span>
+              <span className="font-bold text-white truncate max-w-[150px]">{profile.email || "Chưa cập nhật"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Học vấn</span>
-              <span className="font-bold text-white text-right max-w-[160px] truncate" title={profile.education}>{profile.education}</span>
+              <span className="font-bold text-white text-right max-w-[160px] truncate" title={profile.education || "Chưa cập nhật"}>{profile.education || "Chưa cập nhật"}</span>
             </div>
-            <div className="flex justify-between items-center text-xs text-slate-300 border-t border-dashed border-[#151b2d]/50 pt-2">
-              <span className="font-medium text-slate-400">Số đo Vòng 1</span>
-              <span className="font-bold text-white font-mono">{profile.bust} cm</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Số đo Vòng 2</span>
-              <span className="font-bold text-white font-mono">{profile.waist} cm</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Số đo Vòng 3</span>
-              <span className="font-bold text-white font-mono">{profile.hips} cm</span>
-            </div>
+
             <div className="flex justify-between items-center text-xs text-slate-300 border-t border-dashed border-[#151b2d]/50 pt-2">
               <span className="font-medium text-slate-400">Kinh nghiệm</span>
-              <span className="font-bold text-white">{profile.experience !== undefined ? `${profile.experience} năm` : "3 năm"}</span>
+              <span className="font-bold text-white">{profile.experience !== undefined && profile.experience !== "" && profile.experience !== null ? `${profile.experience} năm` : "Chưa cập nhật"}</span>
             </div>
             <div className="flex justify-between items-start text-xs text-slate-300">
               <span className="font-medium text-slate-400 shrink-0">Lĩnh vực hoạt động</span>
               <span className="font-bold text-white text-right max-w-[160px] leading-normal">
                 {(() => {
-                  const skills = profile.specialSkills || profile.skills || ["Catwalk", "Pose dáng"];
-                  return Array.isArray(skills) ? skills.join(", ") : skills;
+                  const skills = profile.specialSkills || profile.skills;
+                  return Array.isArray(skills) && skills.length > 0 ? skills.join(", ") : "Chưa cập nhật";
                 })()}
               </span>
             </div>
             <div className="flex justify-between items-start text-xs text-slate-300">
               <span className="font-medium text-slate-400 shrink-0">Ngôn ngữ</span>
               <span className="font-bold text-white text-right max-w-[160px] leading-normal">
-                {Array.isArray(profile.languages) ? profile.languages.join(", ") : profile.languages}
+                {(() => {
+                  const langs = profile.languages;
+                  return Array.isArray(langs) && langs.length > 0 ? langs.join(", ") : "Chưa cập nhật";
+                })()}
               </span>
             </div>
           </div>
@@ -1019,7 +1062,7 @@ export default function PersonalInfoTab({
         {/* SECTION F: REPUTATION REVIEWS */}
         <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
-            <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> Đánh Giá Từ Đối Tác & Độ Uy Tín
+            <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> Đánh Giá
           </h3>
           <div className="space-y-4">
             {[

@@ -11,27 +11,29 @@ import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import ProgressBar from "@/components/ui/ProgressBar";
 
 const convertToInputDate = (dateStr: string) => {
-  if (!dateStr) return "2002-05-15";
-  if (dateStr.includes("/")) {
-    const parts = dateStr.split("/");
+  if (!dateStr) return "";
+  const dateOnly = dateStr.split(/[T ]/)[0];
+  if (dateOnly.includes("/")) {
+    const parts = dateOnly.split("/");
     if (parts.length === 3) {
       const [d, m, y] = parts;
       return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     }
   }
-  return dateStr;
+  return dateOnly;
 };
 
 const convertToDisplayDate = (dateStr: string) => {
-  if (!dateStr) return "15/05/2002";
-  if (dateStr.includes("-")) {
-    const parts = dateStr.split("-");
+  if (!dateStr) return "";
+  const dateOnly = dateStr.split(/[T ]/)[0];
+  if (dateOnly.includes("-")) {
+    const parts = dateOnly.split("-");
     if (parts.length === 3) {
       const [y, m, d] = parts;
       return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
     }
   }
-  return dateStr;
+  return dateOnly;
 };
 
 const availableSkills = [
@@ -86,25 +88,25 @@ export default function EditInfoTab({
     name: "",
     email: "",
     phone: "",
-    height: 172,
-    weight: 51,
-    bust: 85,
-    waist: 60,
-    hips: 90,
+    height: "",
+    weight: "",
+    bust: "",
+    waist: "",
+    hips: "",
     location: "",
     hometown: "",
     education: "",
     languages: [],
     rateCard: {},
     plasticSurgery: "false",
-    maritalStatus: "Độc thân",
-    gender: "Nữ",
-    dob: "2002-05-15",
-    skinColor: "Sáng",
-    hairColor: "Nâu",
+    maritalStatus: "",
+    gender: "",
+    dob: "",
+    skinColor: "",
+    hairColor: "",
     tattoo: "Không",
     tattooDesc: "",
-    experience: 3,
+    experience: "",
     specialSkills: []
   });
 
@@ -172,32 +174,26 @@ export default function EditInfoTab({
         name: profile.name || "",
         email: profile.email || "",
         phone: profile.phone || "",
-        height: onboarded ? (profile.height || 172) : "",
-        weight: onboarded ? (profile.weight || 51) : "",
-        bust: onboarded ? (profile.bust || 85) : "",
-        waist: onboarded ? (profile.waist || 60) : "",
-        hips: onboarded ? (profile.hips || 90) : "",
-        location: onboarded ? (profile.location || "") : "",
-        hometown: onboarded ? (profile.hometown || "") : "",
-        education: onboarded ? (profile.education || "") : "",
-        languages: onboarded ? (Array.isArray(profile.languages) ? profile.languages : (profile.languages ? [profile.languages] : [])) : [],
-        rateCard: onboarded ? { ...(profile.rateCard || {}) } : {
-          "Instagram Post": "",
-          "TikTok Video": "",
-          "Livestream 2h": "",
-          "Event Appearance": "",
-          "Catwalk Show": "",
-        },
-        plasticSurgery: onboarded ? (profile.plasticSurgery || "false") : "false",
-        maritalStatus: onboarded ? (profile.maritalStatus || "Độc thân") : "",
-        gender: onboarded ? (profile.gender || "Nữ") : "Nữ",
-        dob: onboarded ? convertToInputDate(profile.dob) : "",
-        skinColor: onboarded ? (profile.skinColor || "Sáng") : "Sáng",
-        hairColor: onboarded ? (profile.hairColor || "Nâu") : "Nâu",
-        tattoo: onboarded ? (profile.tattoo || "Không") : "Không",
-        tattooDesc: onboarded ? (profile.tattooDesc || "") : "",
-        experience: onboarded ? (profile.experience !== undefined ? profile.experience : 3) : "",
-        specialSkills: onboarded ? (Array.isArray(profile.specialSkills) ? profile.specialSkills : (Array.isArray(profile.skills) ? profile.skills : [])) : []
+        height: profile.height || "",
+        weight: profile.weight || "",
+        bust: profile.bust || "",
+        waist: profile.waist || "",
+        hips: profile.hips || "",
+        location: profile.location || "",
+        hometown: profile.hometown || "",
+        education: profile.education || "",
+        languages: Array.isArray(profile.languages) ? profile.languages : (profile.languages ? [profile.languages] : []),
+        rateCard: { ...(profile.rateCard || {}) },
+        plasticSurgery: profile.plasticSurgery || "false",
+        maritalStatus: profile.maritalStatus || "",
+        gender: profile.gender || "",
+        dob: convertToInputDate(profile.dob),
+        skinColor: profile.skinColor || "",
+        hairColor: profile.hairColor || "",
+        tattoo: profile.tattoo || "Không",
+        tattooDesc: profile.tattooDesc || "",
+        experience: profile.experience !== undefined && profile.experience !== null ? profile.experience : "",
+        specialSkills: Array.isArray(profile.specialSkills) ? profile.specialSkills : (Array.isArray(profile.skills) ? profile.skills : [])
       });
       setVideoForm({
         hasUploadedIntro: onboarded ? (profile.hasUploadedIntro || false) : false,
@@ -480,7 +476,7 @@ export default function EditInfoTab({
                 type="number"
                 required
                 value={editForm.height}
-                onChange={(e) => setEditForm({ ...editForm, height: Number(e.target.value) })}
+                onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
@@ -490,7 +486,7 @@ export default function EditInfoTab({
                 type="number"
                 required
                 value={editForm.weight}
-                onChange={(e) => setEditForm({ ...editForm, weight: Number(e.target.value) })}
+                onChange={(e) => setEditForm({ ...editForm, weight: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
@@ -504,7 +500,7 @@ export default function EditInfoTab({
                 type="number"
                 required
                 value={editForm.bust}
-                onChange={(e) => setEditForm({ ...editForm, bust: Number(e.target.value) })}
+                onChange={(e) => setEditForm({ ...editForm, bust: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
@@ -514,7 +510,7 @@ export default function EditInfoTab({
                 type="number"
                 required
                 value={editForm.waist}
-                onChange={(e) => setEditForm({ ...editForm, waist: Number(e.target.value) })}
+                onChange={(e) => setEditForm({ ...editForm, waist: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
@@ -524,7 +520,7 @@ export default function EditInfoTab({
                 type="number"
                 required
                 value={editForm.hips}
-                onChange={(e) => setEditForm({ ...editForm, hips: Number(e.target.value) })}
+                onChange={(e) => setEditForm({ ...editForm, hips: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
@@ -562,7 +558,7 @@ export default function EditInfoTab({
                 min={0}
                 max={20}
                 value={editForm.experience}
-                onChange={(e) => setEditForm({ ...editForm, experience: Number(e.target.value) })}
+                onChange={(e) => setEditForm({ ...editForm, experience: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
