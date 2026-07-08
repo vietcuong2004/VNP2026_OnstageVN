@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Edit3, ShieldCheck, CheckCircle, Upload, Video, Trash2, ChevronDown, ChevronUp
+  Edit3, ShieldCheck, CheckCircle, Upload, Video, Trash2, ChevronDown, ChevronUp,
+  X, Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { persistTalentProfile, ensureTalentProfile, saveTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
@@ -33,6 +34,31 @@ const convertToDisplayDate = (dateStr: string) => {
   return dateStr;
 };
 
+const availableSkills = [
+  "High Fashion",
+  "Runway",
+  "Commercial",
+  "Beauty Shoot",
+  "Editorial",
+  "KOL / Event",
+  "Fitness Model",
+  "Lookbook",
+  "MC / Host",
+  "Acting / Drama"
+];
+
+const availableLanguages = [
+  "Tiếng Việt",
+  "Tiếng Anh",
+  "Tiếng Trung",
+  "Tiếng Hàn",
+  "Tiếng Nhật",
+  "Tiếng Pháp",
+  "Tiếng Đức",
+  "Tiếng Nga",
+  "Tiếng Tây Ban Nha"
+];
+
 interface EditInfoTabProps {
   profile: any;
   setProfile: (profile: any) => void;
@@ -52,10 +78,14 @@ export default function EditInfoTab({
   const [verificationStatus, setVerificationStatus] = useState<"unverified" | "pending" | "verified">("unverified");
   const [lifestyleServices, setLifestyleServices] = useState<any[]>([]);
   const [isLifestyleExpanded, setIsLifestyleExpanded] = useState(false);
+  const [selectedLangName, setSelectedLangName] = useState("");
+  const [langProficiency, setLangProficiency] = useState("");
 
   // Form states for profile editing
   const [editForm, setEditForm] = useState<any>({
     name: "",
+    email: "",
+    phone: "",
     height: 172,
     weight: 51,
     bust: 85,
@@ -64,7 +94,7 @@ export default function EditInfoTab({
     location: "",
     hometown: "",
     education: "",
-    languages: "",
+    languages: [],
     rateCard: {},
     plasticSurgery: "false",
     maritalStatus: "Độc thân",
@@ -75,8 +105,48 @@ export default function EditInfoTab({
     tattoo: "Không",
     tattooDesc: "",
     experience: 3,
-    specialSkills: ""
+    specialSkills: []
   });
+
+  const handleAddSkill = (skill: string) => {
+    if (skill && !editForm.specialSkills.includes(skill)) {
+      setEditForm((prev: any) => ({
+        ...prev,
+        specialSkills: [...prev.specialSkills, skill]
+      }));
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    setEditForm((prev: any) => ({
+      ...prev,
+      specialSkills: prev.specialSkills.filter((s: string) => s !== skillToRemove)
+    }));
+  };
+
+  const handleAddLanguage = () => {
+    if (selectedLangName) {
+      const fullLangString = langProficiency.trim()
+        ? `${selectedLangName} (${langProficiency.trim()})`
+        : selectedLangName;
+
+      if (!editForm.languages.includes(fullLangString)) {
+        setEditForm((prev: any) => ({
+          ...prev,
+          languages: [...prev.languages, fullLangString]
+        }));
+      }
+      setSelectedLangName("");
+      setLangProficiency("");
+    }
+  };
+
+  const handleRemoveLanguage = (langToRemove: string) => {
+    setEditForm((prev: any) => ({
+      ...prev,
+      languages: prev.languages.filter((l: string) => l !== langToRemove)
+    }));
+  };
 
   // Video upload state simulator
   const [videoForm, setVideoForm] = useState({
@@ -100,6 +170,8 @@ export default function EditInfoTab({
       const onboarded = !!profile.isOnboarded;
       setEditForm({
         name: profile.name || "",
+        email: profile.email || "",
+        phone: profile.phone || "",
         height: onboarded ? (profile.height || 172) : "",
         weight: onboarded ? (profile.weight || 51) : "",
         bust: onboarded ? (profile.bust || 85) : "",
@@ -108,7 +180,7 @@ export default function EditInfoTab({
         location: onboarded ? (profile.location || "") : "",
         hometown: onboarded ? (profile.hometown || "") : "",
         education: onboarded ? (profile.education || "") : "",
-        languages: onboarded ? (Array.isArray(profile.languages) ? profile.languages.join(", ") : (profile.languages || "")) : "",
+        languages: onboarded ? (Array.isArray(profile.languages) ? profile.languages : (profile.languages ? [profile.languages] : [])) : [],
         rateCard: onboarded ? { ...(profile.rateCard || {}) } : {
           "Instagram Post": "",
           "TikTok Video": "",
@@ -125,7 +197,7 @@ export default function EditInfoTab({
         tattoo: onboarded ? (profile.tattoo || "Không") : "Không",
         tattooDesc: onboarded ? (profile.tattooDesc || "") : "",
         experience: onboarded ? (profile.experience !== undefined ? profile.experience : 3) : "",
-        specialSkills: onboarded ? (Array.isArray(profile.specialSkills) ? profile.specialSkills.join(", ") : (Array.isArray(profile.skills) ? profile.skills.join(", ") : "")) : ""
+        specialSkills: onboarded ? (Array.isArray(profile.specialSkills) ? profile.specialSkills : (Array.isArray(profile.skills) ? profile.skills : [])) : []
       });
       setVideoForm({
         hasUploadedIntro: onboarded ? (profile.hasUploadedIntro || false) : false,
@@ -298,6 +370,8 @@ export default function EditInfoTab({
           const updated = {
             ...profile,
             name: editForm.name,
+            email: editForm.email,
+            phone: editForm.phone,
             height: Number(editForm.height),
             weight: Number(editForm.weight),
             bust: Number(editForm.bust),
@@ -306,7 +380,7 @@ export default function EditInfoTab({
             location: editForm.location,
             hometown: editForm.hometown,
             education: editForm.education,
-            languages: editForm.languages.split(",").map((s: string) => s.trim()),
+            languages: editForm.languages,
             rateCard: { ...editForm.rateCard },
             plasticSurgery: editForm.plasticSurgery,
             maritalStatus: editForm.maritalStatus,
@@ -317,8 +391,8 @@ export default function EditInfoTab({
             tattoo: editForm.tattoo,
             tattooDesc: editForm.tattoo === "Có" ? editForm.tattooDesc : "",
             experience: Number(editForm.experience),
-            specialSkills: editForm.specialSkills.split(",").map((s: string) => s.trim()),
-            skills: editForm.specialSkills.split(",").map((s: string) => s.trim()),
+            specialSkills: editForm.specialSkills,
+            skills: editForm.specialSkills,
             lifestyleServices: lifestyleServices
           };
           const syncedProfile = await saveTalentProfile(updated);
@@ -329,7 +403,7 @@ export default function EditInfoTab({
           {/* Row 1: Name & Location */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Họ tên nghệ danh</label>
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Họ và tên</label>
               <input
                 type="text"
                 required
@@ -345,6 +419,30 @@ export default function EditInfoTab({
                 required
                 value={editForm.location}
                 onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Row 1.5: Email & Phone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Email</label>
+              <input
+                type="email"
+                required
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Số điện thoại</label>
+              <input
+                type="text"
+                required
+                value={editForm.phone}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
@@ -374,8 +472,8 @@ export default function EditInfoTab({
             </div>
           </div>
 
-          {/* Row 3: Height, Weight & Surgery */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Row 3: Height & Weight */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Chiều cao (cm)</label>
               <input
@@ -395,17 +493,6 @@ export default function EditInfoTab({
                 onChange={(e) => setEditForm({ ...editForm, weight: Number(e.target.value) })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Phẫu thuật thẩm mỹ</label>
-              <select
-                value={editForm.plasticSurgery}
-                onChange={(e) => setEditForm({ ...editForm, plasticSurgery: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              >
-                <option value="false">Tự nhiên 100%</option>
-                <option value="true">Đã can thiệp thẩm mỹ</option>
-              </select>
             </div>
           </div>
 
@@ -481,116 +568,119 @@ export default function EditInfoTab({
             </div>
           </div>
 
-          {/* New Row: Màu da, Màu tóc, Hình xăm */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Màu da</label>
+          {/* Row 5: Lĩnh vực hoạt động & Ngôn ngữ */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {/* Lĩnh vực hoạt động */}
+            <div className="space-y-3">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Lĩnh vực hoạt động</label>
+              <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-[#05070e] border border-white/5 rounded-xl text-left">
+                {editForm.specialSkills.length === 0 ? (
+                  <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn lĩnh vực nào</span>
+                ) : (
+                  editForm.specialSkills.map((skill: string) => (
+                    <span key={skill} className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                      {skill}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSkill(skill)}
+                        className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))
+                )}
+              </div>
               <select
-                value={editForm.skinColor}
-                onChange={(e) => setEditForm({ ...editForm, skinColor: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                value=""
+                onChange={(e) => {
+                  handleAddSkill(e.target.value);
+                  e.target.value = "";
+                }}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-300 text-[11px] font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none"
+                style={{
+                  backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 0.75rem center",
+                  backgroundSize: "0.85em",
+                  paddingRight: "2rem"
+                }}
               >
-                <option value="Sáng">Sáng</option>
-                <option value="Trung bình">Trung bình</option>
-                <option value="Ngăm">Ngăm</option>
+                <option value="" disabled hidden>Thêm lĩnh vực hoạt động...</option>
+                {availableSkills
+                  .filter((s: string) => !editForm.specialSkills.includes(s))
+                  .map((s: string) => (
+                    <option key={s} value={s} className="bg-slate-950 text-white">{s}</option>
+                  ))
+                }
               </select>
             </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Màu tóc</label>
-              <select
-                value={editForm.hairColor}
-                onChange={(e) => setEditForm({ ...editForm, hairColor: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              >
-                <option value="Đen">Đen</option>
-                <option value="Nâu">Nâu</option>
-                <option value="Vàng">Vàng</option>
-                <option value="Đỏ">Đỏ</option>
-                <option value="Khác">Khác</option>
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Hình xăm</label>
-              <select
-                value={editForm.tattoo}
-                onChange={(e) => setEditForm({ ...editForm, tattoo: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              >
-                <option value="Không">Không</option>
-                <option value="Có">Có</option>
-              </select>
-            </div>
-          </div>
 
-          {/* New Row: Mô tả hình xăm (chỉ hiện khi có hình xăm) */}
-          {editForm.tattoo === "Có" && (
-            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Mô tả hình xăm (vị trí, kích thước, hình dạng)</label>
-              <input
-                type="text"
-                required
-                value={editForm.tattooDesc}
-                onChange={(e) => setEditForm({ ...editForm, tattooDesc: e.target.value })}
-                placeholder="Ví dụ: Hình xăm hoa hồng nhỏ ở cổ tay phải"
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-          )}
-
-          {/* Row 5: Languages, Marriage & Special Skills */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngôn ngữ (ngăn cách bằng dấu phẩy)</label>
-              <input
-                type="text"
-                required
-                value={editForm.languages}
-                onChange={(e) => setEditForm({ ...editForm, languages: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Tình trạng hôn nhân</label>
-              <input
-                type="text"
-                required
-                value={editForm.maritalStatus}
-                onChange={(e) => setEditForm({ ...editForm, maritalStatus: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Kỹ năng đặc biệt (phân tách dấu phẩy)</label>
-              <input
-                type="text"
-                required
-                value={editForm.specialSkills}
-                onChange={(e) => setEditForm({ ...editForm, specialSkills: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Rate card config editing */}
-          <div className="border-t border-[#151b2d] pt-4 space-y-3">
-            <span className="block font-bold text-slate-300 uppercase tracking-wider text-[8px]">Cấu hình bảng giá dịch vụ (VND)</span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.keys(editForm.rateCard).map((key) => (
-                <div key={key} className="space-y-1.5">
-                  <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">{key}</label>
-                  <input
-                    type="number"
-                    required
-                    value={editForm.rateCard[key]}
-                    onChange={(e) => {
-                      const updatedRates = { ...editForm.rateCard, [key]: Number(e.target.value) };
-                      setEditForm({ ...editForm, rateCard: updatedRates });
+            {/* Ngôn ngữ */}
+            <div className="space-y-3">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngôn ngữ</label>
+              <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-[#05070e] border border-white/5 rounded-xl text-left">
+                {editForm.languages.length === 0 ? (
+                  <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn ngôn ngữ nào</span>
+                ) : (
+                  editForm.languages.map((lang: string) => (
+                    <span key={lang} className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                      {lang}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLanguage(lang)}
+                        className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={selectedLangName}
+                    onChange={(e) => setSelectedLangName(e.target.value)}
+                    className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-300 text-[11px] font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none"
+                    style={{
+                      backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "right 0.75rem center",
+                      backgroundSize: "0.85em",
+                      paddingRight: "2rem"
                     }}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  >
+                    <option value="" disabled hidden>Chọn ngôn ngữ...</option>
+                    {availableLanguages.map((l: string) => (
+                      <option key={l} value={l} className="bg-slate-950 text-white">{l}</option>
+                    ))}
+                  </select>
+
+                  <input
+                    type="text"
+                    value={langProficiency}
+                    onChange={(e) => setLangProficiency(e.target.value)}
+                    placeholder="Trình độ (e.g. Bản xứ, IELTS 7.5)"
+                    className="bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-white text-[11px] font-semibold focus:outline-none focus:border-amber-400 transition-colors"
                   />
                 </div>
-              ))}
+
+                <button
+                  type="button"
+                  onClick={handleAddLanguage}
+                  disabled={!selectedLangName}
+                  className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${selectedLangName
+                    ? "bg-[#f4c430] text-slate-950 hover:opacity-90 active:scale-95 cursor-pointer"
+                    : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                    }`}
+                >
+                  <Plus className="h-3.5 w-3.5" /> Thêm ngoại ngữ
+                </button>
+              </div>
             </div>
+
           </div>
 
           {/* Lifestyle Companion services config editing */}

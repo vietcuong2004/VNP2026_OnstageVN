@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Award, User, GraduationCap, BookOpen, DollarSign,
-  TrendingUp, Wallet, ShieldCheck, Calendar, Image, Sparkles, Star, Crown, Video,
-  ChevronLeft, ChevronRight, Upload, ChevronDown, ChevronUp
+  Award, User, GraduationCap, BookOpen,
+  ShieldCheck, Calendar, Image, Sparkles, Star, Crown, Video,
+  ChevronLeft, ChevronRight, Upload, ChevronDown, ChevronUp, Camera
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
@@ -493,21 +493,12 @@ export default function PersonalInfoTab({
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
               />
             ) : (
-              <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-600">
-                <Upload className="h-10 w-10" />
+              <label className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-600 cursor-pointer hover:bg-slate-900/10 transition-colors">
+                <Upload className="h-10 w-10 text-slate-500 hover:text-amber-400 transition-colors" />
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Chưa có ảnh full-body</p>
                   <p className="mt-1 text-[10px] font-semibold leading-relaxed text-slate-600">Tải ảnh lên để hoàn thiện hồ sơ người mẫu.</p>
                 </div>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80" />
-
-            {/* Desktop Hover Overlay upload trigger */}
-            <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-              <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[11px] sm:text-xs font-bold cursor-pointer transition-all">
-                <Upload className="h-5 w-5 text-amber-400" />
-                <span>Đổi ảnh</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -516,7 +507,24 @@ export default function PersonalInfoTab({
                   onChange={(e) => handleImageUpload(e, "fullBody")}
                 />
               </label>
-            </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80 pointer-events-none" />
+
+            {/* Camera edit button in bottom-right corner */}
+            {normalizeBackendAssetUrl(profile.fullBody) && (
+              <div className="absolute bottom-3 right-3 z-20">
+                <label className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
+                  <Camera className="h-4.5 w-4.5" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={!!uploadingState["fullBody"]}
+                    onChange={(e) => handleImageUpload(e, "fullBody")}
+                  />
+                </label>
+              </div>
+            )}
 
             {/* Progress bar overlay */}
             {uploadingState["fullBody"] && (
@@ -526,17 +534,103 @@ export default function PersonalInfoTab({
               />
             )}
 
-            <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end opacity-35 sm:opacity-100 sm:group-hover:opacity-20 transition-opacity duration-300">
-              <div>
-                <span className="text-[10px] font-mono tracking-widest text-[#f4c430] font-bold uppercase">POLAROID BOOK</span>
-                <h4 className="text-xs font-black text-white mt-0.5">{profile.name.toUpperCase()}</h4>
-              </div>
-              <div className="text-[10px] font-mono bg-black/40 border border-white/10 px-2 py-0.5 rounded text-slate-300">
-                Ratio: 3:4
-              </div>
+
+          </div>
+        </div>
+
+        {/* SECTION D: LOOKBOOK PHOTOS & VIDEOS DISPLAY */}
+        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+          <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
+                <Image className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ sưu tập
+              </h3>
+              <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                Hiển thị bộ sưu tập ảnh của Talent
+              </span>
+            </div>
+          </div>
+
+          {/* Sub-grid 1: Lookbook Photos */}
+          <div className="space-y-3">
+            <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+              ({lookbookPhotos.length}/8 Ảnh)
+            </span>
+            <div className="grid grid-cols-2 gap-3">
+              {lookbookPhotos.map((img) => (
+                <div key={img.id} className="flex flex-col gap-2">
+                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
+                    <img
+                      src={normalizeBackendAssetUrl(img.url)}
+                      alt={img.label}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85 sm:block hidden" />
+
+                    <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                        <Upload className="h-5 w-5 text-amber-400" />
+                        <span>Thay đổi ảnh</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={!!uploadingState[`lookbook-${img.id}`]}
+                          onChange={(e) => handleLookbookUpload(e, img.id)}
+                        />
+                      </label>
+                    </div>
+
+                    {uploadingState[`lookbook-${img.id}`] && (
+                      <ProgressBar
+                        progress={uploadingState[`lookbook-${img.id}`].progress}
+                        message="Đang tải ảnh lên..."
+                      />
+                    )}
+
+                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10 pointer-events-none hidden sm:block text-left">
+                      <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                        {img.label}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="sm:hidden block space-y-1 px-1 text-left pb-1">
+                    <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                      {img.label}
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {nextLookbookSlot && (
+                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors">
+                  <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
+                    <Upload className="h-7 w-7" />
+                    <span className="text-[10px] font-black uppercase tracking-wider">Tải ảnh lên</span>
+                    <span className="rounded bg-[#f4c430] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-slate-950">
+                      Ảnh {nextLookbookSlot}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={!!uploadingState[`lookbook-${nextLookbookSlot}`]}
+                      onChange={(e) => handleLookbookUpload(e, nextLookbookSlot)}
+                    />
+                  </label>
+                  {uploadingState[`lookbook-${nextLookbookSlot}`] && (
+                    <ProgressBar
+                      progress={uploadingState[`lookbook-${nextLookbookSlot}`].progress}
+                      message="Đang tải ảnh lên..."
+                    />
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
+
 
         {/* Physical Measurements Card */}
         <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
@@ -557,12 +651,36 @@ export default function PersonalInfoTab({
 
           <div className="space-y-3.5 border-t border-[#151b2d] pt-4 text-left">
             <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Họ và tên</span>
+              <span className="font-bold text-white">{profile.name}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Giới tính</span>
               <span className="font-bold text-white">{profile.gender || "Nữ"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Ngày sinh</span>
               <span className="font-bold text-white font-mono">{profile.dob || "15/05/2002"}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Khu vực hoạt động</span>
+              <span className="font-bold text-white">{profile.location}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Quê quán</span>
+              <span className="font-bold text-white">{profile.hometown}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Số điện thoại</span>
+              <span className="font-bold text-white font-mono">{profile.phone}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Email</span>
+              <span className="font-bold text-white">{profile.email}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Học vấn</span>
+              <span className="font-bold text-white text-right max-w-[160px] truncate" title={profile.education}>{profile.education}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300 border-t border-dashed border-[#151b2d]/50 pt-2">
               <span className="font-medium text-slate-400">Số đo Vòng 1</span>
@@ -577,95 +695,28 @@ export default function PersonalInfoTab({
               <span className="font-bold text-white font-mono">{profile.hips} cm</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300 border-t border-dashed border-[#151b2d]/50 pt-2">
-              <span className="font-medium text-slate-400">Màu da</span>
-              <span className="font-bold text-white">{profile.skinColor || "Sáng"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Màu tóc</span>
-              <span className="font-bold text-white">{profile.hairColor || "Nâu"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Hình xăm</span>
-              <span className="font-bold text-white truncate max-w-[120px] text-right" title={profile.tattoo === "Có" ? `Có (${profile.tattooDesc || "Không mô tả"})` : "Không"}>
-                {profile.tattoo === "Có" ? `Có (${profile.tattooDesc || "Không mô tả"})` : "Không"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Kinh nghiệm</span>
               <span className="font-bold text-white">{profile.experience !== undefined ? `${profile.experience} năm` : "3 năm"}</span>
             </div>
-            <div className="flex justify-between items-center text-xs text-slate-300 border-t border-[#151b2d] pt-3.5">
-              <span className="font-medium text-slate-400">Phẫu thuật thẩm mỹ</span>
-              <span className="font-bold text-white">{profile.plasticSurgery === "true" ? "Đã can thiệp" : "Tự nhiên 100%"}</span>
+            <div className="flex justify-between items-start text-xs text-slate-300">
+              <span className="font-medium text-slate-400 shrink-0">Lĩnh vực hoạt động</span>
+              <span className="font-bold text-white text-right max-w-[160px] leading-normal">
+                {(() => {
+                  const skills = profile.specialSkills || profile.skills || ["Catwalk", "Pose dáng"];
+                  return Array.isArray(skills) ? skills.join(", ") : skills;
+                })()}
+              </span>
             </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Tình trạng kết hôn</span>
-              <span className="font-bold text-white">{profile.maritalStatus}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Education, Languages & Special Skills */}
-        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-            <GraduationCap className="h-4.5 w-4.5 text-slate-400" /> Học Vấn, Ngôn Ngữ & Kỹ Năng
-          </h3>
-
-          <div className="space-y-4 text-xs text-slate-300 text-left">
-            <div className="flex gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/10 text-amber-400">
-                <GraduationCap className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <span className="block font-bold text-white">Học vấn</span>
-                <span className="block text-[10px] text-slate-400 mt-1">{profile.education}</span>
-              </div>
-            </div>
-
-            <div className="flex gap-3 border-t border-[#151b2d] pt-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400">
-                <BookOpen className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <span className="block font-bold text-white">Ngoại ngữ</span>
-                <span className="block text-[10px] text-slate-400 mt-1 leading-normal">
-                  {Array.isArray(profile.languages) ? profile.languages.join(", ") : profile.languages}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex gap-3 border-t border-[#151b2d] pt-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400">
-                <Award className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <span className="block font-bold text-white">Kỹ năng đặc biệt</span>
-                <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  {(profile.specialSkills || profile.skills || ["Catwalk", "MC song ngữ", "Pose dáng lookbook"]).map((skill: string, sIdx: number) => (
-                    <span key={sIdx} className="bg-white/5 border border-white/10 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
+            <div className="flex justify-between items-start text-xs text-slate-300">
+              <span className="font-medium text-slate-400 shrink-0">Ngôn ngữ</span>
+              <span className="font-bold text-white text-right max-w-[160px] leading-normal">
+                {Array.isArray(profile.languages) ? profile.languages.join(", ") : profile.languages}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Rate Card Table */}
-        <div className="rounded-2xl border border-amber-500/10 bg-[#08090f] p-6 space-y-4">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-            <DollarSign className="h-4.5 w-4.5 text-amber-400" /> Dịch Vụ Cơ Bản (Basic)
-          </h3>
-          <div className="space-y-3">
-            {Object.entries(profile.rateCard || {}).map(([key, value]: any) => (
-              <div key={key} className="flex justify-between py-1.5 text-xs border-b border-[#151b2d]/50 items-center">
-                <span className="font-medium text-slate-400">{key}</span>
-                <span className="font-extrabold text-amber-400 font-mono">từ {value.toLocaleString()}đ</span>
-              </div>
-            ))}
-          </div>
-        </div>
+
 
         {/* Lifestyle Co-Space Companion Services Card */}
         {profile.lifestyleServices && profile.lifestyleServices.some((s: any) => s.enabled) && (
@@ -748,72 +799,7 @@ export default function PersonalInfoTab({
       {/* RIGHT COLUMN: Tab main content */}
       <div className="lg:col-span-2 space-y-6 md:space-y-8 order-2">
 
-        {/* SECTION A: DISPLAY PERFORMANCE ANALYTICS */}
-        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
-            <TrendingUp className="h-4.5 w-4.5 text-cyan-400" /> Báo Cáo Hiệu Quả Hiển Thị
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="rounded-xl bg-slate-950 p-4 border border-white/2">
-              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Xem profile/tuần</span>
-              <h4 className="text-lg font-extrabold text-white mt-1.5">1,520 lượt</h4>
-              <span className="text-[10px] text-emerald-400 font-bold block mt-1">↑ 400% (Từ Super Boost)</span>
-            </div>
-            <div className="rounded-xl bg-slate-950 p-4 border border-white/2">
-              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Đề xuất Booking</span>
-              <h4 className="text-lg font-extrabold text-white mt-1.5">48 Đề xuất</h4>
-              <span className="text-[10px] text-emerald-400 font-bold block mt-1">↑ 500% (Elite Verified)</span>
-            </div>
-            <div className="rounded-xl bg-slate-950 p-4 border border-white/2">
-              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tỷ lệ nhận việc</span>
-              <h4 className="text-lg font-extrabold text-white mt-1.5">98%</h4>
-              <span className="text-[10px] text-cyan-400 font-bold block mt-1">Hạng xuất sắc A+</span>
-            </div>
-            <div className="rounded-xl bg-slate-950 p-4 border border-white/2">
-              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">ROI Tiếp Cận</span>
-              <h4 className="text-lg font-extrabold text-white mt-1.5">3,000%</h4>
-              <span className="text-[10px] text-[#f4c430] font-bold block mt-1 font-mono">Tối Ưu Cực Cao</span>
-            </div>
-          </div>
-        </div>
 
-        {/* SECTION B: REVENUE B2C FINANCIAL REPORTING */}
-        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
-            <Wallet className="h-4.5 w-4.5 text-emerald-400" /> Báo Cáo Doanh Thu
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Balance Wallet */}
-            <div className="rounded-xl bg-slate-950 p-4 border border-emerald-500/20 relative overflow-hidden bg-gradient-to-br from-emerald-950/10 to-transparent">
-              <div className="absolute top-2 right-2 opacity-15">
-                <Wallet className="h-10 w-10 text-emerald-400" />
-              </div>
-              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Số dư Ví hiện tại</span>
-              <h4 className="text-xl font-black text-emerald-400 mt-2 font-mono">12.500.000đ</h4>
-              <span className="text-[10px] text-emerald-500 block mt-1.5 font-bold">● Sẵn sàng rút về ngân hàng</span>
-            </div>
-
-            {/* Monthly Income */}
-            <div className="rounded-xl bg-slate-950 p-4 border border-purple-500/20 relative overflow-hidden bg-gradient-to-br from-purple-950/10 to-transparent">
-              <div className="absolute top-2 right-2 opacity-15">
-                <TrendingUp className="h-10 w-10 text-purple-400" />
-              </div>
-              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Doanh thu tháng này</span>
-              <h4 className="text-xl font-black text-purple-400 mt-2 font-mono">18.000.000đ</h4>
-              <span className="text-[10px] text-purple-400 block mt-1.5 font-bold">↑ Tăng 22% so với tháng trước</span>
-            </div>
-
-            {/* Escrowed / Locked cọc */}
-            <div className="rounded-xl bg-slate-950 p-4 border border-amber-500/20 relative overflow-hidden bg-gradient-to-br from-amber-950/10 to-transparent">
-              <div className="absolute top-2 right-2 opacity-15">
-                <ShieldCheck className="h-10 w-10 text-amber-400" />
-              </div>
-              <span className="block text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tiền cọc chờ giải ngân</span>
-              <h4 className="text-xl font-black text-amber-400 mt-2 font-mono">4.000.000đ</h4>
-              <span className="text-[10px] text-amber-400 block mt-1.5 font-bold">🔒 Tiền cọc an toàn (Escrow)</span>
-            </div>
-          </div>
-        </div>
 
         {/* SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
         <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
@@ -889,284 +875,7 @@ export default function PersonalInfoTab({
           </div>
         </div>
 
-        {/* SECTION D: LOOKBOOK PHOTOS & VIDEOS DISPLAY */}
-        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
-          <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                <Image className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ Ảnh Lookbook Nghệ Thuật
-              </h3>
-              <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                Hiển thị bộ ảnh Lookbook nghệ thuật của Talent
-              </span>
-            </div>
-          </div>
 
-          {/* Sub-grid 1: Lookbook Photos */}
-          <div className="space-y-3">
-            <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
-              Bộ Ảnh Lookbook Nghệ Thuật ({lookbookPhotos.length}/8 Ảnh)
-            </span>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {lookbookPhotos.map((img) => (
-                <div key={img.id} className="flex flex-col gap-2">
-                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
-                    <img
-                      src={normalizeBackendAssetUrl(img.url)}
-                      alt={img.label}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85 sm:block hidden" />
-
-                    <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
-                        <Upload className="h-5 w-5 text-amber-400" />
-                        <span>Thay đổi ảnh</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          disabled={!!uploadingState[`lookbook-${img.id}`]}
-                          onChange={(e) => handleLookbookUpload(e, img.id)}
-                        />
-                      </label>
-                    </div>
-
-                    {uploadingState[`lookbook-${img.id}`] && (
-                      <ProgressBar
-                        progress={uploadingState[`lookbook-${img.id}`].progress}
-                        message="Đang tải ảnh lên..."
-                      />
-                    )}
-
-                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10 pointer-events-none hidden sm:block text-left">
-                      <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                        {img.label}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="sm:hidden block space-y-1 px-1 text-left pb-1">
-                    <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                      {img.label}
-                    </span>
-                  </div>
-                </div>
-              ))}
-
-              {nextLookbookSlot && (
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors">
-                  <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
-                    <Upload className="h-7 w-7" />
-                    <span className="text-[10px] font-black uppercase tracking-wider">Tải ảnh lên</span>
-                    <span className="rounded bg-[#f4c430] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-slate-950">
-                      Ảnh {nextLookbookSlot}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={!!uploadingState[`lookbook-${nextLookbookSlot}`]}
-                      onChange={(e) => handleLookbookUpload(e, nextLookbookSlot)}
-                    />
-                  </label>
-                  {uploadingState[`lookbook-${nextLookbookSlot}`] && (
-                    <ProgressBar
-                      progress={uploadingState[`lookbook-${nextLookbookSlot}`].progress}
-                      message="Đang tải ảnh lên..."
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Sub-grid 2: 3 Videos (Intro, Catwalk, MC/Live Demo) - Commented out as requested
-          <div className="space-y-3 border-t border-[#151b2d] pt-4">
-            <span className="block text-[11px] text-cyan-400 font-black uppercase tracking-wider">
-              🎥 Video Giới Thiệu & Demo Thực Tế (3 Videos)
-            </span>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
-                {profile.hasUploadedIntro ? (
-                  <div className="h-full w-full relative">
-                    <video
-                      src={videoPreviews.intro || "https://assets.mixkit.co/videos/preview/mixkit-beautiful-woman-smiling-at-the-camera-40898-large.mp4"}
-                      className="h-full w-full object-cover"
-                      playsInline
-                      loop
-                      muted
-                      autoPlay
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
-
-                    <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
-                        <Upload className="h-5 w-5 text-cyan-400" />
-                        <span>Đổi video</span>
-                        <input
-                          type="file"
-                          accept="video/*"
-                          className="hidden"
-                          disabled={!!uploadingState["intro"]}
-                          onChange={(e) => handleVideoUpload(e, "intro")}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4 relative">
-                    <label className="flex flex-col items-center gap-1.5 bg-black/40 hover:bg-black/60 border border-dashed border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-6 text-slate-400 hover:text-white text-[10px] font-bold cursor-pointer transition-all w-full h-full justify-center">
-                      <Upload className="h-6 w-6 text-slate-500 hover:text-cyan-400 animate-pulse" />
-                      <span>Tải lên video</span>
-                      <input
-                        type="file"
-                        accept="video/*"
-                        className="hidden"
-                        disabled={!!uploadingState["intro"]}
-                        onChange={(e) => handleVideoUpload(e, "intro")}
-                      />
-                    </label>
-                  </div>
-                )}
-
-                {uploadingState["intro"] && (
-                  <ProgressBar
-                    progress={uploadingState["intro"].progress}
-                    message="Đang tải video lên..."
-                  />
-                )}
-
-                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1 pointer-events-none z-10">
-                  <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                    INTRO VIDEO
-                  </span>
-                  <h4 className="text-[10px] font-black text-white">Video Giới Thiệu Bản Thân</h4>
-                  <p className="text-[7.5px] text-slate-400">Độ phân giải: 1080p • Định dạng: Vertical</p>
-                </div>
-              </div>
-
-              <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
-                {profile.hasUploadedCatwalk ? (
-                  <div className="h-full w-full relative">
-                    <video
-                      src={videoPreviews.catwalk || "https://assets.mixkit.co/videos/preview/mixkit-fashion-model-walking-on-a-runway-show-39871-large.mp4"}
-                      className="h-full w-full object-cover"
-                      playsInline
-                      loop
-                      muted
-                      autoPlay
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
-
-                    <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
-                        <Upload className="h-5 w-5 text-cyan-400" />
-                        <span>Đổi video</span>
-                        <input
-                          type="file"
-                          accept="video/*"
-                          className="hidden"
-                          disabled={!!uploadingState["catwalk"]}
-                          onChange={(e) => handleVideoUpload(e, "catwalk")}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4 relative">
-                    <label className="flex flex-col items-center gap-1.5 bg-black/40 hover:bg-black/60 border border-dashed border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-6 text-slate-400 hover:text-white text-[10px] font-bold cursor-pointer transition-all w-full h-full justify-center">
-                      <Upload className="h-6 w-6 text-slate-500 hover:text-cyan-400 animate-pulse" />
-                      <span>Tải lên video</span>
-                      <input
-                        type="file"
-                        accept="video/*"
-                        className="hidden"
-                        disabled={!!uploadingState["catwalk"]}
-                        onChange={(e) => handleVideoUpload(e, "catwalk")}
-                      />
-                    </label>
-                  </div>
-                )}
-
-                {uploadingState["catwalk"] && (
-                  <ProgressBar
-                    progress={uploadingState["catwalk"].progress}
-                    message="Đang tải video lên..."
-                  />
-                )}
-
-                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1 pointer-events-none z-10">
-                  <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                    CATWALK POLAROID
-                  </span>
-                  <h4 className="text-[10px] font-black text-white">Video Trình Diễn Sàn Runway</h4>
-                  <p className="text-[7.5px] text-slate-400">Độ phân giải: 1080p • Định dạng: Vertical</p>
-                </div>
-              </div>
-
-              <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md flex flex-col justify-between">
-                {profile.hasUploadedMC ? (
-                  <div className="h-full w-full relative">
-                    <video
-                      src={videoPreviews.mc || "https://assets.mixkit.co/videos/preview/mixkit-young-woman-talking-to-camera-in-interview-42358-large.mp4"}
-                      className="h-full w-full object-cover"
-                      playsInline
-                      loop
-                      muted
-                      autoPlay
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90" />
-
-                    <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
-                        <Upload className="h-5 w-5 text-cyan-400" />
-                        <span>Đổi video</span>
-                        <input
-                          type="file"
-                          accept="video/*"
-                          className="hidden"
-                          disabled={!!uploadingState["mc"]}
-                          onChange={(e) => handleVideoUpload(e, "mc")}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-full w-full flex flex-col items-center justify-center text-slate-600 p-4 relative">
-                    <label className="flex flex-col items-center gap-1.5 bg-black/40 hover:bg-black/60 border border-dashed border-white/10 hover:border-cyan-400/80 rounded-xl px-4 py-6 text-slate-400 hover:text-white text-[10px] font-bold cursor-pointer transition-all w-full h-full justify-center">
-                      <Upload className="h-6 w-6 text-slate-500 hover:text-cyan-400 animate-pulse" />
-                      <span>Tải lên video</span>
-                      <input
-                        type="file"
-                        accept="video/*"
-                        className="hidden"
-                        disabled={!!uploadingState["mc"]}
-                        onChange={(e) => handleVideoUpload(e, "mc")}
-                      />
-                    </label>
-                  </div>
-                )}
-
-                {uploadingState["mc"] && (
-                  <ProgressBar
-                    progress={uploadingState["mc"].progress}
-                    message="Đang tải video lên..."
-                  />
-                )}
-
-                <div className="absolute bottom-0 left-0 right-0 p-3.5 space-y-1 pointer-events-none z-10">
-                  <span className="inline-block bg-cyan-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                    DEMO MC / LIVE
-                  </span>
-                  <h4 className="text-[10px] font-black text-white">Dẫn Chương Trình / Live Bán Hàng</h4>
-                  <p className="text-[7.5px] text-slate-400">Độ phân giải: 1080p • Định dạng: Vertical</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          */}
-        </div>
 
         {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
         <div className="rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">

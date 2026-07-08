@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   MapPin, Star, Share2, Crown, ShieldCheck, User, Edit3, Sparkles, X,
-  MessageSquare, HeartHandshake, CheckCircle, Trophy, Award, Camera, Cpu
+  MessageSquare, HeartHandshake, CheckCircle, Trophy, Award, Camera, Cpu,
+  Mail, Phone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
@@ -301,304 +302,179 @@ export default function PortfolioPage() {
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-300">
 
       {/* Cover Banner Header - Dynamic & Responsive */}
-      <div className="relative rounded-2xl border border-[#151b2d] bg-[#08090f] p-3 md:p-5 shadow-xl overflow-hidden">
+      <div className="relative rounded-[32px] border border-white/5 bg-[#05070e]/85 backdrop-blur-md p-4 md:p-6 shadow-soft overflow-hidden">
 
         {/* Cover Background */}
-        {profile.isSuperBoosted ? (
-          <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-amber-400/40 bg-gradient-to-r from-slate-950 via-[#2d220f] to-slate-950 animate-pulse group">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.18),transparent_60%)]" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-display font-black text-amber-300/40 tracking-[0.25em] md:tracking-[0.35em] text-xs sm:text-lg md:text-3xl uppercase">FEATURED SUPER MODEL</span>
+        <div className="h-56 sm:h-64 md:h-72 w-full rounded-2xl relative overflow-hidden border border-white/5 bg-[#05070e] group shadow-inner">
+          {/* Cover image */}
+          {normalizeBackendAssetUrl(profile.cover) ? (
+            <img
+              src={normalizeBackendAssetUrl(profile.cover)}
+              alt="Cover banner"
+              className="h-full w-full object-cover filter brightness-[0.7] transition-transform duration-500 group-hover:scale-[1.01]"
+            />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-700 bg-gradient-to-br from-slate-950 to-slate-900">
+              <Camera className="h-10 w-10 text-slate-600 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Chưa có ảnh bìa</span>
             </div>
-            <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-amber-400 text-slate-950 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.5)]">
-              <Crown className="h-3 w-3 animate-pulse" /> SUPER BOOSTED
-            </div>
-            {/* Cover Hover Overlay upload trigger for Super Boosted */}
-            <div className="absolute inset-0 bg-black/25 sm:bg-black/40 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-              <label className="flex items-center gap-2 bg-black/70 hover:bg-black/80 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-white text-[11px] sm:text-xs font-bold cursor-pointer transition-all">
-                <Camera className="h-4.5 w-4.5 text-amber-400" />
-                <span>Thay đổi ảnh bìa</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={!!uploadingState["cover"]}
-                  onChange={(e) => handleImageUpload(e, "cover")}
-                />
-              </label>
-            </div>
-            {uploadingState["cover"] && (
-              <ProgressBar
-                progress={uploadingState["cover"].progress}
-                message="Đang tải ảnh bìa lên..."
-              />
-            )}
-          </div>
-        ) : (
-          <div className="h-28 sm:h-36 md:h-48 w-full rounded-xl relative overflow-hidden border border-white/5 bg-slate-950 group">
-            {normalizeBackendAssetUrl(profile.cover) ? (
-              <img
-                src={normalizeBackendAssetUrl(profile.cover)}
-                alt="Cover banner"
-                className="h-full w-full object-cover opacity-60 transition-transform duration-500 group-hover:scale-[1.01]"
-              />
-            ) : (
-              <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-600">
-                <Camera className="h-8 w-8" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Chưa có ảnh bìa</span>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80" />
-            {/* Cover Hover Overlay upload trigger */}
-            <div className="absolute inset-0 bg-black/25 sm:bg-black/40 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-              <label className="flex items-center gap-2 bg-black/70 hover:bg-black/80 border border-white/15 hover:border-cyan-400/80 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-white text-[11px] sm:text-xs font-bold cursor-pointer transition-all">
-                <Camera className="h-4.5 w-4.5 text-cyan-400" />
-                <span>Thay đổi ảnh bìa</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={!!uploadingState["cover"]}
-                  onChange={(e) => handleImageUpload(e, "cover")}
-                />
-              </label>
-            </div>
-            {uploadingState["cover"] && (
-              <ProgressBar
-                progress={uploadingState["cover"].progress}
-                message="Đang tải ảnh bìa lên..."
-              />
-            )}
-          </div>
-        )}
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#05070e] via-black/20 to-black/40" />
 
-        {/* Profile Info Row */}
-        <div className="relative px-3 sm:px-6 pt-3 flex flex-col md:flex-row gap-4 md:items-end justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
 
-            {/* Avatar block */}
-            <div className={cn(
-              "relative -mt-12 sm:-mt-16 md:-mt-20 h-24 w-24 sm:h-28 sm:w-28 shrink-0 rounded-full border-4 bg-slate-900 p-0.5 shadow-2xl transition-all duration-300 group/avatar",
-              (profile.isSuperBoosted || profile.isPremiumBoosted)
-                ? "border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
-                : "border-[#08090f]"
-            )}>
+
+          {/* Cover camera edit button in bottom-right corner */}
+          <div className="absolute bottom-3 right-6 z-20">
+            <label className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-[#F0C56B]/80 text-white hover:text-[#F0C56B] cursor-pointer shadow-soft transition-all active:scale-95">
+              <Camera className="h-4.5 w-4.5" />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={!!uploadingState["cover"]}
+                onChange={(e) => handleImageUpload(e, "cover")}
+              />
+            </label>
+          </div>
+
+          {uploadingState["cover"] && (
+            <ProgressBar
+              progress={uploadingState["cover"].progress}
+              message="Đang tải ảnh bìa lên..."
+            />
+          )}
+        </div>
+
+        {/* Profile Info & Centered Details */}
+        <div className="relative px-3 sm:px-6 pt-3 flex flex-col items-center text-center">
+          
+          {/* Avatar block */}
+          <div className="relative -mt-16 sm:-mt-20 md:-mt-24">
+            <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-gradient-gold p-[3.5px] shadow-[0_0_25px_rgba(240,197,107,0.45)] relative">
               <img
                 src={normalizeBackendAssetUrl(profile.avatar)}
                 alt={profile.name}
                 onError={(event) => {
                   event.currentTarget.src = createInitialAvatarDataUrl(profile.name, profile.email);
                 }}
-                className="h-full w-full rounded-full object-cover"
+                className="h-full w-full rounded-full object-cover border border-black/10"
               />
-
-              {/* Avatar Hover Overlay upload trigger */}
-              <div className="absolute inset-0.5 rounded-full bg-black/35 sm:bg-black/50 flex flex-col items-center justify-center opacity-100 sm:opacity-0 sm:group-hover/avatar:opacity-100 transition-opacity duration-300 cursor-pointer">
-                <label className="flex flex-col items-center justify-center h-full w-full cursor-pointer text-white text-[9px] font-bold text-center p-1">
-                  <Camera className="h-5 w-5 text-amber-400 mb-0.5" />
-                  <span>Đổi ảnh</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={!!uploadingState["avatar"]}
-                    onChange={(e) => handleImageUpload(e, "avatar")}
-                  />
-                </label>
-              </div>
-
-              {uploadingState["avatar"] && (
-                <ProgressBar
-                  progress={uploadingState["avatar"].progress}
-                  message="Tải ảnh..."
-                  className="rounded-full"
-                />
-              )}
-
-              <span className={cn(
-                "absolute bottom-1 right-1 h-4 w-4 border-2 border-[#08090f] rounded-full z-10",
-                profile.isAvailable ? "bg-emerald-500" : "bg-red-500"
-              )} />
-
-              {(profile.isSuperBoosted || profile.isPremiumBoosted) && (
-                <span className="absolute -top-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-gradient-to-r from-red-500 to-amber-500 text-white text-[7px] font-black uppercase px-2 py-0.5 rounded-full shadow-[0_2px_8px_rgba(239,68,68,0.4)] animate-bounce" style={{ animationDuration: '2s' }}>
-                  🔥 HOT
-                </span>
-              )}
             </div>
 
-            <div className="space-y-2 pb-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-display font-black text-white text-lg sm:text-xl md:text-2xl tracking-wide">{profile.name}</h2>
+            {/* Avatar camera edit button on bottom right */}
+            <label className="absolute bottom-0.5 right-0.5 h-9 w-9 bg-[#F0C56B] text-slate-950 rounded-full border-2 border-[#05070e] hover:brightness-110 active:scale-95 shadow-lg flex items-center justify-center cursor-pointer transition-all">
+              <Camera className="h-4.5 w-4.5" />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={!!uploadingState["avatar"]}
+                onChange={(e) => handleImageUpload(e, "avatar")}
+              />
+            </label>
 
+            {uploadingState["avatar"] && (
+              <ProgressBar
+                progress={uploadingState["avatar"].progress}
+                message="Tải ảnh..."
+                className="rounded-full absolute inset-0.5"
+              />
+            )}
 
-                {/* Verified Badge */}
-                {profile.verifiedLevel === "Elite" && (
-                  <span className="flex items-center gap-0.5 rounded bg-amber-400/10 border border-amber-400/30 px-2 py-0.5 text-[8px] font-black text-amber-400 uppercase tracking-wider shadow-[0_0_8px_rgba(245,158,11,0.1)]">
-                    <Crown className="h-2.5 w-2.5" /> Elite Verified
-                  </span>
-                )}
-                {profile.verifiedLevel === "Pro" && (
-                  <span className="flex items-center gap-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 text-[8px] font-black text-cyan-400 uppercase tracking-wider">
-                    <ShieldCheck className="h-2.5 w-2.5" /> Pro Verified
-                  </span>
-                )}
-                {profile.verifiedLevel === "Basic" && (
-                  <span className="flex items-center gap-0.5 rounded bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 text-[8px] font-black text-blue-400 uppercase tracking-wider">
-                    <ShieldCheck className="h-2.5 w-2.5" /> Basic Verified
-                  </span>
-                )}
-                {profile.verifiedLevel === "Agency" && (
-                  <span className="flex items-center gap-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[8px] font-black text-emerald-400 uppercase tracking-wider">
-                    <ShieldCheck className="h-2.5 w-2.5" /> Agency Verified
-                  </span>
-                )}
-              </div>
-
-              {/* Location & Availability Badge */}
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-slate-400 font-medium">
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5 text-slate-500" /> {profile.isOnboarded ? profile.location : "Chưa biết"}
-                </span>
-                <span className="text-slate-600">•</span>
-                <span>{profile.isOnboarded ? "KOL Beauty • MC • Event Guest" : "Chưa biết"}</span>
-                <span className="text-slate-600">•</span>
-                <span className={cn(
-                  "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border",
-                  profile.isOnboarded && profile.isAvailable
-                    ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
-                    : profile.isOnboarded
-                      ? "bg-red-500/10 border-red-500/25 text-red-400"
-                      : "bg-slate-500/10 border-slate-500/25 text-slate-400"
-                )}>
-                  {profile.isOnboarded && <span className={cn("h-1.5 w-1.5 rounded-full", profile.isAvailable ? "bg-emerald-400" : "bg-red-400")} />}
-                  {profile.isOnboarded ? (profile.isAvailable ? "Đang Rảnh (Trống lịch hôm nay)" : "Đang Bận") : "Chưa biết"}
-                </span>
-              </div>
-            </div>
+            <span className={cn(
+              "absolute bottom-2.5 left-2.5 h-4 w-4 border-2 border-[#05070e] rounded-full z-10",
+              profile.isAvailable ? "bg-emerald-500" : "bg-red-500"
+            )} />
           </div>
 
-          {/* Action Area: Model Tier Card & Share Button */}
-          <div className="flex items-center gap-3 pb-1 relative z-10 shrink-0">
-            {/* Model Tier Card */}
-            {profile.isOnboarded && profile.tier ? (() => {
-              const tier = profile.tier.toUpperCase();
-              if (tier === "S") {
-                return (
-                  <div className="relative overflow-hidden rounded-2xl border border-amber-400/80 bg-gradient-to-br from-amber-500/20 via-[#221a0a]/95 to-[#070913]/98 p-3 text-left shadow-[0_0_15px_rgba(245,158,11,0.15)] w-64 md:w-72 transition-all duration-300">
-                    <div className="absolute -right-4 -top-4 h-12 w-12 rounded-full bg-amber-500/15 blur-lg pointer-events-none"></div>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1">
-                        <Crown className="h-3.5 w-3.5 text-amber-400 fill-amber-400/10 animate-bounce" style={{ animationDuration: '3s' }} />
-                        <span className="text-[7px] font-black uppercase tracking-widest text-amber-400">
-                          CELEB / SUPER VIP
-                        </span>
-                      </div>
-                      <span className="inline-flex items-center rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-amber-300 border border-amber-400/30">
-                        90 - 100 ĐIỂM
-                      </span>
-                    </div>
-                    <span className="block text-base font-black tracking-wide font-display bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
-                      HẠNG S
-                    </span>
-                    <p className="mt-0.5 text-[9px] text-slate-300 leading-normal">
-                      Hoa hậu Quốc gia, Ngôi sao hạng S.
-                    </p>
-                  </div>
-                );
-              }
-              if (tier === "A") {
-                return (
-                  <div className="relative overflow-hidden rounded-2xl border border-slate-300/60 bg-gradient-to-br from-slate-400/10 via-[#171922]/90 to-[#070913]/95 p-3 text-left shadow-[0_0_15px_rgba(203,213,225,0.06)] w-64 md:w-72 transition-all duration-300">
-                    <div className="absolute -right-4 -top-4 h-12 w-12 rounded-full bg-slate-400/10 blur-lg pointer-events-none"></div>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1">
-                        <Trophy className="h-3.5 w-3.5 text-slate-300" />
-                        <span className="text-[7px] font-black uppercase tracking-widest text-slate-300">
-                          HIGH-END PRO
-                        </span>
-                      </div>
-                      <span className="inline-flex items-center rounded-full bg-slate-400/20 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-slate-200 border border-slate-400/30">
-                        70 - 89 ĐIỂM
-                      </span>
-                    </div>
-                    <span className="block text-base font-black tracking-wide font-display bg-gradient-to-r from-slate-100 via-slate-300 to-slate-400 bg-clip-text text-transparent">
-                      HẠNG A
-                    </span>
-                    <p className="mt-0.5 text-[9px] text-slate-300 leading-normal">
-                      Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP.
-                    </p>
-                  </div>
-                );
-              }
-              if (tier === "B") {
-                return (
-                  <div className="relative overflow-hidden rounded-2xl border border-purple-500/40 bg-gradient-to-br from-purple-500/10 via-[#1a1128]/90 to-[#070913]/95 p-3 text-left shadow-[0_0_15px_rgba(168,85,247,0.06)] w-64 md:w-72 transition-all duration-300">
-                    <div className="absolute -right-4 -top-4 h-12 w-12 rounded-full bg-purple-500/10 blur-lg pointer-events-none"></div>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-3.5 w-3.5 text-purple-400" />
-                        <span className="text-[7px] font-black uppercase tracking-widest text-purple-400">
-                          MID FREELANCE
-                        </span>
-                      </div>
-                      <span className="inline-flex items-center rounded-full bg-purple-500/20 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-purple-300 border border-purple-500/30">
-                        45 - 69 ĐIỂM
-                      </span>
-                    </div>
-                    <span className="block text-base font-black tracking-wide font-display bg-gradient-to-r from-purple-200 to-pink-500 bg-clip-text text-transparent">
-                      HẠNG B
-                    </span>
-                    <p className="mt-0.5 text-[9px] text-slate-300 leading-normal">
-                      Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp.
-                    </p>
-                  </div>
-                );
-              }
-              if (tier === "C") {
-                return (
-                  <div className="relative overflow-hidden rounded-2xl border border-teal-500/30 bg-gradient-to-br from-teal-500/10 via-[#0e1f1e]/90 to-[#070913]/95 p-3 text-left shadow-[0_0_15px_rgba(20,184,166,0.06)] w-64 md:w-72 transition-all duration-300">
-                    <div className="absolute -right-4 -top-4 h-12 w-12 rounded-full bg-teal-500/10 blur-lg pointer-events-none"></div>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1">
-                        <Award className="h-3.5 w-3.5 text-teal-400" />
-                        <span className="text-[7px] font-black uppercase tracking-widest text-teal-400">
-                          ENTRY / NEWBIE
-                        </span>
-                      </div>
-                      <span className="inline-flex items-center rounded-full bg-teal-500/20 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-teal-300 border border-teal-500/30">
-                        20 - 44 ĐIỂM
-                      </span>
-                    </div>
-                    <span className="block text-base font-black tracking-wide font-display bg-gradient-to-r from-teal-200 to-emerald-400 bg-clip-text text-transparent">
-                      HẠNG C
-                    </span>
-                    <p className="mt-0.5 text-[9px] text-slate-300 leading-normal">
-                      Người mẫu tự do mới vào nghề, diễn viên phụ, PG sự kiện đại trà.
-                    </p>
-                  </div>
-                );
-              }
-              return null;
-            })() : (
-              <div className="relative overflow-hidden rounded-2xl border border-dashed border-amber-500/20 bg-amber-500/5 p-3 text-left w-64 md:w-72 transition-all duration-300">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
-                  <span className="text-[7px] font-black uppercase tracking-wider text-amber-400">
-                    Chưa phân hạng người mẫu
-                  </span>
-                </div>
-                <span className="block text-[11px] font-bold text-white leading-tight">
-                  Làm khảo sát định hướng để tự động xếp hạng người mẫu
-                </span>
-                <button
-                  onClick={() => router.push("/talent/survey")}
-                  className="mt-2 block text-[9px] font-black uppercase tracking-wider text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
-                >
-                  Làm Khảo Sát Ngay →
-                </button>
+          {/* Details */}
+          <div className="mt-4 space-y-2.5 max-w-2xl">
+            <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight">
+              {profile.name}
+            </h2>
+
+            {/* Categories formatted as "NGƯỜI MẪU THỜI TRANG · KOL · MC" */}
+            <p className="text-xs sm:text-[13px] font-black uppercase text-slate-400 tracking-widest">
+              {profile.isOnboarded ? "Người mẫu Thời trang · KOL · MC" : "Tài năng mới"}
+            </p>
+
+            {/* Location */}
+            <div className="flex items-center justify-center gap-1.5 text-slate-500 font-bold text-[11px] sm:text-xs">
+              <MapPin className="h-4 w-4 text-[#F0C56B]" />
+              <span>{profile.isOnboarded ? `${profile.location}, Việt Nam` : "Chưa cập nhật"}</span>
+            </div>
+
+            {/* Email & Phone Contacts */}
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400 pt-1">
+              <div className="flex items-center gap-1.5">
+                <Mail className="h-4 w-4 text-[#F0C56B]" />
+                <span className="text-slate-300 font-medium">{profile.email || "linhchi.nguyen@gmail.com"}</span>
               </div>
-            )}
+              <div className="flex items-center gap-1.5">
+                <Phone className="h-4 w-4 text-[#F0C56B]" />
+                <span className="text-slate-300 font-medium font-mono">{profile.phone || "0987 654 321"}</span>
+              </div>
+            </div>
+
+            {/* Badges: VERIFIED TALENT & ELITE */}
+            <div className="flex items-center justify-center gap-2 pt-2.5">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#F0C56B] px-3.5 py-1.5 text-[9.5px] font-black uppercase tracking-wider text-slate-950 shadow-md">
+                ★ VERIFIED TALENT
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#F0C56B] bg-[#F0C56B]/5 px-3.5 py-1.5 text-[9.5px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                ELITE
+              </span>
+            </div>
+
+            {/* Tier Info inside details (collapsible/responsive) */}
+            <div className="pt-4 flex justify-center">
+              {/* Model Tier Card (Clean, simplified version or full card centered) */}
+              {profile.isOnboarded && profile.tier && (() => {
+                const tier = profile.tier.toUpperCase();
+                let tierText = "";
+                let tierLabel = "";
+                let tierColor = "";
+                let tierBadge = "";
+                let scoreText = "";
+
+                if (tier === "S") {
+                  tierText = "HẠNG S";
+                  tierLabel = "CELEB / SUPER VIP";
+                  tierColor = "border-amber-400/50 bg-amber-500/5 text-amber-400";
+                  tierBadge = "90 - 100 ĐIỂM";
+                  scoreText = "Hoa hậu Quốc gia, Ngôi sao hạng S.";
+                } else if (tier === "A") {
+                  tierText = "HẠNG A";
+                  tierLabel = "HIGH-END PRO";
+                  tierColor = "border-slate-300/40 bg-slate-400/5 text-slate-300";
+                  tierBadge = "70 - 89 ĐIỂM";
+                  scoreText = "Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP.";
+                } else if (tier === "B") {
+                  tierText = "HẠNG B";
+                  tierLabel = "MID FREELANCE";
+                  tierColor = "border-purple-500/40 bg-purple-500/5 text-purple-400";
+                  tierBadge = "45 - 69 ĐIỂM";
+                  scoreText = "Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp.";
+                } else if (tier === "C") {
+                  tierText = "HẠNG C";
+                  tierLabel = "ENTRY / NEWBIE";
+                  tierColor = "border-teal-500/30 bg-teal-500/5 text-teal-400";
+                  tierBadge = "20 - 44 ĐIỂM";
+                  scoreText = "Người mẫu tự do mới vào nghề, diễn viên phụ, PG sự kiện đại trà.";
+                }
+
+                return (
+                  <div className={cn("relative overflow-hidden rounded-2xl border p-3.5 text-left max-w-sm w-full md:w-64 backdrop-blur-md shadow-soft", tierColor)}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[7.5px] font-black uppercase tracking-widest">{tierLabel}</span>
+                      <span className="text-[7.5px] font-black uppercase tracking-wider bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-full">{tierBadge}</span>
+                    </div>
+                    <span className="block text-[15px] font-black tracking-wide font-display">{tierText}</span>
+                    <p className="mt-1 text-[9.5px] leading-relaxed opacity-80">{scoreText}</p>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
         </div>
       </div>

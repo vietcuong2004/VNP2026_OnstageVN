@@ -9,12 +9,18 @@ export const metadata: Metadata = {
     description: "Tham gia mạng lưới Talent chuyên nghiệp cùng OnstageVN.",
     images: [
       {
-        url: "/favicon.png",
-        width: 512,
-        height: 512,
-        alt: "OnstageVN Logo",
+        url: "https://onstage.vn/cover_image.png",
+        width: 1200,
+        height: 630,
+        alt: "OnstageVN Cover",
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OnstageVN - Lời mời hợp tác từ Talent",
+    description: "Tham gia mạng lưới Talent chuyên nghiệp cùng OnstageVN.",
+    images: ["https://onstage.vn/cover_image.png"],
   },
 };
 
