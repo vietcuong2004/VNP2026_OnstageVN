@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { X, ImagePlus, Briefcase, ChevronDown, Upload, Pencil } from "lucide-react";
+import { X, ImagePlus, Briefcase, ChevronDown, Pencil } from "lucide-react";
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { createBrandCampaign, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
@@ -150,17 +150,19 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   const router = useRouter();
   const [form, setForm] = useState(emptyForm);
   const [campaignImages, setCampaignImages] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [formStep, setFormStep] = useState(1);
+  const finalStepSubmitReadyAt = useRef(0);
+  const imagePreviews = useMemo(
+    () => campaignImages.map((file) => URL.createObjectURL(file)),
+    [campaignImages]
+  );
 
   useEffect(() => {
-    const urls = campaignImages.map((file) => URL.createObjectURL(file));
-    setImagePreviews(urls);
     return () => {
-      urls.forEach((url) => URL.revokeObjectURL(url));
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [campaignImages]);
+  }, [imagePreviews]);
 
   const handleImagesAdd = (files: File[]) => {
     setCampaignImages((prev) => {
@@ -183,6 +185,12 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const TOTAL_STEPS = 5;
+
+  function moveToStep(nextStep: number) {
+    const boundedStep = Math.min(Math.max(nextStep, 1), TOTAL_STEPS);
+    finalStepSubmitReadyAt.current = boundedStep === TOTAL_STEPS ? Date.now() + 450 : 0;
+    setFormStep(boundedStep);
+  }
 
   const STEP_LABELS = ["Cơ bản", "Địa điểm", "Mô tả", "Yêu cầu", "Hoàn tất"];
 
@@ -226,26 +234,27 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
     updateBudgetState(formatted, otherVal, isFrom);
   };
 
-  const isStepValid = () => {
-    if (formStep === 1) return form.title.trim() !== "";
-    if (formStep === 2) return true;
-    if (formStep === 3) return form.description.trim() !== "";
-    return true;
-  };
-
   function handleClose() {
     setForm(emptyForm);
     setBudgetFrom("20.000.000đ");
     setBudgetTo("40.000.000đ");
     setCampaignImages([]);
     setOpenDropdown(null);
+    finalStepSubmitReadyAt.current = 0;
     setFormStep(1);
     onClose();
   }
 
-  async function handleSubmit(event: React.FormEvent) {
+  function handleFormSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (isSubmitting) return;
+
+    if (formStep < TOTAL_STEPS) {
+      moveToStep(formStep + 1);
+    }
+  }
+
+  async function handleCreateCampaign() {
+    if (isSubmitting || formStep !== TOTAL_STEPS || Date.now() < finalStepSubmitReadyAt.current) return;
 
     setIsSubmitting(true);
     let newCampaign: Campaign;
@@ -317,6 +326,9 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
         views: 0,
         description: updatedForm.description || "Chưa có mô tả brief.",
         requirements: updatedForm.requirements || "Chưa có yêu cầu chi tiết.",
+        heightMinCm: Number(updatedForm.heightMin) || null,
+        weightMaxKg: Number(updatedForm.weightMax) || null,
+        experienceMinYears: Number(updatedForm.experienceMin) || null,
         roles: splitOptionText(updatedForm.roles),
         responsibilities: splitOptionText(updatedForm.responsibilities),
         industries: splitOptionText(updatedForm.industries),
@@ -339,7 +351,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleFormSubmit}
         className="relative w-full max-w-2xl rounded-3xl border border-white/10 bg-[#070913] shadow-[0_32px_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Glow accent */}
@@ -379,7 +391,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 <div key={label} className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setFormStep(stepNum)}
+                    onClick={() => moveToStep(stepNum)}
                     className={cn(
                       "flex h-6 w-6 items-center justify-center rounded-full text-[9px] font-black transition-all cursor-pointer",
                       isDone
@@ -738,7 +750,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
         <div className="relative z-10 flex items-center justify-between gap-3 border-t border-white/5 px-6 py-4 shrink-0">
           <button
             type="button"
-            onClick={() => formStep > 1 ? setFormStep(formStep - 1) : handleClose()}
+            onClick={() => formStep > 1 ? moveToStep(formStep - 1) : handleClose()}
             className="flex h-10 items-center gap-2 rounded-xl border border-white/10 px-4 text-xs font-black text-slate-300 hover:bg-white/5 hover:text-white cursor-pointer transition-all"
             disabled={isSubmitting}
           >
@@ -757,14 +769,15 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
             {formStep < TOTAL_STEPS ? (
               <button
                 type="button"
-                onClick={() => setFormStep(formStep + 1)}
+                onClick={() => moveToStep(formStep + 1)}
                 className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-5 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 cursor-pointer transition-all"
               >
                 Tiếp theo →
               </button>
             ) : (
               <button
-                type="submit"
+                type="button"
+                onClick={handleCreateCampaign}
                 disabled={isSubmitting}
                 className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-5 text-xs font-black text-slate-950 hover:brightness-105 active:scale-95 cursor-pointer transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] disabled:opacity-40"
               >
@@ -805,17 +818,7 @@ function MultiChoiceField({
   const selectedSet = new Set(selectedItems);
   const optionSet = new Set(options);
   const customItems = selectedItems.filter((item) => !optionSet.has(item));
-
-  const [localText, setLocalText] = useState("");
-
-  useEffect(() => {
-    const currentCustomValue = customItems.join("\n");
-    const cleanLocal = splitOptionText(localText).join("\n");
-
-    if (currentCustomValue !== cleanLocal) {
-      setLocalText(currentCustomValue);
-    }
-  }, [value, options]);
+  const customTextValue = customItems.join("\n");
 
   const summary = selectedItems.length > 0
     ? id === "responsibilities"
@@ -845,8 +848,6 @@ function MultiChoiceField({
   }
 
   function handleTextChange(newVal: string) {
-    setLocalText(newVal);
-
     const selectedOptions = options.filter((option) => selectedSet.has(option));
     const selectedString = selectedOptions.join("\n");
 
@@ -916,7 +917,7 @@ function MultiChoiceField({
             </div>
             {!showCustomInput && (
               <textarea
-                value={localText}
+                value={customTextValue}
                 onChange={(event) => handleTextChange(event.target.value)}
                 rows={2}
                 placeholder={placeholder}
@@ -937,7 +938,7 @@ function MultiChoiceField({
       </div>
       {showCustomInput && (
         <textarea
-          value={localText}
+          value={customTextValue}
           onChange={(event) => handleTextChange(event.target.value)}
           rows={3}
           placeholder={placeholder}
