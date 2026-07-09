@@ -132,6 +132,12 @@ const emptyForm = {
   targetProfiles: "",
   contactNote: "",
   escrowed: false,
+  heightMin: "",
+  heightMax: "",
+  weightMin: "",
+  weightMax: "",
+  experienceMin: "",
+  experienceMax: "",
 };
 
 interface FormCreateJobProps {
@@ -223,7 +229,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   const isStepValid = () => {
     if (formStep === 1) return form.title.trim() !== "";
     if (formStep === 2) return true;
-    if (formStep === 3) return form.description.trim() !== "" || form.requirements.trim() !== "";
+    if (formStep === 3) return form.description.trim() !== "";
     return true;
   };
 
@@ -244,8 +250,22 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
     setIsSubmitting(true);
     let newCampaign: Campaign;
 
+    // Build requirements string from separate height, weight, experience fields
+    const reqParts: string[] = [];
+    if (form.heightMin) {
+      reqParts.push(`Chiều cao tối thiểu: ${form.heightMin} cm`);
+    }
+    if (form.weightMax) {
+      reqParts.push(`Cân nặng tối đa: ${form.weightMax} kg`);
+    }
+    if (form.experienceMin) {
+      reqParts.push(`Kinh nghiệm tối thiểu: ${form.experienceMin} năm`);
+    }
+    const finalRequirements = reqParts.join("; ") || "Chưa có yêu cầu chi tiết.";
+    const updatedForm = { ...form, requirements: finalRequirements };
+
     try {
-      const createdCampaign = await createBrandCampaign(form);
+      const createdCampaign = await createBrandCampaign(updatedForm);
       newCampaign = /^\d+$/.test(createdCampaign.id)
         ? await publishBrandCampaign(createdCampaign.id)
         : createdCampaign;
@@ -273,37 +293,37 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
       console.warn("Cannot create campaign from API, using local fallback", error);
       newCampaign = {
         id: `camp-${Date.now()}`,
-        title: form.title || "Campaign mới",
-        jobType: form.jobType,
-        eventName: form.eventName,
-        campaignType: form.campaignType,
-        city: form.city,
-        address: form.address || form.city,
-        startDate: form.startDate,
-        endDate: form.endDate,
-        deadline: form.applicationDeadline || form.deadline,
-        applicationDeadline: form.applicationDeadline || form.deadline,
-        eventDate: form.eventDate,
-        venueName: form.venueName,
-        venueAddress: form.venueAddress || form.address,
-        talentQuantity: Number(form.talentQuantity) || 1,
-        budget: form.budget,
+        title: updatedForm.title || "Campaign mới",
+        jobType: updatedForm.jobType,
+        eventName: updatedForm.eventName,
+        campaignType: updatedForm.campaignType,
+        city: updatedForm.city,
+        address: updatedForm.address || updatedForm.city,
+        startDate: updatedForm.startDate,
+        endDate: updatedForm.endDate,
+        deadline: updatedForm.applicationDeadline || updatedForm.deadline,
+        applicationDeadline: updatedForm.applicationDeadline || updatedForm.deadline,
+        eventDate: updatedForm.eventDate,
+        venueName: updatedForm.venueName,
+        venueAddress: updatedForm.venueAddress || updatedForm.address,
+        talentQuantity: Number(updatedForm.talentQuantity) || 1,
+        budget: updatedForm.budget,
         budgetValue: 40000000,
-        benefits: form.benefits || "Thỏa thuận theo brief",
+        benefits: updatedForm.benefits || "Thỏa thuận theo brief",
         status: "published",
         shortlistedTalentIds: [],
         applicants: [],
         contactRequests: 0,
         views: 0,
-        description: form.description || "Chưa có mô tả brief.",
-        requirements: form.requirements || "Chưa có yêu cầu chi tiết.",
-        roles: splitOptionText(form.roles),
-        responsibilities: splitOptionText(form.responsibilities),
-        industries: splitOptionText(form.industries),
-        targetProfiles: splitOptionText(form.targetProfiles),
-        contactNote: form.contactNote,
+        description: updatedForm.description || "Chưa có mô tả brief.",
+        requirements: updatedForm.requirements || "Chưa có yêu cầu chi tiết.",
+        roles: splitOptionText(updatedForm.roles),
+        responsibilities: splitOptionText(updatedForm.responsibilities),
+        industries: splitOptionText(updatedForm.industries),
+        targetProfiles: splitOptionText(updatedForm.targetProfiles),
+        contactNote: updatedForm.contactNote,
         sponsorships: [],
-        escrowed: form.escrowed,
+        escrowed: updatedForm.escrowed,
       };
     } finally {
       setIsSubmitting(false);
@@ -336,7 +356,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 {formStep === 1 && "Thông tin cơ bản"}
                 {formStep === 2 && "Địa điểm & Thời gian"}
                 {formStep === 3 && "Mô tả công việc"}
-                {formStep === 4 && "Phân loại & Quyền lợi"}
+                {formStep === 4 && "Yêu cầu"}
                 {formStep === 5 && "Hoàn tất"}
               </h2>
             </div>
@@ -451,16 +471,6 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           {formStep === 3 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <label className="space-y-1.5 block">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu *</span>
-                <textarea
-                  value={form.requirements}
-                  onChange={(e) => setForm((c) => ({ ...c, requirements: e.target.value }))}
-                  rows={4}
-                  placeholder="Mô tả các yêu cầu về kinh nghiệm, kỹ năng, ngoại hình..."
-                  className="w-full resize-none rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60 placeholder:text-slate-600 leading-relaxed"
-                />
-              </label>
-              <label className="space-y-1.5 block">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mô tả công việc *</span>
                 <textarea
                   value={form.description}
@@ -552,7 +562,61 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 openDropdown={openDropdown}
                 setOpenDropdown={setOpenDropdown}
               />
-              {/* <FormInput label="Ghi chú ứng tuyển" value={form.contactNote} onChange={(value) => setForm((c) => ({ ...c, contactNote: value }))} /> */}
+
+               {/* Yêu cầu ngoại hình */}
+                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 block mb-3 text-left">
+                    Yêu cầu ngoại hình
+                  </span>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {/* Chiều cao */}
+                    <div className="space-y-1.5 text-left">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Chiều cao tối thiểu (cm)
+                      </span>
+                      <input
+                        type="number"
+                        placeholder="Nhập chiều cao (cm)"
+                        value={form.heightMin}
+                        onChange={(e) => setForm((c) => ({ ...c, heightMin: e.target.value }))}
+                        className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60 placeholder:text-slate-600"
+                      />
+                    </div>
+
+                    {/* Cân nặng */}
+                    <div className="space-y-1.5 text-left">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        Cân nặng tối đa (kg)
+                      </span>
+                      <input
+                        type="number"
+                        placeholder="Nhập cân nặng (kg)"
+                        value={form.weightMax}
+                        onChange={(e) => setForm((c) => ({ ...c, weightMax: e.target.value }))}
+                        className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60 placeholder:text-slate-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Kinh nghiệm */}
+                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 flex flex-col justify-start">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-cyan-300 block mb-3 text-left">
+                    Yêu cầu kinh nghiệm
+                  </span>
+                  <div className="space-y-1.5 text-left">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      Kinh nghiệm tối thiểu (năm)
+                    </span>
+                    <input
+                      type="number"
+                      placeholder="Số năm kinh nghiệm"
+                      value={form.experienceMin}
+                      onChange={(e) => setForm((c) => ({ ...c, experienceMin: e.target.value }))}
+                      className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60 placeholder:text-slate-600"
+                    />
+                  </div>
+                </div>
             </div>
           )}
 
