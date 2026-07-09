@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
-  Award, User, GraduationCap, BookOpen,
-  ShieldCheck, Calendar, Image, Sparkles, Star, Crown, Video,
+  Award, User,
+  ShieldCheck, Calendar, Image as ImageIcon, Sparkles,
   ChevronLeft, ChevronRight, Upload, ChevronDown, ChevronUp, Camera,
   Ruler, Scale
 } from "lucide-react";
@@ -62,30 +62,26 @@ interface PersonalInfoTabProps {
   profile: any;
   setProfile: (profile: any) => void;
   addToast: (message: string, type?: "success" | "info") => void;
-  setShowBookModal: (show: boolean) => void;
-  setBookingForm: (form: any) => void;
 }
+
+type ProfileReview = {
+  id?: string | number;
+  brand?: string;
+  brandName?: string;
+  date?: string;
+  reviewedAt?: string;
+  rating?: number | string;
+  comment?: string;
+  content?: string;
+};
 
 export default function PersonalInfoTab({
   profile,
   setProfile,
-  addToast,
-  setShowBookModal,
-  setBookingForm
+  addToast
 }: PersonalInfoTabProps) {
 
-  const [videoPreviews, setVideoPreviews] = useState<Record<string, string>>({});
   const [isLifestyleExpanded, setIsLifestyleExpanded] = useState(false);
-
-  useEffect(() => {
-    return () => {
-      Object.values(videoPreviews).forEach((url) => {
-        if (url.startsWith("blob:")) {
-          URL.revokeObjectURL(url);
-        }
-      });
-    };
-  }, [videoPreviews]);
 
   const [uploadingState, setUploadingState] = useState<{
     [key: string]: {
@@ -311,79 +307,6 @@ export default function PersonalInfoTab({
     }
   };
 
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "intro" | "catwalk" | "mc") => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-
-
-    setUploadingState(prev => ({
-      ...prev,
-      [type]: {
-        progress: 0,
-        fileName: file.name,
-        status: "uploading"
-      }
-    }));
-
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 5;
-      if (progress > 95) progress = 95;
-      setUploadingState(prev => {
-        if (!prev[type]) return prev;
-        return {
-          ...prev,
-          [type]: {
-            ...prev[type],
-            progress
-          }
-        };
-      });
-    }, 150);
-
-    setTimeout(() => {
-      clearInterval(interval);
-
-      // Create local object URL for preview
-      const objectUrl = URL.createObjectURL(file);
-      setVideoPreviews(prev => {
-        if (prev[type]) {
-          URL.revokeObjectURL(prev[type]);
-        }
-        return {
-          ...prev,
-          [type]: objectUrl
-        };
-      });
-
-      const updatedProfile = persistTalentProfile({
-        ...profile,
-        [type === "intro" ? "hasUploadedIntro" : type === "catwalk" ? "hasUploadedCatwalk" : "hasUploadedMC"]: true
-      });
-      setProfile(updatedProfile);
-
-      setUploadingState(prev => ({
-        ...prev,
-        [type]: {
-          ...prev[type],
-          progress: 100,
-          status: "done"
-        }
-      }));
-
-      setTimeout(() => {
-        setUploadingState(prev => {
-          const next = { ...prev };
-          delete next[type];
-          return next;
-        });
-      }, 800);
-
-      addToast("Tải lên video và nén thành công!", "success");
-    }, 3000);
-  };
-
   const portfolioPhotoUrls = Array.from(new Set(
     (profile.photos || [])
       .map((url: string) => normalizeBackendAssetUrl(url))
@@ -405,6 +328,7 @@ export default function PersonalInfoTab({
   }).filter(Boolean) as Array<{ id: number; label: string; url: string }>;
 
   const nextLookbookSlot = lookbookPhotos.length < 8 ? lookbookPhotos.length + 1 : null;
+  const reviews: ProfileReview[] = Array.isArray(profile.reviews) ? profile.reviews : [];
 
   // State for Month-switching Calendar
   const [currentYear, setCurrentYear] = useState(2026);
@@ -565,7 +489,7 @@ export default function PersonalInfoTab({
           <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                <Image className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ sưu tập
+                <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ sưu tập
               </h3>
               <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
                 Hiển thị bộ sưu tập ảnh của Talent
@@ -1064,30 +988,28 @@ export default function PersonalInfoTab({
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
             <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> Đánh Giá
           </h3>
-          <div className="space-y-4">
-            {[
-              { brand: "L'Oréal Paris Vietnam", rating: 5, date: "15/05/2026", comment: "Mai Anh làm việc vô cùng chuyên nghiệp, đúng giờ và livestream đạt KPI doanh số vượt mong đợi của brand. Rất mong muốn tiếp tục hợp tác lâu dài." },
-              { brand: "Gucci Beauty Event", rating: 5, date: "29/04/2026", comment: "Thần thái xuất sắc, đi catwalk đỉnh cao và pose dáng cực tốt tại event thảm đỏ. Tương tác truyền thông xã hội rất tốt sau sự kiện." },
-              { brand: "Vogue Vietnam Editorial", rating: 5, date: "12/04/2026", comment: "Gương mặt high-fashion, biểu cảm nghệ thuật độc đáo. Thái độ làm việc rất chuyên nghiệp, thân thiện và năng lượng cao." }
-            ].map((rev, idx) => (
-              <div key={idx} className="rounded-xl bg-slate-950 p-4 border border-white/2 space-y-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="font-bold text-white text-xs block">{rev.brand}</span>
-                    <span className="text-[8px] text-slate-500 font-semibold block mt-0.5">Ngày hợp tác: {rev.date}</span>
+          {reviews.length > 0 ? (
+            <div className="space-y-4">
+              {reviews.map((rev, idx) => (
+                <div key={rev.id || idx} className="rounded-xl bg-slate-950 p-4 border border-white/2 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-bold text-white text-xs block">{rev.brand || rev.brandName || "Thương hiệu"}</span>
+                      <span className="text-[8px] text-slate-500 font-semibold block mt-0.5">Ngày hợp tác: {rev.date || rev.reviewedAt || "Chưa cập nhật"}</span>
+                    </div>
+                    <span className="text-[10px] font-black text-amber-400">{Number(rev.rating || 0).toFixed(1)}/5</span>
                   </div>
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: rev.rating }).map((_, sIdx) => (
-                      <Star key={sIdx} className="h-3 w-3 text-amber-400 fill-amber-400" />
-                    ))}
-                  </div>
+                  <p className="text-[10px] sm:text-xs text-slate-300 leading-relaxed italic">
+                    &quot;{rev.comment || rev.content || "Chưa có nội dung đánh giá."}&quot;
+                  </p>
                 </div>
-                <p className="text-[10px] sm:text-xs text-slate-300 leading-relaxed italic">
-                  "{rev.comment}"
-                </p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/50 p-5 text-center">
+              <p className="text-xs font-semibold text-slate-400">Chưa có đánh giá từ thương hiệu.</p>
+            </div>
+          )}
         </div>
 
       </div>

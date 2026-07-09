@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
-  MapPin, Star, Share2, Crown, ShieldCheck, User, Edit3, Sparkles, X,
-  MessageSquare, HeartHandshake, CheckCircle, Trophy, Award, Camera, Cpu,
-  Mail, Phone
+  MapPin, User, Edit3, Sparkles,
+  CheckCircle, Camera, Mail, Phone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
@@ -16,7 +14,6 @@ import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avat
 import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, TALENT_PROFILE_UPDATED_EVENT, uploadTalentPhoto } from "@/lib/talent-api";
 
 export default function PortfolioPage() {
-  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
 
   // Four main tabs: 'personal-info', 'edit-info', 'addon-services', 'portrait-3d'
@@ -32,26 +29,6 @@ export default function PortfolioPage() {
     };
   }>({});
 
-  // Modals for Brand interactions preview
-  const [showBookModal, setShowBookModal] = useState(false);
-  const [showMessageModal, setShowMessageModal] = useState(false);
-
-  // Form states for booking preview
-  const [bookingForm, setBookingForm] = useState({
-    brandName: "",
-    jobType: "Instagram Post",
-    date: "",
-    budget: "",
-    note: ""
-  });
-
-  // Chat preview state
-  const [chatMessage, setChatMessage] = useState("");
-  const [chatHistory, setChatHistory] = useState<any[]>([
-    { sender: "brand", text: "Chào bạn, bên mình đã xem hồ sơ và muốn trao đổi thêm về một buổi livestream sắp tới." },
-    { sender: "talent", text: "Dạ em chào anh/chị ạ! Anh/chị gửi giúp em brief chi tiết qua đây nhé." }
-  ]);
-
   const addToast = (message: string, type: "success" | "info" = "success") => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
@@ -61,7 +38,7 @@ export default function PortfolioPage() {
   };
 
   useEffect(() => {
-    const defaultMock = {
+    const defaultProfile = {
       name: "Talent",
       birthYear: undefined,
       location: "",
@@ -91,9 +68,9 @@ export default function PortfolioPage() {
         "Catwalk Show": ""
       },
       availabilityCalendar: [],
-      reliability: 100,
+      reliability: 0,
       reviewsCount: 0,
-      averageRating: 5.0,
+      averageRating: 0,
       surveyScores: { pageant: 0, runway: 0, kol: 0 },
       skillsScores: {
         catwalk: 0,
@@ -119,14 +96,14 @@ export default function PortfolioPage() {
 
     void loadTalentProfile().then((loadedProfile) => {
       const nextProfile = {
-        ...defaultMock,
+        ...defaultProfile,
         ...loadedProfile,
-        skillsScores: loadedProfile?.skillsScores || defaultMock.skillsScores,
-        followersCount: loadedProfile?.followersCount ?? defaultMock.followersCount,
+        skillsScores: loadedProfile?.skillsScores || defaultProfile.skillsScores,
+        followersCount: loadedProfile?.followersCount ?? defaultProfile.followersCount,
         isAvailable: loadedProfile?.isAvailable ?? true,
         verifiedLevel: loadedProfile?.verifiedLevel || "",
         rateCard: {
-          ...defaultMock.rateCard,
+          ...defaultProfile.rateCard,
           ...(loadedProfile?.rateCard || {}),
         },
         photos: loadedProfile?.photos?.length ? loadedProfile.photos : [],
@@ -160,17 +137,6 @@ export default function PortfolioPage() {
 
   if (!profile) return null;
 
-  // Social Badge computation
-  const getSocialBadge = (count: number) => {
-    if (count >= 1000000) return { text: "👑 Celebrity", color: "text-rose-400 bg-rose-500/10 border-rose-500/20" };
-    if (count >= 500000) return { text: "💎 Star", color: "text-amber-400 bg-amber-400/10 border-amber-400/20" };
-    if (count >= 100000) return { text: "🥇 Influencer", color: "text-purple-400 bg-purple-500/10 border-purple-500/20" };
-    if (count >= 10000) return { text: "🥈 Rising", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" };
-    return { text: "🥉 Micro", color: "text-slate-400 bg-slate-500/10 border-slate-500/20" };
-  };
-
-  const socialBadge = getSocialBadge(profile.followersCount || 120000);
-
   // Search ranking score calculation
   const getBoostLevel = (p: any) => {
     if (p.isSuperBoosted) return 5;
@@ -179,7 +145,7 @@ export default function PortfolioPage() {
   };
 
   const currentBoostLevel = getBoostLevel(profile);
-  const rankingScore = Math.round((currentBoostLevel * 100) + (profile.profileScore || 82) * 0.5 + 95 * 0.3 + (profile.averageRating || 4.9) * 2);
+  const rankingScore = Math.round((currentBoostLevel * 100) + (Number(profile.profileScore) || 0) * 0.5 + (Number(profile.reliability) || 0) * 0.3 + (Number(profile.averageRating) || 0) * 2);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
     const file = e.target.files?.[0];
@@ -276,26 +242,6 @@ export default function PortfolioPage() {
       addToast(error instanceof Error ? error.message : "Không tải được ảnh lên backend. Kiểm tra lại API/storage.", "info");
       URL.revokeObjectURL(previewUrl);
     }
-  };
-
-  // Handler for booking form submit preview
-  const handleBookingSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    addToast(`Đề xuất Booking từ Brand ${bookingForm.brandName || "Ẩn danh"} đã được gửi thành công!`, "success");
-    setShowBookModal(false);
-    setBookingForm({ brandName: "", jobType: "Instagram Post", date: "", budget: "", note: "" });
-  };
-
-  // Handler for chat send preview
-  const handleSendChat = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatMessage.trim()) return;
-    setChatHistory(prev => [...prev, { sender: "talent", text: chatMessage }]);
-    const currentMsg = chatMessage;
-    setChatMessage("");
-    setTimeout(() => {
-      setChatHistory(prev => [...prev, { sender: "brand", text: `Cảm ơn bạn đã phản hồi: "${currentMsg}". Bên mình sẽ check lại budget và liên hệ lại nha.` }]);
-    }, 1500);
   };
 
   return (
@@ -408,11 +354,11 @@ export default function PortfolioPage() {
             <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400 pt-1">
               <div className="flex items-center gap-1.5">
                 <Mail className="h-4 w-4 text-[#F0C56B]" />
-                <span className="text-slate-300 font-medium">{profile.email || "linhchi.nguyen@gmail.com"}</span>
+                <span className="text-slate-300 font-medium">{profile.email || "Chưa cập nhật"}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Phone className="h-4 w-4 text-[#F0C56B]" />
-                <span className="text-slate-300 font-medium font-mono">{profile.phone || "0987 654 321"}</span>
+                <span className="text-slate-300 font-medium font-mono">{profile.phone || "Chưa cập nhật"}</span>
               </div>
             </div>
 
@@ -529,8 +475,6 @@ export default function PortfolioPage() {
             profile={profile}
             setProfile={setProfile}
             addToast={addToast}
-            setShowBookModal={setShowBookModal}
-            setBookingForm={setBookingForm}
           />
         )}
 
@@ -573,198 +517,6 @@ export default function PortfolioPage() {
         ))}
       </div>
 
-      {/* MODAL 1: BRAND BOOKING PREVIEW */}
-      {showBookModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4 shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setShowBookModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="space-y-1 text-xs">
-              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                <HeartHandshake className="h-5 w-5 text-amber-400" /> Book Talent (Nhãn Hàng Đặt Lịch)
-              </h3>
-              <p className="text-[10px] text-slate-400 leading-normal">
-                Xem trước giao diện Form Đăng Ký Book gửi đề xuất công việc tới <strong>{profile.name}</strong>.
-              </p>
-            </div>
-
-            <form onSubmit={handleBookingSubmit} className="space-y-4 text-xs">
-              <div className="space-y-1.5">
-                <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Tên Thương Hiệu/Nhãn Hàng</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ví dụ: L'Oréal Paris, Gucci Beauty..."
-                  value={bookingForm.brandName}
-                  onChange={(e) => setBookingForm(prev => ({ ...prev, brandName: e.target.value }))}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Loại Hình Công Việc</label>
-                  <select
-                    value={bookingForm.jobType}
-                    onChange={(e) => setBookingForm(prev => ({ ...prev, jobType: e.target.value }))}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-                  >
-                    <option value="Instagram Post">Instagram Post</option>
-                    <option value="TikTok Video">TikTok Video</option>
-                    <option value="Livestream 2h">Livestream 2h</option>
-                    <option value="Event Appearance">Event Appearance</option>
-                    <option value="Catwalk Show">Catwalk Show</option>
-                    <option value="Sport Companion (Golf)">⛳ Sport Companion (Golf)</option>
-                    <option value="Sport Companion (Pickleball)">🎾 Sport Companion (Pickleball)</option>
-                    <option value="Business Dining (Fine Dining)">🍷 Business Dining (Fine Dining)</option>
-                    <option value="VIP Cafe & Networking">☕ VIP Cafe & Networking</option>
-                    <option value="Business Travel Companion">💼 Business Travel Companion</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Ngày Diễn Ra (June)</label>
-                  <input
-                    type="date"
-                    value={bookingForm.date}
-                    onChange={(e) => setBookingForm(prev => ({ ...prev, date: e.target.value }))}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Budget Đề Xuất (VND)</label>
-                <input
-                  type="number"
-                  placeholder="Ví dụ: 8000000"
-                  value={bookingForm.budget}
-                  onChange={(e) => setBookingForm(prev => ({ ...prev, budget: e.target.value }))}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Brief & Yêu Cầu Chi Tiết</label>
-                <textarea
-                  rows={3}
-                  placeholder="Mô tả công việc, quyền lợi và yêu cầu trang phục, concept..."
-                  value={bookingForm.note}
-                  onChange={(e) => setBookingForm(prev => ({ ...prev, note: e.target.value }))}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors resize-none"
-                />
-              </div>
-
-              {/* Safety Guarantees details */}
-              <div className="border-t border-[#151b2d] pt-3.5 space-y-2">
-                <span className="block text-[8px] font-black text-slate-500 uppercase tracking-widest text-left">🔒 CAM KẾT AN TOÀN HỆ THỐNG</span>
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 space-y-2.5 text-left">
-                  <div className="flex items-start gap-2.5">
-                    <span className="text-[14px] leading-none">✍️</span>
-                    <div>
-                      <span className="block text-[9.5px] font-bold text-white leading-none">Smart Contract (Hợp đồng thông minh)</span>
-                      <span className="block text-[8.5px] text-slate-400 mt-1 leading-normal">Tự động kích hoạt chữ ký số cam kết lịch trình và chi phí phạt chậm trễ.</span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5 border-t border-[#151b2d]/50 pt-2.5">
-                    <span className="text-[14px] leading-none">📍</span>
-                    <div>
-                      <span className="block text-[9.5px] font-bold text-white leading-none">Real-time GPS Check-in (Giám sát định vị)</span>
-                      <span className="block text-[8.5px] text-slate-400 mt-1 leading-normal">Xác thực vị trí điểm đến của Talent ngay khi bắt đầu công việc.</span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5 border-t border-[#151b2d]/50 pt-2.5">
-                    <span className="text-[14px] leading-none">💰</span>
-                    <div>
-                      <span className="block text-[9.5px] font-bold text-white leading-none">Escrow Wallet (Thanh toán ký quỹ bảo mật)</span>
-                      <span className="block text-[8.5px] text-slate-400 mt-1 leading-normal">Ký quỹ 100% chi phí thù lao tại hệ thống, tự động giải ngân khi hoàn thành.</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowBookModal(false)}
-                  className="flex-1 h-9 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-all font-bold cursor-pointer"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 h-9 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-600 text-slate-950 font-black uppercase tracking-wider hover:brightness-105 active:scale-98 transition-all cursor-pointer"
-                >
-                  Gửi Yêu Cầu
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 2: BRAND MESSAGING PREVIEW */}
-      {showMessageModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4 shadow-2xl flex flex-col h-[500px]">
-            <button
-              type="button"
-              onClick={() => setShowMessageModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="space-y-1 shrink-0 border-b border-[#151b2d] pb-3 text-xs">
-              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-cyan-400" /> Nhắn Tin Trực Tiếp (Brand Chat Room)
-              </h3>
-              <p className="text-[10px] text-slate-400">
-                Thảo luận về hợp đồng và thỏa thuận giá rate trực tiếp.
-              </p>
-            </div>
-
-            {/* Chat message logs */}
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-2 custom-scrollbar text-xs">
-              {chatHistory.map((chat, idx) => (
-                <div key={idx} className={cn("flex flex-col max-w-[80%] rounded-xl p-3",
-                  chat.sender === "brand"
-                    ? "self-start bg-slate-950 border border-white/5 text-slate-300"
-                    : "self-end bg-[#f4c430]/10 border border-[#f4c430]/20 text-[#f4c430] ml-auto"
-                )}>
-                  <span className="text-[8px] font-black uppercase text-slate-500 block mb-1">
-                    {chat.sender === "brand" ? "Brand Manager" : profile.name}
-                  </span>
-                  <span className="leading-relaxed">{chat.text}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Input field */}
-            <form onSubmit={handleSendChat} className="flex gap-2 shrink-0 pt-3 border-t border-[#151b2d]">
-              <input
-                type="text"
-                placeholder="Nhập tin nhắn phản hồi..."
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 transition-colors"
-              />
-              <button
-                type="submit"
-                className="h-8 px-4 rounded-xl bg-cyan-500 text-slate-950 font-black uppercase text-[10px] tracking-wider hover:brightness-105 active:scale-95 transition-all cursor-pointer"
-              >
-                Gửi
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

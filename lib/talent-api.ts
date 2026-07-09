@@ -83,9 +83,9 @@ export function getDefaultTalentProfile() {
     },
     availabilityCalendar: [],
     busyDates: [],
-    reliability: 100,
+    reliability: 0,
     reviewsCount: 0,
-    averageRating: 5.0,
+    averageRating: 0,
     surveyScores: { pageant: 0, runway: 0, kol: 0 },
     skillsScores: {
       catwalk: 0,
@@ -434,7 +434,7 @@ export function buildBackendProfilePayload(profile: any) {
   return {
     display_name: profile.name || "Talent",
     talent_types: profile.talentTypes?.length ? profile.talentTypes : ["kol", "model"],
-    city: profile.location || "Hà Nội",
+    city: profile.location || undefined,
     district: profile.hometown || undefined,
     gender: normalizeGender(profile.gender),
     birth_date: inputDate(profile.dob),
