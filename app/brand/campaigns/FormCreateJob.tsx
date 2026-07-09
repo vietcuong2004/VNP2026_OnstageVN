@@ -409,8 +409,8 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                   <option>Dancer performance</option>
                 </select>
               </label>
-              <FormInput label="Nhóm chiến dịch" value={form.campaignType} onChange={(value) => setForm((c) => ({ ...c, campaignType: value }))} />
-              <FormInput label="Tên sự kiện / chương trình" value={form.eventName} onChange={(value) => setForm((c) => ({ ...c, eventName: value }))} />
+              {/* <FormInput label="Nhóm chiến dịch" value={form.campaignType} onChange={(value) => setForm((c) => ({ ...c, campaignType: value }))} /> */}
+              {/* <FormInput label="Tên sự kiện / chương trình" value={form.eventName} onChange={(value) => setForm((c) => ({ ...c, eventName: value }))} /> */}
               <FormInput label="Số lượng cần tuyển *" type="number" value={form.talentQuantity} onChange={(value) => setForm((c) => ({ ...c, talentQuantity: value }))} />
               <label className="space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ngân sách tối thiểu</span>
@@ -440,8 +440,6 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 animate-in fade-in slide-in-from-right-4 duration-300">
               <FormInput label="Thành phố *" value={form.city} onChange={(value) => setForm((c) => ({ ...c, city: value }))} />
               <FormInput label="Địa điểm *" value={form.address} onChange={(value) => setForm((c) => ({ ...c, address: value }))} />
-              <FormInput label="Tên địa điểm tổ chức" value={form.venueName} onChange={(value) => setForm((c) => ({ ...c, venueName: value }))} />
-              <FormInput label="Địa chỉ tổ chức chi tiết" value={form.venueAddress} onChange={(value) => setForm((c) => ({ ...c, venueAddress: value }))} />
               <FormInput label="Ngày bắt đầu" type="date" value={form.startDate} onChange={(value) => setForm((c) => ({ ...c, startDate: value }))} />
               <FormInput label="Ngày kết thúc" type="date" value={form.endDate} onChange={(value) => setForm((c) => ({ ...c, endDate: value }))} />
               <FormInput label="Hạn ứng tuyển" type="date" value={form.applicationDeadline} onChange={(value) => setForm((c) => ({ ...c, applicationDeadline: value, deadline: value }))} />
@@ -554,7 +552,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 openDropdown={openDropdown}
                 setOpenDropdown={setOpenDropdown}
               />
-              <FormInput label="Ghi chú ứng tuyển" value={form.contactNote} onChange={(value) => setForm((c) => ({ ...c, contactNote: value }))} />
+              {/* <FormInput label="Ghi chú ứng tuyển" value={form.contactNote} onChange={(value) => setForm((c) => ({ ...c, contactNote: value }))} /> */}
             </div>
           )}
 

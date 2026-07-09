@@ -703,7 +703,7 @@ export default function CampaignDetailPage() {
 
 
             <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Phúc lợi</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Quyền lợi</span>
               {(() => {
                 const benefitItems = displayListText(selectedCampaign.benefits);
                 return benefitItems.length > 1 ? (

@@ -94,12 +94,6 @@ export default function Hero({
               {selectedCampaign.title}
             </h1>
 
-            {(selectedCampaign.eventName || selectedCampaign.campaignType) && (
-              <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-amber-300">
-                {[selectedCampaign.eventName, selectedCampaign.campaignType].filter(Boolean).join(" · ")}
-              </p>
-            )}
-
           </div>
 
           {/* Action buttons */}
