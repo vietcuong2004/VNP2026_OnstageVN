@@ -105,6 +105,9 @@ type BackendCampaign = {
   budget_max?: number | string | null;
   benefits?: string | null;
   requirements?: string | null;
+  height_min_cm?: number | string | null;
+  weight_max_kg?: number | string | null;
+  experience_min_years?: number | string | null;
   roles?: string[] | null;
   responsibilities?: string[] | null;
   industries?: string[] | null;
@@ -308,6 +311,9 @@ type CampaignForm = {
   budget: string;
   benefits: string;
   requirements: string;
+  heightMin?: string;
+  weightMax?: string;
+  experienceMin?: string;
   description: string;
   roles?: string;
   responsibilities?: string;
@@ -645,6 +651,9 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     contactRequests: 0,
     description: campaign.description || "Chưa có mô tả brief.",
     requirements: campaign.requirements || "Chưa có yêu cầu chi tiết.",
+    heightMinCm: numberOrNull(campaign.height_min_cm),
+    weightMaxKg: numberOrNull(campaign.weight_max_kg),
+    experienceMinYears: numberOrNull(campaign.experience_min_years),
     roles: campaign.roles || [],
     responsibilities: campaign.responsibilities || [],
     industries: campaign.industries || [],
@@ -759,6 +768,9 @@ function buildCampaignPayload(form: CampaignForm) {
     budget_max: budget.budget_max,
     benefits: form.benefits || null,
     requirements: form.requirements || "Chưa có yêu cầu chi tiết.",
+    height_min_cm: numberOrNull(form.heightMin),
+    weight_max_kg: numberOrNull(form.weightMax),
+    experience_min_years: numberOrNull(form.experienceMin),
     roles: listFromText(form.roles),
     responsibilities: listFromText(form.responsibilities),
     industries: listFromText(form.industries),

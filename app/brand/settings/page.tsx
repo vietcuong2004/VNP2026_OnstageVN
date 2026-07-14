@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound, Lock, AlertCircle, Upload } from "lucide-react";
+import { CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound, Lock, AlertCircle, Upload, MessageCircle, Copy, ExternalLink } from "lucide-react";
 import { partnerProfile } from "@/lib/brand-mvp-data";
 import { loadBrandPartnerProfile, mapBackendPartnerProfile, saveBrandPartnerProfile, uploadBrandProfileCover, uploadBrandProfileLogo } from "@/lib/brand-api";
-import { getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, SocialConnection, unlinkSocialConnection, updateAuthEmail, apiJson, storeAuthUser } from "@/lib/api-client";
+import { createZaloLinkCode, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, SocialConnection, unlinkSocialConnection, updateAuthEmail, apiJson, storeAuthUser, ZaloLinkStatus } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
 import ProgressBar from "@/components/ui/ProgressBar";
 
@@ -16,6 +16,15 @@ type AuthUser = {
   type?: "talent" | "brand";
   external_avatar_url?: string | null;
 };
+
+const DEFAULT_ZALO_BOT_URL = "https://zalo.me/0559829078";
+
+function getZaloBotUrl(status?: ZaloLinkStatus | null) {
+  if (status?.bot_url) return status.bot_url;
+  if (status?.bot_phone) return `https://zalo.me/${status.bot_phone}`;
+
+  return DEFAULT_ZALO_BOT_URL;
+}
 
 const fallbackProfile = mapBackendPartnerProfile({
   organization_name: partnerProfile.organizationName,
@@ -37,6 +46,8 @@ export default function BrandSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [connections, setConnections] = useState<SocialConnection[]>([]);
   const [socialLoading, setSocialLoading] = useState(false);
+  const [zaloLink, setZaloLink] = useState<ZaloLinkStatus | null>(null);
+  const [zaloLoading, setZaloLoading] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [emailInput, setEmailInput] = useState("");
   const [emailSaving, setEmailSaving] = useState(false);
@@ -85,6 +96,12 @@ export default function BrandSettingsPage() {
       .then(setConnections)
       .catch(() => {
         // Keep settings usable if auth API is not ready.
+      });
+
+    loadZaloLinkStatus()
+      .then(setZaloLink)
+      .catch(() => {
+        // Zalo linking is optional while backend deployments roll forward.
       });
 
 
@@ -138,6 +155,61 @@ export default function BrandSettingsPage() {
     }
   };
 
+  const copyZaloCodeToClipboard = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const openZaloBot = (status: ZaloLinkStatus) => {
+    const opened = window.open(getZaloBotUrl(status), "_blank", "noopener,noreferrer");
+    if (!opened) {
+      showToast("Tr\u00ecnh duy\u1ec7t \u0111ang ch\u1eb7n m\u1edf tab m\u1edbi. H\u00e3y cho ph\u00e9p popup ho\u1eb7c copy m\u00e3 \u0111\u1ec3 g\u1eedi th\u1ee7 c\u00f4ng.", "error");
+    }
+  };
+
+  const handleCreateZaloCode = async () => {
+    setZaloLoading(true);
+    try {
+      const status = await createZaloLinkCode();
+      setZaloLink(status);
+      const copied = status.code ? await copyZaloCodeToClipboard(status.code) : false;
+
+      showToast(
+        copied
+          ? "\u0110\u00e3 t\u1ea1o v\u00e0 copy m\u00e3 li\u00ean k\u1ebft Zalo. H\u00e3y d\u00e1n m\u00e3 \u0111\u00f3 v\u00e0o chat v\u1edbi bot."
+          : "\u0110\u00e3 t\u1ea1o m\u00e3 li\u00ean k\u1ebft Zalo. H\u00e3y copy m\u00e3 v\u00e0 g\u1eedi cho bot.",
+        "success",
+      );
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Ch\u01b0a th\u1ec3 t\u1ea1o m\u00e3 li\u00ean k\u1ebft Zalo.", "error");
+    } finally {
+      setZaloLoading(false);
+    }
+  };
+
+  const handleCopyZaloCode = async () => {
+    if (!zaloLink?.code) return;
+
+    const copied = await copyZaloCodeToClipboard(zaloLink.code);
+    showToast(
+      copied ? "\u0110\u00e3 copy m\u00e3 li\u00ean k\u1ebft Zalo." : "Kh\u00f4ng th\u1ec3 copy t\u1ef1 \u0111\u1ed9ng, b\u1ea1n copy th\u1ee7 c\u00f4ng gi\u00fap m\u00ecnh nh\u00e9.",
+      copied ? "success" : "error",
+    );
+  };
+
+  const handleOpenZaloBot = async () => {
+    if (!zaloLink) return;
+
+    if (zaloLink.code) {
+      await copyZaloCodeToClipboard(zaloLink.code);
+    }
+
+    openZaloBot(zaloLink);
+  };
   async function saveAuthEmail() {
     setEmailSaving(true);
     try {
@@ -588,6 +660,76 @@ export default function BrandSettingsPage() {
             </form>
           </div>
 
+          {/* Zalo Assistant */}
+          <div className="flex flex-col gap-4 rounded-2xl border border-white/5 bg-slate-950/25 p-5 transition-colors duration-300 hover:bg-slate-950/40 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 flex-1 items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-400/25 bg-sky-400/10 text-sky-300">
+                <MessageCircle className="h-4.5 w-4.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="block text-sm font-black text-white">Liên kết Zalo Assistant</span>
+                  {zaloLink?.linked ? (
+                    <span className="inline-flex h-7 items-center rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 text-[10px] font-black uppercase tracking-wider text-emerald-300">
+                      Đã liên kết
+                    </span>
+                  ) : zaloLink?.status === "pending" ? (
+                    <span className="inline-flex h-7 items-center rounded-full border border-amber-400/25 bg-amber-400/10 px-3 text-[10px] font-black uppercase tracking-wider text-amber-300">
+                      Chờ xác nhận
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  Dùng Zalo bot để tạo campaign nhanh, xem campaign của tôi và nhận đề xuất talent phù hợp với campaign của Brand.
+                </p>
+
+                {zaloLink?.linked ? (
+                  <p className="mt-3 text-xs font-semibold text-emerald-300">
+                    Zalo đã được liên kết{zaloLink.zalo_account?.display_name ? ` với ${zaloLink.zalo_account.display_name}` : ""}. Tin nhắn tiếp theo với bot sẽ thao tác trên tài khoản Brand này.
+                  </p>
+                ) : zaloLink?.code ? (
+                  <div className="mt-4 rounded-2xl border border-sky-400/15 bg-sky-400/[0.04] p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-sky-200">Mã liên kết của bạn</p>
+                    <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <code className="inline-flex max-w-full break-all rounded-xl border border-white/10 bg-slate-950 px-3 py-2 font-mono text-sm font-black tracking-[0.16em] text-white sm:w-fit sm:px-4 sm:text-lg sm:tracking-[0.3em]">
+                        {zaloLink.code}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={handleCopyZaloCode}
+                        className="inline-flex h-10 w-fit items-center justify-center gap-2 rounded-xl border border-sky-400/25 bg-sky-400/10 px-4 text-xs font-black text-sky-200 transition-colors hover:bg-sky-400/15"
+                      >
+                        <Copy className="h-4 w-4" />
+                        Copy mã
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleOpenZaloBot}
+                        className="inline-flex h-10 w-fit items-center justify-center gap-2 rounded-xl bg-sky-400 px-4 text-xs font-black text-slate-950 transition-colors hover:bg-sky-300"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Mở Zalo bot
+                      </button>
+                    </div>
+                    <p className="mt-3 text-xs leading-relaxed text-slate-400">
+                      Bấm nút Mở Zalo bot để sang chat với bot, rồi dán mã này và gửi. Mã sẽ hết hạn sau khoảng 15 phút.
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            {!zaloLink?.linked && (
+              <button
+                type="button"
+                disabled={zaloLoading}
+                onClick={handleCreateZaloCode}
+                className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-sky-400 px-4 text-xs font-black text-slate-950 transition-colors hover:bg-sky-300 disabled:cursor-wait disabled:opacity-60"
+              >
+                {zaloLoading ? "Đang tạo..." : zaloLink?.code ? "Tạo mã mới" : "Tạo mã liên kết"}
+              </button>
+            )}
+          </div>
           {/* Liên kết đăng nhập */}
           <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-6">
             <h3 className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Liên kết đăng nhập</h3>

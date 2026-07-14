@@ -108,6 +108,9 @@ export type Campaign = {
   contactRequests: number;
   description: string;
   requirements: string;
+  heightMinCm?: number | null;
+  weightMaxKg?: number | null;
+  experienceMinYears?: number | null;
   views: number;
   sponsorships?: CampaignSponsorship[];
   escrowed?: boolean;
