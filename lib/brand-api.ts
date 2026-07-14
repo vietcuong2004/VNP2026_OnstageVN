@@ -49,6 +49,7 @@ type BackendProfile = {
   languages?: string[] | null;
   experience?: string | null;
   bio?: string | null;
+  education?: string | null;
   budget_min?: number | string | null;
   budget_max?: number | string | null;
   avatar_url?: string | null;
@@ -454,13 +455,13 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
   const rawAvatar = profileAvatarFromBackend(profile)
     || normalizeBackendAssetUrl(profile.avatar_url)
     || normalizeBackendAssetUrl(profile.user?.external_avatar_url)
-    || normalizeBackendAssetUrl(fallback?.avatar)
     || "";
   const avatar = isUsableAvatarUrl(rawAvatar)
     ? rawAvatar
-    : createInitialAvatarDataUrl(displayName, profile.user?.email || fallback?.name || profile.user?.name);
-  const cover = firstPhoto(profile, "cover") || normalizeBackendAssetUrl(fallback?.cover) || avatar;
+    : createInitialAvatarDataUrl(displayName, profile.user?.email || profile.user?.name);
+  const cover = firstPhoto(profile, "cover") || "";
   const portfolio = (profile.photos ?? [])
+    .filter((photo) => photo.category !== 'avatar' && photo.category !== 'cover')
     .map((photo) => photo.url || photo.path || "")
     .filter(Boolean);
   const rawExperience = String(profile.experience || profile.bio || fallback?.experience || "");
@@ -477,6 +478,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     district: String(repairMojibake(profile.district || fallback?.district || "")),
     gender: profile.gender === "male" ? "Nam" : profile.gender === "female" ? "Nữ" : fallback?.gender || "",
     age: profileAge(profile.birth_date) || fallback?.age || 24,
+    dob: profile.birth_date || fallback?.dob || "",
     height: Number(profile.height_cm) || fallback?.height || 0,
     weight: Number(profile.weight_kg) || fallback?.weight || 0,
     bust: Number(measurements.bust) || fallback?.bust || 0,
@@ -499,7 +501,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     rateUnit: String(repairMojibake(fallback?.rateUnit || "dự án")),
     avatar,
     cover,
-    fullBodyImage: firstPhoto(profile, "portfolio") || fallback?.fullBodyImage || avatar,
+    fullBodyImage: firstPhoto(profile, "full_body") || "",
     skills: (profile.skills?.length ? profile.skills : fallback?.skills || []).map((item) => String(repairMojibake(item))),
     experience: displayExperience,
     portfolio: portfolio.length ? portfolio : fallback?.portfolio || [],
@@ -508,9 +510,11 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     completion: Number(profile.profile_completion) || fallback?.completion || 0,
     matchScore: Number(profile.profile_completion) || fallback?.matchScore || 0,
     reliability: fallback?.reliability || 0,
-    education: String(repairMojibake(fallback?.education || "")),
+    education: String(repairMojibake(profile.education || fallback?.education || "")),
     languages: (profile.languages?.length ? profile.languages : fallback?.languages || []).map((item) => String(repairMojibake(item))),
     rateCard: fallback?.rateCard || {},
+    email: profile.user?.email || fallback?.email || "",
+    phone: profile.user?.phone || fallback?.phone || "",
   };
 }
 

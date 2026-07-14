@@ -8,7 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import QRCodeContainer from "@/components/QR_Code";
 import { QRCodeCanvas } from "qrcode.react";
-import { createInitialAvatarDataUrl, isUsableAvatarUrl, profileAvatarFromBackend } from "@/lib/avatar";
+import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl, profileAvatarFromBackend } from "@/lib/avatar";
 import { type Campaign, type TalentProfile } from "@/lib/brand-mvp-data";
 import {
   addBrandRosterTalent,
@@ -134,6 +134,12 @@ function profileToTalent(
 ): BrandTalentCard | undefined {
   if (!profile) return fallback;
 
+  const firstPhoto = (category: string) => {
+    const photos = profile.photos ?? [];
+    const photo = [...photos].reverse().find((item) => item.category === category);
+    return normalizeBackendAssetUrl(photo?.url || photo?.path || "");
+  };
+
   const followersCount = fallback?.followersCount || 0;
   const displayName =
     usableText(profile.user?.name) ||
@@ -143,12 +149,12 @@ function profileToTalent(
     usableText(fallback?.name) ||
     `Talent #${String(profile.id || fallback?.id || "").trim() || "mới"}`;
   const backendAvatar = profileAvatarFromBackend(profile) || profile.avatar_url || profile.user?.external_avatar_url;
-  const fallbackAvatar = fallback?.avatar;
   const avatar = isUsableAvatarUrl(backendAvatar)
     ? String(backendAvatar)
-    : isUsableAvatarUrl(fallbackAvatar)
-      ? String(fallbackAvatar)
-      : createInitialAvatarDataUrl(displayName, profile.user?.email || profile.user?.name);
+    : createInitialAvatarDataUrl(displayName, profile.user?.email || profile.user?.name);
+
+  const cover = firstPhoto("cover") || "";
+  const fullBodyImage = firstPhoto("full_body") || "";
 
   return {
     ...fallback,
@@ -172,8 +178,8 @@ function profileToTalent(
     followers: fallback?.followers || (followersCount ? new Intl.NumberFormat("vi-VN").format(followersCount) : "0"),
     engagementRate: fallback?.engagementRate || 0,
     avatar,
-    cover: fallback?.cover || avatar,
-    fullBodyImage: fallback?.fullBodyImage || avatar,
+    cover: cover || avatar,
+    fullBodyImage: fullBodyImage || avatar,
     experience: profile.experience || profile.bio || fallback?.experience || "",
     skills: profile.skills?.length ? profile.skills : fallback?.skills || [],
     languages: profile.languages?.length ? profile.languages : fallback?.languages || [],

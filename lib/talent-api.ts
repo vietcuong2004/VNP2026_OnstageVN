@@ -38,6 +38,7 @@ type BackendProfile = {
   experience_years?: number | null;
   skills?: string[] | null;
   bio?: string | null;
+  education?: string | null;
   budget_min?: number | null;
   budget_max?: number | null;
   photos?: BackendPhoto[] | null;
@@ -357,7 +358,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
   }
 
   const backendPhotos = profile.photos || [];
-  const portfolioPhotoRecords = backendPhotos.filter((photo) => !photo.category || photo.category === "portfolio");
+  const portfolioPhotoRecords = backendPhotos.filter((photo) => photo.category !== "avatar" && photo.category !== "cover");
   const photos = portfolioPhotoRecords
     .map(photoUrl)
     .filter(isRealProfileImage) as string[];
@@ -376,6 +377,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     backendProfileId: profile.id,
     name: profileDisplayName(profile, local.name),
     email: profile.user?.email || local.email,
+    phone: (profile.user as any)?.phone || local.phone || "",
     avatar: avatarUrl || local.avatar || createInitialAvatarDataUrl(profileDisplayName(profile, local.name), profile.user?.email),
     cover: coverUrl || local.cover || "",
     fullBody: fullBodyUrl || local.fullBody || "",
@@ -399,7 +401,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     skills: profile.skills?.length ? profile.skills : [],
     specialSkills: profile.skills?.length ? profile.skills : [],
     experience: profile.experience_years ?? "",
-    education: profile.bio || profile.experience || "",
+    education: profile.education || profile.bio || profile.experience || "",
     bio: profile.bio || "",
     followersCount: sumFollowers(profile) ?? 0,
     engagementRate: averageEngagement(profile) ?? 0,
@@ -446,6 +448,7 @@ export function buildBackendProfilePayload(profile: any) {
     has_tattoo: profile.tattoo === "Có",
     tattoo_description: profile.tattoo === "Có" ? profile.tattooDesc || undefined : undefined,
     languages: normalizeLanguages(profile.languages),
+    education: profile.education || undefined,
     experience: profile.bio || profile.education || undefined,
     skills: splitCsv(profile.specialSkills?.length ? profile.specialSkills : profile.skills),
     experience_years: Number(profile.experience || 0) || 0,

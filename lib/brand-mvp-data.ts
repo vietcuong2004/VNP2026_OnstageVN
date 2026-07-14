@@ -50,6 +50,9 @@ export type TalentProfile = {
   languages: string[];
   rateCard: Record<string, number>;
   lifestyleServices?: LifestyleService[];
+  email?: string;
+  phone?: string;
+  dob?: string;
 };
 
 export type CampaignStage = "new" | "accepted" | "executing" | "completed" | "confirmed";
