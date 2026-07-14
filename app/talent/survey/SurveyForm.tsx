@@ -8,6 +8,7 @@ import {
   Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import RadarChart from "@/components/ui/RadarChart";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
 import {
   analyzeTalentSurvey,
@@ -799,40 +800,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
             {/* Radar SVG */}
             <div className="relative mx-auto my-2 flex h-56 w-56 items-center justify-center rounded-2xl border border-white/5 bg-[#03050c]/60 p-4 shadow-inner">
-              <svg viewBox="0 0 200 200" className="h-full w-full">
-                <polygon points="100,30 160,135 40,135" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-                <polygon points="100,50 142,123 58,123" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-                <polygon points="100,70 125,112 75,112" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-                <polygon points="100,90 108,102 92,102" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-
-                <line x1="100" y1="100" x2="100" y2="30" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-                <line x1="100" y1="100" x2="160" y2="135" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-                <line x1="100" y1="100" x2="40" y2="135" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-
-                <polygon
-                  points={calculateRadarPath()}
-                  fill="rgba(245,158,11,0.12)"
-                  stroke="url(#radarGoldGradient)"
-                  strokeWidth="2.5"
-                  className="animate-in zoom-in-50 duration-1000"
-                />
-
-                <circle cx="100" cy="30" r="1.5" fill="#f5a623" />
-                <circle cx="160" cy="135" r="1.5" fill="#a855f7" />
-                <circle cx="40" cy="135" r="1.5" fill="#14b8a6" />
-
-                <text x="100" y="20" fill="#f5a623" fontSize="8.5" fontWeight="bold" textAnchor="middle">PAGEANT ({results.pageant}%)</text>
-                <text x="172" y="145" fill="#a855f7" fontSize="8.5" fontWeight="bold" textAnchor="end">RUNWAY ({results.runway}%)</text>
-                <text x="28" y="145" fill="#14b8a6" fontSize="8.5" fontWeight="bold" textAnchor="start">KOL ({results.kol}%)</text>
-
-                <defs>
-                  <linearGradient id="radarGoldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#fef08a" />
-                    <stop offset="50%" stopColor="#f59e0b" />
-                    <stop offset="100%" stopColor="#d97706" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              <RadarChart scores={{ pageant: results.pageant, runway: results.runway, kol: results.kol }} />
             </div>
 
             <div className="w-full space-y-4">

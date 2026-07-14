@@ -768,7 +768,7 @@ export default function PersonalInfoTab({
                   BẢN ĐỒ NĂNG LỰC AI & XẾP HẠNG VIỆC LÀM (RADAR CHART)
                 </h3>
                 <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                  ĐỊNH HƯỚNG 8 TRỤC CHÍNH XÁC THEO NHÂN TRẮC HỌC & KỸ NĂNG
+                  ĐỊNH HƯỚNG 3 TRỤC CHÍNH XÁC THEO NHÂN TRẮC HỌC & KỸ NĂNG
                 </span>
               </div>
             </div>
@@ -785,7 +785,7 @@ export default function PersonalInfoTab({
               <div className="space-y-1">
                 <h4 className="text-xs font-black text-white uppercase tracking-wider">Kích Hoạt Bản Đồ Năng Lực AI</h4>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Vui lòng thực hiện bài khảo sát định hướng gồm 20 câu hỏi định tính để mở khóa bản đồ năng lực 8 trục, biểu đồ radar & độ tương thích chi tiết với 20 vị trí công việc.
+                  Vui lòng thực hiện bài khảo sát định hướng gồm 20 câu hỏi định tính để mở khóa bản đồ năng lực 3 trục, biểu đồ radar & độ tương thích chi tiết với 20 vị trí công việc.
                 </p>
               </div>
               <button
@@ -805,32 +805,15 @@ export default function PersonalInfoTab({
                     {profile.mainCategory}
                   </h4>
                   <p className="text-[11px] text-slate-400 leading-normal">
-                    Biểu đồ radar 8 trục: <strong>Catwalk, Pose dáng, MC, Livestream, Diễn xuất, Social content, Brand safety, Reliability</strong>.
+                    Biểu đồ radar 3 trục: <strong>Pageant, Runway, KOL</strong>.
                   </p>
                 </div>
 
-                {/* SVG 8-axis Radar */}
+                {/* SVG 3-axis Radar */}
                 <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
                   <RadarChart
-                    scores={profile.skillsScores}
-                    fillColor="rgba(244,196,48,0.2)"
-                    strokeColor="#f4c430"
-                    strokeWidth={2}
-                    labelFontSize={9}
-                    labelFontWeight="black"
+                    scores={profile.surveyScores}
                   />
-                </div>
-
-                {/* Legend description */}
-                <div className="grid grid-cols-4 gap-x-2 gap-y-1 text-[8px] text-slate-500 border-t border-white/5 pt-2 font-mono">
-                  <span>CW: Catwalk</span>
-                  <span>PS: Pose dáng</span>
-                  <span>MC: Dẫn chương trình</span>
-                  <span>LS: Livestream</span>
-                  <span>AC: Diễn xuất</span>
-                  <span>SC: Social content</span>
-                  <span>SF: Brand safety</span>
-                  <span>RL: Reliability</span>
                 </div>
               </div>
 
