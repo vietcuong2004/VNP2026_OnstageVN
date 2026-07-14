@@ -425,26 +425,42 @@ export default function PersonalInfoTab({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-300">
 
       {/* Model Full-Body Photo Card */}
-        <div className="lg:col-span-1 rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-            <Award className="h-4.5 w-4.5 text-[#f4c430]" /> ẢNH TOÀN THÂN (FULL-BODY)
-          </h3>
+      <div className="lg:col-span-1 rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
+        <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
+          <Award className="h-4.5 w-4.5 text-[#f4c430]" /> ẢNH TOÀN THÂN (FULL-BODY)
+        </h3>
 
-          <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-inner">
-            {normalizeBackendAssetUrl(profile.fullBody) ? (
-              <img
-                src={normalizeBackendAssetUrl(profile.fullBody)}
-                alt="Model Full-body portrait"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] cursor-pointer"
-                onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(profile.fullBody))}
+        <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-inner">
+          {normalizeBackendAssetUrl(profile.fullBody) ? (
+            <img
+              src={normalizeBackendAssetUrl(profile.fullBody)}
+              alt="Model Full-body portrait"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] cursor-pointer"
+              onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(profile.fullBody))}
+            />
+          ) : (
+            <label className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-600 cursor-pointer hover:bg-slate-900/10 transition-colors">
+              <Upload className="h-10 w-10 text-slate-500 hover:text-amber-400 transition-colors" />
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Chưa có ảnh full-body</p>
+                <p className="mt-1 text-[10px] font-semibold leading-relaxed text-slate-600">Tải ảnh lên để hoàn thiện hồ sơ người mẫu.</p>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={!!uploadingState["fullBody"]}
+                onChange={(e) => handleImageUpload(e, "fullBody")}
               />
-            ) : (
-              <label className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-600 cursor-pointer hover:bg-slate-900/10 transition-colors">
-                <Upload className="h-10 w-10 text-slate-500 hover:text-amber-400 transition-colors" />
-                <div>
-                  <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Chưa có ảnh full-body</p>
-                  <p className="mt-1 text-[10px] font-semibold leading-relaxed text-slate-600">Tải ảnh lên để hoàn thiện hồ sơ người mẫu.</p>
-                </div>
+            </label>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80 pointer-events-none" />
+
+          {/* Camera edit button in bottom-right corner */}
+          {normalizeBackendAssetUrl(profile.fullBody) && (
+            <div className="absolute bottom-3 right-3 z-20">
+              <label className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
+                <Camera className="h-4.5 w-4.5" />
                 <input
                   type="file"
                   accept="image/*"
@@ -453,124 +469,108 @@ export default function PersonalInfoTab({
                   onChange={(e) => handleImageUpload(e, "fullBody")}
                 />
               </label>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80 pointer-events-none" />
+            </div>
+          )}
 
-            {/* Camera edit button in bottom-right corner */}
-            {normalizeBackendAssetUrl(profile.fullBody) && (
-              <div className="absolute bottom-3 right-3 z-20">
-                <label className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
-                  <Camera className="h-4.5 w-4.5" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={!!uploadingState["fullBody"]}
-                    onChange={(e) => handleImageUpload(e, "fullBody")}
-                  />
-                </label>
-              </div>
-            )}
-
-            {/* Progress bar overlay */}
-            {uploadingState["fullBody"] && (
-              <ProgressBar
-                progress={uploadingState["fullBody"].progress}
-                message="Đang tải ảnh toàn thân lên..."
-              />
-            )}
+          {/* Progress bar overlay */}
+          {uploadingState["fullBody"] && (
+            <ProgressBar
+              progress={uploadingState["fullBody"].progress}
+              message="Đang tải ảnh toàn thân lên..."
+            />
+          )}
 
 
+        </div>
+      </div>
+
+      {/* SECTION D: LOOKBOOK PHOTOS & VIDEOS DISPLAY */}
+      <div className="lg:col-span-2 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+        <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
+              <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> BỘ SƯU TẬP
+            </h3>
+            <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+              HIỂN THỊ BỘ SƯU TẬP ẢNH CỦA TALENT
+            </span>
           </div>
         </div>
 
-      {/* SECTION D: LOOKBOOK PHOTOS & VIDEOS DISPLAY */}
-        <div className="lg:col-span-2 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
-          <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> BỘ SƯU TẬP
-              </h3>
-              <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                HIỂN THỊ BỘ SƯU TẬP ẢNH CỦA TALENT
-              </span>
-            </div>
-          </div>
+        {/* Sub-grid 1: Lookbook Photos */}
+        <div className="space-y-3">
+          <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+            ({lookbookPhotos.length}/8 Ảnh)
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {lookbookPhotos.map((img) => (
+              <div key={img.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
+                <img
+                  src={normalizeBackendAssetUrl(img.url)}
+                  alt={img.label}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
+                  onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(img.url))}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent pointer-events-none" />
 
-          {/* Sub-grid 1: Lookbook Photos */}
-          <div className="space-y-3">
-            <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
-              ({lookbookPhotos.length}/8 Ảnh)
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {lookbookPhotos.map((img) => (
-                <div key={img.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
-                  <img
-                    src={normalizeBackendAssetUrl(img.url)}
-                    alt={img.label}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
-                    onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(img.url))}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent pointer-events-none" />
-
-                  {/* Camera edit button in bottom-right corner */}
-                  <div className="absolute bottom-3 right-3 z-20">
-                    <label className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
-                      <Camera className="h-3.5 w-3.5" />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        disabled={!!uploadingState[`lookbook-${img.id}`]}
-                        onChange={(e) => handleLookbookUpload(e, img.id)}
-                      />
-                    </label>
-                  </div>
-
-                  {uploadingState[`lookbook-${img.id}`] && (
-                    <ProgressBar
-                      progress={uploadingState[`lookbook-${img.id}`].progress}
-                      message="Đang tải ảnh lên..."
-                    />
-                  )}
-
-                  <div className="absolute bottom-3 left-3 z-10 pointer-events-none text-left">
-                    <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                      {img.label}
-                    </span>
-                  </div>
-                </div>
-              ))}
-
-              {nextLookbookSlot && (
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors">
-                  <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
-                    <Upload className="h-7 w-7" />
-                    <span className="text-[10px] font-black uppercase tracking-wider">Tải ảnh lên</span>
-                    <span className="rounded bg-[#f4c430] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-slate-950">
-                      Ảnh {nextLookbookSlot}
-                    </span>
+                {/* Camera edit button in bottom-right corner */}
+                <div className="absolute bottom-3 right-3 z-20">
+                  <label className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
+                    <Camera className="h-3.5 w-3.5" />
                     <input
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      disabled={!!uploadingState[`lookbook-${nextLookbookSlot}`]}
-                      onChange={(e) => handleLookbookUpload(e, nextLookbookSlot)}
+                      disabled={!!uploadingState[`lookbook-${img.id}`]}
+                      onChange={(e) => handleLookbookUpload(e, img.id)}
                     />
                   </label>
-                  {uploadingState[`lookbook-${nextLookbookSlot}`] && (
-                    <ProgressBar
-                      progress={uploadingState[`lookbook-${nextLookbookSlot}`].progress}
-                      message="Đang tải ảnh lên..."
-                    />
-                  )}
                 </div>
-              )}
-            </div>
+
+                {uploadingState[`lookbook-${img.id}`] && (
+                  <ProgressBar
+                    progress={uploadingState[`lookbook-${img.id}`].progress}
+                    message="Đang tải ảnh lên..."
+                  />
+                )}
+
+                <div className="absolute bottom-3 left-3 z-10 pointer-events-none text-left">
+                  <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                    {img.label}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {nextLookbookSlot && (
+              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors">
+                <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
+                  <Upload className="h-7 w-7" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">Tải ảnh lên</span>
+                  <span className="rounded bg-[#f4c430] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-slate-950">
+                    Ảnh {nextLookbookSlot}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={!!uploadingState[`lookbook-${nextLookbookSlot}`]}
+                    onChange={(e) => handleLookbookUpload(e, nextLookbookSlot)}
+                  />
+                </label>
+                {uploadingState[`lookbook-${nextLookbookSlot}`] && (
+                  <ProgressBar
+                    progress={uploadingState[`lookbook-${nextLookbookSlot}`].progress}
+                    message="Đang tải ảnh lên..."
+                  />
+                )}
+              </div>
+            )}
           </div>
         </div>
+      </div>
 
-            {/* LEFT COLUMN wrapper */}
+      {/* LEFT COLUMN wrapper */}
       <div className="lg:col-span-1 space-y-6 md:space-y-8">
         {/* Physical Measurements Card */}
         <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
@@ -759,229 +759,229 @@ export default function PersonalInfoTab({
 
 
       {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
-        <div className="lg:col-span-2 rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
-          <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
-              <div>
-                <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
-                  BẢN ĐỒ NĂNG LỰC AI & XẾP HẠNG VIỆC LÀM (RADAR CHART)
-                </h3>
-                <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                  ĐỊNH HƯỚNG 3 TRỤC CHÍNH XÁC THEO NHÂN TRẮC HỌC & KỸ NĂNG
-                </span>
-              </div>
-            </div>
-            <div className="text-[11px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 uppercase tracking-wide">
-              AI Powered
+      <div className="lg:col-span-2 rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
+        <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
+            <div>
+              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
+                ĐỊNH HƯỚNG SỰ NGHIỆP
+              </h3>
+              <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                ĐỊNH HƯỚNG 3 TRỤC CHÍNH XÁC THEO NHÂN TRẮC HỌC & KỸ NĂNG
+              </span>
             </div>
           </div>
+          <div className="text-[11px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 uppercase tracking-wide">
+            AI Powered
+          </div>
+        </div>
 
-          {!profile.isOnboarded ? (
-            <div className="flex flex-col items-center justify-center text-center p-8 py-12 rounded-xl border border-purple-500/15 bg-slate-950/45 max-w-md mx-auto space-y-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400">
-                <Sparkles className="h-5.5 w-5.5 animate-pulse" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-xs font-black text-white uppercase tracking-wider">Kích Hoạt Bản Đồ Năng Lực AI</h4>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Vui lòng thực hiện bài khảo sát định hướng gồm 20 câu hỏi định tính để mở khóa bản đồ năng lực 3 trục, biểu đồ radar & độ tương thích chi tiết với 20 vị trí công việc.
+        {!profile.isOnboarded ? (
+          <div className="flex flex-col items-center justify-center text-center p-8 py-12 rounded-xl border border-purple-500/15 bg-slate-950/45 max-w-md mx-auto space-y-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400">
+              <Sparkles className="h-5.5 w-5.5 animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-xs font-black text-white uppercase tracking-wider">Kích Hoạt Bản Đồ Năng Lực AI</h4>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Vui lòng thực hiện bài khảo sát định hướng gồm 20 câu hỏi định tính để mở khóa bản đồ năng lực 3 trục, biểu đồ radar & độ tương thích chi tiết với 20 vị trí công việc.
+              </p>
+            </div>
+            <button
+              onClick={() => window.location.href = "/talent/survey"}
+              className="h-9 px-5 rounded-lg bg-gradient-to-r from-purple-400 to-pink-500 text-[10px] font-black text-white hover:brightness-105 active:scale-98 transition-all uppercase tracking-wider cursor-pointer"
+            >
+              Làm Khảo Sát Ngay
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+            {/* Radar Chart Summary Column */}
+            <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
+              <div className="space-y-2">
+                <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">NHÓM TƯƠNG THÍCH NHẤT</span>
+                <h4 className="text-xs font-black text-amber-300 leading-relaxed uppercase tracking-wide">
+                  {profile.mainCategory}
+                </h4>
+                <p className="text-[11px] text-slate-400 leading-normal">
+                  Biểu đồ radar 3 trục: <strong>Pageant, Runway, KOL</strong>.
                 </p>
               </div>
-              <button
-                onClick={() => window.location.href = "/talent/survey"}
-                className="h-9 px-5 rounded-lg bg-gradient-to-r from-purple-400 to-pink-500 text-[10px] font-black text-white hover:brightness-105 active:scale-98 transition-all uppercase tracking-wider cursor-pointer"
-              >
-                Làm Khảo Sát Ngay
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-              {/* Radar Chart Summary Column */}
-              <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
-                <div className="space-y-2">
-                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">NHÓM TƯƠNG THÍCH NHẤT</span>
-                  <h4 className="text-xs font-black text-amber-300 leading-relaxed uppercase tracking-wide">
-                    {profile.mainCategory}
-                  </h4>
-                  <p className="text-[11px] text-slate-400 leading-normal">
-                    Biểu đồ radar 3 trục: <strong>Pageant, Runway, KOL</strong>.
-                  </p>
-                </div>
 
-                {/* SVG 3-axis Radar */}
-                <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
-                  <RadarChart
-                    scores={profile.surveyScores}
-                  />
-                </div>
+              {/* SVG 3-axis Radar */}
+              <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
+                <RadarChart
+                  scores={profile.surveyScores}
+                />
               </div>
+            </div>
 
-              {/* 20 Recommended Roles Column */}
-              <div className="md:col-span-7 space-y-3 flex flex-col justify-between">
-                <div>
-                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">ĐỘ TƯƠNG THÍCH VỚI 20 VỊ TRÍ CÔNG VIỆC</span>
+            {/* 20 Recommended Roles Column */}
+            <div className="md:col-span-7 space-y-3 flex flex-col justify-between">
+              <div>
+                <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">ĐỘ TƯƠNG THÍCH VỚI 20 VỊ TRÍ CÔNG VIỆC</span>
 
-                  <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                    {(() => {
-                      const scores = profile.surveyScores || { pageant: 50, runway: 45, kol: 95 };
-                      const calculatedJobs = JOBS_LIST.map((job) => {
-                        const matchScore = Math.round(
-                          scores.pageant * job.weights.pageant +
-                          scores.runway * job.weights.runway +
-                          scores.kol * job.weights.kol
-                        );
-                        return { ...job, matchScore };
-                      }).sort((a, b) => b.matchScore - a.matchScore);
+                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                  {(() => {
+                    const scores = profile.surveyScores || { pageant: 50, runway: 45, kol: 95 };
+                    const calculatedJobs = JOBS_LIST.map((job) => {
+                      const matchScore = Math.round(
+                        scores.pageant * job.weights.pageant +
+                        scores.runway * job.weights.runway +
+                        scores.kol * job.weights.kol
+                      );
+                      return { ...job, matchScore };
+                    }).sort((a, b) => b.matchScore - a.matchScore);
 
-                      return calculatedJobs.map((job, idx) => {
-                        const isHigh = job.matchScore >= 80;
-                        const isMid = job.matchScore >= 50 && job.matchScore < 80;
+                    return calculatedJobs.map((job, idx) => {
+                      const isHigh = job.matchScore >= 80;
+                      const isMid = job.matchScore >= 50 && job.matchScore < 80;
 
-                        return (
-                          <div
-                            key={job.id}
-                            className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950 p-2.5 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
-                          >
-                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
-                              {idx + 1}
+                      return (
+                        <div
+                          key={job.id}
+                          className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950 p-2.5 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
+                        >
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
+                            {idx + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-center">
+                              <h4 className="text-[10px] sm:text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
+                                {job.title}
+                              </h4>
+                              <span className={cn(
+                                "font-display text-[9px] font-extrabold",
+                                isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
+                              )}>
+                                {job.matchScore}% Match
+                              </span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-center">
-                                <h4 className="text-[10px] sm:text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
-                                  {job.title}
-                                </h4>
-                                <span className={cn(
-                                  "font-display text-[9px] font-extrabold",
-                                  isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
-                                )}>
-                                  {job.matchScore}% Match
-                                </span>
-                              </div>
-                              <p className="text-[8px] text-slate-500 truncate mt-0.5">{job.desc}</p>
-                              <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
-                                <div
-                                  className={cn(
-                                    "h-full rounded-full transition-all duration-500",
-                                    isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
-                                  )}
-                                  style={{ width: `${job.matchScore}%` }}
-                                />
-                              </div>
+                            <p className="text-[8px] text-slate-500 truncate mt-0.5">{job.desc}</p>
+                            <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all duration-500",
+                                  isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
+                                )}
+                                style={{ width: `${job.matchScore}%` }}
+                              />
                             </div>
                           </div>
-                        );
-                      });
-                    })()}
-                  </div>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
 
       {/* SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
-        <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4.5 w-4.5 text-slate-400" />
-              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
-                LỊCH LÀM VIỆC (THÁNG {currentMonth < 10 ? `0${currentMonth}` : currentMonth}/{currentYear})
-              </h3>
-            </div>
-            <div className="flex items-center gap-2 z-10">
-              <button
-                type="button"
-                onClick={handlePrevMonth}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
-                title="Tháng trước"
-              >
-                <ChevronLeft className="h-4.5 w-4.5" />
-              </button>
-              <button
-                type="button"
-                onClick={handleNextMonth}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
-                title="Tháng sau"
-              >
-                <ChevronRight className="h-4.5 w-4.5" />
-              </button>
-            </div>
+      <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4.5 w-4.5 text-slate-400" />
+            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
+              LỊCH LÀM VIỆC (THÁNG {currentMonth < 10 ? `0${currentMonth}` : currentMonth}/{currentYear})
+            </h3>
           </div>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-slate-500 font-black uppercase">
-              <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
-            </div>
-
-            <div className="grid grid-cols-7 gap-1.5">
-              {/* Pad empty days */}
-              {Array.from({ length: getFirstDayPad(currentYear, currentMonth) }).map((_, pIdx) => (
-                <div key={`pad-${pIdx}`} className="h-12 border border-transparent" />
-              ))}
-
-              {/* Real days */}
-              {Array.from({ length: getDaysInMonth(currentYear, currentMonth) }).map((_, idx) => {
-                const dayNumber = idx + 1;
-                const dayStr = dayNumber < 10 ? `0${dayNumber}` : `${dayNumber}`;
-                const monthStr = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
-                const dateKey = `${currentYear}-${monthStr}-${dayStr}`;
-                const status = getDayStatus(dateKey);
-
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handleCalendarDayClick(dateKey)}
-                    className={cn(
-                      "flex flex-col items-center justify-center gap-0.5 p-1 h-16 rounded-xl border text-center transition-all cursor-pointer hover:scale-102 overflow-hidden",
-                      status === "available" && "border-emerald-500/80 bg-emerald-500/5 text-emerald-400 hover:border-emerald-400",
-                      status === "busy" && "border-red-500/80 bg-red-500/5 text-red-400 hover:border-red-400"
-                    )}
-                  >
-                    <span className="text-[11px] font-mono font-bold leading-none">{dayStr}</span>
-                    <span className="text-[8px] font-black uppercase tracking-wide leading-tight text-center block w-full px-0.5">
-                      {status === "available" ? "RẢNH" : "BẬN"}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-slate-400 border-t border-white/5 pt-3 mt-1">
-              <span>🟢 Rảnh</span>
-              <span>🔴 Bận</span>
-            </div>
+          <div className="flex items-center gap-2 z-10">
+            <button
+              type="button"
+              onClick={handlePrevMonth}
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
+              title="Tháng trước"
+            >
+              <ChevronLeft className="h-4.5 w-4.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
+              title="Tháng sau"
+            >
+              <ChevronRight className="h-4.5 w-4.5" />
+            </button>
           </div>
         </div>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-slate-500 font-black uppercase">
+            <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1.5">
+            {/* Pad empty days */}
+            {Array.from({ length: getFirstDayPad(currentYear, currentMonth) }).map((_, pIdx) => (
+              <div key={`pad-${pIdx}`} className="h-12 border border-transparent" />
+            ))}
+
+            {/* Real days */}
+            {Array.from({ length: getDaysInMonth(currentYear, currentMonth) }).map((_, idx) => {
+              const dayNumber = idx + 1;
+              const dayStr = dayNumber < 10 ? `0${dayNumber}` : `${dayNumber}`;
+              const monthStr = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
+              const dateKey = `${currentYear}-${monthStr}-${dayStr}`;
+              const status = getDayStatus(dateKey);
+
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleCalendarDayClick(dateKey)}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-0.5 p-1 h-16 rounded-xl border text-center transition-all cursor-pointer hover:scale-102 overflow-hidden",
+                    status === "available" && "border-emerald-500/80 bg-emerald-500/5 text-emerald-400 hover:border-emerald-400",
+                    status === "busy" && "border-red-500/80 bg-red-500/5 text-red-400 hover:border-red-400"
+                  )}
+                >
+                  <span className="text-[11px] font-mono font-bold leading-none">{dayStr}</span>
+                  <span className="text-[8px] font-black uppercase tracking-wide leading-tight text-center block w-full px-0.5">
+                    {status === "available" ? "RẢNH" : "BẬN"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-slate-400 border-t border-white/5 pt-3 mt-1">
+            <span>🟢 Rảnh</span>
+            <span>🔴 Bận</span>
+          </div>
+        </div>
+      </div>
 
       {/* SECTION F: REPUTATION REVIEWS */}
-        <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
-            <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> ĐÁNH GIÁ
-          </h3>
-          {reviews.length > 0 ? (
-            <div className="space-y-4">
-              {reviews.map((rev, idx) => (
-                <div key={rev.id || idx} className="rounded-xl bg-slate-950 p-4 border border-white/2 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="font-bold text-white text-xs block">{rev.brand || rev.brandName || "Thương hiệu"}</span>
-                      <span className="text-[8px] text-slate-500 font-semibold block mt-0.5">Ngày hợp tác: {rev.date || rev.reviewedAt || "Chưa cập nhật"}</span>
-                    </div>
-                    <span className="text-[10px] font-black text-amber-400">{Number(rev.rating || 0).toFixed(1)}/5</span>
+      <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+        <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
+          <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> ĐÁNH GIÁ
+        </h3>
+        {reviews.length > 0 ? (
+          <div className="space-y-4">
+            {reviews.map((rev, idx) => (
+              <div key={rev.id || idx} className="rounded-xl bg-slate-950 p-4 border border-white/2 space-y-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="font-bold text-white text-xs block">{rev.brand || rev.brandName || "Thương hiệu"}</span>
+                    <span className="text-[8px] text-slate-500 font-semibold block mt-0.5">Ngày hợp tác: {rev.date || rev.reviewedAt || "Chưa cập nhật"}</span>
                   </div>
-                  <p className="text-[10px] sm:text-xs text-slate-300 leading-relaxed italic">
-                    &quot;{rev.comment || rev.content || "Chưa có nội dung đánh giá."}&quot;
-                  </p>
+                  <span className="text-[10px] font-black text-amber-400">{Number(rev.rating || 0).toFixed(1)}/5</span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/50 p-5 text-center">
-              <p className="text-xs font-semibold text-slate-400">Chưa có đánh giá từ thương hiệu.</p>
-            </div>
-          )}
-        </div>
+                <p className="text-[10px] sm:text-xs text-slate-300 leading-relaxed italic">
+                  &quot;{rev.comment || rev.content || "Chưa có nội dung đánh giá."}&quot;
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/50 p-5 text-center">
+            <p className="text-xs font-semibold text-slate-400">Chưa có đánh giá từ thương hiệu.</p>
+          </div>
+        )}
+      </div>
 
     </div>
   );
