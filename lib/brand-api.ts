@@ -507,7 +507,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     rateUnit: String(repairMojibake(fallback?.rateUnit || "dự án")),
     avatar,
     cover,
-    fullBodyImage: firstPhoto(profile, "full_body") || "",
+    fullBodyImage: firstPhoto(profile, "full_body") || firstPhoto(profile, "lookbook") || firstPhoto(profile, "portfolio") || firstPhoto(profile) || avatar,
     skills: (profile.skills?.length ? profile.skills : fallback?.skills || []).map((item) => String(repairMojibake(item))),
     experience: displayExperience,
     portfolio: portfolio.length ? portfolio : fallback?.portfolio || [],

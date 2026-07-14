@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import {
   MapPin, User, Edit3, Sparkles,
-  CheckCircle, Camera, Mail, Phone
+  CheckCircle, Camera, Mail, Phone, X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
@@ -18,6 +18,7 @@ export default function PortfolioPage() {
 
   // Four main tabs: 'personal-info', 'edit-info', 'addon-services', 'portrait-3d'
   const [activeTab, setActiveTab] = useState<"edit-info" | "personal-info" | "addon-services" | "portrait-3d">("personal-info");
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
 
@@ -257,7 +258,8 @@ export default function PortfolioPage() {
             <img
               src={normalizeBackendAssetUrl(profile.cover)}
               alt="Cover banner"
-              className="h-full w-full object-cover filter brightness-[0.7] transition-transform duration-500 group-hover:scale-[1.01]"
+              className="h-full w-full object-cover filter brightness-[0.7] transition-transform duration-500 group-hover:scale-[1.01] cursor-pointer"
+              onClick={() => setPreviewImage(normalizeBackendAssetUrl(profile.cover))}
             />
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-700 bg-gradient-to-br from-slate-950 to-slate-900">
@@ -265,7 +267,7 @@ export default function PortfolioPage() {
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Chưa có ảnh bìa</span>
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#05070e] via-black/20 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#05070e] via-black/20 to-black/40 pointer-events-none" />
 
 
 
@@ -292,135 +294,132 @@ export default function PortfolioPage() {
         </div>
 
         {/* Profile Info & Centered Details */}
-        <div className="relative px-3 sm:px-6 pt-3 flex flex-col items-center text-center">
+        <div className="relative flex flex-col lg:flex-row justify-between items-start lg:items-start px-3 sm:px-6 gap-6 mt-6 z-20 w-full text-left">
           
-          {/* Avatar block */}
-          <div className="relative -mt-16 sm:-mt-20 md:-mt-24">
-            <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-gradient-gold p-[3.5px] shadow-[0_0_25px_rgba(240,197,107,0.45)] relative">
-              <img
-                src={normalizeBackendAssetUrl(profile.avatar)}
-                alt={profile.name}
-                onError={(event) => {
-                  event.currentTarget.src = createInitialAvatarDataUrl(profile.name, profile.email);
-                }}
-                className="h-full w-full rounded-full object-cover border border-black/10"
-              />
+          {/* Left Column: Avatar + Details (Name, Category, Location, Contacts) */}
+          <div className="flex-1 w-full">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left w-full">
+              
+              {/* Avatar block */}
+              <div className="relative shrink-0">
+                <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-gradient-gold p-[3.5px] shadow-[0_0_25px_rgba(240,197,107,0.45)] relative">
+                  <img
+                    src={normalizeBackendAssetUrl(profile.avatar)}
+                    alt={profile.name}
+                    onError={(event) => {
+                      event.currentTarget.src = createInitialAvatarDataUrl(profile.name, profile.email);
+                    }}
+                    className="h-full w-full rounded-full object-cover border border-black/10 cursor-pointer"
+                    onClick={() => setPreviewImage(normalizeBackendAssetUrl(profile.avatar))}
+                  />
+                </div>
+
+                {/* Avatar camera edit button on bottom right */}
+                <label className="absolute bottom-0.5 right-0.5 h-9 w-9 bg-[#F0C56B] text-slate-950 rounded-full border-2 border-[#05070e] hover:brightness-110 active:scale-95 shadow-lg flex items-center justify-center cursor-pointer transition-all">
+                  <Camera className="h-4.5 w-4.5" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={!!uploadingState["avatar"]}
+                    onChange={(e) => handleImageUpload(e, "avatar")}
+                  />
+                </label>
+
+                {uploadingState["avatar"] && (
+                  <ProgressBar
+                    progress={uploadingState["avatar"].progress}
+                    message="Tải ảnh..."
+                    className="rounded-full absolute inset-0.5"
+                  />
+                )}
+              </div>
+
+              {/* Details stack next to Avatar */}
+              <div className="space-y-2.5 flex-1 min-w-0">
+                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight flex items-center gap-2 justify-center sm:justify-start">
+                  {profile.name}
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold shadow-md select-none" title="Đã xác minh">
+                    ✓
+                  </span>
+                </h2>
+                
+                <p className="text-xs sm:text-[13px] font-black uppercase text-slate-400 tracking-widest">
+                  {profile.isOnboarded ? "Người mẫu Thời trang • KOL • MC" : "Tài năng mới"}
+                </p>
+                
+                {/* Location, Email & Phone Contacts Row */}
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium">{profile.isOnboarded ? `${profile.location}, Việt Nam` : "Chưa cập nhật"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Mail className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium">{profile.email || "Chưa cập nhật"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Phone className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium font-mono">{profile.phone || "Chưa cập nhật"}</span>
+                  </div>
+                </div>
+
+                {/* Bio (Description) Row */}
+                <div className="text-[11px] sm:text-xs text-slate-400 font-medium leading-relaxed pt-2.5 border-t border-white/5 mt-1 text-center sm:text-left">
+                  {profile.bio || "Chưa cập nhật giới thiệu bản thân."}
+                </div>
+              </div>
+
             </div>
-
-            {/* Avatar camera edit button on bottom right */}
-            <label className="absolute bottom-0.5 right-0.5 h-9 w-9 bg-[#F0C56B] text-slate-950 rounded-full border-2 border-[#05070e] hover:brightness-110 active:scale-95 shadow-lg flex items-center justify-center cursor-pointer transition-all">
-              <Camera className="h-4.5 w-4.5" />
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={!!uploadingState["avatar"]}
-                onChange={(e) => handleImageUpload(e, "avatar")}
-              />
-            </label>
-
-            {uploadingState["avatar"] && (
-              <ProgressBar
-                progress={uploadingState["avatar"].progress}
-                message="Tải ảnh..."
-                className="rounded-full absolute inset-0.5"
-              />
-            )}
-
-            <span className={cn(
-              "absolute bottom-2.5 left-2.5 h-4 w-4 border-2 border-[#05070e] rounded-full z-10",
-              profile.isAvailable ? "bg-emerald-500" : "bg-red-500"
-            )} />
           </div>
 
-          {/* Details */}
-          <div className="mt-4 space-y-2.5 max-w-2xl">
-            <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight">
-              {profile.name}
-            </h2>
+          {/* Right Column: Rank Card */}
+          <div className="shrink-0 lg:pb-2 w-full lg:w-auto flex justify-center lg:justify-end">
+            {profile.isOnboarded && profile.tier && (() => {
+              const tier = profile.tier.toUpperCase();
+              let tierText = "";
+              let tierLabel = "";
+              let tierColor = "";
+              let tierBadge = "";
+              let scoreText = "";
 
-            {/* Categories formatted as "NGƯỜI MẪU THỜI TRANG · KOL · MC" */}
-            <p className="text-xs sm:text-[13px] font-black uppercase text-slate-400 tracking-widest">
-              {profile.isOnboarded ? "Người mẫu Thời trang · KOL · MC" : "Tài năng mới"}
-            </p>
+              if (tier === "S") {
+                tierText = "HẠNG S";
+                tierLabel = "CELEB / SUPER VIP";
+                tierColor = "border-amber-400/50 bg-amber-500/5 text-amber-400";
+                tierBadge = `${profile.aiScore || profile.score || 95} • AI ĐIỂM`;
+                scoreText = "Hoa hậu Quốc gia, Ngôi sao hạng S.";
+              } else if (tier === "A") {
+                tierText = "HẠNG A";
+                tierLabel = "HIGH-END PRO";
+                tierColor = "border-slate-300/40 bg-slate-400/5 text-slate-300";
+                tierBadge = `${profile.aiScore || profile.score || 85} • AI ĐIỂM`;
+                scoreText = "Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP.";
+              } else if (tier === "B") {
+                tierText = "HẠNG B";
+                tierLabel = "MID FREELANCE";
+                tierColor = "border-purple-500/40 bg-purple-500/5 text-purple-400";
+                tierBadge = `${profile.aiScore || profile.score || 55} • AI ĐIỂM`;
+                scoreText = "Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp.";
+              } else if (tier === "C") {
+                tierText = "HẠNG C";
+                tierLabel = "ENTRY / MEMBER";
+                tierColor = "border-teal-500/30 bg-[#091f1c]/40 text-teal-400";
+                tierBadge = `${profile.aiScore || profile.score || 30} • AI ĐIỂM`;
+                scoreText = "Người mẫu tự do mới vào nghề, tiềm năng phát triển tốt.";
+              }
 
-            {/* Location */}
-            <div className="flex items-center justify-center gap-1.5 text-slate-500 font-bold text-[11px] sm:text-xs">
-              <MapPin className="h-4 w-4 text-[#F0C56B]" />
-              <span>{profile.isOnboarded ? `${profile.location}, Việt Nam` : "Chưa cập nhật"}</span>
-            </div>
-
-            {/* Email & Phone Contacts */}
-            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400 pt-1">
-              <div className="flex items-center gap-1.5">
-                <Mail className="h-4 w-4 text-[#F0C56B]" />
-                <span className="text-slate-300 font-medium">{profile.email || "Chưa cập nhật"}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Phone className="h-4 w-4 text-[#F0C56B]" />
-                <span className="text-slate-300 font-medium font-mono">{profile.phone || "Chưa cập nhật"}</span>
-              </div>
-            </div>
-
-            {/* Badges: VERIFIED TALENT & ELITE */}
-            <div className="flex items-center justify-center gap-2 pt-2.5">
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#F0C56B] px-3.5 py-1.5 text-[9.5px] font-black uppercase tracking-wider text-slate-950 shadow-md">
-                ★ VERIFIED TALENT
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#F0C56B] bg-[#F0C56B]/5 px-3.5 py-1.5 text-[9.5px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
-                ELITE
-              </span>
-            </div>
-
-            {/* Tier Info inside details (collapsible/responsive) */}
-            <div className="pt-4 flex justify-center">
-              {/* Model Tier Card (Clean, simplified version or full card centered) */}
-              {profile.isOnboarded && profile.tier && (() => {
-                const tier = profile.tier.toUpperCase();
-                let tierText = "";
-                let tierLabel = "";
-                let tierColor = "";
-                let tierBadge = "";
-                let scoreText = "";
-
-                if (tier === "S") {
-                  tierText = "HẠNG S";
-                  tierLabel = "CELEB / SUPER VIP";
-                  tierColor = "border-amber-400/50 bg-amber-500/5 text-amber-400";
-                  tierBadge = "90 - 100 ĐIỂM";
-                  scoreText = "Hoa hậu Quốc gia, Ngôi sao hạng S.";
-                } else if (tier === "A") {
-                  tierText = "HẠNG A";
-                  tierLabel = "HIGH-END PRO";
-                  tierColor = "border-slate-300/40 bg-slate-400/5 text-slate-300";
-                  tierBadge = "70 - 89 ĐIỂM";
-                  scoreText = "Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP.";
-                } else if (tier === "B") {
-                  tierText = "HẠNG B";
-                  tierLabel = "MID FREELANCE";
-                  tierColor = "border-purple-500/40 bg-purple-500/5 text-purple-400";
-                  tierBadge = "45 - 69 ĐIỂM";
-                  scoreText = "Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp.";
-                } else if (tier === "C") {
-                  tierText = "HẠNG C";
-                  tierLabel = "ENTRY / NEWBIE";
-                  tierColor = "border-teal-500/30 bg-teal-500/5 text-teal-400";
-                  tierBadge = "20 - 44 ĐIỂM";
-                  scoreText = "Người mẫu tự do mới vào nghề, diễn viên phụ, PG sự kiện đại trà.";
-                }
-
-                return (
-                  <div className={cn("relative overflow-hidden rounded-2xl border p-3.5 text-left max-w-sm w-full md:w-64 backdrop-blur-md shadow-soft", tierColor)}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[7.5px] font-black uppercase tracking-widest">{tierLabel}</span>
-                      <span className="text-[7.5px] font-black uppercase tracking-wider bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-full">{tierBadge}</span>
-                    </div>
-                    <span className="block text-[15px] font-black tracking-wide font-display">{tierText}</span>
-                    <p className="mt-1 text-[9.5px] leading-relaxed opacity-80">{scoreText}</p>
+              return (
+                <div className={cn("relative overflow-hidden rounded-2xl border p-4 text-left w-full md:w-64 backdrop-blur-md shadow-soft flex flex-col justify-between min-h-[130px]", tierColor)}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[8px] font-black uppercase tracking-widest">{tierLabel}</span>
+                    <span className="text-[8px] font-black uppercase tracking-wider bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">{tierBadge}</span>
                   </div>
-                );
-              })()}
-            </div>
+                  <span className="block text-xl font-black tracking-wide font-display">{tierText}</span>
+                  <p className="mt-2 text-[10px] leading-relaxed opacity-80">{scoreText}</p>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -475,6 +474,7 @@ export default function PortfolioPage() {
             profile={profile}
             setProfile={setProfile}
             addToast={addToast}
+            onPreviewImage={setPreviewImage}
           />
         )}
 
@@ -516,6 +516,34 @@ export default function PortfolioPage() {
           </div>
         ))}
       </div>
+
+      {/* Full Image Preview Modal */}
+      {previewImage && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 transition-all duration-300 animate-in fade-in"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div 
+            className="relative max-w-full max-h-[85vh] md:max-h-[90vh] flex items-center justify-center select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative w-fit">
+              <button 
+                type="button" 
+                className="absolute top-4 right-4 text-white/75 hover:text-white bg-slate-900/60 p-2.5 rounded-full border border-white/10 hover:bg-slate-800 transition-all z-20 cursor-pointer"
+                onClick={() => setPreviewImage(null)}
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <img 
+                src={previewImage} 
+                alt="Talent Photo Preview" 
+                className="max-w-full max-h-[85vh] md:max-h-[90vh] rounded-xl border border-white/10 shadow-2xl"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

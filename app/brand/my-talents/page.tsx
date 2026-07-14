@@ -134,9 +134,11 @@ function profileToTalent(
 ): BrandTalentCard | undefined {
   if (!profile) return fallback;
 
-  const firstPhoto = (category: string) => {
+  const firstPhoto = (category?: string) => {
     const photos = profile.photos ?? [];
-    const photo = [...photos].reverse().find((item) => item.category === category);
+    const photo = category
+      ? [...photos].reverse().find((item) => item.category === category)
+      : photos[0];
     return normalizeBackendAssetUrl(photo?.url || photo?.path || "");
   };
 
@@ -154,7 +156,7 @@ function profileToTalent(
     : createInitialAvatarDataUrl(displayName, profile.user?.email || profile.user?.name);
 
   const cover = firstPhoto("cover") || "";
-  const fullBodyImage = firstPhoto("full_body") || "";
+  const fullBodyImage = firstPhoto("full_body") || firstPhoto("lookbook") || firstPhoto("portfolio") || firstPhoto() || avatar;
 
   return {
     ...fallback,

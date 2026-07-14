@@ -62,6 +62,7 @@ interface PersonalInfoTabProps {
   profile: any;
   setProfile: (profile: any) => void;
   addToast: (message: string, type?: "success" | "info") => void;
+  onPreviewImage?: (url: string) => void;
 }
 
 type ProfileReview = {
@@ -78,7 +79,8 @@ type ProfileReview = {
 export default function PersonalInfoTab({
   profile,
   setProfile,
-  addToast
+  addToast,
+  onPreviewImage
 }: PersonalInfoTabProps) {
 
   const [isLifestyleExpanded, setIsLifestyleExpanded] = useState(false);
@@ -422,13 +424,10 @@ export default function PersonalInfoTab({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-300">
 
-      {/* LEFT COLUMN: Sidebar Physical Parameters & General Metrics (Shown only here, and displays FIRST on mobile) */}
-      <div className="space-y-6 md:space-y-8 order-1">
-
-        {/* Model Full-Body Photo Card */}
-        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
+      {/* Model Full-Body Photo Card */}
+        <div className="lg:col-span-1 rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-            <Award className="h-4.5 w-4.5 text-amber-400" /> Ảnh Người Mẫu (Full-body)
+            <Award className="h-4.5 w-4.5 text-[#f4c430]" /> ẢNH TOÀN THÂN (FULL-BODY)
           </h3>
 
           <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-inner">
@@ -436,7 +435,8 @@ export default function PersonalInfoTab({
               <img
                 src={normalizeBackendAssetUrl(profile.fullBody)}
                 alt="Model Full-body portrait"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] cursor-pointer"
+                onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(profile.fullBody))}
               />
             ) : (
               <label className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-600 cursor-pointer hover:bg-slate-900/10 transition-colors">
@@ -484,15 +484,15 @@ export default function PersonalInfoTab({
           </div>
         </div>
 
-        {/* SECTION D: LOOKBOOK PHOTOS & VIDEOS DISPLAY */}
-        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+      {/* SECTION D: LOOKBOOK PHOTOS & VIDEOS DISPLAY */}
+        <div className="lg:col-span-2 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
           <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ sưu tập
+                <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> BỘ SƯU TẬP
               </h3>
               <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                Hiển thị bộ sưu tập ảnh của Talent
+                HIỂN THỊ BỘ SƯU TẬP ẢNH CỦA TALENT
               </span>
             </div>
           </div>
@@ -502,46 +502,39 @@ export default function PersonalInfoTab({
             <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
               ({lookbookPhotos.length}/8 Ảnh)
             </span>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {lookbookPhotos.map((img) => (
-                <div key={img.id} className="flex flex-col gap-2">
-                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
-                    <img
-                      src={normalizeBackendAssetUrl(img.url)}
-                      alt={img.label}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85 sm:block hidden" />
+                <div key={img.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
+                  <img
+                    src={normalizeBackendAssetUrl(img.url)}
+                    alt={img.label}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
+                    onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(img.url))}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent pointer-events-none" />
 
-                    <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                      <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
-                        <Upload className="h-5 w-5 text-amber-400" />
-                        <span>Thay đổi ảnh</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          disabled={!!uploadingState[`lookbook-${img.id}`]}
-                          onChange={(e) => handleLookbookUpload(e, img.id)}
-                        />
-                      </label>
-                    </div>
-
-                    {uploadingState[`lookbook-${img.id}`] && (
-                      <ProgressBar
-                        progress={uploadingState[`lookbook-${img.id}`].progress}
-                        message="Đang tải ảnh lên..."
+                  {/* Camera edit button in bottom-right corner */}
+                  <div className="absolute bottom-3 right-3 z-20">
+                    <label className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
+                      <Camera className="h-3.5 w-3.5" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={!!uploadingState[`lookbook-${img.id}`]}
+                        onChange={(e) => handleLookbookUpload(e, img.id)}
                       />
-                    )}
-
-                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10 pointer-events-none hidden sm:block text-left">
-                      <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                        {img.label}
-                      </span>
-                    </div>
+                    </label>
                   </div>
 
-                  <div className="sm:hidden block space-y-1 px-1 text-left pb-1">
+                  {uploadingState[`lookbook-${img.id}`] && (
+                    <ProgressBar
+                      progress={uploadingState[`lookbook-${img.id}`].progress}
+                      message="Đang tải ảnh lên..."
+                    />
+                  )}
+
+                  <div className="absolute bottom-3 left-3 z-10 pointer-events-none text-left">
                     <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
                       {img.label}
                     </span>
@@ -577,11 +570,12 @@ export default function PersonalInfoTab({
           </div>
         </div>
 
-
+            {/* LEFT COLUMN wrapper */}
+      <div className="lg:col-span-1 space-y-6 md:space-y-8">
         {/* Physical Measurements Card */}
         <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-            <User className="h-4.5 w-4.5 text-slate-400" /> Thông tin cơ bản
+            <User className="h-4.5 w-4.5 text-[#f4c430]" /> THÔNG TIN CƠ BẢN
           </h3>
 
           <div className="grid grid-cols-3 gap-2">
@@ -589,7 +583,7 @@ export default function PersonalInfoTab({
             <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
               <Ruler className="h-5 w-5 text-[#f4c430]" />
               <div className="space-y-1.5 my-2">
-                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Chiều Cao</span>
+                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">CHIỀU CAO</span>
                 <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
                   {profile.height ? formatHeight(profile.height) : "—"}
                 </span>
@@ -601,7 +595,7 @@ export default function PersonalInfoTab({
             <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
               <Scale className="h-5 w-5 text-[#f4c430]" />
               <div className="space-y-1.5 my-2">
-                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cân Nặng</span>
+                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">CÂN NẶNG</span>
                 <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
                   {profile.weight ? profile.weight : "—"}
                 </span>
@@ -613,7 +607,7 @@ export default function PersonalInfoTab({
             <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
               <User className="h-5 w-5 text-[#f4c430]" />
               <div className="space-y-1.5 my-2">
-                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Số đo 3 vòng</span>
+                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">SỐ ĐO 3 VÒNG</span>
                 <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
                   {profile.bust && profile.waist && profile.hips
                     ? `${profile.bust}-${profile.waist}-${profile.hips}`
@@ -763,98 +757,18 @@ export default function PersonalInfoTab({
 
       </div>
 
-      {/* RIGHT COLUMN: Tab main content */}
-      <div className="lg:col-span-2 space-y-6 md:space-y-8 order-2">
 
-
-
-        {/* SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
-        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4.5 w-4.5 text-slate-400" />
-              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
-                Lịch Làm Việc (Tháng {currentMonth < 10 ? `0${currentMonth}` : currentMonth}/{currentYear})
-              </h3>
-            </div>
-            <div className="flex items-center gap-2 z-10">
-              <button
-                type="button"
-                onClick={handlePrevMonth}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
-                title="Tháng trước"
-              >
-                <ChevronLeft className="h-4.5 w-4.5" />
-              </button>
-              <button
-                type="button"
-                onClick={handleNextMonth}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
-                title="Tháng sau"
-              >
-                <ChevronRight className="h-4.5 w-4.5" />
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-slate-500 font-black uppercase">
-              <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
-            </div>
-
-            <div className="grid grid-cols-7 gap-1.5">
-              {/* Pad empty days */}
-              {Array.from({ length: getFirstDayPad(currentYear, currentMonth) }).map((_, pIdx) => (
-                <div key={`pad-${pIdx}`} className="h-12 border border-transparent" />
-              ))}
-
-              {/* Real days */}
-              {Array.from({ length: getDaysInMonth(currentYear, currentMonth) }).map((_, idx) => {
-                const dayNumber = idx + 1;
-                const dayStr = dayNumber < 10 ? `0${dayNumber}` : `${dayNumber}`;
-                const monthStr = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
-                const dateKey = `${currentYear}-${monthStr}-${dayStr}`;
-                const status = getDayStatus(dateKey);
-
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handleCalendarDayClick(dateKey)}
-                    className={cn(
-                      "flex flex-col items-center justify-center gap-0.5 p-1 h-16 rounded-xl border text-center transition-all cursor-pointer hover:scale-102 overflow-hidden",
-                      status === "available" && "border-emerald-400/40 bg-emerald-400/5 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.1)] hover:border-emerald-400",
-                      status === "busy" && "border-red-500/40 bg-red-500/5 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.1)] hover:border-red-500"
-                    )}
-                  >
-                    <span className="text-[11px] font-mono font-bold leading-none">{dayStr}</span>
-                    <span className="text-[8px] font-black uppercase tracking-wide leading-tight text-center block w-full px-0.5">
-                      {status === "available" ? "Rảnh" : "Bận"}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-slate-400 border-t border-white/5 pt-3 mt-1">
-              <span>🟢 Rảnh</span>
-              <span>🔴 Bận</span>
-            </div>
-          </div>
-        </div>
-
-
-
-        {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
-        <div className="rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
+      {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
+        <div className="lg:col-span-2 rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
           <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
               <div>
                 <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
-                  Bản Đồ Năng Lực AI & Xếp Hạng Việc Làm (Radar Chart)
+                  BẢN ĐỒ NĂNG LỰC AI & XẾP HẠNG VIỆC LÀM (RADAR CHART)
                 </h3>
                 <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                  Định hướng 8 trục chính xác theo nhân trắc học & kỹ năng
+                  ĐỊNH HƯỚNG 8 TRỤC CHÍNH XÁC THEO NHÂN TRẮC HỌC & KỸ NĂNG
                 </span>
               </div>
             </div>
@@ -886,7 +800,7 @@ export default function PersonalInfoTab({
               {/* Radar Chart Summary Column */}
               <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
                 <div className="space-y-2">
-                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">Nhóm Tương Thích Nhất</span>
+                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">NHÓM TƯƠNG THÍCH NHẤT</span>
                   <h4 className="text-xs font-black text-amber-300 leading-relaxed uppercase tracking-wide">
                     {profile.mainCategory}
                   </h4>
@@ -923,7 +837,7 @@ export default function PersonalInfoTab({
               {/* 20 Recommended Roles Column */}
               <div className="md:col-span-7 space-y-3 flex flex-col justify-between">
                 <div>
-                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">Độ Tương Thích Với 20 Vị Trí Công Việc</span>
+                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">ĐỘ TƯƠNG THÍCH VỚI 20 VỊ TRÍ CÔNG VIỆC</span>
 
                   <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                     {(() => {
@@ -983,10 +897,84 @@ export default function PersonalInfoTab({
           )}
         </div>
 
-        {/* SECTION F: REPUTATION REVIEWS */}
-        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+      {/* SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
+        <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4.5 w-4.5 text-slate-400" />
+              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
+                LỊCH LÀM VIỆC (THÁNG {currentMonth < 10 ? `0${currentMonth}` : currentMonth}/{currentYear})
+              </h3>
+            </div>
+            <div className="flex items-center gap-2 z-10">
+              <button
+                type="button"
+                onClick={handlePrevMonth}
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
+                title="Tháng trước"
+              >
+                <ChevronLeft className="h-4.5 w-4.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
+                title="Tháng sau"
+              >
+                <ChevronRight className="h-4.5 w-4.5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-slate-500 font-black uppercase">
+              <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1.5">
+              {/* Pad empty days */}
+              {Array.from({ length: getFirstDayPad(currentYear, currentMonth) }).map((_, pIdx) => (
+                <div key={`pad-${pIdx}`} className="h-12 border border-transparent" />
+              ))}
+
+              {/* Real days */}
+              {Array.from({ length: getDaysInMonth(currentYear, currentMonth) }).map((_, idx) => {
+                const dayNumber = idx + 1;
+                const dayStr = dayNumber < 10 ? `0${dayNumber}` : `${dayNumber}`;
+                const monthStr = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
+                const dateKey = `${currentYear}-${monthStr}-${dayStr}`;
+                const status = getDayStatus(dateKey);
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleCalendarDayClick(dateKey)}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-0.5 p-1 h-16 rounded-xl border text-center transition-all cursor-pointer hover:scale-102 overflow-hidden",
+                      status === "available" && "border-emerald-500/80 bg-emerald-500/5 text-emerald-400 hover:border-emerald-400",
+                      status === "busy" && "border-red-500/80 bg-red-500/5 text-red-400 hover:border-red-400"
+                    )}
+                  >
+                    <span className="text-[11px] font-mono font-bold leading-none">{dayStr}</span>
+                    <span className="text-[8px] font-black uppercase tracking-wide leading-tight text-center block w-full px-0.5">
+                      {status === "available" ? "RẢNH" : "BẬN"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-slate-400 border-t border-white/5 pt-3 mt-1">
+              <span>🟢 Rảnh</span>
+              <span>🔴 Bận</span>
+            </div>
+          </div>
+        </div>
+
+      {/* SECTION F: REPUTATION REVIEWS */}
+        <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
-            <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> Đánh Giá
+            <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> ĐÁNH GIÁ
           </h3>
           {reviews.length > 0 ? (
             <div className="space-y-4">
@@ -1011,8 +999,6 @@ export default function PersonalInfoTab({
             </div>
           )}
         </div>
-
-      </div>
 
     </div>
   );

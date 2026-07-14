@@ -364,7 +364,11 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     .filter(isRealProfileImage) as string[];
   const avatarUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "avatar"));
   const coverUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cover"));
-  const fullBodyUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "full_body"));
+  const fullBodyPhotoObj = [...backendPhotos].reverse().find((photo) => photo.category === "full_body")
+    || backendPhotos.find((photo) => photo.category === "lookbook")
+    || backendPhotos.find((photo) => photo.category === "portfolio")
+    || backendPhotos[0];
+  const fullBodyUrl = photoUrl(fullBodyPhotoObj) || avatarUrl;
   const cccdFrontUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_front"));
   const cccdBackUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_back"));
   const cccdSelfieUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_selfie"));

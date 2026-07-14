@@ -96,6 +96,7 @@ export default function EditInfoTab({
     location: "",
     hometown: "",
     education: "",
+    bio: "",
     languages: [],
     rateCard: {},
     plasticSurgery: "false",
@@ -182,6 +183,7 @@ export default function EditInfoTab({
         location: profile.location || "",
         hometown: profile.hometown || "",
         education: profile.education || "",
+        bio: profile.bio || "",
         languages: Array.isArray(profile.languages) ? profile.languages : (profile.languages ? [profile.languages] : []),
         rateCard: { ...(profile.rateCard || {}) },
         plasticSurgery: profile.plasticSurgery || "false",
@@ -376,6 +378,7 @@ export default function EditInfoTab({
             location: editForm.location,
             hometown: editForm.hometown,
             education: editForm.education,
+            bio: editForm.bio,
             languages: editForm.languages,
             rateCard: { ...editForm.rateCard },
             plasticSurgery: editForm.plasticSurgery,
@@ -466,6 +469,18 @@ export default function EditInfoTab({
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
+          </div>
+
+          {/* Bio / Description Field */}
+          <div className="space-y-1.5">
+            <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Mô tả bản thân (Giới thiệu)</label>
+            <textarea
+              value={editForm.bio || ""}
+              onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+              rows={3}
+              placeholder="Nhập mô tả ngắn giới thiệu về bản thân của bạn..."
+              className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors resize-none"
+            />
           </div>
 
           {/* Row 3: Height & Weight */}

@@ -31,6 +31,8 @@ import {
   Upload,
   ChevronDown,
   ChevronUp,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { campaigns, findTalentById } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
@@ -144,6 +146,10 @@ export default function BrandTalentProfilePage() {
       skills: talent.skills || [],
       languages: talent.languages || [],
       lifestyleServices: talent.lifestyleServices || [],
+      tier: talent.tier,
+      score: talent.score,
+      aiScore: talent.aiScore || talent.score,
+      bio: talent.experience || "",
       skillsScores: talent.skillsScores || {
         catwalk: 85,
         pose: 90,
@@ -290,54 +296,134 @@ export default function BrandTalentProfilePage() {
           </div>
         </div>
 
-        <div className="relative flex flex-col gap-5 px-6 pb-6 pt-4 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-5 md:flex-row md:items-end">
-            <div
-              onClick={() => {
-                const url = normalizeBackendAssetUrl(talent.avatar);
-                if (url) setPreviewImage(url);
-              }}
-              className="-mt-20 h-32 w-32 shrink-0 rounded-2xl border-4 border-[#08090f] bg-slate-900 p-0.5 shadow-2xl cursor-pointer hover:opacity-90 active:scale-95 transition-all duration-300"
-            >
-              <img
-                src={talent.avatar}
-                alt={talent.name}
-                onError={(event) => {
-                  event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
-                }}
-                className="h-full w-full rounded-xl object-cover"
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-display text-2xl font-black tracking-wide text-white md:text-3xl">{talent.name}</h1>
-                {talent.verified && <ShieldCheck className="h-6 w-6 text-amber-400" />}
-                <span className="rounded bg-amber-400 px-2 py-1 text-[10px] font-black uppercase text-slate-950">Hạng {talent.tier}</span>
+        <div className="relative flex flex-col gap-5 pl-6 sm:pl-10 pr-6 pb-2 pt-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex-1 w-full">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left w-full">
+              {/* Avatar block */}
+              <div className="shrink-0 relative z-20">
+                <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-gradient-gold p-[3.5px] shadow-[0_0_25px_rgba(240,197,107,0.45)] relative">
+                  <img
+                    src={talent.avatar}
+                    alt={talent.name}
+                    onError={(event) => {
+                      event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                    }}
+                    className="h-full w-full rounded-full object-cover border border-black/10 cursor-pointer"
+                    onClick={() => {
+                      const url = normalizeBackendAssetUrl(talent.avatar);
+                      if (url) setPreviewImage(url);
+                    }}
+                  />
+                </div>
               </div>
-              <p className="flex items-center gap-1.5 text-sm font-medium text-slate-400">
-                <MapPin className="h-4 w-4 text-slate-500" />
-                {talent.district}, {talent.city} · {talent.type}
-              </p>
-              <p className="max-w-2xl text-sm leading-relaxed text-slate-400">{talent.experience}</p>
+
+              {/* Details stack next to Avatar */}
+              <div className="space-y-2.5 flex-1 min-w-0">
+                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight flex items-center gap-2 justify-center sm:justify-start">
+                  {talent.name}
+                  {talent.verified && (
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold shadow-md select-none" title="Đã xác minh">
+                      ✓
+                    </span>
+                  )}
+                </h2>
+                
+                <p className="text-xs sm:text-[13px] font-black uppercase text-slate-400 tracking-widest text-center sm:text-left">
+                  {talent.type || "Người mẫu • KOL • MC"}
+                </p>
+                
+                {/* Location, Email & Phone Contacts Row */}
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium">
+                      {talent.district ? `${talent.district}, ${talent.city}` : talent.city || "Chưa cập nhật"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Mail className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium">{profile?.email || "Chưa cập nhật"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Phone className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium font-mono">{profile?.phone || "Chưa cập nhật"}</span>
+                  </div>
+                </div>
+
+                {/* Bio (Description) Row */}
+                <div className="text-[11px] sm:text-xs text-slate-400 font-medium leading-relaxed pt-2.5 border-t border-white/5 mt-1 text-center sm:text-left">
+                  {talent.experience || "Chưa cập nhật giới thiệu bản thân."}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
-              className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-3.5 sm:px-4 text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-950 transition active:scale-95 cursor-pointer whitespace-nowrap"
-            >
-              <MessageSquare className="mr-1.5 h-3.5 w-3.5 shrink-0" />
-              Nhắn tin
-            </button>
-            <button
-              onClick={() => setShowInviteModal(true)}
-              className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-3.5 sm:px-4 text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#C9A86A] transition active:scale-95 cursor-pointer hover:bg-[#C9A86A]/20 whitespace-nowrap"
-            >
-              <Briefcase className="mr-1.5 h-3.5 w-3.5 shrink-0" />
-              Thêm vào chiến dịch
-            </button>
+          {/* Right Column: Rank Card */}
+          <div className="shrink-0 lg:pb-2 w-full lg:w-auto flex flex-col items-center gap-4">
+            {profile?.tier && (() => {
+              const tier = profile.tier.toUpperCase();
+              let tierText = "";
+              let tierLabel = "";
+              let tierColor = "";
+              let tierBadge = "";
+              let scoreText = "";
+
+              if (tier === "S") {
+                tierText = "HẠNG S";
+                tierLabel = "CELEB / SUPER VIP";
+                tierColor = "border-amber-400/50 bg-amber-500/5 text-amber-400";
+                tierBadge = `${profile.aiScore || profile.score || 95} • AI ĐIỂM`;
+                scoreText = "Hoa hậu Quốc gia, Ngôi sao hạng S.";
+              } else if (tier === "A") {
+                tierText = "HẠNG A";
+                tierLabel = "HIGH-END PRO";
+                tierColor = "border-slate-300/40 bg-slate-400/5 text-slate-300";
+                tierBadge = `${profile.aiScore || profile.score || 85} • AI ĐIỂM`;
+                scoreText = "Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP.";
+              } else if (tier === "B") {
+                tierText = "HẠNG B";
+                tierLabel = "MID FREELANCE";
+                tierColor = "border-purple-500/40 bg-purple-500/5 text-purple-400";
+                tierBadge = `${profile.aiScore || profile.score || 55} • AI ĐIỂM`;
+                scoreText = "Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp.";
+              } else if (tier === "C") {
+                tierText = "HẠNG C";
+                tierLabel = "ENTRY / MEMBER";
+                tierColor = "border-teal-500/30 bg-[#091f1c]/40 text-teal-400";
+                tierBadge = `${profile.aiScore || profile.score || 30} • AI ĐIỂM`;
+                scoreText = "Người mẫu tự do mới vào nghề, tiềm năng phát triển tốt.";
+              }
+
+              return (
+                <div className={cn("relative overflow-hidden rounded-2xl border p-4 text-left w-full md:w-64 backdrop-blur-md shadow-soft flex flex-col justify-between min-h-[130px]", tierColor)}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[8px] font-black uppercase tracking-widest">{tierLabel}</span>
+                    <span className="text-[8px] font-black uppercase tracking-wider bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">{tierBadge}</span>
+                  </div>
+                  <span className="block text-xl font-black tracking-wide font-display">{tierText}</span>
+                  <p className="mt-2 text-[10px] leading-relaxed opacity-80">{scoreText}</p>
+                </div>
+              );
+            })()}
           </div>
+        </div>
+
+        {/* Centered Action Buttons Row */}
+        <div className="flex items-center justify-center gap-3 px-6 pb-6 pt-4 w-full">
+          <button
+            onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
+            className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-950 transition active:scale-95 cursor-pointer whitespace-nowrap"
+          >
+            <MessageSquare className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+            Nhắn tin
+          </button>
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#C9A86A] transition active:scale-95 cursor-pointer hover:bg-[#C9A86A]/20 whitespace-nowrap"
+          >
+            <Briefcase className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+            Thêm vào chiến dịch
+          </button>
         </div>
       </section>
 
