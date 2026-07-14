@@ -147,21 +147,11 @@ export default function BrandTalentProfilePage() {
       languages: talent.languages || [],
       lifestyleServices: talent.lifestyleServices || [],
       tier: talent.tier,
-      score: talent.score,
-      aiScore: talent.aiScore || talent.score,
+      score: talent.matchScore,
+      aiScore: (talent as any).aiScore || talent.matchScore,
       bio: talent.experience || "",
-      skillsScores: talent.skillsScores || {
-        catwalk: 85,
-        pose: 90,
-        mc: 75,
-        livestream: 80,
-        acting: 70,
-        social: 95,
-        safety: 90,
-        reliability: 96
-      },
-      surveyScores: talent.surveyScores || { pageant: 50, runway: 45, kol: 95 },
-      mainCategory: talent.mainCategory || "KOL / Người mẫu ảnh / Giải trí thế hệ mới",
+      surveyScores: (talent as any).surveyScores || null,
+      mainCategory: (talent as any).mainCategory || "",
       reviews: [
         { brand: "L'Oréal Paris Vietnam", rating: 5, date: "15/05/2026", comment: `${talent.name} làm việc vô cùng chuyên nghiệp, đúng giờ và hoàn thành tốt KPI chiến dịch truyền thông của nhãn hàng. Rất mong tiếp tục hợp tác.` },
         { brand: "Gucci Beauty Event", rating: 5, date: "29/04/2026", comment: "Thần thái xuất sắc, hình ảnh high-fashion phù hợp tiêu chuẩn quốc tế. Cảm ơn vì sự hỗ trợ nhiệt tình." },
@@ -169,6 +159,7 @@ export default function BrandTalentProfilePage() {
       ] as any[]
     };
   }, [talent]);
+
 
   const lookbookPhotos = useMemo(() => {
     if (!profile) return [];
@@ -637,22 +628,29 @@ export default function BrandTalentProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
             {/* Radar Chart Summary Column */}
             <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
-              <div className="space-y-2">
-                <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">NHÓM TƯƠNG THÍCH NHẤT</span>
-                <h4 className="text-xs font-black text-[#f4c430] leading-relaxed uppercase tracking-wide">
-                  {profile.mainCategory}
-                </h4>
-                <p className="text-[11px] text-slate-400 leading-normal">
-                  Biểu đồ radar 3 trục: <strong>Pageant, Runway, KOL</strong>.
-                </p>
-              </div>
+              {profile.surveyScores ? (
+                <>
+                  <div className="space-y-2">
+                    <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">NHÓM TƯƠNG THÍCH NHẤT</span>
+                    <h4 className="text-xs font-black text-[#f4c430] leading-relaxed uppercase tracking-wide">
+                      {profile.mainCategory || "Chưa xác định"}
+                    </h4>
+                    <p className="text-[11px] text-slate-400 leading-normal">
+                      Biểu đồ radar 3 trục: <strong>Pageant, Runway, KOL</strong>.
+                    </p>
+                  </div>
 
-              {/* SVG 3-axis Radar */}
-              <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
-                <RadarChart
-                  scores={profile.surveyScores}
-                />
-              </div>
+                  {/* SVG 3-axis Radar */}
+                  <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
+                    <RadarChart scores={profile.surveyScores} />
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-3">
+                  <Sparkles className="h-8 w-8 text-purple-400/40" />
+                  <p className="text-[11px] text-slate-500 leading-relaxed">Talent chưa hoàn thành bài khảo sát AI.<br/>Dữ liệu radar sẽ hiển thị sau khi có kết quả khảo sát.</p>
+                </div>
+              )}
             </div>
 
             {/* 20 Recommended Roles Column */}
@@ -660,62 +658,69 @@ export default function BrandTalentProfilePage() {
               <div>
                 <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">Độ Tương Thích Với 20 Vị Trí Công Việc</span>
 
-                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                  {(() => {
-                    const scores = profile.surveyScores || { pageant: 50, runway: 45, kol: 95 };
-                    const calculatedJobs = JOBS_LIST.map((job) => {
-                      const matchScore = Math.round(
-                        scores.pageant * job.weights.pageant +
-                        scores.runway * job.weights.runway +
-                        scores.kol * job.weights.kol
-                      );
-                      return { ...job, matchScore };
-                    }).sort((a, b) => b.matchScore - a.matchScore);
+                {profile.surveyScores ? (
+                  <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                    {(() => {
+                      const scores = profile.surveyScores;
+                      const calculatedJobs = JOBS_LIST.map((job) => {
+                        const matchScore = Math.round(
+                          scores.pageant * job.weights.pageant +
+                          scores.runway * job.weights.runway +
+                          scores.kol * job.weights.kol
+                        );
+                        return { ...job, matchScore };
+                      }).sort((a, b) => b.matchScore - a.matchScore);
 
-                    return calculatedJobs.map((job, idx) => {
-                      const isHigh = job.matchScore >= 80;
-                      const isMid = job.matchScore >= 50 && job.matchScore < 80;
+                      return calculatedJobs.map((job, idx) => {
+                        const isHigh = job.matchScore >= 80;
+                        const isMid = job.matchScore >= 50 && job.matchScore < 80;
 
-                      return (
-                        <div
-                          key={job.id}
-                          className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950 p-2.5 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
-                        >
-                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
-                            {idx + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-center">
-                              <h4 className="text-[10px] sm:text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
-                                {job.title}
-                              </h4>
-                              <span className={cn(
-                                "font-display text-[9px] font-extrabold",
-                                isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
-                              )}>
-                                {job.matchScore}% Match
-                              </span>
+                        return (
+                          <div
+                            key={job.id}
+                            className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950 p-2.5 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
+                          >
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
+                              {idx + 1}
                             </div>
-                            <p className="text-[8px] text-[#f4c430] truncate mt-0.5">{job.desc}</p>
-                            <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full transition-all duration-500",
-                                  isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
-                                )}
-                                style={{ width: `${job.matchScore}%` }}
-                              />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-center">
+                                <h4 className="text-[10px] sm:text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
+                                  {job.title}
+                                </h4>
+                                <span className={cn(
+                                  "font-display text-[9px] font-extrabold",
+                                  isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
+                                )}>
+                                  {job.matchScore}% Match
+                                </span>
+                              </div>
+                              <p className="text-[8px] text-[#f4c430] truncate mt-0.5">{job.desc}</p>
+                              <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
+                                <div
+                                  className={cn(
+                                    "h-full rounded-full transition-all duration-500",
+                                    isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
+                                  )}
+                                  style={{ width: `${job.matchScore}%` }}
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-40 rounded-xl border border-dashed border-white/10 bg-slate-950/50">
+                    <p className="text-[11px] text-slate-500 text-center px-4">Chưa có dữ liệu khảo sát để tính độ tương thích nghề nghiệp.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
+
 
         {/* 5. SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
         <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">

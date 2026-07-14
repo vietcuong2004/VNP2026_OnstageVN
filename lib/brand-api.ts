@@ -57,6 +57,14 @@ type BackendProfile = {
   social_accounts?: BackendSocialAccount[] | null;
   calendar_events?: Array<{ starts_at?: string | null }> | null;
   user?: BackendUser | null;
+  latest_survey?: {
+    pageant_score?: number | null;
+    runway_score?: number | null;
+    kol_score?: number | null;
+    profile_score?: number | null;
+    tier?: string | null;
+    main_category?: string | null;
+  } | null;
 };
 
 type BackendPhoto = {
@@ -493,7 +501,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     skinTone: String(repairMojibake(profile.skin_tone || fallback?.skinTone || "")),
     hairColor: String(repairMojibake(profile.hair_color || fallback?.hairColor || "")),
     yearsOfExperience: Number(profile.experience_years) || fallback?.yearsOfExperience || 0,
-    tier: mapTier(profile.tier) || fallback?.tier || "C",
+    tier: mapTier(profile.latest_survey?.tier || profile.tier) || fallback?.tier || "C",
     verified: profile.verification_status === "verified" || Boolean(profile.user?.is_verified) || fallback?.verified || false,
     rating: Number(profile.rating) || fallback?.rating || 0,
     completedJobs: fallback?.completedJobs || 0,
@@ -521,6 +529,15 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     rateCard: fallback?.rateCard || {},
     email: profile.user?.email || fallback?.email || "",
     phone: profile.user?.phone || fallback?.phone || "",
+    surveyScores: profile.latest_survey
+      ? {
+          pageant: Number(profile.latest_survey.pageant_score) || 0,
+          runway: Number(profile.latest_survey.runway_score) || 0,
+          kol: Number(profile.latest_survey.kol_score) || 0,
+        }
+      : (fallback as any)?.surveyScores || { pageant: 0, runway: 0, kol: 0 },
+    mainCategory: profile.latest_survey?.main_category || (fallback as any)?.mainCategory || "",
+    aiScore: Number(profile.latest_survey?.profile_score) || (fallback as any)?.aiScore || 0,
   };
 }
 

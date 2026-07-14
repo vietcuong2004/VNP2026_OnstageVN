@@ -53,6 +53,9 @@ export type TalentProfile = {
   email?: string;
   phone?: string;
   dob?: string;
+  surveyScores?: { pageant: number; runway: number; kol: number };
+  mainCategory?: string;
+  aiScore?: number;
 };
 
 export type CampaignStage = "new" | "accepted" | "executing" | "completed" | "confirmed";
