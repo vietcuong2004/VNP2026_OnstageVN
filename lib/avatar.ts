@@ -9,6 +9,25 @@ export function normalizeBackendAssetUrl(value: unknown) {
   let url = String(value || "").trim();
   if (!url) return "";
 
+  if (typeof window !== "undefined") {
+    const currentHost = window.location.hostname;
+    const isPublicProdOrStaging = currentHost.endsWith("vercel.app") || currentHost.endsWith("onstage.vn");
+    if (!isPublicProdOrStaging && currentHost !== "localhost" && currentHost !== "127.0.0.1") {
+      const localAppUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):8080/i;
+      if (localAppUrlRegex.test(url)) {
+        url = url.replace(localAppUrlRegex, `${window.location.protocol}//${currentHost}:8080`);
+      }
+      const localMinioUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):9000/i;
+      if (localMinioUrlRegex.test(url)) {
+        url = url.replace(localMinioUrlRegex, `${window.location.protocol}//${currentHost}:9000`);
+      }
+      const localStaticUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):3000\/static\//i;
+      if (localStaticUrlRegex.test(url)) {
+        url = url.replace(localStaticUrlRegex, `${window.location.protocol}//${currentHost}:3000/static/`);
+      }
+    }
+  }
+
   const baseUrl = backendAssetBaseUrl();
   if (baseUrl && /^https?:\/\//i.test(baseUrl)) {
     const localStaticUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):3000\/static\//i;
