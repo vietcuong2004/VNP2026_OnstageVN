@@ -58,8 +58,8 @@ export interface BrandTalentCard {
   followers?: string;
   followersCount?: number;
   engagementRate?: number;
-  cover?: string;
-  fullBodyImage?: string;
+  cover?: string | null;
+  fullBodyImage?: string | null;
   experience?: string;
   skills?: string[];
   languages?: string[];
