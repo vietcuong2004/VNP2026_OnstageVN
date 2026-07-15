@@ -6,14 +6,27 @@ function backendAssetBaseUrl() {
 }
 
 export function normalizeBackendAssetUrl(value: unknown) {
-  const url = String(value || "").trim();
+  let url = String(value || "").trim();
   if (!url) return "";
+
+  const baseUrl = backendAssetBaseUrl();
+  if (baseUrl && /^https?:\/\//i.test(baseUrl)) {
+    const localAppUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):8080/i;
+    if (localAppUrlRegex.test(url)) {
+      url = url.replace(localAppUrlRegex, baseUrl);
+    }
+    const localMinioUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):9000/i;
+    if (localMinioUrlRegex.test(url)) {
+      url = url.replace(localMinioUrlRegex, baseUrl);
+    }
+  }
+
   if (url.startsWith("data:") || /^https?:\/\//i.test(url)) return url;
-  if (url.startsWith("/storage/")) return `${backendAssetBaseUrl()}${url}`;
-  if (url.startsWith("storage/")) return `${backendAssetBaseUrl()}/${url}`;
+  if (url.startsWith("/storage/")) return `${baseUrl}${url}`;
+  if (url.startsWith("storage/")) return `${baseUrl}/${url}`;
   if (url.startsWith("/")) return url;
   if (/^(avatars|uploads|media|api-manager-kols)\//i.test(url)) {
-    return `${backendAssetBaseUrl()}/${url.replace(/^\/+/, "")}`;
+    return `${baseUrl}/${url.replace(/^\/+/, "")}`;
   }
   return url;
 }
