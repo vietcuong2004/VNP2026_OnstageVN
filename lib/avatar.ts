@@ -11,6 +11,10 @@ export function normalizeBackendAssetUrl(value: unknown) {
 
   const baseUrl = backendAssetBaseUrl();
   if (baseUrl && /^https?:\/\//i.test(baseUrl)) {
+    const localStaticUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):3000\/static\//i;
+    if (localStaticUrlRegex.test(url)) {
+      url = url.replace(localStaticUrlRegex, `${baseUrl}/api-manager-kols/`);
+    }
     const localAppUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):8080/i;
     if (localAppUrlRegex.test(url)) {
       url = url.replace(localAppUrlRegex, baseUrl);
