@@ -41,6 +41,10 @@ type BackendProfile = {
   education?: string | null;
   budget_min?: number | null;
   budget_max?: number | null;
+  price?: string | null;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
+  linkedin_url?: string | null;
   photos?: BackendPhoto[] | null;
   social_accounts?: Array<{ followers_count?: number | null; engagement_rate?: number | null }> | null;
   calendar_events?: any[] | null;
@@ -108,6 +112,10 @@ export function getDefaultTalentProfile() {
     hasUploadedCatwalk: false,
     hasUploadedIntro: false,
     hasUploadedMC: false,
+    price: "",
+    facebook_url: "",
+    instagram_url: "",
+    linkedin_url: "",
   };
 }
 
@@ -413,6 +421,10 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     busyDates,
     photos: photos.length ? photos : localPhotos,
     photoRecords: portfolioPhotoRecords,
+    price: profile.price || "",
+    facebook_url: profile.facebook_url || "",
+    instagram_url: profile.instagram_url || "",
+    linkedin_url: profile.linkedin_url || "",
   };
 
   return persistTalentProfile(mapped);
@@ -459,6 +471,10 @@ export function buildBackendProfilePayload(profile: any) {
     bio: profile.bio || profile.education || undefined,
     budget_min: profile.rateCard ? Math.min(...Object.values(profile.rateCard).map(Number).filter(Boolean)) : undefined,
     budget_max: profile.rateCard ? Math.max(...Object.values(profile.rateCard).map(Number).filter(Boolean)) : undefined,
+    price: profile.price || undefined,
+    facebook_url: profile.facebook_url || undefined,
+    instagram_url: profile.instagram_url || undefined,
+    linkedin_url: profile.linkedin_url || undefined,
     is_public: true,
   };
 }

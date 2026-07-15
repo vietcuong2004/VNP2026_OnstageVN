@@ -24,14 +24,12 @@ const CITIES = [
 ];
 
 const TALENT_TYPES = [
-  { value: "Model", label: "Model" },
-  { value: "KOL", label: "KOL" },
-  { value: "Influencer", label: "Influencer" },
+  { value: "Diễn viên", label: "Diễn viên" },
+  { value: "Người mẫu", label: "Người mẫu" },
+  { value: "KOLs", label: "KOLs" },
+  { value: "KOCs", label: "KOCs" },
   { value: "MC", label: "MC" },
-  { value: "PG/PB", label: "PG / PB" },
-  { value: "Actor", label: "Diễn viên (Actor)" },
-  { value: "Singer", label: "Ca sĩ (Singer)" },
-  { value: "Dancer", label: "Vũ công (Dancer)" },
+  { value: "PG", label: "PG" },
 ];
 
 export default function CreateTalentModal({
@@ -43,7 +41,7 @@ export default function CreateTalentModal({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("Hà Nội");
-  const [talentType, setTalentType] = useState("Model");
+  const [talentType, setTalentType] = useState("Người mẫu");
   const [notes, setNotes] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -111,7 +109,7 @@ export default function CreateTalentModal({
       setName("");
       setPhone("");
       setCity("Hà Nội");
-      setTalentType("Model");
+      setTalentType("Người mẫu");
       setNotes("");
       clearAvatar();
     } catch (err: any) {

@@ -56,6 +56,10 @@ export type TalentProfile = {
   surveyScores?: { pageant: number; runway: number; kol: number };
   mainCategory?: string;
   aiScore?: number;
+  price?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  linkedin_url?: string;
 };
 
 export type CampaignStage = "new" | "accepted" | "executing" | "completed" | "confirmed";

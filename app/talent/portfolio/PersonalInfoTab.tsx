@@ -632,6 +632,31 @@ export default function PersonalInfoTab({
               <span className="font-bold text-white font-mono">{profile.dob ? convertToDisplayDate(profile.dob) : "Chưa cập nhật"}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Tuổi</span>
+              <span className="font-bold text-white font-mono">
+                {(() => {
+                  if (!profile.dob) return "Chưa cập nhật";
+                  let birthYear: number | null = null;
+                  if (profile.dob.includes("/")) {
+                    const parts = profile.dob.split("/");
+                    if (parts.length === 3) birthYear = parseInt(parts[2], 10);
+                  } else if (profile.dob.includes("-")) {
+                    const parts = profile.dob.split("-");
+                    if (parts.length === 3 && parts[0].length === 4) birthYear = parseInt(parts[0], 10);
+                  }
+                  if (!birthYear || isNaN(birthYear)) return "Chưa cập nhật";
+                  const currentYear = new Date().getFullYear();
+                  return `${currentYear - birthYear} tuổi`;
+                })()}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Mức giá</span>
+              <span className="font-bold text-white">
+                {profile.price ? profile.price : "Chưa cập nhật"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Khu vực hoạt động</span>
               <span className="font-bold text-white">{profile.location || "Chưa cập nhật"}</span>
             </div>
@@ -646,6 +671,54 @@ export default function PersonalInfoTab({
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Email</span>
               <span className="font-bold text-white truncate max-w-[150px]">{profile.email || "Chưa cập nhật"}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Facebook</span>
+              {profile.facebook_url ? (
+                <a
+                  href={profile.facebook_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-[#F0C56B] hover:text-white transition-colors truncate max-w-[155px]"
+                  title={profile.facebook_url}
+                >
+                  {profile.facebook_url.replace(/https?:\/\/(www\.)?/, '')}
+                </a>
+              ) : (
+                <span className="font-bold text-white">Chưa cập nhật</span>
+              )}
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">Instagram</span>
+              {profile.instagram_url ? (
+                <a
+                  href={profile.instagram_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-[#F0C56B] hover:text-white transition-colors truncate max-w-[155px]"
+                  title={profile.instagram_url}
+                >
+                  {profile.instagram_url.replace(/https?:\/\/(www\.)?/, '')}
+                </a>
+              ) : (
+                <span className="font-bold text-white">Chưa cập nhật</span>
+              )}
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">LinkedIn</span>
+              {profile.linkedin_url ? (
+                <a
+                  href={profile.linkedin_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-[#F0C56B] hover:text-white transition-colors truncate max-w-[155px]"
+                  title={profile.linkedin_url}
+                >
+                  {profile.linkedin_url.replace(/https?:\/\/(www\.)?/, '')}
+                </a>
+              ) : (
+                <span className="font-bold text-white">Chưa cập nhật</span>
+              )}
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Học vấn</span>

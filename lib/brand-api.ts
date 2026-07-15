@@ -53,6 +53,10 @@ type BackendProfile = {
   budget_min?: number | string | null;
   budget_max?: number | string | null;
   avatar_url?: string | null;
+  price?: string | null;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
+  linkedin_url?: string | null;
   photos?: BackendPhoto[] | null;
   social_accounts?: BackendSocialAccount[] | null;
   calendar_events?: Array<{ starts_at?: string | null }> | null;
@@ -539,6 +543,10 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
       : (fallback as any)?.surveyScores || { pageant: 0, runway: 0, kol: 0 },
     mainCategory: profile.latest_survey?.main_category || (fallback as any)?.mainCategory || "",
     aiScore: Number(profile.latest_survey?.profile_score) || (fallback as any)?.aiScore || 0,
+    price: profile.price || fallback?.price || "",
+    facebook_url: profile.facebook_url || fallback?.facebook_url || "",
+    instagram_url: profile.instagram_url || fallback?.instagram_url || "",
+    linkedin_url: profile.linkedin_url || fallback?.linkedin_url || "",
   };
 }
 

@@ -108,7 +108,11 @@ export default function EditInfoTab({
     tattoo: "Không",
     tattooDesc: "",
     experience: "",
-    specialSkills: []
+    specialSkills: [],
+    price: "",
+    facebook_url: "",
+    instagram_url: "",
+    linkedin_url: ""
   });
 
   const handleAddSkill = (skill: string) => {
@@ -195,7 +199,11 @@ export default function EditInfoTab({
         tattoo: profile.tattoo || "Không",
         tattooDesc: profile.tattooDesc || "",
         experience: profile.experience !== undefined && profile.experience !== null ? profile.experience : "",
-        specialSkills: Array.isArray(profile.specialSkills) ? profile.specialSkills : (Array.isArray(profile.skills) ? profile.skills : [])
+        specialSkills: Array.isArray(profile.specialSkills) ? profile.specialSkills : (Array.isArray(profile.skills) ? profile.skills : []),
+        price: profile.price || "",
+        facebook_url: profile.facebook_url || "",
+        instagram_url: profile.instagram_url || "",
+        linkedin_url: profile.linkedin_url || ""
       });
       setVideoForm({
         hasUploadedIntro: onboarded ? (profile.hasUploadedIntro || false) : false,
@@ -392,7 +400,11 @@ export default function EditInfoTab({
             experience: Number(editForm.experience),
             specialSkills: editForm.specialSkills,
             skills: editForm.specialSkills,
-            lifestyleServices: lifestyleServices
+            lifestyleServices: lifestyleServices,
+            price: editForm.price,
+            facebook_url: editForm.facebook_url,
+            instagram_url: editForm.instagram_url,
+            linkedin_url: editForm.linkedin_url
           };
           const syncedProfile = await saveTalentProfile(updated);
           setProfile(syncedProfile);
@@ -442,6 +454,53 @@ export default function EditInfoTab({
                 required
                 value={editForm.phone}
                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Social Links & Pricing Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Mức giá (VD: "5.000.000đ/buổi" hoặc "Thỏa thuận")</label>
+              <input
+                type="text"
+                value={editForm.price}
+                onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                placeholder="Nhập mức giá dịch vụ của bạn..."
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Facebook URL</label>
+              <input
+                type="url"
+                value={editForm.facebook_url}
+                onChange={(e) => setEditForm({ ...editForm, facebook_url: e.target.value })}
+                placeholder="https://facebook.com/yourprofile"
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Instagram URL</label>
+              <input
+                type="url"
+                value={editForm.instagram_url}
+                onChange={(e) => setEditForm({ ...editForm, instagram_url: e.target.value })}
+                placeholder="https://instagram.com/yourprofile"
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">LinkedIn URL</label>
+              <input
+                type="url"
+                value={editForm.linkedin_url}
+                onChange={(e) => setEditForm({ ...editForm, linkedin_url: e.target.value })}
+                placeholder="https://linkedin.com/in/yourprofile"
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>

@@ -27,14 +27,12 @@ const CITIES = [
 ];
 
 const TALENT_TYPES = [
-  { value: "Model", label: "Model" },
-  { value: "KOL", label: "KOL" },
-  { value: "Influencer", label: "Influencer" },
+  { value: "Diễn viên", label: "Diễn viên" },
+  { value: "Người mẫu", label: "Người mẫu" },
+  { value: "KOLs", label: "KOLs" },
+  { value: "KOCs", label: "KOCs" },
   { value: "MC", label: "MC" },
-  { value: "PG/PB", label: "PG / PB" },
-  { value: "Actor", label: "Diễn viên (Actor)" },
-  { value: "Singer", label: "Ca sĩ (Singer)" },
-  { value: "Dancer", label: "Vũ công (Dancer)" },
+  { value: "PG", label: "PG" },
 ];
 
 export default function EditTalentModal({
@@ -48,7 +46,7 @@ export default function EditTalentModal({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("Hà Nội");
-  const [talentType, setTalentType] = useState("Model");
+  const [talentType, setTalentType] = useState("Người mẫu");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -60,7 +58,7 @@ export default function EditTalentModal({
       setName(talent.name || "");
       setPhone(talent.phone || "");
       setCity(talent.city || "Hà Nội");
-      setTalentType(talent.type || "Model");
+      setTalentType(talent.type || "Người mẫu");
       setNotes(entry?.notes || "");
       setErrorMsg("");
       setIsSuccess(false);
