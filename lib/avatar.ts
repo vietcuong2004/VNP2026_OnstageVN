@@ -15,11 +15,11 @@ export function normalizeBackendAssetUrl(value: unknown) {
     if (!isPublicProdOrStaging && currentHost !== "localhost" && currentHost !== "127.0.0.1") {
       const localAppUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):8080/i;
       if (localAppUrlRegex.test(url)) {
-        url = url.replace(localAppUrlRegex, `${window.location.protocol}//${currentHost}:8080`);
+        url = url.replace(localAppUrlRegex, `${window.location.protocol}//${currentHost}:3000`);
       }
-      const localMinioUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):9000/i;
+      const localMinioUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):9000\/api-manager-kols\//i;
       if (localMinioUrlRegex.test(url)) {
-        url = url.replace(localMinioUrlRegex, `${window.location.protocol}//${currentHost}:9000`);
+        url = url.replace(localMinioUrlRegex, `${window.location.protocol}//${currentHost}:3000/static/`);
       }
       const localStaticUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):3000\/static\//i;
       if (localStaticUrlRegex.test(url)) {

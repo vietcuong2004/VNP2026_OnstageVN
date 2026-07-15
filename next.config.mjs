@@ -21,6 +21,10 @@ const nextConfig = {
         source: "/static/:path*",
         destination: `${staticProxyTarget}/:path*`,
       },
+      {
+        source: "/Talent_Image/:path*",
+        destination: `${apiProxyTarget}/Talent_Image/:path*`,
+      },
     ];
   },
   webpack: (config, { isServer }) => {
