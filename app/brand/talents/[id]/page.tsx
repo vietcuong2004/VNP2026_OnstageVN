@@ -264,7 +264,7 @@ export default function BrandTalentProfilePage() {
       <section className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#08090f] shadow-xl">
         <div className="relative h-56 w-full overflow-hidden bg-slate-950 md:h-72">
           <img
-            src={talent.cover}
+            src={talent.cover || undefined}
             alt={`${talent.name} cover`}
             onError={(event) => {
               event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");

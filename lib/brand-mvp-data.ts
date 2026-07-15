@@ -36,8 +36,8 @@ export type TalentProfile = {
   rate: string;
   rateUnit: string;
   avatar: string;
-  cover: string;
-  fullBodyImage: string;
+  cover: string | null;
+  fullBodyImage: string | null;
   skills: string[];
   experience: string;
   portfolio: string[];

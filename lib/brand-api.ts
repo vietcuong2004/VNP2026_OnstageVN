@@ -434,13 +434,14 @@ function parseMeasurements(value: BackendProfile["measurements"]) {
   return { bust, waist, hips };
 }
 
-function firstPhoto(profile: BackendProfile, category?: string) {
+function firstPhoto(profile: BackendProfile, category?: string): string | null {
   const photos = profile.photos ?? [];
   const photo = category
     ? [...photos].reverse().find((item) => item.category === category)
     : photos[0];
 
-  return normalizeBackendAssetUrl(photo?.url || photo?.path || "");
+  const url = normalizeBackendAssetUrl(photo?.url || photo?.path || "");
+  return url || null;
 }
 
 function mapTier(value?: string | null): TalentProfile["tier"] {
@@ -473,7 +474,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
   const avatar = isUsableAvatarUrl(rawAvatar)
     ? rawAvatar
     : createInitialAvatarDataUrl(displayName, profile.user?.email || profile.user?.name);
-  const cover = firstPhoto(profile, "cover") || "";
+  const cover = firstPhoto(profile, "cover") || null;
   const portfolio = (profile.photos ?? [])
     .filter((photo) => photo.category !== 'avatar' && photo.category !== 'cover')
     .map((photo) => photo.url || photo.path || "")
@@ -515,7 +516,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     rateUnit: String(repairMojibake(fallback?.rateUnit || "dự án")),
     avatar,
     cover,
-    fullBodyImage: firstPhoto(profile, "full_body") || firstPhoto(profile, "lookbook") || firstPhoto(profile, "portfolio") || firstPhoto(profile) || avatar,
+    fullBodyImage: firstPhoto(profile, "full_body") || firstPhoto(profile, "lookbook") || firstPhoto(profile, "portfolio") || firstPhoto(profile) || avatar || null,
     skills: (profile.skills?.length ? profile.skills : fallback?.skills || []).map((item) => String(repairMojibake(item))),
     experience: displayExperience,
     portfolio: portfolio.length ? portfolio : fallback?.portfolio || [],
