@@ -322,11 +322,11 @@ export default function BrandTalentProfilePage() {
                     </span>
                   )}
                 </h2>
-                
+
                 <p className="text-xs sm:text-[13px] font-black uppercase text-slate-400 tracking-widest text-center sm:text-left">
                   {talent.type || "Người mẫu • KOL • MC"}
                 </p>
-                
+
                 {/* Location, Email & Phone Contacts Row */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400">
                   <div className="flex items-center gap-1.5">
@@ -725,7 +725,7 @@ export default function BrandTalentProfilePage() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-3">
                   <Sparkles className="h-8 w-8 text-purple-400/40" />
-                  <p className="text-[11px] text-slate-500 leading-relaxed">Talent chưa hoàn thành bài khảo sát AI.<br/>Dữ liệu radar sẽ hiển thị sau khi có kết quả khảo sát.</p>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">Talent chưa hoàn thành bài khảo sát AI.<br />Dữ liệu radar sẽ hiển thị sau khi có kết quả khảo sát.</p>
                 </div>
               )}
             </div>

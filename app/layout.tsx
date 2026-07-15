@@ -21,7 +21,7 @@ export default function RootLayout({
   const isMessages = pathname?.endsWith("/messages") ?? false;
 
   return (
-    <html lang="vi" className="h-full dark antialiased" style={{ colorScheme: "dark" }}>
+    <html lang="vi" suppressHydrationWarning className="h-full dark antialiased" style={{ colorScheme: "dark" }}>
       <head>
         <link rel="icon" href="/favicon.ico?v=4" sizes="any" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4" />
@@ -32,7 +32,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png?v=4" />
         <link rel="manifest" href="/site.webmanifest?v=4" />
       </head>
-      <body className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
+      <body suppressHydrationWarning className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
         <ThemeProvider>
           <AuthGuard>
             <Suspense fallback={null}>
