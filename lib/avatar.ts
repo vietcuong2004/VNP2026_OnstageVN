@@ -9,41 +9,26 @@ export function normalizeBackendAssetUrl(value: unknown) {
   let url = String(value || "").trim();
   if (!url) return "";
 
-  if (typeof window !== "undefined") {
-    const currentHost = window.location.hostname;
-    const isPublicProdOrStaging = currentHost.endsWith("vercel.app") || currentHost.endsWith("onstage.vn");
-    if (!isPublicProdOrStaging && currentHost !== "localhost" && currentHost !== "127.0.0.1") {
-      const localAppUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):8080/i;
-      if (localAppUrlRegex.test(url)) {
-        url = url.replace(localAppUrlRegex, `${window.location.protocol}//${currentHost}:3000`);
-      }
-      const localMinioUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):9000\/api-manager-kols\//i;
-      if (localMinioUrlRegex.test(url)) {
-        url = url.replace(localMinioUrlRegex, `${window.location.protocol}//${currentHost}:3000/static/`);
-      }
-      const localStaticUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):3000\/static\//i;
-      if (localStaticUrlRegex.test(url)) {
-        url = url.replace(localStaticUrlRegex, `${window.location.protocol}//${currentHost}:3000/static/`);
-      }
-    }
+  // Replace absolute local addresses with relative paths so they are handled by Next.js rewrites/proxies
+  const localAppUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):8080/i;
+  if (localAppUrlRegex.test(url)) {
+    url = url.replace(localAppUrlRegex, "");
   }
+  const localMinioUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):9000\/api-manager-kols\//i;
+  if (localMinioUrlRegex.test(url)) {
+    url = url.replace(localMinioUrlRegex, "/static/");
+  }
+  const localStaticUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):3000\/static\//i;
+  if (localStaticUrlRegex.test(url)) {
+    url = url.replace(localStaticUrlRegex, "/static/");
+  }
+
+  // If it is a relative path starting with /Talent_Image/, /static/, or /storage/, return it directly
+  if (url.startsWith("/Talent_Image/")) return url;
+  if (url.startsWith("/static/")) return url;
+  if (url.startsWith("/storage/")) return url;
 
   const baseUrl = backendAssetBaseUrl();
-  if (baseUrl && /^https?:\/\//i.test(baseUrl)) {
-    const localStaticUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):3000\/static\//i;
-    if (localStaticUrlRegex.test(url)) {
-      url = url.replace(localStaticUrlRegex, `${baseUrl}/api-manager-kols/`);
-    }
-    const localAppUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):8080/i;
-    if (localAppUrlRegex.test(url)) {
-      url = url.replace(localAppUrlRegex, baseUrl);
-    }
-    const localMinioUrlRegex = /^https?:\/\/(127\.0\.0\.1|localhost):9000/i;
-    if (localMinioUrlRegex.test(url)) {
-      url = url.replace(localMinioUrlRegex, baseUrl);
-    }
-  }
-
   if (url.startsWith("data:") || /^https?:\/\//i.test(url)) return url;
   if (url.startsWith("/storage/")) return `${baseUrl}${url}`;
   if (url.startsWith("storage/")) return `${baseUrl}/${url}`;

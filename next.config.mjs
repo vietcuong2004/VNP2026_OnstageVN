@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
-const apiProxyTarget = process.env.API_PROXY_TARGET ?? "http://127.0.0.1:8080";
-const staticProxyTarget = process.env.STATIC_PROXY_TARGET ?? "http://127.0.0.1:9000/api-manager-kols";
+const publicApiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api";
+const apiProxyTarget = publicApiUrl.startsWith("http") ? publicApiUrl.replace(/\/api$/, "") : "http://127.0.0.1:8080";
+const staticProxyTarget = publicApiUrl.startsWith("http") ? `${apiProxyTarget}/api-manager-kols` : "http://127.0.0.1:9000/api-manager-kols";
 
 const nextConfig = {
   devIndicators: {
@@ -24,6 +25,10 @@ const nextConfig = {
       {
         source: "/Talent_Image/:path*",
         destination: `${apiProxyTarget}/Talent_Image/:path*`,
+      },
+      {
+        source: "/storage/:path*",
+        destination: `${apiProxyTarget}/storage/:path*`,
       },
     ];
   },
