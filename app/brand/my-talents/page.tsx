@@ -284,7 +284,7 @@ export default function MyTalentsPage() {
         if (cancelled) return;
 
         const talentsById = new Map<string, BrandTalentCard>();
-        talentItems.forEach((talent: BrandTalentCard) => talentsById.set(String(talent.id), talent));
+        talentItems.forEach((talent) => talentsById.set(String(talent.id), talent));
 
         rosterItems.forEach((item) => {
           const profileId = String(item.talent_profile_id);

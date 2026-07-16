@@ -4,7 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Bell, Calendar, ChevronDown, LogOut, Search, UserCircle, Building2, Settings, ShieldAlert } from "lucide-react";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
-import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
+import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession, switchCurrentPlatform } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { loadNotifications, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/messaging-api";
 import { ensureBrowserNotificationPermission, showBrowserNotification } from "@/lib/browser-notifications";
@@ -143,11 +143,17 @@ export default function Header() {
   const nextPlatformPath = nextPlatform === "brand" ? "/brand/dashboard" : "/talent/dashboard";
   const nextPlatformLabel = nextPlatform === "brand" ? "Chuyển sang Brand" : "Chuyển sang Talent";
 
-  function handleSwitchPlatform() {
+  async function handleSwitchPlatform() {
     if (!user) return;
 
     setOpen(false);
-    router.push(nextPlatformPath);
+
+    try {
+      await switchCurrentPlatform(nextPlatform);
+      router.push(nextPlatformPath);
+    } catch (error) {
+      console.error("Failed to switch platform", error);
+    }
   }
 
   useEffect(() => {
