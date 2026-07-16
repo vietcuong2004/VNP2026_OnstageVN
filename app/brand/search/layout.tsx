@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://onstagevn.vercel.app").replace(/\/$/, "");
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://onstagevn.vercel.app").replace(/\/$/, "");
 const ASSET_VERSION = "8";
 
 export const metadata: Metadata = {

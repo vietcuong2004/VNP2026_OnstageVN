@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import AppShell from "./app-shell";
 import "./globals.css";
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://onstagevn.vercel.app").replace(/\/$/, "");
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://onstagevn.vercel.app").replace(/\/$/, "");
 const ASSET_VERSION = "8";
 const SHARE_IMAGE = `/apple-touch-icon.png?v=${ASSET_VERSION}`;
 const SHARE_IMAGE_URL = `${SITE_URL}${SHARE_IMAGE}`;
