@@ -28,23 +28,23 @@ export default function RootLayout({
         <meta property="og:site_name" content="OnstageVN" />
         <meta property="og:title" content="OnstageVN" />
         <meta property="og:description" content="Model Management System" />
-        <meta property="og:image" content="https://onstagevn.vercel.app/favicon-512x512.png?v=6" />
-        <meta property="og:image:secure_url" content="https://onstagevn.vercel.app/favicon-512x512.png?v=6" />
+        <meta property="og:image" content="https://onstagevn.vercel.app/apple-touch-icon.png?v=7" />
+        <meta property="og:image:secure_url" content="https://onstagevn.vercel.app/apple-touch-icon.png?v=7" />
         <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="512" />
-        <meta property="og:image:height" content="512" />
+        <meta property="og:image:width" content="180" />
+        <meta property="og:image:height" content="180" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="OnstageVN" />
         <meta name="twitter:description" content="Model Management System" />
-        <meta name="twitter:image" content="https://onstagevn.vercel.app/favicon-512x512.png?v=6" />
-        <link rel="icon" href="/favicon.ico?v=6" sizes="any" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=6" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=6" />
-        <link rel="icon" type="image/png" sizes="24x24" href="/favicon-24x24.png?v=6" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=6" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png?v=6" />
-        <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png?v=6" />
-        <link rel="manifest" href="/site.webmanifest?v=6" />
+        <meta name="twitter:image" content="https://onstagevn.vercel.app/apple-touch-icon.png?v=7" />
+        <link rel="icon" href="/favicon.ico?v=7" sizes="any" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=7" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=7" />
+        <link rel="icon" type="image/png" sizes="24x24" href="/favicon-24x24.png?v=7" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=7" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png?v=7" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png?v=7" />
+        <link rel="manifest" href="/site.webmanifest?v=7" />
       </head>
       <body suppressHydrationWarning className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
         <ThemeProvider>
