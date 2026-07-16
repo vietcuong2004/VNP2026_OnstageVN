@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Bell, Calendar, ChevronDown, LogOut, Search, UserCircle, Building2, Settings, ShieldAlert } from "lucide-react";
+import { Bell, Calendar, ChevronDown, LogIn, LogOut, Search, UserCircle, Building2, Settings, ShieldAlert } from "lucide-react";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
 import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession, switchCurrentPlatform } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
@@ -134,11 +134,11 @@ export default function Header() {
 
   const label = user
     ? { name: !isBrandPath && talentName ? talentName : user.name, subtitle: user.email || "" }
-    : isBrandPath
-      ? { name: "L'Oréal Vietnam", subtitle: "partner@loreal.com" }
-      : { name: "Nguyễn Mai Anh", subtitle: "maianh@onstage.vn" };
-  const fallbackAvatarSrc = createInitialAvatarDataUrl(label.name, user?.email);
-  const headerAvatarSrc = isBrandPath ? (user?.external_avatar_url || "/logo.png") : (talentAvatar || fallbackAvatarSrc);
+    : { name: "Khách truy cập", subtitle: "Chưa đăng nhập" };
+  const fallbackAvatarSrc = createInitialAvatarDataUrl(label.name, user?.email || label.subtitle);
+  const headerAvatarSrc = user
+    ? (isBrandPath ? (user.external_avatar_url || "/logo.png") : (talentAvatar || fallbackAvatarSrc))
+    : fallbackAvatarSrc;
   const nextPlatform = isBrandPath ? "talent" : "brand";
   const nextPlatformPath = nextPlatform === "brand" ? "/brand/dashboard" : "/talent/dashboard";
   const nextPlatformLabel = nextPlatform === "brand" ? "Chuyển sang Brand" : "Chuyển sang Talent";
@@ -366,7 +366,7 @@ export default function Header() {
                 />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-white">{label.name}</p>
-                  <p className="truncate text-xs text-slate-500">{user?.email ?? (isBrandPath ? "partner@loreal.com" : "maianh@onstage.vn")}</p>
+                  <p className="truncate text-xs text-slate-500">{label.subtitle}</p>
                 </div>
               </div>
 
@@ -449,14 +449,25 @@ export default function Header() {
 
               <div className="border-t border-white/5 my-1.5" />
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-red-200 transition-colors hover:bg-red-500/10 hover:text-red-100"
-              >
-                <LogOut className="h-4 w-4 text-red-400" />
-                Đăng xuất
-              </button>
+              {user ? (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-red-200 transition-colors hover:bg-red-500/10 hover:text-red-100"
+                >
+                  <LogOut className="h-4 w-4 text-red-400" />
+                  Đăng xuất
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(pathname || "/")}`)}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/10 hover:text-amber-100"
+                >
+                  <LogIn className="h-4 w-4 text-amber-300" />
+                  Đăng nhập / Đăng ký
+                </button>
+              )}
             </div>
           )}
         </div>

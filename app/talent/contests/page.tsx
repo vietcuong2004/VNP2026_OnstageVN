@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { loadTalentRecommendations } from "@/lib/talent-api";
+import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 interface ContestDetail {
   organizerName: string;
@@ -170,6 +171,7 @@ const FUNDING_DATA: Record<string, NonNullable<Contest["funding"]>> = {
 
 export default function ContestsPage() {
   const router = useRouter();
+  const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
@@ -910,6 +912,7 @@ export default function ContestsPage() {
   };
 
   const handleApply = (id: string, name: string) => {
+    if (!requireAuthAction({ actionLabel: "Ứng tuyển cuộc thi" })) return;
     setContests(prev =>
       prev.map(c => (c.id === id ? { ...c, status: "Đang chờ duyệt" } : c))
     );
@@ -1365,6 +1368,8 @@ export default function ContestsPage() {
           </div>
         </div>
       )}
+
+      <GuestActionPrompt />
 
       {/* Floating Toast Notification System */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2">

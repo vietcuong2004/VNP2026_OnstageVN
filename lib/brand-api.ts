@@ -4,6 +4,8 @@ import { apiForm, apiJson, getAuthToken } from "@/lib/api-client";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl, profileAvatarFromBackend } from "@/lib/avatar";
 import type { Campaign, CampaignMedia, CampaignStage, TalentProfile } from "@/lib/brand-mvp-data";
 
+const BRAND_PROFILE_DRAFT_KEY = "onstagevn_guest_brand_profile";
+
 type BackendUser = {
   id?: number | string;
   name?: string | null;
@@ -709,6 +711,62 @@ export function mapBackendPartnerProfile(profile: BackendPartnerProfile | null |
   };
 }
 
+type BrandPartnerProfile = ReturnType<typeof mapBackendPartnerProfile>;
+
+function hasUsefulBrandDraft(profile: BrandPartnerProfile) {
+  return [
+    profile.organizationName,
+    profile.industry,
+    profile.websiteUrl,
+    profile.fanpageUrl,
+    profile.contactName,
+    profile.contactPhone,
+    profile.contactEmail,
+    profile.city,
+    profile.description,
+  ].some((value) => String(value || "").trim() !== "");
+}
+
+export function loadGuestBrandProfileDraft(fallback: BrandPartnerProfile) {
+  if (typeof window === "undefined") return fallback;
+
+  const raw = window.localStorage.getItem(BRAND_PROFILE_DRAFT_KEY);
+  if (!raw) return fallback;
+
+  try {
+    const draft = JSON.parse(raw) as Partial<BrandPartnerProfile>;
+    return { ...fallback, ...draft };
+  } catch {
+    window.localStorage.removeItem(BRAND_PROFILE_DRAFT_KEY);
+    return fallback;
+  }
+}
+
+export function persistGuestBrandProfileDraft(profile: BrandPartnerProfile) {
+  if (typeof window === "undefined") return profile;
+
+  window.localStorage.setItem(BRAND_PROFILE_DRAFT_KEY, JSON.stringify(profile));
+  return profile;
+}
+
+export function clearGuestBrandProfileDraft() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(BRAND_PROFILE_DRAFT_KEY);
+}
+
+export function hasGuestBrandProfileDraft() {
+  if (typeof window === "undefined") return false;
+
+  const raw = window.localStorage.getItem(BRAND_PROFILE_DRAFT_KEY);
+  if (!raw) return false;
+
+  try {
+    return hasUsefulBrandDraft(JSON.parse(raw) as BrandPartnerProfile);
+  } catch {
+    return false;
+  }
+}
+
 function buildPartnerProfilePayload(profile: ReturnType<typeof mapBackendPartnerProfile>) {
   return {
     organization_name: profile.organizationName,
@@ -906,8 +964,6 @@ export async function deleteBrandCampaignMedia(campaignId: string, mediaId: stri
 }
 
 export async function loadBrandTalents(fallback: TalentProfile[] = []) {
-  if (!getAuthToken()) return fallback;
-
   try {
     const response = await apiJson<{ data: BackendProfile[] }>("/talents?per_page=100&sort=match");
     const items = (response.data ?? []).map((profile, index) => mapBackendTalent(profile, fallback[index]));
@@ -1043,8 +1099,6 @@ export async function createBrandTalentInviteLink() {
 }
 
 export async function loadBrandTalent(id: string, fallback?: TalentProfile | null) {
-  if (!getAuthToken()) return fallback ?? null;
-
   try {
     const response = await apiJson<{ data: BackendProfile }>(`/talents/${id}`);
     return mapBackendTalent(response.data, fallback ?? undefined);
@@ -1055,7 +1109,7 @@ export async function loadBrandTalent(id: string, fallback?: TalentProfile | nul
 }
 
 export async function loadBrandPartnerProfile(fallback: ReturnType<typeof mapBackendPartnerProfile>) {
-  if (!getAuthToken()) return fallback;
+  if (!getAuthToken()) return loadGuestBrandProfileDraft(fallback);
 
   try {
     const response = await apiJson<{ data: BackendPartnerProfile | null }>("/partner/profile");
@@ -1067,6 +1121,8 @@ export async function loadBrandPartnerProfile(fallback: ReturnType<typeof mapBac
 }
 
 export async function saveBrandPartnerProfile(profile: ReturnType<typeof mapBackendPartnerProfile>) {
+  if (!getAuthToken()) return persistGuestBrandProfileDraft(profile);
+
   requireBrandSession();
 
   const response = await apiJson<{ data: BackendPartnerProfile }>("/partner/profile", {

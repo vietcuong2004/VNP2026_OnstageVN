@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Loader2, Lock, Mail, User, X } from "lucide-react";
 import { storeAuthSession } from "@/lib/api-client";
+import { syncGuestDraftsAfterNewRegistration } from "@/lib/guest-draft";
 
 type AuthMode = "login" | "register";
 type AccountType = "talent" | "brand";
@@ -75,22 +76,23 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   const isRegister = mode === "register";
   const pendingLogin = useMemo(() => {
     if (typeof window === "undefined" || isRegister) {
-      return { email: "", password: "" };
+      return { email: "", password: "", syncGuestDraft: false };
     }
 
     const stored = sessionStorage.getItem(pendingLoginKey);
     if (!stored) {
-      return { email: "", password: "" };
+      return { email: "", password: "", syncGuestDraft: false };
     }
 
     try {
-      const parsed = JSON.parse(stored) as { email?: string; password?: string };
+      const parsed = JSON.parse(stored) as { email?: string; password?: string; syncGuestDraft?: boolean };
       return {
         email: parsed.email || "",
         password: parsed.password || "",
+        syncGuestDraft: parsed.syncGuestDraft === true,
       };
     } catch {
-      return { email: "", password: "" };
+      return { email: "", password: "", syncGuestDraft: false };
     } finally {
       sessionStorage.removeItem(pendingLoginKey);
     }
@@ -98,6 +100,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState(() => pendingLogin.email);
   const [password, setPassword] = useState(() => pendingLogin.password);
+  const [shouldSyncGuestDraftAfterLogin] = useState(() => pendingLogin.syncGuestDraft === true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -205,12 +208,15 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       const data = (await response.json()) as AuthResponse;
 
       if (isRegister) {
-        sessionStorage.setItem(pendingLoginKey, JSON.stringify({ email: normalizedEmail, password }));
+        sessionStorage.setItem(pendingLoginKey, JSON.stringify({ email: normalizedEmail, password, syncGuestDraft: true }));
         router.push("/auth/login");
         return;
       }
 
       storeAuthSession(data.token, data.user);
+      if (shouldSyncGuestDraftAfterLogin) {
+        await syncGuestDraftsAfterNewRegistration();
+      }
       const redirectPath = typeof window !== "undefined"
         ? new URLSearchParams(window.location.search).get("redirect")
         : null;

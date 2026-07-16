@@ -6,6 +6,7 @@ import {
   X, Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getAuthToken } from "@/lib/api-client";
 import { persistTalentProfile, ensureTalentProfile, saveTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import ProgressBar from "@/components/ui/ProgressBar";
@@ -412,7 +413,12 @@ export default function EditInfoTab({
           };
           const syncedProfile = await saveTalentProfile(updated);
           setProfile(syncedProfile);
-          addToast("Cập nhật thông tin cá nhân và ngoại hình thành công!", "success");
+          addToast(
+            getAuthToken()
+              ? "Cập nhật thông tin cá nhân và ngoại hình thành công!"
+              : "Đã lưu bản nháp hồ sơ trên trình duyệt. Đăng nhập để đồng bộ lên hệ thống.",
+            "success"
+          );
         }} className="space-y-4 text-xs">
 
           {/* Row 1: Name & Location */}

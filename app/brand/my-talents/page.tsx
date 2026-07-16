@@ -27,6 +27,7 @@ import {
   type ManagedTalentActivationLink,
 } from "@/lib/brand-api";
 import { getStoredAuthUser } from "@/lib/api-client";
+import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 import InviteModal from "./invite-modal";
 import CreateTalentModal from "./create-modal";
@@ -209,6 +210,7 @@ function rosterFromBackend(item: BrandRosterTalent): RosterTalent {
 
 export default function MyTalentsPage() {
   const router = useRouter();
+  const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const [roster, setRoster] = useState<RosterTalent[]>([]);
   const [displayTalents, setDisplayTalents] = useState<BrandTalentCard[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -235,6 +237,7 @@ export default function MyTalentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleAssignJobConfirm = async () => {
+    if (!requireAuthAction({ actionLabel: "Gán talent vào campaign" })) return;
     if (!assigningTalent) return;
     if (!selectedCampaignId) {
       addToast("Vui lòng chọn chiến dịch!");
@@ -368,6 +371,7 @@ export default function MyTalentsPage() {
   };
 
   const handleInvite = async (talentId: string) => {
+    if (!requireAuthAction({ actionLabel: "Gửi lời mời talent vào Brand" })) return;
     const existing = roster.find(r => r.talentId === talentId);
     let nextRoster = [...roster];
     if (existing) {
@@ -399,6 +403,7 @@ export default function MyTalentsPage() {
   };
 
   const handleRemove = async (talentId: string) => {
+    if (!requireAuthAction({ actionLabel: "Xóa talent khỏi danh sách hợp tác" })) return;
     const existing = roster.find(r => r.talentId === talentId);
     if (existing?.rosterId) {
       try {
@@ -413,6 +418,7 @@ export default function MyTalentsPage() {
   };
 
   const handleEditClick = (talent: BrandTalentCard, entry: RosterTalent) => {
+    if (!requireAuthAction({ actionLabel: "Cập nhật talent do Brand quản lý" })) return;
     setEditingTalent(talent);
     setEditingEntry(entry);
     setShowEditModal(true);
@@ -424,6 +430,7 @@ export default function MyTalentsPage() {
   };
 
   const handleDeleteClick = (talentId: string, name: string) => {
+    if (!requireAuthAction({ actionLabel: "Xóa talent khỏi danh sách hợp tác" })) return;
     setDeletingTalentId(talentId);
     setDeletingTalentName(name);
     setShowDeleteConfirm(true);
@@ -439,6 +446,7 @@ export default function MyTalentsPage() {
   };
 
   const handleCopyLink = () => {
+    if (!requireAuthAction({ actionLabel: "Copy link mời talent" })) return;
     navigator.clipboard.writeText(affiliateLink).catch(() => { });
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
@@ -446,6 +454,7 @@ export default function MyTalentsPage() {
   };
 
   const downloadQr = async () => {
+    if (!requireAuthAction({ actionLabel: "Tải mã QR tuyển dụng" })) return;
     if (!affiliateLink) return;
     const targetUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(affiliateLink)}`;
     try {
@@ -467,6 +476,7 @@ export default function MyTalentsPage() {
   };
 
   const handleShare = () => {
+    if (!requireAuthAction({ actionLabel: "Chia sẻ link tuyển dụng" })) return;
     if (navigator.share) {
       navigator.share({
         title: "Tuyển dụng Talent vào Brand",
@@ -563,14 +573,20 @@ export default function MyTalentsPage() {
 
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => {
+                if (!requireAuthAction({ actionLabel: "Tạo talent nhanh" })) return;
+                setShowCreateModal(true);
+              }}
               className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(244,196,48,0.25)] hover:shadow-[0_0_25px_rgba(244,196,48,0.45)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-300 shrink-0"
             >
               <UserPlus className="h-4 w-4" />
               Thêm Talent mới
             </button>
             <button
-              onClick={() => setShowInviteModal(true)}
+              onClick={() => {
+                if (!requireAuthAction({ actionLabel: "Mời talent vào Brand" })) return;
+                setShowInviteModal(true);
+              }}
               className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-slate-950 border border-white/10 hover:border-amber-400/30 text-white hover:text-amber-300 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
             >
               <Search className="h-4 w-4 text-amber-400" />
@@ -690,7 +706,10 @@ export default function MyTalentsPage() {
                 Hãy mời Talent đầu tiên tham gia mạng lưới của Brand bằng link hoặc mã QR.
               </p>
               <button
-                onClick={() => setShowInviteModal(true)}
+                onClick={() => {
+                  if (!requireAuthAction({ actionLabel: "Mời talent vào Brand" })) return;
+                  setShowInviteModal(true);
+                }}
                 className="mt-6 flex w-full max-w-xs items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 cursor-pointer shadow-[0_0_15px_rgba(244,196,48,0.2)] hover:shadow-[0_0_25px_rgba(244,196,48,0.3)] hover:brightness-105 active:scale-[0.98] transition-all duration-300 md:w-auto"
               >
                 <Plus className="h-4 w-4" /> Thêm Talent
@@ -1018,6 +1037,8 @@ export default function MyTalentsPage() {
           </div>
         );
       })()}
+
+      <GuestActionPrompt />
 
       <InviteModal
         isOpen={showInviteModal}

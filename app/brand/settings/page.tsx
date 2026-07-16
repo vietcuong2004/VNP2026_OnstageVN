@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound, Lock, AlertCircle, Upload, MessageCircle, Copy, ExternalLink } from "lucide-react";
 import { partnerProfile } from "@/lib/brand-mvp-data";
 import { loadBrandPartnerProfile, mapBackendPartnerProfile, saveBrandPartnerProfile, uploadBrandProfileCover, uploadBrandProfileLogo } from "@/lib/brand-api";
-import { createZaloLinkCode, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, SocialConnection, unlinkSocialConnection, updateAuthEmail, apiJson, storeAuthUser, ZaloLinkStatus } from "@/lib/api-client";
+import { createZaloLinkCode, getAuthToken, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, SocialConnection, unlinkSocialConnection, updateAuthEmail, apiJson, storeAuthUser, ZaloLinkStatus } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
 import ProgressBar from "@/components/ui/ProgressBar";
+import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 type AuthUser = {
   id: number;
@@ -42,6 +43,7 @@ const fallbackProfile = mapBackendPartnerProfile({
 
 export default function BrandSettingsPage() {
   const router = useRouter();
+  const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const [profile, setProfile] = useState(fallbackProfile);
   const [saving, setSaving] = useState(false);
   const [connections, setConnections] = useState<SocialConnection[]>([]);
@@ -139,10 +141,12 @@ export default function BrandSettingsPage() {
   };
 
   const linkSocial = (provider: SocialConnection["provider"]) => {
+    if (!requireAuthAction({ actionLabel: "Liên kết tài khoản đăng nhập" })) return;
     window.location.assign(getSocialLinkUrl(provider));
   };
 
   const unlinkSocial = async (provider: SocialConnection["provider"]) => {
+    if (!requireAuthAction({ actionLabel: "Huỷ liên kết tài khoản đăng nhập" })) return;
     setSocialLoading(true);
     try {
       await unlinkSocialConnection(provider);
@@ -172,6 +176,7 @@ export default function BrandSettingsPage() {
   };
 
   const handleCreateZaloCode = async () => {
+    if (!requireAuthAction({ actionLabel: "Tạo mã liên kết Zalo" })) return;
     setZaloLoading(true);
     try {
       const status = await createZaloLinkCode();
@@ -211,6 +216,7 @@ export default function BrandSettingsPage() {
     openZaloBot(zaloLink);
   };
   async function saveAuthEmail() {
+    if (!requireAuthAction({ actionLabel: "Cập nhật email đăng nhập" })) return;
     setEmailSaving(true);
     try {
       const user = await updateAuthEmail(emailInput.trim());
@@ -233,6 +239,10 @@ export default function BrandSettingsPage() {
   async function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (!requireAuthAction({ actionLabel: "Tải logo Brand lên hệ thống" })) {
+      event.currentTarget.value = "";
+      return;
+    }
 
     setUploadingAvatar(true);
     setUploadProgress(0);
@@ -271,6 +281,10 @@ export default function BrandSettingsPage() {
   async function handleCoverUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (!requireAuthAction({ actionLabel: "Tải ảnh bìa Brand lên hệ thống" })) {
+      event.currentTarget.value = "";
+      return;
+    }
 
     setUploadingCover(true);
     setCoverProgress(0);
@@ -302,6 +316,7 @@ export default function BrandSettingsPage() {
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
+    if (!requireAuthAction({ actionLabel: "Cập nhật mật khẩu đăng nhập" })) return;
     if (newPassword !== confirmPassword) {
       showToast("Mật khẩu mới và xác nhận mật khẩu không trùng khớp.", "error");
       return;
@@ -785,6 +800,8 @@ export default function BrandSettingsPage() {
           </div>
         </div>
       </div>
+
+      <GuestActionPrompt />
 
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] animate-in fade-in slide-in-from-bottom-4 duration-300">

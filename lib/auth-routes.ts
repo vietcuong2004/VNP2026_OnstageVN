@@ -1,19 +1,27 @@
-const PUBLIC_PREFIXES = ["/auth", "/campaign", "/ref", "/activate-talent", "/setup-talent-login", "/intro"];
-const EXACT_PUBLIC_PATHS = ["/brand", "/talent"];
+const PUBLIC_PREFIXES = ["/auth", "/campaign", "/ref", "/activate-talent", "/setup-talent-login", "/intro", "/brand", "/talent"];
+const APP_SHELL_PREFIXES = ["/brand", "/talent"];
 
 export function normalizePath(path: string) {
   const [withoutQuery] = path.split(/[?#]/);
   return withoutQuery || "/";
 }
 
+function matchesPrefix(path: string, prefix: string) {
+  return path === prefix || path.startsWith(`${prefix}/`);
+}
+
 export function isPublicPath(path: string) {
   const normalizedPath = normalizePath(path);
 
-  if (normalizedPath === "/" || EXACT_PUBLIC_PATHS.includes(normalizedPath)) {
-    return true;
-  }
+  return normalizedPath === "/" || PUBLIC_PREFIXES.some((prefix) => matchesPrefix(normalizedPath, prefix));
+}
 
-  return PUBLIC_PREFIXES.some((prefix) => (
-    normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`)
-  ));
+export function usesAppShell(path: string) {
+  const normalizedPath = normalizePath(path);
+
+  return APP_SHELL_PREFIXES.some((prefix) => matchesPrefix(normalizedPath, prefix));
+}
+
+export function isStandalonePublicPath(path: string) {
+  return isPublicPath(path) && !usesAppShell(path);
 }

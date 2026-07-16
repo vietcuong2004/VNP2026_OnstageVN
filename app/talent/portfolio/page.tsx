@@ -11,6 +11,7 @@ import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
+import { getAuthToken } from "@/lib/api-client";
 import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, TALENT_PROFILE_UPDATED_EVENT, uploadTalentPhoto } from "@/lib/talent-api";
 
 export default function PortfolioPage() {
@@ -40,13 +41,13 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     const defaultProfile = {
-      name: "Talent",
+      name: "",
       birthYear: undefined,
       location: "",
       hometown: "",
       phone: "",
       email: "",
-      avatar: createInitialAvatarDataUrl("Talent", ""),
+      avatar: "",
       height: undefined,
       weight: undefined,
       bust: undefined,
@@ -116,10 +117,6 @@ export default function PortfolioPage() {
           : [],
       };
 
-      if (!nextProfile.avatar) {
-        nextProfile.avatar = createInitialAvatarDataUrl(nextProfile.name, nextProfile.email);
-      }
-
       setProfile(persistTalentProfile(nextProfile));
     });
   }, []);
@@ -181,20 +178,41 @@ export default function PortfolioPage() {
     }, 150);
 
     try {
-      const syncedProfile = await ensureTalentProfile(profile);
-
-      if (!syncedProfile.backendProfileId) {
-        clearInterval(interval);
-        setUploadingState(prev => {
-          const next = { ...prev };
-          delete next[type];
-          return next;
+      if (!getAuthToken()) {
+        const photoUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (err) => reject(err);
+          reader.readAsDataURL(file);
         });
-        setProfile(syncedProfile);
-        addToast("Vui lòng đăng nhập lại để tải ảnh lên hệ thống.", "info");
+
+        const updatedProfile = persistTalentProfile({ ...profile, [type]: photoUrl });
+        setProfile(updatedProfile);
+        URL.revokeObjectURL(previewUrl);
+
+        clearInterval(interval);
+        setUploadingState(prev => ({
+          ...prev,
+          [type]: {
+            ...prev[type],
+            progress: 100,
+            status: "done"
+          }
+        }));
+
+        setTimeout(() => {
+          setUploadingState(prev => {
+            const next = { ...prev };
+            delete next[type];
+            return next;
+          });
+        }, 800);
+
+        addToast("Đã lưu ảnh vào bản nháp trên trình duyệt. Đăng nhập để đồng bộ lên hệ thống.", "info");
         return;
       }
 
+      const syncedProfile = await ensureTalentProfile(profile);
       const photo = await uploadTalentPhoto(syncedProfile.backendProfileId, file, type);
       const photoUrl = photo.url || photo.path;
 
@@ -304,13 +322,13 @@ export default function PortfolioPage() {
               <div className="relative shrink-0">
                 <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-gradient-gold p-[3.5px] shadow-[0_0_25px_rgba(240,197,107,0.45)] relative">
                   <img
-                    src={normalizeBackendAssetUrl(profile.avatar)}
-                    alt={profile.name}
+                    src={normalizeBackendAssetUrl(profile.avatar) || createInitialAvatarDataUrl("Khách truy cập", profile.email)}
+                    alt={profile.name || "Khách truy cập"}
                     onError={(event) => {
-                      event.currentTarget.src = createInitialAvatarDataUrl(profile.name, profile.email);
+                      event.currentTarget.src = createInitialAvatarDataUrl(profile.name || "Khách truy cập", profile.email);
                     }}
                     className="h-full w-full rounded-full object-cover border border-black/10 cursor-pointer"
-                    onClick={() => setPreviewImage(normalizeBackendAssetUrl(profile.avatar))}
+                    onClick={() => normalizeBackendAssetUrl(profile.avatar) && setPreviewImage(normalizeBackendAssetUrl(profile.avatar))}
                   />
                 </div>
 
@@ -338,7 +356,7 @@ export default function PortfolioPage() {
               {/* Details stack next to Avatar */}
               <div className="space-y-2.5 flex-1 min-w-0">
                 <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight flex items-center gap-2 justify-center sm:justify-start">
-                  {profile.name}
+                  {profile.name || "Chưa cập nhật"}
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold shadow-md select-none" title="Đã xác minh">
                     ✓
                   </span>

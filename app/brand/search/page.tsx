@@ -18,12 +18,14 @@ import {
 } from "lucide-react";
 import { addTalentToWishlist, createBrandWishlist, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist, loadBrandCampaigns } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
+import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import { cn } from "@/lib/utils";
 
 const allValue = "all";
 
 export default function DiscoverTalentsPage() {
   const router = useRouter();
+  const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
 
   // Search and Filters states
   const [searchQuery, setSearchQuery] = useState("");
@@ -106,12 +108,13 @@ export default function DiscoverTalentsPage() {
         const matchesType = selectedType === allValue || talent.type === selectedType;
         const matchesCity = selectedCity === allValue || talent.city === selectedCity;
 
-        const matchesAge = talent.age >= minAge && talent.age <= maxAge;
-        const matchesHeight = talent.height >= minHeight && talent.height <= maxHeight;
-        const matchesWeight = talent.weight >= minWeight && talent.weight <= maxWeight;
+        const usesAdvancedFilters = showAdvancedFilters;
+        const matchesAge = !usesAdvancedFilters || !talent.age || (talent.age >= minAge && talent.age <= maxAge);
+        const matchesHeight = !usesAdvancedFilters || !talent.height || (talent.height >= minHeight && talent.height <= maxHeight);
+        const matchesWeight = !usesAdvancedFilters || !talent.weight || (talent.weight >= minWeight && talent.weight <= maxWeight);
 
         let matchesExperience = true;
-        if (selectedExperience !== allValue) {
+        if (usesAdvancedFilters && selectedExperience !== allValue) {
           if (selectedExperience === "under_1") matchesExperience = talent.yearsOfExperience < 1;
           else if (selectedExperience === "1_3") matchesExperience = talent.yearsOfExperience >= 1 && talent.yearsOfExperience <= 3;
           else if (selectedExperience === "3_5") matchesExperience = talent.yearsOfExperience >= 3 && talent.yearsOfExperience <= 5;
@@ -142,6 +145,7 @@ export default function DiscoverTalentsPage() {
     minWeight,
     maxWeight,
     selectedExperience,
+    showAdvancedFilters,
     displayTalents,
   ]);
 
@@ -174,6 +178,8 @@ export default function DiscoverTalentsPage() {
   }
 
   async function toggleSaved(id: string) {
+    if (!requireAuthAction({ actionLabel: "Lưu talent vào danh sách yêu thích" })) return;
+
     try {
       if (savedIds.includes(id)) {
         const itemId = wishlistItemIds[id];
@@ -487,7 +493,10 @@ export default function DiscoverTalentsPage() {
                         <span>Xem</span>
                       </button>
                       <button
-                        onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
+                        onClick={() => {
+                          if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
+                          router.push(`/brand/messages?talentId=${talent.id}`);
+                        }}
                         className="flex-1 flex h-10 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-[10px] uppercase tracking-wider transition active:scale-95 cursor-pointer"
                       >
                         <MessageSquare className="h-4 w-4" />
@@ -503,6 +512,8 @@ export default function DiscoverTalentsPage() {
       </div>
 
       {/* Invite to Campaign Modal Dialog */}
+      <GuestActionPrompt />
+
       {selectedInviteTalent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
@@ -534,6 +545,7 @@ export default function DiscoverTalentsPage() {
               <button onClick={() => setSelectedInviteTalent(null)} className="px-4 py-2 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Hủy</button>
               <button
                 onClick={() => {
+                  if (!requireAuthAction({ actionLabel: "Gửi lời mời talent tham gia campaign" })) return;
                   if (!selectedCampaignForInvite) {
                     window.alert("Vui lòng chọn chiến dịch!");
                     return;

@@ -20,17 +20,31 @@ try {
     "--skipLibCheck",
   ], { stdio: "inherit" });
 
-  const { isPublicPath } = require("../.tmp/auth-route-test/auth-routes.js");
+  const { isPublicPath, isStandalonePublicPath, usesAppShell } = require("../.tmp/auth-route-test/auth-routes.js");
 
   assert.equal(isPublicPath("/"), true);
   assert.equal(isPublicPath("/auth/login"), true);
   assert.equal(isPublicPath("/auth/register?redirect=/talent"), true);
   assert.equal(isPublicPath("/campaign/123"), true);
   assert.equal(isPublicPath("/ref/nguyen-ban"), true);
-  assert.equal(isPublicPath("/talent"), false);
-  assert.equal(isPublicPath("/talent/dashboard"), false);
-  assert.equal(isPublicPath("/brand"), false);
-  assert.equal(isPublicPath("/brand/my-talents"), false);
+  assert.equal(isPublicPath("/intro/talent"), true);
+  assert.equal(isPublicPath("/intro/brand"), true);
+  assert.equal(isPublicPath("/talent"), true);
+  assert.equal(isPublicPath("/talent/dashboard"), true);
+  assert.equal(isPublicPath("/brand"), true);
+  assert.equal(isPublicPath("/brand/my-talents"), true);
+  assert.equal(isPublicPath("/talent/portfolio"), true);
+  assert.equal(isPublicPath("/talent/survey"), true);
+
+  assert.equal(isStandalonePublicPath("/intro/talent"), true);
+  assert.equal(isStandalonePublicPath("/brand/search"), false);
+  assert.equal(isStandalonePublicPath("/talent/dashboard"), false);
+  assert.equal(isStandalonePublicPath("/talent/portfolio"), false);
+  assert.equal(isStandalonePublicPath("/talent/survey"), false);
+  assert.equal(usesAppShell("/brand/search"), true);
+  assert.equal(usesAppShell("/talent/dashboard"), true);
+  assert.equal(usesAppShell("/talent/portfolio"), true);
+  assert.equal(usesAppShell("/talent/survey"), true);
 } finally {
   rmSync(".tmp/auth-route-test", { recursive: true, force: true });
 }

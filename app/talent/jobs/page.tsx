@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import {
   Search, MapPin, DollarSign, Sparkles, Filter, ShieldCheck, CheckCircle,
   Eye, X, Info, Clock, Phone, Mail, Globe, MapPinned, AlertCircle,
@@ -21,6 +21,7 @@ import { getStoredAuthUser } from "@/lib/api-client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import QRCodeContainer from "@/components/QR_Code";
+import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 type StageFilter = "executing" | "recruiting" | "completed" | "all";
 
@@ -84,10 +85,11 @@ function readCurrentTalentIdentity() {
   };
 }
 
-export default function JobsPage() {
+function JobsPageContent() {
   const currentTalent = readCurrentTalentIdentity();
   const currentTalentId = currentTalent.profileId || currentTalent.userId;
   const searchParams = useSearchParams();
+  const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const campaignIdParam = searchParams.get("campaignId");
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState("all");
   const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>("all");
@@ -103,6 +105,7 @@ export default function JobsPage() {
   const [showInviteModal, setShowInviteModal] = useState<any>(null);
 
   const handleInviteClick = async (camp: any) => {
+    if (!requireAuthAction({ actionLabel: "Tạo link giới thiệu campaign" })) return;
     setLoadingReferral(camp.id);
     try {
       const res = await getCampaignReferralLink(camp.id);
@@ -210,6 +213,7 @@ export default function JobsPage() {
   }, [campaignIdParam, displayJobs]);
 
   const handleApply = async (id: string, title: string) => {
+    if (!requireAuthAction({ actionLabel: "Ứng tuyển campaign" })) return;
     if (appliedJobs.includes(id)) return;
 
     if (/^\d+$/.test(String(id))) {
@@ -232,6 +236,7 @@ export default function JobsPage() {
   };
 
   const handleUpdateStage = (jobId: string, nextStage: string) => {
+    if (!requireAuthAction({ actionLabel: "Cập nhật trạng thái job" })) return;
     setDisplayJobs(prevJobs => prevJobs.map(job => {
       if (String(job.id) !== String(jobId)) return job;
 
@@ -264,6 +269,7 @@ export default function JobsPage() {
   const handleJoinCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pastedUrl) return;
+    if (!requireAuthAction({ actionLabel: "Đăng ký campaign qua link giới thiệu" })) return;
 
     try {
       const parsedLink = parseCampaignReferralUrl(pastedUrl);
@@ -1307,6 +1313,8 @@ export default function JobsPage() {
         </div>
       )}
 
+      <GuestActionPrompt />
+
       {previewImageUrl && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-3">
           <button
@@ -1341,5 +1349,13 @@ export default function JobsPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense>
+      <JobsPageContent />
+    </Suspense>
   );
 }

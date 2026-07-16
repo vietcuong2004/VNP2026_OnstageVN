@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import { loadBrandTalent } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
+import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 const convertToDisplayDate = (dateStr: string) => {
   if (!dateStr) return "Chưa cập nhật";
@@ -90,6 +91,7 @@ const JOBS_LIST = [
 
 export default function BrandTalentProfilePage() {
   const router = useRouter();
+  const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const params = useParams<{ id: string }>();
   const staticTalent = useMemo(() => findTalentById(params.id), [params.id]);
   const [talent, setTalent] = useState<any>(staticTalent);
@@ -248,6 +250,7 @@ export default function BrandTalentProfilePage() {
   };
 
   function handleAddToCampaign() {
+    if (!requireAuthAction({ actionLabel: "Thêm talent vào campaign" })) return;
     if (!selectedCampaignId) {
       window.alert("Vui lòng chọn chiến dịch!");
       return;
@@ -406,14 +409,20 @@ export default function BrandTalentProfilePage() {
         {/* Centered Action Buttons Row */}
         <div className="flex items-center justify-center gap-3 px-6 pb-6 pt-4 w-full">
           <button
-            onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
+            onClick={() => {
+                    if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
+                    router.push(`/brand/messages?talentId=${talent.id}`);
+                  }}
             className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-950 transition active:scale-95 cursor-pointer whitespace-nowrap"
           >
             <MessageSquare className="mr-1.5 h-3.5 w-3.5 shrink-0" />
             Nhắn tin
           </button>
           <button
-            onClick={() => setShowInviteModal(true)}
+            onClick={() => {
+                    if (!requireAuthAction({ actionLabel: "Thêm talent vào campaign" })) return;
+                    setShowInviteModal(true);
+                  }}
             className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#C9A86A] transition active:scale-95 cursor-pointer hover:bg-[#C9A86A]/20 whitespace-nowrap"
           >
             <Briefcase className="mr-1.5 h-3.5 w-3.5 shrink-0" />
@@ -967,6 +976,8 @@ export default function BrandTalentProfilePage() {
 
       </div>
 
+      <GuestActionPrompt />
+
       {/* Invite to Campaign Modal Dialog */}
       {showInviteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
@@ -999,6 +1010,7 @@ export default function BrandTalentProfilePage() {
               <button onClick={() => setShowInviteModal(false)} className="px-4 py-2 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Hủy</button>
               <button
                 onClick={() => {
+                  if (!requireAuthAction({ actionLabel: "Thêm talent vào campaign" })) return;
                   if (!selectedCampaignId) {
                     window.alert("Vui lòng chọn chiến dịch!");
                     return;

@@ -9,6 +9,12 @@ import { busyDatesFromEvents, normalizeAvailabilityCalendar, normalizeBusyDates 
 const PROFILE_STORAGE_KEY = "vnp_talent_profile";
 export const TALENT_PROFILE_UPDATED_EVENT = "vnp_talent_profile_updated";
 
+export function requireTalentSession() {
+  if (!getAuthToken()) {
+    throw new Error("Bạn cần đăng nhập bằng tài khoản talent để thực hiện thao tác này.");
+  }
+}
+
 type BackendPhoto = {
   id: number;
   url?: string | null;
@@ -55,10 +61,10 @@ type BackendProfile = {
 export function getDefaultTalentProfile() {
   const user = getStoredAuthUser<{ name?: string; email?: string; external_avatar_url?: string | null; avatar?: string | null }>();
 
-  const fallbackAvatar = isUsableAvatarUrl(user?.avatar) ? user?.avatar : avatarFallbackForUser(user);
+  const fallbackAvatar = user ? (isUsableAvatarUrl(user.avatar) ? user.avatar : avatarFallbackForUser(user)) : "";
 
   return {
-    name: user?.name || "Talent",
+    name: user?.name || "",
     birthYear: undefined,
     location: "",
     hometown: "",
@@ -151,6 +157,7 @@ export function sanitizeTalentProfile(profile: any) {
 
   return {
     ...profile,
+    name: isPlaceholderTalentName(profile?.name) ? "" : profile?.name,
     availabilityCalendar: normalizeAvailabilityCalendar(profile?.availabilityCalendar),
     busyDates: normalizeBusyDates(profile?.busyDates),
     avatar,
@@ -322,14 +329,14 @@ function bustAssetCache(url: string) {
 
 function isPlaceholderTalentName(value?: string | null) {
   const normalized = String(value || "").trim().toLowerCase();
-  return !normalized || normalized === "talent";
+  return !normalized || normalized === "talent" || normalized === "nguyễn mai anh";
 }
 
 function profileDisplayName(profile: BackendProfile, localName?: string) {
   if (!isPlaceholderTalentName(profile.user?.name)) return profile.user?.name;
   if (!isPlaceholderTalentName(profile.display_name)) return profile.display_name;
   if (!isPlaceholderTalentName(localName)) return localName;
-  return "Talent";
+  return "";
 }
 
 function applyLatestSurveyState(profile: any, history: TalentSurveyHistoryEntry[]) {
@@ -456,7 +463,7 @@ export function buildBackendProfilePayload(profile: any) {
   const talentTypes = splitCsv(profile.talentTypes?.length ? profile.talentTypes : profile.specialSkills);
 
   return {
-    display_name: profile.name || "Talent",
+    display_name: profile.name || undefined,
     email: profile.email || undefined,
     phone: profile.phone || undefined,
     talent_types: talentTypes.length ? talentTypes : ["KOLs"],
@@ -572,6 +579,8 @@ export async function loadTalentCalendar(profile: any) {
 }
 
 export async function createTalentCalendarEvent(profileId: number, date: string, task: { time?: string; title: string; desc?: string }) {
+  requireTalentSession();
+
   const startTime = task.time?.split("-")[0]?.trim() || "09:00";
   const endTime = task.time?.split("-")[1]?.trim() || "10:00";
 
@@ -592,6 +601,8 @@ export async function createTalentCalendarEvent(profileId: number, date: string,
 }
 
 export async function updateTalentCalendarEvent(eventId: number | string, payload: { status?: string; title?: string }) {
+  requireTalentSession();
+
   const response = await apiJson<{ data: any }>(`/calendar/events/${eventId}`, {
     method: "PUT",
     body: JSON.stringify(payload),
@@ -601,14 +612,15 @@ export async function updateTalentCalendarEvent(eventId: number | string, payloa
 }
 
 export async function deleteTalentCalendarEvent(eventId: number | string) {
+  requireTalentSession();
+
   await apiJson(`/calendar/events/${eventId}`, { method: "DELETE" });
 }
 
 export async function loadTalentCampaigns() {
-  if (!getAuthToken()) return null;
-
   try {
-    const response = await apiJson<{ data: any[] }>("/talent/campaigns");
+    const path = getAuthToken() ? "/talent/campaigns" : "/public/talent-campaigns";
+    const response = await apiJson<{ data: any[] }>(path);
     return response.data || [];
   } catch (error) {
     console.warn(error);
@@ -617,6 +629,8 @@ export async function loadTalentCampaigns() {
 }
 
 export async function applyTalentCampaign(campaignId: number | string, notes?: string, referralCode?: string | null) {
+  requireTalentSession();
+
   const response = await apiJson<{ data: any }>(`/talent/campaigns/${campaignId}/apply`, {
     method: "POST",
     body: JSON.stringify({
@@ -629,6 +643,8 @@ export async function applyTalentCampaign(campaignId: number | string, notes?: s
 }
 
 export async function getCampaignReferralLink(campaignId: number | string) {
+  requireTalentSession();
+
   const response = await apiJson<{ data: any }>(`/campaigns/${campaignId}/referral-link`, {
     method: "POST",
   });
@@ -712,6 +728,8 @@ export async function loadTalentBrandInvitations() {
 }
 
 export async function updateTalentBrandInvitation(invitationId: number | string, status: "active" | "inactive") {
+  requireTalentSession();
+
   const response = await apiJson<{ data: any }>(`/talent/brand-invitations/${invitationId}`, {
     method: "PUT",
     body: JSON.stringify({ status }),
@@ -721,6 +739,8 @@ export async function updateTalentBrandInvitation(invitationId: number | string,
 }
 
 export async function loadTalentBrandInviteLink(brandId: number | string) {
+  requireTalentSession();
+
   const response = await apiJson<{ data: any }>(`/talent/brand-invitations/${brandId}/invite-link`);
 
   return response.data;
@@ -736,6 +756,8 @@ export async function resolveBrandTalentInviteLink(code: string, talentSlug?: st
 }
 
 export async function acceptBrandTalentInviteLink(code: string, talentSlug?: string | null) {
+  requireTalentSession();
+
   const path = talentSlug
     ? `/brand/talent-invite-links/${encodeURIComponent(code)}/${encodeURIComponent(talentSlug)}/accept`
     : `/brand/talent-invite-links/${encodeURIComponent(code)}/accept`;

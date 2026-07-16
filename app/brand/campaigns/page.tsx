@@ -14,6 +14,7 @@ import { type Campaign } from "@/lib/brand-mvp-data";
 import { loadBrandCampaigns, deleteBrandCampaign } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 import FormCreateJob from "./FormCreateJob";
+import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 type CampaignStatusTab = "all" | Campaign["status"];
 
@@ -36,10 +37,12 @@ function formatDate(dateStr?: string) {
 
 export default function CampaignsPage() {
   const router = useRouter();
+  const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [deletingCampaign, setDeletingCampaign] = useState<{ id: string; title: string } | null>(null);
 
   const handleDeleteCampaign = async () => {
+    if (!requireAuthAction({ actionLabel: "Xóa campaign" })) return;
     if (!deletingCampaign) return;
     try {
       await deleteBrandCampaign(deletingCampaign.id);
@@ -89,7 +92,10 @@ export default function CampaignsPage() {
           </div>
 
           <button
-            onClick={() => setIsCreating(true)}
+            onClick={() => {
+              if (!requireAuthAction({ actionLabel: "Tạo job/campaign mới" })) return;
+              setIsCreating(true);
+            }}
             className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-6 text-xs font-black uppercase tracking-wider text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all cursor-pointer shrink-0"
           >
             <Plus className="mr-2 h-4 w-4 stroke-[3]" />
@@ -228,7 +234,10 @@ export default function CampaignsPage() {
                     Xem thông tin <ChevronRight className="ml-1 h-3.5 w-3.5" />
                   </button>
                   <button
-                    onClick={() => setDeletingCampaign({ id: campaign.id, title: campaign.title })}
+                    onClick={() => {
+                      if (!requireAuthAction({ actionLabel: "Xóa campaign" })) return;
+                      setDeletingCampaign({ id: campaign.id, title: campaign.title });
+                    }}
                     className="w-16 flex h-10 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-600 hover:border-red-500 hover:text-white text-[9.5px] font-black uppercase tracking-widest text-red-400 transition-all duration-300 cursor-pointer"
                   >
                     Xóa
@@ -239,6 +248,8 @@ export default function CampaignsPage() {
           );
         })}
       </section>
+
+      <GuestActionPrompt />
 
       <FormCreateJob
         isOpen={isCreating}

@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import { getStoredAuthUser } from "@/lib/api-client";
+import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 type StageFilter = "all" | "new" | "accepted" | "executing" | "completed" | "confirmed";
 
@@ -111,6 +112,7 @@ function currentCampaignApplicant(campaign: any) {
 }
 
 export default function TalentAffiliatePage() {
+  const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const currentTalent = readCurrentTalentIdentity();
   const currentAuthUser = getStoredAuthUser<{ name?: string }>();
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -171,6 +173,7 @@ export default function TalentAffiliatePage() {
   };
 
   const handleCopyLink = async (campaignId: string, url: string) => {
+    if (!requireAuthAction({ actionLabel: "Copy link affiliate campaign" })) return;
     let copyUrl = url;
 
     if (/^\d+$/.test(String(campaignId)) && !referralLinks[String(campaignId)]) {
@@ -196,6 +199,7 @@ export default function TalentAffiliatePage() {
   const handleJoinCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pastedUrl) return;
+    if (!requireAuthAction({ actionLabel: "Đăng ký campaign qua link affiliate" })) return;
 
     try {
       const parsedLink = parseCampaignReferralUrl(pastedUrl);
@@ -880,6 +884,8 @@ export default function TalentAffiliatePage() {
         </div>
 
       </div>
+
+      <GuestActionPrompt />
 
       {/* TOAST NOTIFICATIONS */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">

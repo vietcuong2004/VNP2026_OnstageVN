@@ -28,6 +28,7 @@ import {
 import { getStoredAuthUser } from "@/lib/api-client";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
+import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 const nextActions = [
   {
@@ -156,7 +157,8 @@ function resolveRecommendedTalentAvatar(talent: TalentProfile) {
 
 export default function BrandDashboard() {
   const router = useRouter();
-  const authUser = useMemo(() => getStoredAuthUser<{ id?: number | string; name?: string; email?: string }>(), []);
+  const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
+  const [authUser, setAuthUser] = useState<{ id?: number | string; name?: string; email?: string } | null>(null);
   const authUserId = authUser?.id ? String(authUser.id) : null;
 
   const [savedIds, setSavedIds] = useState<string[]>(savedTalentIds);
@@ -166,6 +168,10 @@ export default function BrandDashboard() {
   const [partnerProfile, setPartnerProfile] = useState(emptyPartnerProfile);
   const [approvedRevenue, setApprovedRevenue] = useState(0);
   const [pendingRevenue, setPendingRevenue] = useState(0);
+
+  useEffect(() => {
+    setAuthUser(getStoredAuthUser<{ id?: number | string; name?: string; email?: string }>());
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -293,6 +299,7 @@ export default function BrandDashboard() {
   ], [acceptedTalents, approvedRevenue, campaignsList.length, openCampaigns.length, pendingRevenue, rosterTalents.length, totalApplicants]);
 
   const toggleSaved = (id: string) => {
+    if (!requireAuthAction({ actionLabel: "Lưu talent vào shortlist" })) return;
     setSavedIds((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
@@ -450,7 +457,10 @@ export default function BrandDashboard() {
                         <span>Xem</span>
                       </button>
                       <button
-                        onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
+                        onClick={() => {
+                          if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
+                          router.push(`/brand/messages?talentId=${talent.id}`);
+                        }}
                         className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-[10px] font-black uppercase tracking-wider text-slate-950 transition active:scale-95"
                       >
                         <MessageSquare className="h-4 w-4" />
@@ -585,6 +595,8 @@ export default function BrandDashboard() {
           </div>
         )}
       </section>
+
+      <GuestActionPrompt />
 
       <section className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-6">
         <h3 className="mb-5 text-xs font-black uppercase tracking-widest text-[#C9A86A]">Hành động khuyên dùng</h3>

@@ -117,21 +117,21 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   const [formData, setFormData] = useState({
     name: "",
-    birthYear: "2002",
-    location: "Hà Nội",
+    birthYear: "",
+    location: "",
     hometown: "",
     phone: "",
     email: "",
-    height: "172",
-    weight: "51",
-    bust: "85",
-    waist: "60",
-    hips: "90",
-    plasticSurgery: "Vẻ đẹp hoàn toàn tự nhiên, chưa từng can thiệp",
-    maritalStatus: "Độc thân, chưa từng sinh con",
-    education: "Cao đẳng / Đại học",
-    languages: "Thành thạo / Lưu loát (Tương đương IELTS 6.5 trở lên)",
-    skills: "Catwalk, Diễn xuất trước ống kính, Thuyết trình",
+    height: "",
+    weight: "",
+    bust: "",
+    waist: "",
+    hips: "",
+    plasticSurgery: "",
+    maritalStatus: "",
+    education: "",
+    languages: "",
+    skills: "",
     experience: "",
     tiktokUrl: "",
     instagramUrl: "",
@@ -1170,9 +1170,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   type="text"
                   name="name"
                   value={formData.name}
-                  readOnly
-                  className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-xs text-slate-400 cursor-not-allowed hover:border-white/20 transition-all placeholder-slate-500 font-medium opacity-70 focus:outline-none"
-                  placeholder="Nguyễn Mai Anh"
+                  onChange={handleInputChange}
+                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                  placeholder="Nhập họ và tên"
                   required
                 />
               </div>
