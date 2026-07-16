@@ -11,6 +11,9 @@ import { isPublicPath } from "@/lib/auth-routes";
 import { usePathname } from "next/navigation";
 import "./globals.css";
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://onstagevn.vercel.app").replace(/\/$/, "");
+const ASSET_VERSION = "8";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,23 +31,25 @@ export default function RootLayout({
         <meta property="og:site_name" content="OnstageVN" />
         <meta property="og:title" content="OnstageVN" />
         <meta property="og:description" content="Model Management System" />
-        <meta property="og:image" content="https://onstagevn.vercel.app/apple-touch-icon.png?v=7" />
-        <meta property="og:image:secure_url" content="https://onstagevn.vercel.app/apple-touch-icon.png?v=7" />
+        <meta property="og:url" content={`${SITE_URL}/`} />
+        <meta property="og:image" content={`${SITE_URL}/apple-touch-icon.png?v=${ASSET_VERSION}`} />
+        <meta property="og:image:secure_url" content={`${SITE_URL}/apple-touch-icon.png?v=${ASSET_VERSION}`} />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="180" />
         <meta property="og:image:height" content="180" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="OnstageVN" />
         <meta name="twitter:description" content="Model Management System" />
-        <meta name="twitter:image" content="https://onstagevn.vercel.app/apple-touch-icon.png?v=7" />
-        <link rel="icon" href="/favicon.ico?v=7" sizes="any" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=7" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=7" />
-        <link rel="icon" type="image/png" sizes="24x24" href="/favicon-24x24.png?v=7" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=7" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png?v=7" />
-        <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png?v=7" />
-        <link rel="manifest" href="/site.webmanifest?v=7" />
+        <meta name="twitter:image" content={`${SITE_URL}/apple-touch-icon.png?v=${ASSET_VERSION}`} />
+        <link rel="canonical" href={`${SITE_URL}/`} />
+        <link rel="icon" href={`/favicon.ico?v=${ASSET_VERSION}`} sizes="any" />
+        <link rel="apple-touch-icon" sizes="180x180" href={`/apple-touch-icon.png?v=${ASSET_VERSION}`} />
+        <link rel="icon" type="image/png" sizes="32x32" href={`/favicon-32x32.png?v=${ASSET_VERSION}`} />
+        <link rel="icon" type="image/png" sizes="24x24" href={`/favicon-24x24.png?v=${ASSET_VERSION}`} />
+        <link rel="icon" type="image/png" sizes="16x16" href={`/favicon-16x16.png?v=${ASSET_VERSION}`} />
+        <link rel="icon" type="image/png" sizes="192x192" href={`/favicon-192x192.png?v=${ASSET_VERSION}`} />
+        <link rel="icon" type="image/png" sizes="512x512" href={`/favicon-512x512.png?v=${ASSET_VERSION}`} />
+        <link rel="manifest" href={`/site.webmanifest?v=${ASSET_VERSION}`} />
       </head>
       <body suppressHydrationWarning className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
         <ThemeProvider>
