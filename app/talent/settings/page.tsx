@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Bell, Key, LogOut, RefreshCw, CheckCircle, Sparkles, Mail, MessageCircle, Copy, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createZaloLinkCode, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, logoutCurrentSession, SocialConnection, unlinkSocialConnection, updateAuthEmail, ZaloLinkStatus } from "@/lib/api-client";
+import { createZaloLinkCode, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, logoutCurrentSession, SocialConnection, switchCurrentPlatform, unlinkSocialConnection, updateAuthEmail, ZaloLinkStatus } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
 
 type AuthUser = {
@@ -234,9 +234,14 @@ export default function SettingsPage() {
         
         {/* Switch portal */}
         <div 
-          onClick={() => {
+          onClick={async () => {
             addToast("Đang chuyển đổi cổng portal...", "info");
-            setTimeout(() => router.push("/"), 800);
+            try {
+              await switchCurrentPlatform("brand");
+              router.push("/brand/dashboard");
+            } catch (error) {
+              addToast(error instanceof Error ? error.message : "Chưa thể chuyển sang cổng Brand.", "info");
+            }
           }}
           className="flex items-center justify-between p-5 cursor-pointer hover:bg-slate-950/40 transition-colors duration-300"
         >
