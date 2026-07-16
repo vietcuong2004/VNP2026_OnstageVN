@@ -36,17 +36,15 @@ const convertToDisplayDate = (dateStr: string) => {
   return dateOnly;
 };
 
-const availableSkills = [
-  "High Fashion",
-  "Runway",
-  "Commercial",
-  "Beauty Shoot",
-  "Editorial",
-  "KOL / Event",
-  "Fitness Model",
-  "Lookbook",
-  "MC / Host",
-  "Acting / Drama"
+const talentTypeOptions = [
+  "Diễn viên",
+  "Người mẫu",
+  "KOLs",
+  "KOCs",
+  "Livestreamers",
+  "MC",
+  "PG",
+  "Hoa hậu"
 ];
 
 const availableLanguages = [
@@ -108,18 +106,20 @@ export default function EditInfoTab({
     tattoo: "Không",
     tattooDesc: "",
     experience: "",
+    talentTypes: [],
     specialSkills: [],
     price: "",
     facebook_url: "",
+    tiktok_url: "",
     instagram_url: "",
     linkedin_url: ""
   });
 
   const handleAddSkill = (skill: string) => {
-    if (skill && !editForm.specialSkills.includes(skill)) {
+    if (skill && !editForm.talentTypes.includes(skill)) {
       setEditForm((prev: any) => ({
         ...prev,
-        specialSkills: [...prev.specialSkills, skill]
+        talentTypes: [...prev.talentTypes, skill]
       }));
     }
   };
@@ -127,7 +127,7 @@ export default function EditInfoTab({
   const handleRemoveSkill = (skillToRemove: string) => {
     setEditForm((prev: any) => ({
       ...prev,
-      specialSkills: prev.specialSkills.filter((s: string) => s !== skillToRemove)
+      talentTypes: prev.talentTypes.filter((s: string) => s !== skillToRemove)
     }));
   };
 
@@ -199,9 +199,11 @@ export default function EditInfoTab({
         tattoo: profile.tattoo || "Không",
         tattooDesc: profile.tattooDesc || "",
         experience: profile.experience !== undefined && profile.experience !== null ? profile.experience : "",
+        talentTypes: Array.isArray(profile.talentTypes) ? profile.talentTypes : (Array.isArray(profile.talent_types) ? profile.talent_types : []),
         specialSkills: Array.isArray(profile.specialSkills) ? profile.specialSkills : (Array.isArray(profile.skills) ? profile.skills : []),
         price: profile.price || "",
         facebook_url: profile.facebook_url || "",
+        tiktok_url: profile.tiktok_url || "",
         instagram_url: profile.instagram_url || "",
         linkedin_url: profile.linkedin_url || ""
       });
@@ -398,11 +400,13 @@ export default function EditInfoTab({
             tattoo: editForm.tattoo,
             tattooDesc: editForm.tattoo === "Có" ? editForm.tattooDesc : "",
             experience: Number(editForm.experience),
+            talentTypes: editForm.talentTypes,
             specialSkills: editForm.specialSkills,
             skills: editForm.specialSkills,
             lifestyleServices: lifestyleServices,
             price: editForm.price,
             facebook_url: editForm.facebook_url,
+            tiktok_url: editForm.tiktok_url,
             instagram_url: editForm.instagram_url,
             linkedin_url: editForm.linkedin_url
           };
@@ -417,7 +421,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Họ và tên</label>
               <input
                 type="text"
-                required
                 value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -427,7 +430,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Khu vực hoạt động</label>
               <input
                 type="text"
-                required
                 value={editForm.location}
                 onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -441,7 +443,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Email</label>
               <input
                 type="email"
-                required
                 value={editForm.email}
                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -451,7 +452,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Số điện thoại</label>
               <input
                 type="text"
-                required
                 value={editForm.phone}
                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -485,6 +485,16 @@ export default function EditInfoTab({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
+              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">TikTok URL</label>
+              <input
+                type="url"
+                value={editForm.tiktok_url}
+                onChange={(e) => setEditForm({ ...editForm, tiktok_url: e.target.value })}
+                placeholder="https://tiktok.com/@yourprofile"
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+              />
+            </div>
+            <div className="space-y-1.5">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Instagram URL</label>
               <input
                 type="url"
@@ -512,7 +522,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Quê quán</label>
               <input
                 type="text"
-                required
                 value={editForm.hometown}
                 onChange={(e) => setEditForm({ ...editForm, hometown: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -522,7 +531,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Học vấn</label>
               <input
                 type="text"
-                required
                 value={editForm.education}
                 onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -548,7 +556,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Chiều cao (cm)</label>
               <input
                 type="number"
-                required
                 value={editForm.height}
                 onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -558,7 +565,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Cân nặng (kg)</label>
               <input
                 type="number"
-                required
                 value={editForm.weight}
                 onChange={(e) => setEditForm({ ...editForm, weight: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -572,7 +578,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Vòng 1 (cm)</label>
               <input
                 type="number"
-                required
                 value={editForm.bust}
                 onChange={(e) => setEditForm({ ...editForm, bust: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -582,7 +587,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Vòng 2 (cm)</label>
               <input
                 type="number"
-                required
                 value={editForm.waist}
                 onChange={(e) => setEditForm({ ...editForm, waist: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -592,7 +596,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Vòng 3 (cm)</label>
               <input
                 type="number"
-                required
                 value={editForm.hips}
                 onChange={(e) => setEditForm({ ...editForm, hips: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -618,7 +621,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngày sinh</label>
               <input
                 type="date"
-                required
                 value={editForm.dob}
                 onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
                 className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
@@ -628,7 +630,6 @@ export default function EditInfoTab({
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Kinh nghiệm (năm)</label>
               <input
                 type="number"
-                required
                 min={0}
                 max={20}
                 value={editForm.experience}
@@ -645,10 +646,10 @@ export default function EditInfoTab({
             <div className="space-y-3">
               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Lĩnh vực hoạt động</label>
               <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-[#05070e] border border-white/5 rounded-xl text-left">
-                {editForm.specialSkills.length === 0 ? (
+                {editForm.talentTypes.length === 0 ? (
                   <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn lĩnh vực nào</span>
                 ) : (
-                  editForm.specialSkills.map((skill: string) => (
+                  editForm.talentTypes.map((skill: string) => (
                     <span key={skill} className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
                       {skill}
                       <button
@@ -678,8 +679,8 @@ export default function EditInfoTab({
                 }}
               >
                 <option value="" disabled hidden>Thêm lĩnh vực hoạt động...</option>
-                {availableSkills
-                  .filter((s: string) => !editForm.specialSkills.includes(s))
+                {talentTypeOptions
+                  .filter((s: string) => !editForm.talentTypes.includes(s))
                   .map((s: string) => (
                     <option key={s} value={s} className="bg-slate-950 text-white">{s}</option>
                   ))
@@ -822,7 +823,6 @@ export default function EditInfoTab({
                               <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Giá dịch vụ đề xuất (VND / {service.unit})</label>
                               <input
                                 type="number"
-                                required
                                 value={service.rate}
                                 onChange={(e) => {
                                   const updated = [...lifestyleServices];

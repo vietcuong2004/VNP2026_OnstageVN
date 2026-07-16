@@ -689,6 +689,22 @@ export default function PersonalInfoTab({
               )}
             </div>
             <div className="flex justify-between items-center text-xs text-slate-300">
+              <span className="font-medium text-slate-400">TikTok</span>
+              {profile.tiktok_url ? (
+                <a
+                  href={profile.tiktok_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-[#F0C56B] hover:text-white transition-colors truncate max-w-[155px]"
+                  title={profile.tiktok_url}
+                >
+                  {profile.tiktok_url.replace(/https?:\/\/(www\.)?/, '')}
+                </a>
+              ) : (
+                <span className="font-bold text-white">Chưa cập nhật</span>
+              )}
+            </div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Instagram</span>
               {profile.instagram_url ? (
                 <a
@@ -733,8 +749,8 @@ export default function PersonalInfoTab({
               <span className="font-medium text-slate-400 shrink-0">Lĩnh vực hoạt động</span>
               <span className="font-bold text-white text-right max-w-[160px] leading-normal">
                 {(() => {
-                  const skills = profile.specialSkills || profile.skills;
-                  return Array.isArray(skills) && skills.length > 0 ? skills.join(", ") : "Chưa cập nhật";
+                  const talentTypes = profile.talentTypes || profile.talent_types || profile.specialSkills || profile.skills;
+                  return Array.isArray(talentTypes) && talentTypes.length > 0 ? talentTypes.join(", ") : "Chưa cập nhật";
                 })()}
               </span>
             </div>
