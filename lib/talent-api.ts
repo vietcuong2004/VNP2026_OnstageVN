@@ -44,11 +44,12 @@ type BackendProfile = {
   price?: string | null;
   facebook_url?: string | null;
   instagram_url?: string | null;
+  tiktok_url?: string | null;
   linkedin_url?: string | null;
   photos?: BackendPhoto[] | null;
   social_accounts?: Array<{ followers_count?: number | null; engagement_rate?: number | null }> | null;
   calendar_events?: any[] | null;
-  user?: { name?: string | null; email?: string | null; external_avatar_url?: string | null } | null;
+  user?: { name?: string | null; email?: string | null; phone?: string | null; external_avatar_url?: string | null } | null;
 };
 
 export function getDefaultTalentProfile() {
@@ -73,6 +74,7 @@ export function getDefaultTalentProfile() {
     maritalStatus: "",
     education: "",
     languages: [],
+    talentTypes: [],
     skills: [],
     specialSkills: [],
     followersCount: 0,
@@ -114,6 +116,7 @@ export function getDefaultTalentProfile() {
     hasUploadedMC: false,
     price: "",
     facebook_url: "",
+    tiktok_url: "",
     instagram_url: "",
     linkedin_url: "",
   };
@@ -410,6 +413,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     tattoo: profile.has_tattoo ? "Có" : "Không",
     tattooDesc: profile.tattoo_description || "",
     languages: profile.languages?.length ? profile.languages : [],
+    talentTypes: profile.talent_types?.length ? profile.talent_types : [],
     skills: profile.skills?.length ? profile.skills : [],
     specialSkills: profile.skills?.length ? profile.skills : [],
     experience: profile.experience_years ?? "",
@@ -423,6 +427,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     photoRecords: portfolioPhotoRecords,
     price: profile.price || "",
     facebook_url: profile.facebook_url || "",
+    tiktok_url: profile.tiktok_url || "",
     instagram_url: profile.instagram_url || "",
     linkedin_url: profile.linkedin_url || "",
   };
@@ -448,10 +453,13 @@ export function buildBackendProfilePayload(profile: any) {
   const bust = Number(profile.bust || 0) || null;
   const waist = Number(profile.waist || 0) || null;
   const hips = Number(profile.hips || 0) || null;
+  const talentTypes = splitCsv(profile.talentTypes?.length ? profile.talentTypes : profile.specialSkills);
 
   return {
     display_name: profile.name || "Talent",
-    talent_types: profile.talentTypes?.length ? profile.talentTypes : ["kol", "model"],
+    email: profile.email || undefined,
+    phone: profile.phone || undefined,
+    talent_types: talentTypes.length ? talentTypes : ["KOLs"],
     city: profile.location || undefined,
     district: profile.hometown || undefined,
     gender: normalizeGender(profile.gender),
@@ -473,6 +481,7 @@ export function buildBackendProfilePayload(profile: any) {
     budget_max: profile.rateCard ? Math.max(...Object.values(profile.rateCard).map(Number).filter(Boolean)) : undefined,
     price: profile.price || undefined,
     facebook_url: profile.facebook_url || undefined,
+    tiktok_url: profile.tiktok_url || undefined,
     instagram_url: profile.instagram_url || undefined,
     linkedin_url: profile.linkedin_url || undefined,
     is_public: true,
