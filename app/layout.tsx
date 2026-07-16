@@ -3,8 +3,8 @@ import AppShell from "./app-shell";
 import "./globals.css";
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://onstagevn.vercel.app").replace(/\/$/, "");
-const ASSET_VERSION = "8";
-const SHARE_IMAGE = `/apple-touch-icon.png?v=${ASSET_VERSION}`;
+const ASSET_VERSION = "9";
+const SHARE_IMAGE = `/home-og-image.png?v=${ASSET_VERSION}`;
 const SHARE_IMAGE_URL = `${SITE_URL}${SHARE_IMAGE}`;
 
 export const metadata: Metadata = {
@@ -25,14 +25,14 @@ export const metadata: Metadata = {
         url: SHARE_IMAGE_URL,
         secureUrl: SHARE_IMAGE_URL,
         type: "image/png",
-        width: 180,
-        height: 180,
+        width: 1200,
+        height: 630,
         alt: "OnstageVN",
       },
     ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "OnstageVN",
     description: "OnstageVN - Model Management System",
     images: [SHARE_IMAGE_URL],
