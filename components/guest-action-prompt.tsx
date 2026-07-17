@@ -66,9 +66,6 @@ export function useGuestActionPrompt() {
             <p className="text-sm leading-relaxed text-slate-300">
               {prompt.description || DEFAULT_DESCRIPTION}
             </p>
-            <p className="text-xs leading-relaxed text-slate-500">
-              Nếu bạn đang nhập hồ sơ tạm, dữ liệu sẽ được giữ lại và chỉ merge vào tài khoản mới sau khi đăng ký.
-            </p>
           </div>
 
           <div className="flex flex-col gap-3 border-t border-white/8 bg-slate-950/35 p-5 sm:flex-row sm:justify-end">

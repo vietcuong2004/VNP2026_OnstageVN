@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Briefcase,
@@ -22,6 +22,220 @@ import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import { cn } from "@/lib/utils";
 
 const allValue = "all";
+const cityOptions = [
+  "Tỉnh An Giang",
+  "Tỉnh Bắc Ninh",
+  "Tỉnh Cà Mau",
+  "Tỉnh Cao Bằng",
+  "TP. Cần Thơ",
+  "TP. Đà Nẵng",
+  "Tỉnh Đắk Lắk",
+  "Tỉnh Điện Biên",
+  "Tỉnh Đồng Nai",
+  "Tỉnh Đồng Tháp",
+  "Tỉnh Gia Lai",
+  "TP. Hà Nội",
+  "Tỉnh Hà Tĩnh",
+  "TP. Hải Phòng",
+  "TP. Hồ Chí Minh",
+  "TP. Huế",
+  "Tỉnh Hưng Yên",
+  "Tỉnh Khánh Hòa",
+  "Tỉnh Lai Châu",
+  "Tỉnh Lâm Đồng",
+  "Tỉnh Lạng Sơn",
+  "Tỉnh Lào Cai",
+  "Tỉnh Nghệ An",
+  "Tỉnh Ninh Bình",
+  "Tỉnh Phú Thọ",
+  "Tỉnh Quảng Ngãi",
+  "Tỉnh Quảng Ninh",
+  "Tỉnh Quảng Trị",
+  "Tỉnh Sơn La",
+  "Tỉnh Tây Ninh",
+  "Tỉnh Thái Nguyên",
+  "Tỉnh Thanh Hóa",
+  "Tỉnh Tuyên Quang",
+  "Tỉnh Vĩnh Long",
+];
+const talentTypeOptions = [
+  "Diễn viên",
+  "Người mẫu",
+  "KOLs",
+  "KOCs",
+  "Livestreamers",
+  "MC",
+  "PG",
+  "Hoa hậu",
+];
+const genderOptions = [
+  { value: allValue, label: "Tất cả giới tính" },
+  { value: "Nữ", label: "Nữ" },
+  { value: "Nam", label: "Nam" },
+];
+const typeOptions = [
+  { value: allValue, label: "Tất cả loại hình" },
+  ...talentTypeOptions.map((type) => ({ value: type, label: type })),
+];
+const experienceOptions = [
+  { value: allValue, label: "Tất cả kinh nghiệm" },
+  { value: "under_1", label: "Dưới 1 năm" },
+  { value: "1_3", label: "Từ 1 - 3 năm" },
+  { value: "3_5", label: "Từ 3 - 5 năm" },
+  { value: "over_5", label: "Trên 5 năm" },
+];
+
+function normalizeCityName(value: string) {
+  return value.replace(/^(TP\.|Tỉnh)\s*/i, "").trim();
+}
+
+const cityDropdownOptions = [
+  { value: allValue, label: "Toàn quốc" },
+  ...cityOptions.map((city) => ({ value: normalizeCityName(city), label: city })),
+];
+
+function normalizeSearchText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
+}
+
+function normalizeTalentType(value: string) {
+  const normalized = value.trim().toLowerCase();
+  const aliases: Record<string, string> = {
+    model: "người mẫu",
+    "người mẫu": "người mẫu",
+    kol: "kols",
+    kols: "kols",
+    koc: "kocs",
+    kocs: "kocs",
+    livestreamer: "livestreamers",
+    livestreamers: "livestreamers",
+    mc: "mc",
+    pg: "pg",
+    "diễn viên": "diễn viên",
+    "hoa hậu": "hoa hậu",
+  };
+
+  return aliases[normalized] || normalized;
+}
+
+type FilterDropdownOption = {
+  value: string;
+  label: string;
+};
+
+function FilterDropdown({
+  value,
+  onChange,
+  options,
+  searchPlaceholder = "Tìm kiếm...",
+  emptyText = "Không tìm thấy lựa chọn",
+  searchable = true,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: FilterDropdownOption[];
+  searchPlaceholder?: string;
+  emptyText?: string;
+  searchable?: boolean;
+  className?: string;
+}) {
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+
+  const selectedOption = options.find((option) => option.value === value) || options[0];
+  const filteredOptions = useMemo(() => {
+    const keyword = normalizeSearchText(searchInput);
+    if (!keyword) return options;
+
+    return options.filter((option) => {
+      const label = normalizeSearchText(option.label);
+      const optionValue = normalizeSearchText(option.value);
+
+      return label.includes(keyword) || optionValue.includes(keyword);
+    });
+  }, [options, searchInput]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (!dropdownRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} className={cn("relative", className)}>
+      <button
+        type="button"
+        onClick={() => setIsOpen((open) => !open)}
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-left text-xs text-white outline-none transition-all hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60"
+      >
+        <span className="truncate">{selectedOption?.label}</span>
+        <ChevronDown className={cn("h-4 w-4 shrink-0 text-white transition-transform", isOpen && "rotate-180")} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-full z-[100] mt-1 rounded-xl border border-white/10 bg-[#08051d] shadow-2xl">
+          {searchable && (
+            <div className="border-b border-white/10 p-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#C9A86A]" />
+                <input
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder={searchPlaceholder}
+                  className="w-full rounded-lg border border-white/10 bg-slate-950/80 py-2 pl-9 pr-3 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/60"
+                  autoFocus
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="max-h-[320px] overflow-y-auto py-1">
+            {filteredOptions.map((option) => {
+              const isSelected = option.value === value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(option.value);
+                    setSearchInput("");
+                    setIsOpen(false);
+                  }}
+                  className={cn(
+                    "block w-full px-4 py-2 text-left text-xs font-medium transition-colors hover:bg-[#C9A86A]/15",
+                    isSelected ? "bg-[#C9A86A]/25 text-white" : "text-slate-200"
+                  )}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+
+            {filteredOptions.length === 0 && (
+              <div className="px-4 py-3 text-xs font-semibold text-slate-500">
+                {emptyText}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function DiscoverTalentsPage() {
   const router = useRouter();
@@ -105,8 +319,12 @@ export default function DiscoverTalentsPage() {
           talent.type.toLowerCase().includes(keyword);
 
         const matchesGender = selectedGender === allValue || talent.gender === selectedGender;
-        const matchesType = selectedType === allValue || talent.type === selectedType;
-        const matchesCity = selectedCity === allValue || talent.city === selectedCity;
+        const matchesType =
+          selectedType === allValue ||
+          normalizeTalentType(talent.type || "") === normalizeTalentType(selectedType);
+        const matchesCity =
+          selectedCity === allValue ||
+          normalizeCityName(talent.city || "") === normalizeCityName(selectedCity);
 
         const usesAdvancedFilters = showAdvancedFilters;
         const matchesAge = !usesAdvancedFilters || !talent.age || (talent.age >= minAge && talent.age <= maxAge);
@@ -252,7 +470,7 @@ export default function DiscoverTalentsPage() {
             )}
           </div>
         </div>
-        
+
         <button
           onClick={() => setSearchQuery(searchInput)}
           className="flex h-[50px] items-center justify-center rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-8 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(201,168,106,0.3)] shrink-0"
@@ -262,44 +480,44 @@ export default function DiscoverTalentsPage() {
       </div>
 
       {/* Horizontal Filter Bar */}
-      <div className="relative rounded-2xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-5 space-y-4 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md overflow-hidden">
+      <div className="relative z-40 rounded-2xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-5 space-y-4 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md overflow-visible">
         {/* Top Highlight line */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A86A] to-transparent" />
-        
+
         {/* Main Filters Row */}
         <div className="flex flex-wrap items-end gap-3.5 relative z-10">
           {/* Giới tính */}
           <div className="flex-1 min-w-[120px]">
             <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">Giới tính</span>
-            <select value={selectedGender} onChange={(e) => setSelectedGender(e.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-950/80 hover:border-[#C9A86A]/40 px-3 py-2 text-xs text-white outline-none focus:border-[#C9A86A]/60 transition-all">
-              <option value={allValue}>Tất cả giới tính</option>
-              <option value="Nữ">Nữ</option>
-              <option value="Nam">Nam</option>
-            </select>
+            <FilterDropdown
+              value={selectedGender}
+              onChange={setSelectedGender}
+              options={genderOptions}
+              searchable={false}
+            />
           </div>
 
           {/* Địa điểm */}
-          <div className="flex-1 min-w-[140px]">
+          <div className="flex-1 min-w-[180px]">
             <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">Địa điểm</span>
-            <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-950/80 hover:border-[#C9A86A]/40 px-3 py-2 text-xs text-white outline-none focus:border-[#C9A86A]/60 transition-all">
-              <option value={allValue}>Toàn quốc</option>
-              <option value="Hà Nội">Hà Nội</option>
-              <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
-              <option value="Đà Nẵng">Đà Nẵng</option>
-            </select>
+            <FilterDropdown
+              value={selectedCity}
+              onChange={setSelectedCity}
+              options={cityDropdownOptions}
+              searchPlaceholder="Nhập tỉnh/thành..."
+              emptyText="Không tìm thấy địa điểm"
+            />
           </div>
 
           {/* Loại hình Talent */}
           <div className="flex-1 min-w-[140px]">
             <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">Loại hình</span>
-            <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-950/80 hover:border-[#C9A86A]/40 px-3 py-2.5 text-xs text-white outline-none focus:border-[#C9A86A]/60 transition-all">
-              <option value={allValue}>Tất cả loại hình</option>
-              <option value="KOL">KOL</option>
-              <option value="Model">Model</option>
-              <option value="MC">MC</option>
-              <option value="PG">PG</option>
-              <option value="Dancer">Dancer</option>
-            </select>
+            <FilterDropdown
+              value={selectedType}
+              onChange={setSelectedType}
+              options={typeOptions}
+              searchable={false}
+            />
           </div>
 
           {/* Buttons Group */}
@@ -331,7 +549,7 @@ export default function DiscoverTalentsPage() {
         {showAdvancedFilters && (
           <div className="border-t border-white/5 pt-4 space-y-4 animate-in slide-in-from-top-2 duration-300">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              
+
               {/* Độ tuổi */}
               <div className="space-y-1.5">
                 <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Độ tuổi ({minAge} - {maxAge})</span>
@@ -362,13 +580,12 @@ export default function DiscoverTalentsPage() {
               {/* Kinh nghiệm */}
               <div className="space-y-1.5">
                 <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Kinh nghiệm chuyên môn</span>
-                <select value={selectedExperience} onChange={(e) => setSelectedExperience(e.target.value)} className="w-full rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2 text-xs text-white outline-none focus:border-[#C9A86A]/60">
-                  <option value={allValue}>Tất cả kinh nghiệm</option>
-                  <option value="under_1">Dưới 1 năm</option>
-                  <option value="1_3">Từ 1 - 3 năm</option>
-                  <option value="3_5">Từ 3 - 5 năm</option>
-                  <option value="over_5">Trên 5 năm</option>
-                </select>
+                <FilterDropdown
+                  value={selectedExperience}
+                  onChange={setSelectedExperience}
+                  options={experienceOptions}
+                  searchable={false}
+                />
               </div>
 
             </div>
@@ -377,7 +594,7 @@ export default function DiscoverTalentsPage() {
       </div>
 
       {/* Main Results Container */}
-      <div className="w-full">
+      <div className="relative z-0 w-full">
         {/* Content - Flexible */}
         <main className="w-full space-y-4">
           <div className="flex flex-col gap-3 border-b border-[#2B313D] pb-3 sm:flex-row sm:items-center sm:justify-between">
@@ -402,6 +619,8 @@ export default function DiscoverTalentsPage() {
               {filteredTalents.map((talent) => {
                 const isSaved = savedIds.includes(talent.id);
                 const status = getTalentStatus(talent.id);
+                const locationText = [talent.district, talent.city].filter(Boolean).join(", ");
+                const experienceYears = Number(talent.yearsOfExperience ?? talent.experience_years ?? 0);
 
                 return (
                   <article key={talent.id} className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg hover:border-[#C9A86A]/30 transition-all duration-300 group flex flex-col justify-between min-w-0">
@@ -458,28 +677,32 @@ export default function DiscoverTalentsPage() {
                       </div>
 
                       {/* Header details */}
-                      <div className="space-y-1 min-w-0">
+                      <div className="space-y-2 min-w-0">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <h3 className="text-xs font-black text-white truncate flex-1">{talent.name}</h3>
+                          <h3 className="flex-1 truncate text-base font-black leading-tight tracking-wide text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.12)]">{talent.name}</h3>
                           {talent.verified && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />}
                         </div>
 
-                        <div className="flex items-center gap-1 text-[9px] text-slate-500 font-bold uppercase tracking-wider">
-                          <MapPin className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{talent.district}, {talent.city}</span>
+                        <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                          <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
+                          <span className="truncate">{locationText || "Chưa cập nhật"}</span>
                         </div>
+
+                        <span className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
+                          {talent.type || "Chưa cập nhật"}
+                        </span>
                       </div>
 
                       {/* Info badges row */}
-                      <div className="my-2.5 flex flex-wrap gap-1">
-                        <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.type}</span>
-                        <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.age} tuổi</span>
-                        <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.height}cm</span>
-                        <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.weight}kg</span>
+                      <div className="my-3 flex flex-nowrap gap-1 overflow-hidden">
+                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.age} tuổi</span>
+                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{experienceYears} năm kinh nghiệm</span>
+                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.height}cm</span>
+                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.weight}kg</span>
                       </div>
 
                       {/* Bio brief */}
-                      <p className="line-clamp-2 text-[10px] leading-relaxed text-slate-400 mt-2 min-h-7">{talent.experience}</p>
+                      <p className="line-clamp-2 text-[10px] leading-relaxed text-slate-300 mt-2 min-h-7">{talent.experience}</p>
                     </div>
 
                     {/* Action Buttons */}
