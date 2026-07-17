@@ -490,11 +490,15 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
   const displayExperience = repairedExperience && !hasSuspiciousQuestionMojibake(repairedExperience)
     ? repairedExperience
     : fallbackTalentExperience(profile, fallback);
+  const talentTypes = (profile.talent_types?.length ? profile.talent_types : fallback?.talentTypes || [fallback?.type || "Talent"])
+    .map((item) => String(repairMojibake(item)).trim())
+    .filter(Boolean);
 
   return {
     id: String(profile.id ?? fallback?.id ?? ""),
     name: displayName,
-    type: String(repairMojibake(profile.talent_types?.[0] || fallback?.type || "Talent")),
+    type: talentTypes[0] || "Talent",
+    talentTypes,
     city: String(repairMojibake(profile.city || fallback?.city || "")),
     district: String(repairMojibake(profile.district || fallback?.district || "")),
     gender: profile.gender === "male" ? "Nam" : profile.gender === "female" ? "Nữ" : fallback?.gender || "",
@@ -727,6 +731,26 @@ function hasUsefulBrandDraft(profile: BrandPartnerProfile) {
   ].some((value) => String(value || "").trim() !== "");
 }
 
+function isLegacyMockBrandDraft(profile: Partial<BrandPartnerProfile>) {
+  const haystack = [
+    profile.organizationName,
+    profile.websiteUrl,
+    profile.fanpageUrl,
+    profile.contactEmail,
+    profile.contactPhone,
+    profile.description,
+  ]
+    .map((value) => String(value || "").toLowerCase())
+    .join(" ");
+
+  return (
+    haystack.includes("loreal") ||
+    haystack.includes("l'or") ||
+    haystack.includes("0901234567") ||
+    haystack.includes("mỹ phẩm và chăm sóc sắc đẹp")
+  );
+}
+
 export function loadGuestBrandProfileDraft(fallback: BrandPartnerProfile) {
   if (typeof window === "undefined") return fallback;
 
@@ -735,6 +759,11 @@ export function loadGuestBrandProfileDraft(fallback: BrandPartnerProfile) {
 
   try {
     const draft = JSON.parse(raw) as Partial<BrandPartnerProfile>;
+    if (isLegacyMockBrandDraft(draft)) {
+      window.localStorage.removeItem(BRAND_PROFILE_DRAFT_KEY);
+      return fallback;
+    }
+
     return { ...fallback, ...draft };
   } catch {
     window.localStorage.removeItem(BRAND_PROFILE_DRAFT_KEY);

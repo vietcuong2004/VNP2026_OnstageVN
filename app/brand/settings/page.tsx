@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound, Lock, AlertCircle, Upload, MessageCircle, Copy, ExternalLink } from "lucide-react";
-import { partnerProfile } from "@/lib/brand-mvp-data";
 import { loadBrandPartnerProfile, mapBackendPartnerProfile, saveBrandPartnerProfile, uploadBrandProfileCover, uploadBrandProfileLogo } from "@/lib/brand-api";
-import { createZaloLinkCode, getAuthToken, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, SocialConnection, unlinkSocialConnection, updateAuthEmail, apiJson, storeAuthUser, ZaloLinkStatus } from "@/lib/api-client";
+import { createZaloLinkCode, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, SocialConnection, unlinkSocialConnection, updateAuthEmail, apiJson, storeAuthUser, ZaloLinkStatus } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
@@ -28,18 +27,32 @@ function getZaloBotUrl(status?: ZaloLinkStatus | null) {
 }
 
 const fallbackProfile = mapBackendPartnerProfile({
-  organization_name: partnerProfile.organizationName,
-  organization_type: partnerProfile.organizationType,
-  industry: partnerProfile.industry,
-  website_url: "https://loreal.vn",
-  fanpage_url: "https://facebook.com/lorealparisvietnam",
-  contact_name: partnerProfile.contactName,
-  contact_phone: partnerProfile.contactPhone,
-  contact_email: partnerProfile.contactEmail,
-  city: partnerProfile.city,
-  description: "Nhãn hàng mỹ phẩm và chăm sóc sắc đẹp, thường xuyên tìm KOL, model, MC và PG cho campaign marketing.",
-  verification_status: partnerProfile.verificationStatus,
+  verification_status: "pending",
 });
+
+function displayText(value: string | null | undefined) {
+  return value?.trim() || "Chưa cập nhật";
+}
+
+function calculateCompletion(profile: typeof fallbackProfile) {
+  const fields = [
+    profile.organizationName,
+    profile.organizationType,
+    profile.industry,
+    profile.city,
+    profile.websiteUrl,
+    profile.fanpageUrl,
+    profile.contactName,
+    profile.contactPhone,
+    profile.contactEmail,
+    profile.description,
+    profile.logoUrl,
+    profile.coverUrl,
+  ];
+  const completed = fields.filter((value) => String(value || "").trim()).length;
+
+  return Math.round((completed / fields.length) * 100);
+}
 
 export default function BrandSettingsPage() {
   const router = useRouter();
@@ -56,6 +69,7 @@ export default function BrandSettingsPage() {
   const [missingEmailFromQuery, setMissingEmailFromQuery] = useState(false);
   const needsEmail = !authUser?.email;
   const missingEmail = missingEmailFromQuery && needsEmail;
+  const profileCompletion = calculateCompletion(profile);
 
   // Avatar upload states
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -384,7 +398,7 @@ export default function BrandSettingsPage() {
             <CheckCircle2 className="h-4 w-4" />
             <span className="text-[10px] font-black uppercase tracking-widest">{profile.verificationStatus}</span>
           </div>
-          <div className="mt-1 text-lg font-black text-white">{partnerProfile.completion}% hoàn thiện</div>
+          <div className="mt-1 text-lg font-black text-white">{profileCompletion}% hoàn thiện</div>
         </div>
       </section>
 
@@ -430,7 +444,7 @@ export default function BrandSettingsPage() {
             <div className="relative group h-28 w-28 shrink-0 rounded-3xl overflow-hidden border-2 border-amber-500/20 bg-[#08090f] p-[3px] transition-all duration-300 hover:border-amber-400/50 shadow-lg shadow-amber-500/5">
               <img
                 src={profile.logoUrl || authUser?.external_avatar_url || "/logo.png"}
-                alt={profile.organizationName}
+                alt={profile.organizationName || "Brand logo"}
                 className="h-full w-full rounded-[22px] object-cover"
               />
               <label htmlFor="brand-avatar-upload" className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer gap-1">
@@ -450,7 +464,7 @@ export default function BrandSettingsPage() {
               )}
             </div>
             <div className="pt-2 flex-1 min-w-0">
-              <h2 className="text-base font-black text-white leading-tight break-words">{profile.organizationName}</h2>
+              <h2 className="text-base font-black text-white leading-tight break-words">{displayText(profile.organizationName)}</h2>
               {profile.industry && (
                 <span className="mt-1.5 inline-block rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-slate-400 max-w-full truncate">
                   {profile.industry}
@@ -475,23 +489,23 @@ export default function BrandSettingsPage() {
           <div className="space-y-3 text-xs">
             <div className="flex items-center gap-2 text-slate-400">
               <UserRound className="h-4 w-4 text-amber-300" />
-              {profile.contactName}
+              {displayText(profile.contactName)}
             </div>
             <div className="flex items-center gap-2 text-slate-400">
               <Phone className="h-4 w-4 text-amber-300" />
-              {profile.contactPhone}
+              {displayText(profile.contactPhone)}
             </div>
             <div className="flex items-center gap-2 text-slate-400">
               <Mail className="h-4 w-4 text-amber-300" />
-              {profile.contactEmail}
+              {displayText(profile.contactEmail)}
             </div>
             <div className="flex items-center gap-2 text-slate-400">
               <MapPin className="h-4 w-4 text-amber-300" />
-              {profile.city}
+              {displayText(profile.city)}
             </div>
             <div className="flex items-center gap-2 text-slate-400">
               <Globe2 className="h-4 w-4 text-amber-300" />
-              {profile.websiteUrl}
+              {displayText(profile.websiteUrl)}
             </div>
           </div>
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Bell, Briefcase, CheckCheck, LoaderCircle, MessageSquare, Trash2, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getStoredAuthUser } from "@/lib/api-client";
+import { getStoredAuthUser, isUnauthenticatedError } from "@/lib/api-client";
 import {
   UserNotification,
   deleteNotification,
@@ -73,7 +73,11 @@ export default function NotificationsPage({ portal }: Props) {
 
   useEffect(() => {
     refresh()
-      .catch((reason) => setError(reason instanceof Error ? reason.message : "Không tải được thông báo."))
+      .catch((reason) => {
+        if (!isUnauthenticatedError(reason)) {
+          setError(reason instanceof Error ? reason.message : "Không tải được thông báo.");
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -95,13 +99,20 @@ export default function NotificationsPage({ portal }: Props) {
   }, [authUser?.id]);
 
   const handleRead = async (notification: UserNotification) => {
-    if (!notification.read_at) {
-      const response = await markNotificationRead(notification.id);
-      setUnreadCount(response.unread_count);
-      notifyNotificationsUpdated(response.unread_count);
-      setNotifications((current) => current.map((item) => (
-        item.id === notification.id ? response.data : item
-      )));
+    try {
+      if (!notification.read_at) {
+        const response = await markNotificationRead(notification.id);
+        setUnreadCount(response.unread_count);
+        notifyNotificationsUpdated(response.unread_count);
+        setNotifications((current) => current.map((item) => (
+          item.id === notification.id ? response.data : item
+        )));
+      }
+    } catch (reason) {
+      if (!isUnauthenticatedError(reason)) {
+        setError(reason instanceof Error ? reason.message : "Không thể cập nhật thông báo.");
+      }
+      return;
     }
 
     const target = notificationTarget(portal, notification);
@@ -111,20 +122,32 @@ export default function NotificationsPage({ portal }: Props) {
   };
 
   const handleReadAll = async () => {
-    const response = await markAllNotificationsRead();
-    setUnreadCount(0);
-    notifyNotificationsUpdated(response.unread_count);
-    setNotifications((current) => current.map((item) => ({
-      ...item,
-      read_at: item.read_at || new Date().toISOString(),
-    })));
+    try {
+      const response = await markAllNotificationsRead();
+      setUnreadCount(0);
+      notifyNotificationsUpdated(response.unread_count);
+      setNotifications((current) => current.map((item) => ({
+        ...item,
+        read_at: item.read_at || new Date().toISOString(),
+      })));
+    } catch (reason) {
+      if (!isUnauthenticatedError(reason)) {
+        setError(reason instanceof Error ? reason.message : "Không thể đánh dấu đã đọc.");
+      }
+    }
   };
 
   const handleDelete = async (notification: UserNotification) => {
-    const response = await deleteNotification(notification.id);
-    setUnreadCount(response.unread_count);
-    notifyNotificationsUpdated(response.unread_count);
-    setNotifications((current) => current.filter((item) => item.id !== notification.id));
+    try {
+      const response = await deleteNotification(notification.id);
+      setUnreadCount(response.unread_count);
+      notifyNotificationsUpdated(response.unread_count);
+      setNotifications((current) => current.filter((item) => item.id !== notification.id));
+    } catch (reason) {
+      if (!isUnauthenticatedError(reason)) {
+        setError(reason instanceof Error ? reason.message : "Không thể xóa thông báo.");
+      }
+    }
   };
 
   return (

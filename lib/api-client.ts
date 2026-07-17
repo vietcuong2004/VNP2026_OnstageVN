@@ -23,6 +23,10 @@ export function getStoredAuthUser<T = unknown>() {
   }
 }
 
+export function isUnauthenticatedError(error: unknown) {
+  return error instanceof Error && /unauthenticated|unauthorized|401/i.test(error.message);
+}
+
 export function storeAuthUser(user: unknown) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem("onstagevn_auth_user", JSON.stringify(user));

@@ -124,6 +124,20 @@ function normalizeTalentType(value: string) {
   return aliases[normalized] || normalized;
 }
 
+function getTalentTypes(talent: unknown) {
+  const record = talent && typeof talent === "object" ? talent as Record<string, unknown> : {};
+
+  if (Array.isArray(record.talentTypes) && record.talentTypes.length) {
+    return record.talentTypes.map((type: unknown) => String(type).trim()).filter(Boolean);
+  }
+
+  if (Array.isArray(record.talent_types) && record.talent_types.length) {
+    return record.talent_types.map((type: unknown) => String(type).trim()).filter(Boolean);
+  }
+
+  return record.type ? [String(record.type)] : [];
+}
+
 type FilterDropdownOption = {
   value: string;
   label: string;
@@ -312,16 +326,17 @@ export default function DiscoverTalentsPage() {
 
     return displayTalents
       .filter((talent) => {
+        const talentTypes = getTalentTypes(talent);
         const matchesSearch =
           !keyword ||
           talent.name.toLowerCase().includes(keyword) ||
           talent.skills.some((skill: string) => skill.toLowerCase().includes(keyword)) ||
-          talent.type.toLowerCase().includes(keyword);
+          talentTypes.some((type) => type.toLowerCase().includes(keyword));
 
         const matchesGender = selectedGender === allValue || talent.gender === selectedGender;
         const matchesType =
           selectedType === allValue ||
-          normalizeTalentType(talent.type || "") === normalizeTalentType(selectedType);
+          talentTypes.some((type) => normalizeTalentType(type) === normalizeTalentType(selectedType));
         const matchesCity =
           selectedCity === allValue ||
           normalizeCityName(talent.city || "") === normalizeCityName(selectedCity);
@@ -436,7 +451,7 @@ export default function DiscoverTalentsPage() {
           DANH SÁCH TÀI NĂNG NỔI BẬT
         </h1>
         <p className="mt-2 max-w-3xl text-xs font-semibold leading-relaxed text-slate-400 uppercase tracking-wide">
-          Hệ thống tìm kiếm kết hợp các bộ lọc chi tiết từ nhân khẩu học và ngoại hình của Talent.
+          Hãy tìm tài năng phù hợp nhất cho các chiến dịch của bạn
         </p>
       </section>
 
@@ -621,6 +636,7 @@ export default function DiscoverTalentsPage() {
                 const status = getTalentStatus(talent.id);
                 const locationText = [talent.district, talent.city].filter(Boolean).join(", ");
                 const experienceYears = Number(talent.yearsOfExperience ?? talent.experience_years ?? 0);
+                const talentTypes = getTalentTypes(talent);
 
                 return (
                   <article key={talent.id} className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg hover:border-[#C9A86A]/30 transition-all duration-300 group flex flex-col justify-between min-w-0">
@@ -688,9 +704,19 @@ export default function DiscoverTalentsPage() {
                           <span className="truncate">{locationText || "Chưa cập nhật"}</span>
                         </div>
 
-                        <span className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
-                          {talent.type || "Chưa cập nhật"}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {talentTypes.length ? (
+                            talentTypes.map((type) => (
+                              <span key={type} className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
+                                {type}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
+                              Chưa cập nhật
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Info badges row */}

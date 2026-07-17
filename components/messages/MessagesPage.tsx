@@ -5,7 +5,7 @@ import { ArrowLeft, Check, Image, LoaderCircle, MessageSquare, Search, Send, Shi
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
-import { apiForm, getStoredAuthUser } from "@/lib/api-client";
+import { apiForm, getStoredAuthUser, isUnauthenticatedError } from "@/lib/api-client";
 import {
   ChatMessage,
   Conversation,
@@ -91,7 +91,9 @@ export default function MessagesPage({ portal }: Props) {
         if (portal === "brand" && talentProfileId) {
           directConversationRequestRef.current = null;
         }
-        if (!cancelled) setError(reason instanceof Error ? reason.message : "Không tải được tin nhắn.");
+        if (!cancelled && !isUnauthenticatedError(reason)) {
+          setError(reason instanceof Error ? reason.message : "Không tải được tin nhắn.");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -118,7 +120,9 @@ export default function MessagesPage({ portal }: Props) {
           )));
         }
       } catch (reason) {
-        if (!cancelled) setError(reason instanceof Error ? reason.message : "Không tải được hội thoại.");
+        if (!cancelled && !isUnauthenticatedError(reason)) {
+          setError(reason instanceof Error ? reason.message : "Không tải được hội thoại.");
+        }
       }
     })();
 
@@ -236,7 +240,9 @@ export default function MessagesPage({ portal }: Props) {
       });
       await refreshConversations();
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Không gửi được ảnh.");
+      if (!isUnauthenticatedError(reason)) {
+        setError(reason instanceof Error ? reason.message : "Không gửi được ảnh.");
+      }
     } finally {
       setSending(false);
       event.target.value = "";
@@ -259,7 +265,9 @@ export default function MessagesPage({ portal }: Props) {
       setInput("");
       await refreshConversations();
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Không gửi được tin nhắn.");
+      if (!isUnauthenticatedError(reason)) {
+        setError(reason instanceof Error ? reason.message : "Không gửi được tin nhắn.");
+      }
     } finally {
       setSending(false);
     }

@@ -11,6 +11,7 @@ export type TalentProfile = {
   id: string;
   name: string;
   type: string;
+  talentTypes?: string[];
   city: string;
   district: string;
   gender: string;
