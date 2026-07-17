@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { getSiteUrl } from "@/lib/site-url";
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://onstagevn.vercel.app").replace(/\/$/, "");
+const SITE_URL = getSiteUrl();
 const ASSET_VERSION = "9";
 const SHARE_IMAGE_URL = `${SITE_URL}/apple-touch-icon.png?v=${ASSET_VERSION}`;
 

@@ -367,9 +367,9 @@ export default function BrandDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">Talent đề xuất</h3>
-              <span className="rounded-lg border border-white/5 bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+              {/* <span className="rounded-lg border border-white/5 bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
                 Top hồ sơ phù hợp từ dữ liệu hiện có
-              </span>
+              </span> */}
             </div>
             <button onClick={() => router.push("/brand/search")} className="text-[10px] font-black uppercase text-[#C9A86A] hover:underline">
               Khám phá tất cả &rarr;
