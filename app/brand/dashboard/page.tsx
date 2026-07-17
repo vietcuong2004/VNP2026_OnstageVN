@@ -75,12 +75,6 @@ function formatCurrency(value: number) {
   return `${new Intl.NumberFormat("vi-VN").format(value)}đ`;
 }
 
-function formatCompactFollowers(value: number) {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (value >= 1_000) return `${Math.round(value / 1_000)}K`;
-  return String(value);
-}
-
 function formatRosterDate(value?: string | null) {
   if (!value) return "Chưa cập nhật";
 
@@ -144,7 +138,7 @@ function rankRecommendedTalents(items: TalentProfile[]) {
       if (b.completion !== a.completion) return b.completion - a.completion;
       return b.completedJobs - a.completedJobs;
     })
-    .slice(0, 6);
+    .slice(0, 8);
 }
 
 function resolveRecommendedTalentAvatar(talent: TalentProfile) {
@@ -153,6 +147,20 @@ function resolveRecommendedTalentAvatar(talent: TalentProfile) {
   if (isUsableAvatarUrl(avatarUrl)) return avatarUrl;
 
   return createInitialAvatarDataUrl(talent.name, talent.name);
+}
+
+function getRecommendedTalentStatus(id: string) {
+  if (id === "tal-1" || id === "tal-2") return "available";
+  if (id === "tal-3") return "busy";
+  return "maybe";
+}
+
+function getTalentTypes(talent: TalentProfile) {
+  if (Array.isArray(talent.talentTypes) && talent.talentTypes.length) {
+    return talent.talentTypes.map((type) => String(type).trim()).filter(Boolean);
+  }
+
+  return talent.type ? [talent.type] : [];
 }
 
 export default function BrandDashboard() {
@@ -354,8 +362,8 @@ export default function BrandDashboard() {
         })}
       </section>
 
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <div className="space-y-4 xl:col-span-8">
+      <section className="flex flex-col gap-6">
+        <div className="order-2 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">Talent đề xuất</h3>
@@ -375,10 +383,14 @@ export default function BrandDashboard() {
               <p className="mt-2 text-xs text-slate-500">Khi dữ liệu talent được tải từ backend, danh sách đề xuất sẽ xuất hiện tại đây.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {recommendedTalents.map((talent) => {
                 const isSaved = savedIds.includes(talent.id);
                 const avatar = resolveRecommendedTalentAvatar(talent);
+                const status = getRecommendedTalentStatus(talent.id);
+                const locationText = [talent.district, talent.city].filter(Boolean).join(", ");
+                const experienceYears = Number(talent.yearsOfExperience || 0);
+                const talentTypes = getTalentTypes(talent);
 
                 return (
                   <article key={talent.id} className="group flex min-w-0 flex-col justify-between rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg transition-all duration-300 hover:border-[#C9A86A]/30">
@@ -412,39 +424,59 @@ export default function BrandDashboard() {
                         >
                           <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} />
                         </button>
+
+                        <div className="absolute bottom-2 left-2">
+                          <span className={cn(
+                            "inline-flex items-center gap-1 rounded bg-[#0F1115]/80 border backdrop-blur-sm px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white",
+                            status === "available" && "border-emerald-500/30 text-emerald-400",
+                            status === "busy" && "border-red-500/30 text-red-400",
+                            status === "maybe" && "border-yellow-500/30 text-yellow-400"
+                          )}>
+                            <span className={cn(
+                              "h-1 w-1 rounded-full",
+                              status === "available" && "bg-emerald-400",
+                              status === "busy" && "bg-red-400",
+                              status === "maybe" && "bg-yellow-400"
+                            )} />
+                            {status === "available" ? "Rảnh" : status === "busy" ? "Bận" : "Chưa có lịch"}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="space-y-1 min-w-0">
+                      <div className="min-w-0 space-y-2">
                         <div className="flex min-w-0 items-center gap-1.5">
-                          <h3 className="flex-1 truncate text-xs font-black text-white">{talent.name}</h3>
+                          <h3 className="flex-1 truncate text-base font-black leading-tight tracking-wide text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.12)]">{talent.name}</h3>
                           {talent.verified && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />}
                         </div>
 
-                        <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                          <MapPin className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{talent.district}, {talent.city}</span>
+                        <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                          <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
+                          <span className="truncate">{locationText || "Chưa cập nhật"}</span>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1">
+                          {talentTypes.length ? (
+                            talentTypes.map((type) => (
+                              <span key={type} className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
+                                {type}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
+                              Chưa cập nhật
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      <div className="my-2.5 flex flex-wrap gap-1">
-                        <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.type}</span>
-                        <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.age} tuổi</span>
-                        <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.height}cm</span>
-                        <span className="rounded bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase text-slate-400">{talent.weight}kg</span>
+                      <div className="my-3 flex flex-nowrap gap-1 overflow-hidden">
+                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.age} tuổi</span>
+                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{experienceYears} năm KN</span>
+                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.height}cm</span>
+                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.weight}kg</span>
                       </div>
 
-                      <div className="my-3 grid grid-cols-2 gap-2 rounded-xl border border-white/5 bg-[#0F1115]/50 p-2 text-center text-[10px]">
-                        <div>
-                          <span className="block text-[7px] font-bold uppercase tracking-wider text-slate-500">Followers</span>
-                          <span className="mt-0.5 block font-mono font-black text-amber-300">{talent.followers || formatCompactFollowers(talent.followersCount)}</span>
-                        </div>
-                        <div className="border-l border-white/5">
-                          <span className="block text-[7px] font-bold uppercase tracking-wider text-slate-500">Engagement</span>
-                          <span className="mt-0.5 block font-mono font-black text-cyan-300">{talent.engagementRate}%</span>
-                        </div>
-                      </div>
-
-                      <p className="mt-2 line-clamp-2 min-h-7 text-[10px] leading-relaxed text-slate-400">{talent.experience}</p>
+                      <p className="mt-2 line-clamp-2 min-h-7 text-[10px] leading-relaxed text-slate-300">{talent.experience}</p>
                     </div>
 
                     <div className="mt-4 flex gap-2 border-t border-white/5 pt-3.5">
@@ -474,7 +506,7 @@ export default function BrandDashboard() {
           )}
         </div>
 
-        <div className="self-start rounded-2xl border border-[#2B313D] bg-[#171A21] p-6 shadow-[0_12px_36px_rgba(0,0,0,0.28)] xl:col-span-4">
+        <div className="order-1 rounded-2xl border border-[#2B313D] bg-[#171A21] p-6 shadow-[0_12px_36px_rgba(0,0,0,0.28)]">
           <div className="mb-5 flex items-center justify-between border-b border-[#2B313D] pb-3">
             <div>
               <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">TALENT CỦA TÔI</h3>
@@ -494,7 +526,7 @@ export default function BrandDashboard() {
               <p className="mt-2 text-xs text-slate-500">Thêm talent vào Brand hoặc duyệt link mời để bắt đầu xây mạng lưới cộng tác.</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               {rosterPreview.map((item) => {
                 const profile = item.talent_profile;
                 const name = resolveRosterTalentName(item);

@@ -199,7 +199,7 @@ export default function BrandShortlistsPage() {
               className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60 disabled:text-slate-500"
             >
               {localCampaigns.length === 0 ? (
-                <option value="">Chưa có chiến dịch từ backend</option>
+                <option value="">Chưa có chiến dịch nào</option>
               ) : (
                 localCampaigns.map((campaign) => (
                   <option key={campaign.id} value={campaign.id}>
@@ -284,7 +284,7 @@ export default function BrandShortlistsPage() {
           ) : (
             <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/40 p-4">
               <p className="text-xs leading-relaxed text-slate-400">
-                Chưa có chiến dịch từ backend để gắn talent. Hãy tạo chiến dịch trước, rồi quay lại màn này để thêm
+                Chưa có chiến dịch nào để gắn talent. Hãy tạo chiến dịch trước, rồi quay lại màn này để thêm
                 talent vào.
               </p>
             </div>

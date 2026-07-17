@@ -66,6 +66,20 @@ const formatNumber = (num: number) => {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
+function getTalentTypes(talent: unknown) {
+  const record = talent && typeof talent === "object" ? talent as Record<string, unknown> : {};
+
+  if (Array.isArray(record.talentTypes) && record.talentTypes.length) {
+    return record.talentTypes.map((type) => String(type).trim()).filter(Boolean);
+  }
+
+  if (Array.isArray(record.talent_types) && record.talent_types.length) {
+    return record.talent_types.map((type) => String(type).trim()).filter(Boolean);
+  }
+
+  return record.type ? [String(record.type)] : [];
+}
+
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
   { id: 2, title: "KOLs/Influencer quảng cáo", desc: "Sáng tạo nội dung video ngắn", weights: { pageant: 0.1, runway: 0.1, kol: 0.8 } },
@@ -248,6 +262,7 @@ export default function BrandTalentProfilePage() {
   const getDayStatus = (dateStr: string) => {
     return talent.availabilityDates?.includes(dateStr) ? "busy" : "available";
   };
+  const talentTypes = getTalentTypes(talent);
 
   function handleAddToCampaign() {
     if (!requireAuthAction({ actionLabel: "Thêm talent vào campaign" })) return;
@@ -326,9 +341,19 @@ export default function BrandTalentProfilePage() {
                   )}
                 </h2>
 
-                <p className="text-xs sm:text-[13px] font-black uppercase text-slate-400 tracking-widest text-center sm:text-left">
-                  {talent.type || "Người mẫu • KOL • MC"}
-                </p>
+                <div className="flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                  {talentTypes.length ? (
+                    talentTypes.map((type) => (
+                      <span key={type} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                        {type}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                      Chưa cập nhật
+                    </span>
+                  )}
+                </div>
 
                 {/* Location, Email & Phone Contacts Row */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400">

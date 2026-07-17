@@ -14,6 +14,23 @@ import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avat
 import { getAuthToken } from "@/lib/api-client";
 import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, TALENT_PROFILE_UPDATED_EVENT, uploadTalentPhoto } from "@/lib/talent-api";
 
+function getProfileTalentTypes(profile: unknown) {
+  const record = profile && typeof profile === "object" ? profile as Record<string, unknown> : {};
+  const candidates = [record.talentTypes, record.talent_types, record.specialSkills, record.skills];
+
+  for (const value of candidates) {
+    if (Array.isArray(value) && value.length) {
+      return value.map((type) => String(type).trim()).filter(Boolean);
+    }
+  }
+
+  if (typeof record.mainCategory === "string" && record.mainCategory.trim()) {
+    return [record.mainCategory.trim()];
+  }
+
+  return [];
+}
+
 export default function PortfolioPage() {
   const [profile, setProfile] = useState<any>(null);
 
@@ -144,6 +161,7 @@ export default function PortfolioPage() {
 
   const currentBoostLevel = getBoostLevel(profile);
   const rankingScore = Math.round((currentBoostLevel * 100) + (Number(profile.profileScore) || 0) * 0.5 + (Number(profile.reliability) || 0) * 0.3 + (Number(profile.averageRating) || 0) * 2);
+  const profileTalentTypes = getProfileTalentTypes(profile);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
     const file = e.target.files?.[0];
@@ -362,9 +380,19 @@ export default function PortfolioPage() {
                   </span>
                 </h2>
                 
-                <p className="text-xs sm:text-[13px] font-black uppercase text-slate-400 tracking-widest">
-                  {profile.isOnboarded ? "Người mẫu Thời trang • KOL • MC" : "Tài năng mới"}
-                </p>
+                <div className="flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                  {profileTalentTypes.length ? (
+                    profileTalentTypes.map((type) => (
+                      <span key={type} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                        {type}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                      Tài năng mới
+                    </span>
+                  )}
+                </div>
                 
                 {/* Location, Email & Phone Contacts Row */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400">
