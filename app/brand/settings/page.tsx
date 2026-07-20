@@ -716,7 +716,9 @@ export default function BrandSettingsPage() {
                   <p className="mt-3 text-xs font-semibold text-emerald-300">
                     Zalo đã được liên kết{zaloLink.zalo_account?.display_name ? ` với ${zaloLink.zalo_account.display_name}` : ""}. Tin nhắn tiếp theo với bot sẽ thao tác trên tài khoản Brand này.
                   </p>
-                ) : zaloLink?.code ? (
+                ) : null}
+
+                {zaloLink?.code ? (
                   <div className="mt-4 rounded-2xl border border-sky-400/15 bg-sky-400/[0.04] p-4">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-sky-200">Mã liên kết của bạn</p>
                     <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -748,16 +750,14 @@ export default function BrandSettingsPage() {
               </div>
             </div>
 
-            {!zaloLink?.linked && (
-              <button
-                type="button"
-                disabled={zaloLoading}
-                onClick={handleCreateZaloCode}
-                className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-sky-400 px-4 text-xs font-black text-slate-950 transition-colors hover:bg-sky-300 disabled:cursor-wait disabled:opacity-60"
-              >
-                {zaloLoading ? "Đang tạo..." : zaloLink?.code ? "Tạo mã mới" : "Tạo mã liên kết"}
-              </button>
-            )}
+            <button
+              type="button"
+              disabled={zaloLoading}
+              onClick={handleCreateZaloCode}
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-sky-400 px-4 text-xs font-black text-slate-950 transition-colors hover:bg-sky-300 disabled:cursor-wait disabled:opacity-60"
+            >
+              {zaloLoading ? "Đang tạo..." : zaloLink?.linked ? "Tạo lại mã" : zaloLink?.code ? "Tạo mã mới" : "Tạo mã liên kết"}
+            </button>
           </div>
           {/* Liên kết đăng nhập */}
           <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-6">
