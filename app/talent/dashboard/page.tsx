@@ -42,6 +42,41 @@ function formatCompactVND(value: number) {
   return `${new Intl.NumberFormat("vi-VN").format(value)}đ`;
 }
 
+function parseRateCardValue(value: unknown) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  if (typeof value !== "string") return null;
+
+  const normalized = value.trim().toLowerCase();
+  if (!normalized || normalized.includes("infinity")) return null;
+
+  const millionMatch = normalized.match(/(\d+(?:[,.]\d+)?)\s*m/);
+  if (millionMatch) {
+    const amount = Number(millionMatch[1].replace(",", "."));
+    return Number.isFinite(amount) && amount > 0 ? amount * 1000000 : null;
+  }
+
+  const digits = normalized.replace(/[^\d]/g, "");
+  if (!digits) return null;
+
+  const amount = Number(digits);
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
+function formatMinimumRateCard(rateCard: unknown) {
+  if (!rateCard || typeof rateCard !== "object") return "Chưa cập nhật";
+
+  const prices = Object.values(rateCard)
+    .map(parseRateCardValue)
+    .filter((value): value is number => value !== null);
+
+  if (prices.length === 0) return "Chưa cập nhật";
+
+  return `Từ ${formatCompactVND(Math.min(...prices))}`;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
@@ -324,19 +359,23 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                {profile.reviewsCount ? (
+                {profile.reviewsCount && Number.isFinite(Number(profile.averageRating)) ? (
                   <span className="block text-2xl font-black text-white tracking-wide">
-                    {profile.averageRating?.toFixed(1) ?? "—"}<span className="text-amber-400 text-lg ml-0.5">★</span>
+                    {Number(profile.averageRating).toFixed(1)}<span className="text-amber-400 text-lg ml-0.5">★</span>
                   </span>
                 ) : (
-                  <span className="block text-2xl font-black text-slate-500 tracking-wide">—</span>
+                  <span className="block text-[11px] font-black uppercase leading-4 tracking-wide text-slate-300">
+                    Chưa có đánh giá
+                  </span>
                 )}
                 <span className="mt-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
                   Đánh Giá TB
                 </span>
-                <span className="block text-[7.5px] font-semibold text-slate-500 mt-0.5">
-                  {profile.reviewsCount ? `(${profile.reviewsCount} Đánh giá)` : "Chưa có đánh giá"}
-                </span>
+                {profile.reviewsCount ? (
+                  <span className="block text-[7.5px] font-semibold text-slate-500 mt-0.5">
+                    ({profile.reviewsCount} Đánh giá)
+                  </span>
+                ) : null}
               </div>
             </div>
 
@@ -373,9 +412,8 @@ export default function DashboardPage() {
         const showCount = calendarData?.availabilityCalendar?.length ?? 0;
         const now = new Date();
         const monthLabel = `Tháng ${now.getMonth() + 1}/${now.getFullYear()}`;
-        const reliability = profile.reliability ?? null;
-        const budgetMin = profile.rateCard ? Math.min(...Object.values(profile.rateCard as Record<string, number>).filter(Boolean)) : null;
-        const budgetFormatted = budgetMin ? `Từ ${(budgetMin / 1000000).toFixed(1)}M đ` : "Chưa có";
+        const reliability = Number(profile.reliability);
+        const budgetFormatted = formatMinimumRateCard(profile.rateCard);
         return (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
@@ -403,7 +441,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
-                {showCount > 0 ? `${showCount} Lịch` : "—"}
+                {showCount > 0 ? `${showCount} Lịch` : "Chưa cập nhật"}
               </strong>
               <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">{monthLabel}</span>
             </div>
@@ -431,7 +469,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <strong className="mt-5 block text-2xl font-black tracking-tight text-white">
-                {reliability !== null ? `${reliability}%` : "—"}
+                {Number.isFinite(reliability) && reliability > 0 ? `${reliability}%` : "Chưa cập nhật"}
               </strong>
               <span className="mt-1 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Chất lượng diễn show</span>
             </div>
