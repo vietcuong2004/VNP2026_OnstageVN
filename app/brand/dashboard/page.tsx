@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -138,7 +138,7 @@ function rankRecommendedTalents(items: TalentProfile[]) {
       if (b.completion !== a.completion) return b.completion - a.completion;
       return b.completedJobs - a.completedJobs;
     })
-    .slice(0, 8);
+    .slice(0, 16);
 }
 
 function resolveRecommendedTalentAvatar(talent: TalentProfile) {
@@ -252,7 +252,7 @@ export default function BrandDashboard() {
   }, [authUserId, campaignsList]);
 
   const brandDisplayName = useMemo(() => {
-    return partnerProfile.organizationName || partnerProfile.contactName || authUser?.name || "Brand của bạn";
+    return partnerProfile.organizationName || partnerProfile.contactName || authUser?.name || "Onstage Brand";
   }, [authUser?.name, partnerProfile.contactName, partnerProfile.organizationName]);
 
   const openCampaigns = useMemo(
@@ -343,27 +343,8 @@ export default function BrandDashboard() {
         </button>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-
-          return (
-            <div key={stat.label} className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-5 shadow-[0_12px_36px_rgba(0,0,0,0.28)]">
-              <div className="mb-4 flex items-start justify-between gap-4">
-                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{stat.label}</span>
-                <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border", stat.color)}>
-                  <Icon className="h-4.5 w-4.5" />
-                </div>
-              </div>
-              <div className="text-2xl font-black tracking-tight text-white">{stat.value}</div>
-              <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">{stat.hint}</div>
-            </div>
-          );
-        })}
-      </section>
-
-      <section className="flex flex-col gap-6">
-        <div className="order-2 space-y-4">
+      <section className="space-y-5">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">Talent đề xuất</h3>
@@ -371,7 +352,7 @@ export default function BrandDashboard() {
                 Top hồ sơ phù hợp từ dữ liệu hiện có
               </span> */}
             </div>
-            <button onClick={() => router.push("/brand/search")} className="text-[10px] font-black uppercase text-[#C9A86A] hover:underline">
+            <button onClick={() => router.push("/brand/search")} className="hidden text-[10px] font-black uppercase text-[#C9A86A] hover:underline">
               Khám phá tất cả &rarr;
             </button>
           </div>
@@ -506,78 +487,104 @@ export default function BrandDashboard() {
           )}
         </div>
 
-        <div className="order-1 rounded-2xl border border-[#2B313D] bg-[#171A21] p-6 shadow-[0_12px_36px_rgba(0,0,0,0.28)]">
-          <div className="mb-5 flex items-center justify-between border-b border-[#2B313D] pb-3">
-            <div>
-              <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">TALENT CỦA TÔI</h3>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                {acceptedTalents} talent đang hợp tác
-              </p>
-            </div>
-            <button onClick={() => router.push("/brand/my-talents")} className="text-[10px] font-black uppercase text-[#C9A86A] hover:underline">
-              Quản lý &rarr;
-            </button>
-          </div>
-
-          {rosterPreview.length === 0 ? (
-            <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-8 text-center">
-              <Building2 className="mx-auto mb-3 h-8 w-8 text-slate-600" />
-              <h3 className="text-sm font-black text-white">Brand chưa có talent hoạt động</h3>
-              <p className="mt-2 text-xs text-slate-500">Thêm talent vào Brand hoặc duyệt link mời để bắt đầu xây mạng lưới cộng tác.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {rosterPreview.map((item) => {
-                const profile = item.talent_profile;
-                const name = resolveRosterTalentName(item);
-                const avatar = resolveRosterTalentAvatar(item);
-                const role = profile?.talent_types?.[0] || "Talent";
-                const city = profile?.city || "Chưa cập nhật";
-
-                return (
-                  <article key={String(item.id)} className="flex items-center gap-3 rounded-xl border border-white/5 bg-[#0F1115]/50 p-3">
-                    <img
-                      src={avatar}
-                      alt={name}
-                      onError={(event) => {
-                        event.currentTarget.onerror = null;
-                        event.currentTarget.src = createInitialAvatarDataUrl(name, profile?.user?.email || profile?.user?.name);
-                      }}
-                      className="h-12 w-12 rounded-full border border-white/10 object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="truncate text-[12px] font-black text-white">{name}</h4>
-                        {item.status === "active" ? (
-                          <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[7.5px] font-black uppercase text-emerald-300">
-                            Đang hợp tác
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">{role} • {city}</p>
-                      <p className="mt-1 text-[10px] text-slate-400">
-                        {getRosterSourceLabel(item.source)} • Tham gia {formatRosterDate(item.joined_at)}
-                      </p>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
+        <div className="flex justify-center pt-1">
+          <button
+            onClick={() => router.push("/brand/search")}
+            className="group relative flex min-h-12 w-full max-w-md items-center justify-center overflow-hidden rounded-2xl border border-[#F0C56B]/45 bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-6 py-3 text-xs font-black uppercase tracking-[0.18em] text-slate-950 shadow-[0_14px_45px_rgba(201,168,106,0.24)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_55px_rgba(201,168,106,0.34)] active:translate-y-0"
+          >
+            <span className="absolute inset-y-0 left-[-30%] w-1/3 skew-x-[-20deg] bg-white/35 opacity-0 transition duration-700 group-hover:left-[120%] group-hover:opacity-100" />
+            <Search className="mr-2 h-4 w-4 shrink-0" />
+            Khám phá tất cả Talent
+            <ArrowRight className="ml-2 h-4 w-4 shrink-0 transition group-hover:translate-x-1" />
+          </button>
         </div>
       </section>
 
       <section className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-6 shadow-[0_12px_36px_rgba(0,0,0,0.28)]">
         <div className="mb-5 flex items-center justify-between border-b border-[#2B313D] pb-3">
-          <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">Chiến dịch đang hoạt động</h3>
-          <button onClick={() => router.push("/brand/campaigns")} className="text-[10px] font-black uppercase text-[#C9A86A] hover:underline">
-            Xem tất cả &rarr;
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">TALENT CỦA TÔI</h3>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              {acceptedTalents} talent đang hợp tác
+            </p>
+          </div>
+            <button onClick={() => router.push("/brand/my-talents")} className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-[#C9A86A] hover:underline">
+              <Eye className="h-3.5 w-3.5" />
+              Xem tất cả
+            </button>
+        </div>
+
+        {rosterPreview.length === 0 ? (
+          <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-8 text-center">
+            <Building2 className="mx-auto mb-3 h-8 w-8 text-slate-600" />
+            <button
+              onClick={() => router.push("/brand/my-talents")}
+              className="mt-2 mb-4 inline-flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-[10px] font-black uppercase tracking-wider text-slate-950 transition hover:-translate-y-0.5 active:translate-y-0"
+            >
+              Thêm Talent ngay
+            </button>
+            <h3 className="text-sm font-black text-white">Brand chưa có talent hoạt động</h3>
+            <p className="mt-2 text-xs text-slate-500">Thêm talent vào Brand hoặc duyệt link mời để bắt đầu xây mạng lưới cộng tác.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {rosterPreview.map((item) => {
+              const profile = item.talent_profile;
+              const name = resolveRosterTalentName(item);
+              const avatar = resolveRosterTalentAvatar(item);
+              const role = profile?.talent_types?.[0] || "Talent";
+              const city = profile?.city || "Chưa cập nhật";
+
+              return (
+                <article key={String(item.id)} className="flex items-center gap-3 rounded-xl border border-white/5 bg-[#0F1115]/50 p-3">
+                  <img
+                    src={avatar}
+                    alt={name}
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = createInitialAvatarDataUrl(name, profile?.user?.email || profile?.user?.name);
+                    }}
+                    className="h-12 w-12 rounded-full border border-white/10 object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="truncate text-[12px] font-black text-white">{name}</h4>
+                      {item.status === "active" ? (
+                        <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[7.5px] font-black uppercase text-emerald-300">
+                          Đang hợp tác
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">{role} • {city}</p>
+                    <p className="mt-1 text-[10px] text-slate-400">
+                      {getRosterSourceLabel(item.source)} • Tham gia {formatRosterDate(item.joined_at)}
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-6 shadow-[0_12px_36px_rgba(0,0,0,0.28)]">
+        <div className="mb-5 flex items-center justify-between border-b border-[#2B313D] pb-3">
+          <h3 className="text-xs font-black uppercase tracking-widest text-[#C9A86A]">Chiến dịch của tôi</h3>
+          <button onClick={() => router.push("/brand/campaigns")} className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-[#C9A86A] hover:underline">
+            <Eye className="h-3.5 w-3.5" />
+            Xem tất cả
           </button>
         </div>
 
         {openCampaigns.length === 0 ? (
           <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-10 text-center">
             <Briefcase className="mx-auto mb-3 h-8 w-8 text-slate-600" />
+            <button
+              onClick={() => router.push("/brand/campaigns")}
+              className="mt-2 mb-4 inline-flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-[10px] font-black uppercase tracking-wider text-slate-950 transition hover:-translate-y-0.5 active:translate-y-0"
+            >
+              Tạo chiến dịch ngay
+            </button>
             <h3 className="text-sm font-black text-white">Chưa có chiến dịch nào đang hoạt động</h3>
             <p className="mt-2 text-xs text-slate-500">Hãy tạo campaign mới hoặc xuất bản campaign nháp để bắt đầu nhận ứng viên.</p>
           </div>

@@ -312,7 +312,7 @@ export default function DashboardPage() {
             })()}
 
             {/* Đánh Giá TB */}
-            <div className="sm:w-[120px] shrink-0 relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[#18130a]/90 to-[#070913]/98 p-4 text-left shadow-[0_0_15px_rgba(245,158,11,0.15)] transition-all duration-300 hover:scale-[1.02] hover:border-amber-400/40 hover:shadow-[0_0_22px_rgba(245,158,11,0.25)]">
+            <div className="hidden">
               {/* Amber light burst background */}
               <div className="absolute -right-6 -top-6 h-12 w-12 rounded-full bg-amber-500/15 blur-lg pointer-events-none"></div>
 
@@ -369,13 +369,13 @@ export default function DashboardPage() {
       )}
 
       {/* Quick Stats Grid */}
-      {(() => {
+      {false && (() => {
         const showCount = calendarData?.availabilityCalendar?.length ?? 0;
         const now = new Date();
         const monthLabel = `Tháng ${now.getMonth() + 1}/${now.getFullYear()}`;
         const reliability = profile.reliability ?? null;
         const budgetMin = profile.rateCard ? Math.min(...Object.values(profile.rateCard as Record<string, number>).filter(Boolean)) : null;
-        const budgetFormatted = budgetMin ? `Từ ${(budgetMin / 1000000).toFixed(1)}M đ` : "Chưa có";
+        const budgetFormatted = typeof budgetMin === "number" ? `Từ ${(Number(budgetMin) / 1000000).toFixed(1)}M đ` : "Chưa có";
         return (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 

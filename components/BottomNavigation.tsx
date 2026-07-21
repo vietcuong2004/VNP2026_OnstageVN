@@ -13,16 +13,16 @@ import { logoutCurrentSession } from "@/lib/api-client";
 
 const talentAllItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
-  { label: "Khám phá", icon: Sparkles, href: "/talent/survey" },
   { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
-  { label: "Cuộc thi", icon: Trophy, href: "/talent/contests" },
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
-  { label: "Affiliate", icon: Share2, href: "/talent/affiliate" },
-  { label: "Hợp tác Brand", icon: Users, href: "/talent/brands" },
-  { label: "Crowdfunding", icon: Crown, href: "/talent/crownfunding" },
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
+  { label: "Khám phá", icon: Sparkles, href: "/talent/survey" },
+  // { label: "Cuộc thi", icon: Trophy, href: "/talent/contests" },
+  { label: "Chiến dịch Affiliate", icon: Share2, href: "/talent/affiliate" },
+  { label: "Hợp tác Brand", icon: Users, href: "/talent/brands" },
+  // { label: "Crowdfunding", icon: Crown, href: "/talent/crownfunding" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },
-  { label: "Thu nhập", icon: Wallet, href: "/talent/wallet" },
+  // { label: "Thu nhập", icon: Wallet, href: "/talent/wallet" },
   { label: "Đăng xuất", icon: LogOut, href: "/" },
 ];
 
@@ -111,8 +111,8 @@ export default function BottomNavigation() {
   const talentPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
     { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
+    { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
     { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
-    { label: "Khám phá", icon: Sparkles, href: "/talent/survey" },
   ];
 
   const primaryItems = isBrand ? brandPrimaryItems : talentPrimaryItems;

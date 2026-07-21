@@ -13,16 +13,16 @@ import { Avatar } from "@base-ui/react";
 
 const talentMenuItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
-  { label: "Khám phá bản thân", icon: Sparkles, href: "/talent/survey" },
   { label: "Hồ sơ cá nhân", icon: User, href: "/talent/portfolio" },
-  { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
+  { label: "Khám phá bản thân", icon: Sparkles, href: "/talent/survey" },
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
+  { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   { label: "Chiến dịch Affiliate", icon: Share2, href: "/talent/affiliate" },
   { label: "Hợp tác Brand", icon: Users2, href: "/talent/brands" },
-  { label: "Danh sách cuộc thi", icon: Trophy, href: "/talent/contests" },
-  { label: "Crowdfunding", icon: Crown, href: "/talent/crownfunding" },
+  // { label: "Danh sách cuộc thi", icon: Trophy, href: "/talent/contests" },
+  // { label: "Crowdfunding", icon: Crown, href: "/talent/crownfunding" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },
-  { label: "Thu nhập", icon: Wallet, href: "/talent/wallet" },
+  // { label: "Thu nhập", icon: Wallet, href: "/talent/wallet" },
 ];
 
 const brandMenuItems = [

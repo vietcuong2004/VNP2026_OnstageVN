@@ -41,7 +41,7 @@ export default function TalentIntroPage() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full bg-[#02040a]/80 backdrop-blur-md border-b border-white/5">
+      <header className="relative z-50 w-full bg-[#02040a] border-b border-white/5 transform-gpu md:sticky md:top-0 md:bg-[#02040a]/80 md:backdrop-blur-md">
         <div className="w-full max-w-[1550px] mx-auto flex items-center justify-between py-4 px-4 md:px-8">
           <Link href="/" className="flex items-center hover:opacity-95 transition-opacity">
             <img src="/logo_icon.png" alt="OnstageVN Logo Icon" className="h-10 w-10 object-contain shrink-0" />
@@ -92,7 +92,7 @@ export default function TalentIntroPage() {
           </div>
 
           {/* Icon Badges Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full pt-8 max-w-lg lg:max-w-none">
+          <div className="hidden">
             <div className="flex items-center gap-3 p-1 text-left">
               <div className="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
                 <Sparkles className="h-6 w-6" />
@@ -258,7 +258,7 @@ export default function TalentIntroPage() {
       {/* Detailed Features Grid */}
       <section className="relative z-10 w-full max-w-[1550px] mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
         {/* Card 1: Định hướng sự nghiệp bằng AI */}
-        <div className="p-6 md:p-8 rounded-2xl bg-[#090b16]/45 border border-white/5 hover:border-amber-500/20 hover:bg-[#0c0f24]/60 transition-all duration-300 backdrop-blur-xl">
+        <Link href="/talent/survey" className="block p-6 md:p-8 rounded-2xl bg-[#090b16]/45 border border-white/5 hover:border-amber-500/20 hover:bg-[#0c0f24]/60 transition-all duration-300 backdrop-blur-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
           <div className="space-y-4">
             <div className="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <Brain className="h-6 w-6" />
@@ -284,10 +284,10 @@ export default function TalentIntroPage() {
               </li>
             </ul>
           </div>
-        </div>
+        </Link>
 
         {/* Card 2: Hồ sơ sắc đẹp số */}
-        <div className="p-6 md:p-8 rounded-2xl bg-[#090b16]/45 border border-white/5 hover:border-amber-500/20 hover:bg-[#0c0f24]/60 transition-all duration-300 backdrop-blur-xl">
+        <Link href="/talent/portfolio" className="block p-6 md:p-8 rounded-2xl bg-[#090b16]/45 border border-white/5 hover:border-amber-500/20 hover:bg-[#0c0f24]/60 transition-all duration-300 backdrop-blur-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
           <div className="space-y-4">
             <div className="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <FileText className="h-6 w-6" />
@@ -313,10 +313,10 @@ export default function TalentIntroPage() {
               </li>
             </ul>
           </div>
-        </div>
+        </Link>
 
         {/* Card 3: Kết nối trực tiếp */}
-        <div className="p-6 md:p-8 rounded-2xl bg-[#090b16]/45 border border-white/5 hover:border-amber-500/20 hover:bg-[#0c0f24]/60 transition-all duration-300 backdrop-blur-xl">
+        <Link href="/talent/jobs" className="block p-6 md:p-8 rounded-2xl bg-[#090b16]/45 border border-white/5 hover:border-amber-500/20 hover:bg-[#0c0f24]/60 transition-all duration-300 backdrop-blur-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
           <div className="space-y-4">
             <div className="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <Zap className="h-6 w-6" />
@@ -342,7 +342,7 @@ export default function TalentIntroPage() {
               </li>
             </ul>
           </div>
-        </div>
+        </Link>
       </section>
 
       {/* Bottom CTA Panel */}

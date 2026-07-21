@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = "https://onstagevn.vercel.app";
+const DEFAULT_SITE_URL = "https://onstage.vn";
 
 export function getSiteUrl() {
   const rawUrl = (process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).trim().replace(/\/+$/, "");

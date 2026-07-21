@@ -5,6 +5,7 @@ import { getSiteUrl } from "@/lib/site-url";
 
 const SITE_URL = getSiteUrl();
 const ASSET_VERSION = "9";
+const FAVICON_VERSION = "10";
 const SHARE_IMAGE = `/home-og-image.png?v=${ASSET_VERSION}`;
 const SHARE_IMAGE_URL = `${SITE_URL}${SHARE_IMAGE}`;
 
@@ -40,12 +41,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: `/favicon.ico?v=${ASSET_VERSION}`, sizes: "any" },
-      { url: `/favicon-32x32.png?v=${ASSET_VERSION}`, type: "image/png", sizes: "32x32" },
-      { url: `/favicon-24x24.png?v=${ASSET_VERSION}`, type: "image/png", sizes: "24x24" },
-      { url: `/favicon-16x16.png?v=${ASSET_VERSION}`, type: "image/png", sizes: "16x16" },
-      { url: `/favicon-192x192.png?v=${ASSET_VERSION}`, type: "image/png", sizes: "192x192" },
-      { url: `/favicon-512x512.png?v=${ASSET_VERSION}`, type: "image/png", sizes: "512x512" },
+      { url: `/logo_new.png?v=${FAVICON_VERSION}`, type: "image/png", sizes: "any" },
     ],
     apple: [
       { url: `/apple-touch-icon.png?v=${ASSET_VERSION}`, sizes: "180x180" },
