@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Briefcase,
@@ -16,12 +16,13 @@ import {
   ChevronUp,
   MessageSquare,
 } from "lucide-react";
-import { addTalentToWishlist, createBrandWishlist, loadBrandTalents, loadBrandWishlists, removeTalentFromWishlist, loadBrandCampaigns } from "@/lib/brand-api";
+import { addTalentToWishlist, createBrandWishlist, loadBrandTalentsPage, loadBrandWishlists, removeTalentFromWishlist, loadBrandCampaigns } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import { cn } from "@/lib/utils";
 
 const allValue = "all";
+const TALENTS_PER_PAGE = 20;
 const cityOptions = [
   "Tỉnh An Giang",
   "Tỉnh Bắc Ninh",
@@ -122,6 +123,13 @@ function normalizeTalentType(value: string) {
   };
 
   return aliases[normalized] || normalized;
+}
+
+function backendGenderValue(value: string) {
+  const normalized = normalizeSearchText(value);
+  if (normalized === "nam") return "male";
+  if (normalized === "nu") return "female";
+  return undefined;
 }
 
 function getTalentTypes(talent: unknown) {
@@ -276,20 +284,94 @@ export default function DiscoverTalentsPage() {
   const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
   const [selectedInviteTalent, setSelectedInviteTalent] = useState<any | null>(null);
   const [selectedCampaignForInvite, setSelectedCampaignForInvite] = useState("");
+  const talentRequestRef = useRef(0);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const [displayTalents, setDisplayTalents] = useState<any[]>([]);
+  const [talentPage, setTalentPage] = useState(1);
+  const [talentTotal, setTalentTotal] = useState(0);
+  const [hasMoreTalents, setHasMoreTalents] = useState(false);
+  const [isLoadingTalents, setIsLoadingTalents] = useState(true);
+  const [isLoadingMoreTalents, setIsLoadingMoreTalents] = useState(false);
   const [brandCampaigns, setBrandCampaigns] = useState<any[]>([]);
+
+  const talentQueryOptions = useMemo(() => ({
+    q: searchQuery || undefined,
+    type: selectedType !== allValue ? selectedType : undefined,
+    city: selectedCity !== allValue ? selectedCity : undefined,
+    gender: selectedGender !== allValue ? backendGenderValue(selectedGender) : undefined,
+    minAge: showAdvancedFilters ? minAge : undefined,
+    maxAge: showAdvancedFilters ? maxAge : undefined,
+    minHeight: showAdvancedFilters ? minHeight : undefined,
+    maxHeight: showAdvancedFilters ? maxHeight : undefined,
+  }), [searchQuery, selectedType, selectedCity, selectedGender, showAdvancedFilters, minAge, maxAge, minHeight, maxHeight]);
+
+  const loadTalentPage = useCallback(async (page: number, mode: "replace" | "append") => {
+    const requestId = ++talentRequestRef.current;
+
+    if (mode === "append") setIsLoadingMoreTalents(true);
+    else setIsLoadingTalents(true);
+
+    try {
+      const response = await loadBrandTalentsPage({
+        ...talentQueryOptions,
+        page,
+        perPage: TALENTS_PER_PAGE,
+        sort: "match",
+      });
+
+      if (requestId !== talentRequestRef.current) return;
+
+      setDisplayTalents((current) => {
+        if (mode === "replace") return response.data;
+
+        const seenIds = new Set(current.map((talent) => String(talent.id)));
+        const nextItems = response.data.filter((talent) => !seenIds.has(String(talent.id)));
+        return [...current, ...nextItems];
+      });
+      setTalentPage(response.meta.current_page);
+      setTalentTotal(response.meta.total);
+      setHasMoreTalents(response.meta.has_more);
+    } finally {
+      if (requestId === talentRequestRef.current) {
+        setIsLoadingTalents(false);
+        setIsLoadingMoreTalents(false);
+      }
+    }
+  }, [talentQueryOptions]);
+
+  useEffect(() => {
+    void loadTalentPage(1, "replace");
+  }, [loadTalentPage]);
+
+  useEffect(() => {
+    if (!hasMoreTalents || isLoadingTalents || isLoadingMoreTalents) return;
+
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void loadTalentPage(talentPage + 1, "append");
+        }
+      },
+      { rootMargin: "420px 0px", threshold: 0 },
+    );
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMoreTalents, isLoadingMoreTalents, isLoadingTalents, loadTalentPage, talentPage]);
 
   useEffect(() => {
     let cancelled = false;
 
-    loadBrandTalents([]).then(async (items) => {
-      if (cancelled) return;
-      setDisplayTalents(items);
-
-      const wishlists = await loadBrandWishlists(items);
+    loadBrandWishlists([]).then((wishlists) => {
       if (cancelled) return;
 
       const primaryWishlist = wishlists[0];
@@ -387,6 +469,11 @@ export default function DiscoverTalentsPage() {
     if (id === "tal-3") return "busy";
     return "maybe";
   };
+
+  const hasClientOnlyFilters =
+    showAdvancedFilters &&
+    (minWeight !== 40 || maxWeight !== 90 || selectedExperience !== allValue);
+  const displayedTalentCount = hasClientOnlyFilters ? filteredTalents.length : talentTotal || filteredTalents.length;
 
   function resetFilters() {
     setSearchQuery("");
@@ -615,14 +702,20 @@ export default function DiscoverTalentsPage() {
           <div className="flex flex-col gap-3 border-b border-[#2B313D] pb-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="flex items-center gap-2 text-xs text-slate-400">
               <Filter className="h-4 w-4 text-[#C9A86A]" />
-              Tìm thấy <b className="text-white">{filteredTalents.length}</b> talent phù hợp.
+              Tìm thấy <b className="text-white">{displayedTalentCount}</b> talent phù hợp.
             </span>
             <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono shrink-0">
               ĐÃ LƯU <b className="text-white">{savedIds.length}</b> talent vào danh sách yêu thích
             </span>
           </div>
 
-          {filteredTalents.length === 0 ? (
+          {isLoadingTalents ? (
+            <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-16 text-center">
+              <Search className="mx-auto mb-3 h-8 w-8 animate-pulse text-[#C9A86A]" />
+              <h3 className="text-sm font-black text-white">Đang tải danh sách talent</h3>
+              <p className="mt-2 text-xs text-slate-500">Một chút thôi, hệ thống đang lấy dữ liệu phù hợp.</p>
+            </div>
+          ) : filteredTalents.length === 0 ? (
             <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-16 text-center">
               <Search className="mx-auto mb-3 h-8 w-8 text-slate-600" />
               <h3 className="text-sm font-black text-white">Không tìm thấy talent phù hợp</h3>
@@ -646,6 +739,8 @@ export default function DiscoverTalentsPage() {
                         <img
                           src={talent.avatar}
                           alt={talent.name}
+                          loading="lazy"
+                          decoding="async"
                           onError={(event) => {
                             event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
                           }}
@@ -755,6 +850,19 @@ export default function DiscoverTalentsPage() {
                   </article>
                 );
               })}
+            </div>
+          )}
+
+          {!isLoadingTalents && hasMoreTalents && (
+            <div ref={loadMoreRef} className="flex min-h-16 justify-center pt-3">
+              <div className="flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#C9A86A]/20 bg-[#C9A86A]/5 px-6 text-xs font-black uppercase tracking-wider text-[#C9A86A]">
+                <span>{isLoadingMoreTalents ? "Đang tải thêm talent" : "Kéo xuống để tải thêm"}</span>
+                <span className="flex items-center gap-1" aria-hidden="true">
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#C9A86A]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#C9A86A] [animation-delay:120ms]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#C9A86A] [animation-delay:240ms]" />
+                </span>
+              </div>
             </div>
           )}
         </main>

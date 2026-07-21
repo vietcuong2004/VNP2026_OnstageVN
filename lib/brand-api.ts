@@ -81,6 +81,33 @@ type BackendPhoto = {
   is_primary?: boolean | number | null;
 };
 
+export type PaginationMeta = {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+  has_more: boolean;
+};
+
+export type LoadBrandTalentsOptions = {
+  page?: number;
+  perPage?: number;
+  sort?: string;
+  q?: string;
+  type?: string;
+  city?: string;
+  gender?: string;
+  minAge?: number;
+  maxAge?: number;
+  minHeight?: number;
+  maxHeight?: number;
+};
+
+export type LoadBrandTalentsResult = {
+  data: TalentProfile[];
+  meta: PaginationMeta;
+};
+
 type BackendSocialAccount = {
   platform?: string | null;
   followers_count?: number | string | null;
@@ -992,15 +1019,61 @@ export async function deleteBrandCampaignMedia(campaignId: string, mediaId: stri
   });
 }
 
-export async function loadBrandTalents(fallback: TalentProfile[] = []) {
+function buildTalentSearchParams(options: LoadBrandTalentsOptions = {}) {
+  const params = new URLSearchParams();
+
+  params.set("page", String(options.page ?? 1));
+  params.set("per_page", String(options.perPage ?? 20));
+  params.set("sort", options.sort ?? "match");
+
+  if (options.q?.trim()) params.set("q", options.q.trim());
+  if (options.type?.trim()) params.set("type", options.type.trim());
+  if (options.city?.trim()) params.set("city", options.city.trim());
+  if (options.gender?.trim()) params.set("gender", options.gender.trim());
+  if (options.minAge) params.set("min_age", String(options.minAge));
+  if (options.maxAge) params.set("max_age", String(options.maxAge));
+  if (options.minHeight) params.set("min_height", String(options.minHeight));
+  if (options.maxHeight) params.set("max_height", String(options.maxHeight));
+
+  return params;
+}
+
+function fallbackPaginationMeta(options: LoadBrandTalentsOptions, count: number): PaginationMeta {
+  return {
+    current_page: options.page ?? 1,
+    per_page: options.perPage ?? count,
+    total: count,
+    last_page: 1,
+    has_more: false,
+  };
+}
+
+export async function loadBrandTalentsPage(
+  options: LoadBrandTalentsOptions = {},
+  fallback: TalentProfile[] = [],
+): Promise<LoadBrandTalentsResult> {
   try {
-    const response = await apiJson<{ data: BackendProfile[] }>("/talents?per_page=100&sort=match");
+    const params = buildTalentSearchParams(options);
+    const response = await apiJson<{ data: BackendProfile[]; meta?: PaginationMeta }>(`/talents?${params.toString()}`);
     const items = (response.data ?? []).map((profile, index) => mapBackendTalent(profile, fallback[index]));
-    return items.length > 0 ? items : fallback;
+    const data = items.length > 0 ? items : fallback;
+
+    return {
+      data,
+      meta: response.meta ?? fallbackPaginationMeta(options, data.length),
+    };
   } catch (error) {
     console.warn("Cannot load brand talents", error);
-    return fallback;
+    return {
+      data: fallback,
+      meta: fallbackPaginationMeta(options, fallback.length),
+    };
   }
+}
+
+export async function loadBrandTalents(fallback: TalentProfile[] = []) {
+  const response = await loadBrandTalentsPage({ page: 1, perPage: 24, sort: "match" }, fallback);
+  return response.data;
 }
 
 export async function loadBrandRosterTalents() {
