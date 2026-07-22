@@ -73,15 +73,28 @@ type CampaignInvitePayload = {
   referrer?: InviteReferrer | null;
 };
 
-function formatCurrency(value?: number | string | null) {
+function formatDailyCompensation(value?: number | string | null) {
   const amount = Number(value || 0);
   if (!amount) return null;
-  return `${new Intl.NumberFormat("vi-VN").format(amount)}đ`;
+
+  if (amount >= 1_000_000) {
+    const millions = amount / 1_000_000;
+    const formatted = Number.isInteger(millions)
+      ? String(millions)
+      : millions.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
+    return `${formatted} triệu/ngày`;
+  }
+
+  if (amount >= 1_000) {
+    return `${Math.round(amount / 1_000).toLocaleString("vi-VN")}k/ngày`;
+  }
+
+  return `${amount.toLocaleString("vi-VN")}đ/ngày`;
 }
 
 function formatBudget(min?: number | string | null, max?: number | string | null) {
-  const minValue = formatCurrency(min);
-  const maxValue = formatCurrency(max);
+  const minValue = formatDailyCompensation(min);
+  const maxValue = formatDailyCompensation(max);
 
   if (minValue && maxValue) return `${minValue} - ${maxValue}`;
   if (maxValue) return maxValue;
@@ -200,7 +213,7 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
   const benefitItems = useMemo(() => {
     const items = [
       ...toBulletList(campaign.benefits),
-      campaign.budget_min || campaign.budget_max ? `Cát-xê dự kiến ${formatBudget(campaign.budget_min, campaign.budget_max)}.` : null,
+      campaign.budget_min || campaign.budget_max ? `Thù lao dự kiến ${formatBudget(campaign.budget_min, campaign.budget_max)}.` : null,
       campaign.location || campaign.city ? `Làm việc tại ${campaign.location || campaign.city}.` : null,
     ].filter(Boolean) as string[];
 
@@ -474,7 +487,7 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
           {/* Campaign Stats Grid */}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
-              { label: "Ngân sách", value: budget, icon: CircleDollarSign },
+              { label: "Thù lao", value: budget, icon: CircleDollarSign },
               { label: "Bắt đầu campaign", value: startDate, icon: CalendarDays },
               { label: "Kết thúc campaign", value: endDate, icon: Clock3 },
               { label: "Sự kiện chính", value: eventDate, icon: Briefcase },

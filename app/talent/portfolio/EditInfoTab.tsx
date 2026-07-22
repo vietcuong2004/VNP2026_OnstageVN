@@ -40,11 +40,12 @@ const convertToDisplayDate = (dateStr: string) => {
 const talentTypeOptions = [
   "Diễn viên",
   "Người mẫu",
-  "KOLs",
-  "KOCs",
-  "Livestreamers",
+  "KOL",
+  "KOC",
+  "Livestreamer",
   "MC",
   "PG",
+  "PB",
   "Hoa hậu"
 ];
 

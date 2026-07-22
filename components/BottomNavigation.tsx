@@ -6,19 +6,19 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Home, Briefcase, BookmarkCheck, Crown, Search, User,
   Sparkles, Trophy, Calendar, MessageSquare, Wallet, Menu, X, LogOut,
-  BarChart3, Users, Bell, Settings, Share2
+  BarChart3, Users, Bell, Settings, Share2, LogIn, ArrowLeftRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { logoutCurrentSession } from "@/lib/api-client";
+import { logoutCurrentSession, AUTH_USER_UPDATED_EVENT, getAuthToken } from "@/lib/api-client";
 
 const talentAllItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
   { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
-  { label: "Khám phá", icon: Sparkles, href: "/talent/survey" },
+  { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
   // { label: "Cuộc thi", icon: Trophy, href: "/talent/contests" },
-  { label: "Chiến dịch Affiliate", icon: Share2, href: "/talent/affiliate" },
+  // { label: "Chiến dịch Affiliate", icon: Share2, href: "/talent/affiliate" },
   { label: "Hợp tác Brand", icon: Users, href: "/talent/brands" },
   // { label: "Crowdfunding", icon: Crown, href: "/talent/crownfunding" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/talent/messages" },
@@ -30,7 +30,7 @@ const brandAllItems = [
   { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
   { label: "Tìm kiếm", icon: Search, href: "/brand/search" },
   { label: "Shortlist", icon: BookmarkCheck, href: "/brand/shortlists" },
-  { label: "Campaign", icon: Briefcase, href: "/brand/campaigns" },
+  { label: "Việc làm", icon: Briefcase, href: "/brand/campaigns" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   // { label: "Báo cáo", icon: BarChart3, href: "/brand/analytics" },
   { label: "Quản lý Talent", icon: Users, href: "/brand/my-talents" },
@@ -45,6 +45,18 @@ export default function BottomNavigation() {
   const router = useRouter();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [visible, setVisible] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const syncToken = () => setIsLoggedIn(!!getAuthToken());
+    syncToken();
+    window.addEventListener(AUTH_USER_UPDATED_EVENT, syncToken);
+    window.addEventListener("storage", syncToken);
+    return () => {
+      window.removeEventListener(AUTH_USER_UPDATED_EVENT, syncToken);
+      window.removeEventListener("storage", syncToken);
+    };
+  }, []);
 
   async function handleLogout() {
     setShowMoreMenu(false);
@@ -103,7 +115,7 @@ export default function BottomNavigation() {
 
   const brandPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
-    { label: "Campaign", icon: Briefcase, href: "/brand/campaigns" },
+    { label: "Việc làm", icon: Briefcase, href: "/brand/campaigns" },
     { label: "Quản lý Talent", icon: Users, href: "/brand/my-talents" },
     { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   ];
@@ -111,12 +123,32 @@ export default function BottomNavigation() {
   const talentPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
     { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
-    { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
+    { label: "Việc làm", icon: Briefcase, href: "/talent/jobs" },
     { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   ];
 
   const primaryItems = isBrand ? brandPrimaryItems : talentPrimaryItems;
-  const allItems = isBrand ? brandAllItems : talentAllItems;
+  const allItems = isBrand
+    ? [
+        ...brandAllItems.filter(item => item.label !== "Đăng xuất"),
+        ...(isLoggedIn
+          ? [{ label: "Đăng xuất", icon: LogOut, href: "/" }]
+          : [
+              { label: "Sang Talent", icon: ArrowLeftRight, href: "/talent/dashboard" },
+              { label: "Đăng nhập", icon: LogIn, href: "/auth/login" }
+            ]
+        )
+      ]
+    : [
+        ...talentAllItems.filter(item => item.label !== "Đăng xuất"),
+        ...(isLoggedIn
+          ? [{ label: "Đăng xuất", icon: LogOut, href: "/" }]
+          : [
+              { label: "Sang Brand", icon: ArrowLeftRight, href: "/brand/dashboard" },
+              { label: "Đăng nhập", icon: LogIn, href: "/auth/login" }
+            ]
+        )
+      ];
 
   return (
     <>
@@ -154,7 +186,9 @@ export default function BottomNavigation() {
               {allItems.map((item) => {
                 const Icon = item.icon;
                 const isLogout = item.label === "Đăng xuất";
-                const isActive = !isLogout && (pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href)));
+                const isLogin = item.label === "Đăng nhập";
+                const isSwitch = item.label === "Sang Brand" || item.label === "Sang Talent";
+                const isActive = !isLogout && !isLogin && !isSwitch && (pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href)));
                 const content = (
                   <>
                     <div className={cn(
@@ -163,14 +197,21 @@ export default function BottomNavigation() {
                         ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
                         : isLogout
                           ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.08)]"
-                          : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                          : isLogin
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.08)]"
+                            : isSwitch
+                              ? "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 hover:border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.08)]"
+                              : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
                     )}>
                       <Icon className="h-5 w-5 animate-none" />
                     </div>
                     <span className={cn(
                       "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
                       isActive && "text-amber-400 font-extrabold",
-                      isLogout ? "text-red-400 group-hover:text-red-300 font-black" : "text-slate-400 group-hover:text-white"
+                      isLogout ? "text-red-400 group-hover:text-red-300 font-black" :
+                        isLogin ? "text-emerald-400 group-hover:text-emerald-300 font-black" :
+                          isSwitch ? "text-amber-400 group-hover:text-amber-300 font-black" :
+                            "text-slate-400 group-hover:text-white"
                     )}>
                       {item.label}
                     </span>

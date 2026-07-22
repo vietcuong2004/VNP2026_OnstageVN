@@ -84,7 +84,7 @@ export default function CampaignsPage() {
             </div>
 
             <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-4xl">
-              QUẢN LÝ <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">CHIẾN DỊCH</span>
+              QUẢN LÝ <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">VIỆC LÀM</span>
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-slate-400">
               Đăng tuyển job/campaign mới, xem chi tiết và đối soát giải ngân thù lao, hoa hồng Affiliate cho các Talent tham gia chiến dịch.
@@ -143,7 +143,7 @@ export default function CampaignsPage() {
         {filteredCampaigns.map((campaign) => {
           const isPublished = campaign.status === "published";
           const isClosed = campaign.status === "closed";
-          
+
           return (
             <article
               key={campaign.id}
@@ -158,7 +158,7 @@ export default function CampaignsPage() {
               {!isClosed && (
                 <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-300 to-yellow-600 transition-opacity duration-300 group-hover:opacity-15 pointer-events-none" />
               )}
-              
+
               <div className="relative z-10">
                 <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -171,7 +171,7 @@ export default function CampaignsPage() {
                       </span>
                     )}
                   </div>
-                  
+
                   <span
                     className={cn(
                       "rounded-full px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider border",
@@ -185,7 +185,7 @@ export default function CampaignsPage() {
                     {statusLabel(campaign.status)}
                   </span>
                 </div>
-                
+
                 <h3 className="line-clamp-1 text-base font-black text-white group-hover:text-amber-300 transition-colors duration-300 leading-snug">
                   {campaign.title}
                 </h3>
@@ -225,7 +225,7 @@ export default function CampaignsPage() {
                     <span className="font-mono font-black text-emerald-400 mt-0.5 block">{campaign.applicants.length}</span>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2">
                   <button
                     onClick={() => router.push(`/brand/campaigns/${campaign.id}`)}

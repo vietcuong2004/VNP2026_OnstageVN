@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils";
 
 const allValue = "all";
 const TALENTS_PER_PAGE = 20;
+const TALENT_PAGES_PER_RESULT_PAGE = 5;
+const TALENTS_PER_RESULT_PAGE = TALENTS_PER_PAGE * TALENT_PAGES_PER_RESULT_PAGE;
 const cityOptions = [
   "Tỉnh An Giang",
   "Tỉnh Bắc Ninh",
@@ -144,6 +146,17 @@ function getTalentTypes(talent: unknown) {
   }
 
   return record.type ? [String(record.type)] : [];
+}
+
+function getVisiblePageNumbers(currentPage: number, totalPages: number) {
+  const maxVisible = 10;
+  const safeTotal = Math.max(1, totalPages);
+  const half = Math.floor(maxVisible / 2);
+  let start = Math.max(1, currentPage - half);
+  const end = Math.min(safeTotal, start + maxVisible - 1);
+  start = Math.max(1, end - maxVisible + 1);
+
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 }
 
 type FilterDropdownOption = {
@@ -292,6 +305,8 @@ export default function DiscoverTalentsPage() {
   const [displayTalents, setDisplayTalents] = useState<any[]>([]);
   const [talentPage, setTalentPage] = useState(1);
   const [talentTotal, setTalentTotal] = useState(0);
+  const [talentResultPage, setTalentResultPage] = useState(1);
+  const [talentResultPageCount, setTalentResultPageCount] = useState(1);
   const [hasMoreTalents, setHasMoreTalents] = useState(false);
   const [isLoadingTalents, setIsLoadingTalents] = useState(true);
   const [isLoadingMoreTalents, setIsLoadingMoreTalents] = useState(false);
@@ -308,7 +323,7 @@ export default function DiscoverTalentsPage() {
     maxHeight: showAdvancedFilters ? maxHeight : undefined,
   }), [searchQuery, selectedType, selectedCity, selectedGender, showAdvancedFilters, minAge, maxAge, minHeight, maxHeight]);
 
-  const loadTalentPage = useCallback(async (page: number, mode: "replace" | "append") => {
+  const loadTalentPage = useCallback(async (page: number, mode: "replace" | "append", resultPage: number) => {
     const requestId = ++talentRequestRef.current;
 
     if (mode === "append") setIsLoadingMoreTalents(true);
@@ -329,11 +344,13 @@ export default function DiscoverTalentsPage() {
 
         const seenIds = new Set(current.map((talent) => String(talent.id)));
         const nextItems = response.data.filter((talent) => !seenIds.has(String(talent.id)));
-        return [...current, ...nextItems];
+        return [...current, ...nextItems].slice(0, TALENTS_PER_RESULT_PAGE);
       });
       setTalentPage(response.meta.current_page);
       setTalentTotal(response.meta.total);
-      setHasMoreTalents(response.meta.has_more);
+      setTalentResultPage(resultPage);
+      setTalentResultPageCount(Math.max(1, Math.ceil((response.meta.total || response.data.length) / TALENTS_PER_RESULT_PAGE)));
+      setHasMoreTalents(response.meta.has_more && response.meta.current_page < resultPage * TALENT_PAGES_PER_RESULT_PAGE);
     } finally {
       if (requestId === talentRequestRef.current) {
         setIsLoadingTalents(false);
@@ -343,7 +360,7 @@ export default function DiscoverTalentsPage() {
   }, [talentQueryOptions]);
 
   useEffect(() => {
-    void loadTalentPage(1, "replace");
+    void loadTalentPage(1, "replace", 1);
   }, [loadTalentPage]);
 
   useEffect(() => {
@@ -355,7 +372,7 @@ export default function DiscoverTalentsPage() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          void loadTalentPage(talentPage + 1, "append");
+          void loadTalentPage(talentPage + 1, "append", talentResultPage);
         }
       },
       { rootMargin: "420px 0px", threshold: 0 },
@@ -366,7 +383,7 @@ export default function DiscoverTalentsPage() {
     return () => {
       observer.disconnect();
     };
-  }, [hasMoreTalents, isLoadingMoreTalents, isLoadingTalents, loadTalentPage, talentPage]);
+  }, [hasMoreTalents, isLoadingMoreTalents, isLoadingTalents, loadTalentPage, talentPage, talentResultPage]);
 
   useEffect(() => {
     let cancelled = false;
@@ -474,6 +491,19 @@ export default function DiscoverTalentsPage() {
     showAdvancedFilters &&
     (minWeight !== 40 || maxWeight !== 90 || selectedExperience !== allValue);
   const displayedTalentCount = hasClientOnlyFilters ? filteredTalents.length : talentTotal || filteredTalents.length;
+  const talentPageNumbers = getVisiblePageNumbers(talentResultPage, talentResultPageCount);
+
+  function goToTalentResultPage(page: number) {
+    if (page < 1 || page > talentResultPageCount || page === talentResultPage || isLoadingTalents) return;
+    const backendPage = ((page - 1) * TALENT_PAGES_PER_RESULT_PAGE) + 1;
+    void loadTalentPage(backendPage, "replace", page);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      document.querySelectorAll("[data-app-scroll-root], main").forEach((element) => {
+        element.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      });
+    }
+  }
 
   function resetFilters() {
     setSearchQuery("");
@@ -863,6 +893,46 @@ export default function DiscoverTalentsPage() {
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#C9A86A] [animation-delay:240ms]" />
                 </span>
               </div>
+            </div>
+          )}
+
+          {!isLoadingTalents && talentResultPageCount > 1 && (
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-8 pb-4">
+              <button
+                type="button"
+                disabled={talentResultPage <= 1 || isLoadingTalents}
+                onClick={() => goToTalentResultPage(talentResultPage - 1)}
+                className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 text-xs font-bold text-slate-300 transition hover:bg-white/10 hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Trước
+              </button>
+
+              <div className="flex items-center gap-1.5 px-1">
+                {talentPageNumbers.map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => goToTalentResultPage(page)}
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-xl text-xs font-black transition-all cursor-pointer",
+                      page === talentResultPage
+                        ? "bg-[#C9A86A] text-slate-950 shadow-md shadow-[#C9A86A]/20"
+                        : "border border-white/10 bg-slate-950/80 text-slate-400 hover:border-[#C9A86A]/40 hover:text-white"
+                    )}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                disabled={talentResultPage >= talentResultPageCount || isLoadingTalents}
+                onClick={() => goToTalentResultPage(talentResultPage + 1)}
+                className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 text-xs font-bold text-slate-300 transition hover:bg-white/10 hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Tiếp theo
+              </button>
             </div>
           )}
         </main>

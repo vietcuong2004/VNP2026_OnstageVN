@@ -180,7 +180,7 @@ export default function BrandIntroPage() {
                 </div>
                 <div className="border-t border-white/5 pt-2 flex items-center justify-between">
                   <div>
-                    <span className="text-[6px] font-semibold text-slate-550 block uppercase">Ngân sách</span>
+                    <span className="text-[6px] font-semibold text-slate-550 block uppercase">Thù lao</span>
                     <span className="text-[9px] font-bold text-[#F0C56B]">15.000.000đ</span>
                   </div>
                   <div>
@@ -249,7 +249,7 @@ export default function BrandIntroPage() {
               Tạo chiến dịch tuyển dụng
             </h3>
             <p className="text-xs md:text-sm text-slate-400 leading-relaxed text-justify">
-              Tạo nhanh chiến dịch tuyển Talent với đầy đủ thông tin về mục tiêu, yêu cầu, thời gian và ngân sách. Chia sẻ chiến dịch đến đúng đối tượng và quản lý toàn bộ quá trình tuyển chọn trên một nền tảng.
+              Tạo nhanh chiến dịch tuyển Talent với đầy đủ thông tin về mục tiêu, yêu cầu, thời gian và thù lao. Chia sẻ chiến dịch đến đúng đối tượng và quản lý toàn bộ quá trình tuyển chọn trên một nền tảng.
             </p>
             <ul className="space-y-3 text-[11px] md:text-xs text-slate-300 font-semibold pt-4 border-t border-white/5">
               <li className="flex items-start gap-2.5">

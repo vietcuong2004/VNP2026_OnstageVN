@@ -137,8 +137,8 @@ export default function Hero({
           {[
             {
               label: "Địa điểm",
-              value: selectedCampaign.venueName || selectedCampaign.address,
-              titleText: selectedCampaign.venueName || selectedCampaign.address,
+              value: selectedCampaign.address,
+              titleText: selectedCampaign.address,
               icon: MapPin,
               color: "text-amber-300",
             },

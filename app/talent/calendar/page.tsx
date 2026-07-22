@@ -8,163 +8,24 @@ import {
   Eye, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createTalentCalendarEvent, deleteTalentCalendarEvent, loadTalentCalendar, loadTalentProfile, persistTalentProfile, updateTalentCalendarEvent } from "@/lib/talent-api";
+import { 
+  createTalentCalendarEvent, deleteTalentCalendarEvent, loadTalentCalendar, 
+  loadTalentProfile, persistTalentProfile, updateTalentCalendarEvent,
+  loadTalentCampaignsPage, mapCampaignToTalentJob 
+} from "@/lib/talent-api";
+import { getStoredAuthUser } from "@/lib/api-client";
 import { busyDatesFromTodoLists, getTalentDayStatus } from "@/lib/talent-calendar";
 
-// Contest data for the calendar page detail modal
-const CALENDAR_CONTESTS = [
-  {
-    id: "cal-ct1",
-    name: "Hoa hậu Áo Dài Việt Nam",
-    organizer: "Hiệp hội Thiết kế Thời trang & Sở Văn hóa",
-    duration: "20/08/2026 - 20/10/2026",
-    suitability: 90,
-    status: "Đang tham gia" as const,
-    scale: "Toàn quốc",
-    description: "Cuộc thi tôn vinh quốc phục Áo Dài truyền thống Việt Nam, tìm kiếm gương mặt đại diện quảng bá hình ảnh di sản quốc gia ra thế giới.",
-    badgeColor: "bg-rose-500/10 border-rose-500/20 text-rose-400",
-    detail: {
-      organizerName: "BAN TỔ CHỨC HOA HẬU ÁO DÀI VIỆT NAM 2026",
-      address: "Tòa nhà Sở Văn Hóa Thể Thao, 164 Đồng Khởi, Quận 1, TP. Hồ Chí Minh",
-      phone: "0283 822 4153",
-      email: "aodaivietnam@hcm.gov.vn",
-      website: "hoahauaodaivietnam.vn",
-      phases: [
-        {
-          title: "I. Khởi động và Phát động thiết kế Áo dài",
-          timeline: "Tháng 07/2026",
-          location: "TP. Hồ Chí Minh",
-          items: [
-            "Họp báo phát động cuộc thi thiết kế Áo dài đồng hành cùng chương trình",
-            "Mở cổng đăng ký trực tuyến cho các nhà thiết kế và thí sinh",
-            "Công bố dàn giám khảo gồm các NTK áo dài danh tiếng toàn quốc"
-          ]
-        },
-        {
-          title: "II. Vòng Sơ khảo trực tiếp",
-          timeline: "Tháng 08/2026",
-          location: "Hà Nội, Huế, TP. Hồ Chí Minh",
-          items: [
-            "Tổ chức sơ tuyển trực tiếp tại 3 miền Bắc - Trung - Nam",
-            "Đo chỉ số nhân trắc và phỏng vấn kiến thức lịch sử tà áo dài Việt Nam",
-            "Thí sinh trình diễn áo dài tự chọn trước hội đồng BGK"
-          ]
-        },
-        {
-          title: "III. Vòng Bán kết & Hoạt động di sản",
-          timeline: "Tháng 09/2026",
-          location: "Cố đô Huế, Thừa Thiên Huế",
-          items: [
-            "Thực hiện bộ ảnh áo dài tại Đại Nội Huế và cầu Tràng Tiền",
-            "Đêm trình diễn áo dài di sản (Áo dài Show) phát sóng trên truyền hình",
-            "Lựa chọn TOP 35 thí sinh đi tiếp vào đêm chung kết xếp hạng"
-          ]
-        },
-        {
-          title: "IV. Đêm Chung kết",
-          timeline: "Tháng 10/2026",
-          location: "Nhà hát Thành phố, TP. Hồ Chí Minh",
-          items: [
-            "Tập luyện kỹ năng catwalk uyển chuyển với tà áo dài cùng HLV chuyên nghiệp",
-            "Đêm chung kết trao vương miện diễn ra ngày 20/10/2026 (Ngày Phụ nữ Việt Nam)",
-            "Truyền hình trực tiếp trên sóng HTV và phát sóng đa nền tảng số"
-          ]
-        }
-      ],
-      notes: [
-        "Thí sinh tham gia sẽ được các NTK nổi tiếng hỗ trợ may đo áo dài độc quyền suốt hành trình cuộc thi.",
-        "Yêu cầu vẻ đẹp tự nhiên hài hòa, nụ cười rạng rỡ và mái tóc dài đen mượt truyền thống."
-      ]
-    },
-    funding: {
-      projectName: "Lớp học công nghệ cho trẻ em khuyết tật (Lê Mỹ Linh)",
-      projectImage: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&h=300&q=80",
-      raised: 45000000,
-      goal: 80000000,
-      supportersCount: 512,
-      sponsors: [
-        { name: "VNP Group", tier: "Kim Cương" },
-        { name: "EduTech Việt Nam", tier: "Vàng" }
-      ]
-    }
-  },
-  {
-    id: "cal-ct2",
-    name: "Hoa hậu Quốc gia Việt Nam",
-    organizer: "Công ty Sen Vàng",
-    duration: "15/09/2026 - 18/12/2026",
-    suitability: 92,
-    status: "Đang chờ duyệt" as const,
-    scale: "Toàn quốc (63 tỉnh thành)",
-    description: "Cuộc thi tôn vinh vẻ đẹp truyền thống gắn liền với nét đẹp văn hóa đặc trưng của các vùng miền và quảng bá du lịch Việt Nam.",
-    badgeColor: "bg-cyan-500/10 border-cyan-500/20 text-cyan-400",
-    detail: {
-      organizerName: "CÔNG TY CỔ PHẦN QUẢN CÁO THƯƠNG MẠI SEN VÀNG",
-      address: "6D Trường Sa, Phường 15, Quận Bình Thạnh, TP. Hồ Chí Minh",
-      phone: "0283 899 2233",
-      email: "info@senvangvn.com",
-      website: "hoahauquocgia.senvang.com",
-      phases: [
-        {
-          title: "I. Tuyển sinh & Gặp gỡ báo chí",
-          timeline: "Tháng 07/2026",
-          location: "TP. Hồ Chí Minh",
-          items: [
-            "Nhận đăng ký ứng viên đại diện cho 63 tỉnh thành",
-            "Họp báo ra mắt ban giám khảo và các chuyên gia văn hóa lịch sử",
-            "Sơ loại hồ sơ học vấn và năng khiếu vùng miền của thí sinh"
-          ]
-        },
-        {
-          title: "II. Vòng Sơ khảo vùng miền",
-          timeline: "Tháng 09/2026",
-          location: "Miền Bắc, Miền Trung, Miền Nam",
-          items: [
-            "Tổ chức thi tuyển trực tiếp tại 3 cụm khu vực trọng điểm",
-            "Thi tài năng thuyết trình văn hóa du lịch địa phương của thí sinh",
-            "Chọn ra 63 gương mặt xuất sắc nhất đại diện cho 63 tỉnh thành"
-          ]
-        },
-        {
-          title: "III. Vòng Chung khảo & Hoạt động thực tế",
-          timeline: "Tháng 11/2026",
-          location: "Khu di tích lịch sử đền Hùng, Phú Thọ",
-          items: [
-            "Thực hiện bộ ảnh cổ phục dân tộc tại các địa danh văn hóa lớn",
-            "Tham gia chuỗi tọa đàm giới thiệu ẩm thực và làng nghề truyền thống",
-            "Đêm chung khảo xếp hạng các phần thi phụ"
-          ]
-        },
-        {
-          title: "IV. Vòng Chung kết toàn quốc",
-          timeline: "Tháng 12/2026",
-          location: "Tp. Hà Nội",
-          items: [
-            "Tổng duyệt catwalk đồng diễn trang phục các dân tộc Việt Nam",
-            "Đêm chung kết toàn quốc diễn ra ngày 18/12/2026 tại Trung tâm Hội nghị Quốc gia",
-            "Truyền hình trực tiếp trên các kênh VTV và FPT Play"
-          ]
-        }
-      ],
-      notes: [
-        "Mỗi thí sinh đại diện cho một tỉnh thành sẽ được ban tổ chức tài trợ gói thiết kế trang phục dân tộc riêng (trị giá lên tới 50M).",
-        "Chấp nhận thí sinh có can thiệp thẩm mỹ nhẹ nhưng chưa thay đổi cấu trúc khung xương mặt."
-      ]
-    },
-    funding: {
-      projectName: "Nước sạch cho trường em bản cao (Trần Thu Thảo)",
-      projectImage: "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&w=600&h=300&q=80",
-      raised: 88000000,
-      goal: 150000000,
-      supportersCount: 920,
-      sponsors: [
-        { name: "Sen Vàng Agency", tier: "Kim Cương" },
-        { name: "Lotus Airlines", tier: "Vàng" },
-        { name: "AquaPure VN", tier: "Bạc" }
-      ]
-    }
-  }
-];
+function formatDate(value?: string | null) {
+  if (!value) return "Chưa cập nhật";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
 
 function isBackendCalendarTaskId(taskId: string | number) {
   return /^\d+$/.test(String(taskId));
@@ -173,8 +34,9 @@ function isBackendCalendarTaskId(taskId: string | number) {
 export default function CalendarPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
-  const [selectedCalendarContest, setSelectedCalendarContest] = useState<typeof CALENDAR_CONTESTS[number] | null>(null);
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
+  const [participatingJobs, setParticipatingJobs] = useState<any[]>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
 
   // Calendar states
   const [currentYear, setCurrentYear] = useState(2026);
@@ -249,6 +111,26 @@ export default function CalendarPage() {
       });
       setProfile(updatedProfile);
     });
+
+    const currentUser = getStoredAuthUser();
+    if (currentUser) {
+      setIsLoadingJobs(true);
+      loadTalentCampaignsPage({ perPage: 100 })
+        .then((res) => {
+          if (!active) return;
+          if (res?.data) {
+            const mapped = res.data.map(mapCampaignToTalentJob);
+            const applied = mapped.filter((job) => job.hasApplied);
+            setParticipatingJobs(applied);
+          }
+          setIsLoadingJobs(false);
+        })
+        .catch((err) => {
+          console.warn("Failed to load participating jobs", err);
+          if (active) setIsLoadingJobs(false);
+        });
+    }
+
     return () => {
       active = false;
     };
@@ -680,417 +562,123 @@ export default function CalendarPage() {
 
       </div>
 
-      {/* Cuộc thi đang tham gia */}
+      {/* Công việc đang tham gia */}
       <div className="space-y-5">
         <div className="flex items-center gap-3">
-          <Trophy className="h-5 w-5 text-amber-400" />
-          <h2 className="font-display text-lg font-black text-white uppercase tracking-tight">Cuộc thi đang tham gia</h2>
+          <Briefcase className="h-5 w-5 text-amber-400" />
+          <h2 className="font-display text-lg font-black text-white uppercase tracking-tight">Công việc đang tham gia</h2>
           <span className="text-[9px] font-bold text-slate-500 bg-white/5 border border-white/5 rounded-lg px-2 py-0.5 uppercase tracking-wider">
-            2 cuộc thi
+            {participatingJobs.length} công việc
           </span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* Contest Card 1: Đang tham gia */}
-          <div className="relative overflow-hidden rounded-2xl bg-[#08090f] border border-[#4f1a2d] hover:border-rose-400/40 shadow-[0_0_15px_rgba(236,72,153,0.02)] p-6 transition-all duration-300 group">
-            <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full opacity-10 blur-3xl bg-rose-400 pointer-events-none" />
-
-            <div className="flex justify-between items-start relative z-10">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded border px-2.5 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-rose-500/10 border-rose-500/20 text-rose-400">
-                    Toàn quốc
-                  </span>
-                  <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-2.5 py-0.5 text-[8px] text-emerald-400 font-extrabold border border-emerald-500/20 uppercase tracking-wider">
-                    <CheckCircle className="h-3 w-3" /> Đang tham gia
-                  </span>
-                </div>
-                <h3 className="font-display font-extrabold text-sm text-white mt-2 leading-snug">Hoa hậu Áo Dài Việt Nam</h3>
-                <p className="text-[10px] text-slate-500 font-bold">Hiệp hội Thiết kế Thời trang & Sở Văn hóa</p>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center justify-end gap-1">
-                  <Sparkles className="h-3 w-3 text-amber-400 fill-amber-400/20" />
-                  <span className="font-display font-extrabold text-sm text-amber-400">90%</span>
-                </div>
-                <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-bold mt-0.5">Phù hợp</span>
-              </div>
-            </div>
-
-            <p className="text-xs text-slate-400 leading-relaxed mt-4 font-medium relative z-10 line-clamp-2">
-              Cuộc thi tôn vinh quốc phục Áo Dài truyền thống Việt Nam, tìm kiếm gương mặt đại diện quảng bá hình ảnh di sản quốc gia ra thế giới.
-            </p>
-
-            {/* Phase Progress */}
-            <div className="mt-5 border-t border-[#151b2d] pt-4 space-y-3 relative z-10">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Tiến độ vòng thi</span>
-                <span className="text-[9px] font-mono font-bold text-amber-400">Vòng 3 / 4</span>
-              </div>
-              <div className="flex gap-1.5">
-                {[
-                  { label: "Khởi động", done: true },
-                  { label: "Sơ khảo", done: true },
-                  { label: "Bán kết", done: false, active: true },
-                  { label: "Chung kết", done: false }
-                ].map((phase, i) => (
-                  <div key={i} className="flex-1 space-y-1.5">
-                    <div className={cn(
-                      "h-1.5 w-full rounded-full transition-all",
-                      phase.done
-                        ? "bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.3)]"
-                        : phase.active
-                        ? "bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 shadow-[0_0_6px_rgba(245,158,11,0.3)] animate-pulse"
-                        : "bg-slate-800"
-                    )} />
-                    <span className={cn(
-                      "block text-[7px] font-bold uppercase tracking-wider text-center",
-                      phase.done ? "text-emerald-400" : phase.active ? "text-amber-400" : "text-slate-600"
-                    )}>
-                      {phase.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-4 flex items-center justify-between text-[10px] text-slate-400 relative z-10">
-              <div className="flex items-center gap-1.5">
-                <CalendarIcon className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                <span>20/08/2026 - 20/10/2026</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedCalendarContest(CALENDAR_CONTESTS[0])}
-                className="flex items-center gap-1 text-amber-300 hover:text-amber-200 font-bold cursor-pointer hover:underline transition-colors"
-              >
-                Chi tiết <ExternalLink className="h-3 w-3" />
-              </button>
-            </div>
+        {isLoadingJobs ? (
+          <div className="text-center py-10">
+            <span className="text-xs text-slate-400">Đang tải danh sách công việc...</span>
           </div>
-
-          {/* Contest Card 2: Đang chờ duyệt */}
-          <div className="relative overflow-hidden rounded-2xl bg-[#08090f] border border-[#143d4d] hover:border-cyan-400/40 shadow-[0_0_15px_rgba(34,211,238,0.02)] p-6 transition-all duration-300 group">
-            <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full opacity-10 blur-3xl bg-cyan-400 pointer-events-none" />
-
-            <div className="flex justify-between items-start relative z-10">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded border px-2.5 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-cyan-500/10 border-cyan-500/20 text-cyan-400">
-                    Toàn quốc (63 tỉnh thành)
-                  </span>
-                  <span className="flex items-center gap-1 rounded bg-amber-500/10 px-2.5 py-0.5 text-[8px] text-amber-400 font-extrabold border border-amber-500/20 uppercase tracking-wider animate-pulse">
-                    <Clock className="h-3 w-3" /> Đang chờ duyệt
-                  </span>
-                </div>
-                <h3 className="font-display font-extrabold text-sm text-white mt-2 leading-snug">Hoa hậu Quốc gia Việt Nam</h3>
-                <p className="text-[10px] text-slate-500 font-bold">Công ty Sen Vàng</p>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center justify-end gap-1">
-                  <Sparkles className="h-3 w-3 text-amber-400 fill-amber-400/20" />
-                  <span className="font-display font-extrabold text-sm text-amber-400">92%</span>
-                </div>
-                <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-bold mt-0.5">Phù hợp</span>
-              </div>
-            </div>
-
-            <p className="text-xs text-slate-400 leading-relaxed mt-4 font-medium relative z-10 line-clamp-2">
-              Cuộc thi tôn vinh vẻ đẹp truyền thống gắn liền với nét đẹp văn hóa đặc trưng của các vùng miền và quảng bá du lịch Việt Nam.
+        ) : !getStoredAuthUser() ? (
+          <div className="rounded-2xl border border-white/5 bg-slate-900/30 p-8 text-center max-w-md mx-auto">
+            <Briefcase className="h-8 w-8 text-slate-500 mx-auto mb-3" />
+            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Xem Công Việc Đang Tham Gia</h4>
+            <p className="text-[10px] text-slate-500 mt-2">
+              Vui lòng đăng nhập tài khoản Talent để xem thông tin tiến độ và chi tiết các công việc bạn đang tham gia ứng tuyển.
             </p>
-
-            {/* Phase Progress */}
-            <div className="mt-5 border-t border-[#151b2d] pt-4 space-y-3 relative z-10">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Tiến độ vòng thi</span>
-                <span className="text-[9px] font-mono font-bold text-amber-400">Chờ duyệt hồ sơ</span>
-              </div>
-              <div className="flex gap-1.5">
-                {[
-                  { label: "Tuyển sinh", done: false, active: true },
-                  { label: "Sơ khảo", done: false },
-                  { label: "Chung khảo", done: false },
-                  { label: "Chung kết", done: false }
-                ].map((phase, i) => (
-                  <div key={i} className="flex-1 space-y-1.5">
-                    <div className={cn(
-                      "h-1.5 w-full rounded-full transition-all",
-                      phase.done
-                        ? "bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.3)]"
-                        : phase.active
-                        ? "bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 shadow-[0_0_6px_rgba(245,158,11,0.3)] animate-pulse"
-                        : "bg-slate-800"
-                    )} />
-                    <span className={cn(
-                      "block text-[7px] font-bold uppercase tracking-wider text-center",
-                      phase.done ? "text-emerald-400" : phase.active ? "text-amber-400" : "text-slate-600"
-                    )}>
-                      {phase.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-4 flex items-center justify-between text-[10px] text-slate-400 relative z-10">
-              <div className="flex items-center gap-1.5">
-                <CalendarIcon className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                <span>15/09/2026 - 18/12/2026</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedCalendarContest(CALENDAR_CONTESTS[1])}
-                className="flex items-center gap-1 text-amber-300 hover:text-amber-200 font-bold cursor-pointer hover:underline transition-colors"
-              >
-                Chi tiết <ExternalLink className="h-3 w-3" />
-              </button>
-            </div>
+            <button
+              onClick={() => router.push("/auth/login?redirect=/talent/calendar")}
+              className="mt-4 h-8 rounded-lg bg-amber-400 hover:bg-amber-500 px-4 text-[10px] font-black text-slate-950 transition-all uppercase tracking-wider cursor-pointer"
+            >
+              Đăng nhập ngay
+            </button>
           </div>
+        ) : participatingJobs.length === 0 ? (
+          <div className="rounded-2xl border border-white/5 bg-slate-900/30 p-8 text-center max-w-md mx-auto">
+            <Briefcase className="h-8 w-8 text-slate-500 mx-auto mb-3" />
+            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Chưa có công việc nào</h4>
+            <p className="text-[10px] text-slate-500 mt-2">
+              Bạn chưa ứng tuyển hoặc chưa tham gia chiến dịch nào. Hãy khám phá và ứng tuyển các chiến dịch mới tại trang Dashboard!
+            </p>
+            <button
+              onClick={() => router.push("/talent/dashboard")}
+              className="mt-4 h-8 rounded-lg bg-amber-400 hover:bg-amber-500 px-4 text-[10px] font-black text-slate-950 transition-all uppercase tracking-wider cursor-pointer"
+            >
+              Xem danh sách chiến dịch
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {participatingJobs.map((job) => {
+              const appStatus = job.application?.status || "pending";
+              const isApproved = appStatus === "approved" || appStatus === "executing" || appStatus === "completed";
+              const dateRange = job.startDate && job.endDate ? `${formatDate(job.startDate)} - ${formatDate(job.endDate)}` : "Chưa cập nhật";
+              
+              return (
+                <div key={job.id} className={cn(
+                  "relative overflow-hidden rounded-2xl bg-[#08090f] border hover:border-amber-400/40 p-6 transition-all duration-300 group",
+                  isApproved ? "border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.02)]" : "border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.02)]"
+                )}>
+                  <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full opacity-5 blur-3xl bg-amber-400 pointer-events-none" />
 
-        </div>
-      </div>
-
-      {/* Contest Detail Modal */}
-      {selectedCalendarContest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-3xl max-h-[85vh] flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
-
-            {/* Modal Header */}
-            <div className="flex items-start justify-between p-6 border-b border-[#151b2d]">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className={cn("rounded border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider", selectedCalendarContest.badgeColor)}>
-                    {selectedCalendarContest.scale}
-                  </span>
-                  {selectedCalendarContest.status === "Đang tham gia" && (
-                    <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[8px] text-emerald-400 font-extrabold border border-emerald-500/20 uppercase tracking-wider">
-                      <CheckCircle className="h-3 w-3" /> Đang tham gia
-                    </span>
-                  )}
-                  {selectedCalendarContest.status === "Đang chờ duyệt" && (
-                    <span className="flex items-center gap-1 rounded bg-amber-500/10 px-2 py-0.5 text-[8px] text-amber-400 font-extrabold border border-amber-500/20 uppercase tracking-wider">
-                      <Clock className="h-3 w-3" /> Đang chờ duyệt
-                    </span>
-                  )}
-                </div>
-                <h2 className="font-display font-black text-lg text-white mt-1.5 uppercase leading-tight tracking-tight">
-                  {selectedCalendarContest.name}
-                </h2>
-                <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wide">
-                  Tổ chức bởi: <span className="text-slate-300">{selectedCalendarContest.organizer}</span>
-                </p>
-              </div>
-
-              <button
-                onClick={() => setSelectedCalendarContest(null)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#151b2d] bg-[#050711] text-slate-400 hover:text-white transition-all cursor-pointer hover:border-slate-800"
-              >
-                <X className="h-4.5 w-4.5" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 scrollbar-thin">
-
-              {/* Description */}
-              <div className="space-y-2">
-                <h4 className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
-                  <Info className="h-4 w-4 text-amber-400" /> Mô tả cuộc thi
-                </h4>
-                <p className="text-xs text-slate-400 leading-relaxed pl-6 font-medium">
-                  {selectedCalendarContest.description}
-                </p>
-              </div>
-
-              {/* Organization contact cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#050711]/50 border border-[#151b2d] rounded-2xl p-4 text-[10px] text-slate-400">
-                <div className="space-y-2.5">
-                  <div className="flex items-start gap-2">
-                    <MapPinned className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                    <span><b>Trụ sở BTC:</b> <span className="text-slate-300">{selectedCalendarContest.detail.address}</span></span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-slate-500 shrink-0" />
-                    <span><b>Hotline:</b> <span className="text-slate-300 font-mono">{selectedCalendarContest.detail.phone}</span></span>
-                  </div>
-                </div>
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-slate-500 shrink-0" />
-                    <span><b>Email:</b> <span className="text-slate-300 font-mono">{selectedCalendarContest.detail.email}</span></span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-amber-400 shrink-0" />
-                    <span><b>Website:</b> <a href={`https://${selectedCalendarContest.detail.website}`} target="_blank" rel="noreferrer" className="text-amber-300 hover:underline font-mono">{selectedCalendarContest.detail.website}</a></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Funding section */}
-              {selectedCalendarContest.funding && (
-                <div className="space-y-4 border-t border-[#151b2d] pt-6">
-                  <h4 className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
-                    <Crown className="h-4 w-4 text-amber-400 animate-pulse" /> Gọi vốn dự án & Nhà Tài trợ
-                  </h4>
-
-                  <div className="group relative overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-b from-[#111421] to-[#08090f] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
-                    <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full opacity-10 blur-3xl bg-amber-400 pointer-events-none" />
-
-                    <div className="flex flex-col md:flex-row gap-5">
-                      <div className="h-32 md:h-24 md:w-36 w-full rounded-xl bg-slate-900 border border-white/5 relative overflow-hidden shrink-0">
-                        <img
-                          src={selectedCalendarContest.funding.projectImage}
-                          alt={selectedCalendarContest.funding.projectName}
-                          className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute bottom-2 left-2">
-                          <span className="inline-flex items-center rounded bg-amber-500/20 border border-amber-500/30 px-1.5 py-0.5 text-[8px] font-bold text-amber-300 uppercase">
-                            CROWN FUNDING
+                  <div className="flex justify-between items-start relative z-10">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {job.city && (
+                          <span className="rounded border px-2.5 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-slate-800 border-white/10 text-slate-300">
+                            {job.city}
                           </span>
-                        </div>
+                        )}
+                        {isApproved ? (
+                          <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-2.5 py-0.5 text-[8px] text-emerald-400 font-extrabold border border-emerald-500/20 uppercase tracking-wider">
+                            <CheckCircle className="h-3 w-3" /> Đang tham gia
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 rounded bg-amber-500/10 px-2.5 py-0.5 text-[8px] text-amber-400 font-extrabold border border-amber-500/20 uppercase tracking-wider animate-pulse">
+                            <Clock className="h-3 w-3" /> Đang chờ duyệt
+                          </span>
+                        )}
                       </div>
-
-                      <div className="flex-1 space-y-3">
-                        <div>
-                          <h5 className="font-display font-black text-xs text-white uppercase tracking-wider leading-snug">
-                            {selectedCalendarContest.funding.projectName}
-                          </h5>
-                          <p className="text-[10px] text-slate-400 font-medium mt-1">
-                            Chiến dịch gây quỹ ủng hộ dự án cộng đồng/nhân ái của thí sinh trong khuôn khổ cuộc thi.
-                          </p>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between items-end text-[9px] font-bold uppercase tracking-wider">
-                            <span className="text-amber-400">Tiến độ: {Math.round((selectedCalendarContest.funding.raised / selectedCalendarContest.funding.goal) * 100)}%</span>
-                            <span className="text-slate-400">
-                              <span className="text-white font-mono">{selectedCalendarContest.funding.raised.toLocaleString()}đ</span> / {selectedCalendarContest.funding.goal.toLocaleString()}đ
-                            </span>
-                          </div>
-
-                          <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 shadow-[0_0_8px_rgba(245,158,11,0.3)] transition-all duration-500"
-                              style={{ width: `${Math.min(100, Math.round((selectedCalendarContest.funding.raised / selectedCalendarContest.funding.goal) * 100))}%` }}
-                            />
-                          </div>
-
-                          <div className="flex justify-between items-center text-[8px] text-slate-500 font-semibold uppercase tracking-wider">
-                            <span>{selectedCalendarContest.funding.supportersCount} Nhà hảo tâm ủng hộ</span>
-                            <button
-                              onClick={() => {
-                                setSelectedCalendarContest(null);
-                                router.push("/talent/crownfunding");
-                              }}
-                              className="text-amber-300 hover:text-amber-200 hover:underline flex items-center gap-0.5 cursor-pointer font-bold"
-                            >
-                              Ủng hộ dự án &rarr;
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                      <h3 className="font-display font-extrabold text-sm text-white mt-2 leading-snug">{job.title}</h3>
+                      <p className="text-[10px] text-slate-500 font-bold">{job.brand}</p>
                     </div>
-
-                    {/* Sponsors */}
-                    <div className="mt-4 pt-4 border-t border-[#151b2d]">
-                      <span className="block text-[8px] text-slate-500 font-extrabold uppercase tracking-wider mb-2">Nhà tài trợ đồng hành</span>
-                      <div className="flex flex-wrap gap-2 items-center">
-                        {selectedCalendarContest.funding.sponsors.map((sponsor, sIdx) => (
-                          <div
-                            key={sIdx}
-                            className="flex items-center gap-1.5 rounded-lg border border-[#151b2d] bg-[#050711]/60 px-2.5 py-1 text-[9px] hover:border-amber-500/20 transition-all duration-300"
-                          >
-                            <div className={cn(
-                              "h-1.5 w-1.5 rounded-full shrink-0",
-                              sponsor.tier === "Kim Cương" ? "bg-cyan-400" :
-                                sponsor.tier === "Vàng" ? "bg-amber-400" : "bg-slate-400"
-                            )} />
-                            <span>
-                              <strong className="text-slate-200">{sponsor.name}</strong>
-                              <span className="text-slate-500 ml-1">({sponsor.tier})</span>
-                            </span>
-                          </div>
-                        ))}
+                    {job.matchScore && (
+                      <div className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Sparkles className="h-3 w-3 text-amber-400 fill-amber-400/20" />
+                          <span className="font-display font-extrabold text-sm text-amber-400">{job.matchScore}%</span>
+                        </div>
+                        <span className="block text-[8px] text-slate-500 uppercase tracking-widest font-bold mt-0.5">Phù hợp</span>
                       </div>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-slate-400 leading-relaxed mt-4 font-medium relative z-10 line-clamp-2">
+                    {job.brief || "Chi tiết công việc chưa được cập nhật mô tả ngắn."}
+                  </p>
+
+                  <div className="mt-5 border-t border-[#151b2d] pt-4 flex items-center justify-between text-[10px] text-slate-400 relative z-10">
+                    <div className="flex items-center gap-1.5">
+                      <CalendarIcon className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                      <span>{dateRange}</span>
                     </div>
+                    {job.budget && (
+                      <span className="text-amber-300 font-bold">{job.budget}</span>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/talent/campaigns?id=${job.id}`)}
+                      className="flex items-center gap-1 text-xs text-amber-300 hover:text-amber-200 font-bold cursor-pointer hover:underline transition-colors"
+                    >
+                      Chi tiết chiến dịch <ExternalLink className="h-3 w-3" />
+                    </button>
                   </div>
                 </div>
-              )}
-
-              {/* Timeline */}
-              <div className="space-y-4">
-                <h4 className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
-                  <Trophy className="h-4 w-4 text-amber-400" /> Lịch trình & Vòng thi chi tiết
-                </h4>
-
-                <div className="relative border-l border-[#151b2d] ml-3 pl-6 space-y-8">
-                  {selectedCalendarContest.detail.phases.map((phase, idx) => (
-                    <div key={idx} className="relative">
-                      <span className="absolute -left-[31px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#08090f] border-2 border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                      </span>
-
-                      <div className="space-y-2">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <span className="text-xs font-bold text-white">{phase.title}</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            <span className="inline-flex items-center gap-1 rounded bg-[#0f172a] border border-[#1e293b] px-2 py-0.5 text-[8px] font-bold text-amber-400 uppercase font-mono">
-                              <Clock className="h-2.5 w-2.5" /> {phase.timeline}
-                            </span>
-                            <span className="inline-flex items-center gap-1 rounded bg-[#0f172a] border border-[#1e293b] px-2 py-0.5 text-[8px] font-bold text-slate-400 uppercase">
-                              <MapPin className="h-2.5 w-2.5" /> {phase.location}
-                            </span>
-                          </div>
-                        </div>
-
-                        <ul className="list-disc pl-4 space-y-1 text-slate-400 text-xs font-medium">
-                          {phase.items.map((item, i) => (
-                            <li key={i} className="leading-relaxed">{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div className="space-y-2.5 border-t border-[#151b2d] pt-4">
-                <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Lưu ý từ ban tổ chức</h4>
-                <ul className="list-disc pl-4 space-y-1.5 text-slate-500 text-[10px] font-medium leading-relaxed">
-                  {selectedCalendarContest.detail.notes.map((note, idx) => (
-                    <li key={idx}>{note}</li>
-                  ))}
-                </ul>
-              </div>
-
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
-              <button
-                onClick={() => setSelectedCalendarContest(null)}
-                className="px-5 py-2.5 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white hover:bg-white/2 cursor-pointer transition-colors"
-              >
-                Đóng lại
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedCalendarContest(null);
-                  router.push("/talent/contests");
-                }}
-                className="px-6 py-2.5 rounded-xl font-display text-xs font-bold transition-all duration-300 cursor-pointer bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98]"
-              >
-                Xem tất cả cuộc thi
-              </button>
-            </div>
-
+              );
+            })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Task Detail Modal */}
       {selectedTask && (

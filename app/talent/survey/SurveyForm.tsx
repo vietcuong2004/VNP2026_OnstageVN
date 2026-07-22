@@ -127,8 +127,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     bust: "",
     waist: "",
     hips: "",
-    plasticSurgery: "",
-    maritalStatus: "",
+    plasticSurgery: "Vẻ đẹp hoàn toàn tự nhiên, chưa từng can thiệp",
+    maritalStatus: "Độc thân, chưa từng sinh con",
     education: "",
     languages: "",
     skills: "",
@@ -313,13 +313,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   const isStepValid = () => {
     if (step === 1) {
-      return formData.name.trim() !== "" && formData.phone.trim() !== "" && formData.email.trim() !== "";
+      return true;
     }
     if (step === 2) {
-      return formData.height.trim() !== "" && formData.weight.trim() !== "" && formData.bust.trim() !== "" && formData.waist.trim() !== "" && formData.hips.trim() !== "";
+      return true;
     }
     if (step === 3) {
-      return formData.education.trim() !== "" && formData.skills.trim() !== "";
+      return true;
     }
     if (step === 4) {
       // Portfolio upload UI is hidden – always valid at step 4
@@ -1120,13 +1120,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
       <form onSubmit={handleSubmit} className="space-y-6 text-left">
 
-        {/* STEP 1: BASIC INFO (Widescreen Two-Column Layout) */}
         {step === 1 && (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start animate-in fade-in duration-300">
             {/* Left: Avatar Dropzone */}
             <div className="md:col-span-4 flex flex-col items-center space-y-4">
-              <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider self-start">Ảnh Đại Diện *</span>
-
+              <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider self-start">Ảnh Đại Diện</span>
+ 
               <div
                 onClick={() => handleFileUploadClick("avatar")}
                 className={cn(
@@ -1161,11 +1160,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               </div>
               <p className="text-[11px] md:text-xs text-slate-400 text-center font-medium">Chọn ảnh rõ mặt, biểu cảm tự nhiên</p>
             </div>
-
+ 
             {/* Right: Inputs */}
             <div className="md:col-span-8 grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Họ và tên *</label>
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Họ và tên</label>
                 <input
                   type="text"
                   name="name"
@@ -1173,24 +1172,22 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   onChange={handleInputChange}
                   className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
                   placeholder="Nhập họ và tên"
-                  required
                 />
               </div>
-
+ 
               <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Năm sinh *</label>
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Năm sinh</label>
                 <input
                   type="number"
                   name="birthYear"
                   value={formData.birthYear}
                   onChange={handleInputChange}
                   className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                  required
                 />
               </div>
-
+ 
               <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Khu vực sinh sống *</label>
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Khu vực sinh sống</label>
                 <select
                   name="location"
                   value={formData.location}
@@ -1203,9 +1200,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   <option value="Khác">Tỉnh thành khác</option>
                 </select>
               </div>
-
+ 
               <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Quê quán *</label>
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Quê quán</label>
                 <input
                   type="text"
                   name="hometown"
@@ -1213,12 +1210,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   onChange={handleInputChange}
                   className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
                   placeholder="Ví dụ: Nam Định"
-                  required
                 />
               </div>
-
+ 
               <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Số điện thoại *</label>
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Số điện thoại</label>
                 <input
                   type="tel"
                   name="phone"
@@ -1226,12 +1222,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   onChange={handleInputChange}
                   className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
                   placeholder="0912345678"
-                  required
                 />
               </div>
-
+ 
               <div className="col-span-2 space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Email liên hệ *</label>
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Email liên hệ</label>
                 <input
                   type="email"
                   name="email"
@@ -1239,7 +1234,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   onChange={handleInputChange}
                   className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
                   placeholder="maianh@gmail.com"
-                  required
                 />
               </div>
             </div>
@@ -1309,32 +1303,30 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             <div className="md:col-span-7 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Chiều cao (cm) *</label>
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Chiều cao (cm)</label>
                   <input
                     type="number"
                     name="height"
                     value={formData.height}
                     onChange={handleInputChange}
                     className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                    required
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Cân nặng (kg) *</label>
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Cân nặng (kg)</label>
                   <input
                     type="number"
                     name="weight"
                     value={formData.weight}
                     onChange={handleInputChange}
                     className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                    required
                   />
                 </div>
               </div>
-
+ 
               {/* Three rings measurement laid out horizontally */}
               <div className="space-y-1.5">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Số đo 3 vòng (cm) *</label>
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Số đo 3 vòng (cm)</label>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="relative">
                     <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-slate-400">V1</span>
@@ -1344,7 +1336,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       value={formData.bust}
                       onChange={handleInputChange}
                       className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                      required
                     />
                   </div>
                   <div className="relative">
@@ -1355,7 +1346,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       value={formData.waist}
                       onChange={handleInputChange}
                       className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                      required
                     />
                   </div>
                   <div className="relative">
@@ -1366,101 +1356,73 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       value={formData.hips}
                       onChange={handleInputChange}
                       className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                      required
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Tình trạng thẩm mỹ *</label>
-                <select
-                  name="plasticSurgery"
-                  value={formData.plasticSurgery}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-medium"
-                >
-                  <option value="Vẻ đẹp hoàn toàn tự nhiên, chưa từng can thiệp">Vẻ đẹp tự nhiên (chưa can thiệp)</option>
-                  <option value="Đã can thiệp nhẹ (Làm răng, tiêm filler...)">Can thiệp nhẹ (Răng, filler...)</option>
-                  <option value="Đã đại phẫu (Nâng mũi, nâng ngực, gọt hàm...)">Đã đại phẫu (Mũi, ngực, hàm...)</option>
-                </select>
-              </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Tình trạng kết hôn & Con cái *</label>
-                <select
-                  name="maritalStatus"
-                  value={formData.maritalStatus}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-medium"
-                >
-                  <option value="Độc thân, chưa từng sinh con">Độc thân, chưa từng sinh con</option>
-                  <option value="Đã kết hôn / Đã sinh con">Đã kết hôn / Đã sinh con</option>
-                </select>
-              </div>
+
+
             </div>
           </div>
         )}
 
-        {/* STEP 3: EDUCATION & SKILLS (Two-Column Widescreen Layout) */}
+        {/* STEP 3: EDUCATION & SKILLS (Stacked Layout) */}
         {step === 3 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start animate-in fade-in duration-300">
-            {/* Left side: Education & languages */}
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Trình độ học vấn hiện tại *</label>
-                <input
-                  type="text"
-                  name="education"
-                  value={formData.education}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                  placeholder="Ví dụ: Cử nhân Học viện Ngoại giao"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Ngoại ngữ (Ngăn cách bằng dấu phẩy) *</label>
-                <select
-                  name="languages"
-                  value={formData.languages}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-medium"
-                >
-                  <option value="Giao tiếp cơ bản / Chưa có chứng chỉ">Giao tiếp cơ bản / Chưa có chứng chỉ</option>
-                  <option value="Khá (Tương đương IELTS 5.0 - 6.0)">Khá (Tương đương IELTS 5.0 - 6.0)</option>
-                  <option value="Thành thạo / Lưu loát (Tương đương IELTS 6.5 trở lên)">Thành thạo / Lưu loát (IELTS &ge; 6.5)</option>
-                </select>
-              </div>
+          <div className="space-y-5 animate-in fade-in duration-300 w-full max-w-3xl mx-auto">
+            {/* Education */}
+            <div className="space-y-1">
+              <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Trình độ học vấn hiện tại</label>
+              <input
+                type="text"
+                name="education"
+                value={formData.education}
+                onChange={handleInputChange}
+                className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                placeholder="Ví dụ: Cử nhân Học viện Ngoại giao"
+              />
             </div>
 
-            {/* Right side: Skills & experience */}
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Kỹ năng nổi bật *</label>
-                <input
-                  type="text"
-                  name="skills"
-                  value={formData.skills}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                  placeholder="Ví dụ: Catwalk, Diễn xuất trước ống kính, Livestream"
-                  required
-                />
-              </div>
+            {/* Languages */}
+            <div className="space-y-1">
+              <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Ngoại ngữ</label>
+              <select
+                name="languages"
+                value={formData.languages}
+                onChange={handleInputChange}
+                className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-medium"
+              >
+                <option value="Giao tiếp cơ bản / Chưa có chứng chỉ">Giao tiếp cơ bản / Chưa có chứng chỉ</option>
+                <option value="Khá (Tương đương IELTS 5.0 - 6.0)">Khá (Tương đương IELTS 5.0 - 6.0)</option>
+                <option value="Thành thạo / Lưu loát (Tương đương IELTS 6.5 trở lên)">Thành thạo / Lưu loát (IELTS &ge; 6.5)</option>
+              </select>
+            </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Kinh nghiệm cuộc thi / Công việc từng làm</label>
-                <textarea
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleInputChange}
-                  rows={2}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium resize-none"
-                  placeholder="Ví dụ: Từng tham gia Miss Teen Việt Nam, làm người mẫu ảnh lookbook tự do 2 năm..."
-                />
-              </div>
+            {/* Skills */}
+            <div className="space-y-1">
+              <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Kỹ năng nổi bật</label>
+              <textarea
+                name="skills"
+                value={formData.skills}
+                onChange={handleInputChange}
+                rows={3}
+                className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium resize-none"
+                placeholder="Ví dụ: Catwalk, Diễn xuất trước ống kính, Livestream"
+              />
+            </div>
+
+            {/* Experience */}
+            <div className="space-y-1">
+              <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Kinh nghiệm cuộc thi / Công việc từng làm</label>
+              <textarea
+                name="experience"
+                value={formData.experience}
+                onChange={handleInputChange}
+                rows={5}
+                className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium resize-none"
+                placeholder="Ví dụ: Từng tham gia Miss Teen Việt Nam, làm người mẫu ảnh lookbook tự do 2 năm..."
+              />
             </div>
           </div>
         )}

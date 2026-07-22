@@ -697,7 +697,7 @@ export default function CampaignDetailPage() {
 
           <div className="divide-y divide-white/5 text-xs flex-1 flex flex-col justify-around">
             <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5 first:pt-0">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Ngân sách</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Thù lao</span>
               <p className="font-black text-amber-300 text-sm leading-none">{selectedCampaign.budget}</p>
             </div>
 

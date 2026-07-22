@@ -619,12 +619,108 @@ export async function deleteTalentCalendarEvent(eventId: number | string) {
 
 export async function loadTalentCampaigns() {
   try {
-    const path = getAuthToken() ? "/talent/campaigns" : "/public/talent-campaigns";
+    const user = getStoredAuthUser<{ type?: string | null }>();
+    const path = getAuthToken() && user?.type === "talent" ? "/talent/campaigns" : "/public/talent-campaigns";
     const response = await apiJson<{ data: any[] }>(path);
     return response.data || [];
   } catch (error) {
     console.warn(error);
     return null;
+  }
+}
+
+export async function loadTalentCampaignDetail(idOrSlug: string | number) {
+  try {
+    const user = getStoredAuthUser<{ type?: string | null }>();
+    const path = getAuthToken() && user?.type === "talent"
+      ? `/talent/campaigns/${idOrSlug}`
+      : `/public/talent-campaigns/${idOrSlug}`;
+    const response = await apiJson<{ data: any }>(path);
+    return response.data ? mapCampaignToTalentJob(response.data) : null;
+  } catch (error) {
+    console.warn(error);
+    return null;
+  }
+}
+
+export type TalentCampaignPaginationMeta = {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+  has_more: boolean;
+  stage_counts?: {
+    all: number;
+    executing: number;
+    recruiting: number;
+    pending: number;
+    completed: number;
+  };
+};
+
+export async function loadTalentCampaignsPage(options: {
+  page?: number;
+  perPage?: number;
+  q?: string;
+  type?: string;
+  city?: string;
+  minBudget?: number;
+  maxBudget?: number;
+  sortOrder?: "newest" | "oldest";
+  stage?: "executing" | "recruiting" | "pending" | "completed";
+} = {}) {
+  try {
+    const params = new URLSearchParams();
+    params.set("page", String(options.page ?? 1));
+    params.set("per_page", String(options.perPage ?? 100));
+    if (options.q?.trim()) params.set("q", options.q.trim());
+    if (options.type?.trim()) params.set("type", options.type.trim());
+    if (options.city?.trim()) params.set("city", options.city.trim());
+    if (options.minBudget) params.set("min_budget", String(options.minBudget));
+    if (options.maxBudget) params.set("max_budget", String(options.maxBudget));
+    if (options.sortOrder) params.set("sort", options.sortOrder);
+    if (options.stage) params.set("stage", options.stage);
+
+    const user = getStoredAuthUser<{ type?: string | null }>();
+    const route = getAuthToken() && user?.type === "talent" ? "/talent/campaigns" : "/public/talent-campaigns";
+    const path = `${route}?${params.toString()}`;
+    const response = await apiJson<{ data: any[]; meta?: TalentCampaignPaginationMeta }>(path);
+    const data = response.data || [];
+    const page = options.page ?? 1;
+    const perPage = options.perPage ?? 100;
+
+    if (!response.meta) {
+      const start = (page - 1) * perPage;
+      const pagedData = data.slice(start, start + perPage);
+
+      return {
+        data: pagedData,
+        meta: {
+          current_page: page,
+          per_page: perPage,
+          total: data.length,
+          last_page: Math.max(1, Math.ceil(data.length / perPage)),
+          has_more: start + perPage < data.length,
+        },
+      };
+    }
+
+    return {
+      data,
+      meta: response.meta,
+    };
+  } catch (error) {
+    console.warn(error);
+    return {
+      data: [],
+      meta: {
+        current_page: options.page ?? 1,
+        per_page: options.perPage ?? 100,
+        total: 0,
+        last_page: 1,
+        has_more: false,
+      },
+    };
   }
 }
 
@@ -637,6 +733,17 @@ export async function applyTalentCampaign(campaignId: number | string, notes?: s
       notes,
       referral_code: referralCode || undefined,
     }),
+  });
+
+  return response.data;
+}
+
+export async function updateTalentCampaignApplicationStatus(campaignId: number | string, status: "executing" | "completed") {
+  requireTalentSession();
+
+  const response = await apiJson<{ data: any }>(`/talent/campaigns/${campaignId}/application-status`, {
+    method: "PUT",
+    body: JSON.stringify({ status }),
   });
 
   return response.data;
@@ -915,11 +1022,39 @@ export async function loadTalentSurveyHistory() {
   }
 }
 
+function parseCompensation(value: number) {
+  if (value >= 1_000_000) {
+    const millions = value / 1_000_000;
+    const formatted = Number.isInteger(millions)
+      ? String(millions)
+      : millions.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
+    return { text: formatted, unit: "triệu/ngày" };
+  }
+
+  if (value >= 1_000) {
+    const thousands = Math.round(value / 1_000);
+    return { text: thousands.toLocaleString("vi-VN"), unit: "k/ngày" };
+  }
+
+  return { text: value.toLocaleString("vi-VN"), unit: "đ/ngày" };
+}
+
+function dailyCompensation(value: number) {
+  const parsed = parseCompensation(value);
+  return `${parsed.text} ${parsed.unit}`;
+}
+
 function moneyRange(min?: number | null, max?: number | null) {
-  const format = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
-  if (min && max) return `${format(min)} - ${format(max)}`;
-  if (max) return format(max);
-  if (min) return `Từ ${format(min)}`;
+  if (min && max) {
+    const pMin = parseCompensation(min);
+    const pMax = parseCompensation(max);
+    if (pMin.unit === pMax.unit) {
+      return `${pMin.text} - ${pMax.text} ${pMax.unit}`;
+    }
+    return `${pMin.text} ${pMin.unit} - ${pMax.text} ${pMax.unit}`;
+  }
+  if (max) return dailyCompensation(max);
+  if (min) return `Từ ${dailyCompensation(min)}`;
   return "Thỏa thuận";
 }
 
@@ -958,9 +1093,17 @@ function campaignTheme(color: string) {
   return themes[color] || themes.gold;
 }
 
+function splitBackendText(value: unknown) {
+  return String(value || "")
+    .split(/\r?\n|;|\./)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 export function mapCampaignToTalentJob(campaign: any) {
   const color = campaignColor(campaign.job_type);
   const theme = campaignTheme(color);
+  const hasBudget = Boolean(campaign.budget_min || campaign.budget_max);
   const media = Array.isArray(campaign.media)
     ? campaign.media
         .map((item: any) => ({
@@ -969,38 +1112,48 @@ export function mapCampaignToTalentJob(campaign: any) {
         }))
         .filter((item: any) => item.url)
     : [];
-  const coverMedia = campaign.cover_media || campaign.coverMedia || media.find((item: any) => item.category === "cover") || media[0] || null;
+  const coverMedia = campaign.cover_media || campaign.coverMedia || media[0] || null;
   const coverUrl = normalizeBackendAssetUrl(coverMedia?.url) || coverMedia?.url || null;
-  const requirements = String(campaign.requirements || campaign.description || "Brand sẽ cập nhật yêu cầu chi tiết sau.")
-    .split(/\r?\n|;|\./)
-    .map((item) => item.trim())
-    .filter(Boolean);
+  const owner = campaign.owner || {};
+  const partnerProfile = owner.partner_profile || owner.partnerProfile || campaign.partner_profile || campaign.partnerProfile || {};
+  const brandLogo = normalizeBackendAssetUrl(campaign.brand_logo || partnerProfile.logo_url || owner.external_avatar_url || "") || "";
+  const phone = campaign.contact_phone || partnerProfile.contact_phone || partnerProfile.phone || owner.phone || "";
+  const email = campaign.contact_email || partnerProfile.contact_email || partnerProfile.email || owner.email || "";
+  const website = campaign.website_url || partnerProfile.website_url || partnerProfile.website || campaign.website || "";
+  const requirements = splitBackendText(campaign.requirements);
+  const benefits = splitBackendText(campaign.benefits);
 
   return {
     id: String(campaign.id),
     title: campaign.title,
-    brand: campaign.brand || "Brand",
-    type: campaign.campaign_type || campaign.job_type || "Campaign",
+    brand: campaign.brand || partnerProfile.organization_name || owner.name || "",
+    brandLogo,
+    type: campaign.campaign_type || campaign.job_type || "",
     startDate: campaign.start_date || "",
     endDate: campaign.end_date || "",
+    publishedAt: campaign.published_at || "",
+    createdAt: campaign.created_at || "",
+    created_at: campaign.created_at || "",
     eventName: campaign.event_name || "",
     eventDate: campaign.event_date || "",
     deadline: campaign.application_deadline || campaign.deadline || "",
     applicationDeadline: campaign.application_deadline || "",
-    venueName: campaign.venue_name || "",
-    venueAddress: campaign.venue_address || "",
+    city: campaign.city || "",
     roles: campaign.roles || [],
     responsibilities: campaign.responsibilities || [],
     industries: campaign.industries || [],
     targetProfiles: campaign.target_profiles || [],
     contactNote: campaign.contact_note || "",
-    budget: moneyRange(campaign.budget_min, campaign.budget_max),
-    location: campaign.venue_name || campaign.location || campaign.city || "Linh hoạt",
-    brief: campaign.description || "Campaign đang tuyển talent phù hợp.",
+    budget: hasBudget ? moneyRange(campaign.budget_min, campaign.budget_max) : "",
+    budgetMin: campaign.budget_min ?? null,
+    budgetMax: campaign.budget_max ?? null,
+    hasBudget,
+    location: campaign.location || "",
+    brief: campaign.description || "",
     coverUrl,
     media,
     minHeight: 0,
-    matchScore: campaign.match_score || 82,
+    matchScore: campaign.match_score || null,
     escrowed: true,
     color,
     ...theme,
@@ -1008,27 +1161,12 @@ export function mapCampaignToTalentJob(campaign: any) {
     application: campaign.application || null,
     referrals: campaign.referrals || [],
     detail: {
-      requirements: requirements.length ? requirements : ["Brand sẽ cập nhật yêu cầu chi tiết sau."],
-      benefits: [
-        ...(campaign.benefits ? String(campaign.benefits).split(/\r?\n|;|\./).map((item) => item.trim()).filter(Boolean) : []),
-        campaign.budget_min || campaign.budget_max ? `Cát-xê dự kiến: ${moneyRange(campaign.budget_min, campaign.budget_max)}.` : "Cát-xê trao đổi theo brief.",
-        "Brand sẽ xem hồ sơ và phản hồi trạng thái ứng tuyển ngay trên hệ thống.",
-      ],
-      phases: [
-        {
-          title: "Ứng tuyển & duyệt hồ sơ",
-          timeline: campaign.start_date && campaign.end_date ? `${campaign.start_date} - ${campaign.end_date}` : "Theo lịch brand cập nhật",
-          location: campaign.location || campaign.city || "Linh hoạt",
-          items: [
-            "Talent gửi hồ sơ ứng tuyển qua hệ thống.",
-            "Brand xem hồ sơ và cập nhật trạng thái trong danh sách campaign.",
-          ],
-        },
-      ],
-      address: campaign.location || campaign.city || "Chưa cập nhật",
-      phone: "Chưa cập nhật",
-      email: "Chưa cập nhật",
-      website: "onstage.vn",
+      requirements,
+      benefits,
+      address: campaign.location || "",
+      phone,
+      email,
+      website,
     },
   };
 }

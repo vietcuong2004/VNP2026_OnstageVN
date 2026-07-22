@@ -108,7 +108,7 @@ export default function ModelTiersGrid() {
         <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-3.5 flex items-start gap-2.5 shadow-[0_0_15px_rgba(244,63,94,0.04)]">
           <ShieldAlert className="h-4.5 w-4.5 text-rose-400 shrink-0 mt-0.5 animate-pulse" />
           <div className="text-[10.5px] text-slate-400 leading-relaxed text-left">
-            <strong className="text-rose-300 font-bold">Lưu ý:</strong> Các hồ sơ có tổng điểm chẩn đoán <strong className="text-rose-400 font-bold">dưới 20 điểm</strong> sẽ tự động được phân loại ở trạng thái <strong className="text-rose-400 font-bold">"Dự bị / Chờ cập nhật" (Potential Profile)</strong>. Đây là mức điểm cho thấy hồ sơ cần bổ sung thêm hình ảnh, số đo chuẩn hóa hoặc liên kết mạng xã hội để kích hoạt hệ thống chẩn đoán phân hạng.
+            <strong className="text-rose-300 font-bold">Lưu ý:</strong> Các hồ sơ có tổng điểm chẩn đoán <strong className="text-rose-400 font-bold">dưới 20 điểm</strong> sẽ tự động được phân loại ở trạng thái <strong className="text-rose-400 font-bold">"Chưa xếp hạng / Chờ cập nhật" (Potential Profile)</strong>. Đây là mức điểm cho thấy hồ sơ cần bổ sung thêm hình ảnh, số đo chuẩn hóa hoặc liên kết mạng xã hội để kích hoạt hệ thống chẩn đoán phân hạng.
           </div>
         </div>
       </div>

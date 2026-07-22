@@ -138,8 +138,6 @@ type BackendCampaign = {
   end_date?: string | null;
   application_deadline?: string | null;
   event_date?: string | null;
-  venue_name?: string | null;
-  venue_address?: string | null;
   deadline?: string | null;
   talent_quantity?: number | string | null;
   budget_min?: number | string | null;
@@ -346,10 +344,11 @@ type CampaignForm = {
   deadline: string;
   applicationDeadline?: string;
   eventDate?: string;
-  venueName?: string;
-  venueAddress?: string;
   talentQuantity: string;
   budget: string;
+  budgetMin?: string;
+  budgetMax?: string;
+  budgetNegotiable?: boolean;
   benefits: string;
   requirements: string;
   heightMin?: string;
@@ -378,17 +377,33 @@ function numberOrNull(value: unknown) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function formatDailyCompensation(value: number) {
+  if (value >= 1_000_000) {
+    const millions = value / 1_000_000;
+    const formatted = Number.isInteger(millions)
+      ? String(millions)
+      : millions.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
+    return `${formatted} triệu/ngày`;
+  }
+
+  if (value >= 1_000) {
+    return `${Math.round(value / 1_000).toLocaleString("vi-VN")}k/ngày`;
+  }
+
+  return `${value.toLocaleString("vi-VN")}đ/ngày`;
+}
+
 function formatMoney(value: number) {
-  return new Intl.NumberFormat("vi-VN").format(value) + "đ";
+  return `${Math.round(value).toLocaleString("vi-VN")}đ`;
 }
 
 function formatBudget(min: unknown, max: unknown) {
   const budgetMin = numberOrNull(min);
   const budgetMax = numberOrNull(max);
 
-  if (budgetMin && budgetMax) return `${formatMoney(budgetMin)} - ${formatMoney(budgetMax)}`;
-  if (budgetMax) return `đến ${formatMoney(budgetMax)}`;
-  if (budgetMin) return `từ ${formatMoney(budgetMin)}`;
+  if (budgetMin && budgetMax) return `${formatDailyCompensation(budgetMin)} - ${formatDailyCompensation(budgetMax)}`;
+  if (budgetMax) return formatDailyCompensation(budgetMax);
+  if (budgetMin) return `từ ${formatDailyCompensation(budgetMin)}`;
   return "Thỏa thuận";
 }
 
@@ -584,10 +599,24 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
 }
 
 function parseBudgetRange(value: string) {
+  function parseCompensationPart(part: string) {
+    const normalized = part.trim().toLowerCase();
+    const rawNumber = normalized.match(/\d+([\.,]\d+)?/)?.[0];
+    if (!rawNumber) return null;
+
+    const number = Number(rawNumber.replace(",", "."));
+    if (!Number.isFinite(number) || number <= 0) return null;
+
+    if (normalized.includes("triệu") || normalized.includes("trieu")) return Math.round(number * 1_000_000);
+    if (/\bk\b/.test(normalized) || normalized.includes("k/")) return Math.round(number * 1_000);
+
+    return Math.round(Number(normalized.replace(/[^\d]/g, ""))) || null;
+  }
+
   const numbers = value
     .split("-")
-    .map((part) => Number(part.replace(/[^\d]/g, "")))
-    .filter((part) => Number.isFinite(part) && part > 0);
+    .map(parseCompensationPart)
+    .filter((part): part is number => Number.isFinite(part) && Number(part) > 0);
 
   return {
     budget_min: numbers[0] ?? null,
@@ -698,8 +727,6 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     deadline: campaign.application_deadline || campaign.deadline || "",
     applicationDeadline: campaign.application_deadline || campaign.deadline || "",
     eventDate: campaign.event_date || "",
-    venueName: campaign.venue_name || "",
-    venueAddress: campaign.venue_address || campaign.location || "",
     talentQuantity: Number(campaign.talent_quantity) || 1,
     budget: formatBudget(campaign.budget_min, campaign.budget_max),
     budgetValue: budgetMax ?? budgetMin ?? 0,
@@ -884,6 +911,8 @@ export function mapBackendBooking(booking: BackendBooking) {
 
 function buildCampaignPayload(form: CampaignForm) {
   const budget = parseBudgetRange(form.budget);
+  const budgetMin = form.budgetNegotiable ? null : numberOrNull(form.budgetMin) ?? budget.budget_min;
+  const budgetMax = form.budgetNegotiable ? null : numberOrNull(form.budgetMax) ?? budget.budget_max ?? budgetMin;
   const listFromText = (value?: string) => String(value || "")
     .split(/\r?\n/)
     .map((item) => item.trim())
@@ -901,11 +930,9 @@ function buildCampaignPayload(form: CampaignForm) {
     end_date: form.endDate || null,
     application_deadline: form.applicationDeadline || form.deadline || null,
     event_date: form.eventDate || null,
-    venue_name: form.venueName || null,
-    venue_address: form.venueAddress || form.address || null,
     talent_quantity: Number(form.talentQuantity) || 1,
-    budget_min: budget.budget_min,
-    budget_max: budget.budget_max,
+    budget_min: budgetMin,
+    budget_max: budgetMax,
     benefits: form.benefits || null,
     requirements: form.requirements || "Chưa có yêu cầu chi tiết.",
     height_min_cm: numberOrNull(form.heightMin),

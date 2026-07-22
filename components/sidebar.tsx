@@ -4,20 +4,18 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home, User, Briefcase, Crown, MessageSquare, Calendar, Wallet, Settings,
-  Sparkles, BookmarkCheck, LogOut, LayoutDashboard, ChevronRight, Trophy,
-  Search, BarChart3, Users, Bell, Users2, Share2
+  Sparkles, BookmarkCheck, LayoutDashboard, ChevronRight, Trophy,
+  Search, BarChart3, Users, Bell, Users2, Share2, ArrowRightLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { logoutCurrentSession } from "@/lib/api-client";
-import { Avatar } from "@base-ui/react";
 
 const talentMenuItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
+  { label: "Việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Hồ sơ cá nhân", icon: User, href: "/talent/portfolio" },
-  { label: "Khám phá bản thân", icon: Sparkles, href: "/talent/survey" },
-  { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
+  { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
-  { label: "Chiến dịch Affiliate", icon: Share2, href: "/talent/affiliate" },
+  // { label: "Chiến dịch Affiliate", icon: Share2, href: "/talent/affiliate" },
   { label: "Hợp tác Brand", icon: Users2, href: "/talent/brands" },
   // { label: "Danh sách cuộc thi", icon: Trophy, href: "/talent/contests" },
   // { label: "Crowdfunding", icon: Crown, href: "/talent/crownfunding" },
@@ -27,9 +25,9 @@ const talentMenuItems = [
 
 const brandMenuItems = [
   { label: "Tổng quan", icon: LayoutDashboard, href: "/brand/dashboard" },
-  { label: "Chiến dịch", icon: Briefcase, href: "/brand/campaigns" },
-  { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
   { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
+  { label: "Việc làm", icon: Briefcase, href: "/brand/campaigns" },
+  { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
   { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   // { label: "Báo cáo & Phân tích", icon: BarChart3, href: "/brand/analytics" },
@@ -46,16 +44,14 @@ export default function Sidebar() {
   const isBrand = pathname.startsWith("/brand");
   const isGateway = pathname === "/";
 
-  async function handleLogout() {
-    await logoutCurrentSession();
-    router.replace("/auth/login");
-  }
-
   const currentMenuItems = isTalent ? talentMenuItems : isBrand ? brandMenuItems : [];
 
   if (isGateway || currentMenuItems.length === 0) {
     return null;
   }
+
+  const targetRolePath = isTalent ? "/brand/dashboard" : "/talent/jobs";
+  const switchLabel = isTalent ? "Chuyển sang Brand" : "Chuyển sang Talent";
 
   return (
     <aside className="hidden md:flex w-72 shrink-0 flex-col border-r border-white/5 bg-[#050711] p-6 overflow-y-auto">
@@ -86,17 +82,18 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Footer Logout */}
+      {/* Footer Mode Switch */}
       <div className="border-t border-white/5 pt-4 mt-auto">
-        <button
-          onClick={handleLogout}
-          className="flex w-full items-center justify-between rounded-xl border border-red-500/10 bg-red-500/5 px-4 py-3 text-[11px] font-bold text-red-400 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer"
+        <Link
+          href={targetRolePath}
+          className="flex h-11 w-full items-center justify-between rounded-full bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_4px_20px_rgba(245,197,24,0.3)] hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
         >
           <span className="flex items-center gap-2">
-            <LogOut className="h-4 w-4 text-red-500" /> Đăng xuất
+            <ArrowRightLeft className="h-4 w-4 text-slate-950" />
+            {switchLabel}
           </span>
-          <ChevronRight className="h-3 w-3 text-red-450" />
-        </button>
+          <ChevronRight className="h-4 w-4 text-slate-950" />
+        </Link>
       </div>
     </aside>
   );

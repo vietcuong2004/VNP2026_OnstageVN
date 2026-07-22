@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   User,
   Briefcase,
@@ -17,11 +17,18 @@ import {
   Mail,
   Phone,
   MapPin,
-  Send
+  Send,
+  Brain,
+  Zap,
+  CheckCircle2,
+  Clipboard,
+  Users
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function RootGatewayPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"talent" | "brand">("talent");
 
   useEffect(() => {
     const token = localStorage.getItem("onstagevn_auth_token");
@@ -42,6 +49,11 @@ export default function RootGatewayPage() {
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  };
+
+  const handleSelectPortal = (type: "talent" | "brand") => {
+    setActiveTab(type);
+    scrollToId("portals");
   };
 
   return (
@@ -92,8 +104,8 @@ export default function RootGatewayPage() {
                 <span className="absolute bottom-[-6px] left-0 w-full h-[2px] bg-gradient-to-r from-[#F0C56B] to-[#A87418] shadow-[0_0_6px_rgba(212,166,74,0.6)]" />
               </button>
               <button onClick={() => scrollToId('intro')} className="hover:text-white transition-colors cursor-pointer">Về chúng tôi</button>
-              <Link href="/intro/talent" className="hover:text-[#F0C56B] transition-colors cursor-pointer">Dành cho Talent</Link>
-              <Link href="/intro/brand" className="hover:text-[#F0C56B] transition-colors cursor-pointer">Dành cho Doanh nghiệp</Link>
+              <button onClick={() => handleSelectPortal('talent')} className="hover:text-[#F0C56B] transition-colors cursor-pointer">Dành cho Talent</button>
+              <button onClick={() => handleSelectPortal('brand')} className="hover:text-[#F0C56B] transition-colors cursor-pointer">Dành cho Doanh nghiệp</button>
               <button onClick={() => scrollToId('process')} className="hover:text-white transition-colors cursor-pointer">Quy trình</button>
             </nav>
             <div>
@@ -138,7 +150,7 @@ export default function RootGatewayPage() {
             {/* Dual call-to-action buttons as shown in mockup */}
             <div className="flex flex-col sm:flex-row gap-4 md:gap-6 pt-2 md:pt-4 w-full sm:w-auto justify-center md:justify-start items-center sm:items-start">
               <Link
-                href="/intro/talent"
+                href="/talent/dashboard"
                 className="w-full sm:w-auto px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-gradient-gold text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.3)] hover:scale-102 transition-all duration-305 cursor-pointer flex items-center justify-center gap-2"
               >
                 Dành cho Talent <ArrowRight className="h-4 w-4" />
@@ -149,8 +161,8 @@ export default function RootGatewayPage() {
                 {/* Gold pulsing background glow */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#D4A64A] to-[#F0C56B] rounded-xl blur opacity-60 group-hover:opacity-85 group-hover:blur-md transition-all duration-300 animate-pulse pointer-events-none" />
                 <Link
-                  href="/intro/brand"
-                  className="relative w-full sm:w-auto px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-slate-950 text-[#F0C56B] hover:text-white hover:scale-102 transition-all duration-305 cursor-pointer flex items-center justify-center gap-2 border border-[#D4A64A]/50 shadow-[0_0_20px_rgba(212,166,74,0.3)]"
+                  href="/brand/dashboard"
+                  className="relative w-full sm:w-auto px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-slate-950 text-[#F0C56B] hover:text-[#F0C56B] hover:scale-102 transition-all duration-305 cursor-pointer flex items-center justify-center gap-2 border border-[#D4A64A]/50 shadow-[0_0_20px_rgba(212,166,74,0.3)]"
                 >
                   Dành cho Doanh nghiệp <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -215,33 +227,33 @@ export default function RootGatewayPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-start">
             <div className="space-y-4">
-              <p className="text-xs md:text-sm text-slate-300 leading-relaxed font-medium text-justify">
+              <p className="text-xs sm:text-[13px] md:text-sm text-slate-300 leading-relaxed font-medium text-justify">
                 Onstage VN được xây dựng với niềm tin rằng mọi tài năng đều xứng đáng có cơ hội tỏa sáng. Trong ngành người mẫu và sắc đẹp, việc tìm kiếm cơ hội thường phụ thuộc nhiều vào các mối quan hệ cá nhân hoặc các đơn vị trung gian thiếu chuẩn hóa.
               </p>
-              <p className="text-xs md:text-sm text-slate-400 leading-relaxed text-justify">
+              <p className="text-xs sm:text-[13px] md:text-sm text-slate-300 leading-relaxed font-medium text-justify">
                 Chúng tôi ra đời nhằm tạo nên một hệ sinh thái minh bạch, nơi Talent có thể được nhìn thấy dễ dàng và Brand có thể tìm được đúng người. Từ một hồ sơ cá nhân đơn giản đến một chiến dịch thương hiệu quy mô lớn, mọi cơ hội đều có thể bắt đầu từ Onstage VN.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 md:gap-4 w-full">
-              <div className="p-4 md:p-5 rounded-2xl bg-[#071B42]/40 border border-white/5 hover:border-[#D4A64A]/20 transition-all duration-300">
+              <div className="p-4 md:p-5 rounded-2xl bg-[#071B42]/40 border border-white/5 hover:border-[#D4A64A]/20 transition-all duration-305">
                 <div className="text-gradient-gold text-lg md:text-2xl font-display font-black mb-1">Professional</div>
-                <div className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-wider">Minh bạch & Hệ thống</div>
-                <p className="text-[8px] md:text-[9px] text-[#6E7481] mt-2 text-justify">Mọi hoạt động hợp tác đều có chuẩn mực, công bằng và đáng tin cậy.</p>
+                <div className="text-[10px] sm:text-[11px] font-bold text-slate-300 uppercase tracking-wider">Minh bạch & Hệ thống</div>
+                <p className="text-[11px] sm:text-xs text-slate-400 mt-2 text-justify font-medium leading-relaxed">Mọi hoạt động hợp tác đều có chuẩn mực, công bằng và đáng tin cậy.</p>
               </div>
 
-              <div className="p-4 md:p-5 rounded-2xl bg-[#071B42]/40 border border-white/5 hover:border-[#D4A64A]/20 transition-all duration-300">
+              <div className="p-4 md:p-5 rounded-2xl bg-[#071B42]/40 border border-white/5 hover:border-[#D4A64A]/20 transition-all duration-305">
                 <div className="text-gradient-gold text-lg md:text-2xl font-display font-black mb-1">Opportunity</div>
-                <div className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-wider">Mở rộng cơ hội</div>
-                <p className="text-[8px] md:text-[9px] text-[#6E7481] mt-2 text-justify">Tạo cầu nối trực tiếp loại bỏ trung gian để tối ưu hóa giá trị công việc.</p>
+                <div className="text-[10px] sm:text-[11px] font-bold text-slate-300 uppercase tracking-wider">Mở rộng cơ hội</div>
+                <p className="text-[11px] sm:text-xs text-slate-400 mt-2 text-justify font-medium leading-relaxed">Tạo cầu nối trực tiếp loại bỏ trung gian để tối ưu hóa giá trị công việc.</p>
               </div>
 
-              <div className="p-4 md:p-5 rounded-2xl bg-[#071B42]/40 border border-white/5 hover:border-[#D4A64A]/20 transition-all duration-300 col-span-2">
+              <div className="p-4 md:p-5 rounded-2xl bg-[#071B42]/40 border border-white/5 hover:border-[#D4A64A]/20 transition-all duration-305 col-span-2">
                 <div className="flex items-center gap-2 mb-1">
                   <TrendingUp className="h-4.5 w-4.5 md:h-5 w-5 text-[#F0C56B]" />
                   <span className="text-[10px] md:text-xs font-black text-slate-200 uppercase tracking-wider">Innovation & Trust</span>
                 </div>
-                <p className="text-[9px] md:text-[10px] text-slate-400 leading-relaxed text-justify">Ứng dụng công nghệ trí tuệ nhân tạo (AI) để thay đổi cách thức vận hành ngành sắc đẹp, đồng thời xây dựng lòng tin bền vững giữa Talent và các Nhãn hàng.</p>
+                <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed text-justify font-medium">Ứng dụng công nghệ trí tuệ nhân tạo (AI) để thay đổi cách thức vận hành ngành sắc đẹp, đồng thời xây dựng lòng tin bền vững giữa Talent và các Nhãn hàng.</p>
               </div>
             </div>
           </div>
@@ -257,7 +269,7 @@ export default function RootGatewayPage() {
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white tracking-tight mb-4">
             Giải pháp công nghệ <span className="text-gradient-gold">Nâng tầm thương hiệu</span>
           </h2>
-          <p className="text-xs text-slate-400 max-w-2xl mb-8 md:mb-10 leading-relaxed font-medium">
+          <p className="text-xs sm:text-[13px] md:text-sm text-slate-300 max-w-2xl mb-8 md:mb-10 leading-relaxed font-medium">
             Hệ thống được thiết kế theo phong cách tinh tế, đẳng cấp để mang lại trải nghiệm chuyên nghiệp nhất cho cả Talent và Đối tác Doanh nghiệp.
           </p>
 
@@ -268,7 +280,7 @@ export default function RootGatewayPage() {
                 <Sparkles className="h-4.5 w-4.5 md:h-5 md:w-5" />
               </div>
               <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Định hướng AI thông minh (Onstage AI)</h3>
-              <p className="text-[11px] text-slate-450 leading-relaxed text-justify">
+              <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
                 Trắc nghiệm năng lực độc quyền dựa trên dữ liệu giúp phân tích điểm mạnh, định hướng phong cách nghệ thuật và xếp hạng Tier khách quan cho lộ trình sự nghiệp phát triển bền vững.
               </p>
             </div>
@@ -279,7 +291,7 @@ export default function RootGatewayPage() {
                 <FileText className="h-4.5 w-4.5 md:h-5 md:w-5" />
               </div>
               <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Hồ sơ số chuyên nghiệp (DIGITAL Portfolio)</h3>
-              <p className="text-[11px] text-slate-450 leading-relaxed text-justify">
+              <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
                 Kiến tạo hồ sơ số điện tử cao cấp thay thế hồ sơ truyền thống. Tích hợp chỉ số hình thể nhân trắc học, thư viện ảnh chất lượng cao, video trình diễn và hiển thị Rate Card minh bạch.
               </p>
             </div>
@@ -290,7 +302,7 @@ export default function RootGatewayPage() {
                 <Search className="h-4.5 w-4.5 md:h-5 md:w-5" />
               </div>
               <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Tìm kiếm & Khớp nối thông minh</h3>
-              <p className="text-[11px] text-slate-455 leading-relaxed text-justify">
+              <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
                 Nhãn hàng & Agency dễ dàng tìm đúng người cho đúng cơ hội thông qua bộ lọc thông minh (chỉ số đo, phong cách biểu diễn, độ tương thích chiến dịch) giúp tiết kiệm 90% thời gian tìm kiếm.
               </p>
             </div>
@@ -301,7 +313,7 @@ export default function RootGatewayPage() {
                 <ShieldCheck className="h-4.5 w-4.5 md:h-5 md:w-5" />
               </div>
               <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Bảo chứng thanh toán (Trust Escrow)</h3>
-              <p className="text-[11px] text-slate-455 leading-relaxed text-justify">
+              <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
                 Đảm bảo quyền lợi tài chính vững chắc bằng quy trình đặt cọc, ký hợp đồng số nhanh gọn và cơ chế giải ngân an toàn theo tiến độ công việc được phê duyệt trên hệ thống.
               </p>
             </div>
@@ -315,154 +327,381 @@ export default function RootGatewayPage() {
             <span className="text-[10px] font-black text-[#F0C56B] uppercase tracking-widest">Quy trình vận hành</span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white tracking-tight mb-6 md:mb-10">
-            Kết nối trực tiếp <span className="text-gradient-gold">Hợp tác bền vững</span>
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white tracking-tight mb-3">
+            Đơn giản hóa quy trình <span className="text-gradient-gold">kết nối Talent & Brand</span>
           </h2>
+          <p className="text-xs sm:text-[13px] md:text-sm text-slate-355 max-w-2xl mb-8 md:mb-12 leading-relaxed font-medium">
+            Chỉ với ba bước, Talent và Brand có thể nhanh chóng kết nối, tạo cơ hội hợp tác và quản lý toàn bộ quá trình trên cùng một nền tảng.
+          </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 relative w-full font-sans">
-            <div className="relative p-5 md:p-6 rounded-2xl bg-[#071B42]/45 border border-white/10 hover:border-[#D4A64A]/30 hover:scale-[1.02] transition-all duration-300">
+            {/* Card 01 */}
+            <div className="relative p-5 md:p-6 rounded-2xl bg-[#071B42]/45 border border-white/10 hover:border-[#D4A64A]/30 hover:scale-[1.02] transition-all duration-305 flex flex-col justify-start">
               <div className="absolute -top-5 left-5 text-4xl font-display font-black text-[#F0C56B] drop-shadow-[0_2px_8px_rgba(240,197,107,0.3)]">01</div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2 pt-2">Lựa chọn vai trò</h3>
-              <p className="text-[10px] text-slate-400 leading-relaxed text-justify">
-                Tạo tài khoản và chọn cổng tương ứng: Người mẫu, KOL gia nhập cổng Onstage Talent. Nhãn hàng, Doanh nghiệp & Agency tham gia cổng Onstage Brand.
-              </p>
+              <h3 className="text-xs font-black text-white uppercase tracking-wider mb-4 pt-2">Lựa chọn vai trò</h3>
+              <ul className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify space-y-3 pt-1">
+                <li className="flex items-start gap-2">
+                  <span className="text-[#F0C56B] font-bold select-none shrink-0 mt-0.5">•</span>
+                  <span>Đăng ký tài khoản và lựa chọn cổng phù hợp với nhu cầu của bạn.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#F0C56B] font-bold select-none shrink-0 mt-0.5">•</span>
+                  <span>Talent tham gia Onstage Talent để xây dựng hồ sơ, phát triển thương hiệu cá nhân và nhận cơ hội hợp tác.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#F0C56B] font-bold select-none shrink-0 mt-0.5">•</span>
+                  <span>Brand & Agency tham gia Onstage Brand để tạo chiến dịch, tìm kiếm và quản lý mạng lưới Talent.</span>
+                </li>
+              </ul>
             </div>
 
-            <div className="relative p-5 md:p-6 rounded-2xl bg-[#071B42]/45 border border-white/10 hover:border-[#D4A64A]/30 hover:scale-[1.02] transition-all duration-300">
+            {/* Card 02 */}
+            <div className="relative p-5 md:p-6 rounded-2xl bg-[#071B42]/45 border border-white/10 hover:border-[#D4A64A]/30 hover:scale-[1.02] transition-all duration-305 flex flex-col justify-start">
               <div className="absolute -top-5 left-5 text-4xl font-display font-black text-[#F0C56B] drop-shadow-[0_2px_8px_rgba(240,197,107,0.3)]">02</div>
-              <h3 className="text-xs font-black text-white uppercase tracking-wider mb-2 pt-2">Thiết lập & Đăng tin</h3>
-              <p className="text-[10px] text-slate-400 leading-relaxed text-justify">
-                Tài năng xây dựng hồ sơ số và thực hiện khảo sát năng lực AI. Đối tác thiết lập yêu cầu chiến dịch, chỉ số tuyển chọn và công bố ngân sách.
-              </p>
+              <h3 className="text-xs font-black text-white uppercase tracking-wider mb-4 pt-2">Hoàn thiện hồ sơ & Tạo chiến dịch</h3>
+              <ul className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify space-y-3 pt-1">
+                <li className="flex items-start gap-2">
+                  <span className="text-[#F0C56B] font-bold select-none shrink-0 mt-0.5">•</span>
+                  <span>Talent xây dựng hồ sơ số với đầy đủ thông tin, hình ảnh, kỹ năng và mạng xã hội để sẵn sàng giới thiệu với đối tác.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#F0C56B] font-bold select-none shrink-0 mt-0.5">•</span>
+                  <span>Brand tạo chiến dịch tuyển dụng, thiết lập yêu cầu, thời gian và ngân sách nhằm tìm kiếm những Talent phù hợp.</span>
+                </li>
+              </ul>
             </div>
 
-            <div className="relative p-5 md:p-6 rounded-2xl bg-[#071B42]/45 border border-white/10 hover:border-[#D4A64A]/30 hover:scale-[1.02] transition-all duration-300">
+            {/* Card 03 */}
+            <div className="relative p-5 md:p-6 rounded-2xl bg-[#071B42]/45 border border-white/10 hover:border-[#D4A64A]/30 hover:scale-[1.02] transition-all duration-305 flex flex-col justify-start">
               <div className="absolute -top-5 left-5 text-4xl font-display font-black text-[#F0C56B] drop-shadow-[0_2px_8px_rgba(240,197,107,0.3)]">03</div>
-              <h3 className="text-xs font-black text-white uppercase tracking-wider mb-2 pt-2">Khớp nối & Giải ngân</h3>
-              <p className="text-[10px] text-slate-400 leading-relaxed text-justify">
-                Thuật toán khớp nối tự động gợi ý ứng viên tốt nhất. Hai bên tiến hành booking trực tiếp, ký kết hợp đồng số và nhận giải ngân bảo chứng an toàn.
-              </p>
+              <h3 className="text-xs font-black text-white uppercase tracking-wider mb-4 pt-2">Kết nối & Bắt đầu hợp tác</h3>
+              <ul className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify space-y-3 pt-1">
+                <li className="flex items-start gap-2">
+                  <span className="text-[#F0C56B] font-bold select-none shrink-0 mt-0.5">•</span>
+                  <span>Brand tìm kiếm hoặc gửi lời mời trực tiếp đến Talent thông qua hệ thống.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#F0C56B] font-bold select-none shrink-0 mt-0.5">•</span>
+                  <span>Talent xem thông tin chiến dịch, phản hồi lời mời và cùng Brand bắt đầu quá trình hợp tác trên Onstage.</span>
+                </li>
+              </ul>
             </div>
           </div>
         </section>
 
         {/* PORTALS SECTION (Scroll target) */}
-        <section id="portals" className="w-full mb-16 scroll-mt-24 px-4 text-center max-w-[1550px] mx-auto">
+        <section id="portals" className="w-full mb-20 scroll-mt-24 px-4 text-center max-w-[1550px] mx-auto">
           <div className="flex flex-col items-center space-y-4 mb-10 w-full">
             <span className="text-[10px] font-black uppercase tracking-widest text-[#F0C56B] bg-[#D4A64A]/10 px-4 py-1.5 rounded-full border border-[#D4A64A]/20">
               Hệ sinh thái sản phẩm
             </span>
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white tracking-tight">
-              Vào hệ thống của bạn để bắt đầu
+              Khám phá các tính năng của bạn
             </h2>
-            <p className="text-xs text-slate-400 max-w-md leading-relaxed">
-              Chọn lối vào tương ứng để bắt đầu tối ưu hóa tiềm năng sự nghiệp hoặc chiến dịch thương hiệu của bạn.
+            <p className="text-xs text-slate-355 max-w-md leading-relaxed font-medium">
+              Chọn vai trò phù hợp bên dưới để tìm hiểu chi tiết các tính năng nền tảng Onstage mang lại cho sự nghiệp hoặc doanh nghiệp của bạn.
             </p>
           </div>
 
-          {/* The two existing portal cards side-by-side, exactly as they are currently styled */}
-          <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-2 text-left font-sans">
-
-            {/* Talent Portal Card */}
-            <Link
-              href="/intro/talent"
-              className="group relative flex flex-col justify-between items-start rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-amber-400/30 p-5 md:p-8 text-left transition-all duration-500 hover:bg-[#0c0f24]/60 hover:shadow-[0_0_30px_rgba(245,158,11,0.08)] backdrop-blur-xl"
+          {/* Toggle Tabs Redesign */}
+          <div className="inline-flex p-1 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-md mb-16 relative shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <button
+              onClick={() => setActiveTab("talent")}
+              className={cn(
+                "px-8 py-3.5 rounded-full text-[10px] md:text-xs font-display font-black uppercase tracking-wider transition-all duration-305 cursor-pointer relative z-10",
+                activeTab === "talent"
+                  ? "bg-gradient-gold text-slate-950 shadow-[0_4px_15px_rgba(240,197,107,0.3)] scale-100"
+                  : "text-slate-400 hover:text-white"
+              )}
             >
-              {/* Subtle gold accent light inside the card */}
-              <div className="absolute top-0 left-0 w-24 h-24 bg-amber-400/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-              <div className="flex justify-between items-center w-full mb-6">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-300 border border-amber-400/20 group-hover:bg-gradient-to-r group-hover:from-amber-200 group-hover:to-yellow-500 group-hover:text-slate-950 transition-all duration-500 shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover:scale-105">
-                  <User className="h-6 w-6" />
-                </div>
-
-                <span className="text-[9px] font-black uppercase tracking-widest bg-amber-400/15 border border-amber-400/30 px-3 py-1 rounded-full text-amber-300 shadow-sm">
-                  Talent Portal
-                </span>
-              </div>
-
-              <div className="space-y-4 w-full">
-                <div>
-                  <h3 className="text-base font-black text-white group-hover:text-amber-300 transition-colors uppercase tracking-wider">
-                    Kênh Người Mẫu & KOLs
-                  </h3>
-                  <p className="text-[11px] text-slate-400 mt-2 leading-relaxed font-medium text-justify">
-                    Dành cho Model, KOL, Hoa khôi, MC. Khảo sát năng lực, tạo hồ sơ số, Rate Card & nhận lịch diễn tự động.
-                  </p>
-                </div>
-
-                {/* List of sub-features */}
-                <div className="pt-3 border-t border-white/5 space-y-2 text-[10px] text-slate-450 font-semibold">
-                  <div className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
-                    <span>Khảo sát định hướng AI thông minh</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
-                    <span>Hồ sơ số & Phân hạng Tier chuyên nghiệp</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
-                    <span>Nhận booking & Đặt lịch trực tiếp</span>
-                  </div>
-                </div>
-
-                <div className="pt-2 flex items-center gap-1 text-[10px] font-black text-amber-300 group-hover:translate-x-1 transition-transform uppercase tracking-wider">
-                  Khám phá ngay <ChevronRight className="h-4 w-4" />
-                </div>
-              </div>
-            </Link>
-
-            {/* Brand Portal Card */}
-            <Link
-              href="/intro/brand"
-              className="group relative flex flex-col justify-between items-start rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-[#D4A64A]/30 p-5 md:p-8 text-left transition-all duration-500 hover:bg-[#0c0f24]/60 hover:shadow-[0_0_30px_rgba(212,166,74,0.08)] backdrop-blur-xl"
+              Kênh Người mẫu & KOLs
+            </button>
+            <button
+              onClick={() => setActiveTab("brand")}
+              className={cn(
+                "px-8 py-3.5 rounded-full text-[10px] md:text-xs font-display font-black uppercase tracking-wider transition-all duration-305 cursor-pointer relative z-10",
+                activeTab === "brand"
+                  ? "bg-gradient-gold text-slate-950 shadow-[0_4px_15px_rgba(240,197,107,0.3)] scale-100"
+                  : "text-slate-400 hover:text-white"
+              )}
             >
-              {/* Subtle gold accent light inside the card */}
-              <div className="absolute top-0 left-0 w-24 h-24 bg-[#D4A64A]/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              Kênh Nhãn hàng & Agency
+            </button>
+          </div>
 
-              <div className="flex justify-between items-center w-full mb-6">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A64A]/10 text-[#F0C56B] border border-[#D4A64A]/20 group-hover:bg-gradient-to-r group-hover:from-[#ffe599] group-hover:to-[#b8860b] group-hover:text-slate-950 transition-all duration-500 shadow-[0_0_15px_rgba(212,166,74,0.15)] group-hover:scale-105">
-                  <Briefcase className="h-6 w-6" />
+          {/* Tab Content */}
+          <div className="w-full max-w-6xl mx-auto font-sans">
+            {activeTab === "talent" ? (
+              <div className="space-y-12 animate-in fade-in duration-500">
+                {/* Intro banner Redesign */}
+                <div className="relative overflow-hidden text-left bg-gradient-to-br from-[#0b0e22] to-[#04060f] border border-white/10 rounded-3xl p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-[0_15px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl group/banner">
+                  {/* Glowing background effects */}
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-amber-400/10 to-transparent rounded-full blur-3xl opacity-60 pointer-events-none group-hover/banner:opacity-80 transition-opacity duration-500" />
+                  <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+                  
+                  {/* Subtle geometric grid background */}
+                  <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+                  <div className="relative z-10 space-y-4 max-w-2xl">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-display font-black uppercase tracking-widest bg-amber-400/15 border border-amber-400/30 px-3 py-1 rounded-full text-amber-300 shadow-sm">
+                        CỔNG TÀI NĂNG
+                      </span>
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="text-[10px] font-medium text-slate-450">Onstage Talent Network</span>
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-display font-black text-white uppercase tracking-tight leading-tight">
+                      Không gian chuyên nghiệp <br className="hidden sm:inline" />
+                      <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500 bg-clip-text text-transparent">dành cho những tài năng muốn phát triển bền vững</span>
+                    </h3>
+                    <p className="text-xs sm:text-[13px] md:text-sm text-[#B4BCCB] leading-relaxed text-justify font-medium">
+                      Dành cho người mẫu, diễn viên, KOL, KOC, MC, PG, Hoa hậu và các tài năng sáng tạo. Onstage Talent giúp bạn xây dựng hồ sơ số chuyên nghiệp, định hướng phát triển bằng AI và kết nối trực tiếp với các Brand, Agency để mở rộng cơ hội hợp tác trên một nền tảng hiện đại.
+                    </p>
+                  </div>
+                  <Link
+                    href="/talent/dashboard"
+                    className="relative z-10 shrink-0 px-8 py-4 rounded-2xl text-xs font-display font-black uppercase tracking-widest bg-gradient-gold text-slate-950 shadow-[0_4px_20px_rgba(240,197,107,0.3)] hover:shadow-[0_8px_30px_rgba(240,197,107,0.5)] hover:scale-103 active:scale-98 transition-all duration-300 flex items-center gap-2 group/btn"
+                  >
+                    Vào cổng Talent
+                    <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                  </Link>
                 </div>
 
-                <span className="text-[9px] font-black uppercase tracking-widest bg-[#D4A64A]/15 border border-[#D4A64A]/30 px-3 py-1 rounded-full text-[#F0C56B] shadow-sm">
-                  Brand Portal
-                </span>
+                {/* 3 Detail Cards Redesign */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                  {/* Talent Card 1 */}
+                  <Link href="/talent/portfolio" className="group relative block p-6 md:p-8 rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-amber-400/30 hover:bg-[#0c0f24]/70 transition-all duration-500 backdrop-blur-xl cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
+                    <div className="absolute top-0 left-0 w-24 h-24 bg-amber-400/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute top-4 right-6 text-6xl font-display font-black text-white/[0.02] group-hover:text-amber-400/[0.04] transition-colors pointer-events-none">01</div>
+                    <div className="space-y-4 relative z-10">
+                      <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:bg-gradient-gold group-hover:text-slate-950 transition-all duration-300">
+                        <FileText className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-base md:text-lg font-display font-black text-white uppercase tracking-wider group-hover:text-amber-300 transition-colors">
+                        Hồ sơ Talent chuyên nghiệp
+                      </h3>
+                      <p className="text-xs sm:text-[13px] text-[#B4BCCB] leading-relaxed text-justify font-medium">
+                        Xây dựng hồ sơ số toàn diện để giới thiệu bản thân với Brand và Agency. Tập trung mọi thông tin quan trọng như hình ảnh, video, kỹ năng, kinh nghiệm và mạng xã hội trong một hồ sơ chuyên nghiệp, dễ dàng chia sẻ và luôn sẵn sàng cho mọi cơ hội hợp tác.
+                      </p>
+                      <div className="pt-4 border-t border-white/5">
+                        <ul className="space-y-3 text-[11px] md:text-xs text-slate-355 font-semibold">
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                            <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Hồ sơ số chuyên nghiệp với hình ảnh, video và Social Link</span>
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                            <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Quản lý thông tin cá nhân, kỹ năng và kinh nghiệm tập trung</span>
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                            <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Chia sẻ hồ sơ nhanh chóng chỉ với một liên kết</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Talent Card 2 */}
+                  <Link href="/talent/survey" className="group relative block p-6 md:p-8 rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-amber-400/30 hover:bg-[#0c0f24]/70 transition-all duration-500 backdrop-blur-xl cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
+                    <div className="absolute top-0 left-0 w-24 h-24 bg-amber-400/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute top-4 right-6 text-6xl font-display font-black text-white/[0.02] group-hover:text-amber-400/[0.04] transition-colors pointer-events-none">02</div>
+                    <div className="space-y-4 relative z-10">
+                      <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:bg-gradient-gold group-hover:text-slate-950 transition-all duration-300">
+                        <Brain className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-base md:text-lg font-display font-black text-white uppercase tracking-wider group-hover:text-amber-300 transition-colors">
+                        AI hỗ trợ định hướng phát triển
+                      </h3>
+                      <p className="text-xs sm:text-[13px] text-[#B4BCCB] leading-relaxed text-justify font-medium">
+                        Ứng dụng AI để hỗ trợ đánh giá năng lực, định hướng phong cách nghệ thuật phù hợp và gợi ý lộ trình phát triển dựa trên thông tin hồ sơ của bạn, giúp bạn hiểu rõ điểm mạnh và xây dựng thương hiệu cá nhân hiệu quả hơn.
+                      </p>
+                      <div className="pt-4 border-t border-white/5">
+                        <ul className="space-y-3 text-[11px] md:text-xs text-slate-355 font-semibold">
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                            <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Gợi ý định hướng phát triển phù hợp với hồ sơ</span>
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                            <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Hỗ trợ đánh giá điểm mạnh và tiềm năng</span>
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                            <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Đề xuất lộ trình phát triển cá nhân</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Talent Card 3 */}
+                  <Link href="/talent/jobs" className="group relative block p-6 md:p-8 rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-amber-400/30 hover:bg-[#0c0f24]/70 transition-all duration-500 backdrop-blur-xl cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
+                    <div className="absolute top-0 left-0 w-24 h-24 bg-amber-400/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute top-4 right-6 text-6xl font-display font-black text-white/[0.02] group-hover:text-amber-400/[0.04] transition-colors pointer-events-none">03</div>
+                    <div className="space-y-4 relative z-10">
+                      <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:bg-gradient-gold group-hover:text-slate-950 transition-all duration-300">
+                        <Zap className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-base md:text-lg font-display font-black text-white uppercase tracking-wider group-hover:text-amber-300 transition-colors">
+                        Kết nối Brand & Cơ hội hợp tác
+                      </h3>
+                      <p className="text-xs sm:text-[13px] text-[#B4BCCB] leading-relaxed text-justify font-medium">
+                        Nhận lời mời từ các Brand và Agency, theo dõi những chiến dịch đang tham gia và quản lý toàn bộ quá trình hợp tác ngay trên hệ thống. Onstage giúp rút ngắn khoảng cách giữa Talent và đối tác, tạo nên quy trình kết nối nhanh chóng và chuyên nghiệp.
+                      </p>
+                      <div className="pt-4 border-t border-white/5">
+                        <ul className="space-y-3 text-[11px] md:text-xs text-slate-355 font-semibold">
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                            <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Nhận lời mời tham gia chiến dịch từ Brand và Agency</span>
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                            <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Theo dõi trạng thái lời mời và các chiến dịch đang tham gia</span>
+                          </li>
+                          <li className="flex items-start gap-2.5">
+                            <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                            <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Quản lý lịch sử hợp tác trên một nền tảng duy nhất</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
               </div>
+            ) : (
+              <div className="space-y-12 animate-in fade-in duration-500">
+                {/* Intro banner Redesign */}
+                <div className="relative overflow-hidden text-left bg-gradient-to-br from-[#0d0f1a] to-[#04060f] border border-white/10 rounded-3xl p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-[0_15px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl group/banner">
+                  {/* Glowing background effects */}
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-[#D4A64A]/10 to-transparent rounded-full blur-3xl opacity-60 pointer-events-none group-hover/banner:opacity-80 transition-opacity duration-500" />
+                  <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-[#D4A64A]/5 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="space-y-4 w-full">
-                <div>
-                  <h3 className="text-base font-black text-white group-hover:text-[#F0C56B] transition-colors uppercase tracking-wider">
-                    Kênh Nhãn Hàng & Agency
-                  </h3>
-                  <p className="text-[11px] text-slate-400 mt-2 leading-relaxed font-medium text-justify">
-                    Dành cho Doanh nghiệp, Thương hiệu và Quản lý. Tìm kiếm tài năng bằng bộ lọc AI, khởi tạo chiến dịch & quản lý tài chính.
-                  </p>
+                  {/* Subtle geometric grid background */}
+                  <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+                  <div className="relative z-10 space-y-4 max-w-2xl">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-display font-black uppercase tracking-widest bg-[#D4A64A]/15 border border-[#D4A64A]/30 px-3 py-1 rounded-full text-[#F0C56B] shadow-sm">
+                        CỔNG DOANH NGHIỆP
+                      </span>
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#D4A64A] animate-pulse" />
+                      <span className="text-[10px] font-medium text-slate-450">Onstage Brand Network</span>
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-display font-black text-white uppercase tracking-tight leading-tight">
+                      Công nghệ định hình & <br className="hidden sm:inline" />
+                      <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500 bg-clip-text text-transparent">tối ưu hóa chiến dịch</span>
+                    </h3>
+                    <p className="text-xs sm:text-[13px] md:text-sm text-[#B4BCCB] leading-relaxed text-justify font-medium">
+                      Onstage cung cấp giải pháp casting trực tiếp bằng cách loại bỏ các quy trình thủ công phức tạp. Giúp các thương hiệu, nhãn hàng & agency đăng tin chiến dịch, tìm kiếm ứng viên thích hợp bằng AI và quản lý giao dịch an toàn.
+                    </p>
+                  </div>
+                  <Link
+                    href="/brand/dashboard"
+                    className="relative z-10 shrink-0 px-8 py-4 rounded-2xl text-xs font-display font-black uppercase tracking-widest bg-gradient-gold text-slate-950 shadow-[0_4px_20px_rgba(240,197,107,0.3)] hover:shadow-[0_8px_30px_rgba(240,197,107,0.5)] hover:scale-103 active:scale-98 transition-all duration-300 flex items-center gap-2 group/btn"
+                  >
+                    Vào cổng Brand
+                    <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                  </Link>
                 </div>
 
-                {/* List of sub-features */}
-                <div className="pt-3 border-t border-white/5 space-y-2 text-[10px] text-slate-450 font-semibold">
-                  <div className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#D4A64A] shrink-0" />
-                    <span>Tìm kiếm & Lọc hồ sơ Model, KOLs bằng AI</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#D4A64A] shrink-0" />
-                    <span>Tạo chiến dịch, gom nhóm danh sách tuyển chọn</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#D4A64A] shrink-0" />
-                    <span>Đặt cọc an toàn & thanh toán cát-xê tự động</span>
-                  </div>
-                </div>
+                {/* 3 Detail Cards Redesign */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                  {/* Brand Card 1 */}
+                  <Link href="/brand/campaigns" className="group relative block p-6 md:p-8 rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-[#D4A64A]/30 hover:bg-[#0c0f24]/70 transition-all duration-500 backdrop-blur-xl cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4A64A]/70">
+                    <div className="absolute top-0 left-0 w-24 h-24 bg-[#D4A64A]/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute top-4 right-6 text-6xl font-display font-black text-white/[0.02] group-hover:text-amber-400/[0.04] transition-colors pointer-events-none">01</div>
+                    <div className="space-y-4 relative z-10">
+                      <div className="h-12 w-12 rounded-2xl bg-[#D4A64A]/10 border border-[#D4A64A]/20 flex items-center justify-center text-[#F0C56B] group-hover:bg-gradient-gold group-hover:text-slate-950 transition-all duration-300">
+                        <Clipboard className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-base md:text-lg font-display font-black text-white uppercase tracking-wider group-hover:text-[#F0C56B] transition-colors">
+                        Tạo chiến dịch tuyển dụng
+                      </h3>
+                      <p className="text-xs sm:text-[13px] text-[#B4BCCB] leading-relaxed text-justify font-medium">
+                        Tạo nhanh chiến dịch tuyển Talent với đầy đủ thông tin về mục tiêu, yêu cầu, thời gian và thù lao. Đưa chiến dịch đến với hàng ngàn tài năng đã được định dạng và phân tier chất lượng.
+                      </p>
+                      <ul className="space-y-3 text-[11px] md:text-xs text-slate-355 font-semibold pt-4 border-t border-white/5">
+                        <li className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Khởi tạo Campaign chi tiết chỉ trong vài phút</span>
+                        </li>
+                        <li className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Thiết lập chi tiết yêu cầu, độ tuổi, chiều cao và kịch bản</span>
+                        </li>
+                        <li className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Quản lý các hồ sơ đã ứng tuyển hiệu quả</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </Link>
 
-                <div className="pt-2 flex items-center gap-1 text-[10px] font-black text-[#F0C56B] group-hover:translate-x-1 transition-transform uppercase tracking-wider">
-                  Khám phá ngay <ChevronRight className="h-4 w-4" />
+                  {/* Brand Card 2 */}
+                  <Link href="/brand/search" className="group relative block p-6 md:p-8 rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-[#D4A64A]/30 hover:bg-[#0c0f24]/70 transition-all duration-500 backdrop-blur-xl cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4A64A]/70">
+                    <div className="absolute top-0 left-0 w-24 h-24 bg-[#D4A64A]/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute top-4 right-6 text-6xl font-display font-black text-white/[0.02] group-hover:text-amber-400/[0.04] transition-colors pointer-events-none">02</div>
+                    <div className="space-y-4 relative z-10">
+                      <div className="h-12 w-12 rounded-2xl bg-[#D4A64A]/10 border border-[#D4A64A]/20 flex items-center justify-center text-[#F0C56B] group-hover:bg-gradient-gold group-hover:text-slate-950 transition-all duration-300">
+                        <Search className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-base md:text-lg font-display font-black text-white uppercase tracking-wider group-hover:text-[#F0C56B] transition-colors">
+                        Tìm kiếm Talent phù hợp
+                      </h3>
+                      <p className="text-xs sm:text-[13px] text-[#B4BCCB] leading-relaxed text-justify font-medium">
+                        Khám phá hàng nghìn Talent thuộc nhiều lĩnh vực như KOL, KOC, người mẫu, diễn viên, MC, PG... với bộ lọc thông minh trực quan giúp nhanh chóng tìm được ứng viên phù hợp cho từng chiến dịch.
+                      </p>
+                      <ul className="space-y-3 text-[11px] md:text-xs text-slate-355 font-semibold pt-4 border-t border-white/5">
+                        <li className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Lọc theo chiều cao, cân nặng, số đo & Social Link</span>
+                        </li>
+                        <li className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Xem hồ sơ Talent đầy đủ trước khi gửi lời mời</span>
+                        </li>
+                        <li className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Gửi lời mời trực tiếp đến ứng viên bạn ưng ý nhất</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </Link>
+
+                  {/* Brand Card 3 */}
+                  <Link href="/brand/my-talents" className="group relative block p-6 md:p-8 rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-[#D4A64A]/30 hover:bg-[#0c0f24]/70 transition-all duration-500 backdrop-blur-xl cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4A64A]/70">
+                    <div className="absolute top-0 left-0 w-24 h-24 bg-[#D4A64A]/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute top-4 right-6 text-6xl font-display font-black text-white/[0.02] group-hover:text-amber-400/[0.04] transition-colors pointer-events-none">03</div>
+                    <div className="space-y-4 relative z-10">
+                      <div className="h-12 w-12 rounded-2xl bg-[#D4A64A]/10 border border-[#D4A64A]/20 flex items-center justify-center text-[#F0C56B] group-hover:bg-gradient-gold group-hover:text-slate-950 transition-all duration-300">
+                        <Users className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-base md:text-lg font-display font-black text-white uppercase tracking-wider group-hover:text-[#F0C56B] transition-colors">
+                        Xây dựng mạng lưới Talent riêng
+                      </h3>
+                      <p className="text-xs sm:text-[13px] text-[#B4BCCB] leading-relaxed text-justify font-medium">
+                        Mời Talent gia nhập mạng lưới của Brand thông qua liên kết hoặc mã QR. Quản lý danh sách Talent đã hợp tác để dễ dàng kết nối và sử dụng cho các chiến dịch trong tương lai.
+                      </p>
+                      <ul className="space-y-3 text-[11px] md:text-xs text-slate-355 font-semibold pt-4 border-t border-white/5">
+                        <li className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Mời Talent gia nhập bằng Link hoặc mã QR</span>
+                        </li>
+                        <li className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Đồng bộ liên hệ và xây dựng tệp ứng viên ưa thích</span>
+                        </li>
+                        <li className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <span className="leading-tight text-slate-300 group-hover:text-white transition-colors">Lịch sử tương tác và hợp tác được số hóa toàn bộ</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </Link>
                 </div>
               </div>
-            </Link>
-
+            )}
           </div>
         </section>
 

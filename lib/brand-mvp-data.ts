@@ -98,8 +98,6 @@ export type Campaign = {
   endDate: string;
   applicationDeadline?: string;
   eventDate?: string;
-  venueName?: string;
-  venueAddress?: string;
   deadline: string;
   talentQuantity: number;
   budget: string;
@@ -452,7 +450,7 @@ export const campaigns: Campaign[] = [
     endDate: "2026-06-20",
     deadline: "2026-06-05",
     talentQuantity: 5,
-    budget: "50.000.000đ - 80.000.000đ",
+    budget: "500k/ngày - 800k/ngày",
     budgetValue: 80000000,
     benefits: "Hỗ trợ makeup, trang phục, ăn nhẹ tại studio",
     status: "published",
@@ -483,7 +481,7 @@ export const campaigns: Campaign[] = [
     endDate: "2026-07-03",
     deadline: "2026-06-20",
     talentQuantity: 3,
-    budget: "25.000.000đ - 40.000.000đ",
+    budget: "400k/ngày - 700k/ngày",
     budgetValue: 40000000,
     benefits: "Có ekip styling, ảnh portfolio sau buổi chụp",
     status: "draft",
@@ -511,7 +509,7 @@ export const campaigns: Campaign[] = [
     endDate: "2026-06-26",
     deadline: "2026-06-18",
     talentQuantity: 8,
-    budget: "18.000.000đ - 30.000.000đ",
+    budget: "350k/ngày - 600k/ngày",
     budgetValue: 30000000,
     benefits: "Ăn trưa, đồng phục, hỗ trợ di chuyển nội thành",
     status: "closed",
@@ -535,7 +533,7 @@ export const campaigns: Campaign[] = [
     endDate: "2026-06-18",
     deadline: "2026-06-12",
     talentQuantity: 4,
-    budget: "45.000.000đ - 60.000.000đ",
+    budget: "600k/ngày - 900k/ngày",
     budgetValue: 60000000,
     benefits: "Bao gồm chi phí thuê sân, xe đưa đón, ăn uống tại Clubhouse",
     status: "published",
@@ -565,7 +563,7 @@ export const campaigns: Campaign[] = [
     endDate: "2026-07-05",
     deadline: "2026-06-15",
     talentQuantity: 6,
-    budget: "20.000.000đ - 35.000.000đ",
+    budget: "400k/ngày - 650k/ngày",
     budgetValue: 35000000,
     benefits: "Được tặng trọn bộ sản phẩm dưỡng da mới nhất + Nhận hoa hồng doanh số (MLM)",
     status: "published",
@@ -594,7 +592,7 @@ export const campaigns: Campaign[] = [
     endDate: "2026-06-28",
     deadline: "2026-06-20",
     talentQuantity: 4,
-    budget: "80.000.000đ - 120.000.000đ",
+    budget: "1 triệu/ngày - 1,5 triệu/ngày",
     budgetValue: 120000000,
     benefits: "Chuyên gia makeup riêng, trang phục thiết kế độc quyền, quà tặng từ L'Oréal",
     status: "published",
@@ -624,7 +622,7 @@ export const campaigns: Campaign[] = [
     endDate: "2026-08-12",
     deadline: "2026-07-30",
     talentQuantity: 4,
-    budget: "60.000.000đ - 90.000.000đ",
+    budget: "800k/ngày - 1,2 triệu/ngày",
     budgetValue: 90000000,
     benefits: "Được giữ lại 2 bộ trang phục yêu thích trị giá 30 triệu đồng, album hình thời trang chuyên nghiệp",
     status: "published",
