@@ -401,9 +401,10 @@ function formatBudget(min: unknown, max: unknown) {
   const budgetMin = numberOrNull(min);
   const budgetMax = numberOrNull(max);
 
+  if (budgetMin && budgetMax && budgetMin === budgetMax) return formatDailyCompensation(budgetMin);
   if (budgetMin && budgetMax) return `${formatDailyCompensation(budgetMin)} - ${formatDailyCompensation(budgetMax)}`;
   if (budgetMax) return formatDailyCompensation(budgetMax);
-  if (budgetMin) return `từ ${formatDailyCompensation(budgetMin)}`;
+  if (budgetMin) return formatDailyCompensation(budgetMin);
   return "Thỏa thuận";
 }
 
@@ -911,8 +912,11 @@ export function mapBackendBooking(booking: BackendBooking) {
 
 function buildCampaignPayload(form: CampaignForm) {
   const budget = parseBudgetRange(form.budget);
-  const budgetMin = form.budgetNegotiable ? null : numberOrNull(form.budgetMin) ?? budget.budget_min;
-  const budgetMax = form.budgetNegotiable ? null : numberOrNull(form.budgetMax) ?? budget.budget_max ?? budgetMin;
+  const explicitBudgetMin = numberOrNull(form.budgetMin);
+  const explicitBudgetMax = numberOrNull(form.budgetMax);
+  const parsedBudgetMax = budget.budget_max !== budget.budget_min ? budget.budget_max : null;
+  const budgetMin = form.budgetNegotiable ? null : explicitBudgetMin ?? (explicitBudgetMax === null ? budget.budget_min : null);
+  const budgetMax = form.budgetNegotiable ? null : explicitBudgetMax ?? (explicitBudgetMin === null ? parsedBudgetMax : null);
   const listFromText = (value?: string) => String(value || "")
     .split(/\r?\n/)
     .map((item) => item.trim())

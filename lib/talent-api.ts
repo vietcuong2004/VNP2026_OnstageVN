@@ -1054,7 +1054,7 @@ function moneyRange(min?: number | null, max?: number | null) {
     return `${pMin.text} ${pMin.unit} - ${pMax.text} ${pMax.unit}`;
   }
   if (max) return dailyCompensation(max);
-  if (min) return `Từ ${dailyCompensation(min)}`;
+  if (min) return dailyCompensation(min);
   return "Thỏa thuận";
 }
 
@@ -1103,7 +1103,8 @@ function splitBackendText(value: unknown) {
 export function mapCampaignToTalentJob(campaign: any) {
   const color = campaignColor(campaign.job_type);
   const theme = campaignTheme(color);
-  const hasBudget = Boolean(campaign.budget_min || campaign.budget_max);
+  const budget = moneyRange(campaign.budget_min, campaign.budget_max);
+  const hasBudget = Boolean(budget);
   const media = Array.isArray(campaign.media)
     ? campaign.media
         .map((item: any) => ({
@@ -1144,7 +1145,7 @@ export function mapCampaignToTalentJob(campaign: any) {
     industries: campaign.industries || [],
     targetProfiles: campaign.target_profiles || [],
     contactNote: campaign.contact_note || "",
-    budget: hasBudget ? moneyRange(campaign.budget_min, campaign.budget_max) : "",
+    budget,
     budgetMin: campaign.budget_min ?? null,
     budgetMax: campaign.budget_max ?? null,
     hasBudget,

@@ -194,19 +194,18 @@ export default function JobCard({
             {job.title}
           </h3>
 
-          {(job.applicationDeadline || job.city) && (
             <div className="mt-3.5 flex flex-col gap-2 text-xs font-medium text-slate-300">
-              {job.applicationDeadline && (
-                <div className="flex items-center gap-2">
-                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[#f5c518]/60 bg-[#f5c518]/10">
-                    <Calendar className="h-3.5 w-3.5 text-[#f5c518]" />
-                  </div>
-                  <span className="whitespace-nowrap text-xs leading-none">
-                    <span className="text-slate-300 font-semibold">Hạn ứng tuyển:</span>{" "}
-                    <span className="text-white font-bold">{formatDate(job.applicationDeadline)}</span>
-                  </span>
+              <div className="flex items-center gap-2">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[#f5c518]/60 bg-[#f5c518]/10">
+                  <Calendar className="h-3.5 w-3.5 text-[#f5c518]" />
                 </div>
-              )}
+                <span className="whitespace-nowrap text-xs leading-none">
+                  <span className="text-slate-300 font-semibold">Hạn ứng tuyển:</span>{" "}
+                  <span className="text-white font-bold">
+                    {job.applicationDeadline ? formatDate(job.applicationDeadline) : "Không có"}
+                  </span>
+                </span>
+              </div>
 
               {job.city && (
                 <div className="flex min-w-0 items-center gap-2">
@@ -220,7 +219,6 @@ export default function JobCard({
                 </div>
               )}
             </div>
-          )}
 
           {job.hasBudget && (
             <>
@@ -269,7 +267,7 @@ export default function JobCard({
             )}
           >
             <UserPlus className="h-4 w-4 text-[#f5c518]" />
-            {isLoadingReferral ? "Đang lấy link..." : "Mời tham gia (Affiliate)"}
+            {isLoadingReferral ? "Đang lấy link..." : "Mời tham gia"}
           </button>
         </div>
       </div>
