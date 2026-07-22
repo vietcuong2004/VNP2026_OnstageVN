@@ -719,6 +719,55 @@ export default function CampaignDetailPage() {
               <p className="font-black text-amber-300 text-sm leading-none">{selectedCampaign.budget}</p>
             </div>
 
+            {/* Loại hình + Số lượng tuyển */}
+            <div className="grid grid-cols-2 gap-3 py-3.5">
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Loại hình</span>
+                <p className="mt-1 text-xs font-bold text-slate-200">{selectedCampaign.jobType || "Không có"}</p>
+              </div>
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Số lượng tuyển</span>
+                <p className="mt-1 text-xs font-black text-amber-300">{selectedCampaign.talentQuantity ? `${selectedCampaign.talentQuantity} người` : "Không có"}</p>
+              </div>
+            </div>
+
+            {/* Thành phố + Địa điểm */}
+            <div className="grid grid-cols-2 gap-3 py-3.5">
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Thành phố</span>
+                <p className="mt-1 text-xs font-bold text-slate-200">{selectedCampaign.city || "Không có"}</p>
+              </div>
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Địa điểm</span>
+                <p className="mt-1 text-xs text-slate-300">{selectedCampaign.address || "Không có"}</p>
+              </div>
+            </div>
+
+            {/* 4 mốc thời gian */}
+            <div className="grid grid-cols-2 gap-3 py-3.5">
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Bắt đầu campaign</span>
+                <p className="mt-1 text-xs font-black text-amber-300">{displayCampaignDate(selectedCampaign.startDate) || "Không có"}</p>
+              </div>
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kết thúc campaign</span>
+                <p className="mt-1 text-xs font-black text-amber-300">{displayCampaignDate(selectedCampaign.endDate) || "Không có"}</p>
+              </div>
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Sự kiện chính</span>
+                <p className="mt-1 text-xs font-black text-amber-300">
+                  {selectedCampaign.eventDate
+                    ? displayCampaignDate(selectedCampaign.eventDate)
+                    : (selectedCampaign.startDate && selectedCampaign.endDate
+                      ? displayCampaignDateRange(selectedCampaign.startDate, selectedCampaign.endDate)
+                      : "Không có")}
+                </p>
+              </div>
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Hạn ứng tuyển</span>
+                <p className="mt-1 text-xs font-black text-amber-300">{displayCampaignDate(selectedCampaign.applicationDeadline || selectedCampaign.deadline) || "Không có"}</p>
+              </div>
+            </div>
 
             <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5">
               <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Quyền lợi</span>
@@ -775,67 +824,76 @@ export default function CampaignDetailPage() {
                 <div>
                   <div className="mb-5 flex items-center justify-between gap-3 border-b border-white/5 pb-3">
                     <h2 className="text-xs font-black uppercase tracking-widest text-slate-350 flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4 text-amber-400" /> Thông tin tuyển chọn
+                      <Calendar className="h-4 w-4 text-amber-400" /> Yêu cầu tuyển chọn
                     </h2>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Bắt đầu campaign</span>
-                      <p className="text-xs font-black leading-relaxed text-cyan-200">
-                        {displayCampaignDate(selectedCampaign.startDate)}
-                      </p>
-                    </div>
-                    <div className="space-y-1.5">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kết thúc campaign</span>
-                      <p className="text-xs font-black leading-relaxed text-sky-200">
-                        {displayCampaignDate(selectedCampaign.endDate)}
-                      </p>
-                    </div>
-                    <div className="space-y-1.5">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Sự kiện chính</span>
-                      <p className="text-xs font-black leading-relaxed text-emerald-200">
-                        {selectedCampaign.eventDate
-                          ? displayCampaignDate(selectedCampaign.eventDate)
-                          : displayCampaignDateRange(selectedCampaign.startDate, selectedCampaign.endDate)}
-                      </p>
-                    </div>
-                    <div className="space-y-1.5">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Hạn ứng tuyển</span>
-                      <p className="text-xs font-black leading-relaxed text-purple-200">
-                        {displayCampaignDate(selectedCampaign.applicationDeadline || selectedCampaign.deadline)}
+
+                    {/* Yêu cầu */}
+                    <div className="space-y-1.5 col-span-2">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
+                      <p className="text-xs leading-relaxed text-slate-300 text-justify">
+                        {selectedCampaign.requirements ? sentenceCaseText(selectedCampaign.requirements) : "Không có"}
                       </p>
                     </div>
 
-                    {selectedCampaign.roles && selectedCampaign.roles.length > 0 && (
-                      <div className="space-y-1.5 col-span-2">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển</span>
+                    {/* Chiều cao / Cân nặng / Kinh nghiệm */}
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Chiều cao tối thiểu</span>
+                      <p className="text-xs font-bold leading-relaxed text-slate-200">
+                        {selectedCampaign.heightMinCm ? `${selectedCampaign.heightMinCm} cm` : "Không có"}
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Cân nặng tối đa</span>
+                      <p className="text-xs font-bold leading-relaxed text-slate-200">
+                        {selectedCampaign.weightMaxKg ? `${selectedCampaign.weightMaxKg} kg` : "Không có"}
+                      </p>
+                    </div>
+                    <div className="space-y-1.5 col-span-2">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kinh nghiệm tối thiểu</span>
+                      <p className="text-xs font-bold leading-relaxed text-slate-200">
+                        {selectedCampaign.experienceMinYears ? `${selectedCampaign.experienceMinYears} năm` : "Không có"}
+                      </p>
+                    </div>
+
+                    {/* Vị trí tuyển */}
+                    <div className="space-y-1.5 col-span-2">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển</span>
+                      {selectedCampaign.roles && selectedCampaign.roles.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {selectedCampaign.roles.map((role, idx) => (
-                            <span key={`${role}-${idx}`} className="rounded bg-cyan-400/10 border border-cyan-400/20 px-2 py-0.5 text-[8.5px] font-bold text-cyan-300 uppercase tracking-wider">
+                            <span key={`${role}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
                               {role}
                             </span>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <p className="text-xs text-slate-400">Không có</p>
+                      )}
+                    </div>
 
-                    {selectedCampaign.targetProfiles && selectedCampaign.targetProfiles.length > 0 && (
-                      <div className="space-y-1.5 col-span-2">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Nhóm talent phù hợp</span>
+                    {/* Nhóm talent phù hợp */}
+                    <div className="space-y-1.5 col-span-2">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Nhóm talent phù hợp</span>
+                      {selectedCampaign.targetProfiles && selectedCampaign.targetProfiles.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {selectedCampaign.targetProfiles.map((profile, idx) => (
-                            <span key={`${profile}-${idx}`} className="rounded bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-[8.5px] font-bold text-emerald-300 uppercase tracking-wider">
+                            <span key={`${profile}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
                               {profile}
                             </span>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <p className="text-xs text-slate-400">Không có</p>
+                      )}
+                    </div>
 
-                    {selectedCampaign.industries && selectedCampaign.industries.length > 0 && (
-                      <div className="space-y-1.5 col-span-2">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực</span>
+                    {/* Lĩnh vực */}
+                    <div className="space-y-1.5 col-span-2">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực liên quan</span>
+                      {selectedCampaign.industries && selectedCampaign.industries.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {selectedCampaign.industries.map((industry, idx) => (
                             <span key={`${industry}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
@@ -843,39 +901,15 @@ export default function CampaignDetailPage() {
                             </span>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <p className="text-xs text-slate-400">Không có</p>
+                      )}
+                    </div>
 
-                    {selectedCampaign.sponsorships && selectedCampaign.sponsorships.length > 0 && (
-                      <div className="space-y-1.5 col-span-2">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Tài trợ</span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {selectedCampaign.sponsorships.map((s, idx) => (
-                            <span key={idx} className="inline-block rounded bg-amber-400/10 border border-amber-400/30 px-2 py-0.5 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
-                              {s.category}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
 
-                    {selectedCampaign.requirements && (
-                      <div className="space-y-1.5 col-span-2">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
-                        <p className="text-xs leading-relaxed text-slate-300 text-justify">
-                          {sentenceCaseText(selectedCampaign.requirements)}
-                        </p>
-                      </div>
-                    )}
+
                   </div>
                 </div>
-
-                {selectedCampaign.contactNote && (
-                  <div className="mt-5 rounded-2xl border border-amber-400/15 bg-amber-400/5 p-4 text-xs font-semibold leading-relaxed text-slate-300">
-                    <span className="mr-2 text-[9px] font-black uppercase tracking-wider text-amber-300">Ứng tuyển</span>
-                    {sentenceCaseText(selectedCampaign.contactNote)}
-                  </div>
-                )}
               </div>
             )}
         </div>
@@ -1020,11 +1054,8 @@ export default function CampaignDetailPage() {
               ) : null
             ))}
 
-            {!selectedCampaign.media?.length && (
-              <div className="col-span-2 sm:col-span-3 lg:col-span-4 xl:col-span-5 flex aspect-[4/5] sm:aspect-video items-center justify-center rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-center text-[10px] font-semibold leading-relaxed text-slate-500">
-                Ảnh đã tải lên sẽ hiển thị tại đây.
-              </div>
-            )}
+
+
           </div>
         </div>
       </section>

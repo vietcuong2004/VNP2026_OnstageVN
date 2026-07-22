@@ -176,16 +176,19 @@ export default function CampaignsPage() {
           return (
             <article
               key={campaign.id}
+              onClick={() => router.push(`/brand/campaigns/${campaign.id}`)}
               className={cn(
-                "flex flex-col justify-between rounded-3xl border p-5 transition-all duration-300 hover:-translate-y-0.5 flex-1 w-full text-left relative overflow-hidden group h-[320px]",
+                "flex flex-col justify-between rounded-3xl border p-5 transition-all duration-300 hover:-translate-y-0.5 flex-1 w-full text-left relative group h-[320px] cursor-pointer",
                 isClosed
                   ? "border-white/5 bg-[#0b0c10]/40 hover:border-white/15 hover:shadow-[0_8px_30px_rgba(255,255,255,0.01)]"
                   : "border-[#151b2d] bg-gradient-to-b from-[#111421]/80 to-[#070913]/95 hover:border-amber-400/30 hover:shadow-[0_12px_40px_rgba(245,158,11,0.08)]"
               )}
             >
-              {/* Radial gradient shine inside card */}
+              {/* Radial gradient shine inside card clipped container */}
               {!isClosed && (
-                <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-300 to-yellow-600 transition-opacity duration-300 group-hover:opacity-15 pointer-events-none" />
+                <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+                  <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl bg-gradient-to-br from-amber-300 to-yellow-600 transition-opacity duration-300 group-hover:opacity-15" />
+                </div>
               )}
 
               <div className="relative z-10">
@@ -263,7 +266,7 @@ export default function CampaignsPage() {
                     Xem thông tin <ChevronRight className="ml-1 h-3.5 w-3.5" />
                   </button>
 
-                  <div className="relative">
+                  <div className="relative z-50">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -277,7 +280,7 @@ export default function CampaignsPage() {
                     </button>
 
                     {openMenuCampaignId === campaign.id && (
-                      <div className="absolute right-0 bottom-full mb-2 w-44 rounded-2xl border border-amber-500/30 bg-[#0d1226]/95 p-1.5 shadow-[0_15px_40px_rgba(0,0,0,0.85)] backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150 text-left">
+                      <div className="absolute right-0 bottom-full mb-2 w-44 rounded-2xl border border-amber-500/30 bg-[#0d1226] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.95)] backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150 text-left">
                         <button
                           type="button"
                           onClick={(e) => {

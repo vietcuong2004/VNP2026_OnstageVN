@@ -299,7 +299,7 @@ export default function JobDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#080a12] text-slate-100 flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
-      
+
       {/* Top Hero Image Banner */}
       <div className="relative w-full h-64 sm:h-80 bg-[#050711] shrink-0 overflow-hidden border-b border-[#151b2d]">
         {allMediaImages.length > 0 ? (
@@ -355,7 +355,7 @@ export default function JobDetailPage() {
 
       {/* Content Body Container */}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 md:px-10 py-6 space-y-6 flex-1">
-        
+
         {/* Title & Brand Header */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
@@ -467,7 +467,7 @@ export default function JobDetailPage() {
             className="border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
           />
           <PillSection
-            title="Lĩnh vực"
+            title="Lĩnh vực liên quan"
             items={job.industries?.length > 0 ? job.industries : ["Không có"]}
             className="border-amber-400/20 bg-amber-400/10 text-amber-300"
           />

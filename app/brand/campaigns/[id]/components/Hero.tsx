@@ -84,18 +84,94 @@ export default function Hero({
   return (
     <>
       {/* 1. HERO MỞ RỘNG (HERO + KPI) */}
-      <section className="relative overflow-hidden rounded-3xl border border-white/5 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.08),transparent_40%),linear-gradient(135deg,rgba(15,23,42,0.92),rgba(2,6,23,0.97))] p-4 sm:py-5 sm:px-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+      <section className="relative rounded-3xl border border-white/5 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.08),transparent_40%),linear-gradient(135deg,rgba(15,23,42,0.92),rgba(2,6,23,0.97))] p-4 sm:py-5 sm:px-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+        {/* Ambient background glow inside clipped container */}
+        <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl" />
+        </div>
 
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between relative z-10 text-left">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between relative z-30 text-left">
           {/* Main Info */}
           <div className="flex-1 min-w-0 w-full">
-            <button
-              onClick={onBack}
-              className="absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto sm:mb-2 inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white transition-colors cursor-pointer"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> Quay lại
-            </button>
+            <div className="flex items-center justify-between gap-2 mb-3">
+              {/* Top-left: Quay lại button */}
+              <button
+                type="button"
+                onClick={onBack}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-slate-900/90 px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-slate-200 hover:border-amber-400/50 hover:bg-amber-500/15 hover:text-amber-300 transition-all duration-200 cursor-pointer shadow-md hover:shadow-amber-500/10 active:scale-95 group"
+              >
+                <ArrowLeft className="h-4 w-4 text-amber-400 group-hover:-translate-x-0.5 transition-transform" />
+                <span>Quay lại</span>
+              </button>
+
+              {/* Top-right: Circular 3-dots menu button */}
+              <div className="relative z-50" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowMenu((prev) => !prev)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700/80 bg-slate-900/80 text-amber-300 hover:bg-amber-500/20 hover:border-amber-400 cursor-pointer transition-all shadow-md active:scale-95"
+                  title="Tùy chọn khác"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+
+                {showMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-amber-500/30 bg-[#0d1226] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.95)] backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150 text-left">
+                    {onEditCampaign && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowMenu(false);
+                          onEditCampaign();
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
+                      >
+                        <Pencil className="h-4 w-4 text-amber-400" />
+                        <span>Sửa job</span>
+                      </button>
+                    )}
+
+                    {selectedCampaign.status !== "closed" ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowCloseConfirm(true);
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
+                      >
+                        <Lock className="h-4 w-4 text-amber-400" />
+                        <span>Đóng job</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowMenu(false);
+                          onUpdateStatus("published");
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                        <span>Mở lại job</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowMenu(false);
+                        setShowDeleteConfirm(true);
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/15 hover:text-red-300 transition-colors cursor-pointer border-t border-slate-800/80 mt-1 pt-2"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-400" />
+                      <span>Xóa job</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
 
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-cyan-300">
@@ -119,7 +195,7 @@ export default function Hero({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2.5 w-full md:w-auto md:shrink-0 justify-end">
+          <div className="flex items-center gap-2.5 w-full md:w-auto md:shrink-0 justify-end relative z-40">
             {selectedCampaign.status === "draft" && (
               <button
                 disabled={isUpdating}
@@ -131,7 +207,8 @@ export default function Hero({
               </button>
             )}
 
-            {selectedCampaign.status !== "closed" && (
+            {/* Hidden Quyết toán button for now */}
+            {/* {selectedCampaign.status !== "closed" && (
               <button
                 onClick={onOpenPayoutModal}
                 className="flex h-10 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-600 px-3 sm:px-5 text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.3)] border border-emerald-300/20"
@@ -139,83 +216,15 @@ export default function Hero({
                 <Coins className="h-4 w-4 stroke-[2.5]" />
                 Quyết Toán
               </button>
-            )}
-
-            {/* Circular 3-dots menu button */}
-            <div className="relative" ref={menuRef}>
-              <button
-                type="button"
-                onClick={() => setShowMenu((prev) => !prev)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700/80 bg-slate-900/80 text-amber-300 hover:bg-amber-500/20 hover:border-amber-400 cursor-pointer transition-all shadow-md active:scale-95"
-                title="Tùy chọn khác"
-              >
-                <MoreVertical className="h-5 w-5" />
-              </button>
-
-              {showMenu && (
-                <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-amber-500/30 bg-[#0d1226]/95 p-1.5 shadow-[0_15px_40px_rgba(0,0,0,0.85)] backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150 text-left">
-                  {onEditCampaign && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMenu(false);
-                        onEditCampaign();
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
-                    >
-                      <Pencil className="h-4 w-4 text-amber-400" />
-                      <span>Sửa job</span>
-                    </button>
-                  )}
-
-                  {selectedCampaign.status !== "closed" ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMenu(false);
-                        setShowCloseConfirm(true);
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
-                    >
-                      <Lock className="h-4 w-4 text-amber-400" />
-                      <span>Đóng job</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMenu(false);
-                        onUpdateStatus("published");
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
-                    >
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                      <span>Mở lại job</span>
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowMenu(false);
-                      setShowDeleteConfirm(true);
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/15 hover:text-red-300 transition-colors cursor-pointer border-t border-slate-800/80 mt-1 pt-2"
-                  >
-                    <Trash2 className="h-4 w-4 text-red-400" />
-                    <span>Xóa job</span>
-                  </button>
-                </div>
-              )}
-            </div>
+            )} */}
           </div>
         </div>
 
         {/* Divider line inside Hero */}
-        <div className="my-3 border-t border-white/5 relative z-10" />
+        <div className="my-3 border-t border-white/5 relative z-0" />
 
         {/* Integrated KPI quick stats */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 relative z-10 text-left">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 relative z-0 text-left">
           {[
             {
               label: "Địa điểm",
