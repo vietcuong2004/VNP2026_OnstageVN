@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { X, ImagePlus, Briefcase, ChevronDown, Pencil } from "lucide-react";
+import { X, ImagePlus, Briefcase, ChevronDown, Pencil, Calendar } from "lucide-react";
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { createBrandCampaign, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
@@ -125,14 +125,14 @@ const emptyForm = {
   title: "",
   jobType: "KOL livestream",
   eventName: "",
-  campaignType: "Tuyển cộng tác viên",
+  campaignType: "",
   city: "Hà Nội",
   address: "",
-  startDate: "2026-06-15",
-  endDate: "2026-06-30",
-  deadline: "2026-06-10",
-  applicationDeadline: "2026-06-10",
-  eventDate: "2026-07-11",
+  startDate: "",
+  endDate: "",
+  deadline: "",
+  applicationDeadline: "",
+  eventDate: "",
   talentQuantity: "3",
   budget: "",
   budgetMin: "",
@@ -155,6 +155,118 @@ const emptyForm = {
   experienceMax: "",
 };
 
+function currentDateInputValue() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${day}/${month}/${year}`;
+}
+
+function parseVietnameseDateToYYYYMMDD(dateStr: string): string {
+  if (!dateStr) return "";
+  let trimmed = dateStr.trim();
+  if (trimmed.includes("T")) {
+    trimmed = trimmed.split("T")[0];
+  }
+  const match = trimmed.match(/^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})/);
+  if (match) {
+    const day = match[1].padStart(2, "0");
+    const month = match[2].padStart(2, "0");
+    const year = match[3];
+    return `${year}-${month}-${day}`;
+  }
+  const ymdMatch = trimmed.match(/^(\d{4})[/\-](\d{1,2})[/\-](\d{1,2})/);
+  if (ymdMatch) {
+    const year = ymdMatch[1];
+    const month = ymdMatch[2].padStart(2, "0");
+    const day = ymdMatch[3].padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+  return trimmed;
+}
+
+function isValidVietnameseDate(dateStr: string): boolean {
+  if (!dateStr) return true;
+  return /^\d{1,2}[/\-]\d{1,2}[/\-]\d{4}$/.test(dateStr.trim());
+}
+
+function normalizeVietnameseDateDisplay(dateStr: string): string {
+  if (!dateStr) return "";
+  const trimmed = dateStr.trim();
+  const match = trimmed.match(/^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})$/);
+  if (match) {
+    const day = match[1].padStart(2, "0");
+    const month = match[2].padStart(2, "0");
+    const year = match[3];
+    return `${day}/${month}/${year}`;
+  }
+  return trimmed;
+}
+
+function validateDateFields(currentForm: typeof emptyForm) {
+  const errors: {
+    startDate?: string;
+    endDate?: string;
+    applicationDeadline?: string;
+    eventDate?: string;
+  } = {};
+
+  const normStart = normalizeVietnameseDateDisplay(currentForm.startDate);
+  const normEnd = normalizeVietnameseDateDisplay(currentForm.endDate);
+  const normApp = normalizeVietnameseDateDisplay(currentForm.applicationDeadline);
+  const normEvent = normalizeVietnameseDateDisplay(currentForm.eventDate);
+
+  if (normStart && !isValidVietnameseDate(normStart)) {
+    errors.startDate = "Định dạng phải là dd/mm/yyyy (ví dụ: 22/07/2026)";
+  }
+  if (normEnd && !isValidVietnameseDate(normEnd)) {
+    errors.endDate = "Định dạng phải là dd/mm/yyyy (ví dụ: 22/07/2026)";
+  }
+  if (normApp && !isValidVietnameseDate(normApp)) {
+    errors.applicationDeadline = "Định dạng phải là dd/mm/yyyy (ví dụ: 22/07/2026)";
+  }
+  if (normEvent && !isValidVietnameseDate(normEvent)) {
+    errors.eventDate = "Định dạng phải là dd/mm/yyyy (ví dụ: 22/07/2026)";
+  }
+
+  const ymdStart = parseVietnameseDateToYYYYMMDD(normStart);
+  const ymdEnd = parseVietnameseDateToYYYYMMDD(normEnd);
+  const ymdApp = parseVietnameseDateToYYYYMMDD(normApp);
+  const ymdEvent = parseVietnameseDateToYYYYMMDD(normEvent);
+
+  if (!errors.endDate && ymdStart && ymdEnd && ymdEnd < ymdStart) {
+    errors.endDate = "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu";
+  }
+
+  if (!errors.applicationDeadline && ymdStart && ymdEnd && ymdApp) {
+    if (ymdApp < ymdStart || ymdApp > ymdEnd) {
+      errors.applicationDeadline = "Hạn ứng tuyển phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc";
+    }
+  }
+
+  if (!errors.eventDate && ymdStart && ymdEnd && ymdEvent) {
+    if (ymdEvent < ymdStart || ymdEvent > ymdEnd) {
+      errors.eventDate = "Ngày sự kiện chính phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc";
+    }
+  }
+
+  return { errors, normStart, normEnd, normApp, normEvent };
+}
+
+function createDefaultForm() {
+  const today = currentDateInputValue();
+
+  return {
+    ...emptyForm,
+    startDate: today,
+    endDate: today,
+    deadline: today,
+    applicationDeadline: today,
+    eventDate: today,
+  };
+}
+
 interface FormCreateJobProps {
   isOpen: boolean;
   onClose: () => void;
@@ -163,7 +275,7 @@ interface FormCreateJobProps {
 
 export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: FormCreateJobProps) {
   const router = useRouter();
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(createDefaultForm);
   const [campaignImages, setCampaignImages] = useState<File[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [formStep, setFormStep] = useState(1);
@@ -198,10 +310,34 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
     setCampaignImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const [dateErrors, setDateErrors] = useState<{
+    startDate?: string;
+    endDate?: string;
+    applicationDeadline?: string;
+    eventDate?: string;
+  }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const TOTAL_STEPS = 5;
 
   function moveToStep(nextStep: number) {
+    if (formStep === 2 && nextStep > 2) {
+      const { errors, normStart, normEnd, normApp, normEvent } = validateDateFields(form);
+
+      setForm((c) => ({
+        ...c,
+        startDate: normStart,
+        endDate: normEnd,
+        applicationDeadline: normApp,
+        deadline: normApp,
+        eventDate: normEvent,
+      }));
+
+      setDateErrors(errors);
+
+      if (Object.keys(errors).length > 0) {
+        return;
+      }
+    }
     const boundedStep = Math.min(Math.max(nextStep, 1), TOTAL_STEPS);
     finalStepSubmitReadyAt.current = boundedStep === TOTAL_STEPS ? Date.now() + 450 : 0;
     setFormStep(boundedStep);
@@ -276,7 +412,8 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   };
 
   function handleClose() {
-    setForm(emptyForm);
+    setForm(createDefaultForm());
+    setDateErrors({});
     setBudgetFrom("");
     setBudgetTo("");
     setBudgetNegotiable(false);
@@ -313,7 +450,15 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
       reqParts.push(`Kinh nghiệm tối thiểu: ${form.experienceMin} năm`);
     }
     const finalRequirements = reqParts.join("; ") || "Chưa có yêu cầu chi tiết.";
-    const updatedForm = { ...form, requirements: finalRequirements };
+    const updatedForm = {
+      ...form,
+      requirements: finalRequirements,
+      startDate: parseVietnameseDateToYYYYMMDD(form.startDate),
+      endDate: parseVietnameseDateToYYYYMMDD(form.endDate),
+      deadline: parseVietnameseDateToYYYYMMDD(form.deadline),
+      applicationDeadline: parseVietnameseDateToYYYYMMDD(form.applicationDeadline),
+      eventDate: parseVietnameseDateToYYYYMMDD(form.eventDate),
+    };
 
     try {
       const createdCampaign = await createBrandCampaign(updatedForm);
@@ -347,7 +492,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
         title: updatedForm.title || "Campaign mới",
         jobType: updatedForm.jobType,
         eventName: updatedForm.eventName,
-        campaignType: updatedForm.campaignType,
+        campaignType: updatedForm.campaignType || updatedForm.jobType || "Campaign",
         city: updatedForm.city,
         address: updatedForm.address || updatedForm.city,
         startDate: updatedForm.startDate,
@@ -532,10 +677,74 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 animate-in fade-in slide-in-from-right-4 duration-300">
               <FormInput label="Thành phố *" value={form.city} onChange={(value) => setForm((c) => ({ ...c, city: value }))} />
               <FormInput label="Địa điểm *" value={form.address} onChange={(value) => setForm((c) => ({ ...c, address: value }))} />
-              <FormInput label="Ngày bắt đầu" type="date" value={form.startDate} onChange={(value) => setForm((c) => ({ ...c, startDate: value }))} />
-              <FormInput label="Ngày kết thúc" type="date" value={form.endDate} onChange={(value) => setForm((c) => ({ ...c, endDate: value }))} />
-              <FormInput label="Hạn ứng tuyển" type="date" value={form.applicationDeadline} onChange={(value) => setForm((c) => ({ ...c, applicationDeadline: value, deadline: value }))} />
-              <FormInput label="Ngày sự kiện chính" type="date" value={form.eventDate} onChange={(value) => setForm((c) => ({ ...c, eventDate: value }))} />
+              <FormInput
+                label="Ngày bắt đầu"
+                placeholder="dd/mm/yyyy"
+                value={form.startDate}
+                onChange={(value) => {
+                  setForm((c) => ({ ...c, startDate: value }));
+                  if (dateErrors.startDate) setDateErrors((prev) => ({ ...prev, startDate: undefined }));
+                }}
+                onBlur={() => {
+                  const norm = normalizeVietnameseDateDisplay(form.startDate);
+                  const updated = { ...form, startDate: norm };
+                  setForm((c) => ({ ...c, startDate: norm }));
+                  setDateErrors(validateDateFields(updated).errors);
+                }}
+                error={dateErrors.startDate}
+                isDateField
+              />
+              <FormInput
+                label="Ngày kết thúc"
+                placeholder="dd/mm/yyyy"
+                value={form.endDate}
+                onChange={(value) => {
+                  setForm((c) => ({ ...c, endDate: value }));
+                  if (dateErrors.endDate) setDateErrors((prev) => ({ ...prev, endDate: undefined }));
+                }}
+                onBlur={() => {
+                  const norm = normalizeVietnameseDateDisplay(form.endDate);
+                  const updated = { ...form, endDate: norm };
+                  setForm((c) => ({ ...c, endDate: norm }));
+                  setDateErrors(validateDateFields(updated).errors);
+                }}
+                error={dateErrors.endDate}
+                isDateField
+              />
+              <FormInput
+                label="Hạn ứng tuyển"
+                placeholder="dd/mm/yyyy"
+                value={form.applicationDeadline}
+                onChange={(value) => {
+                  setForm((c) => ({ ...c, applicationDeadline: value, deadline: value }));
+                  if (dateErrors.applicationDeadline) setDateErrors((prev) => ({ ...prev, applicationDeadline: undefined }));
+                }}
+                onBlur={() => {
+                  const norm = normalizeVietnameseDateDisplay(form.applicationDeadline);
+                  const updated = { ...form, applicationDeadline: norm, deadline: norm };
+                  setForm((c) => ({ ...c, applicationDeadline: norm, deadline: norm }));
+                  setDateErrors(validateDateFields(updated).errors);
+                }}
+                error={dateErrors.applicationDeadline}
+                isDateField
+              />
+              <FormInput
+                label="Ngày sự kiện chính"
+                placeholder="dd/mm/yyyy"
+                value={form.eventDate}
+                onChange={(value) => {
+                  setForm((c) => ({ ...c, eventDate: value }));
+                  if (dateErrors.eventDate) setDateErrors((prev) => ({ ...prev, eventDate: undefined }));
+                }}
+                onBlur={() => {
+                  const norm = normalizeVietnameseDateDisplay(form.eventDate);
+                  const updated = { ...form, eventDate: norm };
+                  setForm((c) => ({ ...c, eventDate: norm }));
+                  setDateErrors(validateDateFields(updated).errors);
+                }}
+                error={dateErrors.eventDate}
+                isDateField
+              />
             </div>
           )}
 
@@ -1031,7 +1240,7 @@ function MultiChoiceField({
 
         {open && (
           <div className="absolute left-0 right-0 top-full z-[70] mt-2 rounded-2xl border border-amber-500/30 bg-[#0d1226] p-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+            <div className="flex items-center justify-between gap-3 pb-2 mb-2 border-b border-slate-800">
               <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-xs font-bold text-slate-200 hover:text-amber-300 transition-colors">
                 <input
                   type="checkbox"
@@ -1046,6 +1255,13 @@ function MultiChoiceField({
                 />
                 <span>{allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}</span>
               </label>
+              <button
+                type="button"
+                onClick={() => setOpenDropdown(null)}
+                className="shrink-0 rounded-xl bg-gradient-to-r from-amber-300 to-yellow-500 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.4)] hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+              >
+                Xong
+              </button>
             </div>
             <div className="grid max-h-56 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 custom-scrollbar">
               {options.map((option) => {
@@ -1081,15 +1297,6 @@ function MultiChoiceField({
                 className="mt-3 w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
               />
             )}
-            <div className="mt-3 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setOpenDropdown(null)}
-                className="rounded-xl bg-gradient-to-r from-amber-300 to-yellow-500 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.4)] hover:brightness-110 active:scale-95 transition-all cursor-pointer"
-              >
-                Xong
-              </button>
-            </div>
           </div>
         )}
       </div>
@@ -1110,30 +1317,99 @@ function FormInput({
   label,
   value,
   onChange,
+  onBlur,
   type = "text",
   required = false,
   placeholder = "",
+  isDateField = false,
+  error = "",
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   type?: string;
   required?: boolean;
   placeholder?: string;
+  isDateField?: boolean;
+  error?: string;
 }) {
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCalendarClick = () => {
+    if (dateInputRef.current) {
+      try {
+        if (typeof dateInputRef.current.showPicker === "function") {
+          dateInputRef.current.showPicker();
+        } else {
+          dateInputRef.current.focus();
+        }
+      } catch {
+        dateInputRef.current.focus();
+      }
+    }
+  };
+
+  const handleDatePickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const yyyymmdd = e.target.value;
+    if (yyyymmdd) {
+      const [y, m, d] = yyyymmdd.split("-");
+      if (y && m && d) {
+        const formatted = `${d.padStart(2, "0")}/${m.padStart(2, "0")}/${y}`;
+        onChange(formatted);
+      }
+    }
+  };
+
+  const pickerValue = isDateField ? parseVietnameseDateToYYYYMMDD(value) : "";
+
   return (
     <label className="space-y-1.5 block">
       <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1">
         {label}
       </span>
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        required={required}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 hover:border-slate-600 transition-all shadow-inner"
-      />
+      <div className="relative flex items-center">
+        <input
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onBlur={onBlur}
+          required={required}
+          placeholder={placeholder}
+          className={cn(
+            "w-full rounded-xl border bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none transition-all shadow-inner",
+            error
+              ? "border-red-500/80 focus:border-red-400 focus:ring-2 focus:ring-red-400/20"
+              : "border-slate-700/80 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 hover:border-slate-600",
+            isDateField && "pr-10"
+          )}
+        />
+        {isDateField && (
+          <>
+            <button
+              type="button"
+              onClick={handleCalendarClick}
+              className="absolute right-2.5 p-1 text-slate-400 hover:text-amber-300 cursor-pointer transition-colors rounded-lg hover:bg-slate-800/80"
+              title="Mở lịch chọn ngày"
+            >
+              <Calendar className="h-4 w-4" />
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              value={pickerValue}
+              onChange={handleDatePickerChange}
+              className="sr-only absolute pointer-events-none opacity-0 w-0 h-0"
+              tabIndex={-1}
+            />
+          </>
+        )}
+      </div>
+      {error && (
+        <span className="mt-1 block text-[11px] font-medium text-red-400 leading-snug animate-in fade-in duration-200">
+          {error}
+        </span>
+      )}
     </label>
   );
 }

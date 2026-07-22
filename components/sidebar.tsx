@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const talentMenuItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
-  { label: "Việc làm", icon: Briefcase, href: "/talent/jobs" },
+  { label: "Đăng việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Hồ sơ cá nhân", icon: User, href: "/talent/portfolio" },
   { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
@@ -26,7 +26,7 @@ const talentMenuItems = [
 const brandMenuItems = [
   { label: "Tổng quan", icon: LayoutDashboard, href: "/brand/dashboard" },
   { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
-  { label: "Việc làm", icon: Briefcase, href: "/brand/campaigns" },
+  { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
   { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
   { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },

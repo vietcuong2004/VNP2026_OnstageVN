@@ -24,6 +24,7 @@ import { type Campaign, type CampaignMedia, type CampaignStage } from "@/lib/bra
 import {
   approveBrandCampaignCommissions,
   closeBrandCampaign,
+  deleteBrandCampaign,
   deleteBrandCampaignMedia,
   loadBrandCampaign,
   loadBrandCampaignCommissions,
@@ -57,6 +58,7 @@ import ChecklistModal from "./components/ChecklistModal";
 import AddStaffModal from "./components/AddStaffModal";
 import PayoutSuccessModal from "./components/PayoutSuccessModal";
 import PayoutTableModal from "./components/PayoutTableModal";
+import FormEditJob from "../FormEditJob";
 
 const stageLabels: Record<CampaignStage, string> = {
   new: "Chờ duyệt",
@@ -160,6 +162,7 @@ export default function CampaignDetailPage() {
   const [isShowingPayoutModal, setIsShowingPayoutModal] = useState(false);
   const [commissionData, setCommissionData] = useState<BrandCampaignCommissionResponse | null>(null);
   const [isCommissionLoading, setIsCommissionLoading] = useState(false);
+  const [isEditingJob, setIsEditingJob] = useState(false);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [replacingMediaId, setReplacingMediaId] = useState<string | number | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
@@ -651,10 +654,23 @@ export default function CampaignDetailPage() {
     setCampaigns(nextCampaigns);
   }
 
+  async function handleDeleteCampaign() {
+    if (!selectedCampaign) return;
+    try {
+      if (isBackendRecordId(selectedCampaign.id)) {
+        await deleteBrandCampaign(selectedCampaign.id);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      router.push("/brand/campaigns");
+    }
+  }
+
   if (campaignLoading && !selectedCampaign) {
     return (
       <div className="space-y-6 py-20 text-center">
-        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Đang tải thông tin chiến dịch...</p>
+        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Đang tải thông tin job...</p>
       </div>
     );
   }
@@ -662,8 +678,8 @@ export default function CampaignDetailPage() {
   if (!selectedCampaign) {
     return (
       <div className="space-y-6 pb-16 text-center py-20">
-        <h2 className="text-lg font-black text-white">Không tìm thấy campaign</h2>
-        <p className="text-xs text-slate-500 mt-2">Chiến dịch này có thể đã bị xóa hoặc không tồn tại.</p>
+        <h2 className="text-lg font-black text-white">Không tìm thấy job</h2>
+        <p className="text-xs text-slate-500 mt-2">Job này có thể đã bị xóa hoặc không tồn tại.</p>
         <button
           onClick={() => router.push("/brand/campaigns")}
           className="mt-6 inline-flex h-10 items-center justify-center rounded-xl bg-white/5 border border-white/10 px-4 text-xs font-black text-white hover:bg-white/10 cursor-pointer"
@@ -682,6 +698,8 @@ export default function CampaignDetailPage() {
         onBack={() => router.push("/brand/campaigns")}
         onOpenPayoutModal={openPayoutModal}
         onUpdateStatus={(status) => updateCampaignStatus(selectedCampaign.id, status)}
+        onDeleteCampaign={handleDeleteCampaign}
+        onEditCampaign={() => setIsEditingJob(true)}
       />
 
       {/* 2. HÀNG THÔNG TIN CHÍNH (MÔ TẢ CHUNG & THÔNG TIN TUYỂN CHỌN) */}
@@ -1341,6 +1359,15 @@ export default function CampaignDetailPage() {
           onConfirmDisbursement={confirmCampaignDisbursement}
         />
       )}
+
+      <FormEditJob
+        isOpen={isEditingJob}
+        campaignToEdit={selectedCampaign}
+        onClose={() => setIsEditingJob(false)}
+        onCampaignUpdated={(updated) =>
+          setCampaigns((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+        }
+      />
 
       {/* Owner Transfer Modal Dialog */}
       {isShowingOwnerTransferModal && (

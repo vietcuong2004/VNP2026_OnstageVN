@@ -4,22 +4,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Briefcase,
-  CheckCircle2,
-  Eye,
   Filter,
-  Heart,
-  MapPin,
   Search,
   SlidersHorizontal,
   X,
   ChevronDown,
   ChevronUp,
-  MessageSquare,
 } from "lucide-react";
 import { addTalentToWishlist, createBrandWishlist, loadBrandTalentsPage, loadBrandWishlists, removeTalentFromWishlist, loadBrandCampaigns } from "@/lib/brand-api";
-import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import { cn } from "@/lib/utils";
+import TalentCard from "@/components/TalentCard";
 
 const allValue = "all";
 const TALENTS_PER_PAGE = 20;
@@ -757,127 +752,20 @@ export default function DiscoverTalentsPage() {
               {filteredTalents.map((talent) => {
                 const isSaved = savedIds.includes(talent.id);
                 const status = getTalentStatus(talent.id);
-                const locationText = [talent.district, talent.city].filter(Boolean).join(", ");
-                const experienceYears = Number(talent.yearsOfExperience ?? talent.experience_years ?? 0);
-                const talentTypes = getTalentTypes(talent);
 
                 return (
-                  <article key={talent.id} className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg hover:border-[#C9A86A]/30 transition-all duration-300 group flex flex-col justify-between min-w-0">
-                    <div>
-                      {/* Image Top Area */}
-                      <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-900 border border-white/5 mb-3.5">
-                        <img
-                          src={talent.avatar}
-                          alt={talent.name}
-                          loading="lazy"
-                          decoding="async"
-                          onError={(event) => {
-                            event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
-                          }}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-
-                        {/* Overlay top badges */}
-                        <div className="absolute top-2 left-2 flex flex-col gap-1.5">
-                          <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-md">
-                            Hạng {talent.tier}
-                          </span>
-                        </div>
-
-                        {/* Floating Wishlist Heart */}
-                        <button
-                          onClick={() => void toggleSaved(talent.id)}
-                          className={cn(
-                            "absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full border shadow-lg backdrop-blur-sm transition active:scale-90 cursor-pointer",
-                            isSaved
-                              ? "border-red-500 bg-red-500 text-white"
-                              : "border-white/10 bg-[#0F1115]/60 text-slate-300 hover:text-white"
-                          )}
-                          title={isSaved ? "Bỏ lưu" : "Lưu vào shortlist"}
-                        >
-                          <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} />
-                        </button>
-
-                        {/* Floating calendar status at bottom of image */}
-                        <div className="absolute bottom-2 left-2">
-                          <span className={cn(
-                            "inline-flex items-center gap-1 rounded bg-[#0F1115]/80 border backdrop-blur-sm px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white",
-                            status === "available" && "border-emerald-500/30 text-emerald-400",
-                            status === "busy" && "border-red-500/30 text-red-400",
-                            status === "maybe" && "border-yellow-500/30 text-yellow-400"
-                          )}>
-                            <span className={cn(
-                              "h-1 w-1 rounded-full",
-                              status === "available" && "bg-emerald-400",
-                              status === "busy" && "bg-red-400",
-                              status === "maybe" && "bg-yellow-400"
-                            )} />
-                            {status === "available" ? "Rảnh" : status === "busy" ? "Bận" : "Chưa có lịch"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Header details */}
-                      <div className="space-y-2 min-w-0">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <h3 className="flex-1 truncate text-base font-black leading-tight tracking-wide text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.12)]">{talent.name}</h3>
-                          {talent.verified && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />}
-                        </div>
-
-                        <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                          <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
-                          <span className="truncate">{locationText || "Chưa cập nhật"}</span>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1">
-                          {talentTypes.length ? (
-                            talentTypes.map((type) => (
-                              <span key={type} className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
-                                {type}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
-                              Chưa cập nhật
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Info badges row */}
-                      <div className="my-3 flex flex-nowrap gap-1 overflow-hidden">
-                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.age} tuổi</span>
-                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{experienceYears} năm kinh nghiệm</span>
-                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.height}cm</span>
-                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.weight}kg</span>
-                      </div>
-
-                      {/* Bio brief */}
-                      <p className="line-clamp-2 text-[10px] leading-relaxed text-slate-300 mt-2 min-h-7">{talent.experience}</p>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="mt-4 pt-3.5 border-t border-white/5 flex gap-2">
-                      <button
-                        onClick={() => router.push(`/brand/talents/${talent.id}`)}
-                        className="flex h-10 px-4 items-center justify-center gap-1.5 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:text-white transition active:scale-90 cursor-pointer text-[10px] font-black uppercase tracking-wider"
-                        title="Xem hồ sơ chi tiết"
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span>Xem</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
-                          router.push(`/brand/messages?talentId=${talent.id}`);
-                        }}
-                        className="flex-1 flex h-10 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-[10px] uppercase tracking-wider transition active:scale-95 cursor-pointer"
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                        Nhắn tin
-                      </button>
-                    </div>
-                  </article>
+                  <TalentCard
+                    key={talent.id}
+                    talent={talent}
+                    status={status}
+                    isSaved={isSaved}
+                    onToggleSaved={(item) => void toggleSaved(item.id)}
+                    onView={(item) => router.push(`/brand/talents/${item.id}`)}
+                    onMessage={(item) => {
+                      if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
+                      router.push(`/brand/messages?talentId=${item.id}`);
+                    }}
+                  />
                 );
               })}
             </div>

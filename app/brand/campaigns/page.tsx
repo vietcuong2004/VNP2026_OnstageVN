@@ -9,11 +9,16 @@ import {
   Users,
   MapPin,
   Calendar,
+  MoreVertical,
+  Lock,
+  Trash2,
+  Pencil,
 } from "lucide-react";
 import { type Campaign } from "@/lib/brand-mvp-data";
-import { loadBrandCampaigns, deleteBrandCampaign } from "@/lib/brand-api";
+import { loadBrandCampaigns, deleteBrandCampaign, publishBrandCampaign, closeBrandCampaign } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 import FormCreateJob from "./FormCreateJob";
+import FormEditJob from "./FormEditJob";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 type CampaignStatusTab = "all" | Campaign["status"];
@@ -40,16 +45,40 @@ export default function CampaignsPage() {
   const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [deletingCampaign, setDeletingCampaign] = useState<{ id: string; title: string } | null>(null);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [openMenuCampaignId, setOpenMenuCampaignId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuCampaignId(null);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  async function handleToggleStatus(campaign: Campaign) {
+    const nextStatus = campaign.status === "closed" ? "published" : "closed";
+    if (/^\d+$/.test(campaign.id)) {
+      try {
+        const updated = nextStatus === "published"
+          ? await publishBrandCampaign(campaign.id)
+          : await closeBrandCampaign(campaign.id);
+        setCampaigns((prev) => prev.map((c) => (c.id === campaign.id ? updated : c)));
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      setCampaigns((prev) => prev.map((c) => (c.id === campaign.id ? { ...c, status: nextStatus } : c)));
+    }
+  }
 
   const handleDeleteCampaign = async () => {
-    if (!requireAuthAction({ actionLabel: "Xóa campaign" })) return;
+    if (!requireAuthAction({ actionLabel: "Xóa job" })) return;
     if (!deletingCampaign) return;
     try {
       await deleteBrandCampaign(deletingCampaign.id);
       setCampaigns((prev) => prev.filter((c) => c.id !== deletingCampaign.id));
       setDeletingCampaign(null);
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Chưa thể xóa chiến dịch.");
+      window.alert(error instanceof Error ? error.message : "Chưa thể xóa job.");
     }
   };
 
@@ -79,7 +108,7 @@ export default function CampaignsPage() {
                 Brand Portal
               </span>
               <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-yellow-400/20 bg-yellow-400/5 text-yellow-200">
-                Campaign Manager
+                Job Manager
               </span>
             </div>
 
@@ -87,19 +116,19 @@ export default function CampaignsPage() {
               QUẢN LÝ <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">VIỆC LÀM</span>
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-slate-400">
-              Đăng tuyển job/campaign mới, xem chi tiết và đối soát giải ngân thù lao, hoa hồng Affiliate cho các Talent tham gia chiến dịch.
+              Đăng tuyển job mới, xem chi tiết và đối soát giải ngân thù lao, hoa hồng Affiliate cho các Talent tham gia job.
             </p>
           </div>
 
           <button
             onClick={() => {
-              if (!requireAuthAction({ actionLabel: "Tạo job/campaign mới" })) return;
+              if (!requireAuthAction({ actionLabel: "Tạo job mới" })) return;
               setIsCreating(true);
             }}
             className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-6 text-xs font-black uppercase tracking-wider text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all cursor-pointer shrink-0"
           >
             <Plus className="mr-2 h-4 w-4 stroke-[3]" />
-            Tạo job/campaign
+            Tạo job mới
           </button>
         </div>
       </div>
@@ -226,22 +255,71 @@ export default function CampaignsPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <button
                     onClick={() => router.push(`/brand/campaigns/${campaign.id}`)}
                     className="flex-1 flex h-10 items-center justify-center rounded-xl bg-white/5 border border-white/5 hover:border-white/10 text-[9.5px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 cursor-pointer"
                   >
                     Xem thông tin <ChevronRight className="ml-1 h-3.5 w-3.5" />
                   </button>
-                  <button
-                    onClick={() => {
-                      if (!requireAuthAction({ actionLabel: "Xóa campaign" })) return;
-                      setDeletingCampaign({ id: campaign.id, title: campaign.title });
-                    }}
-                    className="w-16 flex h-10 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-600 hover:border-red-500 hover:text-white text-[9.5px] font-black uppercase tracking-widest text-red-400 transition-all duration-300 cursor-pointer"
-                  >
-                    Xóa
-                  </button>
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuCampaignId((prev) => (prev === campaign.id ? null : campaign.id));
+                      }}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-700/80 bg-slate-900/80 text-amber-300 hover:bg-amber-500/20 hover:border-amber-400 cursor-pointer transition-all shadow-md active:scale-95"
+                      title="Tùy chọn khác"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+
+                    {openMenuCampaignId === campaign.id && (
+                      <div className="absolute right-0 bottom-full mb-2 w-44 rounded-2xl border border-amber-500/30 bg-[#0d1226]/95 p-1.5 shadow-[0_15px_40px_rgba(0,0,0,0.85)] backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150 text-left">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuCampaignId(null);
+                            setEditingCampaign(campaign);
+                          }}
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
+                        >
+                          <Pencil className="h-4 w-4 text-amber-400" />
+                          <span>Sửa job</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuCampaignId(null);
+                            handleToggleStatus(campaign);
+                          }}
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
+                        >
+                          <Lock className="h-4 w-4 text-amber-400" />
+                          <span>{campaign.status === "closed" ? "Mở lại job" : "Đóng job"}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuCampaignId(null);
+                            if (!requireAuthAction({ actionLabel: "Xóa job" })) return;
+                            setDeletingCampaign({ id: campaign.id, title: campaign.title });
+                          }}
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/15 hover:text-red-300 transition-colors cursor-pointer border-t border-slate-800/80 mt-1 pt-2"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-400" />
+                          <span>Xóa job</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </article>
@@ -257,12 +335,21 @@ export default function CampaignsPage() {
         onCampaignCreated={(newCampaign) => setCampaigns((prev) => [newCampaign, ...prev])}
       />
 
+      <FormEditJob
+        isOpen={!!editingCampaign}
+        campaignToEdit={editingCampaign}
+        onClose={() => setEditingCampaign(null)}
+        onCampaignUpdated={(updated) =>
+          setCampaigns((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+        }
+      />
+
       {deletingCampaign && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl p-6 text-center space-y-5 shadow-[0_24px_60px_rgba(0,0,0,0.9)] overflow-hidden animate-in zoom-in-95 duration-300">
             <h3 className="font-display font-black text-base text-white uppercase tracking-tight">Xác nhận xóa</h3>
             <p className="text-xs text-slate-400 font-semibold leading-relaxed text-center">
-              Bạn có chắc chắn muốn xóa chiến dịch <strong className="text-white">"{deletingCampaign.title}"</strong> không?
+              Bạn có chắc chắn muốn xóa job <strong className="text-white">"{deletingCampaign.title}"</strong> không?
             </p>
             <div className="flex gap-2">
               <button

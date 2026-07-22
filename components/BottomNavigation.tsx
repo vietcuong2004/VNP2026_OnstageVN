@@ -30,7 +30,7 @@ const brandAllItems = [
   { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
   { label: "Tìm kiếm", icon: Search, href: "/brand/search" },
   { label: "Shortlist", icon: BookmarkCheck, href: "/brand/shortlists" },
-  { label: "Việc làm", icon: Briefcase, href: "/brand/campaigns" },
+  { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   // { label: "Báo cáo", icon: BarChart3, href: "/brand/analytics" },
   { label: "Quản lý Talent", icon: Users, href: "/brand/my-talents" },
@@ -115,7 +115,7 @@ export default function BottomNavigation() {
 
   const brandPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
-    { label: "Việc làm", icon: Briefcase, href: "/brand/campaigns" },
+    { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
     { label: "Quản lý Talent", icon: Users, href: "/brand/my-talents" },
     { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   ];
@@ -123,7 +123,7 @@ export default function BottomNavigation() {
   const talentPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
     { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
-    { label: "Việc làm", icon: Briefcase, href: "/talent/jobs" },
+    { label: "Đăng việc làm", icon: Briefcase, href: "/talent/jobs" },
     { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   ];
 

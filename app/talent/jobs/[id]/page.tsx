@@ -405,7 +405,7 @@ export default function JobDetailPage() {
                 <MapPin className="h-4 w-4 text-cyan-400 shrink-0" />
                 Địa điểm làm việc
               </div>
-              <div className="font-semibold text-xs sm:text-sm text-slate-100 truncate" title={job.location || "Không có"}>
+              <div className="font-semibold text-xs sm:text-sm text-slate-100 break-words" title={job.location || "Không có"}>
                 {job.location || "Không có"}
               </div>
             </div>
@@ -487,12 +487,6 @@ export default function JobDetailPage() {
               <p className="text-xs sm:text-sm text-slate-400 font-normal">Không có</p>
             )}
           </div>
-
-          {job.contactNote && (
-            <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-3.5 text-xs sm:text-sm leading-relaxed text-slate-200">
-              <b className="text-amber-300">Ghi chú ứng tuyển:</b> {job.contactNote}
-            </div>
-          )}
         </div>
 
         {/* Requirements & Benefits */}

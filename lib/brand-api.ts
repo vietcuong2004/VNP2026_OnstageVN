@@ -927,7 +927,6 @@ function buildCampaignPayload(form: CampaignForm) {
     job_type: form.jobType,
     description: form.description || "Chưa có mô tả brief.",
     event_name: form.eventName || null,
-    campaign_type: form.campaignType || form.jobType || null,
     city: form.city,
     location: form.address || form.city,
     start_date: form.startDate || null,
@@ -985,6 +984,18 @@ export async function createBrandCampaign(form: CampaignForm) {
 
   const response = await apiJson<{ data: BackendCampaign }>("/campaigns", {
     method: "POST",
+    body: JSON.stringify(buildCampaignPayload(form)),
+  });
+
+  return mapBackendCampaign(response.data);
+}
+
+export async function updateBrandCampaign(id: string, form: CampaignForm) {
+  requireBrandSession();
+  if (!isBackendRecordId(id)) throw new Error("Campaign này đang là dữ liệu local, chưa có ID backend.");
+
+  const response = await apiJson<{ data: BackendCampaign }>(`/campaigns/${id}`, {
+    method: "PUT",
     body: JSON.stringify(buildCampaignPayload(form)),
   });
 

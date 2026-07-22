@@ -7,11 +7,7 @@ import {
   BookmarkCheck,
   Briefcase,
   Building2,
-  CheckCircle2,
   Eye,
-  Heart,
-  MapPin,
-  MessageSquare,
   Search,
   UserRoundCheck,
   Wallet,
@@ -29,6 +25,7 @@ import { getStoredAuthUser } from "@/lib/api-client";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
+import TalentCard from "@/components/TalentCard";
 
 const nextActions = [
   {
@@ -369,118 +366,22 @@ export default function BrandDashboard() {
                 const isSaved = savedIds.includes(talent.id);
                 const avatar = resolveRecommendedTalentAvatar(talent);
                 const status = getRecommendedTalentStatus(talent.id);
-                const locationText = [talent.district, talent.city].filter(Boolean).join(", ");
-                const experienceYears = Number(talent.yearsOfExperience || 0);
-                const talentTypes = getTalentTypes(talent);
 
                 return (
-                  <article key={talent.id} className="group flex min-w-0 flex-col justify-between rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg transition-all duration-300 hover:border-[#C9A86A]/30">
-                    <div>
-                      <div className="relative mb-3.5 aspect-square w-full overflow-hidden rounded-xl border border-white/5 bg-slate-900">
-                        <img
-                          src={avatar}
-                          alt={talent.name}
-                          onError={(event) => {
-                            event.currentTarget.onerror = null;
-                            event.currentTarget.src = createInitialAvatarDataUrl(talent.name, talent.name);
-                          }}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-
-                        <div className="absolute left-2 top-2 flex flex-col gap-1.5">
-                          <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-md">
-                            Hạng {talent.tier}
-                          </span>
-                        </div>
-
-                        <button
-                          onClick={() => toggleSaved(talent.id)}
-                          className={cn(
-                            "absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border shadow-lg backdrop-blur-sm transition active:scale-90",
-                            isSaved
-                              ? "border-red-500 bg-red-500 text-white"
-                              : "border-white/10 bg-[#0F1115]/60 text-slate-300 hover:text-white",
-                          )}
-                          title={isSaved ? "Bỏ lưu" : "Lưu vào shortlist"}
-                        >
-                          <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} />
-                        </button>
-
-                        <div className="absolute bottom-2 left-2">
-                          <span className={cn(
-                            "inline-flex items-center gap-1 rounded bg-[#0F1115]/80 border backdrop-blur-sm px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white",
-                            status === "available" && "border-emerald-500/30 text-emerald-400",
-                            status === "busy" && "border-red-500/30 text-red-400",
-                            status === "maybe" && "border-yellow-500/30 text-yellow-400"
-                          )}>
-                            <span className={cn(
-                              "h-1 w-1 rounded-full",
-                              status === "available" && "bg-emerald-400",
-                              status === "busy" && "bg-red-400",
-                              status === "maybe" && "bg-yellow-400"
-                            )} />
-                            {status === "available" ? "Rảnh" : status === "busy" ? "Bận" : "Chưa có lịch"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="min-w-0 space-y-2">
-                        <div className="flex min-w-0 items-center gap-1.5">
-                          <h3 className="flex-1 truncate text-base font-black leading-tight tracking-wide text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.12)]">{talent.name}</h3>
-                          {talent.verified && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />}
-                        </div>
-
-                        <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                          <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
-                          <span className="truncate">{locationText || "Chưa cập nhật"}</span>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1">
-                          {talentTypes.length ? (
-                            talentTypes.map((type) => (
-                              <span key={type} className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
-                                {type}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
-                              Chưa cập nhật
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="my-3 flex flex-nowrap gap-1 overflow-hidden">
-                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.age} tuổi</span>
-                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{experienceYears} năm KN</span>
-                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.height}cm</span>
-                        <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.weight}kg</span>
-                      </div>
-
-                      <p className="mt-2 line-clamp-2 min-h-7 text-[10px] leading-relaxed text-slate-300">{talent.experience}</p>
-                    </div>
-
-                    <div className="mt-4 flex gap-2 border-t border-white/5 pt-3.5">
-                      <button
-                        onClick={() => router.push(`/brand/talents/${talent.id}`)}
-                        className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-white/10"
-                        title="Xem hồ sơ chi tiết"
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span>Xem</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
-                          router.push(`/brand/messages?talentId=${talent.id}`);
-                        }}
-                        className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-[10px] font-black uppercase tracking-wider text-slate-950 transition active:scale-95"
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                        Nhắn tin
-                      </button>
-                    </div>
-                  </article>
+                  <TalentCard
+                    key={talent.id}
+                    talent={talent}
+                    avatar={avatar}
+                    status={status}
+                    isSaved={isSaved}
+                    experienceLabel="short"
+                    onToggleSaved={(item) => toggleSaved(item.id)}
+                    onView={(item) => router.push(`/brand/talents/${item.id}`)}
+                    onMessage={(item) => {
+                      if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
+                      router.push(`/brand/messages?talentId=${item.id}`);
+                    }}
+                  />
                 );
               })}
             </div>
