@@ -5,7 +5,7 @@ import { getSiteUrl } from "@/lib/site-url";
 
 const SITE_URL = getSiteUrl();
 const ASSET_VERSION = "9";
-const FAVICON_VERSION = "10";
+const FAVICON_VERSION = "11";
 const SHARE_IMAGE = `/home-og-image.png?v=${ASSET_VERSION}`;
 const SHARE_IMAGE_URL = `${SITE_URL}${SHARE_IMAGE}`;
 
