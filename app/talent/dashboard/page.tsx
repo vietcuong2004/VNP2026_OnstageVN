@@ -21,6 +21,7 @@ import {
 import { getStoredAuthUser } from "@/lib/api-client";
 import JobCard from "@/components/JobCard";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
+import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
 
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
@@ -104,6 +105,7 @@ export default function DashboardPage() {
   const currentUser = getStoredAuthUser();
   const currentTalentId = (currentUser as any)?.profile_id || (currentUser as any)?.id;
   const [currentDateText, setCurrentDateText] = useState("");
+  const [showTierDialog, setShowTierDialog] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -293,14 +295,14 @@ export default function DashboardPage() {
 
             <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-5xl">
               {currentUser ? (
-                <>CHÀO MỪNG QUAY LẠI <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">{profile.name}</span>!</>
+                <>Chào mừng <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">{profile.name}</span>!</>
               ) : (
-                <>CHÀO MỪNG BẠN ĐẾN VỚI <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">ONSTAGEVN</span>!</>
+                <>Chào mừng bạn đến với <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">OnstageVN</span>!</>
               )}
             </h1>
             <p className={`mt-3 text-sm leading-6 text-slate-400 text-justify lg:text-left ${currentUser ? "max-w-2xl" : "w-full"}`}>
               {currentUser ? (
-                "Dưới đây là các thông số đánh giá định hướng AI, độ tin cậy và danh sách các chiến dịch đề xuất dành riêng cho hồ sơ của bạn."
+                "Khám phá các chiến dịch tuyển dụng từ các nhãn hàng, tìm kiếm cơ hội phù hợp để phát triển sự nghiệp của bạn."
               ) : (
                 "Mỗi tài năng đều xứng đáng có một sân khấu. Onstage giúp bạn kết nối đúng người, đúng cơ hội và phát triển sự nghiệp bền vững."
               )}
@@ -320,9 +322,26 @@ export default function DashboardPage() {
                 };
                 const cfg = tierConfig[t] || tierConfig["A"];
                 return (
-                  <div className={cn("flex-1 relative overflow-hidden rounded-2xl border-2 p-4 text-left transition-all duration-300 hover:scale-[1.02]", cfg.border, cfg.bg, cfg.shadow, cfg.hoverShadow)}>
+                  <div 
+                    onClick={() => setShowTierDialog(true)}
+                    className={cn("flex-1 relative overflow-hidden rounded-2xl border-2 p-4 text-left transition-all duration-300 hover:scale-[1.02] cursor-pointer", cfg.border, cfg.bg, cfg.shadow, cfg.hoverShadow)}
+                  >
                     <div className={cn("absolute -right-4 -top-4 h-16 w-16 rounded-full blur-xl pointer-events-none", cfg.glow)}></div>
-                    <div className="flex items-center justify-between mb-3">
+
+                    {/* Nút ? nổi bật ở góc trên cùng bên phải */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowTierDialog(true);
+                      }}
+                      className="absolute top-3.5 right-3.5 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/35 text-amber-300 text-[11px] font-black shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-110 hover:shadow-[0_0_18px_rgba(245,158,11,0.45)] transition-all duration-300 cursor-pointer z-10"
+                      title="Xem giải thích phân hạng"
+                    >
+                      ?
+                    </button>
+
+                    <div className="flex items-center justify-between mb-3 pr-8">
                       <div className="flex items-center gap-1.5">
                         {cfg.icon}
                         <span className={cn("text-[9px] font-black uppercase tracking-widest", cfg.labelColor)}>{cfg.label}</span>
@@ -717,9 +736,12 @@ export default function DashboardPage() {
 
 
       </div>
- 
+
       {/* Guest Action Prompt Modal */}
       <GuestActionPrompt />
+
+      {/* Tier Explanation Dialog Modal */}
+      <TierExplanationDialog isOpen={showTierDialog} onClose={() => setShowTierDialog(false)} />
     </div>
   );
 }

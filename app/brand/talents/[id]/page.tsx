@@ -34,10 +34,15 @@ import {
   Mail,
   Phone,
   Globe,
+  Crown,
+  Trophy,
+  HelpCircle,
+  Eye,
 } from "lucide-react";
 import { campaigns, findTalentById } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
+import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
 import { loadBrandTalent } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
@@ -61,13 +66,13 @@ interface ContactInfoCardProps {
 
 const FacebookIcon = () => (
   <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z"/>
+    <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z" />
   </svg>
 );
 
 const TiktokIcon = () => (
   <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.24-.11-.47-.24-.7-.37v5.52c.03 2.16-.76 4.38-2.3 5.89-1.58 1.58-3.9 2.37-6.14 2.11-2.4-.21-4.73-1.74-5.69-3.97-.98-2.18-.73-4.9.72-6.79 1.34-1.79 3.63-2.73 5.85-2.5v4.03c-1.44-.19-3 .42-3.66 1.74-.53.97-.33 2.27.46 3.01.78.78 2.05.94 3.01.4 1-.53 1.54-1.67 1.53-2.84V.02z"/>
+    <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.24-.11-.47-.24-.7-.37v5.52c.03 2.16-.76 4.38-2.3 5.89-1.58 1.58-3.9 2.37-6.14 2.11-2.4-.21-4.73-1.74-5.69-3.97-.98-2.18-.73-4.9.72-6.79 1.34-1.79 3.63-2.73 5.85-2.5v4.03c-1.44-.19-3 .42-3.66 1.74-.53.97-.33 2.27.46 3.01.78.78 2.05.94 3.01.4 1-.53 1.54-1.67 1.53-2.84V.02z" />
   </svg>
 );
 
@@ -81,13 +86,13 @@ const InstagramIcon = () => (
 
 const ThreadIcon = () => (
   <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.48 13.9c-.83.09-1.58-.2-2-.84-.33-.51-.39-1.12-.39-2.22 0-1.89.87-2.92 2.32-2.92 1.41 0 2.22.99 2.22 2.76 0 1.94-.89 2.97-2.15 3.22zm2.09-6.3c-.63-.61-1.54-.95-2.57-.95-1.95 0-3.34 1.34-3.34 3.79s1.39 3.79 3.34 3.79c.8 0 1.51-.2 2.03-.59.18-.13.43-.1.58.07l.79.9c.28.32.18.84-.2 1.04-1 .55-2.14.78-3.2.78-3.33 0-5.74-2.17-5.74-5.99s2.41-5.99 5.74-5.99c1.67 0 3.2.53 4.31 1.49.27.23.31.63.09.91l-.88 1.13c-.15.2-.42.24-.62.08z"/>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.48 13.9c-.83.09-1.58-.2-2-.84-.33-.51-.39-1.12-.39-2.22 0-1.89.87-2.92 2.32-2.92 1.41 0 2.22.99 2.22 2.76 0 1.94-.89 2.97-2.15 3.22zm2.09-6.3c-.63-.61-1.54-.95-2.57-.95-1.95 0-3.34 1.34-3.34 3.79s1.39 3.79 3.34 3.79c.8 0 1.51-.2 2.03-.59.18-.13.43-.1.58.07l.79.9c.28.32.18.84-.2 1.04-1 .55-2.14.78-3.2.78-3.33 0-5.74-2.17-5.74-5.99s2.41-5.99 5.74-5.99c1.67 0 3.2.53 4.31 1.49.27.23.31.63.09.91l-.88 1.13c-.15.2-.42.24-.62.08z" />
   </svg>
 );
 
 const LinkedinIcon = () => (
   <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
   </svg>
 );
 
@@ -103,7 +108,7 @@ const getSocialHandle = (url: string, platform: string) => {
       }
       return platform === "Tiktok" ? `@${lastPart}` : lastPart;
     }
-  } catch (e) {}
+  } catch (e) { }
   return url.replace(/https?:\/\/(www\.)?/, "");
 };
 
@@ -157,7 +162,7 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
             <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider leading-none mb-1">
               Email
             </span>
-            <a 
+            <a
               href={profile.email ? `mailto:${profile.email}` : undefined}
               className={`text-xs font-bold block truncate transition-colors ${profile.email ? 'text-slate-200 hover:text-amber-400' : 'text-slate-400'}`}
             >
@@ -177,7 +182,7 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
             title={profile.portfolio_url}
           >
             <Globe className="h-4 w-4 shrink-0" />
-            <span className="truncate">{profile.portfolio_url.replace(/https?:\/\/(www\.)?/, "")}</span>
+            <span className="truncate">Link portfolio/CV</span>
           </a>
         </div>
       ) : null}
@@ -189,7 +194,7 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
             Liên kết mạng xã hội
           </span>
           <div className="flex flex-wrap gap-2.5">
-            {Object.entries(groupedAccounts).flatMap(([platform, urls]) => 
+            {Object.entries(groupedAccounts).flatMap(([platform, urls]) =>
               urls.map((url, idx) => {
                 let brandColorClass = "";
                 if (platform === "Facebook") {
@@ -297,6 +302,7 @@ export default function BrandTalentProfilePage() {
   const [talent, setTalent] = useState<any>(staticTalent);
   const [loading, setLoading] = useState(!staticTalent);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isTierDialogOpen, setIsTierDialogOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -338,7 +344,7 @@ export default function BrandTalentProfilePage() {
       name: talent.name,
       gender: talent.gender,
       dob: talent.dob,
-      location: talent.district ? `${talent.district}, ${talent.city}` : talent.city,
+      location: talent.city || "",
       hometown: talent.district || "",
       phone: talent.phone || "",
       email: talent.email || "",
@@ -517,16 +523,16 @@ export default function BrandTalentProfilePage() {
 
               {/* Details stack next to Avatar */}
               <div className="space-y-2.5 flex-1 min-w-0">
-                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight flex items-center gap-2 justify-center sm:justify-start">
-                  {talent.name}
+                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight text-center sm:text-left">
+                  <span>{talent.name}</span>
                   {talent.verified && (
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold shadow-md select-none" title="Đã xác minh">
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold shadow-md select-none ml-2 align-middle" title="Đã xác minh">
                       ✓
                     </span>
                   )}
                 </h2>
 
-                <div className="flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                <div className="flex flex-wrap justify-center items-center gap-1.5 sm:justify-start">
                   {talentTypes.length ? (
                     talentTypes.map((type) => (
                       <span key={type} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
@@ -538,6 +544,45 @@ export default function BrandTalentProfilePage() {
                       Chưa cập nhật
                     </span>
                   )}
+
+                  {/* Tier Badge inside the same row */}
+                  {profile?.tier && (() => {
+                    const tier = profile.tier.toUpperCase();
+                    let tierColor = "";
+                    let IconComponent = HelpCircle;
+
+                    if (tier === "S") {
+                      IconComponent = Crown;
+                      tierColor = "border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)]";
+                    } else if (tier === "A") {
+                      IconComponent = Trophy;
+                      tierColor = "border-slate-400/30 bg-slate-400/10 text-slate-300 shadow-[0_0_15px_rgba(203,213,225,0.08)]";
+                    } else if (tier === "B") {
+                      IconComponent = Star;
+                      tierColor = "border-purple-500/30 bg-purple-500/10 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.08)]";
+                    } else if (tier === "C") {
+                      IconComponent = Award;
+                      tierColor = "border-teal-500/30 bg-teal-500/10 text-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.08)]";
+                    }
+
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setIsTierDialogOpen(true)}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-black tracking-wider uppercase transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-98 cursor-pointer shadow-md select-none",
+                          tierColor
+                        )}
+                        title="Xem chi tiết phân hạng"
+                      >
+                        <IconComponent className="h-3 w-3 shrink-0" />
+                        <span>Tier {tier}</span>
+                        <span className="ml-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-[8px] font-black transition-colors">
+                          ?
+                        </span>
+                      </button>
+                    );
+                  })()}
                 </div>
 
                 {/* Location, Email & Phone Contacts Row */}
@@ -545,7 +590,7 @@ export default function BrandTalentProfilePage() {
                   <div className="flex items-center gap-1.5">
                     <MapPin className="h-4 w-4 text-[#F0C56B]" />
                     <span className="text-slate-300 font-medium">
-                      {talent.district ? `${talent.district}, ${talent.city}` : talent.city || "Chưa cập nhật"}
+                      {profile?.location || "Chưa cập nhật"}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -566,63 +611,28 @@ export default function BrandTalentProfilePage() {
             </div>
           </div>
 
-          {/* Right Column: Rank Card */}
-          <div className="shrink-0 lg:pb-2 w-full lg:w-auto flex flex-col items-center gap-4">
-            {profile?.tier && (() => {
-              const tier = profile.tier.toUpperCase();
-              let tierText = "";
-              let tierLabel = "";
-              let tierColor = "";
-              let tierBadge = "";
-              let scoreText = "";
-
-              if (tier === "S") {
-                tierText = "HẠNG S";
-                tierLabel = "CELEB / SUPER VIP";
-                tierColor = "border-amber-400/50 bg-amber-500/5 text-amber-400";
-                tierBadge = `${profile.aiScore || profile.score || 95} • AI ĐIỂM`;
-                scoreText = "Hoa hậu Quốc gia, Ngôi sao hạng S.";
-              } else if (tier === "A") {
-                tierText = "HẠNG A";
-                tierLabel = "HIGH-END PRO";
-                tierColor = "border-slate-300/40 bg-slate-400/5 text-slate-300";
-                tierBadge = `${profile.aiScore || profile.score || 85} • AI ĐIỂM`;
-                scoreText = "Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP.";
-              } else if (tier === "B") {
-                tierText = "HẠNG B";
-                tierLabel = "MID FREELANCE";
-                tierColor = "border-purple-500/40 bg-purple-500/5 text-purple-400";
-                tierBadge = `${profile.aiScore || profile.score || 55} • AI ĐIỂM`;
-                scoreText = "Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp.";
-              } else if (tier === "C") {
-                tierText = "HẠNG C";
-                tierLabel = "ENTRY / MEMBER";
-                tierColor = "border-teal-500/30 bg-[#091f1c]/40 text-teal-400";
-                tierBadge = `${profile.aiScore || profile.score || 30} • AI ĐIỂM`;
-                scoreText = "Người mẫu tự do mới vào nghề, tiềm năng phát triển tốt.";
-              }
-
-              return (
-                <div className={cn("relative overflow-hidden rounded-2xl border p-4 text-left w-full md:w-64 backdrop-blur-md shadow-soft flex flex-col justify-between min-h-[130px]", tierColor)}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[8px] font-black uppercase tracking-widest">{tierLabel}</span>
-                    <span className="text-[8px] font-black uppercase tracking-wider bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">{tierBadge}</span>
-                  </div>
-                  <span className="block text-xl font-black tracking-wide font-display">{tierText}</span>
-                  <p className="mt-2 text-[10px] leading-relaxed opacity-80">{scoreText}</p>
-                </div>
-              );
-            })()}
-          </div>
+          {/* Right Column (Placeholder or empty) */}
+          <div className="shrink-0 lg:pb-2 w-full lg:w-auto flex justify-center lg:justify-end" />
         </div>
 
         {/* Centered Action Buttons Row */}
-        <div className="flex items-center justify-center gap-3 px-6 pb-6 pt-4 w-full">
+        <div className="flex flex-wrap items-center justify-center gap-3 px-6 pb-6 pt-4 w-full">
+          {profile?.portfolio_url && (
+            <a
+              href={profile.portfolio_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-950 transition active:scale-95 cursor-pointer whitespace-nowrap hover:brightness-110 duration-300"
+            >
+              <Eye className="mr-1.5 h-3.5 w-3.5 shrink-0 text-slate-950" />
+              Xem Portfolio
+            </a>
+          )}
           <button
             onClick={() => {
-                    if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
-                    router.push(`/brand/messages?talentId=${talent.id}`);
-                  }}
+              if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
+              router.push(`/brand/messages?talentId=${talent.id}`);
+            }}
             className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-950 transition active:scale-95 cursor-pointer whitespace-nowrap"
           >
             <MessageSquare className="mr-1.5 h-3.5 w-3.5 shrink-0" />
@@ -630,9 +640,9 @@ export default function BrandTalentProfilePage() {
           </button>
           <button
             onClick={() => {
-                    if (!requireAuthAction({ actionLabel: "Thêm talent vào campaign" })) return;
-                    setShowInviteModal(true);
-                  }}
+              if (!requireAuthAction({ actionLabel: "Thêm talent vào campaign" })) return;
+              setShowInviteModal(true);
+            }}
             className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#C9A86A] transition active:scale-95 cursor-pointer hover:bg-[#C9A86A]/20 whitespace-nowrap"
           >
             <Briefcase className="mr-1.5 h-3.5 w-3.5 shrink-0" />
@@ -770,61 +780,61 @@ export default function BrandTalentProfilePage() {
             </div>
           </div>
 
-          <div className="space-y-3.5 border-t border-[#151b2d] pt-4 text-left">
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Họ và tên</span>
-              <span className="font-bold text-white">{profile.name || "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Giới tính</span>
-              <span className="font-bold text-white">{profile.gender || "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Ngày sinh</span>
-              <span className="font-bold text-white font-mono">{profile.dob ? convertToDisplayDate(profile.dob) : "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Tuổi</span>
-              <span className="font-bold text-white font-mono">
-                {(() => {
-                  if (!profile.dob) return "Chưa cập nhật";
-                  let birthYear: number | null = null;
-                  if (profile.dob.includes("/")) {
-                    const parts = profile.dob.split("/");
-                    if (parts.length === 3) birthYear = parseInt(parts[2], 10);
-                  } else if (profile.dob.includes("-")) {
-                    const parts = profile.dob.split("-");
-                    if (parts.length === 3 && parts[0].length === 4) birthYear = parseInt(parts[0], 10);
-                  }
-                  if (!birthYear || isNaN(birthYear)) return "Chưa cập nhật";
-                  const currentYear = new Date().getFullYear();
-                  return `${currentYear - birthYear} tuổi`;
-                })()}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Mức giá</span>
-              <span className="font-bold text-white">
-                {profile.price ? profile.price : "Chưa cập nhật"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Khu vực hoạt động</span>
-              <span className="font-bold text-white">{profile.location || "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Quê quán</span>
-              <span className="font-bold text-white">{profile.hometown || "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-start text-xs text-slate-300">
-              <span className="font-medium text-slate-400 shrink-0">Ngôn ngữ</span>
-              <span className="font-bold text-white text-right max-w-[160px] leading-normal">
-                {(() => {
-                  const langs = profile.languages;
-                  return Array.isArray(langs) && langs.length > 0 ? langs.join(", ") : "Chưa cập nhật";
-                })()}
-              </span>
-            </div>
+          <div className="grid grid-cols-[120px_1fr] gap-x-3.5 gap-y-3.5 border-t border-[#151b2d] pt-4 text-left text-xs text-slate-300">
+            {/* Họ và tên */}
+            <span className="font-medium text-slate-400">Họ và tên</span>
+            <span className="font-bold text-white text-left break-words">{profile.name || "Chưa cập nhật"}</span>
+
+            {/* Giới tính */}
+            <span className="font-medium text-slate-400">Giới tính</span>
+            <span className="font-bold text-white text-left">{profile.gender || "Chưa cập nhật"}</span>
+
+            {/* Ngày sinh */}
+            <span className="font-medium text-slate-400">Ngày sinh</span>
+            <span className="font-bold text-white font-mono text-left">{profile.dob ? convertToDisplayDate(profile.dob) : "Chưa cập nhật"}</span>
+
+            {/* Tuổi */}
+            <span className="font-medium text-slate-400">Tuổi</span>
+            <span className="font-bold text-white font-mono text-left">
+              {(() => {
+                if (!profile.dob) return "Chưa cập nhật";
+                let birthYear: number | null = null;
+                if (profile.dob.includes("/")) {
+                  const parts = profile.dob.split("/");
+                  if (parts.length === 3) birthYear = parseInt(parts[2], 10);
+                } else if (profile.dob.includes("-")) {
+                  const parts = profile.dob.split("-");
+                  if (parts.length === 3 && parts[0].length === 4) birthYear = parseInt(parts[0], 10);
+                }
+                if (!birthYear || isNaN(birthYear)) return "Chưa cập nhật";
+                const currentYear = new Date().getFullYear();
+                return `${currentYear - birthYear} tuổi`;
+              })()}
+            </span>
+
+            {/* Mức giá */}
+            <span className="font-medium text-slate-400">Mức giá</span>
+            <span className="font-bold text-white text-left break-words">
+              {profile.price ? profile.price : "Chưa cập nhật"}
+            </span>
+
+            {/* Địa chỉ */}
+            <span className="font-medium text-slate-400">Địa chỉ</span>
+            <span className="font-bold text-white text-left break-words leading-normal">
+              {(() => {
+                const parts = [profile.hometown, profile.location].filter(Boolean);
+                return parts.length > 0 ? parts.join(", ") : "Chưa cập nhật";
+              })()}
+            </span>
+
+            {/* Ngôn ngữ */}
+            <span className="font-medium text-slate-400">Ngôn ngữ</span>
+            <span className="font-bold text-white text-left break-words leading-normal">
+              {(() => {
+                const langs = profile.languages;
+                return Array.isArray(langs) && langs.length > 0 ? langs.join(", ") : "Chưa cập nhật";
+              })()}
+            </span>
           </div>
         </div>
 
@@ -834,118 +844,118 @@ export default function BrandTalentProfilePage() {
 
           {/* 4. SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
           <div className="rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
-          <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
-              <div>
-                <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
-                  BẢN ĐỒ NĂNG LỰC AI & XẾP HẠNG VIỆC LÀM (RADAR CHART)
-                </h3>
-                <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                  ĐỊNH HƯỚNG 3 TRỤC THEO NHÂN TRẮC HỌC & KỸ NĂNG
-                </span>
+            <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
+                <div>
+                  <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
+                    BẢN ĐỒ NĂNG LỰC AI & XẾP HẠNG VIỆC LÀM (RADAR CHART)
+                  </h3>
+                  <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                    ĐỊNH HƯỚNG 3 TRỤC THEO NHÂN TRẮC HỌC & KỸ NĂNG
+                  </span>
+                </div>
+              </div>
+              <div className="text-[11px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 uppercase tracking-wide">
+                AI Powered
               </div>
             </div>
-            <div className="text-[11px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 uppercase tracking-wide">
-              AI Powered
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-            {/* Radar Chart Summary Column */}
-            <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
-              {profile.surveyScores ? (
-                <>
-                  <div className="space-y-2">
-                    <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">NHÓM TƯƠNG THÍCH NHẤT</span>
-                    <h4 className="text-xs font-black text-[#f4c430] leading-relaxed uppercase tracking-wide">
-                      {profile.mainCategory || "Chưa xác định"}
-                    </h4>
-                    <p className="text-[11px] text-slate-400 leading-normal">
-                      Biểu đồ radar 3 trục: <strong>Pageant, Runway, KOL</strong>.
-                    </p>
-                  </div>
-
-                  {/* SVG 3-axis Radar */}
-                  <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
-                    <RadarChart scores={profile.surveyScores} />
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-3">
-                  <Sparkles className="h-8 w-8 text-purple-400/40" />
-                  <p className="text-[11px] text-slate-500 leading-relaxed">Talent chưa hoàn thành bài khảo sát AI.<br />Dữ liệu radar sẽ hiển thị sau khi có kết quả khảo sát.</p>
-                </div>
-              )}
-            </div>
-
-            {/* 20 Recommended Roles Column */}
-            <div className="md:col-span-7 space-y-3 flex flex-col justify-between">
-              <div>
-                <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">Độ Tương Thích Với 20 Vị Trí Công Việc</span>
-
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+              {/* Radar Chart Summary Column */}
+              <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
                 {profile.surveyScores ? (
-                  <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                    {(() => {
-                      const scores = profile.surveyScores;
-                      const calculatedJobs = JOBS_LIST.map((job) => {
-                        const matchScore = Math.round(
-                          scores.pageant * job.weights.pageant +
-                          scores.runway * job.weights.runway +
-                          scores.kol * job.weights.kol
-                        );
-                        return { ...job, matchScore };
-                      }).sort((a, b) => b.matchScore - a.matchScore);
+                  <>
+                    <div className="space-y-2">
+                      <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">NHÓM TƯƠNG THÍCH NHẤT</span>
+                      <h4 className="text-xs font-black text-[#f4c430] leading-relaxed uppercase tracking-wide">
+                        {profile.mainCategory || "Chưa xác định"}
+                      </h4>
+                      <p className="text-[11px] text-slate-400 leading-normal">
+                        Biểu đồ radar 3 trục: <strong>Pageant, Runway, KOL</strong>.
+                      </p>
+                    </div>
 
-                      return calculatedJobs.map((job, idx) => {
-                        const isHigh = job.matchScore >= 80;
-                        const isMid = job.matchScore >= 50 && job.matchScore < 80;
-
-                        return (
-                          <div
-                            key={job.id}
-                            className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950 p-2.5 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
-                          >
-                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
-                              {idx + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-center">
-                                <h4 className="text-[10px] sm:text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
-                                  {job.title}
-                                </h4>
-                                <span className={cn(
-                                  "font-display text-[9px] font-extrabold",
-                                  isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
-                                )}>
-                                  {job.matchScore}% Match
-                                </span>
-                              </div>
-                              <p className="text-[8px] text-[#f4c430] truncate mt-0.5">{job.desc}</p>
-                              <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
-                                <div
-                                  className={cn(
-                                    "h-full rounded-full transition-all duration-500",
-                                    isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
-                                  )}
-                                  style={{ width: `${job.matchScore}%` }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
+                    {/* SVG 3-axis Radar */}
+                    <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
+                      <RadarChart scores={profile.surveyScores} />
+                    </div>
+                  </>
                 ) : (
-                  <div className="flex items-center justify-center h-40 rounded-xl border border-dashed border-white/10 bg-slate-950/50">
-                    <p className="text-[11px] text-slate-500 text-center px-4">Chưa có dữ liệu khảo sát để tính độ tương thích nghề nghiệp.</p>
+                  <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-3">
+                    <Sparkles className="h-8 w-8 text-purple-400/40" />
+                    <p className="text-[11px] text-slate-500 leading-relaxed">Talent chưa hoàn thành bài khảo sát AI.<br />Dữ liệu radar sẽ hiển thị sau khi có kết quả khảo sát.</p>
                   </div>
                 )}
               </div>
+
+              {/* 20 Recommended Roles Column */}
+              <div className="md:col-span-7 space-y-3 flex flex-col justify-between">
+                <div>
+                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">Độ Tương Thích Với 20 Vị Trí Công Việc</span>
+
+                  {profile.surveyScores ? (
+                    <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                      {(() => {
+                        const scores = profile.surveyScores;
+                        const calculatedJobs = JOBS_LIST.map((job) => {
+                          const matchScore = Math.round(
+                            scores.pageant * job.weights.pageant +
+                            scores.runway * job.weights.runway +
+                            scores.kol * job.weights.kol
+                          );
+                          return { ...job, matchScore };
+                        }).sort((a, b) => b.matchScore - a.matchScore);
+
+                        return calculatedJobs.map((job, idx) => {
+                          const isHigh = job.matchScore >= 80;
+                          const isMid = job.matchScore >= 50 && job.matchScore < 80;
+
+                          return (
+                            <div
+                              key={job.id}
+                              className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950 p-2.5 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
+                            >
+                              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
+                                {idx + 1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-center">
+                                  <h4 className="text-[10px] sm:text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
+                                    {job.title}
+                                  </h4>
+                                  <span className={cn(
+                                    "font-display text-[9px] font-extrabold",
+                                    isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
+                                  )}>
+                                    {job.matchScore}% Match
+                                  </span>
+                                </div>
+                                <p className="text-[8px] text-[#f4c430] truncate mt-0.5">{job.desc}</p>
+                                <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
+                                  <div
+                                    className={cn(
+                                      "h-full rounded-full transition-all duration-500",
+                                      isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
+                                    )}
+                                    style={{ width: `${job.matchScore}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-40 rounded-xl border border-dashed border-white/10 bg-slate-950/50">
+                      <p className="text-[11px] text-slate-500 text-center px-4">Chưa có dữ liệu khảo sát để tính độ tương thích nghề nghiệp.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
         </div>
 
 
@@ -1085,7 +1095,8 @@ export default function BrandTalentProfilePage() {
           </div>
         )}
 
-        {/* 7. SECTION F: REPUTATION REVIEWS */}
+        {/* 7. SECTION F: REPUTATION REVIEWS (Commented out) */}
+        {/* 
         <div className="lg:col-span-2 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
             <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> Đánh Giá
@@ -1113,6 +1124,7 @@ export default function BrandTalentProfilePage() {
             </div>
           )}
         </div>
+        */}
 
 
       </div>
@@ -1199,6 +1211,12 @@ export default function BrandTalentProfilePage() {
           </div>
         </div>
       )}
+
+      {/* Tier Explanation Dialog */}
+      <TierExplanationDialog 
+        isOpen={isTierDialogOpen} 
+        onClose={() => setIsTierDialogOpen(false)} 
+      />
 
     </div>
   );

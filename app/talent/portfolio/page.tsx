@@ -3,13 +3,15 @@
 import React, { useEffect, useState } from "react";
 import {
   MapPin, User, Edit3, Sparkles,
-  CheckCircle, Camera, Mail, Phone, X
+  CheckCircle, Camera, Mail, Phone, X,
+  Crown, Trophy, Star, Award, HelpCircle, Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
 import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
 import ProgressBar from "@/components/ui/ProgressBar";
+import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { getAuthToken } from "@/lib/api-client";
 import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, TALENT_PROFILE_UPDATED_EVENT, uploadTalentPhoto } from "@/lib/talent-api";
@@ -37,6 +39,7 @@ export default function PortfolioPage() {
   // Four main tabs: 'personal-info', 'edit-info', 'addon-services', 'portrait-3d'
   const [activeTab, setActiveTab] = useState<"edit-info" | "personal-info" | "addon-services" | "portrait-3d">("personal-info");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isTierDialogOpen, setIsTierDialogOpen] = useState(false);
 
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
 
@@ -110,7 +113,8 @@ export default function PortfolioPage() {
       hasUploadedCatwalk: false,
       hasUploadedIntro: false,
       hasUploadedMC: false,
-      lifestyleServices: []
+      lifestyleServices: [],
+      portfolio_url: ""
     };
 
     void loadTalentProfile().then((loadedProfile) => {
@@ -372,15 +376,15 @@ export default function PortfolioPage() {
               </div>
 
               {/* Details stack next to Avatar */}
-              <div className="space-y-2.5 flex-1 min-w-0">
-                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight flex items-center gap-2 justify-center sm:justify-start">
-                  {profile.name || "Chưa cập nhật"}
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold shadow-md select-none" title="Đã xác minh">
+              <div className="space-y-2.5 flex-1 min-w-0 w-full">
+                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight text-center sm:text-left">
+                  <span>{profile.name || "Chưa cập nhật"}</span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold shadow-md select-none ml-2 align-middle" title="Đã xác minh">
                     ✓
                   </span>
                 </h2>
                 
-                <div className="flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                <div className="flex flex-wrap justify-center items-center gap-1.5 sm:justify-start">
                   {profileTalentTypes.length ? (
                     profileTalentTypes.map((type) => (
                       <span key={type} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
@@ -392,13 +396,52 @@ export default function PortfolioPage() {
                       Tài năng mới
                     </span>
                   )}
+
+                  {/* Tier Badge inside the same row */}
+                  {profile.isOnboarded && profile.tier && (() => {
+                    const tier = profile.tier.toUpperCase();
+                    let tierColor = "";
+                    let IconComponent = HelpCircle;
+
+                    if (tier === "S") {
+                      IconComponent = Crown;
+                      tierColor = "border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)]";
+                    } else if (tier === "A") {
+                      IconComponent = Trophy;
+                      tierColor = "border-slate-400/30 bg-slate-400/10 text-slate-300 shadow-[0_0_15px_rgba(203,213,225,0.08)]";
+                    } else if (tier === "B") {
+                      IconComponent = Star;
+                      tierColor = "border-purple-500/30 bg-purple-500/10 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.08)]";
+                    } else if (tier === "C") {
+                      IconComponent = Award;
+                      tierColor = "border-teal-500/30 bg-teal-500/10 text-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.08)]";
+                    }
+
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setIsTierDialogOpen(true)}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-black tracking-wider uppercase transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-98 cursor-pointer shadow-md select-none",
+                          tierColor
+                        )}
+                        title="Xem chi tiết phân hạng"
+                      >
+                        <IconComponent className="h-3 w-3 shrink-0" />
+                        <span>Tier {tier}</span>
+                        <span className="ml-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-[8px] font-black transition-colors">
+                          ?
+                        </span>
+                      </button>
+                    );
+                  })()}
                 </div>
                 
                 {/* Location, Email & Phone Contacts Row */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="h-4 w-4 text-[#F0C56B]" />
-                    <span className="text-slate-300 font-medium">{profile.isOnboarded ? `${profile.location}, Việt Nam` : "Chưa cập nhật"}</span>
+                    <span className="text-slate-300 font-medium">{profile.location || "Chưa cập nhật"}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Mail className="h-4 w-4 text-[#F0C56B]" />
@@ -414,59 +457,28 @@ export default function PortfolioPage() {
                 <div className="text-[11px] sm:text-xs text-slate-400 font-medium leading-relaxed pt-2.5 border-t border-white/5 mt-1 text-center sm:text-left">
                   {profile.bio || "Chưa cập nhật giới thiệu bản thân."}
                 </div>
+
+                {/* Portfolio URL Button */}
+                {profile.portfolio_url && (
+                  <div className="pt-3 flex justify-center">
+                    <a
+                      href={profile.portfolio_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110 rounded-xl text-xs font-black uppercase tracking-wider shadow-[0_4px_15px_rgba(240,197,107,0.2)] hover:scale-[1.02] active:scale-98 transition-all duration-300"
+                    >
+                      <Eye className="h-4 w-4 shrink-0 text-slate-950" />
+                      Xem Portfolio
+                    </a>
+                  </div>
+                )}
               </div>
 
             </div>
           </div>
 
-          {/* Right Column: Rank Card */}
-          <div className="shrink-0 lg:pb-2 w-full lg:w-auto flex justify-center lg:justify-end">
-            {profile.isOnboarded && profile.tier && (() => {
-              const tier = profile.tier.toUpperCase();
-              let tierText = "";
-              let tierLabel = "";
-              let tierColor = "";
-              let tierBadge = "";
-              let scoreText = "";
-
-              if (tier === "S") {
-                tierText = "HẠNG S";
-                tierLabel = "CELEB / SUPER VIP";
-                tierColor = "border-amber-400/50 bg-amber-500/5 text-amber-400";
-                tierBadge = `${profile.aiScore || profile.score || 95} • AI ĐIỂM`;
-                scoreText = "Hoa hậu Quốc gia, Ngôi sao hạng S.";
-              } else if (tier === "A") {
-                tierText = "HẠNG A";
-                tierLabel = "HIGH-END PRO";
-                tierColor = "border-slate-300/40 bg-slate-400/5 text-slate-300";
-                tierBadge = `${profile.aiScore || profile.score || 85} • AI ĐIỂM`;
-                scoreText = "Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP.";
-              } else if (tier === "B") {
-                tierText = "HẠNG B";
-                tierLabel = "MID FREELANCE";
-                tierColor = "border-purple-500/40 bg-purple-500/5 text-purple-400";
-                tierBadge = `${profile.aiScore || profile.score || 55} • AI ĐIỂM`;
-                scoreText = "Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp.";
-              } else if (tier === "C") {
-                tierText = "HẠNG C";
-                tierLabel = "ENTRY / MEMBER";
-                tierColor = "border-teal-500/30 bg-[#091f1c]/40 text-teal-400";
-                tierBadge = `${profile.aiScore || profile.score || 30} • AI ĐIỂM`;
-                scoreText = "Người mẫu tự do mới vào nghề, tiềm năng phát triển tốt.";
-              }
-
-              return (
-                <div className={cn("relative overflow-hidden rounded-2xl border p-4 text-left w-full md:w-64 backdrop-blur-md shadow-soft flex flex-col justify-between min-h-[130px]", tierColor)}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[8px] font-black uppercase tracking-widest">{tierLabel}</span>
-                    <span className="text-[8px] font-black uppercase tracking-wider bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">{tierBadge}</span>
-                  </div>
-                  <span className="block text-xl font-black tracking-wide font-display">{tierText}</span>
-                  <p className="mt-2 text-[10px] leading-relaxed opacity-80">{scoreText}</p>
-                </div>
-              );
-            })()}
-          </div>
+          {/* Right Column (Placeholder or empty) */}
+          <div className="shrink-0 lg:pb-2 w-full lg:w-auto flex justify-center lg:justify-end" />
         </div>
       </div>
 
@@ -529,6 +541,7 @@ export default function PortfolioPage() {
             profile={profile}
             setProfile={setProfile}
             addToast={addToast}
+            setActiveTab={setActiveTab}
           />
         )}
 
@@ -590,6 +603,12 @@ export default function PortfolioPage() {
           </div>
         </div>
       )}
+
+      {/* Tier Explanation Dialog */}
+      <TierExplanationDialog 
+        isOpen={isTierDialogOpen} 
+        onClose={() => setIsTierDialogOpen(false)} 
+      />
 
     </div>
   );

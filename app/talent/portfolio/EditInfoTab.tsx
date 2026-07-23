@@ -185,12 +185,14 @@ interface EditInfoTabProps {
   profile: any;
   setProfile: (profile: any) => void;
   addToast: (message: string, type?: "success" | "info") => void;
+  setActiveTab?: (tab: any) => void;
 }
 
 export default function EditInfoTab({
   profile,
   setProfile,
-  addToast
+  addToast,
+  setActiveTab
 }: EditInfoTabProps) {
 
   // Identity card (CCCD) upload states
@@ -517,64 +519,89 @@ export default function EditInfoTab({
     addToast("Đã gửi hồ sơ xác minh CCCD lên hệ thống! Tiến trình xét duyệt từ 1-2 tiếng.", "success");
   };
 
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    try {
+      const updated = {
+        ...profile,
+        name: editForm.name,
+        email: editForm.email,
+        phone: editForm.phone,
+        height: Number(editForm.height),
+        weight: Number(editForm.weight),
+        bust: Number(editForm.bust),
+        waist: Number(editForm.waist),
+        hips: Number(editForm.hips),
+        location: editForm.location,
+        hometown: editForm.hometown,
+        education: editForm.education,
+        bio: editForm.bio,
+        languages: editForm.languages,
+        rateCard: { ...editForm.rateCard },
+        plasticSurgery: editForm.plasticSurgery,
+        maritalStatus: editForm.maritalStatus,
+        gender: editForm.gender,
+        dob: convertToDisplayDate(editForm.dob),
+        skinColor: editForm.skinColor,
+        hairColor: editForm.hairColor,
+        tattoo: editForm.tattoo,
+        tattooDesc: editForm.tattoo === "Có" ? editForm.tattooDesc : "",
+        experience: Number(editForm.experience),
+        talentTypes: editForm.talentTypes,
+        specialSkills: editForm.specialSkills,
+        skills: editForm.specialSkills,
+        lifestyleServices: lifestyleServices,
+        price: editForm.price,
+        portfolio_url: editForm.portfolio_url,
+        socialAccounts: socialAccounts
+      };
+      const syncedProfile = await saveTalentProfile(updated);
+      setProfile(syncedProfile);
+      addToast(
+        getAuthToken()
+          ? "Cập nhật thông tin thành công!"
+          : "Đã lưu bản nháp hồ sơ trên trình duyệt. Đăng nhập để đồng bộ lên hệ thống.",
+        "success"
+      );
+      if (setActiveTab) {
+        setActiveTab("personal-info");
+        const scrollRoot = document.querySelector("[data-app-scroll-root]");
+        if (scrollRoot) {
+          scrollRoot.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+    } catch (error) {
+      console.error("Error saving talent profile:", error);
+      addToast("Có lỗi xảy ra khi lưu thông tin. Vui lòng thử lại.", "info");
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-300">
 
       {/* SUB-SECTION 1: PERSONAL INFORMATION & METRICS FORM */}
       <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
-        <div className="border-b border-[#151b2d] pb-4">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-            <Edit3 className="h-4.5 w-4.5 text-[#f4c430]" /> Cập Nhật Thông Tin Cá Nhân
-          </h3>
-          <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-            Đồng bộ trực tiếp lên hệ thống và hiển thị chỉ số ngoại hình của bạn
-          </span>
+        <div className="border-b border-[#151b2d] pb-4 flex justify-between items-center gap-4">
+          <div>
+            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
+              <Edit3 className="h-4.5 w-4.5 text-[#f4c430]" /> Cập Nhật Thông Tin Cá Nhân
+            </h3>
+            <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+              Đồng bộ trực tiếp lên hệ thống và hiển thị chỉ số ngoại hình của bạn
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleSave()}
+            className="shrink-0 px-4 py-1.5 rounded-xl bg-[#f4c430] hover:brightness-105 active:scale-95 text-slate-950 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-md"
+          >
+            Lưu
+          </button>
         </div>
 
-        <form onSubmit={async (e) => {
-          e.preventDefault();
-          const updated = {
-            ...profile,
-            name: editForm.name,
-            email: editForm.email,
-            phone: editForm.phone,
-            height: Number(editForm.height),
-            weight: Number(editForm.weight),
-            bust: Number(editForm.bust),
-            waist: Number(editForm.waist),
-            hips: Number(editForm.hips),
-            location: editForm.location,
-            hometown: editForm.hometown,
-            education: editForm.education,
-            bio: editForm.bio,
-            languages: editForm.languages,
-            rateCard: { ...editForm.rateCard },
-            plasticSurgery: editForm.plasticSurgery,
-            maritalStatus: editForm.maritalStatus,
-            gender: editForm.gender,
-            dob: convertToDisplayDate(editForm.dob),
-            skinColor: editForm.skinColor,
-            hairColor: editForm.hairColor,
-            tattoo: editForm.tattoo,
-            tattooDesc: editForm.tattoo === "Có" ? editForm.tattooDesc : "",
-            experience: Number(editForm.experience),
-            talentTypes: editForm.talentTypes,
-            specialSkills: editForm.specialSkills,
-            skills: editForm.specialSkills,
-            lifestyleServices: lifestyleServices,
-            price: editForm.price,
-            portfolio_url: editForm.portfolio_url,
-            socialAccounts: socialAccounts
-          };
-          const syncedProfile = await saveTalentProfile(updated);
-          setProfile(syncedProfile);
-          addToast(
-            getAuthToken()
-              ? "Cập nhật thông tin thành công!"
-              : "Đã lưu bản nháp hồ sơ trên trình duyệt. Đăng nhập để đồng bộ lên hệ thống.",
-            "success"
-          );
-        }} className="space-y-4 text-xs">
+        <form onSubmit={handleSave} className="space-y-4 text-xs">
 
           {/* PHÂN NHÓM 1: THÔNG TIN CÁ NHÂN & LIÊN HỆ */}
           <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
@@ -669,29 +696,36 @@ export default function EditInfoTab({
             </div>
           </div>
 
-          {/* PHÂN NHÓM 2: ĐỊA CHỈ & KHU VỰC */}
+          {/* PHÂN NHÓM 2: KHU VỰC HOẠT ĐỘNG */}
           <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
             <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
-              Khu vực hoạt động & Quê quán
+              Khu vực hoạt động
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <CitySelect
-                label="Khu vực hoạt động"
+                label="Thành phố"
                 value={editForm.location}
                 onChange={(val) => setEditForm((prev: any) => ({ ...prev, location: val }))}
               />
-              <CitySelect
-                label="Quê quán"
-                value={editForm.hometown}
-                onChange={(val) => setEditForm((prev: any) => ({ ...prev, hometown: val }))}
-              />
+              <div className="space-y-1.5 text-left">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">
+                  Địa chỉ chi tiết
+                </label>
+                <input
+                  type="text"
+                  value={editForm.hometown}
+                  onChange={(e) => setEditForm((prev: any) => ({ ...prev, hometown: e.target.value }))}
+                  placeholder="Nhập địa chỉ chi tiết (ví dụ: 123 Đường ABC, Quận XYZ)"
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors text-xs placeholder:text-slate-600"
+                />
+              </div>
             </div>
           </div>
 
           {/* PHÂN NHÓM 3: NGOẠI HÌNH & CHỈ SỐ CƠ THỂ */}
           <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
             <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
-              Ngoại hình & Chỉ số cơ thể
+              Ngoại hình
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -751,7 +785,7 @@ export default function EditInfoTab({
           {/* PHÂN NHÓM 4: THÔNG TIN NGHỀ NGHIỆP & MỨC GIÁ */}
           <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
             <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
-              Thông tin nghề nghiệp & Mức giá
+              Thông tin nghề nghiệp
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">

@@ -157,7 +157,7 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
             title={profile.portfolio_url}
           >
             <Globe className="h-4 w-4 shrink-0" />
-            <span className="truncate">{profile.portfolio_url.replace(/https?:\/\/(www\.)?/, "")}</span>
+            <span className="truncate">Link Portfolio / CV</span>
           </a>
         </div>
       ) : null}
@@ -803,80 +803,80 @@ export default function PersonalInfoTab({
             </div>
           </div>
 
-          <div className="space-y-3.5 border-t border-[#151b2d] pt-4 text-left">
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Họ và tên</span>
-              <span className="font-bold text-white">{profile.name || "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Giới tính</span>
-              <span className="font-bold text-white">{profile.gender || "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Ngày sinh</span>
-              <span className="font-bold text-white font-mono">{profile.dob ? convertToDisplayDate(profile.dob) : "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Tuổi</span>
-              <span className="font-bold text-white font-mono">
-                {(() => {
-                  if (!profile.dob) return "Chưa cập nhật";
-                  let birthYear: number | null = null;
-                  if (profile.dob.includes("/")) {
-                    const parts = profile.dob.split("/");
-                    if (parts.length === 3) birthYear = parseInt(parts[2], 10);
-                  } else if (profile.dob.includes("-")) {
-                    const parts = profile.dob.split("-");
-                    if (parts.length === 3 && parts[0].length === 4) birthYear = parseInt(parts[0], 10);
-                  }
-                  if (!birthYear || isNaN(birthYear)) return "Chưa cập nhật";
-                  const currentYear = new Date().getFullYear();
-                  return `${currentYear - birthYear} tuổi`;
-                })()}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Mức giá</span>
-              <span className="font-bold text-white">
-                {profile.price ? profile.price : "Chưa cập nhật"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Khu vực hoạt động</span>
-              <span className="font-bold text-white">{profile.location || "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Quê quán</span>
-              <span className="font-bold text-white">{profile.hometown || "Chưa cập nhật"}</span>
-            </div>
+          <div className="grid grid-cols-[120px_1fr] gap-x-3.5 gap-y-3.5 border-t border-[#151b2d] pt-4 text-left text-xs text-slate-300">
+            {/* Họ và tên */}
+            <span className="font-medium text-slate-400">Họ và tên</span>
+            <span className="font-bold text-white text-left break-words">{profile.name || "Chưa cập nhật"}</span>
 
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Học vấn</span>
-              <span className="font-bold text-white text-right max-w-[160px] truncate" title={profile.education || "Chưa cập nhật"}>{profile.education || "Chưa cập nhật"}</span>
-            </div>
+            {/* Giới tính */}
+            <span className="font-medium text-slate-400">Giới tính</span>
+            <span className="font-bold text-white text-left">{profile.gender || "Chưa cập nhật"}</span>
 
-            <div className="flex justify-between items-center text-xs text-slate-300 border-t border-dashed border-[#151b2d]/50 pt-2">
-              <span className="font-medium text-slate-400">Kinh nghiệm</span>
-              <span className="font-bold text-white">{profile.experience !== undefined && profile.experience !== "" && profile.experience !== null ? `${profile.experience} năm` : "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-start text-xs text-slate-300">
-              <span className="font-medium text-slate-400 shrink-0">Lĩnh vực hoạt động</span>
-              <span className="font-bold text-white text-right max-w-[160px] leading-normal">
-                {(() => {
-                  const talentTypes = profile.talentTypes || profile.talent_types || profile.specialSkills || profile.skills;
-                  return Array.isArray(talentTypes) && talentTypes.length > 0 ? talentTypes.join(", ") : "Chưa cập nhật";
-                })()}
-              </span>
-            </div>
-            <div className="flex justify-between items-start text-xs text-slate-300">
-              <span className="font-medium text-slate-400 shrink-0">Ngôn ngữ</span>
-              <span className="font-bold text-white text-right max-w-[160px] leading-normal">
-                {(() => {
-                  const langs = profile.languages;
-                  return Array.isArray(langs) && langs.length > 0 ? langs.join(", ") : "Chưa cập nhật";
-                })()}
-              </span>
-            </div>
+            {/* Ngày sinh */}
+            <span className="font-medium text-slate-400">Ngày sinh</span>
+            <span className="font-bold text-white font-mono text-left">{profile.dob ? convertToDisplayDate(profile.dob) : "Chưa cập nhật"}</span>
+
+            {/* Tuổi */}
+            <span className="font-medium text-slate-400">Tuổi</span>
+            <span className="font-bold text-white font-mono text-left">
+              {(() => {
+                if (!profile.dob) return "Chưa cập nhật";
+                let birthYear: number | null = null;
+                if (profile.dob.includes("/")) {
+                  const parts = profile.dob.split("/");
+                  if (parts.length === 3) birthYear = parseInt(parts[2], 10);
+                } else if (profile.dob.includes("-")) {
+                  const parts = profile.dob.split("-");
+                  if (parts.length === 3 && parts[0].length === 4) birthYear = parseInt(parts[0], 10);
+                }
+                if (!birthYear || isNaN(birthYear)) return "Chưa cập nhật";
+                const currentYear = new Date().getFullYear();
+                return `${currentYear - birthYear} tuổi`;
+              })()}
+            </span>
+
+            {/* Mức giá */}
+            <span className="font-medium text-slate-400">Mức giá</span>
+            <span className="font-bold text-white text-left break-words">
+              {profile.price ? profile.price : "Chưa cập nhật"}
+            </span>
+
+            {/* Địa chỉ */}
+            <span className="font-medium text-slate-400">Địa chỉ</span>
+            <span className="font-bold text-white text-left break-words leading-normal">
+              {(() => {
+                const parts = [profile.hometown, profile.location].filter(Boolean);
+                return parts.length > 0 ? parts.join(", ") : "Chưa cập nhật";
+              })()}
+            </span>
+
+            {/* Học vấn */}
+            <span className="font-medium text-slate-400">Học vấn</span>
+            <span className="font-bold text-white text-left break-words">{profile.education || "Chưa cập nhật"}</span>
+
+            {/* Kinh nghiệm */}
+            <div className="col-span-2 border-t border-dashed border-[#151b2d]/50 my-1"></div>
+            
+            <span className="font-medium text-slate-400">Kinh nghiệm</span>
+            <span className="font-bold text-white text-left">{profile.experience !== undefined && profile.experience !== "" && profile.experience !== null ? `${profile.experience} năm` : "Chưa cập nhật"}</span>
+
+            {/* Lĩnh vực hoạt động */}
+            <span className="font-medium text-slate-400">Lĩnh vực hoạt động</span>
+            <span className="font-bold text-white text-left break-words leading-normal">
+              {(() => {
+                const talentTypes = profile.talentTypes || profile.talent_types || profile.specialSkills || profile.skills;
+                return Array.isArray(talentTypes) && talentTypes.length > 0 ? talentTypes.join(", ") : "Chưa cập nhật";
+              })()}
+            </span>
+
+            {/* Ngôn ngữ */}
+            <span className="font-medium text-slate-400">Ngôn ngữ</span>
+            <span className="font-bold text-white text-left break-words leading-normal">
+              {(() => {
+                const langs = profile.languages;
+                return Array.isArray(langs) && langs.length > 0 ? langs.join(", ") : "Chưa cập nhật";
+              })()}
+            </span>
           </div>
         </div>
 
@@ -1161,7 +1161,8 @@ export default function PersonalInfoTab({
         </div>
       </div>
 
-      {/* SECTION F: REPUTATION REVIEWS */}
+      {/* SECTION F: REPUTATION REVIEWS (Commented out) */}
+      {/* 
       <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
         <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
           <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> ĐÁNH GIÁ
@@ -1189,6 +1190,7 @@ export default function PersonalInfoTab({
           </div>
         )}
       </div>
+      */}
 
     </div>
   );
