@@ -5,7 +5,7 @@ import {
   Award, User,
   ShieldCheck, Calendar, Image as ImageIcon, Sparkles,
   ChevronLeft, ChevronRight, Upload, ChevronDown, ChevronUp, Camera,
-  Ruler, Scale
+  Ruler, Scale, Mail, Phone, Globe
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
@@ -34,6 +34,191 @@ const formatHeight = (h: number | string) => {
   const cm = val % 100;
   return `${m}m${String(cm).padStart(2, '0')}`;
 };
+
+interface ContactInfoCardProps {
+  profile: any;
+}
+
+const FacebookIcon = () => (
+  <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z"/>
+  </svg>
+);
+
+const TiktokIcon = () => (
+  <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.24-.11-.47-.24-.7-.37v5.52c.03 2.16-.76 4.38-2.3 5.89-1.58 1.58-3.9 2.37-6.14 2.11-2.4-.21-4.73-1.74-5.69-3.97-.98-2.18-.73-4.9.72-6.79 1.34-1.79 3.63-2.73 5.85-2.5v4.03c-1.44-.19-3 .42-3.66 1.74-.53.97-.33 2.27.46 3.01.78.78 2.05.94 3.01.4 1-.53 1.54-1.67 1.53-2.84V.02z"/>
+  </svg>
+);
+
+const InstagramIcon = () => (
+  <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
+
+const ThreadIcon = () => (
+  <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.48 13.9c-.83.09-1.58-.2-2-.84-.33-.51-.39-1.12-.39-2.22 0-1.89.87-2.92 2.32-2.92 1.41 0 2.22.99 2.22 2.76 0 1.94-.89 2.97-2.15 3.22zm2.09-6.3c-.63-.61-1.54-.95-2.57-.95-1.95 0-3.34 1.34-3.34 3.79s1.39 3.79 3.34 3.79c.8 0 1.51-.2 2.03-.59.18-.13.43-.1.58.07l.79.9c.28.32.18.84-.2 1.04-1 .55-2.14.78-3.2.78-3.33 0-5.74-2.17-5.74-5.99s2.41-5.99 5.74-5.99c1.67 0 3.2.53 4.31 1.49.27.23.31.63.09.91l-.88 1.13c-.15.2-.42.24-.62.08z"/>
+  </svg>
+);
+
+const LinkedinIcon = () => (
+  <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+  </svg>
+);
+
+const getSocialHandle = (url: string, platform: string) => {
+  try {
+    const trimmed = url.trim().replace(/\/$/, "");
+    const parts = trimmed.split("/");
+    const lastPart = parts[parts.length - 1];
+    if (lastPart) {
+      if (lastPart.startsWith("@")) return lastPart;
+      if (platform === "Linkedin" && lastPart === "in" && parts.length > 2) {
+        return parts[parts.length - 2];
+      }
+      return platform === "Tiktok" ? `@${lastPart}` : lastPart;
+    }
+  } catch (e) {}
+  return url.replace(/https?:\/\/(www\.)?/, "");
+};
+
+function ContactInfoCard({ profile }: ContactInfoCardProps) {
+  const parseSocialAccounts = (prof: any): { platform: string; url: string }[] => {
+    if (!Array.isArray(prof?.socialAccounts)) return [];
+
+    return prof.socialAccounts
+      .map((account: any) => ({ platform: String(account.platform || ""), url: String(account.url || "") }))
+      .filter((account: { platform: string; url: string }) => account.platform && account.url);
+  };
+
+  const socialAccounts = parseSocialAccounts(profile);
+
+  // Group accounts by platform
+  const groupedAccounts = socialAccounts.reduce((acc: Record<string, string[]>, curr) => {
+    acc[curr.platform] = acc[curr.platform] || [];
+    acc[curr.platform].push(curr.url);
+    return acc;
+  }, {});
+
+  return (
+    <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6 text-left">
+      <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
+        <Mail className="h-4.5 w-4.5 text-[#f4c430]" /> THÔNG TIN LIÊN HỆ
+      </h3>
+
+      {/* Phone & Email Blocks */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Phone */}
+        <div className="flex items-center gap-3 bg-slate-950/50 border border-white/5 rounded-2xl p-4 transition-all duration-300 hover:border-amber-400/20">
+          <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-amber-400/10 text-amber-400 shrink-0">
+            <Phone className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 text-left">
+            <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider leading-none mb-1">
+              Số điện thoại
+            </span>
+            <span className="text-xs font-bold text-slate-200 block font-mono">
+              {profile.phone || "Chưa cập nhật"}
+            </span>
+          </div>
+        </div>
+
+        {/* Email */}
+        <div className="flex items-center gap-3 bg-slate-950/50 border border-white/5 rounded-2xl p-4 transition-all duration-300 hover:border-amber-400/20">
+          <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-amber-400/10 text-amber-400 shrink-0">
+            <Mail className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 text-left">
+            <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider leading-none mb-1">
+              Email
+            </span>
+            <a 
+              href={profile.email ? `mailto:${profile.email}` : undefined}
+              className={`text-xs font-bold block truncate transition-colors ${profile.email ? 'text-slate-200 hover:text-amber-400' : 'text-slate-400'}`}
+            >
+              {profile.email || "Chưa cập nhật"}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {profile.portfolio_url ? (
+        <div className="border-t border-[#151b2d]/50 pt-5">
+          <a
+            href={profile.portfolio_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2.5 rounded-xl border border-white/5 bg-slate-950/60 px-3.5 py-2.5 text-xs font-bold text-slate-300 transition-all duration-300 hover:border-amber-400/40 hover:bg-amber-400/5 hover:text-amber-300"
+            title={profile.portfolio_url}
+          >
+            <Globe className="h-4 w-4 shrink-0" />
+            <span className="truncate">{profile.portfolio_url.replace(/https?:\/\/(www\.)?/, "")}</span>
+          </a>
+        </div>
+      ) : null}
+
+      {/* Social Accounts Area */}
+      {Object.keys(groupedAccounts).length > 0 ? (
+        <div className="border-t border-[#151b2d]/50 pt-5 space-y-3">
+          <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider mb-2">
+            Liên kết mạng xã hội
+          </span>
+          <div className="flex flex-wrap gap-2.5">
+            {Object.entries(groupedAccounts).flatMap(([platform, urls]) => 
+              urls.map((url, idx) => {
+                let brandColorClass = "";
+                if (platform === "Facebook") {
+                  brandColorClass = "hover:text-[#1877F2] hover:border-[#1877F2]/40 hover:bg-[#1877F2]/5";
+                } else if (platform === "Tiktok") {
+                  brandColorClass = "hover:text-[#FE2C55] hover:border-[#FE2C55]/40 hover:bg-[#FE2C55]/5";
+                } else if (platform === "Instagram") {
+                  brandColorClass = "hover:text-[#E1306C] hover:border-[#E1306C]/40 hover:bg-[#E1306C]/5";
+                } else if (platform === "Thread") {
+                  brandColorClass = "hover:text-[#ffffff] hover:border-[#ffffff]/40 hover:bg-[#ffffff]/5";
+                } else if (platform === "Linkedin") {
+                  brandColorClass = "hover:text-[#0A66C2] hover:border-[#0A66C2]/40 hover:bg-[#0A66C2]/5";
+                }
+
+                const renderSocialIcon = () => {
+                  if (platform === "Facebook") return <FacebookIcon />;
+                  if (platform === "Tiktok") return <TiktokIcon />;
+                  if (platform === "Instagram") return <InstagramIcon />;
+                  if (platform === "Thread") return <ThreadIcon />;
+                  if (platform === "Linkedin") return <LinkedinIcon />;
+                  return <Globe className="h-4 w-4 shrink-0" />;
+                };
+
+                return (
+                  <a
+                    key={`${platform}-${idx}`}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-2 bg-slate-950/60 border border-white/5 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-300 transition-all duration-300 active:scale-95 ${brandColorClass}`}
+                    title={url}
+                  >
+                    {renderSocialIcon()}
+                    <span>{getSocialHandle(url, platform)}</span>
+                  </a>
+                );
+              })
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="flex justify-between items-center text-xs text-slate-300 border-t border-[#151b2d] pt-3.5">
+          <span className="font-medium text-slate-400">Mạng xã hội</span>
+          <span className="font-bold text-white">Chưa cập nhật</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
@@ -664,78 +849,7 @@ export default function PersonalInfoTab({
               <span className="font-medium text-slate-400">Quê quán</span>
               <span className="font-bold text-white">{profile.hometown || "Chưa cập nhật"}</span>
             </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Số điện thoại</span>
-              <span className="font-bold text-white font-mono">{profile.phone || "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Email</span>
-              <span className="font-bold text-white truncate max-w-[150px]">{profile.email || "Chưa cập nhật"}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Facebook</span>
-              {profile.facebook_url ? (
-                <a
-                  href={profile.facebook_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-[#F0C56B] hover:text-white transition-colors truncate max-w-[155px]"
-                  title={profile.facebook_url}
-                >
-                  {profile.facebook_url.replace(/https?:\/\/(www\.)?/, '')}
-                </a>
-              ) : (
-                <span className="font-bold text-white">Chưa cập nhật</span>
-              )}
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">TikTok</span>
-              {profile.tiktok_url ? (
-                <a
-                  href={profile.tiktok_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-[#F0C56B] hover:text-white transition-colors truncate max-w-[155px]"
-                  title={profile.tiktok_url}
-                >
-                  {profile.tiktok_url.replace(/https?:\/\/(www\.)?/, '')}
-                </a>
-              ) : (
-                <span className="font-bold text-white">Chưa cập nhật</span>
-              )}
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">Instagram</span>
-              {profile.instagram_url ? (
-                <a
-                  href={profile.instagram_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-[#F0C56B] hover:text-white transition-colors truncate max-w-[155px]"
-                  title={profile.instagram_url}
-                >
-                  {profile.instagram_url.replace(/https?:\/\/(www\.)?/, '')}
-                </a>
-              ) : (
-                <span className="font-bold text-white">Chưa cập nhật</span>
-              )}
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-300">
-              <span className="font-medium text-slate-400">LinkedIn</span>
-              {profile.linkedin_url ? (
-                <a
-                  href={profile.linkedin_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-[#F0C56B] hover:text-white transition-colors truncate max-w-[155px]"
-                  title={profile.linkedin_url}
-                >
-                  {profile.linkedin_url.replace(/https?:\/\/(www\.)?/, '')}
-                </a>
-              ) : (
-                <span className="font-bold text-white">Chưa cập nhật</span>
-              )}
-            </div>
+
             <div className="flex justify-between items-center text-xs text-slate-300">
               <span className="font-medium text-slate-400">Học vấn</span>
               <span className="font-bold text-white text-right max-w-[160px] truncate" title={profile.education || "Chưa cập nhật"}>{profile.education || "Chưa cập nhật"}</span>
@@ -846,9 +960,12 @@ export default function PersonalInfoTab({
 
       </div>
 
+      {/* RIGHT COLUMN wrapper: Contact Info and AI Career Alignment Map */}
+      <div className="lg:col-span-2 space-y-6 md:space-y-8">
+        <ContactInfoCard profile={profile} />
 
-      {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
-      <div className="lg:col-span-2 rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
+        {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
+        <div className="rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
         <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
@@ -967,6 +1084,7 @@ export default function PersonalInfoTab({
             </div>
           </div>
         )}
+      </div>
       </div>
 
       {/* SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}

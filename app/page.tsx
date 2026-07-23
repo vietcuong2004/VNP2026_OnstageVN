@@ -267,10 +267,11 @@ export default function RootGatewayPage() {
           </div>
 
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white tracking-tight mb-4">
-            Giải pháp công nghệ <span className="text-gradient-gold">Nâng tầm thương hiệu</span>
+            Giải pháp công nghệ <br className="hidden sm:block" />
+            <span className="text-gradient-gold">Đồng hành cùng Talent và Brand trên một nền tảng thống nhất</span>
           </h2>
-          <p className="text-xs sm:text-[13px] md:text-sm text-slate-300 max-w-2xl mb-8 md:mb-10 leading-relaxed font-medium">
-            Hệ thống được thiết kế theo phong cách tinh tế, đẳng cấp để mang lại trải nghiệm chuyên nghiệp nhất cho cả Talent và Đối tác Doanh nghiệp.
+          <p className="text-xs sm:text-[13px] md:text-sm text-slate-300 max-w-4xl mb-8 md:mb-10 leading-relaxed font-medium">
+            Onstage ứng dụng công nghệ để đơn giản hóa quá trình xây dựng hồ sơ, quản lý chiến dịch và kết nối hợp tác giữa Talent, Brand và Agency. Mọi thông tin được tập trung trên một nền tảng hiện đại, giúp nâng cao hiệu quả làm việc và mở rộng cơ hội phát triển.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
@@ -279,9 +280,9 @@ export default function RootGatewayPage() {
               <div className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-xl bg-[#D4A64A]/10 text-[#F0C56B] border border-[#D4A64A]/20 mb-4 group-hover:scale-105 transition-transform duration-300">
                 <Sparkles className="h-4.5 w-4.5 md:h-5 md:w-5" />
               </div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Định hướng AI thông minh (Onstage AI)</h3>
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Định hướng phát triển bằng AI</h3>
               <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
-                Trắc nghiệm năng lực độc quyền dựa trên dữ liệu giúp phân tích điểm mạnh, định hướng phong cách nghệ thuật và xếp hạng Tier khách quan cho lộ trình sự nghiệp phát triển bền vững.
+                Ứng dụng AI hỗ trợ phân tích thông tin hồ sơ, đánh giá điểm mạnh và gợi ý định hướng phát triển phù hợp, giúp Talent xây dựng lộ trình phát triển sự nghiệp hiệu quả hơn.
               </p>
             </div>
 
@@ -290,9 +291,9 @@ export default function RootGatewayPage() {
               <div className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-xl bg-[#D4A64A]/10 text-[#F0C56B] border border-[#D4A64A]/20 mb-4 group-hover:scale-105 transition-transform duration-300">
                 <FileText className="h-4.5 w-4.5 md:h-5 md:w-5" />
               </div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Hồ sơ số chuyên nghiệp (DIGITAL Portfolio)</h3>
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Hồ sơ số chuyên nghiệp (Digital Portfolio)</h3>
               <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
-                Kiến tạo hồ sơ số điện tử cao cấp thay thế hồ sơ truyền thống. Tích hợp chỉ số hình thể nhân trắc học, thư viện ảnh chất lượng cao, video trình diễn và hiển thị Rate Card minh bạch.
+                Thay thế hồ sơ truyền thống bằng hồ sơ số hiện đại, tích hợp đầy đủ thông tin cá nhân, hình ảnh, video, kỹ năng và mạng xã hội để sẵn sàng chia sẻ với Brand và Agency.
               </p>
             </div>
 
@@ -301,20 +302,20 @@ export default function RootGatewayPage() {
               <div className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-xl bg-[#D4A64A]/10 text-[#F0C56B] border border-[#D4A64A]/20 mb-4 group-hover:scale-105 transition-transform duration-300">
                 <Search className="h-4.5 w-4.5 md:h-5 md:w-5" />
               </div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Tìm kiếm & Khớp nối thông minh</h3>
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Tìm kiếm & Kết nối Talent</h3>
               <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
-                Nhãn hàng & Agency dễ dàng tìm đúng người cho đúng cơ hội thông qua bộ lọc thông minh (chỉ số đo, phong cách biểu diễn, độ tương thích chiến dịch) giúp tiết kiệm 90% thời gian tìm kiếm.
+                Brand và Agency có thể dễ dàng tìm kiếm Talent theo các tiêu chí phù hợp, xem hồ sơ chi tiết và gửi lời mời hợp tác trực tiếp ngay trên hệ thống.
               </p>
             </div>
 
             {/* Feature 4 */}
             <div className="group relative p-5 md:p-6 rounded-2xl bg-[#071B42]/30 border border-white/5 hover:border-[#D4A64A]/20 transition-all duration-300 hover:bg-[#0B245C]/40">
               <div className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-xl bg-[#D4A64A]/10 text-[#F0C56B] border border-[#D4A64A]/20 mb-4 group-hover:scale-105 transition-transform duration-300">
-                <ShieldCheck className="h-4.5 w-4.5 md:h-5 md:w-5" />
+                <Briefcase className="h-4.5 w-4.5 md:h-5 md:w-5" />
               </div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Bảo chứng thanh toán (Trust Escrow)</h3>
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Quản lý chiến dịch & Hợp tác</h3>
               <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
-                Đảm bảo quyền lợi tài chính vững chắc bằng quy trình đặt cọc, ký hợp đồng số nhanh gọn và cơ chế giải ngân an toàn theo tiến độ công việc được phê duyệt trên hệ thống.
+                Tạo chiến dịch, quản lý danh sách Talent và theo dõi quá trình hợp tác trên một nền tảng duy nhất, giúp việc kết nối giữa Brand và Talent trở nên nhanh chóng, rõ ràng và hiệu quả hơn.
               </p>
             </div>
           </div>
@@ -438,7 +439,7 @@ export default function RootGatewayPage() {
                   {/* Glowing background effects */}
                   <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-amber-400/10 to-transparent rounded-full blur-3xl opacity-60 pointer-events-none group-hover/banner:opacity-80 transition-opacity duration-500" />
                   <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-                  
+
                   {/* Subtle geometric grid background */}
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
@@ -722,9 +723,6 @@ export default function RootGatewayPage() {
                 className="h-10 object-contain shrink-0"
               />
             </div>
-            <p className="text-xs text-slate-400 max-w-2xl leading-relaxed text-center px-4 font-medium">
-              Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ tài năng cùng nhãn hàng.
-            </p>
           </div>
 
           {/* 4 Cards Grid - Matches layout style from the image but dark gold theme */}

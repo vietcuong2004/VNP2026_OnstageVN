@@ -58,9 +58,8 @@ export type TalentProfile = {
   mainCategory?: string;
   aiScore?: number;
   price?: string;
-  facebook_url?: string;
-  instagram_url?: string;
-  linkedin_url?: string;
+  portfolio_url?: string;
+  socialAccounts?: Array<{ platform: string; url: string }>;
 };
 
 export type CampaignStage = "new" | "accepted" | "executing" | "completed" | "confirmed";

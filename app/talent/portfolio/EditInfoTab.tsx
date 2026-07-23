@@ -61,6 +61,126 @@ const availableLanguages = [
   "Tiếng Tây Ban Nha"
 ];
 
+const cityOptions = [
+  "Tỉnh An Giang",
+  "Tỉnh Bắc Ninh",
+  "Tỉnh Cà Mau",
+  "Tỉnh Cao Bằng",
+  "TP. Cần Thơ",
+  "TP. Đà Nẵng",
+  "Tỉnh Đắk Lắk",
+  "Tỉnh Điện Biên",
+  "Tỉnh Đồng Nai",
+  "Tỉnh Đồng Tháp",
+  "Tỉnh Gia Lai",
+  "TP. Hà Nội",
+  "Tỉnh Hà Tĩnh",
+  "TP. Hải Phòng",
+  "TP. Hồ Chí Minh",
+  "TP. Huế",
+  "Tỉnh Hưng Yên",
+  "Tỉnh Khánh Hòa",
+  "Tỉnh Lai Châu",
+  "Tỉnh Lâm Đồng",
+  "Tỉnh Lạng Sơn",
+  "Tỉnh Lào Cai",
+  "Tỉnh Nghệ An",
+  "Tỉnh Ninh Bình",
+  "Tỉnh Phú Thọ",
+  "Tỉnh Quảng Ngãi",
+  "Tỉnh Quảng Ninh",
+  "Tỉnh Quảng Trị",
+  "Tỉnh Sơn La",
+  "Tỉnh Tây Ninh",
+  "Tỉnh Thái Nguyên",
+  "Tỉnh Thanh Hóa",
+  "Tỉnh Tuyên Quang",
+  "Tỉnh Vĩnh Long",
+];
+
+interface CitySelectProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function CitySelect({ label, value, onChange }: CitySelectProps) {
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+
+  const filteredOptions = React.useMemo(() => {
+    const keyword = searchInput.trim().toLowerCase();
+    if (!keyword) return cityOptions;
+    return cityOptions.filter(city => city.toLowerCase().includes(keyword));
+  }, [searchInput]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (!dropdownRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} className="space-y-1.5 relative text-left">
+      <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">{label}</label>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-slate-950 px-3.5 py-2 text-left text-xs text-white outline-none transition-all hover:border-amber-400 focus:border-amber-400"
+        >
+          <span className="truncate">{value || `Chọn ${label.toLowerCase()}...`}</span>
+          <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-400 transition-transform", isOpen && "rotate-180")} />
+        </button>
+
+        {isOpen && (
+          <div className="absolute left-0 right-0 top-full z-[100] mt-1.5 rounded-xl border border-white/10 bg-[#08051d] p-2 shadow-2xl max-h-[220px] flex flex-col">
+            <input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Tìm kiếm..."
+              className="w-full rounded-lg border border-white/10 bg-slate-950 py-1.5 px-3 mb-2 text-xs text-white outline-none placeholder:text-slate-500 focus:border-amber-400"
+              autoFocus
+            />
+
+            <div className="overflow-y-auto flex-1 space-y-0.5 custom-scrollbar">
+              {filteredOptions.length === 0 ? (
+                <div className="px-3 py-2 text-xs text-slate-500 italic">Không tìm thấy kết quả</div>
+              ) : (
+                filteredOptions.map((city) => {
+                  const isSelected = city === value;
+                  return (
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => {
+                        onChange(city);
+                        setSearchInput("");
+                        setIsOpen(false);
+                      }}
+                      className={cn(
+                        "block w-full px-3 py-2 rounded-lg text-left text-xs font-semibold transition-colors hover:bg-white/5",
+                        isSelected ? "bg-amber-400/10 text-amber-300 font-bold" : "text-slate-300"
+                      )}
+                    >
+                      {city}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface EditInfoTabProps {
   profile: any;
   setProfile: (profile: any) => void;
@@ -82,6 +202,9 @@ export default function EditInfoTab({
   const [isLifestyleExpanded, setIsLifestyleExpanded] = useState(false);
   const [selectedLangName, setSelectedLangName] = useState("");
   const [langProficiency, setLangProficiency] = useState("");
+  const [socialPlatform, setSocialPlatform] = useState<"Tiktok" | "Facebook" | "Instagram" | "Thread" | "Linkedin">("Tiktok");
+  const [socialLink, setSocialLink] = useState("");
+  const [socialAccounts, setSocialAccounts] = useState<{ platform: string; url: string }[]>([]);
 
   // Form states for profile editing
   const [editForm, setEditForm] = useState<any>({
@@ -101,7 +224,7 @@ export default function EditInfoTab({
     rateCard: {},
     plasticSurgery: "false",
     maritalStatus: "",
-    gender: "",
+    gender: "Nữ",
     dob: "",
     skinColor: "",
     hairColor: "",
@@ -111,10 +234,7 @@ export default function EditInfoTab({
     talentTypes: [],
     specialSkills: [],
     price: "",
-    facebook_url: "",
-    tiktok_url: "",
-    instagram_url: "",
-    linkedin_url: ""
+    portfolio_url: ""
   });
 
   const handleAddSkill = (skill: string) => {
@@ -157,6 +277,36 @@ export default function EditInfoTab({
     }));
   };
 
+  const handlePriceChange = (val: string, oldVal: string) => {
+    if (!val) {
+      setEditForm((prev: any) => ({ ...prev, price: "" }));
+      return;
+    }
+
+    // Check if the input is meant to be a formatted number:
+    // It contains only digits, dots, spaces, and the word "ngày" or "/"
+    const cleanText = val.replace(/[0-9.\s/ngàyđđ]/gi, "");
+    const isNumeric = cleanText === "";
+
+    if (!isNumeric) {
+      setEditForm((prev: any) => ({ ...prev, price: val }));
+    } else {
+      const oldDigits = oldVal.replace(/[^\d]/g, "");
+      let nextDigits = val.replace(/[^\d]/g, "");
+
+      if (oldDigits && nextDigits === oldDigits && val.length < oldVal.length) {
+        nextDigits = oldDigits.slice(0, -1);
+      }
+
+      if (nextDigits) {
+        const formatted = `${Number(nextDigits).toLocaleString("vi-VN")}/ngày`;
+        setEditForm((prev: any) => ({ ...prev, price: formatted }));
+      } else {
+        setEditForm((prev: any) => ({ ...prev, price: "" }));
+      }
+    }
+  };
+
   // Video upload state simulator
   const [videoForm, setVideoForm] = useState({
     hasUploadedIntro: false,
@@ -194,7 +344,7 @@ export default function EditInfoTab({
         rateCard: { ...(profile.rateCard || {}) },
         plasticSurgery: profile.plasticSurgery || "false",
         maritalStatus: profile.maritalStatus || "",
-        gender: profile.gender || "",
+        gender: profile.gender || "Nữ",
         dob: convertToInputDate(profile.dob),
         skinColor: profile.skinColor || "",
         hairColor: profile.hairColor || "",
@@ -204,11 +354,17 @@ export default function EditInfoTab({
         talentTypes: Array.isArray(profile.talentTypes) ? profile.talentTypes : (Array.isArray(profile.talent_types) ? profile.talent_types : []),
         specialSkills: Array.isArray(profile.specialSkills) ? profile.specialSkills : (Array.isArray(profile.skills) ? profile.skills : []),
         price: profile.price || "",
-        facebook_url: profile.facebook_url || "",
-        tiktok_url: profile.tiktok_url || "",
-        instagram_url: profile.instagram_url || "",
-        linkedin_url: profile.linkedin_url || ""
+        portfolio_url: profile.portfolio_url || ""
       });
+
+      // Parse social accounts
+      let accounts: { platform: string; url: string }[] = [];
+      if (Array.isArray(profile.socialAccounts) && profile.socialAccounts.length > 0) {
+        accounts = profile.socialAccounts
+          .map((a: any) => ({ platform: a.platform, url: a.url }))
+          .filter((a: any) => a.platform && a.url);
+      }
+      setSocialAccounts(accounts);
       setVideoForm({
         hasUploadedIntro: onboarded ? (profile.hasUploadedIntro || false) : false,
         hasUploadedCatwalk: onboarded ? (profile.hasUploadedCatwalk || false) : false,
@@ -407,358 +563,422 @@ export default function EditInfoTab({
             skills: editForm.specialSkills,
             lifestyleServices: lifestyleServices,
             price: editForm.price,
-            facebook_url: editForm.facebook_url,
-            tiktok_url: editForm.tiktok_url,
-            instagram_url: editForm.instagram_url,
-            linkedin_url: editForm.linkedin_url
+            portfolio_url: editForm.portfolio_url,
+            socialAccounts: socialAccounts
           };
           const syncedProfile = await saveTalentProfile(updated);
           setProfile(syncedProfile);
           addToast(
             getAuthToken()
-              ? "Cập nhật thông tin cá nhân và ngoại hình thành công!"
+              ? "Cập nhật thông tin thành công!"
               : "Đã lưu bản nháp hồ sơ trên trình duyệt. Đăng nhập để đồng bộ lên hệ thống.",
             "success"
           );
         }} className="space-y-4 text-xs">
 
-          {/* Row 1: Name & Location */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Họ và tên</label>
-              <input
-                type="text"
-                value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
+          {/* PHÂN NHÓM 1: THÔNG TIN CÁ NHÂN & LIÊN HỆ */}
+          <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
+            <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
+              Thông tin cá nhân & Liên hệ
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Họ tên / Nghệ danh</label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Giới tính</label>
+                <select
+                  value={editForm.gender}
+                  onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                >
+                  <option value="Nữ">Nữ</option>
+                  <option value="Nam">Nam</option>
+                  <option value="Khác">Khác</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngày sinh</label>
+                <input
+                  type="date"
+                  value={editForm.dob}
+                  onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Học vấn</label>
+                <input
+                  type="text"
+                  value={editForm.education}
+                  onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Email</label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Số điện thoại</label>
+                <input
+                  type="text"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Portfolio URL</label>
+                <input
+                  type="url"
+                  value={editForm.portfolio_url}
+                  onChange={(e) => setEditForm({ ...editForm, portfolio_url: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Mô tả bản thân (Giới thiệu)</label>
+                <textarea
+                  value={editForm.bio || ""}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  rows={3}
+                  placeholder="Nhập mô tả ngắn giới thiệu về bản thân của bạn..."
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors resize-none"
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Khu vực hoạt động</label>
-              <input
-                type="text"
+          </div>
+
+          {/* PHÂN NHÓM 2: ĐỊA CHỈ & KHU VỰC */}
+          <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
+            <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
+              Khu vực hoạt động & Quê quán
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CitySelect
+                label="Khu vực hoạt động"
                 value={editForm.location}
-                onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                onChange={(val) => setEditForm((prev: any) => ({ ...prev, location: val }))}
               />
-            </div>
-          </div>
-
-          {/* Row 1.5: Email & Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Email</label>
-              <input
-                type="email"
-                value={editForm.email}
-                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Số điện thoại</label>
-              <input
-                type="text"
-                value={editForm.phone}
-                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Social Links & Pricing Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Mức giá (VD: "5.000.000đ/buổi" hoặc "Thỏa thuận")</label>
-              <input
-                type="text"
-                value={editForm.price}
-                onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
-                placeholder="Nhập mức giá dịch vụ của bạn..."
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Facebook URL</label>
-              <input
-                type="url"
-                value={editForm.facebook_url}
-                onChange={(e) => setEditForm({ ...editForm, facebook_url: e.target.value })}
-                placeholder="https://facebook.com/yourprofile"
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">TikTok URL</label>
-              <input
-                type="url"
-                value={editForm.tiktok_url}
-                onChange={(e) => setEditForm({ ...editForm, tiktok_url: e.target.value })}
-                placeholder="https://tiktok.com/@yourprofile"
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Instagram URL</label>
-              <input
-                type="url"
-                value={editForm.instagram_url}
-                onChange={(e) => setEditForm({ ...editForm, instagram_url: e.target.value })}
-                placeholder="https://instagram.com/yourprofile"
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">LinkedIn URL</label>
-              <input
-                type="url"
-                value={editForm.linkedin_url}
-                onChange={(e) => setEditForm({ ...editForm, linkedin_url: e.target.value })}
-                placeholder="https://linkedin.com/in/yourprofile"
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Row 2: Hometown & Education */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Quê quán</label>
-              <input
-                type="text"
+              <CitySelect
+                label="Quê quán"
                 value={editForm.hometown}
-                onChange={(e) => setEditForm({ ...editForm, hometown: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Học vấn</label>
-              <input
-                type="text"
-                value={editForm.education}
-                onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                onChange={(val) => setEditForm((prev: any) => ({ ...prev, hometown: val }))}
               />
             </div>
           </div>
 
-          {/* Bio / Description Field */}
-          <div className="space-y-1.5">
-            <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Mô tả bản thân (Giới thiệu)</label>
-            <textarea
-              value={editForm.bio || ""}
-              onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-              rows={3}
-              placeholder="Nhập mô tả ngắn giới thiệu về bản thân của bạn..."
-              className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors resize-none"
-            />
-          </div>
-
-          {/* Row 3: Height & Weight */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Chiều cao (cm)</label>
-              <input
-                type="number"
-                value={editForm.height}
-                onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Cân nặng (kg)</label>
-              <input
-                type="number"
-                value={editForm.weight}
-                onChange={(e) => setEditForm({ ...editForm, weight: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Row 4: 3-vong */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Vòng 1 (cm)</label>
-              <input
-                type="number"
-                value={editForm.bust}
-                onChange={(e) => setEditForm({ ...editForm, bust: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Vòng 2 (cm)</label>
-              <input
-                type="number"
-                value={editForm.waist}
-                onChange={(e) => setEditForm({ ...editForm, waist: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Vòng 3 (cm)</label>
-              <input
-                type="number"
-                value={editForm.hips}
-                onChange={(e) => setEditForm({ ...editForm, hips: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* New Row: Giới tính, Ngày sinh, Kinh nghiệm */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Giới tính</label>
-              <select
-                value={editForm.gender}
-                onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              >
-                <option value="Nam">Nam</option>
-                <option value="Nữ">Nữ</option>
-                <option value="Khác">Khác</option>
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngày sinh</label>
-              <input
-                type="date"
-                value={editForm.dob}
-                onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Kinh nghiệm (năm)</label>
-              <input
-                type="number"
-                min={0}
-                max={20}
-                value={editForm.experience}
-                onChange={(e) => setEditForm({ ...editForm, experience: e.target.value })}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Row 5: Lĩnh vực hoạt động & Ngôn ngữ */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            {/* Lĩnh vực hoạt động */}
-            <div className="space-y-3">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Lĩnh vực hoạt động</label>
-              <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-[#05070e] border border-white/5 rounded-xl text-left">
-                {editForm.talentTypes.length === 0 ? (
-                  <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn lĩnh vực nào</span>
-                ) : (
-                  editForm.talentTypes.map((skill: string) => (
-                    <span key={skill} className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
-                      {skill}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSkill(skill)}
-                        className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))
-                )}
+          {/* PHÂN NHÓM 3: NGOẠI HÌNH & CHỈ SỐ CƠ THỂ */}
+          <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
+            <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
+              Ngoại hình & Chỉ số cơ thể
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Chiều cao (cm)</label>
+                <input
+                  type="number"
+                  value={editForm.height}
+                  onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
               </div>
-              <select
-                value=""
-                onChange={(e) => {
-                  handleAddSkill(e.target.value);
-                  e.target.value = "";
-                }}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-300 text-[11px] font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none"
-                style={{
-                  backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right 0.75rem center",
-                  backgroundSize: "0.85em",
-                  paddingRight: "2rem"
-                }}
-              >
-                <option value="" disabled hidden>Thêm lĩnh vực hoạt động...</option>
-                {talentTypeOptions
-                  .filter((s: string) => !editForm.talentTypes.includes(s))
-                  .map((s: string) => (
-                    <option key={s} value={s} className="bg-slate-950 text-white">{s}</option>
-                  ))
-                }
-              </select>
-            </div>
-
-            {/* Ngôn ngữ */}
-            <div className="space-y-3">
-              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngôn ngữ</label>
-              <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-[#05070e] border border-white/5 rounded-xl text-left">
-                {editForm.languages.length === 0 ? (
-                  <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn ngôn ngữ nào</span>
-                ) : (
-                  editForm.languages.map((lang: string) => (
-                    <span key={lang} className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
-                      {lang}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveLanguage(lang)}
-                        className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))
-                )}
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Cân nặng (kg)</label>
+                <input
+                  type="number"
+                  value={editForm.weight}
+                  onChange={(e) => setEditForm({ ...editForm, weight: e.target.value })}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <select
-                    value={selectedLangName}
-                    onChange={(e) => setSelectedLangName(e.target.value)}
-                    className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-300 text-[11px] font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none"
-                    style={{
-                      backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "right 0.75rem center",
-                      backgroundSize: "0.85em",
-                      paddingRight: "2rem"
-                    }}
-                  >
-                    <option value="" disabled hidden>Chọn ngôn ngữ...</option>
-                    {availableLanguages.map((l: string) => (
-                      <option key={l} value={l} className="bg-slate-950 text-white">{l}</option>
-                    ))}
-                  </select>
 
-                  <input
-                    type="text"
-                    value={langProficiency}
-                    onChange={(e) => setLangProficiency(e.target.value)}
-                    placeholder="Trình độ (e.g. Bản xứ, IELTS 7.5)"
-                    className="bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-white text-[11px] font-semibold focus:outline-none focus:border-amber-400 transition-colors"
-                  />
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px] mb-1">Số đo 3 vòng (cm)</label>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-slate-500 font-semibold block text-left">Vòng 1</span>
+                    <input
+                      type="number"
+                      value={editForm.bust}
+                      onChange={(e) => setEditForm({ ...editForm, bust: e.target.value })}
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-slate-500 font-semibold block text-left">Vòng 2</span>
+                    <input
+                      type="number"
+                      value={editForm.waist}
+                      onChange={(e) => setEditForm({ ...editForm, waist: e.target.value })}
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] text-slate-500 font-semibold block text-left">Vòng 3</span>
+                    <input
+                      type="number"
+                      value={editForm.hips}
+                      onChange={(e) => setEditForm({ ...editForm, hips: e.target.value })}
+                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                    />
+                  </div>
                 </div>
+              </div>
+            </div>
+          </div>
 
+          {/* PHÂN NHÓM 4: THÔNG TIN NGHỀ NGHIỆP & MỨC GIÁ */}
+          <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
+            <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
+              Thông tin nghề nghiệp & Mức giá
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Mức giá (VD: "5.000.000đ/ngày" hoặc "Thỏa thuận")</label>
+                <input
+                  type="text"
+                  value={editForm.price}
+                  onChange={(e) => handlePriceChange(e.target.value, editForm.price)}
+                  placeholder="Nhập mức giá dịch vụ của bạn..."
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Kinh nghiệm (năm)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={20}
+                  value={editForm.experience}
+                  onChange={(e) => setEditForm({ ...editForm, experience: e.target.value })}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              {/* Lĩnh vực hoạt động */}
+              <div className="space-y-3">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Lĩnh vực hoạt động</label>
+                <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-[#05070e] border border-white/5 rounded-xl text-left">
+                  {editForm.talentTypes.length === 0 ? (
+                    <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn lĩnh vực nào</span>
+                  ) : (
+                    editForm.talentTypes.map((skill: string) => (
+                      <span key={skill} className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                        {skill}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSkill(skill)}
+                          className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+                <select
+                  value=""
+                  onChange={(e) => {
+                    handleAddSkill(e.target.value);
+                    e.target.value = "";
+                  }}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-300 text-[11px] font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none"
+                  style={{
+                    backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 0.75rem center",
+                    backgroundSize: "0.85em",
+                    paddingRight: "2rem"
+                  }}
+                >
+                  <option value="" disabled hidden>Thêm lĩnh vực hoạt động...</option>
+                  {talentTypeOptions
+                    .filter((s: string) => !editForm.talentTypes.includes(s))
+                    .map((s: string) => (
+                      <option key={s} value={s} className="bg-slate-950 text-white">{s}</option>
+                    ))
+                  }
+                </select>
+              </div>
+
+              {/* Ngôn ngữ */}
+              <div className="space-y-3">
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngôn ngữ</label>
+                <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-[#05070e] border border-white/5 rounded-xl text-left">
+                  {editForm.languages.length === 0 ? (
+                    <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn ngôn ngữ nào</span>
+                  ) : (
+                    editForm.languages.map((lang: string) => (
+                      <span key={lang} className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                        {lang}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLanguage(lang)}
+                          className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <select
+                      value={selectedLangName}
+                      onChange={(e) => setSelectedLangName(e.target.value)}
+                      className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-300 text-[11px] font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none"
+                      style={{
+                        backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 0.75rem center",
+                        backgroundSize: "0.85em",
+                        paddingRight: "2rem"
+                      }}
+                    >
+                      <option value="" disabled hidden>Chọn ngôn ngữ...</option>
+                      {availableLanguages.map((l: string) => (
+                        <option key={l} value={l} className="bg-slate-950 text-white">{l}</option>
+                      ))}
+                    </select>
+
+                    <input
+                      type="text"
+                      value={langProficiency}
+                      onChange={(e) => setLangProficiency(e.target.value)}
+                      placeholder="Trình độ (e.g. Bản xứ, IELTS 7.5)"
+                      className="bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-white text-[11px] font-semibold focus:outline-none focus:border-amber-400 transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddLanguage}
+                    disabled={!selectedLangName}
+                    className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${selectedLangName
+                      ? "bg-[#f4c430] text-slate-950 hover:opacity-90 active:scale-95 cursor-pointer"
+                      : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                      }`}
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Thêm ngoại ngữ
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* PHÂN NHÓM 5: LIÊN KẾT MẠNG XÃ HỘI */}
+          <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
+            <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
+              Liên kết Mạng xã hội
+            </h4>
+
+            {/* List of added accounts */}
+            <div className="space-y-2">
+              {socialAccounts.length === 0 ? (
+                <div className="text-slate-500 italic text-[11px] py-1">Chưa có liên kết mạng xã hội nào được thêm.</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {socialAccounts.map((account, index) => (
+                    <div key={index} className="flex items-center justify-between gap-3 bg-slate-950 border border-white/5 rounded-xl px-3.5 py-2">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[9px] font-black text-amber-400 uppercase tracking-wider block">
+                          {account.platform}
+                        </span>
+                        <a
+                          href={account.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-slate-300 hover:text-white truncate block font-semibold"
+                          title={account.url}
+                        >
+                          {account.url.replace(/https?:\/\/(www\.)?/, '')}
+                        </a>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSocialAccounts(prev => prev.filter((_, idx) => idx !== index));
+                        }}
+                        className="text-slate-500 hover:text-red-400 p-1 cursor-pointer transition-colors"
+                        title="Xóa liên kết"
+                      >
+                        <Trash2 className="h-4.5 w-4.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Input to add new account */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end pt-3 border-t border-white/5">
+              <div className="space-y-1.5 md:col-span-3">
+                <span className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Chọn nền tảng</span>
+                <select
+                  value={socialPlatform}
+                  onChange={(e) => setSocialPlatform(e.target.value as any)}
+                  className="w-full h-[38px] bg-slate-950 border border-white/10 rounded-xl px-3 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                >
+                  <option value="Tiktok">Tiktok</option>
+                  <option value="Facebook">Facebook</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="Thread">Thread</option>
+                  <option value="Linkedin">Linkedin</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5 md:col-span-7">
+                <span className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Đường dẫn (Link)</span>
+                <input
+                  type="url"
+                  value={socialLink}
+                  onChange={(e) => setSocialLink(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full h-[38px] bg-slate-950 border border-white/10 rounded-xl px-3.5 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              <div className="md:col-span-2">
                 <button
                   type="button"
-                  onClick={handleAddLanguage}
-                  disabled={!selectedLangName}
-                  className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${selectedLangName
-                    ? "bg-[#f4c430] text-slate-950 hover:opacity-90 active:scale-95 cursor-pointer"
-                    : "bg-slate-800 text-slate-500 cursor-not-allowed"
-                    }`}
+                  onClick={() => {
+                    if (!socialLink.trim()) return;
+                    let targetUrl = socialLink.trim();
+                    if (!/^https?:\/\//i.test(targetUrl)) {
+                      targetUrl = `https://${targetUrl}`;
+                    }
+                    setSocialAccounts(prev => [...prev, { platform: socialPlatform, url: targetUrl }]);
+                    setSocialLink("");
+                  }}
+                  className="w-full bg-[#f4c430] hover:opacity-90 active:scale-95 text-slate-950 rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider h-[38px] flex items-center justify-center cursor-pointer transition-all shadow-sm shrink-0"
                 >
-                  <Plus className="h-3.5 w-3.5" /> Thêm ngoại ngữ
+                  Thêm
                 </button>
               </div>
             </div>
-
           </div>
 
           {/* Lifestyle Companion services config editing */}

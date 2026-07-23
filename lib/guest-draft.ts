@@ -21,17 +21,14 @@ function hasUsefulTalentDraft(profile: Record<string, unknown>) {
     "hips",
     "experience",
     "price",
-    "facebook_url",
-    "tiktok_url",
-    "instagram_url",
-    "linkedin_url",
+    "portfolio_url",
   ];
 
   if (scalarFields.some((field) => String(profile[field] ?? "").trim() !== "")) {
     return true;
   }
 
-  const arrayFields = ["talentTypes", "specialSkills", "skills", "languages", "photos"];
+  const arrayFields = ["talentTypes", "specialSkills", "skills", "languages", "photos", "socialAccounts"];
   return arrayFields.some((field) => Array.isArray(profile[field]) && (profile[field] as unknown[]).length > 0);
 }
 

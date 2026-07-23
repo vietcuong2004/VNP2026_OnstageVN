@@ -56,9 +56,7 @@ type BackendProfile = {
   budget_max?: number | string | null;
   avatar_url?: string | null;
   price?: string | null;
-  facebook_url?: string | null;
-  instagram_url?: string | null;
-  linkedin_url?: string | null;
+  portfolio_url?: string | null;
   photos?: BackendPhoto[] | null;
   social_accounts?: BackendSocialAccount[] | null;
   calendar_events?: Array<{ starts_at?: string | null }> | null;
@@ -110,6 +108,7 @@ export type LoadBrandTalentsResult = {
 
 type BackendSocialAccount = {
   platform?: string | null;
+  url?: string | null;
   followers_count?: number | string | null;
   engagement_rate?: number | string | null;
 };
@@ -583,6 +582,10 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     rateCard: fallback?.rateCard || {},
     email: profile.user?.email || fallback?.email || "",
     phone: profile.user?.phone || fallback?.phone || "",
+    portfolio_url: profile.portfolio_url || fallback?.portfolio_url || "",
+    socialAccounts: (profile.social_accounts ?? [])
+      .map((account) => ({ platform: account.platform || "", url: account.url || "" }))
+      .filter((account) => account.platform && account.url),
     surveyScores: profile.latest_survey
       ? {
           pageant: Number(profile.latest_survey.pageant_score) || 0,
@@ -593,9 +596,6 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     mainCategory: profile.latest_survey?.main_category || (fallback as any)?.mainCategory || "",
     aiScore: Number(profile.latest_survey?.profile_score) || (fallback as any)?.aiScore || 0,
     price: profile.price || fallback?.price || "",
-    facebook_url: profile.facebook_url || fallback?.facebook_url || "",
-    instagram_url: profile.instagram_url || fallback?.instagram_url || "",
-    linkedin_url: profile.linkedin_url || fallback?.linkedin_url || "",
   };
 }
 

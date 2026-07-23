@@ -9,7 +9,7 @@ export default function ModelTiersGrid() {
 
       <div className="space-y-4">
         <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left">
-          Hệ Thống Phân Hạng Người Mẫu VNP (VNP Model Tiers)
+          Hệ Thống Phân Hạng Người Mẫu (Onstage Model Tiers)
         </span>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

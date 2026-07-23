@@ -48,12 +48,9 @@ type BackendProfile = {
   budget_min?: number | null;
   budget_max?: number | null;
   price?: string | null;
-  facebook_url?: string | null;
-  instagram_url?: string | null;
-  tiktok_url?: string | null;
-  linkedin_url?: string | null;
+  portfolio_url?: string | null;
   photos?: BackendPhoto[] | null;
-  social_accounts?: Array<{ followers_count?: number | null; engagement_rate?: number | null }> | null;
+  social_accounts?: Array<{ platform?: string | null; url?: string | null; followers_count?: number | null; engagement_rate?: number | null }> | null;
   calendar_events?: any[] | null;
   user?: { name?: string | null; email?: string | null; phone?: string | null; external_avatar_url?: string | null } | null;
 };
@@ -121,10 +118,8 @@ export function getDefaultTalentProfile() {
     hasUploadedIntro: false,
     hasUploadedMC: false,
     price: "",
-    facebook_url: "",
-    tiktok_url: "",
-    instagram_url: "",
-    linkedin_url: "",
+    portfolio_url: "",
+    socialAccounts: [],
   };
 }
 
@@ -433,10 +428,8 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     photos: photos.length ? photos : localPhotos,
     photoRecords: portfolioPhotoRecords,
     price: profile.price || "",
-    facebook_url: profile.facebook_url || "",
-    tiktok_url: profile.tiktok_url || "",
-    instagram_url: profile.instagram_url || "",
-    linkedin_url: profile.linkedin_url || "",
+    portfolio_url: profile.portfolio_url || "",
+    socialAccounts: profile.social_accounts || []
   };
 
   return persistTalentProfile(mapped);
@@ -487,10 +480,12 @@ export function buildBackendProfilePayload(profile: any) {
     budget_min: profile.rateCard ? Math.min(...Object.values(profile.rateCard).map(Number).filter(Boolean)) : undefined,
     budget_max: profile.rateCard ? Math.max(...Object.values(profile.rateCard).map(Number).filter(Boolean)) : undefined,
     price: profile.price || undefined,
-    facebook_url: profile.facebook_url || undefined,
-    tiktok_url: profile.tiktok_url || undefined,
-    instagram_url: profile.instagram_url || undefined,
-    linkedin_url: profile.linkedin_url || undefined,
+    portfolio_url: profile.portfolio_url || undefined,
+    social_accounts: Array.isArray(profile.socialAccounts)
+      ? profile.socialAccounts
+          .map((a: any) => ({ platform: a.platform, url: a.url }))
+          .filter((a: any) => a.platform && a.url)
+      : undefined,
     is_public: true,
   };
 }
