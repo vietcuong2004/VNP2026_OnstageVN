@@ -57,100 +57,72 @@ Những thông tin này có thể được bổ sung sau để tối ưu hiệu 
 
 ---
 
-## 3. LUỒNG 1 - TẠO CAMPAIGN NHANH
+## 3. LUỒNG 1 - TẠO CAMPAIGN NHANH (AI PARSING FLOW)
 
-### Bước 1: Tiêu đề campaign
-* **Người dùng nhắn:** `1` hoặc `Tạo campaign`
+Đây là luồng duy nhất phục vụ tạo nhanh chiến dịch. Người dùng có thể nhấn phím `1` từ menu chính hoặc nhắn tin tự do bất kỳ lúc nào để bắt đầu.
+
+### 3.1. Trường hợp người dùng gõ phím số 1 (Hoặc "Tạo campaign")
+* **Người dùng nhắn:** `1`
 * **Chatbot:**
-  > Nhập tiêu đề campaign của bạn nhé (Ví dụ: Tuyển KOL livestream mỹ phẩm)
-
----
-
-### Bước 2: Loại hình công việc (Job Type)
-* **Người dùng nhắn:** `Tuyển mẫu lookbook thời trang`
-* **Chatbot:**
-  > Chọn loại hình công việc phù hợp:
+  > Bạn nhắn nội dung campaign muốn tạo nhé.
   > 
-  > 1. Tuyển cộng tác viên
-  > 2. Tuyển đại sứ
-  > 3. Beauty KOL/KOC
-  > 4. KOL livestream
-  > 5. Model lookbook
-  > 6. PG event
-  > 7. MC sự kiện
-  > 8. Dancer performance
-  > 9. Khác
+  > *Ví dụ:* tuyển KOL quần áo, ở 102 Thái Thịnh Đống Đa, Hà Nội, thù lao 1tr5/ngày
+
+---
+
+### 3.2. Tiến trình xử lý tin nhắn tự do (AI Parsing)
+* **Người dùng nhắn:** 
+  > tạo cho tôi campain tuyển KOL quần áo, ở 102 Thái Thịnh Đống Đa, Hà Nội, thù lao 1tr5/ngày
+
+* **Chatbot (Phản hồi tức thời):**
+  > Mình đã nhận yêu cầu, đang xử lý nhé. Khi xong mình sẽ gửi kết quả tại đây.
+
+* **Chatbot (Phản hồi sau 1-2 giây - sau khi AI bóc tách thông tin):**
+  > Mình đã ghi nhận một số thông tin campaign.
   > 
-  > Bạn có thể nhắn số hoặc chọn nhanh nút bấm.
-
----
-
-### Bước 3: Địa điểm làm việc (Location)
-* **Người dùng nhắn:** `5` (hoặc `Model lookbook`)
-* **Chatbot:**
-  > Công việc này diễn ra ở thành phố nào?
+  > Mình sẽ tạo campaign với thông tin:
+  > • Tên: tuyển KOL quần áo
+  > • Vị trí: KOL
+  > • Khu vực: Hà Nội
+  > • Địa chỉ chi tiết: 102 Thái Thịnh, Đống Đa
+  > • Thù lao: 1.500.000 VND/ngày
+  > • Mô tả: tuyển KOL quần áo
+  > • Chiều cao tối thiểu: Không giới hạn cm
+  > • Cân nặng tối đa: Không giới hạn kg
+  > • Kinh nghiệm tối thiểu: Không giới hạn năm
   > 
-  > 1. Hà Nội
-  > 2. TP.HCM
-  > 3. Đà Nẵng
-  > 4. Nhập tỉnh/thành phố khác
-
----
-
-### Bước 3.1: Địa chỉ chi tiết (Address)
-* **Người dùng nhắn:** `2` (hoặc `TP.HCM`)
-* **Chatbot:**
-  > Nhập địa chỉ chi tiết diễn ra sự kiện nhé (Ví dụ: Studio Sun, 123 Nguyễn Huệ, Quận 1)
-
----
-
-### Bước 4: Thời gian diễn ra (Event Date)
-* **Người dùng nhắn:** `Studio Sun, 123 Nguyễn Huệ, Quận 1`
-* **Chatbot:**
-  > Ngày diễn ra sự kiện là khi nào? (Ví dụ: 30/08/2026 hoặc "Chủ nhật tuần này")
-
----
-
-### Bước 5: Số lượng tuyển dụng (Quantity)
-* **Người dùng nhắn:** `30/08/2026` (hoặc `chủ nhật tuần này`)
-* **Chatbot:**
   > Số lượng talent cần tuyển? (Ví dụ: 3)
 
 ---
 
-### Bước 6: Mức thù lao (Cát-xê)
-* **Người dùng nhắn:** `2` (hoặc `Cần 2 bạn`)
+### 3.3. Tiếp tục hoàn thiện các trường còn thiếu
+* **Người dùng nhắn:**
+  > Cần tuyển 2 bạn
+
 * **Chatbot:**
-  > Thù lao dự kiến cho mỗi bạn là bao nhiêu?
+  > Mình đã cập nhật Số lượng: 2.
   > 
-  > 1. Thỏa thuận
-  > 2. 500.000/ngày
-  > 3. 1.000.000/ngày
-  > 4. 2.000.000/ngày
+  > Ngày diễn ra sự kiện là khi nào? (Ví dụ: 30/08/2026 hoặc "Chủ nhật tuần này")
+
+* **Người dùng nhắn:**
+  > 30/08/2026
+
+* **Chatbot:**
+  > Mình đã cập nhật Thời gian: 30/08/2026.
   > 
-  > Hoặc bạn gõ số tiền khác (Ví dụ: 1.500.000)
-
----
-
-### Bước 7: Mô tả công việc
-* **Người dùng nhắn:** `1.500.000` (hoặc `1tr5`)
-* **Chatbot:**
-  > Viết mô tả công việc ngắn gọn (Ví dụ: Yêu cầu chiều cao, trang phục, lịch chụp...)
-
----
-
-### Bước 8: Ảnh minh họa (Campaign Images)
-* **Người dùng nhắn:** `Chụp lookbook 20 bộ trang phục hè tại studio Q1.`
-* **Chatbot:**
   > Bạn có muốn thêm ảnh minh họa cho campaign (ảnh concept, sản phẩm...) không?
   > 
   > 1. Bỏ qua
   > 2. Bắt đầu đăng ảnh
 
+* **Người dùng nhắn:** `1` (hoặc chọn `Bỏ qua`)
+* **Chatbot:**
+  > (Chuyển tiếp đến bước 3.4 Xác nhận & Đăng tuyển, trường Ảnh đính kèm sẽ hiển thị: Chưa có)
+
 ---
 
-### Bước 8.1: Nhận ảnh từ người dùng (Nếu chọn 2)
-* **Người dùng nhắn:** `2` (hoặc `Bắt đầu đăng ảnh`)
+### 3.3.1. Nhận ảnh từ người dùng (Nếu chọn 2)
+* **Người dùng nhắn:** `2` (hoặc chọn `Bắt đầu đăng ảnh`)
 * **Chatbot:**
   > Vui lòng gửi ảnh minh họa nhé. Bạn có thể chọn và gửi nhiều ảnh cùng lúc (tối đa 10 ảnh).
 * **Người dùng nhắn:** (Gửi các file ảnh từ thư viện hoặc camera)
@@ -159,24 +131,25 @@ Những thông tin này có thể được bổ sung sau để tối ưu hiệu 
   > 
   > 1. Hoàn tất và tiếp tục
   > 2. Gửi thêm ảnh
-* **Người dùng nhắn:** `1` (hoặc `Hoàn tất và tiếp tục`)
+* **Người dùng nhắn:** `1` (hoặc chọn `Hoàn tất và tiếp tục`)
+* **Chatbot:**
+  > (Chuyển tiếp đến bước 3.4 Xác nhận & Đăng tuyển, trường Ảnh đính kèm sẽ hiển thị: [3 ảnh đã tải lên])
 
 ---
 
-### Bước 9: Xác nhận & Đăng tuyển
-* **Người dùng nhắn:** `1` (ở Bước 8 nếu chọn Bỏ qua) HOẶC `1` (ở Bước 8.1 nếu chọn Hoàn tất và tiếp tục)
+### 3.4. Xác nhận & Đăng tuyển
 * **Chatbot:**
   > Xác nhận thông tin campaign:
   > 
-  > • Tiêu đề: Tuyển mẫu lookbook thời trang
-  > • Loại hình: Model lookbook
-  > • Địa điểm: TP.HCM
-  > • Địa chỉ chi tiết: Studio Sun, 123 Nguyễn Huệ, Quận 1
+  > • Tiêu đề: tuyển KOL quần áo
+  > • Loại hình: KOL
+  > • Địa điểm: Hà Nội
+  > • Địa chỉ chi tiết: 102 Thái Thịnh, Đống Đa, Hà Nội
   > • Thời gian: 30/08/2026
   > • Số lượng: 2
   > • Thù lao: 1.500.000đ/ngày
-  > • Mô tả: Chụp lookbook 20 bộ trang phục hè tại studio Q1.
-  > • Ảnh đính kèm: [3 ảnh đã tải lên] (Hoặc: Chưa có)
+  > • Mô tả: tuyển KOL quần áo
+  > • Ảnh đính kèm: Chưa có (Hoặc: [3 ảnh đã tải lên])
   > 
   > Bạn có muốn đăng tuyển ngay không?
   > 
@@ -188,7 +161,7 @@ Những thông tin này có thể được bổ sung sau để tối ưu hiệu 
 * **Chatbot:**
   > 🎉 Đăng tuyển thành công! Chiến dịch của bạn đã hiển thị trên OnstageVN.
   > 
-  > Link quản lý: https://onstage.vn/campaign/12345
+  > Link job: https://onstage.vn/campaign/12345
   > (Bạn có thể truy cập link trên để cập nhật thêm ảnh hoặc thực hiện ký quỹ bảo chứng).
 
 ---

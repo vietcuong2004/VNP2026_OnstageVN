@@ -49,24 +49,28 @@ Dưới đây là sơ đồ luồng điều hướng của Chatbot Zalo dành ch
 graph TD
     Start([Khởi động Chatbot]) --> MainMenu{Lựa chọn chức năng}
     
-    %% Option 1: Tạo campaign nhanh
-    MainMenu -->|1. Tạo campaign nhanh| AskTitle[Hỏi Tiêu đề]
-    AskTitle --> ValidateTitle{Hợp lệ?}
-    ValidateTitle -- Không --> AskTitle
-    ValidateTitle -- Có --> AskJobType[Hỏi Loại hình]
-    AskJobType --> AskLocation[Hỏi Địa điểm]
-    AskLocation --> AskAddress[Hỏi Địa chỉ chi tiết]
-    AskAddress --> AskDate[Hỏi Thời gian]
-    AskDate --> ValidateDate{Hợp lệ?}
-    ValidateDate -- Không --> AskDate
-    ValidateDate -- Có --> AskQuantity[Hỏi Số lượng]
-    AskQuantity --> ValidateQty{Hợp lệ?}
-    ValidateQty -- Không --> AskQuantity
-    ValidateQty -- Có --> AskBudget[Hỏi Cát-xê]
-    AskBudget --> AskDescription[Hỏi Mô tả công việc]
-    AskDescription --> Confirm{Xác nhận lại}
+    %% Option 1: Tạo campaign nhanh (AI Parsing)
+    MainMenu -->|1. Tạo campaign nhanh| AskBrief[Nhập tin nhắn tự do / Brief]
+    MainMenu -->|Nhập tin nhắn thô trực tiếp| ParseAI[AI xử lý & Trích xuất thông tin]
+    AskBrief --> ParseAI
+    ParseAI --> ShowParsed[Hiển thị các thông tin trích xuất được]
+    
+    ShowParsed --> CheckMissing{Kiểm tra thông tin thiếu?}
+    CheckMissing -- Thiếu Khu vực --> AskCity[Hỏi Thành phố]
+    CheckMissing -- Thiếu Số lượng --> AskQty[Hỏi Số lượng]
+    CheckMissing -- Thiếu Thời gian --> AskDate[Hỏi Thời gian]
+    CheckMissing -- Đầy đủ --> AskImage{Hỏi Ảnh minh họa?}
+    
+    AskCity --> CheckMissing
+    AskQty --> CheckMissing
+    AskDate --> CheckMissing
+    
+    AskImage -- Bỏ qua --> Confirm[Hiển thị Xác nhận campaign]
+    AskImage -- Có --> UploadImage[Đăng ảnh minh họa]
+    UploadImage --> Confirm
+    
     Confirm -- Đăng tuyển --> CreateJob[Tạo campaign thành công & Sinh QR/Link]
-    Confirm -- Sửa lại --> AskTitle
+    Confirm -- Sửa lại --> AskBrief
     Confirm -- Hủy bỏ --> MainMenu
 
     %% Option 2: Campaign của tôi
