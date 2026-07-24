@@ -475,7 +475,13 @@ export default function EditInfoTab({
       const updatedProfile = {
         ...syncedProfile,
         ...profile,
-        [field]: photoUrl
+        [field]: photoUrl,
+        ...(syncedProfile.backendProfileId
+          ? {
+            isOnboarded: true,
+            tier: profile.tier || "Potential",
+          }
+          : {}),
       };
 
       setProfile(persistTalentProfile(updatedProfile));

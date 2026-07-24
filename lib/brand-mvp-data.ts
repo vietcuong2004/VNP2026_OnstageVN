@@ -24,7 +24,7 @@ export type TalentProfile = {
   skinTone: string;
   hairColor: string;
   yearsOfExperience: number;
-  tier: "S" | "A" | "B" | "C";
+  tier: "S" | "A" | "B" | "C" | "Potential";
   verified: boolean;
   rating: number;
   completedJobs: number;

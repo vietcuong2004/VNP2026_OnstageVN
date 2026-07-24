@@ -1,4 +1,4 @@
-const PUBLIC_PREFIXES = ["/auth", "/campaign", "/ref", "/activate-talent", "/setup-talent-login", "/intro", "/brand", "/talent"];
+const PUBLIC_PREFIXES = ["/auth", "/campaign", "/ref", "/activate-talent", "/setup-talent-login", "/intro", "/landing", "/brand", "/talent"];
 const APP_SHELL_PREFIXES = ["/brand", "/talent"];
 
 export function normalizePath(path: string) {

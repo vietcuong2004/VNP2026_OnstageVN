@@ -46,6 +46,7 @@ export default function BottomNavigation() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [visible, setVisible] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [sourcePath, setSourcePath] = useState("");
 
   useEffect(() => {
     const syncToken = () => setIsLoggedIn(!!getAuthToken());
@@ -106,18 +107,34 @@ export default function BottomNavigation() {
     return () => window.removeEventListener("scroll", handleScroll, { capture: true });
   }, [showMoreMenu]);
 
+  useEffect(() => {
+    if (!pathname.startsWith("/brand/talents/") && !pathname.startsWith("/talent/jobs/")) {
+      setSourcePath("");
+      return;
+    }
+
+    setSourcePath(new URLSearchParams(window.location.search).get("from") || "");
+  }, [pathname]);
+
   // Guard: only render the bottom nav inside the app portals.
   if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand")) {
     return null;
   }
 
   const isBrand = pathname.startsWith("/brand");
+  const activePathname = pathname.startsWith("/brand/talents/") && sourcePath.startsWith("/brand/")
+    ? sourcePath
+    : pathname.startsWith("/talent/jobs/") && sourcePath.startsWith("/talent/")
+      ? sourcePath
+      : pathname.startsWith("/talent/jobs/")
+        ? "/talent/jobs"
+        : pathname;
 
   const brandPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
-    { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
+    { label: "Tìm kiếm", icon: Search, href: "/brand/search" },
     { label: "Quản lý Talent", icon: Users, href: "/brand/my-talents" },
-    { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
+    { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
   ];
 
   const talentPrimaryItems = [
@@ -188,7 +205,7 @@ export default function BottomNavigation() {
                 const isLogout = item.label === "Đăng xuất";
                 const isLogin = item.label === "Đăng nhập";
                 const isSwitch = item.label === "Sang Brand" || item.label === "Sang Talent";
-                const isActive = !isLogout && !isLogin && !isSwitch && (pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href)));
+                const isActive = !isLogout && !isLogin && !isSwitch && (activePathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && activePathname.startsWith(item.href)));
                 const content = (
                   <>
                     <div className={cn(
@@ -254,7 +271,7 @@ export default function BottomNavigation() {
       )}>
         <nav className="flex h-[calc(4rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] w-full items-center justify-around border-t border-white/10 bg-[#03050c]/95 px-2 shadow-2xl backdrop-blur-xl">
           {primaryItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && pathname.startsWith(item.href));
+            const isActive = activePathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && activePathname.startsWith(item.href));
             const Icon = item.icon;
 
             return (

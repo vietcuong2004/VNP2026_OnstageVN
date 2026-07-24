@@ -376,7 +376,7 @@ export default function BrandShortlistsPage() {
 
                   <div className="mt-4 flex justify-end gap-2 border-t border-white/5 pt-4">
                     <button
-                      onClick={() => router.push(`/brand/talents/${talent.id}`)}
+                      onClick={() => router.push(`/brand/talents/${talent.id}?from=/brand/shortlists`)}
                       className="flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 text-[10px] font-black uppercase tracking-wider text-white transition active:scale-95 hover:bg-white/10"
                     >
                       <Eye className="h-4 w-4" />

@@ -249,7 +249,13 @@ export default function PortfolioPage() {
         return;
       }
 
-      const updatedProfile = persistTalentProfile({ ...syncedProfile, ...profile, [type]: photoUrl });
+      const updatedProfile = persistTalentProfile({
+        ...syncedProfile,
+        ...profile,
+        [type]: photoUrl,
+        isOnboarded: true,
+        tier: profile.tier || "Potential",
+      });
       setProfile(updatedProfile);
       URL.revokeObjectURL(previewUrl);
 

@@ -760,11 +760,13 @@ export default function DiscoverTalentsPage() {
                     status={status}
                     isSaved={isSaved}
                     onToggleSaved={(item) => void toggleSaved(item.id)}
-                    onView={(item) => router.push(`/brand/talents/${item.id}`)}
+                    onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
                     onMessage={(item) => {
                       if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
                       router.push(`/brand/messages?talentId=${item.id}`);
                     }}
+                    messageLabel="Nhắn tin"
+                    showMessageIcon
                   />
                 );
               })}

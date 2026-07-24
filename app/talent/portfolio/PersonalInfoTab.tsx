@@ -341,7 +341,13 @@ export default function PersonalInfoTab({
         return;
       }
 
-      const updatedProfile = persistTalentProfile({ ...syncedProfile, ...profile, [type]: photoUrl });
+      const updatedProfile = persistTalentProfile({
+        ...syncedProfile,
+        ...profile,
+        [type]: photoUrl,
+        isOnboarded: true,
+        tier: profile.tier || "Potential",
+      });
       setProfile(updatedProfile);
       URL.revokeObjectURL(previewUrl);
 
@@ -458,6 +464,8 @@ export default function PersonalInfoTab({
         ...profile,
         [fieldKey]: photoUrl,
         photos: nextPhotos.filter(Boolean),
+        isOnboarded: true,
+        tier: profile.tier || "Potential",
       });
       setProfile(updatedProfile);
       URL.revokeObjectURL(previewUrl);

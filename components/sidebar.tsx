@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Home, User, Briefcase, Crown, MessageSquare, Calendar, Wallet, Settings,
   Sparkles, BookmarkCheck, LayoutDashboard, ChevronRight, Trophy,
@@ -39,18 +40,35 @@ const brandMenuItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [sourcePath, setSourcePath] = useState("");
 
   const isTalent = pathname.startsWith("/talent");
   const isBrand = pathname.startsWith("/brand");
   const isGateway = pathname === "/";
 
   const currentMenuItems = isTalent ? talentMenuItems : isBrand ? brandMenuItems : [];
+  const activePathname = pathname.startsWith("/brand/talents/") && sourcePath.startsWith("/brand/")
+    ? sourcePath
+    : pathname.startsWith("/talent/jobs/") && sourcePath.startsWith("/talent/")
+      ? sourcePath
+      : pathname.startsWith("/talent/jobs/")
+        ? "/talent/jobs"
+        : pathname;
+
+  useEffect(() => {
+    if (!pathname.startsWith("/brand/talents/") && !pathname.startsWith("/talent/jobs/")) {
+      setSourcePath("");
+      return;
+    }
+
+    setSourcePath(new URLSearchParams(window.location.search).get("from") || "");
+  }, [pathname]);
 
   if (isGateway || currentMenuItems.length === 0) {
     return null;
   }
 
-  const targetRolePath = isTalent ? "/brand/dashboard" : "/talent/jobs";
+  const targetRolePath = isTalent ? "/brand/dashboard" : "/talent/dashboard";
   const switchLabel = isTalent ? "Chuyển sang Brand" : "Chuyển sang Talent";
 
   return (
@@ -58,7 +76,7 @@ export default function Sidebar() {
       {/* Sidebar Navigation Links */}
       <nav className="flex-1 space-y-2 overflow-y-auto pr-1">
         {currentMenuItems.map((item) => {
-          const isActive = pathname === item.href || (item.href.split("/").length > 3 && pathname.startsWith(item.href));
+          const isActive = activePathname === item.href || (item.href.split("/").length > 3 && activePathname.startsWith(item.href));
           const Icon = item.icon;
 
           return (

@@ -51,7 +51,7 @@ export default function TalentCard({
   onView,
   onMessage,
   viewLabel = "Xem",
-  messageLabel = "Nhắn tin",
+  messageLabel = "Thêm vào Brand",
   showMessageIcon = true,
   showLifestyleServices = false,
   showSocialStats = false,

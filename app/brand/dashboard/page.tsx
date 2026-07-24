@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -26,6 +26,7 @@ import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl
 import { cn } from "@/lib/utils";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import TalentCard from "@/components/TalentCard";
+import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
 const nextActions = [
   {
@@ -173,6 +174,8 @@ export default function BrandDashboard() {
   const [partnerProfile, setPartnerProfile] = useState(emptyPartnerProfile);
   const [approvedRevenue, setApprovedRevenue] = useState(0);
   const [pendingRevenue, setPendingRevenue] = useState(0);
+  const [showControlCenterDialog, setShowControlCenterDialog] = useState(false);
+  const [currentDateText, setCurrentDateText] = useState("");
 
   useEffect(() => {
     setAuthUser(getStoredAuthUser<{ id?: number | string; name?: string; email?: string }>());
@@ -180,6 +183,7 @@ export default function BrandDashboard() {
 
   useEffect(() => {
     let active = true;
+    setCurrentDateText(new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date()));
 
     Promise.all([
       loadBrandCampaigns([]).catch(() => []),
@@ -228,18 +232,18 @@ export default function BrandDashboard() {
       if (!active) return;
 
       const transactions = responses
-        .flatMap((response) => response?.data ?? [])
-        .filter((transaction) => String(transaction.receiver_user_id || "") === authUserId);
+        .flatMap((response: any) => response?.data ?? [])
+        .filter((transaction: any) => String(transaction.receiver_user_id || "") === authUserId);
 
       setApprovedRevenue(
         transactions
-          .filter((transaction) => transaction.status === "approved")
-          .reduce((sum, transaction) => sum + transaction.amount, 0),
+          .filter((transaction: any) => transaction.status === "approved")
+          .reduce((sum: number, transaction: any) => sum + transaction.amount, 0),
       );
       setPendingRevenue(
         transactions
-          .filter((transaction) => transaction.status === "pending")
-          .reduce((sum, transaction) => sum + transaction.amount, 0),
+          .filter((transaction: any) => transaction.status === "pending")
+          .reduce((sum: number, transaction: any) => sum + transaction.amount, 0),
       );
     });
 
@@ -312,33 +316,46 @@ export default function BrandDashboard() {
 
   return (
     <div className="animate-in fade-in duration-500 space-y-8 pb-16">
-      <section className="flex flex-col gap-5 border-b border-[#2B313D] pb-7 md:flex-row md:items-end md:justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-2">
-            <span className="rounded-md border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
-              Onstage VN - Model Management System
-            </span>
+      <div className="relative overflow-hidden rounded-3xl border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.14),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-amber-400/40 bg-amber-400/10 text-amber-300">
+                Brand Control Center
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowControlCenterDialog(true)}
+                className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/35 text-amber-300 text-[9px] font-black shadow-[0_0_8px_rgba(245,158,11,0.15)] hover:scale-110 hover:shadow-[0_0_12px_rgba(245,158,11,0.35)] transition-all duration-300 cursor-pointer"
+                title="Tìm hiểu vai trò Brand"
+              >
+                ?
+              </button>
+              <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500 ml-1">
+                {currentDateText || "May 2026"}
+              </span>
+            </div>
+            <h1 className="font-display text-3xl font-black uppercase tracking-tight text-white md:text-4xl">
+              CHÀO MỪNG QUAY LẠI,{" "}
+              <span className="bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 bg-clip-text text-transparent">
+                {brandDisplayName}
+              </span>
+              !
+            </h1>
+            <p className="mt-2 max-w-2xl text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Theo dõi campaign đang mở, talent hiện có và những gương mặt phù hợp nhất để triển khai chiến dịch tiếp theo.
+            </p>
           </div>
-          <h1 className="font-display text-3xl font-black uppercase tracking-tight text-white md:text-4xl">
-            CHÀO MỪNG QUAY LẠI,{" "}
-            <span className="bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 bg-clip-text text-transparent">
-              {brandDisplayName}
-            </span>
-            !
-          </h1>
-          <p className="mt-2 max-w-2xl text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Theo dõi campaign đang mở, talent hiện có và những gương mặt phù hợp nhất để triển khai chiến dịch tiếp theo.
-          </p>
-        </div>
 
-        <button
-          onClick={() => router.push("/brand/search")}
-          className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 transition hover:-translate-y-0.5"
-        >
-          <Search className="mr-2 h-4 w-4 shrink-0" />
-          Tìm Talent Ngay
-        </button>
-      </section>
+          <button
+            onClick={() => router.push("/brand/search")}
+            className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 transition hover:-translate-y-0.5 shadow-[0_4px_20px_rgba(245,197,24,0.15)]"
+          >
+            <Search className="mr-2 h-4 w-4 shrink-0" />
+            Tìm Talent Ngay
+          </button>
+        </div>
+      </div>
 
       <section className="space-y-5">
         <div className="space-y-4">
@@ -376,11 +393,12 @@ export default function BrandDashboard() {
                     isSaved={isSaved}
                     experienceLabel="short"
                     onToggleSaved={(item) => toggleSaved(item.id)}
-                    onView={(item) => router.push(`/brand/talents/${item.id}`)}
+                    onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/dashboard`)}
                     onMessage={(item) => {
                       if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
                       router.push(`/brand/messages?talentId=${item.id}`);
                     }}
+                    messageLabel="Nhắn tin"
                   />
                 );
               })}
@@ -565,6 +583,13 @@ export default function BrandDashboard() {
           })}
         </div>
       </section>
+
+      {/* Control Center Explanation Dialog Modal */}
+      <ControlCenterExplanationDialog
+        isOpen={showControlCenterDialog}
+        onClose={() => setShowControlCenterDialog(false)}
+        defaultTab="brand"
+      />
     </div>
   );
 }

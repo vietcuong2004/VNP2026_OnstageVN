@@ -256,7 +256,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
       <div className="grid grid-cols-3 gap-2 px-4 py-3">
         <button
           type="button"
-          onClick={() => router.push(`/brand/talents/${talent.id}`)}
+          onClick={() => router.push(`/brand/talents/${talent.id}?from=/brand/my-talents`)}
           className="flex items-center justify-center gap-1.5 h-10 rounded-xl border border-yellow-400/20 bg-yellow-400/5 hover:bg-yellow-400/12 active:scale-[0.97] text-yellow-300 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
         >
           <Eye className="h-3.5 w-3.5 text-yellow-400 shrink-0" />

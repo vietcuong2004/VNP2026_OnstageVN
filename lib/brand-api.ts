@@ -493,6 +493,7 @@ function firstPhoto(profile: BackendProfile, category?: string): string | null {
 }
 
 function mapTier(value?: string | null): TalentProfile["tier"] {
+  if (value === "Potential") return value;
   if (value === "S" || value === "A" || value === "B" || value === "C") return value;
   return "C";
 }
@@ -1132,6 +1133,7 @@ export async function addBrandRosterTalent(profileId: string, notes?: string) {
     method: "POST",
     body: JSON.stringify({
       profile_id: profileId,
+      status: "active",
       notes,
     }),
   });

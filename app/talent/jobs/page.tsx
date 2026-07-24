@@ -425,7 +425,7 @@ function JobsPageContent() {
       };
       sessionStorage.setItem(JOBS_PAGE_STATE_KEY, JSON.stringify(stateSnapshot));
     }
-    router.push(`/talent/jobs/${job.id}`);
+    router.push(`/talent/jobs/${job.id}?from=/talent/jobs`);
   };
 
   const handleInviteClick = async (camp: any) => {

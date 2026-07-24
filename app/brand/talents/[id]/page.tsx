@@ -41,7 +41,7 @@ import { findTalentById } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
-import { addBrandRosterTalent, loadBrandTalent } from "@/lib/brand-api";
+import { addBrandRosterTalent, loadBrandRosterTalents, loadBrandTalent } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
@@ -326,6 +326,28 @@ export default function BrandTalentProfilePage() {
     };
   }, [params.id, staticTalent]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    loadBrandRosterTalents().then((items) => {
+      if (cancelled) return;
+
+      const currentProfileId = String(params.id);
+      const hasTalent = items.some((item: any) => {
+        const rosterProfileId = String(item.talent_profile_id || item.talentProfile?.id || item.talent_profile?.id || "");
+        return rosterProfileId === currentProfileId;
+      });
+
+      setIsAddedToBrand(hasTalent);
+    }).catch(() => {
+      if (!cancelled) setIsAddedToBrand(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [params.id]);
+
   const profile = useMemo(() => {
     if (!talent) return null;
     return {
@@ -453,20 +475,18 @@ export default function BrandTalentProfilePage() {
 
   async function handleAddToBrand() {
     if (!requireAuthAction({ actionLabel: "Thêm talent vào Brand" })) return;
-    if (!talent?.id || isAddingToBrand) return;
+    if (!talent?.id || isAddingToBrand || isAddedToBrand) return;
 
     setIsAddingToBrand(true);
     try {
       await addBrandRosterTalent(String(talent.id), "Thêm từ hồ sơ talent.");
       setIsAddedToBrand(true);
       window.alert(`Đã thêm ${talent.name} vào Brand thành công!`);
-      router.push("/brand/my-talents");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không thể thêm talent vào Brand. Vui lòng thử lại.";
       if (/already|exists|duplicate|đã|ton tai|tồn tại/i.test(message)) {
         setIsAddedToBrand(true);
         window.alert(`${talent.name} đã có trong Brand.`);
-        router.push("/brand/my-talents");
         return;
       }
       window.alert(message);
@@ -653,7 +673,7 @@ export default function BrandTalentProfilePage() {
             ) : (
               <Users className="mr-1.5 h-3.5 w-3.5 shrink-0" />
             )}
-            {isAddingToBrand ? "Đang thêm..." : isAddedToBrand ? "Đã thêm vào Brand" : "Thêm vào Brand"}
+            {isAddingToBrand ? "Đang thêm..." : isAddedToBrand ? "Đã thêm" : "Thêm vào Brand"}
           </button>
         </div>
       </section>

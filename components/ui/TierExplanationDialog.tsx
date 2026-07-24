@@ -129,6 +129,27 @@ export default function TierExplanationDialog({ isOpen, onClose }: TierExplanati
               </p>
             </div>
 
+            {/* POTENTIAL / CHƯA XẾP HẠNG */}
+            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 text-left shadow-sm md:col-span-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <ShieldAlert className="h-4.5 w-4.5 text-rose-400" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-rose-400">
+                    POTENTIAL PROFILE
+                  </span>
+                </div>
+                <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-[8px] font-black uppercase text-rose-300 border border-rose-500/30">
+                  DƯỚI 20 ĐIỂM
+                </span>
+              </div>
+              <span className="block text-base font-black text-white tracking-wide">
+                CHƯA XẾP HẠNG
+              </span>
+              <p className="mt-1 text-[10.5px] text-slate-300 leading-normal">
+                Chưa xếp hạng / Chờ cập nhật hồ sơ. Hồ sơ cần bổ sung hình ảnh, số đo chuẩn hóa hoặc liên kết mạng xã hội để kích hoạt hệ thống chẩn đoán phân hạng.
+              </p>
+            </div>
+
           </div>
 
           {/* Làm thế nào để nâng hạng? */}

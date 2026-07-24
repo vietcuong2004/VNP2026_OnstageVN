@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Award, Calendar, DollarSign, Briefcase, ChevronRight, Crown,
@@ -22,6 +22,7 @@ import { getStoredAuthUser } from "@/lib/api-client";
 import JobCard from "@/components/JobCard";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
+import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
@@ -102,10 +103,11 @@ export default function DashboardPage() {
   const router = useRouter();
   const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const [profile, setProfile] = useState<any>(null);
-  const currentUser = getStoredAuthUser();
+  const currentUser = useMemo(() => getStoredAuthUser(), []);
   const currentTalentId = (currentUser as any)?.profile_id || (currentUser as any)?.id;
   const [currentDateText, setCurrentDateText] = useState("");
   const [showTierDialog, setShowTierDialog] = useState(false);
+  const [showControlCenterDialog, setShowControlCenterDialog] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -288,14 +290,23 @@ export default function DashboardPage() {
                 Talent Control Center
               </span>
 
-              <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">
+              <button
+                type="button"
+                onClick={() => setShowControlCenterDialog(true)}
+                className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/35 text-amber-300 text-[9px] font-black shadow-[0_0_8px_rgba(245,158,11,0.15)] hover:scale-110 hover:shadow-[0_0_12px_rgba(245,158,11,0.35)] transition-all duration-300 cursor-pointer"
+                title="Tìm hiểu vai trò Talent"
+              >
+                ?
+              </button>
+
+              <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500 ml-1">
                 {currentDateText || "May 2026"}
               </span>
             </div>
 
             <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-5xl">
               {currentUser ? (
-                <>Chào mừng <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">{profile.name}</span>!</>
+                <>Chào mừng <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">{profile.name || (currentUser as any)?.name || "Talent"}</span>!</>
               ) : (
                 <>Chào mừng bạn đến với <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">OnstageVN</span>!</>
               )}
@@ -472,10 +483,10 @@ export default function DashboardPage() {
               job={job}
               isApplied={hasTalentApplication(job)}
               stage={getTalentJobStage(job)}
-              onView={(j) => router.push(`/talent/jobs/${j.id}`)}
+              onView={(j) => router.push(`/talent/jobs/${j.id}?from=/talent/dashboard`)}
               onApply={handleApply}
               onUpdateStage={handleUpdateStage}
-              onInvite={() => router.push(`/talent/jobs/${job.id}`)}
+              onInvite={() => router.push(`/talent/jobs/${job.id}?from=/talent/dashboard`)}
               onInviteBlocked={() => { }}
               formatDate={formatDate}
             />
@@ -742,6 +753,13 @@ export default function DashboardPage() {
 
       {/* Tier Explanation Dialog Modal */}
       <TierExplanationDialog isOpen={showTierDialog} onClose={() => setShowTierDialog(false)} />
+
+      {/* Control Center Explanation Dialog Modal */}
+      <ControlCenterExplanationDialog
+        isOpen={showControlCenterDialog}
+        onClose={() => setShowControlCenterDialog(false)}
+        defaultTab="talent"
+      />
     </div>
   );
 }
