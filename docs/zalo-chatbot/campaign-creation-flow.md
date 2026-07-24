@@ -16,6 +16,7 @@ Tài liệu này chi tiết hóa danh sách dữ liệu từ biểu mẫu tạo 
 | **`title`** | `campaigns.title` | Tiêu đề Job | Chữ tự do (10 - 100 ký tự) | Nhập text tự do |
 | **`jobType`** | `campaigns.job_type` | Loại hình công việc | Trùng khớp với danh mục loại hình được định cấu hình | Chọn nhanh qua nút bấm (Quick Replies). Nếu gõ tay, AI sẽ nhận diện loại hình gần nhất. |
 | **`city`** | `campaigns.city` | Thành phố làm việc | Tên tỉnh/thành phố hợp lệ tại Việt Nam | Chọn nhanh (Hà Nội, TP.HCM, Đà Nẵng...) hoặc gõ tự do. |
+| **`address`** | `campaigns.location` | Địa chỉ chi tiết | Chữ tự do (Ví dụ: 123 Nguyễn Huệ, Q1) | Nhập text tự do |
 | **`eventDate`** | `campaigns.event_date` | Ngày diễn ra sự kiện | Định dạng `YYYY-MM-DD`. Phải là ngày trong tương lai. | Nhận diện ngày thông minh (Ví dụ: "thứ 7 tuần sau", "30/08" -> parse tự động). |
 | **`talentQuantity`** | `campaigns.talent_quantity` | Số lượng cần tuyển | Số nguyên dương (> 0) | Trích xuất số từ câu trả lời tự nhiên (Ví dụ: "cần tuyển 3 bạn" -> `3`). |
 | **`budget` / `budgetNegotiable`** | `campaigns.budget_min` / `campaigns.budget_max` | Thù lao (Cát-xê) | Số tiền cụ thể (>= 0) HOẶC đặt cờ Thỏa thuận | Gợi ý nút bấm "Thỏa thuận" hoặc nhập tiền tự do (Ví dụ: "1tr5", "800k/ngày" -> parse số). |
@@ -26,7 +27,6 @@ Những thông tin này có thể được bổ sung sau để tối ưu hiệu 
 
 | Tên Trường (API) | Cột CSDL (Field) | Mô tả trong Form | Giá trị mặc định khi tạo nhanh |
 | :--- | :--- | :--- | :--- |
-| **`address`** | `campaigns.location` | Địa chỉ chi tiết sự kiện | Lấy trùng với **`city`** |
 | **`startDate` / `endDate`** | `campaigns.start_date` / `campaigns.end_date` | Ngày bắt đầu/kết thúc nhận hồ sơ | Ngày tạo / ngày diễn ra sự kiện chính |
 | **`applicationDeadline`** | `campaigns.application_deadline` | Hạn ứng tuyển | Trước ngày diễn ra sự kiện chính 1 ngày |
 | **`responsibilities`** | `campaigns.responsibilities` | Đầu việc chi tiết | `["Thỏa thuận theo mô tả"]` (Mảng JSON) |
@@ -55,7 +55,8 @@ graph TD
     ValidateTitle -- Không --> AskTitle
     ValidateTitle -- Có --> AskJobType[Hỏi Loại hình]
     AskJobType --> AskLocation[Hỏi Địa điểm]
-    AskLocation --> AskDate[Hỏi Thời gian]
+    AskLocation --> AskAddress[Hỏi Địa chỉ chi tiết]
+    AskAddress --> AskDate[Hỏi Thời gian]
     AskDate --> ValidateDate{Hợp lệ?}
     ValidateDate -- Không --> AskDate
     ValidateDate -- Có --> AskQuantity[Hỏi Số lượng]
