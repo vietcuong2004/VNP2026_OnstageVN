@@ -1,25 +1,25 @@
-# Thiết kế luồng hội thoại Chatbot Zalo - Tạo chiến dịch (Campaign/Job)
+# Thiết kế luồng hội thoại Chatbot Zalo - Tạo & Quản lý Chiến dịch (Campaign/Job)
 
 Tài liệu này chi tiết hóa danh sách dữ liệu từ biểu mẫu tạo chiến dịch gốc ([FormCreateJob.tsx](file:///c:/CONG_VIEC/VNP_OnstageVN/frontend/app/brand/campaigns/FormCreateJob.tsx)) nhằm tối ưu hóa thành luồng hội thoại nhanh, mượt mà trên Chatbot Zalo dành cho Brand và Agency.
 
 ---
 
-## 1. Phân loại trường thông tin (Field Categorization)
+## 1. Phân loại trường thông tin (Field Categorization) & Quy tắc kiểm dữ liệu (Validation Rules)
 
-Để chatbot Zalo hoạt động hiệu quả và thân thiện với người dùng di động, các thông tin từ biểu mẫu gốc (20+ trường) được phân thành 2 nhóm chính:
+Để chatbot Zalo hoạt động hiệu quả trên thiết bị di động, các thông tin từ biểu mẫu gốc (20+ trường) được phân thành 2 nhóm chính:
 
 ### Nhóm A: Thông tin BẮT BUỘC (Tạo nhanh Job qua Chatbot)
-Đây là các thông tin cốt lõi để khởi tạo thành công chiến dịch và hiển thị trên bảng tin công việc.
+Đây là các thông tin cốt lõi để khởi tạo thành công chiến dịch và hiển thị trên bảng tin tuyển dụng.
 
-| Tên Trường (API) | Cột CSDL (Field) | Mô tả trong Form | Định dạng câu trả lời mẫu | Gợi ý cho Chatbot |
+| Tên Trường (API) | Cột CSDL (Field) | Mô tả trong Form | Định dạng & Quy tắc validation | Gợi ý xử lý của Chatbot |
 | :--- | :--- | :--- | :--- | :--- |
-| **`title`** | `campaigns.title` | Tiêu đề Job | *"Tuyển KOL livestream mỹ phẩm", "Cần gấp MC dẫn sự kiện ra mắt"* | Nhập chữ tự do |
-| **`jobType`** | `campaigns.job_type` | Loại hình công việc | *"KOL livestream", "Model lookbook", "Beauty KOL/KOC", "PG event", "MC sự kiện"...* | Chọn nhanh qua nút bấm (Quick Replies) |
-| **`city`** | `campaigns.city` | Thành phố làm việc | *"Hà Nội", "TP.HCM", "Đà Nẵng"...* | Chọn nhanh hoặc gõ text tự do |
-| **`eventDate`** | `campaigns.event_date` | Ngày diễn ra sự kiện | *"15/08/2026", "Thứ bảy tuần này", "Mai"* | Nhận diện ngày thông minh |
-| **`talentQuantity`** | `campaigns.talent_quantity` | Số lượng cần tuyển | *"2", "5 người", "Cần 3 bạn"* | Trích xuất số từ câu trả lời |
-| **`budget` / `budgetNegotiable`** | `campaigns.budget_min` / `campaigns.budget_max` | Thù lao (Cát-xê) | *"1.500.000 VND/ngày", "Thỏa thuận", "2 triệu"* | Nhập số tiền hoặc click chọn "Thỏa thuận" |
-| **`description`** | `campaigns.description` | Mô tả công việc ngắn | *"Chụp hình lookbook thời trang cho nhãn hàng công sở..."* | Nhập text tự do hoặc ghi âm giọng nói |
+| **`title`** | `campaigns.title` | Tiêu đề Job | Chữ tự do (10 - 100 ký tự) | Nhập text tự do |
+| **`jobType`** | `campaigns.job_type` | Loại hình công việc | Trùng khớp với danh mục loại hình được định cấu hình | Chọn nhanh qua nút bấm (Quick Replies). Nếu gõ tay, AI sẽ nhận diện loại hình gần nhất. |
+| **`city`** | `campaigns.city` | Thành phố làm việc | Tên tỉnh/thành phố hợp lệ tại Việt Nam | Chọn nhanh (Hà Nội, TP.HCM, Đà Nẵng...) hoặc gõ tự do. |
+| **`eventDate`** | `campaigns.event_date` | Ngày diễn ra sự kiện | Định dạng `YYYY-MM-DD`. Phải là ngày trong tương lai. | Nhận diện ngày thông minh (Ví dụ: "thứ 7 tuần sau", "30/08" -> parse tự động). |
+| **`talentQuantity`** | `campaigns.talent_quantity` | Số lượng cần tuyển | Số nguyên dương (> 0) | Trích xuất số từ câu trả lời tự nhiên (Ví dụ: "cần tuyển 3 bạn" -> `3`). |
+| **`budget` / `budgetNegotiable`** | `campaigns.budget_min` / `campaigns.budget_max` | Thù lao (Cát-xê) | Số tiền cụ thể (>= 0) HOẶC đặt cờ Thỏa thuận | Gợi ý nút bấm "Thỏa thuận" hoặc nhập tiền tự do (Ví dụ: "1tr5", "800k/ngày" -> parse số). |
+| **`description`** | `campaigns.description` | Mô tả công việc ngắn | Chữ tự do (tối thiểu 20 ký tự) | Nhập text tự do hoặc ghi âm giọng nói chuyển đổi thành văn bản. |
 
 ### Nhóm B: Thông tin BỔ SUNG SAU (Hoàn thiện trên Web/App)
 Những thông tin này có thể được bổ sung sau để tối ưu hiệu quả tìm kiếm nhưng **không bắt buộc** phải điền qua chatbot. Chatbot sẽ mặc định đặt giá trị trống hoặc điền giá trị mặc định để rút ngắn luồng.
@@ -29,10 +29,10 @@ Những thông tin này có thể được bổ sung sau để tối ưu hiệu 
 | **`address`** | `campaigns.location` | Địa chỉ chi tiết sự kiện | Lấy trùng với **`city`** |
 | **`startDate` / `endDate`** | `campaigns.start_date` / `campaigns.end_date` | Ngày bắt đầu/kết thúc nhận hồ sơ | Ngày tạo / ngày diễn ra sự kiện chính |
 | **`applicationDeadline`** | `campaigns.application_deadline` | Hạn ứng tuyển | Trước ngày diễn ra sự kiện chính 1 ngày |
-| **`responsibilities`** | `campaigns.responsibilities` | Đầu việc chi tiết | *"Thỏa thuận theo brief"* (Mảng JSON) |
-| **`benefits`** | `campaigns.benefits` | Quyền lợi & Đãi ngộ | *"Thỏa thuận theo brief"* (Mảng JSON hoặc text) |
-| **`industries`** | `campaigns.industries` | Lĩnh vực | Tự động phân loại (Mảng JSON) |
-| **`targetProfiles`** | `campaigns.target_profiles` | Nhóm Talent phù hợp | Tự động phân loại (Mảng JSON) |
+| **`responsibilities`** | `campaigns.responsibilities` | Đầu việc chi tiết | `["Thỏa thuận theo mô tả"]` (Mảng JSON) |
+| **`benefits`** | `campaigns.benefits` | Quyền lợi & Đãi ngộ | `["Thỏa thuận theo mô tả"]` (Mảng JSON) |
+| **`industries`** | `campaigns.industries` | Lĩnh vực | Tự động phân loại dựa trên `jobType` |
+| **`targetProfiles`** | `campaigns.target_profiles` | Nhóm Talent phù hợp | Tự động phân loại dựa trên `jobType` |
 | **`heightMin` / `weightMax`** | `campaigns.height_min_cm` / `campaigns.weight_max_kg` | Yêu cầu chiều cao, cân nặng | Để trống (Không yêu cầu) |
 | **`experienceMin`** | `campaigns.experience_min_years` | Yêu cầu số năm kinh nghiệm | Để trống (Không yêu cầu) |
 | **`campaignImages`** | `campaign_media.path` (disk: `campaign`) | Bộ ảnh chiến dịch (Tối đa 10) | Sử dụng ảnh placeholder của hệ thống |
@@ -41,151 +41,107 @@ Những thông tin này có thể được bổ sung sau để tối ưu hiệu 
 
 ---
 
-## 2. Thiết kế luồng hội thoại chuẩn (Standard Conversational Flow)
+## 2. Kiến trúc luồng hội thoại tổng thể (Overall Flow Architecture)
 
-Dưới đây là thiết kế chi tiết từng bước trò chuyện của chatbot Zalo giúp Brand tạo chiến dịch trong chưa đầy 2 phút.
+Dưới đây là sơ đồ luồng điều hướng của Chatbot Zalo dành cho đối tượng Brand/Agency, bao gồm các chức năng chính: **Tạo campaign nhanh**, **Campaign của tôi**, **Đề xuất talent phù hợp với campaign**, và **Tài khoản & liên kết Zalo**.
 
 ```mermaid
 graph TD
-    Start([1. Khởi động]) --> AskTitle[2. Hỏi Tiêu đề]
-    AskTitle --> AskJobType[3. Hỏi Loại hình]
-    AskJobType --> AskLocation[4. Hỏi Địa điểm]
-    AskLocation --> AskDate[5. Hỏi Thời gian]
-    AskDate --> AskQuantity[6. Hỏi Số lượng]
-    AskQuantity --> AskBudget[7. Hỏi Cát-xê]
-    AskBudget --> AskDescription[8. Hỏi Mô tả ngắn]
-    AskDescription --> Confirm{9. Xác nhận lại}
-    Confirm -- Đồng ý --> CreateJob[10. Tạo chiến dịch thành công]
+    Start([Khởi động Chatbot]) --> MainMenu{Lựa chọn chức năng}
+    
+    %% Option 1: Tạo campaign nhanh
+    MainMenu -->|1. Tạo campaign nhanh| AskTitle[Hỏi Tiêu đề]
+    AskTitle --> ValidateTitle{Hợp lệ?}
+    ValidateTitle -- Không --> AskTitle
+    ValidateTitle -- Có --> AskJobType[Hỏi Loại hình]
+    AskJobType --> AskLocation[Hỏi Địa điểm]
+    AskLocation --> AskDate[Hỏi Thời gian]
+    AskDate --> ValidateDate{Hợp lệ?}
+    ValidateDate -- Không --> AskDate
+    ValidateDate -- Có --> AskQuantity[Hỏi Số lượng]
+    AskQuantity --> ValidateQty{Hợp lệ?}
+    ValidateQty -- Không --> AskQuantity
+    ValidateQty -- Có --> AskBudget[Hỏi Cát-xê]
+    AskBudget --> AskDescription[Hỏi Mô tả công việc]
+    AskDescription --> Confirm{Xác nhận lại}
+    Confirm -- Đăng tuyển --> CreateJob[Tạo campaign thành công & Sinh QR/Link]
     Confirm -- Sửa lại --> AskTitle
+    Confirm -- Hủy bỏ --> MainMenu
+
+    %% Option 2: Campaign của tôi
+    MainMenu -->|2. Campaign của tôi| ShowCampaigns[Hiển thị danh sách campaign đang chạy]
+    ShowCampaigns --> SelectCampaign{Chọn campaign}
+    SelectCampaign -->|Xem ứng viên| ShowApplicants[Hiển thị danh sách ứng viên]
+    SelectCampaign -->|Cập nhật| ChooseFieldToUpdate{Chọn thông tin cần sửa}
+    SelectCampaign -->|Đóng nhận hồ sơ| CloseCampaign[Đóng nhận hồ sơ]
+    
+    ChooseFieldToUpdate -->|Sửa Cát-xê| EditBudget[Nhập cát-xê mới]
+    ChooseFieldToUpdate -->|Sửa Số lượng| EditQty[Nhập số lượng mới]
+    ChooseFieldToUpdate -->|Sửa Mô tả| EditDesc[Nhập mô tả mới]
+    
+    EditBudget & EditQty & EditDesc --> UpdateSuccess[Cập nhật thành công & Báo cho Talent]
+    
+    %% Option 3: Đề xuất talent
+    MainMenu -->|3. Đề xuất talent| GetAIPositions[AI đề xuất 3 Talent phù hợp nhất]
+    GetAIPositions --> BookingTalent[Booking / Xem portfolio]
+
+    %% Option 4: Tài khoản & liên kết Zalo
+    MainMenu -->|4. Tài khoản & liên kết Zalo| ShowAccountStatus[Xem trạng thái liên kết]
+    ShowAccountStatus --> Unlink[Hủy liên kết Zalo]
 ```
 
 ---
 
-### Chi tiết kịch bản hội thoại
+## 3. Kịch bản hội thoại chi tiết (Detailed Interaction Scripts)
 
-#### Bước 1: Khởi động
-* **Chatbot:**
-  > Xin chào anh/chị đại diện nhãn hàng! 👋
-  >
-  > Mình là trợ lý kết nối của **OnstageVN**. Mình sẽ hướng dẫn anh/chị tạo nhanh tin tuyển dụng (Campaign) chỉ trong vài giây.
-  >
-  > Anh/chị đã sẵn sàng chưa?
-* **Nút bấm lựa chọn:**
-  * `[ Bắt đầu tạo Job ]`
+Để đảm bảo tài liệu được gọn gàng và dễ theo dõi, toàn bộ kịch bản hội thoại tương tác chi tiết từng bước (bao gồm Luồng tạo mới, Luồng cập nhật/quản lý chiến dịch, và Luồng duyệt ứng viên) đã được tách riêng tại:
+
+👉 [campaign-creation-script.md](file:///c:/CONG_VIEC/VNP_OnstageVN/frontend/docs/zalo-chatbot/campaign-creation-script.md)
 
 ---
 
-#### Bước 2: Tiêu đề công việc
-* **Chatbot:**
-  > Tuyệt vời! Trước tiên, hãy nhập **tiêu đề ngắn** cho vị trí cần tuyển dụng nhé.
-  >
-  > *Ví dụ:*
-  > • Tuyển MC sự kiện thời trang hè
-  > • Cần 3 bạn mẫu ảnh chụp lookbook
-* **Người dùng gõ:** *Cần mẫu lookbook thời trang*
+## 4. Tối ưu hóa trải nghiệm bằng AI & Tính năng nâng cao
 
----
+Để tối ưu hóa trải nghiệm cho Brand/Agency, Zalo Chatbot của OnstageVN được đề xuất tích hợp các công nghệ xử lý thông minh sau:
 
-#### Bước 3: Loại hình công việc
-* **Chatbot:**
-  > Vị trí này thuộc nhóm loại hình nào dưới đây để Onstage hỗ trợ gửi thông báo đúng tệp ứng viên?
-* **Nút bấm lựa chọn (Quick Replies):**
-  * `[ KOL livestream ]`
-  * `[ Model lookbook ]`
-  * `[ Beauty KOL/KOC ]`
-  * `[ PG event ]`
-  * `[ MC sự kiện ]`
-  * `[ Khác... ]`
-* **Người dùng chọn:** *Model lookbook*
+### 4.1. AI Parsing (Tạo chiến dịch 1-chạm từ tin nhắn tuyển dụng)
+Thay vì phải trả lời 8 câu hỏi tuần tự, Brand chỉ cần gửi một đoạn văn bản yêu cầu dài (copy-paste từ tin tuyển dụng trên Facebook, Group...) hoặc gửi tin nhắn thoại (Voice Message). AI (LLM) ở backend sẽ tự động phân tích và trích xuất thực thể (Entity Extraction):
 
----
+* **Ví dụ tin nhắn người dùng gửi:**
+  > *"Bên mình đang cần gấp 2 bạn PG ngoại hình chuẩn cao trên 1m65 chạy event quảng bá nước uống tại rạp phim Galaxy Nguyễn Du Q1 TP.HCM vào ngày 28/08/2026. Lương 600k/ngày chuyển khoản sau event. Ưu tiên bạn nào có kinh nghiệm PG."*
+* **AI phân tích và trả ra JSON:**
+  ```json
+  {
+    "title": "Tuyển gấp 2 PG chạy event quảng bá nước uống Galaxy Nguyễn Du",
+    "jobType": "PG event",
+    "city": "TP.HCM",
+    "eventDate": "2026-08-28",
+    "talentQuantity": 2,
+    "budget": 600000,
+    "budgetNegotiable": false,
+    "description": "Chạy event quảng bá nước uống tại rạp phim Galaxy Nguyễn Du Q1. Yêu cầu ngoại hình chuẩn cao trên 1m65, ưu tiên có kinh nghiệm PG. Lương chuyển khoản sau event."
+  }
+  ```
+* **Chatbot phản hồi ngay lập tức:**
+  > 🤖 **Trợ lý AI đã tự động chuẩn bị thông tin chiến dịch của bạn:**
+  > 
+  > • **Tiêu đề:** Tuyển gấp 2 PG chạy event quảng bá nước uống Galaxy Nguyễn Du
+  > • **Loại hình:** PG event
+  > • **Địa điểm:** TP.HCM
+  > • **Thời gian:** 28/08/2026
+  > • **Số lượng:** 2 Talent
+  > • **Thù lao:** 600.000 VND/ngày
+  > 
+  > Anh/chị có muốn đăng tuyển ngay không?
+  > `[ 🚀 Đăng tuyển ngay ]` `[ ✏️ Sửa lại thông tin ]`
 
-#### Bước 4: Địa điểm làm việc
-* **Chatbot:**
-  > Công việc này sẽ diễn ra ở thành phố nào?
-* **Nút bấm lựa chọn:**
-  * `[ Hà Nội ]`
-  * `[ TP.HCM ]`
-  * `[ Đà Nẵng ]`
-  * `[ Nhập thành phố khác ]`
-* **Người dùng chọn:** *TP.HCM*
+### 4.2. Tích hợp Zalo Mini App / Webview quản lý nâng cao
+Với các thao tác phức tạp như:
+1. **Đăng tải bộ ảnh concept mẫu (Campaign Images)**: Việc gửi 10 ảnh trên chat dễ gây loạn luồng. Chatbot sẽ cung cấp link Webview/Mini App để tải ảnh lên cực nhanh qua giao diện kéo thả.
+2. **Ký quỹ bảo chứng cát-xê (Escrow Payment)**: Tích hợp cổng thanh toán MoMo/ZaloPay/Thẻ ngân hàng ngay trong Webview của Zalo để ký quỹ, đảm bảo thù lao cho Talent và gia tăng mức độ uy tín của Job.
 
----
-
-#### Bước 5: Thời gian sự kiện
-* **Chatbot:**
-  > Ngày diễn ra sự kiện chính là khi nào vậy anh/chị?
-  >
-  > *Ví dụ:*
-  > • 25/08/2026
-  > • Cuối tuần này
-  > • Thứ 2 tuần sau
-* **Người dùng gõ:** *30/08/2026*
-* **Hậu phương xử lý:** Tự động parse chuỗi ngày tháng sang format chuẩn `YYYY-MM-DD` để lưu vào **`eventDate`** và tự động gán hạn nộp hồ sơ **`applicationDeadline`** trước đó 2 ngày.
-
----
-
-#### Bước 6: Số lượng tuyển dụng
-* **Chatbot:**
-  > Anh/chị cần tuyển bao nhiêu Talent cho chiến dịch này?
-  >
-  > *Ví dụ: 3*
-* **Người dùng gõ:** *Cần 2 bạn*
-* **Hậu phương xử lý:** Trích xuất ký tự số `2` và gán vào trường **`talentQuantity`**.
-
----
-
-#### Bước 7: Mức thù lao (Cát-xê)
-* **Chatbot:**
-  > Mức thù lao dự kiến cho mỗi Talent là bao nhiêu? (Anh/chị có thể nhập số tiền cụ thể hoặc chọn Thỏa thuận).
-* **Nút bấm lựa chọn:**
-  * `[ Thỏa thuận ]`
-  * `[ 500.000đ/ngày ]`
-  * `[ 1.000.000đ/ngày ]`
-  * `[ 2.000.000đ/ngày ]`
-* **Người dùng gõ hoặc chọn:** *1.500.000đ/ngày*
-* **Hậu phương xử lý:** 
-  - Nếu chọn *Thỏa thuận*: set `budgetNegotiable: true` và để trống thù lao.
-  - Nếu nhập tiền: set `budgetNegotiable: false`, set `budgetMin: 1500000`, `budgetMax: 1500000`.
-
----
-
-#### Bước 8: Mô tả ngắn (Brief)
-* **Chatbot:**
-  > Cuối cùng, hãy gửi cho mình một đoạn mô tả ngắn về yêu cầu công việc (trang phục, lịch trình cụ thể hoặc yêu cầu biểu diễn nếu có) để các bạn ứng viên nắm rõ nhé.
-* **Người dùng gõ:** *Chụp 20 bộ trang phục hè, phong cách trẻ trung năng động. Địa điểm chụp tại studio Quận 1.*
-
----
-
-#### Bước 9: Xác nhận và Hoàn tất
-* **Chatbot:**
-  > 🌟 **Thông tin chiến dịch đã sẵn sàng:**
-  >
-  > 📝 **Tiêu đề:** Cần mẫu lookbook thời trang
-  > 🏷️ **Vị trí:** Model lookbook
-  > 📍 **Địa điểm:** TP.HCM
-  > 📅 **Thời gian:** 30/08/2026
-  > 👥 **Số lượng:** 2 Talent
-  > 💰 **Thù lao:** 1.500.000 VND/ngày
-  > 📄 **Brief:** Chụp 20 bộ trang phục hè, phong cách trẻ trung năng động. Địa điểm chụp tại studio Quận 1.
-  >
-  > Anh/chị có muốn đăng tuyển chiến dịch này lên hệ thống Onstage ngay không?
-* **Nút bấm lựa chọn:**
-  * `[ Đăng tuyển ngay 🚀 ]`
-  * `[ Chỉnh sửa lại ✏️ ]`
-  * `[ Hủy bỏ ❌ ]`
-
----
-
-## 3. Tối ưu hóa luồng bằng AI (Đề xuất nâng cao)
-
-Để nâng tầm trải nghiệm của Brand/Agency, Zalo Chatbot của OnstageVN nên tích hợp thêm các công nghệ xử lý thông minh sau:
-
-1. **AI Parsing Brief (Đăng tuyển 1 chạm)**:
-   Cho phép người dùng gửi một đoạn text dài (copy-paste từ tin tuyển dụng có sẵn) hoặc tin nhắn thoại chứa nội dung brief. AI (LLM) sẽ tự động phân tích và bóc tách các trường: Tiêu đề, loại hình, địa điểm, mức thù lao, ngày diễn ra, mô tả... để điền vào form xác nhận mà không cần trả lời 8 bước.
-   
-2. **Auto-suggestions (Gợi ý thù lao)**:
-   Khi Brand lựa chọn loại hình là "Model lookbook" ở TP.HCM, chatbot có thể gợi ý khoảng giá cát-xê phổ biến trên thị trường (ví dụ: `1.000.000đ - 2.500.000đ/ngày`) để hỗ trợ định hình ngân sách hợp lý.
-
-3. **QR Link bổ sung ảnh & ký quỹ**:
-   Sau khi hoàn tất tạo nhanh chiến dịch, chatbot sẽ gửi kèm một **Mã QR** hoặc **Link rút gọn** trỏ trực tiếp đến trang chi tiết chiến dịch trên Dashboard của Brand. Từ đó, họ có thể nhanh chóng tải lên 10 hình ảnh chất lượng cao và thực hiện nạp tiền ký quỹ (Escrow) bằng ngân hàng hoặc MoMo.
+### 4.3. Quản lý trạng thái phiên hội thoại (Conversation Session Management)
+* **Khôi phục trạng thái (Resume Flow):** Nếu Brand đang tạo Job dở dang (ví dụ: đến bước nhập thù lao) rồi dừng lại quá 10 phút, khi họ tương tác lại, chatbot sẽ nhắc:
+  > Mình thấy bạn đang tạo dở chiến dịch **"Cần mẫu lookbook thời trang"**. Bạn có muốn tiếp tục hoàn tất không?
+  > `[ ➡️ Tiếp tục điền ]` `[ 🔄 Bắt đầu lại ]`
+* **Lệnh thoát nhanh:** Người dùng gõ "Hủy", "Cancel", "Reset" ở bất kỳ bước nào thì chatbot đều lập tức giải phóng phiên và đưa về menu chính.

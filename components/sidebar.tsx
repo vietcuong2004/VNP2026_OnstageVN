@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const talentMenuItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
-  { label: "Đăng việc làm", icon: Briefcase, href: "/talent/jobs" },
+  { label: "Việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Hồ sơ cá nhân", icon: User, href: "/talent/portfolio" },
   { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },

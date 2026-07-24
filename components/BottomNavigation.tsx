@@ -123,32 +123,32 @@ export default function BottomNavigation() {
   const talentPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
     { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
-    { label: "Đăng việc làm", icon: Briefcase, href: "/talent/jobs" },
+    { label: "Việc làm", icon: Briefcase, href: "/talent/jobs" },
     { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   ];
 
   const primaryItems = isBrand ? brandPrimaryItems : talentPrimaryItems;
   const allItems = isBrand
     ? [
-        ...brandAllItems.filter(item => item.label !== "Đăng xuất"),
-        ...(isLoggedIn
-          ? [{ label: "Đăng xuất", icon: LogOut, href: "/" }]
-          : [
-              { label: "Sang Talent", icon: ArrowLeftRight, href: "/talent/dashboard" },
-              { label: "Đăng nhập", icon: LogIn, href: "/auth/login" }
-            ]
-        )
-      ]
+      ...brandAllItems.filter(item => item.label !== "Đăng xuất"),
+      ...(isLoggedIn
+        ? [{ label: "Đăng xuất", icon: LogOut, href: "/" }]
+        : [
+          { label: "Sang Talent", icon: ArrowLeftRight, href: "/talent/dashboard" },
+          { label: "Đăng nhập", icon: LogIn, href: "/auth/login" }
+        ]
+      )
+    ]
     : [
-        ...talentAllItems.filter(item => item.label !== "Đăng xuất"),
-        ...(isLoggedIn
-          ? [{ label: "Đăng xuất", icon: LogOut, href: "/" }]
-          : [
-              { label: "Sang Brand", icon: ArrowLeftRight, href: "/brand/dashboard" },
-              { label: "Đăng nhập", icon: LogIn, href: "/auth/login" }
-            ]
-        )
-      ];
+      ...talentAllItems.filter(item => item.label !== "Đăng xuất"),
+      ...(isLoggedIn
+        ? [{ label: "Đăng xuất", icon: LogOut, href: "/" }]
+        : [
+          { label: "Sang Brand", icon: ArrowLeftRight, href: "/brand/dashboard" },
+          { label: "Đăng nhập", icon: LogIn, href: "/auth/login" }
+        ]
+      )
+    ];
 
   return (
     <>

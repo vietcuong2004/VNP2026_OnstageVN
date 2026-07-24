@@ -106,8 +106,13 @@ Dự án hỗ trợ chạy song song hai môi trường độc lập hoàn toàn
 * **Link ứng dụng:** [https://onstagevn.vercel.app/](https://onstagevn.vercel.app/)
 * **Nhánh deploy:** `dev` (Vercel tự động build và cập nhật mỗi khi có code mới push lên nhánh `dev`).
 * **Cơ chế hoạt động:**
-  * Frontend trên Vercel gọi API dev thông qua URL Cloudflare Tunnel trỏ thẳng về máy tính cá nhân của lập trình viên (dữ liệu test local, không ảnh hưởng tới database thật).
-  * Chi tiết cách cấu hình và chạy xem ở mục: **[HƯỚNG DẪN TEST REAL-TIME TRÊN ĐIỆN THOẠI](#-huong-dan-test-real-time-tren-dien-thoai-qua-cloudflare-tunnel)**.
+  * Frontend trên Vercel gọi API dev thông qua URL **Serveo Tunnel** trỏ thẳng về máy tính cá nhân của lập trình viên (dữ liệu test local, không ảnh hưởng tới database thật).
+  * **Lệnh chạy Tunnel:**
+    ```bash
+    cd backend
+    ssh -R onstage-dev-cuong:80:localhost:8080 serveo.net
+    ```
+  * Chi tiết toàn bộ checklist phát triển và cập nhật hàng ngày xem ở tài liệu: **[Checklist Phát Triển Hàng Ngày](file:///c:/CONG_VIEC/VNP_OnstageVN/frontend/docs/Cuong_Docs/DeployVercel/checklist_phat_trien_hang_ngay.md)**.
 
 ### 2. Môi trường Production (Server riêng — Nhánh `main`)
 * **Mục đích:** Bản chạy chính thức ổn định dành cho khách hàng thật sử dụng.

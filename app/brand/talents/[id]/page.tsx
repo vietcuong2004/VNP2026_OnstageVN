@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Award,
-  Briefcase,
   Calendar,
   CheckCircle2,
   DollarSign,
@@ -25,7 +24,6 @@ import {
   ChevronRight,
   User,
   BookOpen,
-  Plus,
   X,
   Scale,
   Upload,
@@ -39,11 +37,11 @@ import {
   HelpCircle,
   Eye,
 } from "lucide-react";
-import { campaigns, findTalentById } from "@/lib/brand-mvp-data";
+import { findTalentById } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
-import { loadBrandTalent } from "@/lib/brand-api";
+import { addBrandRosterTalent, loadBrandTalent } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
@@ -303,6 +301,8 @@ export default function BrandTalentProfilePage() {
   const [loading, setLoading] = useState(!staticTalent);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isTierDialogOpen, setIsTierDialogOpen] = useState(false);
+  const [isAddingToBrand, setIsAddingToBrand] = useState(false);
+  const [isAddedToBrand, setIsAddedToBrand] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -325,10 +325,6 @@ export default function BrandTalentProfilePage() {
       cancelled = true;
     };
   }, [params.id, staticTalent]);
-
-  const [addedCampaigns, setAddedCampaigns] = useState<string[]>([]);
-  const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id ?? "");
-  const [showInviteModal, setShowInviteModal] = useState(false);
 
   const profile = useMemo(() => {
     if (!talent) return null;
@@ -455,19 +451,28 @@ export default function BrandTalentProfilePage() {
   };
   const talentTypes = getTalentTypes(talent);
 
-  function handleAddToCampaign() {
-    if (!requireAuthAction({ actionLabel: "Thêm talent vào campaign" })) return;
-    if (!selectedCampaignId) {
-      window.alert("Vui lòng chọn chiến dịch!");
-      return;
+  async function handleAddToBrand() {
+    if (!requireAuthAction({ actionLabel: "Thêm talent vào Brand" })) return;
+    if (!talent?.id || isAddingToBrand) return;
+
+    setIsAddingToBrand(true);
+    try {
+      await addBrandRosterTalent(String(talent.id), "Thêm từ hồ sơ talent.");
+      setIsAddedToBrand(true);
+      window.alert(`Đã thêm ${talent.name} vào Brand thành công!`);
+      router.push("/brand/my-talents");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Không thể thêm talent vào Brand. Vui lòng thử lại.";
+      if (/already|exists|duplicate|đã|ton tai|tồn tại/i.test(message)) {
+        setIsAddedToBrand(true);
+        window.alert(`${talent.name} đã có trong Brand.`);
+        router.push("/brand/my-talents");
+        return;
+      }
+      window.alert(message);
+    } finally {
+      setIsAddingToBrand(false);
     }
-    const campaign = campaigns.find(c => c.id === selectedCampaignId);
-    if (addedCampaigns.includes(selectedCampaignId)) {
-      window.alert(`Ứng viên đã được thêm vào chiến dịch ${campaign?.title} trước đó!`);
-      return;
-    }
-    setAddedCampaigns(prev => [...prev, selectedCampaignId]);
-    window.alert(`Đã thêm ${talent?.name} vào chiến dịch ${campaign?.title} thành công!`);
   }
 
   return (
@@ -639,14 +644,16 @@ export default function BrandTalentProfilePage() {
             Nhắn tin
           </button>
           <button
-            onClick={() => {
-              if (!requireAuthAction({ actionLabel: "Thêm talent vào campaign" })) return;
-              setShowInviteModal(true);
-            }}
-            className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#C9A86A] transition active:scale-95 cursor-pointer hover:bg-[#C9A86A]/20 whitespace-nowrap"
+            onClick={handleAddToBrand}
+            disabled={isAddingToBrand || isAddedToBrand}
+            className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#C9A86A] transition active:scale-95 cursor-pointer hover:bg-[#C9A86A]/20 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <Briefcase className="mr-1.5 h-3.5 w-3.5 shrink-0" />
-            Thêm vào chiến dịch
+            {isAddedToBrand ? (
+              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+            ) : (
+              <Users className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+            )}
+            {isAddingToBrand ? "Đang thêm..." : isAddedToBrand ? "Đã thêm vào Brand" : "Thêm vào Brand"}
           </button>
         </div>
       </section>
@@ -1130,62 +1137,6 @@ export default function BrandTalentProfilePage() {
       </div>
 
       <GuestActionPrompt />
-
-      {/* Invite to Campaign Modal Dialog */}
-      {showInviteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="flex items-start justify-between p-6 border-b border-[#151b2d]">
-              <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Thêm Vào Chiến Dịch</h3>
-                <p className="text-[10px] text-slate-500 mt-1">Chọn chiến dịch tuyển dụng cho {talent?.name}</p>
-              </div>
-              <button onClick={() => setShowInviteModal(false)} className="text-slate-400 hover:text-white cursor-pointer"><X className="h-4.5 w-4.5" /></button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <label className="block space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Chọn chiến dịch tuyển dụng</span>
-                <select
-                  value={selectedCampaignId}
-                  onChange={(e) => setSelectedCampaignId(e.target.value)}
-                  className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60"
-                >
-                  <option value="">-- Chọn chiến dịch --</option>
-                  {campaigns.map(c => (
-                    <option key={c.id} value={c.id}>{c.title}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
-              <button onClick={() => setShowInviteModal(false)} className="px-4 py-2 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Hủy</button>
-              <button
-                onClick={() => {
-                  if (!requireAuthAction({ actionLabel: "Thêm talent vào campaign" })) return;
-                  if (!selectedCampaignId) {
-                    window.alert("Vui lòng chọn chiến dịch!");
-                    return;
-                  }
-                  const campaign = campaigns.find(c => c.id === selectedCampaignId);
-                  if (addedCampaigns.includes(selectedCampaignId)) {
-                    window.alert(`Ứng viên đã được thêm vào chiến dịch ${campaign?.title} trước đó!`);
-                    return;
-                  }
-                  setAddedCampaigns(prev => [...prev, selectedCampaignId]);
-                  window.alert(`Đã thêm ${talent?.name} vào chiến dịch ${campaign?.title} thành công!`);
-                  setShowInviteModal(false);
-                }}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer"
-              >
-                Xác nhận thêm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Full Image Preview Modal */}
       {previewImage && (
         <div

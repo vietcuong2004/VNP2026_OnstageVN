@@ -17,12 +17,13 @@ Mỗi ngày khi bắt đầu code, bạn cần khởi động các công cụ th
     docker compose up -d
     ```
 
-- [ ] **Khởi chạy Ngrok Tunnel cố định:**
-  * Mở một cửa sổ Powershell local tại thư mục `frontend` và chạy:
-    ```powershell
-    .\ngrok.exe http 8080 --domain=crispy-prewashed-preformed.ngrok-free.dev
+- [ ] **Khởi chạy Serveo Tunnel cố định:**
+  * Mở cửa sổ Terminal/Powershell tại thư mục `backend` và chạy lệnh sau để mở cổng kết nối từ local ra internet qua Serveo:
+    ```bash
+    cd backend
+    ssh -R onstage-dev-cuong:80:localhost:8080 serveo.net
     ```
-  * *Lưu ý: Giữ nguyên cửa sổ Powershell này để duy trì kết nối. Vì dùng tên miền cố định nên bạn sẽ không cần phải sửa file backend/.env hay biến môi trường trên Vercel mỗi khi bật máy nữa.*
+  * *Lưu ý: Giữ nguyên cửa sổ Terminal này để duy trì kết nối. Dữ liệu và API local sẽ được expose qua tên miền cố định `https://onstage-dev-cuong.serveo.net` để Vercel Dev gọi về mà không cần phải thay đổi biến môi trường.*
 
 ---
 
