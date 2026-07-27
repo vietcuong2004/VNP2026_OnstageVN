@@ -267,9 +267,26 @@ function FilterDropdown({
   );
 }
 
+type ToastItem = {
+  id: string;
+  message: string;
+  tone: "success" | "error";
+};
+
 export default function DiscoverTalentsPage() {
   const router = useRouter();
   const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
+
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  function pushToast(message: string, tone: ToastItem["tone"] = "success") {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setToasts((current) => [...current, { id, message, tone }]);
+
+    window.setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id));
+    }, 3200);
+  }
 
   // Search and Filters states
   const [searchQuery, setSearchQuery] = useState("");
@@ -536,7 +553,7 @@ export default function DiscoverTalentsPage() {
 
   async function ensureWishlist() {
     if (wishlistId) return wishlistId;
-    const created = await createBrandWishlist("Talent đã lưu", "Danh sách talent yêu thích của Brand");
+    const created = await createBrandWishlist("Talent yêu thích", "Danh sách talent yêu thích của Brand");
     setWishlistId(created.id);
     return created.id;
   }
@@ -557,6 +574,7 @@ export default function DiscoverTalentsPage() {
           delete next[id];
           return next;
         });
+        pushToast("Đã xoá khỏi danh sách yêu thích.");
         return;
       }
 
@@ -564,8 +582,9 @@ export default function DiscoverTalentsPage() {
       const created = await addTalentToWishlist(nextWishlistId, id);
       setSavedIds((current) => current.includes(id) ? current : [...current, id]);
       setWishlistItemIds((current) => ({ ...current, [id]: String(created.id) }));
+      pushToast("Đã thêm vào danh sách yêu thích.");
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật danh sách talent đã lưu. Vui lòng thử lại.");
+      pushToast(error instanceof Error ? error.message : "Chưa thể cập nhật danh sách yêu thích. Vui lòng thử lại.", "error");
     }
   }
 
@@ -579,7 +598,9 @@ export default function DiscoverTalentsPage() {
     try {
       await addBrandRosterTalent(talentId, "Thêm từ danh sách tìm kiếm talent.");
       setBrandTalentIds((current) => current.includes(talentId) ? current : [...current, talentId]);
+      pushToast("Đã thêm talent vào Brand.");
     } catch (error) {
+      pushToast("Chưa thể thêm talent vào Brand. Vui lòng thử lại.", "error");
       console.error("Failed to add talent to brand", error);
     } finally {
       setAddingBrandTalentIds((current) => current.filter((id) => id !== talentId));
@@ -915,6 +936,22 @@ export default function DiscoverTalentsPage() {
           </div>
         </div>
       )}
+
+      <div className="pointer-events-none fixed bottom-6 right-6 z-[70] flex w-full max-w-sm flex-col gap-2 px-4 sm:px-0">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={cn(
+              "rounded-2xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-md animate-in slide-in-from-bottom duration-300",
+              toast.tone === "success"
+                ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-100"
+                : "border-rose-400/30 bg-rose-500/10 text-rose-100",
+            )}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

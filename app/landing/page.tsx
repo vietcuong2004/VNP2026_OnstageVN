@@ -1,5 +1,14 @@
-import LandingPage from "../LandingPage";
+import LandingPage from "../about/page";
 
 export default function LandingRoutePage() {
-  return <LandingPage />;
+  return (
+    <LandingPage
+      showLandingHeader={true}
+      showHeroCta={true}
+      compactHeroTitle={false}
+      showPortals={true}
+      redirectAuthenticatedUsers={true}
+      showFeaturesExplanation={false}
+    />
+  );
 }

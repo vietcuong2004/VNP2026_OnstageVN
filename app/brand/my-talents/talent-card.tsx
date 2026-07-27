@@ -3,8 +3,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Eye, Edit, MessageSquare, Phone, Mail, Trash2, Shield,
-  MapPin, Clock, MoreVertical, Calendar, User, Briefcase, FileText,
+  Eye, Edit, MessageSquare, Trash2, MapPin, Clock, MoreVertical,
+  Briefcase, FileText, CheckCircle2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
@@ -25,17 +25,14 @@ const statusConfig = {
   declined: { label: "Đã từ chối", dot: "bg-red-400", text: "text-red-400", badge: "bg-red-500/10 border-red-500/30 text-red-400" },
 };
 
-const tierColor = (tier: string) => {
-  if (tier === "S") return "text-amber-300 bg-amber-500/10 border-amber-500/20";
-  if (tier === "A") return "text-cyan-300 bg-cyan-500/10 border-cyan-500/20";
-  if (tier === "B") return "text-purple-300 bg-purple-500/10 border-purple-500/20";
-  return "text-slate-300 bg-slate-700/40 border-slate-600/30";
-};
-
-function fmt(d: string) {
-  if (!d) return "—";
-  const p = d.split("-");
-  return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
+function getTalentTypes(talent: any): string[] {
+  if (Array.isArray(talent?.talentTypes) && talent.talentTypes.length) {
+    return talent.talentTypes.map((type: unknown) => String(type).trim()).filter(Boolean);
+  }
+  if (Array.isArray(talent?.talent_types) && talent.talent_types.length) {
+    return talent.talent_types.map((type: unknown) => String(type).trim()).filter(Boolean);
+  }
+  return talent?.type ? [String(talent.type)] : [];
 }
 
 export default function TalentCard({ entry, talent, onDeleteClick, onActivateClick, onEditClick, onAssignJobClick }: TalentCardProps) {
@@ -47,180 +44,174 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
-  const [notesExpanded, setNotesExpanded] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const fn = (e: MouseEvent) => { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false); };
+    const fn = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
     if (menuOpen) document.addEventListener("mousedown", fn);
     return () => document.removeEventListener("mousedown", fn);
   }, [menuOpen]);
 
+  const talentAvatar = talent.avatar || createInitialAvatarDataUrl(talent.name, talent.email);
+  const locationText = [talent.district, talent.city].filter(Boolean).join(", ") || talent.city;
+  const experienceYears = Number(talent.yearsOfExperience ?? talent.experience_years ?? 0);
+  const talentTypes = getTalentTypes(talent);
+
   return (
-    <div className={cn(
-      "relative rounded-2xl border overflow-hidden flex flex-col",
-      "bg-gradient-to-b from-[#0c1120] via-[#080d18] to-[#050810]",
-      "transition-all duration-300 group",
-      isAccepted
-        ? "border-yellow-400/25 shadow-[0_0_22px_rgba(250,204,21,0.1)]"
-        : isPending
-          ? "border-yellow-500/15 shadow-[0_0_22px_rgba(234,179,8,0.07)]"
-          : "border-red-500/15 opacity-65",
-    )}>
-      {/* top glow line */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-400/50 to-transparent" />
+    <article
+      onClick={() => router.push(`/brand/talents/${talent.id}?from=/brand/my-talents`)}
+      className={cn(
+        "group flex min-w-0 flex-col justify-between rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg transition-all duration-300 hover:border-[#C9A86A]/30 cursor-pointer active:scale-[0.99]"
+      )}
+    >
+      <div>
+        <div className="relative mb-3.5 aspect-square w-full overflow-hidden rounded-xl border border-white/5 bg-slate-950">
+          <img
+            src={talentAvatar}
+            alt={talent.name}
+            loading="lazy"
+            decoding="async"
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = createInitialAvatarDataUrl(talent.name, talent.email);
+            }}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
 
-      {/* ── HEADER ROW: avatar | info ── */}
-      <div className="flex items-stretch gap-3 px-4 pt-4 pb-3">
-        {/* Avatar */}
-        <div className="relative shrink-0 aspect-square">
-          <div className={cn(
-            "absolute inset-0 rounded-xl overflow-hidden border-2 p-[2px]",
-            isAccepted ? "border-yellow-400/35 bg-yellow-400/5" : "border-yellow-500/20 bg-yellow-500/5",
-          )}>
-            <img
-              src={talent.avatar}
-              alt={talent.name}
-              onError={(e) => { e.currentTarget.src = createInitialAvatarDataUrl(talent.name, talent.email); }}
-              className="h-full w-full rounded-[9px] object-cover"
-            />
+          <div className="absolute left-2 top-2 flex flex-col gap-1.5">
+            <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-md">
+              Hạng {talent.tier || "-"}
+            </span>
           </div>
-          {talent.verified && (
-            <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-[#07090f] border-2 border-yellow-400 flex items-center justify-center z-10">
-              <Shield className="h-2.5 w-2.5 text-yellow-400" />
-            </div>
-          )}
-        </div>
 
-        {/* Main info — 3 rows inside */}
-        <div className="flex-1 min-w-0 flex flex-col gap-1.5 justify-between">
-          {/* Row 1: status badge + 3-dot menu */}
-          <div className="flex items-center justify-end gap-2">
-            <div className={cn(
-              "inline-flex items-center gap-1 border rounded-full px-2 py-0.5 font-black uppercase tracking-wider whitespace-nowrap",
-              isManaged
-                ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
-                : sc.badge,
-            )}
-              style={{ fontSize: 'clamp(8px, 2vw, 10px)' }}
+          {/* 3-dot menu */}
+          <div className="absolute right-2 top-2 z-25" ref={menuRef}>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setMenuOpen(v => !v);
+              }}
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-[#0F1115]/60 text-slate-350 hover:text-white hover:bg-[#0F1115]/80 transition active:scale-90 shadow-lg backdrop-blur-sm"
+              title="Thao tác"
             >
-              <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", isManaged ? "bg-amber-400" : sc.dot)} />
-              {isManaged ? "Managed" : sc.label}
-            </div>
-
-            {/* 3-dot menu */}
-            <div className="relative shrink-0" ref={menuRef}>
-              <button
-                type="button"
-                onClick={() => setMenuOpen(v => !v)}
-                className="h-6 w-6 flex items-center justify-center rounded-full border border-white/15 bg-white/5 text-slate-400 hover:text-white hover:bg-white/15 hover:border-white/30 transition-all cursor-pointer"
+              <MoreVertical className="h-4 w-4" />
+            </button>
+            {menuOpen && (
+              <div 
+                onClick={(e) => e.stopPropagation()}
+                className="absolute right-0 top-9 z-50 w-44 rounded-xl border border-white/10 bg-[#0d1020] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
               >
-                <MoreVertical className="h-3.5 w-3.5" />
-              </button>
-              {menuOpen && (
-                <div className="absolute right-0 top-7 z-50 w-44 rounded-xl border border-white/10 bg-[#0d1020] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-                  <button
-                    type="button"
-                    onClick={() => { setMenuOpen(false); onEditClick(talent, entry); }}
-                    className="w-full flex items-center gap-2 px-3.5 py-2.5 text-[11px] font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
-                  >
-                    <Edit className="h-3.5 w-3.5 text-yellow-400" /> Chỉnh sửa hồ sơ
-                  </button>
-                  <div className="mx-3 h-px bg-white/5" />
-                  <button
-                    type="button"
-                    onClick={() => { setMenuOpen(false); onDeleteClick(entry.talentId, talent.name); }}
-                    className="w-full flex items-center gap-2 px-3.5 py-2.5 text-[11px] font-bold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    {isPending ? "Hủy lời mời" : "Xóa"}
-                  </button>
-                </div>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); onEditClick(talent, entry); }}
+                  className="w-full flex items-center gap-2 px-3.5 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-300 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+                >
+                  <Edit className="h-3.5 w-3.5 text-yellow-400" /> Chỉnh sửa hồ sơ
+                </button>
+                <div className="mx-3 h-px bg-white/5" />
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); onDeleteClick(entry.talentId, talent.name); }}
+                  className="w-full flex items-center gap-2 px-3.5 py-2.5 text-[11px] font-black uppercase tracking-wider text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                  {isPending ? "Hủy lời mời" : "Xóa"}
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Row 2: Name */}
-          <h3
-            className="font-extrabold leading-tight text-white whitespace-nowrap overflow-hidden text-ellipsis"
-            style={{ fontSize: 'clamp(13px, 4vw, 18px)' }}
-          >
-            {talent.name}
-          </h3>
+          {/* Status Badge */}
+          <div className="absolute bottom-2 left-2">
+            <span className={cn(
+              "inline-flex items-center gap-1 rounded border bg-[#0F1115]/85 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white backdrop-blur-sm",
+              isManaged 
+                ? "border-amber-500/30 text-amber-400"
+                : sc.badge.replace(/bg-\S+/, "")
+            )}>
+              <span className={cn(
+                "h-1.5 w-1.5 rounded-full shrink-0", 
+                isManaged ? "bg-amber-400" : sc.dot.replace(/animate-pulse/, "")
+              )} />
+              {isManaged ? "Managed" : sc.label}
+            </span>
+          </div>
+        </div>
 
-          {/* Row 3: Chips row */}
-          <div className="flex items-center gap-1.5 overflow-hidden flex-nowrap">
-            {talent.tier && (
-              <span
-                className={cn("rounded border px-1.5 py-0.5 font-black uppercase tracking-widest shrink-0", tierColor(talent.tier))}
-                style={{ fontSize: 'clamp(8px, 2.2vw, 10px)', lineHeight: 1.1 }}
-              >
-                {talent.tier}
-              </span>
-            )}
-            {talent.type && (
-              <span
-                className="border border-white/20 bg-white/8 rounded px-1.5 py-0.5 font-bold uppercase tracking-wider text-slate-200 shrink-0"
-                style={{ fontSize: 'clamp(8px, 2.2vw, 10px)', lineHeight: 1.1 }}
-              >
-                {talent.type}
-              </span>
-            )}
-            {talent.city && (
-              <span
-                className="flex items-center gap-0.5 text-slate-300 font-semibold shrink-0"
-                style={{ fontSize: 'clamp(8px, 2.2vw, 10px)' }}
-              >
-                <MapPin className="text-slate-400 shrink-0" style={{ width: 'clamp(10px, 2.5vw, 12px)', height: 'clamp(10px, 2.5vw, 12px)' }} />
-                <span>{talent.city}</span>
-              </span>
-            )}
-            {talent.phone && (
-              <span
-                className="flex items-center gap-0.5 text-slate-300 font-semibold shrink-0"
-                style={{ fontSize: 'clamp(8px, 2.2vw, 10px)' }}
-              >
-                <Phone className="text-slate-400 shrink-0" style={{ width: 'clamp(10px, 2.5vw, 12px)', height: 'clamp(10px, 2.5vw, 12px)' }} />
-                <span>{talent.phone}</span>
+        <div className="min-w-0 space-y-2">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <h3 className="flex-1 truncate text-base font-black leading-tight tracking-wide text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.12)]">
+              {talent.name}
+            </h3>
+            {talent.verified && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />}
+          </div>
+
+          <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
+            <span className="truncate">{locationText || "Chưa cập nhật"}</span>
+          </div>
+
+          <div className="flex flex-wrap gap-1">
+            {talentTypes.length ? (
+              talentTypes.map((type) => (
+                <span key={type} className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
+                  {type}
+                </span>
+              ))
+            ) : (
+              <span className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
+                Chưa cập nhật
               </span>
             )}
           </div>
         </div>
-      </div>
 
-      {/* ── DIVIDER ── */}
-      <div className="mx-4 h-px bg-white/[0.05]" />
-
-      {/* ── MIDDLE: Notes + Status ── */}
-      <div className="px-4 py-3 space-y-2.5 flex-1">
+        <div className="my-3 flex flex-nowrap gap-1 overflow-hidden">
+          <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.age || "-"} tuổi</span>
+          <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">
+            {experienceYears} năm kinh nghiệm
+          </span>
+          <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.height || "-"}cm</span>
+          <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.weight || "-"}kg</span>
+        </div>
 
         {/* Notes */}
-        <div className="flex items-start gap-2">
-          <FileText className="h-3.5 w-3.5 text-white shrink-0 mt-0.5" />
-          {entry.notes ? (
-            <p
-              onClick={() => setNotesExpanded(v => !v)}
-              className={cn(
-                "text-[11px] text-slate-300 font-medium leading-relaxed flex-1 cursor-pointer select-none",
-                !notesExpanded && "line-clamp-2"
-              )}
-              title="Click để xem chi tiết ghi chú"
-            >
-              {entry.notes}
-            </p>
-          ) : (
-            <p className="text-[11px] text-slate-500 italic flex-1">Talent được tạo bởi Brand.</p>
-          )}
+        <div className="mt-2.5 flex items-start gap-2 rounded-xl border border-white/5 bg-[#0F1115]/30 p-2.5 text-[10px]">
+          <FileText className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
+          <p className={cn("leading-relaxed font-semibold", entry.notes ? "text-slate-300" : "text-slate-500 italic")}>
+            {(() => {
+              if (!entry.notes) return "Talent được tạo bởi Brand.";
+              const notes = entry.notes.trim();
+              if (
+                notes.startsWith("Thêm từ") ||
+                notes.includes("Thêm từ danh sách") ||
+                notes.includes("Thêm từ trang tìm kiếm") ||
+                notes.includes("Thêm từ hồ sơ")
+              ) {
+                return "Talent được thêm từ danh sách talent của hệ thống Onstage VN";
+              }
+              return entry.notes;
+            })()}
+          </p>
         </div>
 
-        {/* Invite CTA — compact horizontal */}
+        {/* Invite CTA — Managed */}
         {isAccepted && isManaged && (
-          <div className="flex items-start gap-3 rounded-xl border border-dashed border-amber-400/30 bg-amber-400/[0.05] px-3 py-2.5">
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-white leading-tight">Mời Talent tham gia OnstageVN</p>
+          <div className="mt-2.5 flex flex-col gap-2 rounded-xl border border-dashed border-amber-400/30 bg-amber-400/[0.03] p-2.5">
+            <div>
+              <p className="text-[10px] font-black text-white uppercase tracking-wider">Mời Talent tham gia OnstageVN</p>
               <p
-                onClick={() => setDescExpanded(v => !v)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDescExpanded(v => !v);
+                }}
                 className={cn(
-                  "text-[10px] text-slate-400 mt-1 leading-relaxed cursor-pointer select-none",
+                  "text-[9px] text-slate-400 mt-1 leading-relaxed cursor-pointer select-none",
                   !descExpanded && "line-clamp-2"
                 )}
                 title="Click để xem chi tiết mô tả"
@@ -230,55 +221,54 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
             </div>
             <button
               type="button"
-              onClick={() => onActivateClick(talent)}
-              className="shrink-0 h-8 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[9px] uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-[0.97] transition-all whitespace-nowrap mt-0.5"
+              onClick={(e) => {
+                e.stopPropagation();
+                onActivateClick(talent);
+              }}
+              className="w-full h-8 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[9px] uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-[0.97] transition-all whitespace-nowrap mt-0.5"
             >
-              Gửi lời mời
+              Gửi lời mời kích hoạt
             </button>
           </div>
         )}
 
-        {/* Pending notice — compact */}
+        {/* Pending notice */}
         {isPending && (
-          <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/[0.05] px-3 py-2">
+          <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-2.5">
             <Clock className="h-3 w-3 shrink-0 text-amber-400" />
-            <p className="text-[10px] text-amber-300/80 font-semibold leading-snug">
-              Mời lúc <span className="font-bold text-white">{entry.addedAt}</span> · Chờ xác nhận
+            <p className="text-[9px] text-amber-300/80 font-bold uppercase tracking-wider leading-snug">
+              Mời lúc <span className="text-white">{entry.addedAt}</span> · Chờ xác nhận
             </p>
           </div>
         )}
       </div>
 
-      {/* ── DIVIDER ── */}
-      <div className="mx-4 h-px bg-white/[0.05]" />
-
-      {/* ── FOOTER: 3 buttons ── */}
-      <div className="grid grid-cols-3 gap-2 px-4 py-3">
+      <div className="mt-4 flex gap-2 border-t border-white/5 pt-3.5">
         <button
           type="button"
-          onClick={() => router.push(`/brand/talents/${talent.id}?from=/brand/my-talents`)}
-          className="flex items-center justify-center gap-1.5 h-10 rounded-xl border border-yellow-400/20 bg-yellow-400/5 hover:bg-yellow-400/12 active:scale-[0.97] text-yellow-300 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/brand/talents/${talent.id}?from=/brand/my-talents`);
+          }}
+          className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-white/10 active:scale-95 cursor-pointer"
+          title="Xem hồ sơ chi tiết"
         >
-          <Eye className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
-          Xem
+          <Eye className="h-4 w-4 shrink-0" />
+          <span>Xem</span>
         </button>
         <button
           type="button"
-          onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
-          className="flex items-center justify-center gap-1.5 h-10 rounded-xl border border-yellow-400/20 bg-yellow-400/5 hover:bg-yellow-400/12 active:scale-[0.97] text-yellow-300 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAssignJobClick(talent);
+          }}
+          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer hover:brightness-110"
+          title="Giao việc cho talent"
         >
-          <MessageSquare className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
-          Nhắn tin
-        </button>
-        <button
-          type="button"
-          onClick={() => onAssignJobClick(talent)}
-          className="flex items-center justify-center gap-1.5 h-10 rounded-xl border border-yellow-400/20 bg-yellow-400/5 hover:bg-yellow-400/12 active:scale-[0.97] text-yellow-300 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
-        >
-          <Briefcase className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
-          Assign Job
+          <Briefcase className="h-4 w-4 shrink-0" />
+          <span>Assign Job</span>
         </button>
       </div>
-    </div>
+    </article>
   );
 }

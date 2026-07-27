@@ -31,7 +31,7 @@ const talentAllItems = [
 const brandAllItems = [
   { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
   { label: "Tìm kiếm", icon: Search, href: "/brand/search" },
-  { label: "Đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
+  { label: "Yêu thích", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   // { label: "Báo cáo", icon: BarChart3, href: "/brand/analytics" },

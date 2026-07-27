@@ -76,6 +76,7 @@ export interface RosterTalent {
   rosterId?: string;
   talentId: string;
   status: RosterStatus;
+  source?: string;
   addedAt: string;
   earnedCommission: number;
   activeJobs: number;
@@ -159,13 +160,18 @@ function profileToTalent(
   const cover = firstPhoto("cover") || "";
   const fullBodyImage = firstPhoto("full_body") || firstPhoto("lookbook") || firstPhoto("portfolio") || firstPhoto() || avatar;
 
+  const userStatus = profile.user?.status || fallback?.userStatus || "";
+  const isGhost = typeof profile.user?.is_ghost !== "undefined"
+    ? Boolean(profile.user.is_ghost)
+    : (userStatus === "managed" || !profile.user ? true : Boolean(fallback?.isGhost));
+
   return {
     ...fallback,
     id: String(profile.id || fallback?.id || ""),
     name: displayName,
-    userStatus: profile.user?.status || fallback?.userStatus || "",
+    userStatus,
     userId: profile.user?.id ? String(profile.user.id) : fallback?.userId,
-    isGhost: typeof profile.user?.is_ghost !== "undefined" ? Boolean(profile.user.is_ghost) : Boolean(fallback?.isGhost),
+    isGhost,
     phone: profile.user?.phone || fallback?.phone || "",
     type: profile.talent_types?.[0] || fallback?.type || "Talent",
     city: profile.city || fallback?.city || "",
@@ -198,6 +204,7 @@ function rosterFromBackend(item: BrandRosterTalent): RosterTalent {
     rosterId: String(item.id),
     talentId: String(item.talent_profile_id),
     status: rosterStatusFromBackend(item.status),
+    source: item.source,
     addedAt: String(item.joined_at || new Date().toISOString()).slice(0, 10),
     earnedCommission: 0,
     activeJobs: 0,
@@ -256,9 +263,9 @@ export default function MyTalentsPage() {
       console.error("Failed to assign job:", error);
       const errMsg = error?.message || "";
       if (errMsg.includes("Talent nay da nam trong campaign.")) {
-        addToast("Talent này đã có trong chiến dịch!");
+        addToast("Talent này đã có trong chiến dịch!", "error");
       } else {
-        addToast("Không thể gán job cho talent. Vui lòng thử lại!");
+        addToast("Không thể gán job cho talent. Vui lòng thử lại!", "error");
       }
     } finally {
       setAssigningLoading(false);
@@ -269,7 +276,7 @@ export default function MyTalentsPage() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
-  const [toasts, setToasts] = useState<{ id: string; msg: string }[]>([]);
+  const [toasts, setToasts] = useState<{ id: string; msg: string; tone?: "success" | "error" }[]>([]);
 
   // Load roster from backend, with local fallback while API is offline.
   useEffect(() => {
@@ -364,9 +371,9 @@ export default function MyTalentsPage() {
     setRoster(r);
   };
 
-  const addToast = (msg: string) => {
+  const addToast = (msg: string, tone: "success" | "error" = "success") => {
     const id = Date.now().toString();
-    setToasts(p => [...p, { id, msg }]);
+    setToasts(p => [...p, { id, msg, tone }]);
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 4000);
   };
 
@@ -534,22 +541,16 @@ export default function MyTalentsPage() {
     .map((entry) => {
       const cleanId = (id: string | number) => String(id || "").replace(/^tal-/, "");
       const talent = displayTalents.find((t) => cleanId(t.id) === cleanId(entry.talentId));
-      return talent && entry.rosterId && talent.isGhost ? { entry, talent } : null;
+      const isUnactivatedGhost = talent &&
+        entry.rosterId &&
+        talent.isGhost &&
+        entry.source === "brand_created";
+      return isUnactivatedGhost ? { entry, talent } : null;
     })
     .filter((item): item is { entry: RosterTalent; talent: BrandTalentCard } => Boolean(item));
 
   return (
     <div className="relative space-y-6 pb-20 md:space-y-8 md:pb-0 animate-in fade-in duration-500">
-      {/* Immersive Background Image & Dark Overlay */}
-      <div className="absolute inset-0 -mx-4 -mt-5 -mb-24 md:-mx-8 md:-mt-7 md:-mb-8 lg:-mx-10 lg:-mt-8 2xl:-mx-12 z-0 overflow-hidden pointer-events-none">
-        <img
-          src="/hero_bg.png"
-          alt="OnstageVN Background Graphics"
-          className="w-full h-full object-cover object-center absolute inset-0 opacity-40"
-        />
-        {/* Subtle overlay for contrast */}
-        <div className="absolute inset-0 bg-[#02040a]/40 pointer-events-none" />
-      </div>
 
       {/* ── Welcome Header Banner ── */}
       <div className="relative z-10 overflow-hidden rounded-3xl border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.14),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
@@ -583,10 +584,7 @@ export default function MyTalentsPage() {
               Thêm Talent mới
             </button>
             <button
-              onClick={() => {
-                if (!requireAuthAction({ actionLabel: "Mời talent vào Brand" })) return;
-                setShowInviteModal(true);
-              }}
+              onClick={() => router.push("/brand/search")}
               className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-slate-950 border border-white/10 hover:border-amber-400/30 text-white hover:text-amber-300 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
             >
               <Search className="h-4 w-4 text-amber-400" />
@@ -722,7 +720,7 @@ export default function MyTalentsPage() {
                   <p className="text-slate-400 text-xs font-semibold">Không tìm thấy Talent nào phù hợp với từ khóa tìm kiếm.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                   {filteredRoster.map((entry) => {
                     const cleanId = (id: string | number) => String(id || "").replace(/^tal-/, "");
                     const talent = displayTalents.find((t) => cleanId(t.id) === cleanId(entry.talentId));
@@ -1060,6 +1058,8 @@ export default function MyTalentsPage() {
           const nextRosterEntry = rosterFromBackend(newRosterItem);
           const nextTalentCard = profileToTalent(newRosterItem.talent_profile);
           if (nextTalentCard) {
+            nextTalentCard.isGhost = true;
+            if (!nextTalentCard.userStatus) nextTalentCard.userStatus = "managed";
             setDisplayTalents((prev) => [nextTalentCard, ...prev]);
           }
           setRoster((prev) => [nextRosterEntry, ...prev]);
@@ -1141,8 +1141,20 @@ export default function MyTalentsPage() {
       {/* ── Toast Notifications ── */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map(t => (
-          <div key={t.id} className="animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-xl bg-emerald-950 border border-emerald-500/30 px-4 py-3 text-xs font-bold text-emerald-300 shadow-xl flex items-center gap-2">
-            <CheckCircle className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+          <div 
+            key={t.id} 
+            className={cn(
+              "animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-xl px-4 py-3 text-xs font-bold shadow-xl flex items-center gap-2 border",
+              t.tone === "error"
+                ? "bg-rose-950 border-rose-500/30 text-rose-300"
+                : "bg-emerald-950 border-emerald-500/30 text-emerald-300"
+            )}
+          >
+            {t.tone === "error" ? (
+              <X className="h-3.5 w-3.5 text-rose-400 shrink-0" />
+            ) : (
+              <CheckCircle className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            )}
             {t.msg}
           </div>
         ))}

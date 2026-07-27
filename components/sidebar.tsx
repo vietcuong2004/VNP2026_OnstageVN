@@ -39,7 +39,7 @@ const brandMenuItems = [
   { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
   { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
   { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
-  { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
+  { label: "Danh sách yêu thích", icon: BookmarkCheck, href: "/brand/shortlists" },
   // { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   // { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
   { label: "Thông tin brand", icon: User, href: "/brand/settings" },
