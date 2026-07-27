@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Home, Briefcase, BookmarkCheck, Search, User,
   Sparkles, Calendar, MessageSquare, Menu, X, LogOut,
-  Users, Bell, Settings, LogIn, ArrowLeftRight, Info
+  Users, Bell, Settings, LogIn, Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutCurrentSession, AUTH_USER_UPDATED_EVENT, getAuthToken } from "@/lib/api-client";
@@ -14,7 +14,7 @@ import { getGuestMoreNavigation, getGuestPrimaryNavigation } from "@/lib/public-
 
 const talentAllItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
-  { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
+  { label: "Hồ sơ Talent", icon: User, href: "/talent/portfolio" },
   { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
@@ -139,44 +139,85 @@ export default function BottomNavigation() {
     icon: guestIconMap[item.key],
   }));
 
-  const brandPrimaryItems = [
-    { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
-    { label: "Tìm kiếm", icon: Search, href: "/brand/search" },
-    { label: "Quản lý Talent", icon: Users, href: "/brand/my-talents" },
-    { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
-  ];
 
-  const talentPrimaryItems = [
-    { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
-    { label: "Hồ sơ", icon: User, href: "/talent/portfolio" },
-    { label: "Việc làm", icon: Briefcase, href: "/talent/jobs" },
-    { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
-  ];
 
-  const primaryItems = !isLoggedIn ? guestPrimaryItems : isBrand ? brandPrimaryItems : talentPrimaryItems;
-  const allItems = !isLoggedIn
-    ? guestMoreItems
-    : isBrand
-    ? [
-      ...brandAllItems.filter(item => item.label !== "Đăng xuất"),
-      ...(isLoggedIn
-        ? [{ label: "Đăng xuất", icon: LogOut, href: "/" }]
-        : [
-          { label: "Sang Talent", icon: ArrowLeftRight, href: "/talent/dashboard" },
-          { label: "Đăng nhập", icon: LogIn, href: "/auth/login" }
-        ]
-      )
-    ]
-    : [
-      ...talentAllItems.filter(item => item.label !== "Đăng xuất"),
-      ...(isLoggedIn
-        ? [{ label: "Đăng xuất", icon: LogOut, href: "/" }]
-        : [
-          { label: "Sang Brand", icon: ArrowLeftRight, href: "/brand/dashboard" },
-          { label: "Đăng nhập", icon: LogIn, href: "/auth/login" }
-        ]
-      )
-    ];
+  const primaryItems = guestPrimaryItems;
+
+  const activeBrandItems = brandAllItems.filter(item => 
+    item.label !== "Tổng quan" && 
+    item.label !== "Tin nhắn" && 
+    item.label !== "Đăng xuất"
+  );
+  
+  const activeTalentItems = talentAllItems.filter(item => 
+    item.label !== "Tổng quan" && 
+    item.label !== "Lịch trình" && 
+    item.label !== "Tin nhắn" && 
+    item.label !== "Đăng xuất"
+  );
+
+  const renderItemLink = (item: typeof brandAllItems[number]) => {
+    const Icon = item.icon;
+    const isLogout = item.label === "Đăng xuất";
+    const isLogin = item.label === "Đăng nhập";
+    const isGuestTalentActive = !isLoggedIn && item.href === "/brand/search" && (
+      activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/")
+    );
+    const isGuestJobsActive = !isLoggedIn && item.href === "/talent/jobs" && activePathname.startsWith("/talent/jobs");
+    const isActive = !isLogout && !isLogin && (
+      isGuestTalentActive || isGuestJobsActive || activePathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && activePathname.startsWith(item.href))
+    );
+
+    const content = (
+      <>
+        <div className={cn(
+          "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 group-active:scale-95",
+          isActive
+            ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
+            : isLogout
+              ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.08)]"
+              : isLogin
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.08)]"
+                : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+        )}>
+          <Icon className="h-5 w-5 animate-none" />
+        </div>
+        <span className={cn(
+          "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
+          isActive && "text-amber-400 font-extrabold",
+          isLogout ? "text-red-400 group-hover:text-red-300 font-black" :
+            isLogin ? "text-emerald-400 group-hover:text-emerald-300 font-black" :
+              "text-slate-400 group-hover:text-white"
+        )}>
+          {item.label}
+        </span>
+      </>
+    );
+
+    if (isLogout) {
+      return (
+        <button
+          key={item.label}
+          type="button"
+          onClick={handleLogout}
+          className="flex flex-col items-center text-center group cursor-pointer"
+        >
+          {content}
+        </button>
+      );
+    }
+
+    return (
+      <Link
+        key={item.label}
+        href={item.href}
+        onClick={() => setShowMoreMenu(false)}
+        className="flex flex-col items-center text-center group cursor-pointer"
+      >
+        {content}
+      </Link>
+    );
+  };
 
   return (
     <>
@@ -210,73 +251,51 @@ export default function BottomNavigation() {
             </div>
 
             {/* Grid of all items */}
-            <div className="grid grid-cols-4 gap-y-5 gap-x-2.5 max-h-[60vh] overflow-y-auto pr-1">
-              {allItems.map((item) => {
-                const Icon = item.icon;
-                const isLogout = item.label === "Đăng xuất";
-                const isLogin = item.label === "Đăng nhập";
-                const isSwitch = item.label === "Sang Brand" || item.label === "Sang Talent";
-                const isGuestTalentActive = !isLoggedIn && item.href === "/brand/search" && (
-                  activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/")
-                );
-                const isGuestJobsActive = !isLoggedIn && item.href === "/talent/jobs" && activePathname.startsWith("/talent/jobs");
-                const isActive = !isLogout && !isLogin && !isSwitch && (
-                  isGuestTalentActive || isGuestJobsActive || activePathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && activePathname.startsWith(item.href))
-                );
-                const content = (
-                  <>
-                    <div className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300",
-                      isActive
-                        ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
-                        : isLogout
-                          ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.08)]"
-                          : isLogin
-                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.08)]"
-                            : isSwitch
-                              ? "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 hover:border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.08)]"
-                              : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
-                    )}>
-                      <Icon className="h-5 w-5 animate-none" />
-                    </div>
-                    <span className={cn(
-                      "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
-                      isActive && "text-amber-400 font-extrabold",
-                      isLogout ? "text-red-400 group-hover:text-red-300 font-black" :
-                        isLogin ? "text-emerald-400 group-hover:text-emerald-300 font-black" :
-                          isSwitch ? "text-amber-400 group-hover:text-amber-300 font-black" :
-                            "text-slate-400 group-hover:text-white"
-                    )}>
-                      {item.label}
+            {isLoggedIn ? (
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-1">
+                {/* Dành cho Brand */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 border-l-2 border-yellow-500 pl-2 bg-gradient-to-r from-yellow-500/10 to-transparent py-1 rounded-r-lg">
+                    <Briefcase className="h-3.5 w-3.5 text-yellow-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] bg-gradient-to-r from-amber-100 via-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                      Dành cho Brand
                     </span>
-                  </>
-                );
+                  </div>
+                  <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
+                    {activeBrandItems.map((item) => renderItemLink(item))}
+                  </div>
+                </div>
 
-                if (isLogout) {
-                  return (
-                    <button
-                      key={item.label}
-                      type="button"
-                      onClick={handleLogout}
-                      className="flex flex-col items-center text-center group cursor-pointer"
-                    >
-                      {content}
-                    </button>
-                  );
-                }
+                {/* Dành cho Talent */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 border-l-2 border-amber-400 pl-2 bg-gradient-to-r from-amber-500/10 to-transparent py-1 rounded-r-lg">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+                      Dành cho Talent
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
+                    {activeTalentItems.map((item) => renderItemLink(item))}
+                  </div>
+                </div>
 
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => setShowMoreMenu(false)}
-                    className="flex flex-col items-center text-center group cursor-pointer"
+                {/* Actions / Logout */}
+                <div className="pt-4 border-t border-white/5 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                   >
-                    {content}
-                  </Link>
-                );
-              })}
-            </div>
+                    <LogOut className="h-4 w-4" />
+                    Đăng xuất
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-y-5 gap-x-2.5 max-h-[60vh] overflow-y-auto pr-1">
+                {guestMoreItems.map((item) => renderItemLink(item))}
+              </div>
+            )}
           </div>
         </>
       )}

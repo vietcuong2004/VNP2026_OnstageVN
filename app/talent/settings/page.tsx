@@ -2,9 +2,9 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Bell, Key, LogOut, RefreshCw, CheckCircle, Sparkles, Mail, MessageCircle, Copy, ExternalLink } from "lucide-react";
+import { ArrowLeft, Bell, Key, LogOut, CheckCircle, Sparkles, Mail, MessageCircle, Copy, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createZaloLinkCode, getAuthToken, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, logoutCurrentSession, SocialConnection, switchCurrentPlatform, unlinkSocialConnection, updateAuthEmail, ZaloLinkStatus } from "@/lib/api-client";
+import { createZaloLinkCode, getAuthToken, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, logoutCurrentSession, SocialConnection, unlinkSocialConnection, updateAuthEmail, ZaloLinkStatus } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
 
 type AuthUser = {
@@ -234,29 +234,6 @@ export default function SettingsPage() {
       {/* Settings Options container - styled like dashboard.htm tables */}
       <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] divide-y divide-[#151b2d]/50 overflow-hidden shadow-2xl">
         
-        {/* Switch portal */}
-        <div 
-          onClick={async () => {
-            addToast("Đang chuyển đổi cổng portal...", "info");
-            try {
-              await switchCurrentPlatform("brand");
-              router.push("/brand/dashboard");
-            } catch (error) {
-              addToast(error instanceof Error ? error.message : "Chưa thể chuyển sang cổng Brand.", "info");
-            }
-          }}
-          className="flex items-center justify-between p-5 cursor-pointer hover:bg-slate-950/40 transition-colors duration-300"
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/25 bg-amber-400/10 text-amber-300">
-              <RefreshCw className="h-4.5 w-4.5 animate-spin-slow" />
-            </div>
-            <div>
-              <span className="block text-xs font-bold text-white">Đổi Cổng Portal</span>
-              <span className="block text-[10px] text-slate-500 mt-0.5">Chuyển đổi giao diện sang cổng Nhãn hàng (Brand) hoặc Admin</span>
-            </div>
-          </div>
-        </div>
 
         {/* Change Password */}
         <div 

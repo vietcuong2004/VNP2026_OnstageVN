@@ -50,8 +50,8 @@ export default function RootGatewayPage({
     if (!token || !storedUser) return;
 
     try {
-      const user = JSON.parse(storedUser) as { type?: string };
-      router.replace(user.type === "brand" ? "/brand/dashboard" : "/talent/dashboard");
+      JSON.parse(storedUser);
+      router.replace("/brand/dashboard");
     } catch {
       localStorage.removeItem("onstagevn_auth_user");
     }

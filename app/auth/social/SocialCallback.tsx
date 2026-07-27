@@ -45,12 +45,12 @@ function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
 }
 
-function getRedirectPath(type: AccountType | null) {
-  return type === "talent" ? "/talent/dashboard" : "/brand/dashboard";
+function getRedirectPath() {
+  return "/brand/dashboard";
 }
 
-function getMissingEmailPath(type: AccountType | null) {
-  return type === "talent" ? "/talent/settings?missingEmail=1" : "/brand/settings?missingEmail=1";
+function getMissingEmailPath() {
+  return "/brand/settings?missingEmail=1";
 }
 
 async function hydrateTalentAvatar(apiUrl: string, token: string, user: MeResponse["user"]) {
@@ -128,10 +128,10 @@ export default function SocialCallback() {
           storeAuthSession(token, user);
           const loginProvider = provider ?? user.social_provider ?? null;
           if (!user.email && loginProvider === "facebook") {
-            router.replace(getMissingEmailPath(user.type));
+            router.replace(getMissingEmailPath());
             return;
           }
-          router.replace(getRedirectPath(user.type));
+          router.replace(getRedirectPath());
           return;
         }
       } catch {
@@ -145,7 +145,7 @@ export default function SocialCallback() {
         type: type ?? "talent",
         status: "active",
       });
-      router.replace(getRedirectPath(type));
+      router.replace(getRedirectPath());
     }
 
     completeLogin();

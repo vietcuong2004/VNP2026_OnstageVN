@@ -4,7 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Bell, Calendar, ChevronDown, LogIn, LogOut, Search, UserCircle, Building2, Settings, ShieldAlert } from "lucide-react";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
-import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession, switchCurrentPlatform } from "@/lib/api-client";
+import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { loadNotifications, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/messaging-api";
 import { ensureBrowserNotificationPermission, showBrowserNotification } from "@/lib/browser-notifications";
@@ -139,22 +139,6 @@ export default function Header() {
   const headerAvatarSrc = user
     ? (isBrandPath ? (user.external_avatar_url || "/logo.png") : (talentAvatar || fallbackAvatarSrc))
     : fallbackAvatarSrc;
-  const nextPlatform = isBrandPath ? "talent" : "brand";
-  const nextPlatformPath = nextPlatform === "brand" ? "/brand/dashboard" : "/talent/dashboard";
-  const nextPlatformLabel = nextPlatform === "brand" ? "Chuyển sang Brand" : "Chuyển sang Talent";
-  async function handleSwitchPlatform() {
-    if (!user) return;
-
-    setOpen(false);
-
-    try {
-      await switchCurrentPlatform(nextPlatform);
-      router.push(nextPlatformPath);
-    } catch (error) {
-      console.error("Failed to switch platform", error);
-    }
-  }
-
   useEffect(() => {
     if (!user || isBrandPath) return;
 
@@ -366,20 +350,8 @@ export default function Header() {
                 </div>
               </div>
 
-              {/* Navigation Links based on user role */}
-              {!user ? null : isBrandPath ? (
+              {!user ? null : (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      router.push("/brand/settings");
-                      setOpen(false);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                  >
-                    <Building2 className="h-4 w-4 text-slate-400" />
-                    Thông tin brand
-                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -388,22 +360,30 @@ export default function Header() {
                     }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
                   >
-                    <Calendar className="h-4 w-4 text-slate-400" />
-                    Tổng quan
+                    <Building2 className="h-4 w-4 text-slate-400" />
+                    Tổng quan Brand
                   </button>
-                </>
-              ) : (
-                <>
                   <button
                     type="button"
                     onClick={() => {
-                      router.push("/talent/settings");
+                      router.push("/brand/settings");
                       setOpen(false);
                     }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
                   >
                     <Settings className="h-4 w-4 text-slate-400" />
-                    Cài đặt
+                    Thông tin brand
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push("/talent/dashboard");
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    <UserCircle className="h-4 w-4 text-slate-400" />
+                    Tổng quan Talent
                   </button>
                   <button
                     type="button"
@@ -413,39 +393,13 @@ export default function Header() {
                     }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
                   >
-                    <UserCircle className="h-4 w-4 text-slate-400" />
-                    Hồ sơ cá nhân
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      router.push("/talent/calendar");
-                      setOpen(false);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                  >
                     <Calendar className="h-4 w-4 text-slate-400" />
-                    Lịch trình
+                    Hồ sơ cá nhân
                   </button>
                 </>
               )}
 
               <div className="border-t border-white/5 my-1.5" />
-
-              {user && (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleSwitchPlatform}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/10 hover:text-amber-100"
-                  >
-                    {nextPlatform === "brand" ? <Building2 className="h-4 w-4 text-amber-300" /> : <UserCircle className="h-4 w-4 text-amber-300" />}
-                    {nextPlatformLabel}
-                  </button>
-
-                  <div className="border-t border-white/5 my-1.5" />
-                </>
-              )}
 
               {user ? (
                 <button

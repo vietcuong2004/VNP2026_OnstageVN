@@ -28,8 +28,8 @@ function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
 }
 
-function getRedirectPath(type: AccountType) {
-  return type === "talent" ? "/talent/dashboard" : "/brand/dashboard";
+function getRedirectPath() {
+  return "/brand/dashboard";
 }
 
 function getStoredAuthUser() {
@@ -167,7 +167,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       ? new URLSearchParams(window.location.search).get("redirect")
       : null;
 
-    router.replace(redirectPath?.startsWith("/") ? redirectPath : getRedirectPath(storedUser.type));
+    router.replace(redirectPath?.startsWith("/") ? redirectPath : getRedirectPath());
   }, [router]);
 
 
@@ -220,7 +220,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       const redirectPath = typeof window !== "undefined"
         ? new URLSearchParams(window.location.search).get("redirect")
         : null;
-      router.replace(redirectPath?.startsWith("/") ? redirectPath : getRedirectPath(data.user.type));
+      router.replace(redirectPath?.startsWith("/") ? redirectPath : getRedirectPath());
     } catch {
       setError("Không kết nối được backend Laravel. Hãy kiểm tra API server đã chạy chưa.");
     } finally {
