@@ -7,7 +7,7 @@ export default function TalentRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/talent/dashboard");
+    router.replace("/talent/jobs");
   }, [router]);
 
   return (

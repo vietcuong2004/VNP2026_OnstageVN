@@ -4,11 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  User,
   Briefcase,
   Sparkles,
-  ChevronRight,
-  ChevronDown,
   ShieldCheck,
   FileText,
   Search,
@@ -26,11 +23,27 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function RootGatewayPage() {
+type LandingPageProps = {
+  showLandingHeader?: boolean;
+  showHeroCta?: boolean;
+  compactHeroTitle?: boolean;
+  showPortals?: boolean;
+  redirectAuthenticatedUsers?: boolean;
+};
+
+export default function RootGatewayPage({
+  showLandingHeader = true,
+  showHeroCta = true,
+  compactHeroTitle = false,
+  showPortals = true,
+  redirectAuthenticatedUsers = true,
+}: LandingPageProps = {}) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"talent" | "brand">("talent");
 
   useEffect(() => {
+    if (!redirectAuthenticatedUsers) return;
+
     const token = localStorage.getItem("onstagevn_auth_token");
     const storedUser = localStorage.getItem("onstagevn_auth_user");
 
@@ -42,7 +55,7 @@ export default function RootGatewayPage() {
     } catch {
       localStorage.removeItem("onstagevn_auth_user");
     }
-  }, [router]);
+  }, [redirectAuthenticatedUsers, router]);
 
   const scrollToId = (id: string) => {
     const element = document.getElementById(id);
@@ -79,6 +92,7 @@ export default function RootGatewayPage() {
       <div className="relative z-10 w-full flex flex-col items-center">
 
         {/* Full-width Mockup Header - Fixed at the top of viewport spanning 100% width with glassmorphism */}
+        {showLandingHeader && (
         <header className="fixed top-0 left-0 w-full z-50 bg-[#02040a]/80 backdrop-blur-md border-b border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
           <div className="w-full max-w-[1550px] mx-auto flex items-center justify-between py-3 md:py-4 px-4 md:px-8">
             <div className="flex items-center">
@@ -118,9 +132,10 @@ export default function RootGatewayPage() {
             </div>
           </div>
         </header>
+        )}
 
         {/* Spacer to push content down below the fixed header */}
-        <div className="h-16 md:h-20 w-full shrink-0" />
+        {showLandingHeader && <div className="h-16 md:h-20 w-full shrink-0" />}
 
         {/* HERO SECTION - Left content layout matching mockup */}
         <section className="flex flex-col md:flex-row items-center justify-between min-h-0 md:min-h-[80vh] w-full mb-6 md:mb-10 px-1 md:px-4 max-w-[1550px] mx-auto relative text-center md:text-left">
@@ -136,9 +151,14 @@ export default function RootGatewayPage() {
               </span>
             </div>
 
-            <h1 className="text-[25px] sm:text-3xl md:text-5xl lg:text-6xl font-display font-black tracking-tight leading-tight uppercase text-white">
-              Tôn vinh sắc đẹp <br />
-              <span className="text-gradient-gold">Tài năng tỏa sáng</span>
+            <h1
+              className={cn(
+                "text-[25px] sm:text-3xl font-display font-black tracking-tight leading-tight uppercase text-white",
+                compactHeroTitle ? "md:text-4xl lg:text-[46px] xl:text-5xl" : "md:text-5xl lg:text-6xl",
+              )}
+            >
+              <span className={cn("block", compactHeroTitle && "md:whitespace-nowrap")}>Tôn vinh sắc đẹp</span>
+              <span className={cn("block text-gradient-gold", compactHeroTitle && "md:whitespace-nowrap")}>Tài năng tỏa sáng</span>
             </h1>
 
             <div className="p-4 md:p-5 rounded-2xl bg-slate-950/50 backdrop-blur-md border border-white/5 shadow-xl max-w-lg text-justify mx-auto md:mx-0">
@@ -147,27 +167,16 @@ export default function RootGatewayPage() {
               </p>
             </div>
 
-            {/* Dual call-to-action buttons as shown in mockup */}
-            <div className="flex flex-col sm:flex-row gap-4 md:gap-6 pt-2 md:pt-4 w-full sm:w-auto justify-center md:justify-start items-center sm:items-start">
+            {showHeroCta && (
+            <div className="flex pt-2 md:pt-4 w-full sm:w-auto justify-center md:justify-start items-center sm:items-start">
               <Link
-                href="/talent/dashboard"
-                className="w-full sm:w-auto px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-gradient-gold text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.3)] hover:scale-102 transition-all duration-305 cursor-pointer flex items-center justify-center gap-2"
+                href="/brand/search"
+                className="w-full sm:w-auto px-7 md:px-10 py-3 md:py-4 rounded-xl text-xs font-black uppercase tracking-widest bg-gradient-gold text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.3)] hover:scale-102 transition-all duration-305 cursor-pointer flex items-center justify-center gap-2"
               >
-                Dành cho Talent <ArrowRight className="h-4 w-4" />
+                Truy cập nền tảng <ArrowRight className="h-4 w-4" />
               </Link>
-
-              {/* Ultra prominent redesign for "Dành cho Doanh nghiệp" button using ONLY gold, black, and white/gray */}
-              <div className="relative w-full sm:w-auto group">
-                {/* Gold pulsing background glow */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#D4A64A] to-[#F0C56B] rounded-xl blur opacity-60 group-hover:opacity-85 group-hover:blur-md transition-all duration-300 animate-pulse pointer-events-none" />
-                <Link
-                  href="/brand/dashboard"
-                  className="relative w-full sm:w-auto px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-slate-950 text-[#F0C56B] hover:text-[#F0C56B] hover:scale-102 transition-all duration-305 cursor-pointer flex items-center justify-center gap-2 border border-[#D4A64A]/50 shadow-[0_0_20px_rgba(212,166,74,0.3)]"
-                >
-                  Dành cho Doanh nghiệp <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
             </div>
+            )}
           </div>
 
           {/* Right Column: Empty spacer to let the background image skyline and face show cleanly without double emblem rendering */}
@@ -391,6 +400,7 @@ export default function RootGatewayPage() {
         </section>
 
         {/* PORTALS SECTION (Scroll target) */}
+        {showPortals && (
         <section id="portals" className="w-full mb-20 scroll-mt-24 px-4 text-center max-w-[1550px] mx-auto">
           <div className="flex flex-col items-center space-y-4 mb-10 w-full">
             <span className="text-[10px] font-black uppercase tracking-widest text-[#F0C56B] bg-[#D4A64A]/10 px-4 py-1.5 rounded-full border border-[#D4A64A]/20">
@@ -705,6 +715,7 @@ export default function RootGatewayPage() {
             )}
           </div>
         </section>
+        )}
 
         {/* FOOTER */}
         <footer className="w-full border-t border-white/5 bg-[#02040a]/80 backdrop-blur-md pt-16 pb-12 px-4 md:px-8 mt-16 max-w-[1550px] mx-auto text-center">
@@ -754,12 +765,16 @@ export default function RootGatewayPage() {
               <div>
                 <h4 className="text-[11px] font-black text-[#F0C56B] uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Hệ sinh thái</h4>
                 <ul className="space-y-3 text-[11px] font-semibold text-slate-400">
-                  <li>
-                    <Link href="/intro/talent" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Talent</Link>
-                  </li>
-                  <li>
-                    <Link href="/intro/brand" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Brand</Link>
-                  </li>
+                  {showPortals && (
+                    <>
+                      <li>
+                        <Link href="/intro/talent" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Talent</Link>
+                      </li>
+                      <li>
+                        <Link href="/intro/brand" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Brand</Link>
+                      </li>
+                    </>
+                  )}
                   <li>
                     <button onClick={() => scrollToId('features')} className="hover:text-white transition-colors cursor-pointer text-left block">Định hướng AI</button>
                   </li>

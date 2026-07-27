@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Bell, Key, LogOut, RefreshCw, CheckCircle, Sparkles, Mail, MessageCircle, Copy, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createZaloLinkCode, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, logoutCurrentSession, SocialConnection, switchCurrentPlatform, unlinkSocialConnection, updateAuthEmail, ZaloLinkStatus } from "@/lib/api-client";
+import { createZaloLinkCode, getAuthToken, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, logoutCurrentSession, SocialConnection, switchCurrentPlatform, unlinkSocialConnection, updateAuthEmail, ZaloLinkStatus } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
 
 type AuthUser = {
@@ -55,17 +55,19 @@ export default function SettingsPage() {
       setMissingEmailFromQuery(new URLSearchParams(window.location.search).get("missingEmail") === "1");
     }, 0);
 
-    loadSocialConnections()
-      .then(setConnections)
-      .catch(() => {
-        // Settings should still render if backend auth is not ready.
-      });
+    if (getAuthToken()) {
+      loadSocialConnections()
+        .then(setConnections)
+        .catch(() => {
+          // Settings should still render if backend auth is not ready.
+        });
 
-    loadZaloLinkStatus()
-      .then(setZaloLink)
-      .catch(() => {
-        // Zalo linking is optional while backend deployments roll forward.
-      });
+      loadZaloLinkStatus()
+        .then(setZaloLink)
+        .catch(() => {
+          // Zalo linking is optional while backend deployments roll forward.
+        });
+    }
 
     return () => window.clearTimeout(timeout);
   }, []);

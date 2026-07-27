@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Globe2, Mail, MapPin, Phone, Save, UserRound, Lock, AlertCircle, Upload, MessageCircle, Copy, ExternalLink } from "lucide-react";
 import { loadBrandPartnerProfile, mapBackendPartnerProfile, saveBrandPartnerProfile, uploadBrandProfileCover, uploadBrandProfileLogo } from "@/lib/brand-api";
-import { createZaloLinkCode, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, SocialConnection, unlinkSocialConnection, updateAuthEmail, apiJson, storeAuthUser, ZaloLinkStatus } from "@/lib/api-client";
+import { createZaloLinkCode, getAuthToken, getSocialLinkUrl, getStoredAuthUser, loadSocialConnections, loadZaloLinkStatus, SocialConnection, unlinkSocialConnection, updateAuthEmail, apiJson, storeAuthUser, ZaloLinkStatus } from "@/lib/api-client";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
@@ -108,17 +108,19 @@ export default function BrandSettingsPage() {
         ));
       }
     });
-    loadSocialConnections()
-      .then(setConnections)
-      .catch(() => {
-        // Keep settings usable if auth API is not ready.
-      });
+    if (getAuthToken()) {
+      loadSocialConnections()
+        .then(setConnections)
+        .catch(() => {
+          // Keep settings usable if auth API is not ready.
+        });
 
-    loadZaloLinkStatus()
-      .then(setZaloLink)
-      .catch(() => {
-        // Zalo linking is optional while backend deployments roll forward.
-      });
+      loadZaloLinkStatus()
+        .then(setZaloLink)
+        .catch(() => {
+          // Zalo linking is optional while backend deployments roll forward.
+        });
+    }
 
 
     return () => window.clearTimeout(timeout);

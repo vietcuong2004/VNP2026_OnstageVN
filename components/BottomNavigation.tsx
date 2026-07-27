@@ -4,12 +4,13 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Home, Briefcase, BookmarkCheck, Crown, Search, User,
-  Sparkles, Trophy, Calendar, MessageSquare, Wallet, Menu, X, LogOut,
-  BarChart3, Users, Bell, Settings, Share2, LogIn, ArrowLeftRight
+  Home, Briefcase, BookmarkCheck, Search, User,
+  Sparkles, Calendar, MessageSquare, Menu, X, LogOut,
+  Users, Bell, Settings, LogIn, ArrowLeftRight, Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutCurrentSession, AUTH_USER_UPDATED_EVENT, getAuthToken } from "@/lib/api-client";
+import { getGuestMoreNavigation, getGuestPrimaryNavigation } from "@/lib/public-navigation";
 
 const talentAllItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
@@ -46,7 +47,6 @@ export default function BottomNavigation() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [visible, setVisible] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [sourcePath, setSourcePath] = useState("");
 
   useEffect(() => {
     const syncToken = () => setIsLoggedIn(!!getAuthToken());
@@ -107,28 +107,37 @@ export default function BottomNavigation() {
     return () => window.removeEventListener("scroll", handleScroll, { capture: true });
   }, [showMoreMenu]);
 
-  useEffect(() => {
-    if (!pathname.startsWith("/brand/talents/") && !pathname.startsWith("/talent/jobs/")) {
-      setSourcePath("");
-      return;
-    }
-
-    setSourcePath(new URLSearchParams(window.location.search).get("from") || "");
-  }, [pathname]);
-
-  // Guard: only render the bottom nav inside the app portals.
-  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand")) {
+  // Guard: only render the bottom nav inside the app-like public/portal pages.
+  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/about") {
     return null;
   }
 
   const isBrand = pathname.startsWith("/brand");
-  const activePathname = pathname.startsWith("/brand/talents/") && sourcePath.startsWith("/brand/")
-    ? sourcePath
-    : pathname.startsWith("/talent/jobs/") && sourcePath.startsWith("/talent/")
-      ? sourcePath
-      : pathname.startsWith("/talent/jobs/")
-        ? "/talent/jobs"
-        : pathname;
+  const activePathname = pathname.startsWith("/brand/talents/")
+    ? "/brand/search"
+    : pathname.startsWith("/talent/jobs/")
+      ? "/talent/jobs"
+      : pathname;
+
+  const guestIconMap = {
+    talent: Search,
+    jobs: Briefcase,
+    about: Info,
+    talent_profile: User,
+    talent_survey: Sparkles,
+    brand_settings: Settings,
+    login: LogIn,
+  };
+
+  const guestPrimaryItems = getGuestPrimaryNavigation().map((item) => ({
+    ...item,
+    icon: guestIconMap[item.key],
+  }));
+
+  const guestMoreItems = getGuestMoreNavigation().map((item) => ({
+    ...item,
+    icon: guestIconMap[item.key],
+  }));
 
   const brandPrimaryItems = [
     { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
@@ -144,8 +153,10 @@ export default function BottomNavigation() {
     { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
   ];
 
-  const primaryItems = isBrand ? brandPrimaryItems : talentPrimaryItems;
-  const allItems = isBrand
+  const primaryItems = !isLoggedIn ? guestPrimaryItems : isBrand ? brandPrimaryItems : talentPrimaryItems;
+  const allItems = !isLoggedIn
+    ? guestMoreItems
+    : isBrand
     ? [
       ...brandAllItems.filter(item => item.label !== "Đăng xuất"),
       ...(isLoggedIn
@@ -205,7 +216,13 @@ export default function BottomNavigation() {
                 const isLogout = item.label === "Đăng xuất";
                 const isLogin = item.label === "Đăng nhập";
                 const isSwitch = item.label === "Sang Brand" || item.label === "Sang Talent";
-                const isActive = !isLogout && !isLogin && !isSwitch && (activePathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && activePathname.startsWith(item.href)));
+                const isGuestTalentActive = !isLoggedIn && item.href === "/brand/search" && (
+                  activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/")
+                );
+                const isGuestJobsActive = !isLoggedIn && item.href === "/talent/jobs" && activePathname.startsWith("/talent/jobs");
+                const isActive = !isLogout && !isLogin && !isSwitch && (
+                  isGuestTalentActive || isGuestJobsActive || activePathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && activePathname.startsWith(item.href))
+                );
                 const content = (
                   <>
                     <div className={cn(
@@ -271,7 +288,11 @@ export default function BottomNavigation() {
       )}>
         <nav className="flex h-[calc(4rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] w-full items-center justify-around border-t border-white/10 bg-[#03050c]/95 px-2 shadow-2xl backdrop-blur-xl">
           {primaryItems.map((item) => {
-            const isActive = activePathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && activePathname.startsWith(item.href));
+            const isGuestTalentActive = !isLoggedIn && item.href === "/brand/search" && (
+              activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/")
+            );
+            const isGuestJobsActive = !isLoggedIn && item.href === "/talent/jobs" && activePathname.startsWith("/talent/jobs");
+            const isActive = isGuestTalentActive || isGuestJobsActive || activePathname === item.href || (item.href !== "/brand/dashboard" && item.href !== "/talent/dashboard" && activePathname.startsWith(item.href));
             const Icon = item.icon;
 
             return (

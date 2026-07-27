@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  Home, User, Briefcase, Crown, MessageSquare, Calendar, Wallet, Settings,
-  Sparkles, BookmarkCheck, LayoutDashboard, ChevronRight, Trophy,
-  Search, BarChart3, Users, Bell, Users2, Share2, ArrowRightLeft
+  Home, User, Briefcase, MessageSquare, Calendar,
+  Sparkles, BookmarkCheck, LayoutDashboard, ChevronRight,
+  Search, Bell, Users2, ArrowRightLeft, Info, LogIn
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AUTH_USER_UPDATED_EVENT, getAuthToken } from "@/lib/api-client";
+import { getGuestDesktopNavigation } from "@/lib/public-navigation";
 
 const talentMenuItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
@@ -39,30 +41,41 @@ const brandMenuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const [sourcePath, setSourcePath] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const isTalent = pathname.startsWith("/talent");
   const isBrand = pathname.startsWith("/brand");
   const isGateway = pathname === "/";
 
-  const currentMenuItems = isTalent ? talentMenuItems : isBrand ? brandMenuItems : [];
-  const activePathname = pathname.startsWith("/brand/talents/") && sourcePath.startsWith("/brand/")
-    ? sourcePath
-    : pathname.startsWith("/talent/jobs/") && sourcePath.startsWith("/talent/")
-      ? sourcePath
-      : pathname.startsWith("/talent/jobs/")
-        ? "/talent/jobs"
-        : pathname;
+  const guestIconMap = {
+    talent: Search,
+    jobs: Briefcase,
+    about: Info,
+    talent_survey: Sparkles,
+    login: LogIn,
+  };
+  const guestMenuItems = getGuestDesktopNavigation().map((item) => ({
+    ...item,
+    icon: guestIconMap[item.key as keyof typeof guestIconMap],
+  }));
+
+  const currentMenuItems = !isLoggedIn ? guestMenuItems : isTalent ? talentMenuItems : isBrand ? brandMenuItems : [];
+  const activePathname = pathname.startsWith("/brand/talents/")
+    ? "/brand/search"
+    : pathname.startsWith("/talent/jobs/")
+      ? "/talent/jobs"
+      : pathname;
 
   useEffect(() => {
-    if (!pathname.startsWith("/brand/talents/") && !pathname.startsWith("/talent/jobs/")) {
-      setSourcePath("");
-      return;
-    }
-
-    setSourcePath(new URLSearchParams(window.location.search).get("from") || "");
-  }, [pathname]);
+    const syncToken = () => setIsLoggedIn(!!getAuthToken());
+    syncToken();
+    window.addEventListener(AUTH_USER_UPDATED_EVENT, syncToken);
+    window.addEventListener("storage", syncToken);
+    return () => {
+      window.removeEventListener(AUTH_USER_UPDATED_EVENT, syncToken);
+      window.removeEventListener("storage", syncToken);
+    };
+  }, []);
 
   if (isGateway || currentMenuItems.length === 0) {
     return null;
@@ -76,7 +89,11 @@ export default function Sidebar() {
       {/* Sidebar Navigation Links */}
       <nav className="flex-1 space-y-2 overflow-y-auto pr-1">
         {currentMenuItems.map((item) => {
-          const isActive = activePathname === item.href || (item.href.split("/").length > 3 && activePathname.startsWith(item.href));
+          const isGuestTalentActive = !isLoggedIn && item.href === "/brand/search" && (
+            activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/")
+          );
+          const isGuestJobsActive = !isLoggedIn && item.href === "/talent/jobs" && activePathname.startsWith("/talent/jobs");
+          const isActive = isGuestTalentActive || isGuestJobsActive || activePathname === item.href || (item.href.split("/").length > 3 && activePathname.startsWith(item.href));
           const Icon = item.icon;
 
           return (
@@ -100,19 +117,20 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Footer Mode Switch */}
-      <div className="border-t border-white/5 pt-4 mt-auto">
-        <Link
-          href={targetRolePath}
-          className="flex h-11 w-full items-center justify-between rounded-full bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_4px_20px_rgba(245,197,24,0.3)] hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
-        >
-          <span className="flex items-center gap-2">
-            <ArrowRightLeft className="h-4 w-4 text-slate-950" />
-            {switchLabel}
-          </span>
-          <ChevronRight className="h-4 w-4 text-slate-950" />
-        </Link>
-      </div>
+      {isLoggedIn && (
+        <div className="border-t border-white/5 pt-4 mt-auto">
+          <Link
+            href={targetRolePath}
+            className="flex h-11 w-full items-center justify-between rounded-full bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_4px_20px_rgba(245,197,24,0.3)] hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
+          >
+            <span className="flex items-center gap-2">
+              <ArrowRightLeft className="h-4 w-4 text-slate-950" />
+              {switchLabel}
+            </span>
+            <ChevronRight className="h-4 w-4 text-slate-950" />
+          </Link>
+        </div>
+      )}
     </aside>
   );
 }

@@ -19,7 +19,7 @@ import {
   resolveCampaignReferralLinkBySlug,
   updateTalentCampaignApplicationStatus,
 } from "@/lib/talent-api";
-import { getStoredAuthUser } from "@/lib/api-client";
+import { AUTH_USER_UPDATED_EVENT, getAuthToken, getStoredAuthUser } from "@/lib/api-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import QRCodeContainer from "@/components/QR_Code";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
@@ -364,6 +364,7 @@ function JobsPageContent() {
   const [showInviteModal, setShowInviteModal] = useState<any>(null);
   const jobRequestRef = useRef(0);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => (typeof window !== "undefined" ? !!getAuthToken() : false));
   const [jobBackendPage, setJobBackendPage] = useState(() => initialJobsState?.jobBackendPage || 1);
   const [jobTotal, setJobTotal] = useState(0);
   const [jobStageCounts, setJobStageCounts] = useState<Record<StageFilter, number>>({
@@ -378,6 +379,17 @@ function JobsPageContent() {
   const [hasMoreJobs, setHasMoreJobs] = useState(false);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [isLoadingMoreJobs, setIsLoadingMoreJobs] = useState(false);
+
+  useEffect(() => {
+    const syncAuth = () => setIsLoggedIn(!!getAuthToken());
+    window.addEventListener(AUTH_USER_UPDATED_EVENT, syncAuth);
+    window.addEventListener("storage", syncAuth);
+
+    return () => {
+      window.removeEventListener(AUTH_USER_UPDATED_EVENT, syncAuth);
+      window.removeEventListener("storage", syncAuth);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && !isLoadingJobs && !isLoadingMoreJobs && displayJobs.length > 0) {
@@ -917,49 +929,50 @@ function JobsPageContent() {
         <p className="text-xs text-slate-400 mt-2 font-medium">Khám phá và ứng tuyển các job sắc đẹp phù hợp nhất với bản thân.</p>
       </div>
 
-      {/* Tham gia qua link giới thiệu */}
-      <div className="rounded-3xl border border-amber-500/15 bg-gradient-to-br from-[#0c0f1d] to-[#07080e] p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
-        <div className="flex flex-col gap-4 relative z-10 w-full text-left">
-          <div className="space-y-1">
-            <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-amber-400 animate-pulse" />
-              Tham gia qua link giới thiệu
-            </h2>
-            <p className="text-[11px] text-slate-400 font-medium leading-relaxed max-w-2xl">
-              Dán đường dẫn Affiliate nhận từ đối tác (F1) để tham gia trực tiếp chiến dịch với vai trò F2 và nhận 70% cát-xê.
-            </p>
-          </div>
-
-          <form onSubmit={handleJoinCampaign} className="flex flex-col sm:flex-row gap-3 w-full max-w-xl">
-            <div className="relative flex-1 min-w-0">
-              <input
-                type="text"
-                value={pastedUrl}
-                onChange={(e) => setPastedUrl(e.target.value)}
-                placeholder="Dán link chiến dịch tại đây..."
-                className="w-full bg-slate-950/80 border border-amber-500/35 hover:border-amber-500/60 focus:border-amber-400 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none pr-10 min-w-0 transition-all"
-              />
-              {pastedUrl && (
-                <button
-                  type="button"
-                  onClick={() => setPastedUrl("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-[10px] uppercase font-bold"
-                >
-                  Xóa
-                </button>
-              )}
+      {isLoggedIn && (
+        <div className="rounded-3xl border border-amber-500/15 bg-gradient-to-br from-[#0c0f1d] to-[#07080e] p-6 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex flex-col gap-4 relative z-10 w-full text-left">
+            <div className="space-y-1">
+              <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-amber-400 animate-pulse" />
+                Tham gia qua link giới thiệu
+              </h2>
+              <p className="text-[11px] text-slate-400 font-medium leading-relaxed max-w-2xl">
+                Dán đường dẫn Affiliate nhận từ đối tác (F1) để tham gia trực tiếp chiến dịch với vai trò F2 và nhận 70% cát-xê.
+              </p>
             </div>
-            <button
-              type="submit"
-              disabled={!pastedUrl.trim()}
-              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-slate-950 px-6 text-xs font-black uppercase tracking-wider transition-all hover:from-amber-300 hover:to-yellow-400 active:scale-[0.98] cursor-pointer whitespace-nowrap"
-            >
-              Tham gia ngay <ArrowUpRight className="h-4 w-4 text-slate-950" />
-            </button>
-          </form>
+
+            <form onSubmit={handleJoinCampaign} className="flex flex-col sm:flex-row gap-3 w-full max-w-xl">
+              <div className="relative flex-1 min-w-0">
+                <input
+                  type="text"
+                  value={pastedUrl}
+                  onChange={(e) => setPastedUrl(e.target.value)}
+                  placeholder="Dán link chiến dịch tại đây..."
+                  className="w-full bg-slate-950/80 border border-amber-500/35 hover:border-amber-500/60 focus:border-amber-400 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none pr-10 min-w-0 transition-all"
+                />
+                {pastedUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setPastedUrl("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-[10px] uppercase font-bold"
+                  >
+                    Xóa
+                  </button>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={!pastedUrl.trim()}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-slate-950 px-6 text-xs font-black uppercase tracking-wider transition-all hover:from-amber-300 hover:to-yellow-400 active:scale-[0.98] cursor-pointer whitespace-nowrap"
+              >
+                Tham gia ngay <ArrowUpRight className="h-4 w-4 text-slate-950" />
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Search & filters */}
       <div className="flex flex-col gap-3 sm:flex-row">

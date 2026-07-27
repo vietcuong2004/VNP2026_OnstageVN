@@ -142,7 +142,6 @@ export default function Header() {
   const nextPlatform = isBrandPath ? "talent" : "brand";
   const nextPlatformPath = nextPlatform === "brand" ? "/brand/dashboard" : "/talent/dashboard";
   const nextPlatformLabel = nextPlatform === "brand" ? "Chuyển sang Brand" : "Chuyển sang Talent";
-
   async function handleSwitchPlatform() {
     if (!user) return;
 
@@ -184,7 +183,6 @@ export default function Header() {
 
   useEffect(() => {
     if (!user?.id) {
-      setUnreadNotifications(0);
       return;
     }
 
@@ -263,10 +261,6 @@ export default function Header() {
     window.location.href = API_BASE_URL.replace(/\/api$/, "") + "/admin";
   }
 
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
   return (
     <>
     {user?.impersonation?.active && (
@@ -318,19 +312,21 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2 md:gap-6">
-        <button
-          type="button"
-          onClick={() => router.push(isBrandPath ? "/brand/notifications" : "/talent/notifications")}
-          className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 transition-colors hover:text-white"
-          aria-label="Thông báo"
-        >
-          <Bell className="h-4.5 w-4.5" />
-          {unreadNotifications > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">
-              {unreadNotifications > 99 ? "99+" : unreadNotifications}
-            </span>
-          )}
-        </button>
+        {user && (
+          <button
+            type="button"
+            onClick={() => router.push(isBrandPath ? "/brand/notifications" : "/talent/notifications")}
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 transition-colors hover:text-white"
+            aria-label="Thông báo"
+          >
+            <Bell className="h-4.5 w-4.5" />
+            {unreadNotifications > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">
+                {unreadNotifications > 99 ? "99+" : unreadNotifications}
+              </span>
+            )}
+          </button>
+        )}
 
         <div className="relative border-l border-white/5 pl-3.5 md:pl-6">
           <button
@@ -371,7 +367,7 @@ export default function Header() {
               </div>
 
               {/* Navigation Links based on user role */}
-              {isBrandPath ? (
+              {!user ? null : isBrandPath ? (
                 <>
                   <button
                     type="button"
@@ -436,19 +432,20 @@ export default function Header() {
 
               <div className="border-t border-white/5 my-1.5" />
 
-              <button
-                type="button"
-                onClick={user ? handleSwitchPlatform : () => {
-                  setOpen(false);
-                  router.push(nextPlatformPath);
-                }}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/10 hover:text-amber-100"
-              >
-                {nextPlatform === "brand" ? <Building2 className="h-4 w-4 text-amber-300" /> : <UserCircle className="h-4 w-4 text-amber-300" />}
-                {nextPlatformLabel}
-              </button>
+              {user && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleSwitchPlatform}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/10 hover:text-amber-100"
+                  >
+                    {nextPlatform === "brand" ? <Building2 className="h-4 w-4 text-amber-300" /> : <UserCircle className="h-4 w-4 text-amber-300" />}
+                    {nextPlatformLabel}
+                  </button>
 
-              <div className="border-t border-white/5 my-1.5" />
+                  <div className="border-t border-white/5 my-1.5" />
+                </>
+              )}
 
               {user ? (
                 <button

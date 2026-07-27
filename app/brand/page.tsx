@@ -7,7 +7,7 @@ export default function BrandRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/brand/dashboard");
+    router.replace("/brand/search");
   }, [router]);
 
   return (
