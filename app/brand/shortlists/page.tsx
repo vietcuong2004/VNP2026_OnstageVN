@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookmarkCheck, Briefcase, Eye, FileText, HeartOff, MessageSquare, Plus } from "lucide-react";
+import { BookmarkCheck, Briefcase, Check, Eye, FileText, HeartOff, Loader2, Plus, UserPlus } from "lucide-react";
 import {
+  addBrandRosterTalent,
   addTalentToBrandCampaign,
   loadBrandCampaigns,
+  loadBrandRosterTalents,
   loadBrandTalents,
   loadBrandWishlists,
   removeTalentFromWishlist,
@@ -41,9 +43,16 @@ export default function BrandShortlistsPage() {
   const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [brandTalentIds, setBrandTalentIds] = useState<string[]>([]);
+  const [addingBrandTalentIds, setAddingBrandTalentIds] = useState<string[]>([]);
 
   useEffect(() => {
-    Promise.all([loadBrandTalents([]), loadBrandWishlists([])]).then(([backendTalents, wishlists]) => {
+    Promise.all([
+      loadBrandTalents([]),
+      loadBrandWishlists([]),
+      loadBrandRosterTalents().catch(() => []),
+    ]).then(([backendTalents, wishlists, rosterItems]) => {
+      setBrandTalentIds(rosterItems.map((item) => String(item.talent_profile_id)));
       const primaryWishlist = wishlists[0];
 
       if (!primaryWishlist) {
@@ -155,6 +164,22 @@ export default function BrandShortlistsPage() {
     );
 
     pushToast("Đã thêm talent vào chiến dịch.");
+  }
+
+  async function addTalentToBrand(talentId: string) {
+    if (!talentId || brandTalentIds.includes(talentId) || addingBrandTalentIds.includes(talentId)) return;
+
+    setAddingBrandTalentIds((current) => [...current, talentId]);
+
+    try {
+      await addBrandRosterTalent(talentId, "Thêm từ danh sách đã lưu.");
+      setBrandTalentIds((current) => current.includes(talentId) ? current : [...current, talentId]);
+      pushToast("Đã thêm talent vào Brand.");
+    } catch (error) {
+      pushToast(formatActionError(error, "Chưa thể thêm talent vào Brand. Vui lòng thử lại."), "error");
+    } finally {
+      setAddingBrandTalentIds((current) => current.filter((id) => id !== talentId));
+    }
   }
 
   return (
@@ -383,11 +408,23 @@ export default function BrandShortlistsPage() {
                       Xem hồ sơ
                     </button>
                     <button
-                      onClick={() => router.push(`/brand/messages?talentId=${talent.id}`)}
-                      className="flex h-10 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950"
+                      onClick={() => addTalentToBrand(talent.id)}
+                      disabled={brandTalentIds.includes(String(talent.id)) || addingBrandTalentIds.includes(String(talent.id))}
+                      className={cn(
+                        "flex h-10 cursor-pointer items-center justify-center rounded-xl px-4 text-[10px] font-black uppercase tracking-wider transition active:scale-95",
+                        brandTalentIds.includes(String(talent.id))
+                          ? "cursor-not-allowed border border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
+                          : "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950",
+                      )}
                     >
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      Nhắn tin
+                      {addingBrandTalentIds.includes(String(talent.id)) ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : brandTalentIds.includes(String(talent.id)) ? (
+                        <Check className="mr-2 h-4 w-4" />
+                      ) : (
+                        <UserPlus className="mr-2 h-4 w-4" />
+                      )}
+                      {brandTalentIds.includes(String(talent.id)) ? "Đã thêm" : addingBrandTalentIds.includes(String(talent.id)) ? "Đang thêm" : "Thêm vào Brand"}
                     </button>
                   </div>
                 </article>

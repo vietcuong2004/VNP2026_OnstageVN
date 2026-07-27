@@ -5,13 +5,13 @@ const SITE_URL = getSiteUrl();
 const ASSET_VERSION = "8";
 
 export const metadata: Metadata = {
-  title: "OnstageVN - Tim kiem Talent",
+  title: "Onstage VN",
   description: "Tim kiem va ket noi talent phu hop cho chien dich cua doanh nghiep.",
   openGraph: {
     type: "website",
     url: `${SITE_URL}/brand/search`,
-    siteName: "OnstageVN",
-    title: "OnstageVN - Tim kiem Talent",
+    siteName: "Onstage VN",
+    title: "Onstage VN",
     description: "Tim kiem va ket noi talent phu hop cho chien dich cua doanh nghiep.",
     images: [
       {
@@ -20,13 +20,13 @@ export const metadata: Metadata = {
         type: "image/png",
         width: 180,
         height: 180,
-        alt: "OnstageVN",
+        alt: "Onstage VN",
       },
     ],
   },
   twitter: {
     card: "summary",
-    title: "OnstageVN - Tim kiem Talent",
+    title: "Onstage VN",
     description: "Tim kiem va ket noi talent phu hop cho chien dich cua doanh nghiep.",
     images: [`${SITE_URL}/apple-touch-icon.png?v=${ASSET_VERSION}`],
   },

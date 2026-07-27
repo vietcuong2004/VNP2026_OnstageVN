@@ -6,11 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Home, Briefcase, BookmarkCheck, Search, User,
   Sparkles, Calendar, MessageSquare, Menu, X, LogOut,
-  Users, Bell, Settings, LogIn, Info
+  Users, Bell, Settings, LogIn, Info, HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutCurrentSession, AUTH_USER_UPDATED_EVENT, getAuthToken } from "@/lib/api-client";
 import { getGuestMoreNavigation, getGuestPrimaryNavigation } from "@/lib/public-navigation";
+import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
 const talentAllItems = [
   { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
@@ -30,13 +31,13 @@ const talentAllItems = [
 const brandAllItems = [
   { label: "Tổng quan", icon: Home, href: "/brand/dashboard" },
   { label: "Tìm kiếm", icon: Search, href: "/brand/search" },
-  { label: "Shortlist", icon: BookmarkCheck, href: "/brand/shortlists" },
+  { label: "Đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
   { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
   // { label: "Báo cáo", icon: BarChart3, href: "/brand/analytics" },
   { label: "Quản lý Talent", icon: Users, href: "/brand/my-talents" },
   // { label: "Thanh toán", icon: Wallet, href: "/brand/billing" },
-  { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
+  // { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
   { label: "Thông tin brand", icon: Settings, href: "/brand/settings" },
   { label: "Đăng xuất", icon: LogOut, href: "/" },
 ];
@@ -47,6 +48,7 @@ export default function BottomNavigation() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [visible, setVisible] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [explanationTab, setExplanationTab] = useState<"talent" | "brand" | null>(null);
 
   useEffect(() => {
     const syncToken = () => setIsLoggedIn(!!getAuthToken());
@@ -143,16 +145,16 @@ export default function BottomNavigation() {
 
   const primaryItems = guestPrimaryItems;
 
-  const activeBrandItems = brandAllItems.filter(item => 
-    item.label !== "Tổng quan" && 
-    item.label !== "Tin nhắn" && 
+  const activeBrandItems = brandAllItems.filter(item =>
+    item.label !== "Tổng quan" &&
+    item.label !== "Tin nhắn" &&
     item.label !== "Đăng xuất"
   );
-  
-  const activeTalentItems = talentAllItems.filter(item => 
-    item.label !== "Tổng quan" && 
-    item.label !== "Lịch trình" && 
-    item.label !== "Tin nhắn" && 
+
+  const activeTalentItems = talentAllItems.filter(item =>
+    item.label !== "Tổng quan" &&
+    item.label !== "Lịch trình" &&
+    item.label !== "Tin nhắn" &&
     item.label !== "Đăng xuất"
   );
 
@@ -260,6 +262,15 @@ export default function BottomNavigation() {
                     <span className="text-[10px] font-black uppercase tracking-[0.15em] bg-gradient-to-r from-amber-100 via-yellow-500 to-yellow-600 bg-clip-text text-transparent">
                       Dành cho Brand
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => setExplanationTab("brand")}
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-yellow-500/35 bg-yellow-500/10 text-[10px] font-black text-yellow-300 shadow-[0_0_8px_rgba(234,179,8,0.12)] transition-all hover:scale-105 active:scale-95 cursor-pointer hover:border-yellow-400/70 hover:bg-yellow-500/20 hover:text-white"
+                      aria-label="Giải thích Dành cho Brand"
+                      title="Giải thích Dành cho Brand"
+                    >
+                      <HelpCircle className="h-3 w-3" />
+                    </button>
                   </div>
                   <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
                     {activeBrandItems.map((item) => renderItemLink(item))}
@@ -273,6 +284,15 @@ export default function BottomNavigation() {
                     <span className="text-[10px] font-black uppercase tracking-[0.15em] bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
                       Dành cho Talent
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => setExplanationTab("talent")}
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400/35 bg-amber-400/10 text-[10px] font-black text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.12)] transition-all hover:scale-105 active:scale-95 cursor-pointer hover:border-amber-300/70 hover:bg-amber-400/20 hover:text-white"
+                      aria-label="Giải thích Dành cho Talent"
+                      title="Giải thích Dành cho Talent"
+                    >
+                      <HelpCircle className="h-3 w-3" />
+                    </button>
                   </div>
                   <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
                     {activeTalentItems.map((item) => renderItemLink(item))}
@@ -297,6 +317,13 @@ export default function BottomNavigation() {
               </div>
             )}
           </div>
+          {explanationTab && (
+            <ControlCenterExplanationDialog
+              isOpen
+              defaultTab={explanationTab}
+              onClose={() => setExplanationTab(null)}
+            />
+          )}
         </>
       )}
 

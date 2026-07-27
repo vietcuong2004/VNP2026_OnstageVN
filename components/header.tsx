@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Bell, Calendar, ChevronDown, LogIn, LogOut, Search, UserCircle, Building2, Settings, ShieldAlert } from "lucide-react";
+import { Bell, Calendar, ChevronDown, LogIn, LogOut, Search, UserCircle, Building2, Settings, ShieldAlert, Briefcase } from "lucide-react";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
 import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
@@ -92,7 +92,7 @@ function authUserSnapshot() {
 }
 
 function subscribeAuthUser(onStoreChange: () => void) {
-  if (typeof window === "undefined") return () => {};
+  if (typeof window === "undefined") return () => { };
 
   window.addEventListener("storage", onStoreChange);
   window.addEventListener(AUTH_USER_UPDATED_EVENT, onStoreChange);
@@ -247,184 +247,162 @@ export default function Header() {
 
   return (
     <>
-    {user?.impersonation?.active && (
-      <div className="relative z-[60] flex min-h-10 w-full items-center justify-between gap-3 border-b border-amber-400/20 bg-amber-400 px-4 py-2 text-slate-950 md:px-8">
-        <div className="flex min-w-0 items-center gap-2 text-xs font-black uppercase tracking-wide">
-          <ShieldAlert className="h-4 w-4 shrink-0" />
-          <span className="truncate">
-            Đang đăng nhập với tư cách {label.name}
-            {user.impersonation.admin?.name ? ` bởi ${user.impersonation.admin.name}` : ""}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={handleStopImpersonation}
-          className="shrink-0 rounded-lg border border-slate-950/20 bg-slate-950 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-amber-200 transition-colors hover:bg-slate-900"
-        >
-          Thoát giả lập
-        </button>
-      </div>
-    )}
-    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913] px-4 md:px-8 transform translate-z-0">
-      <div className="flex w-auto md:w-72 shrink-0 items-center">
-        <button
-          onClick={() => router.push("/landing")}
-          className="flex items-center gap-1.5 hover:opacity-95 transition-opacity focus:outline-none cursor-pointer"
-        >
-          <img
-            src="/logo_new.png"
-            alt="OnstageVN Logo Icon"
-            className="h-9 w-auto sm:h-10 object-contain shrink-0"
-          />
-          <img
-            src="/logo_text.png"
-            alt="OnstageVN Logo Text"
-            className="h-6 w-auto sm:h-7 object-contain shrink-0"
-          />
-        </button>
-      </div>
-
-      <div className="ml-4 hidden md:flex max-w-md flex-1 items-center gap-4">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm tài năng, chiến dịch, giao dịch..."
-            className="w-full rounded-xl border border-white/5 bg-slate-900/30 py-2 pl-9 pr-4 text-xs text-white transition-all focus:border-amber-400/50 focus:bg-slate-900/50 focus:outline-none"
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 md:gap-6">
-        {user && (
+      {user?.impersonation?.active && (
+        <div className="relative z-[60] flex min-h-10 w-full items-center justify-between gap-3 border-b border-amber-400/20 bg-amber-400 px-4 py-2 text-slate-950 md:px-8">
+          <div className="flex min-w-0 items-center gap-2 text-xs font-black uppercase tracking-wide">
+            <ShieldAlert className="h-4 w-4 shrink-0" />
+            <span className="truncate">
+              Đang đăng nhập với tư cách {label.name}
+              {user.impersonation.admin?.name ? ` bởi ${user.impersonation.admin.name}` : ""}
+            </span>
+          </div>
           <button
             type="button"
-            onClick={() => router.push(isBrandPath ? "/brand/notifications" : "/talent/notifications")}
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 transition-colors hover:text-white"
-            aria-label="Thông báo"
+            onClick={handleStopImpersonation}
+            className="shrink-0 rounded-lg border border-slate-950/20 bg-slate-950 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-amber-200 transition-colors hover:bg-slate-900"
           >
-            <Bell className="h-4.5 w-4.5" />
-            {unreadNotifications > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">
-                {unreadNotifications > 99 ? "99+" : unreadNotifications}
-              </span>
-            )}
+            Thoát giả lập
           </button>
-        )}
-
-        <div className="relative border-l border-white/5 pl-3.5 md:pl-6">
+        </div>
+      )}
+      <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913] px-4 md:px-8 transform translate-z-0">
+        <div className="flex w-auto md:w-72 shrink-0 items-center">
           <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            className="flex items-center gap-3 rounded-xl px-2 py-1 text-left transition-colors hover:bg-white/5"
+            onClick={() => router.push("/landing")}
+            className="flex items-center gap-1.5 hover:opacity-95 transition-opacity focus:outline-none cursor-pointer"
           >
             <img
-              src={headerAvatarSrc}
-              alt="Profile avatar"
-              onError={(event) => {
-                event.currentTarget.src = fallbackAvatarSrc;
-              }}
-              className="h-9 w-9 rounded-full border border-amber-400/30 object-cover bg-slate-950"
+              src="/logo_new.png"
+              alt="OnstageVN Logo Icon"
+              className="h-9 w-auto sm:h-10 object-contain shrink-0"
             />
-            <div className="hidden sm:block">
-              <span className="block text-xs font-bold text-white">{label.name}</span>
-              {label.subtitle && <span className="block max-w-32 truncate text-[10px] text-slate-500">{label.subtitle}</span>}
-            </div>
-            <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
+            <img
+              src="/logo_text.png"
+              alt="OnstageVN Logo Text"
+              className="h-6 w-auto sm:h-7 object-contain shrink-0"
+            />
           </button>
-
-          {open && (
-            <div className="absolute right-0 top-12 w-64 rounded-xl border border-white/10 bg-[#080b16] p-2 shadow-2xl">
-              <div className="flex items-center gap-3 rounded-lg px-3 py-3 border-b border-white/5 mb-1.5">
-                <img
-                  src={headerAvatarSrc}
-                  alt="Profile avatar"
-                  onError={(event) => {
-                    event.currentTarget.src = fallbackAvatarSrc;
-                  }}
-                  className="h-9 w-9 rounded-full border border-amber-400/30 object-cover bg-slate-950"
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-white">{label.name}</p>
-                  <p className="truncate text-xs text-slate-500">{label.subtitle}</p>
-                </div>
-              </div>
-
-              {!user ? null : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      router.push("/brand/dashboard");
-                      setOpen(false);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                  >
-                    <Building2 className="h-4 w-4 text-slate-400" />
-                    Tổng quan Brand
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      router.push("/brand/settings");
-                      setOpen(false);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                  >
-                    <Settings className="h-4 w-4 text-slate-400" />
-                    Thông tin brand
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      router.push("/talent/dashboard");
-                      setOpen(false);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                  >
-                    <UserCircle className="h-4 w-4 text-slate-400" />
-                    Tổng quan Talent
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      router.push("/talent/portfolio");
-                      setOpen(false);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                  >
-                    <Calendar className="h-4 w-4 text-slate-400" />
-                    Hồ sơ cá nhân
-                  </button>
-                </>
-              )}
-
-              <div className="border-t border-white/5 my-1.5" />
-
-              {user ? (
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-red-200 transition-colors hover:bg-red-500/10 hover:text-red-100"
-                >
-                  <LogOut className="h-4 w-4 text-red-400" />
-                  Đăng xuất
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(pathname || "/")}`)}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/10 hover:text-amber-100"
-                >
-                  <LogIn className="h-4 w-4 text-amber-300" />
-                  Đăng nhập / Đăng ký
-                </button>
-              )}
-            </div>
-          )}
         </div>
-      </div>
-    </header>
+
+        <div className="ml-4 hidden md:flex max-w-md flex-1 items-center gap-4">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm tài năng, chiến dịch, giao dịch..."
+              className="w-full rounded-xl border border-white/5 bg-slate-900/30 py-2 pl-9 pr-4 text-xs text-white transition-all focus:border-amber-400/50 focus:bg-slate-900/50 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 md:gap-6">
+          {user && (
+            <button
+              type="button"
+              onClick={() => router.push(isBrandPath ? "/brand/notifications" : "/talent/notifications")}
+              className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 transition-colors hover:text-white"
+              aria-label="Thông báo"
+            >
+              <Bell className="h-4.5 w-4.5" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">
+                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                </span>
+              )}
+            </button>
+          )}
+
+          <div className="relative border-l border-white/5 pl-3.5 md:pl-6">
+            <button
+              type="button"
+              onClick={() => setOpen((value) => !value)}
+              className="flex items-center gap-3 rounded-xl px-2 py-1 text-left transition-colors hover:bg-white/5"
+            >
+              <img
+                src={headerAvatarSrc}
+                alt="Profile avatar"
+                onError={(event) => {
+                  event.currentTarget.src = fallbackAvatarSrc;
+                }}
+                className="h-9 w-9 rounded-full border border-amber-400/30 object-cover bg-slate-950"
+              />
+              <div className="hidden sm:block">
+                <span className="block text-xs font-bold text-white">{label.name}</span>
+                {label.subtitle && <span className="block max-w-32 truncate text-[10px] text-slate-500">{label.subtitle}</span>}
+              </div>
+              <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
+            </button>
+
+            {open && (
+              <div className="absolute right-0 top-12 w-64 rounded-xl border border-white/10 bg-[#080b16] p-2 shadow-2xl">
+                <div className="flex items-center gap-3 rounded-lg px-3 py-3 border-b border-white/5 mb-1.5">
+                  <img
+                    src={headerAvatarSrc}
+                    alt="Profile avatar"
+                    onError={(event) => {
+                      event.currentTarget.src = fallbackAvatarSrc;
+                    }}
+                    className="h-9 w-9 rounded-full border border-amber-400/30 object-cover bg-slate-950"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-white">{label.name}</p>
+                    <p className="truncate text-xs text-slate-500">{label.subtitle}</p>
+                  </div>
+                </div>
+
+                {!user ? null : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        router.push("/brand/search");
+                        setOpen(false);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                    >
+                      <Search className="h-4 w-4 text-slate-400" />
+                      Tìm kiếm Talent
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        router.push("/talent/jobs");
+                        setOpen(false);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                    >
+                      <Briefcase className="h-4 w-4 text-slate-400" />
+                      Chợ việc làm
+                    </button>
+                  </>
+                )}
+
+                <div className="border-t border-white/5 my-1.5" />
+
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-red-200 transition-colors hover:bg-red-500/10 hover:text-red-100"
+                  >
+                    <LogOut className="h-4 w-4 text-red-400" />
+                    Đăng xuất
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(pathname || "/")}`)}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/10 hover:text-amber-100"
+                  >
+                    <LogIn className="h-4 w-4 text-amber-300" />
+                    Đăng nhập / Đăng ký
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
     </>
   );
 }

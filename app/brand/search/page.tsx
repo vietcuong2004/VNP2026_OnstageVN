@@ -11,7 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { addTalentToWishlist, createBrandWishlist, loadBrandTalentsPage, loadBrandWishlists, removeTalentFromWishlist, loadBrandCampaigns } from "@/lib/brand-api";
+import { addBrandRosterTalent, addTalentToWishlist, createBrandWishlist, loadBrandRosterTalents, loadBrandTalentsPage, loadBrandWishlists, removeTalentFromWishlist, loadBrandCampaigns } from "@/lib/brand-api";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import { cn } from "@/lib/utils";
 import TalentCard from "@/components/TalentCard";
@@ -306,6 +306,8 @@ export default function DiscoverTalentsPage() {
   const [isLoadingTalents, setIsLoadingTalents] = useState(true);
   const [isLoadingMoreTalents, setIsLoadingMoreTalents] = useState(false);
   const [brandCampaigns, setBrandCampaigns] = useState<any[]>([]);
+  const [brandTalentIds, setBrandTalentIds] = useState<string[]>([]);
+  const [addingBrandTalentIds, setAddingBrandTalentIds] = useState<string[]>([]);
 
   const talentQueryOptions = useMemo(() => ({
     q: searchQuery || undefined,
@@ -408,6 +410,23 @@ export default function DiscoverTalentsPage() {
     loadBrandCampaigns([]).then((items) => {
       if (!cancelled) setBrandCampaigns(items);
     });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadBrandRosterTalents()
+      .then((items) => {
+        if (cancelled) return;
+        setBrandTalentIds(items.map((item) => String(item.talent_profile_id)));
+      })
+      .catch(() => {
+        if (!cancelled) setBrandTalentIds([]);
+      });
 
     return () => {
       cancelled = true;
@@ -547,6 +566,23 @@ export default function DiscoverTalentsPage() {
       setWishlistItemIds((current) => ({ ...current, [id]: String(created.id) }));
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật danh sách talent đã lưu. Vui lòng thử lại.");
+    }
+  }
+
+  async function addTalentToBrand(talent: any) {
+    const talentId = String(talent?.id || "");
+    if (!talentId || brandTalentIds.includes(talentId) || addingBrandTalentIds.includes(talentId)) return;
+    if (!requireAuthAction({ actionLabel: "Thêm talent vào Brand" })) return;
+
+    setAddingBrandTalentIds((current) => [...current, talentId]);
+
+    try {
+      await addBrandRosterTalent(talentId, "Thêm từ danh sách tìm kiếm talent.");
+      setBrandTalentIds((current) => current.includes(talentId) ? current : [...current, talentId]);
+    } catch (error) {
+      console.error("Failed to add talent to brand", error);
+    } finally {
+      setAddingBrandTalentIds((current) => current.filter((id) => id !== talentId));
     }
   }
 
@@ -752,6 +788,8 @@ export default function DiscoverTalentsPage() {
               {filteredTalents.map((talent) => {
                 const isSaved = savedIds.includes(talent.id);
                 const status = getTalentStatus(talent.id);
+                const isInBrand = brandTalentIds.includes(String(talent.id));
+                const isAddingToBrand = addingBrandTalentIds.includes(String(talent.id));
 
                 return (
                   <TalentCard
@@ -761,11 +799,10 @@ export default function DiscoverTalentsPage() {
                     isSaved={isSaved}
                     onToggleSaved={(item) => void toggleSaved(item.id)}
                     onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
-                    onMessage={(item) => {
-                      if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
-                      router.push(`/brand/messages?talentId=${item.id}`);
-                    }}
-                    messageLabel="Nhắn tin"
+                    onMessage={(item) => void addTalentToBrand(item)}
+                    messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào Brand"}
+                    messageDisabled={isInBrand}
+                    messageLoading={isAddingToBrand}
                     showMessageIcon
                   />
                 );

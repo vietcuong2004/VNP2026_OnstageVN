@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { savedTalentIds, type Campaign, type TalentProfile } from "@/lib/brand-mvp-data";
 import {
+  addBrandRosterTalent,
   loadBrandCampaignCommissions,
   loadBrandCampaigns,
   loadBrandPartnerProfile,
@@ -176,6 +177,7 @@ export default function BrandDashboard() {
   const [pendingRevenue, setPendingRevenue] = useState(0);
   const [showControlCenterDialog, setShowControlCenterDialog] = useState(false);
   const [currentDateText, setCurrentDateText] = useState("");
+  const [addingBrandTalentIds, setAddingBrandTalentIds] = useState<string[]>([]);
 
   useEffect(() => {
     setAuthUser(getStoredAuthUser<{ id?: number | string; name?: string; email?: string }>());
@@ -276,6 +278,11 @@ export default function BrandDashboard() {
     [rosterTalents],
   );
 
+  const brandTalentIds = useMemo(
+    () => rosterTalents.map((item) => String(item.talent_profile_id)),
+    [rosterTalents],
+  );
+
   const stats = useMemo(() => [
     {
       label: "Chiến dịch đang mở",
@@ -313,6 +320,26 @@ export default function BrandDashboard() {
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
   };
+
+  async function addTalentToBrand(talent: TalentProfile) {
+    const talentId = String(talent?.id || "");
+    if (!talentId || brandTalentIds.includes(talentId) || addingBrandTalentIds.includes(talentId)) return;
+    if (!requireAuthAction({ actionLabel: "Thêm talent vào Brand" })) return;
+
+    setAddingBrandTalentIds((current) => [...current, talentId]);
+
+    try {
+      const created = await addBrandRosterTalent(talentId, "Thêm từ dashboard Brand.");
+      setRosterTalents((current) => {
+        if (current.some((item) => String(item.talent_profile_id) === talentId)) return current;
+        return [...current, created];
+      });
+    } catch (error) {
+      console.error("Failed to add talent to brand", error);
+    } finally {
+      setAddingBrandTalentIds((current) => current.filter((id) => id !== talentId));
+    }
+  }
 
   return (
     <div className="animate-in fade-in duration-500 space-y-8 pb-16">
@@ -383,6 +410,8 @@ export default function BrandDashboard() {
                 const isSaved = savedIds.includes(talent.id);
                 const avatar = resolveRecommendedTalentAvatar(talent);
                 const status = getRecommendedTalentStatus(talent.id);
+                const isInBrand = brandTalentIds.includes(String(talent.id));
+                const isAddingToBrand = addingBrandTalentIds.includes(String(talent.id));
 
                 return (
                   <TalentCard
@@ -394,11 +423,10 @@ export default function BrandDashboard() {
                     experienceLabel="short"
                     onToggleSaved={(item) => toggleSaved(item.id)}
                     onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/dashboard`)}
-                    onMessage={(item) => {
-                      if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
-                      router.push(`/brand/messages?talentId=${item.id}`);
-                    }}
-                    messageLabel="Nhắn tin"
+                    onMessage={(item) => void addTalentToBrand(item)}
+                    messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào Brand"}
+                    messageDisabled={isInBrand}
+                    messageLoading={isAddingToBrand}
                   />
                 );
               })}

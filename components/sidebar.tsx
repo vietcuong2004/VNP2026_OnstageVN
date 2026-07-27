@@ -26,7 +26,7 @@ import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplana
 
 const talentMenuItems = [
   // { label: "Tổng quan", icon: Home, href: "/talent/dashboard" },
-  { label: "Việc làm", icon: Briefcase, href: "/talent/jobs" },
+  { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Hồ sơ Talent", icon: User, href: "/talent/portfolio" },
   { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
   // { label: "Lịch trình", icon: Calendar, href: "/talent/calendar" },
@@ -41,7 +41,7 @@ const brandMenuItems = [
   { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
   { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
   // { label: "Tin nhắn", icon: MessageSquare, href: "/brand/messages" },
-  { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
+  // { label: "Thông báo", icon: Bell, href: "/brand/notifications" },
   { label: "Thông tin brand", icon: User, href: "/brand/settings" },
 ];
 

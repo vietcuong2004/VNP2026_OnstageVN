@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { CheckCircle2, Eye, Heart, MapPin, MessageSquare } from "lucide-react";
+import { Check, CheckCircle2, Eye, Heart, Loader2, MapPin, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,8 @@ type TalentCardProps = {
   viewLabel?: string;
   messageLabel?: string;
   showMessageIcon?: boolean;
+  messageDisabled?: boolean;
+  messageLoading?: boolean;
   showLifestyleServices?: boolean;
   showSocialStats?: boolean;
   experienceLabel?: "full" | "short";
@@ -53,6 +55,8 @@ export default function TalentCard({
   viewLabel = "Xem",
   messageLabel = "Thêm vào Brand",
   showMessageIcon = true,
+  messageDisabled = false,
+  messageLoading = false,
   showLifestyleServices = false,
   showSocialStats = false,
   experienceLabel = "full",
@@ -222,13 +226,26 @@ export default function TalentCard({
           )}
           {onMessage && (
             <button
+              disabled={messageDisabled || messageLoading}
               onClick={(event) => {
                 stopCardClick(event);
+                if (messageDisabled || messageLoading) return;
                 onMessage(talent);
               }}
-              className="flex h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-[10px] font-black uppercase tracking-wider text-slate-950 transition active:scale-95"
+              className={cn(
+                "flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition active:scale-95",
+                messageDisabled
+                  ? "cursor-not-allowed border border-[#C9A86A]/30 bg-[#C9A86A]/10 text-[#C9A86A]"
+                  : "cursor-pointer bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950"
+              )}
             >
-              {showMessageIcon && <MessageSquare className="h-4 w-4" />}
+              {messageLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : messageDisabled ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#C9A86A]" />
+              ) : (
+                showMessageIcon && <UserPlus className="h-4 w-4" />
+              )}
               {messageLabel}
             </button>
           )}

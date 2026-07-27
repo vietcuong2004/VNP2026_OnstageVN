@@ -11,7 +11,7 @@ const SHARE_IMAGE_URL = `${SITE_URL}${SHARE_IMAGE}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "OnstageVN",
+  title: "Onstage VN",
   description: "OnstageVN - Model Management System",
   alternates: {
     canonical: "/",
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "/",
-    siteName: "OnstageVN",
-    title: "OnstageVN",
+    siteName: "Onstage VN",
+    title: "Onstage VN",
     description: "OnstageVN - Model Management System",
     images: [
       {
@@ -29,13 +29,13 @@ export const metadata: Metadata = {
         type: "image/png",
         width: 1200,
         height: 630,
-        alt: "OnstageVN",
+        alt: "Onstage VN",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "OnstageVN",
+    title: "Onstage VN",
     description: "OnstageVN - Model Management System",
     images: [SHARE_IMAGE_URL],
   },

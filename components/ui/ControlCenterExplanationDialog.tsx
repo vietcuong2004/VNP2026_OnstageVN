@@ -182,7 +182,7 @@ export default function ControlCenterExplanationDialog({
                         <Search className="h-4.5 w-4.5" />
                       </div>
                       <h5 className="text-xs md:text-sm font-black text-white uppercase tracking-wide min-h-[36px] flex items-center mb-1">
-                        Tìm kiếm & Bộ lọc nâng cao
+                        Tìm kiếm Talent
                       </h5>
                       <p className="text-xs text-slate-300 leading-relaxed flex-1 text-justify">
                         Lọc thông minh qua hàng ngàn hồ sơ Talent theo chiều cao, cân nặng, số đo, lượt follow mạng xã hội hoặc phân hạng Tier (S/A/B/C) chuẩn hóa.
