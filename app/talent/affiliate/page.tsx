@@ -24,11 +24,11 @@ type StageFilter = "all" | "new" | "accepted" | "executing" | "completed" | "con
 
 const stageLabels: Record<StageFilter, string> = {
   all: "Tất cả trạng thái",
-  new: "Chờ duyệt (F2)",
-  accepted: "Đã duyệt (F2)",
-  executing: "Đang làm việc (F2)",
-  completed: "Nghiệm thu (F2)",
-  confirmed: "Đã quyết toán (F2)",
+  new: "Chờ duyệt",
+  accepted: "Đã duyệt",
+  executing: "Đang làm việc",
+  completed: "Nghiệm thu",
+  confirmed: "Đã quyết toán",
 };
 
 const stageColors: Record<StageFilter, { text: string; bg: string; border: string; dot: string }> = {
@@ -156,7 +156,7 @@ export default function TalentAffiliatePage() {
     });
   }, [activeCampaigns, referralLinks]);
 
-  // Campaigns where the signed-in talent joined through someone else's referral (F2 role).
+  // Campaigns where the signed-in user joined through someone else's referral.
   const [joinedViaReferral, setJoinedViaReferral] = useState<any[]>([]);
 
   useEffect(() => {
@@ -368,7 +368,7 @@ export default function TalentAffiliatePage() {
     const effectivePoolVal = cleanBudget / campaignParticipantCount(c);
 
     totalF2Referred += effectiveF2Applicants.length;
-    // F1 receives 5% of F2's contract payout value (poolVal)
+    // The direct referrer receives the configured referral share.
     totalExpectedPayout += effectiveF2Applicants.reduce((sum: number) => sum + (effectivePoolVal * 0.05), 0);
   });
 
@@ -390,11 +390,11 @@ export default function TalentAffiliatePage() {
           Chiến dịch Affiliate
         </h1>
         <p className="text-xs text-slate-400 mt-1.5 max-w-2xl font-medium">
-          Dành riêng cho KOL đối tác. Sử dụng link giới thiệu để mời các KOL khác (F2) tham gia chiến dịch. Nhận ngay hoa hồng quản lý <span className="text-amber-400 font-extrabold">5%</span> trên mỗi buổi biểu diễn/job của F2 khi chiến dịch được Brand quyết toán.
+          Dành cho đối tác trong mạng lưới. Sử dụng link giới thiệu để mời người phù hợp tham gia chiến dịch. Hoa hồng giới thiệu sẽ được ghi nhận theo cấu hình khi campaign được quyết toán.
         </p>
       </div>
 
-      {/* KHU VỰC THAM GIA & THEO DÕI F2 (NHẬN LINK NGƯỜI KHÁC) - TỐI ƯU MOBILE & ĐỒNG HÀNG */}
+      {/* KHU VỰC THAM GIA & THEO DÕI GIỚI THIỆU - TỐI ƯU MOBILE & ĐỒNG HÀNG */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* CỘT 1: THAM GIA QUA GIỚI THIỆU (FORM NHẬP LINK) */}
         <div className="rounded-3xl border border-amber-500/15 bg-gradient-to-br from-[#0c0f1d] to-[#07080e] p-6 shadow-xl flex flex-col justify-between relative overflow-hidden">
@@ -406,7 +406,7 @@ export default function TalentAffiliatePage() {
                 Tham gia qua link giới thiệu
               </h2>
               <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
-                Dán đường dẫn Affiliate nhận từ đối tác (F1) để tham gia trực tiếp chiến dịch với vai trò F2 và nhận 70% cát-xê.
+                Dán đường dẫn giới thiệu nhận từ đối tác để tham gia trực tiếp chiến dịch và ghi nhận người giới thiệu.
               </p>
             </div>
 
@@ -445,7 +445,7 @@ export default function TalentAffiliatePage() {
           <div className="space-y-4 w-full">
             <h3 className="text-xs font-black text-slate-350 uppercase tracking-widest flex items-center gap-2">
               <Award className="h-4.5 w-4.5 text-amber-400" />
-              Chiến dịch tham gia qua giới thiệu (F2)
+              Chiến dịch tham gia qua giới thiệu
             </h3>
 
             {joinedViaReferral.length === 0 ? (
@@ -466,7 +466,7 @@ export default function TalentAffiliatePage() {
                       <thead>
                         <tr className="border-b border-[#151b2d] bg-[#050711]/90 text-[9px] font-bold uppercase tracking-wider text-slate-400">
                           <th className="p-4">Chiến dịch</th>
-                          <th className="p-4">KOL giới thiệu (F1)</th>
+                          <th className="p-4">Người giới thiệu</th>
                           <th className="p-4 text-right">Cát-xê của bạn (70%)</th>
                           <th className="p-4 text-center">Trạng thái</th>
                         </tr>
@@ -606,8 +606,8 @@ export default function TalentAffiliatePage() {
             <Users2 className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Số lượng F2 mời được</p>
-            <p className="text-2xl font-black text-white mt-1 leading-none">{totalF2Referred} KOLs</p>
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Số người được giới thiệu</p>
+            <p className="text-2xl font-black text-white mt-1 leading-none">{totalF2Referred} người</p>
           </div>
         </div>
 
@@ -716,15 +716,15 @@ export default function TalentAffiliatePage() {
                         </button>
                       </div>
                       <p className="text-[9px] text-slate-500 font-semibold italic">
-                        * Mẹo: Chia sẻ link này cho các KOL/KOC trong network của bạn. Khi họ đăng ký & được duyệt, bạn nhận ngay 5% hoa hồng từ việc làm của họ.
+                        * Mẹo: Chia sẻ link này cho người phù hợp trong mạng lưới của bạn. Khi họ đăng ký và được duyệt, hệ thống sẽ ghi nhận bạn là người giới thiệu.
                       </p>
                     </div>
 
-                    {/* Referred F2 KOL List */}
+                    {/* Referred user list */}
                     <div className="pt-2">
                       <div className="flex justify-between items-center mb-3">
                         <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                          <Users2 className="h-3.5 w-3.5 text-cyan-400" /> KOL F2 được bạn mời ({f2Applicants.length})
+                          <Users2 className="h-3.5 w-3.5 text-cyan-400" /> Người được bạn giới thiệu ({f2Applicants.length})
                         </h4>
                         {f2Applicants.length > 0 && (
                           <span className="text-[10px] font-bold text-amber-400 bg-amber-400/5 px-2 py-0.5 rounded border border-amber-500/10">
@@ -740,7 +740,7 @@ export default function TalentAffiliatePage() {
                       ) : (
                         <div className="space-y-2.5">
                           {f2Applicants.map((applicant: any, idx: number) => {
-                            const name = applicant?.talent?.name || applicant?.profile?.display_name || `KOL F2 #${String(applicant.talentId || applicant.talent_id || idx).split("-")[1] || idx}`;
+                            const name = applicant?.talent?.name || applicant?.profile?.display_name || `Người được giới thiệu #${String(applicant.talentId || applicant.talent_id || idx).split("-")[1] || idx}`;
                             const avatar = campaignApplicantAvatar(applicant);
                             const stageKey = normalizeStage(applicant.stage);
                             const colors = stageColors[stageKey] || stageColors.new;
@@ -760,7 +760,7 @@ export default function TalentAffiliatePage() {
                                     <div className="flex items-center gap-2">
                                       <p className="text-xs font-black text-white">{name}</p>
                                       <span className="text-[8px] font-black uppercase text-cyan-400 px-1 py-0.2 rounded bg-cyan-400/10">
-                                        KOL F2
+                                        Người được giới thiệu
                                       </span>
                                     </div>
                                     <p className="text-[9px] text-slate-400 font-semibold mt-0.5">
@@ -802,7 +802,7 @@ export default function TalentAffiliatePage() {
                 <TrendingUp className="h-4 w-4 text-amber-400" /> Tỷ lệ phân bổ hoa hồng
               </h3>
               <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
-                Khi KOL F2 (do bạn giới thiệu) hoàn thành công việc và được Brand quyết toán, tổng thù lao (ví dụ: <span className="text-slate-300 font-bold">10.000.000đ</span>) sẽ tự động phân phối như sau:
+                Khi người được bạn giới thiệu hoàn thành công việc và campaign được quyết toán, tổng thù lao (ví dụ: <span className="text-slate-300 font-bold">10.000.000đ</span>) sẽ tự động phân phối như sau:
               </p>
             </div>
 
@@ -811,7 +811,7 @@ export default function TalentAffiliatePage() {
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[10px] font-bold">
-                  <span className="text-slate-300">KOL F2 (Người thực hiện)</span>
+                  <span className="text-slate-300">Người được giới thiệu</span>
                   <span className="text-cyan-400 font-extrabold">70% (7.000.000đ)</span>
                 </div>
                 <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
@@ -821,7 +821,7 @@ export default function TalentAffiliatePage() {
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[10px] font-bold">
-                  <span className="text-slate-300">KOL F1 (Bạn - Người giới thiệu)</span>
+                  <span className="text-slate-300">Bạn - Người giới thiệu</span>
                   <span className="text-amber-400 font-extrabold">5% (500.000đ)</span>
                 </div>
                 <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
@@ -831,7 +831,7 @@ export default function TalentAffiliatePage() {
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[10px] font-bold">
-                  <span className="text-slate-300">Brand quản lý (F0)</span>
+                  <span className="text-slate-300">Chủ campaign</span>
                   <span className="text-emerald-400 font-extrabold">10% (1.000.000đ)</span>
                 </div>
                 <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
@@ -858,7 +858,7 @@ export default function TalentAffiliatePage() {
               </h4>
               <ul className="text-[10px] text-slate-400 space-y-2 list-disc pl-4 font-semibold leading-relaxed">
                 <li>
-                  <strong className="text-slate-300">Tính độc lập:</strong> Hoa hồng F1 chỉ nhận được giới hạn trong phạm vi các job thuộc chiến dịch cụ thể mà bạn chia sẻ link.
+                  <strong className="text-slate-300">Tính độc lập:</strong> Hoa hồng giới thiệu chỉ được ghi nhận trong phạm vi các job thuộc chiến dịch cụ thể mà bạn chia sẻ link.
                 </li>
                 <li>
                   <strong className="text-slate-300">Thanh toán tự động:</strong> Dòng tiền được tự động chi trả real-time thông qua hệ thống bảo chứng khi Brand nghiệm thu & bấm quyết toán chiến dịch.

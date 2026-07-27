@@ -483,10 +483,10 @@ export default function DashboardPage() {
               job={job}
               isApplied={hasTalentApplication(job)}
               stage={getTalentJobStage(job)}
-              onView={(j) => router.push(`/talent/jobs/${j.id}?from=/talent/dashboard`)}
+              onView={(j) => router.push(`/talent/jobs/${j.id}?from=/talent/jobs`)}
               onApply={handleApply}
               onUpdateStage={handleUpdateStage}
-              onInvite={() => router.push(`/talent/jobs/${job.id}?from=/talent/dashboard`)}
+              onInvite={() => router.push(`/talent/jobs/${job.id}?from=/talent/jobs`)}
               onInviteBlocked={() => { }}
               formatDate={formatDate}
             />

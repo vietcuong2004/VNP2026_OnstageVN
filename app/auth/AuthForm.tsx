@@ -8,7 +8,7 @@ import { storeAuthSession } from "@/lib/api-client";
 import { syncGuestDraftsAfterNewRegistration } from "@/lib/guest-draft";
 
 type AuthMode = "login" | "register";
-type AccountType = "talent" | "brand";
+type AccountType = "user" | "admin" | string;
 
 const pendingLoginKey = "onstagevn_pending_login";
 
@@ -29,7 +29,7 @@ function getApiBaseUrl() {
 }
 
 function getRedirectPath() {
-  return "/brand/dashboard";
+  return "/brand/search";
 }
 
 function getStoredAuthUser() {

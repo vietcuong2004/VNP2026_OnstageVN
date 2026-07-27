@@ -56,7 +56,7 @@ export default function PayoutSuccessModal({
           <div className="space-y-1 bg-[#050711] border border-white/5 rounded-xl p-3.5">
             <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Thông tin thanh toán</span>
             <div className="flex justify-between items-center mt-1">
-              <span className="text-slate-300 font-medium">Thù lao Talent ({hasReferrer ? "KOL F2" : "KOL F1"} - {hasReferrer ? "70%" : "75%"}):</span>
+              <span className="text-slate-300 font-medium">Thù lao người thực hiện ({hasReferrer ? "qua giới thiệu" : "trực tiếp"}):</span>
               <span className="font-extrabold text-white font-mono text-sm text-emerald-400">+{moneyText(talentAmount)}</span>
             </div>
             <p className="text-[9px] text-slate-500 mt-1 leading-relaxed">Đã cộng vào ví khả dụng của: <b>{payoutDetails.talentName}</b></p>
@@ -66,12 +66,12 @@ export default function PayoutSuccessModal({
             <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Phân bổ hoa hồng chi tiết (Campaign Affiliate)</span>
             <div className="space-y-2">
               <div className="flex justify-between items-center text-[10px]">
-                <span className="text-slate-400">Phí quản lý Brand F0 (10%):</span>
+                <span className="text-slate-400">Phí quản lý chủ campaign (10%):</span>
                 <span className="font-bold text-amber-400 font-mono">+{moneyText(brandAmount)}</span>
               </div>
               {hasReferrer && referrer && (
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-slate-400">Hoa hồng F1 Giới thiệu ({referrer.name} - 5%):</span>
+                  <span className="text-slate-400">Hoa hồng người giới thiệu ({referrer.name} - 5%):</span>
                   <span className="font-bold text-cyan-400 font-mono">+{moneyText(referralAmount)}</span>
                 </div>
               )}

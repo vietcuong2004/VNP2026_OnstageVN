@@ -278,7 +278,7 @@ export default function MessagesPage({ portal }: Props) {
       <div className={cn("flex items-center gap-4 mb-4 md:hidden", showMobileChat && "hidden")}>
         <button
           type="button"
-          onClick={() => router.push(portal === "brand" ? "/brand/dashboard" : "/talent/dashboard")}
+          onClick={() => router.push(portal === "brand" ? "/brand/search" : "/talent/jobs")}
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#151b2d] bg-[#08090f] text-slate-400 hover:text-white"
           aria-label="Quay lại"
         >

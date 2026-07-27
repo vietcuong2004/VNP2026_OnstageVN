@@ -296,7 +296,7 @@ export default function CampaignReferralPage() {
               <span className="text-amber-400">{referrerName}</span> mời bạn tham gia chiến dịch!
             </h2>
             <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
-              Khi tham gia qua link giới thiệu, bạn sẽ nhận được thù lao lên tới <b>70%</b> giá trị job sau khi hoàn thành. F1 giới thiệu nhận 5% và Brand Manager (F0) nhận 10% quản lý.
+              Khi tham gia qua link giới thiệu, hệ thống sẽ ghi nhận người giới thiệu và áp dụng chính sách thù lao/hoa hồng theo cấu hình campaign.
             </p>
           </div>
         </div>
@@ -319,7 +319,7 @@ export default function CampaignReferralPage() {
                 <span className="text-white font-bold">{campaign.title}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Người giới thiệu (F1):</span>
+                <span className="text-slate-500">Người giới thiệu:</span>
                 <span className="text-cyan-400 font-bold">{referrerName}</span>
               </div>
               <div className="flex justify-between">
@@ -327,7 +327,7 @@ export default function CampaignReferralPage() {
                 <span className="text-amber-400 font-bold">{formatCampaignDate(campaign.applicationDeadline || campaign.deadline)}</span>
               </div>
               <div className="border-t border-white/5 pt-2 text-[10px] text-emerald-400/80 italic text-center">
-                * Brand Manager (F0) sẽ nhận được thông báo giới thiệu của bạn trong danh sách ứng tuyển.
+                * Chủ campaign sẽ nhận được thông báo giới thiệu của bạn trong danh sách ứng tuyển.
               </div>
             </div>
             <div className="flex justify-center gap-3">
@@ -447,7 +447,7 @@ export default function CampaignReferralPage() {
               <form onSubmit={handleApply} className="glass-panel border-amber-500/20 bg-slate-900/10 rounded-3xl p-6 space-y-5 sticky top-6">
                 <div>
                   <h3 className="text-sm font-black text-white uppercase tracking-wider font-bold">Ứng Tuyển Chiến Dịch</h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Mô phỏng tài khoản KOL F2 ứng tuyển</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Mô phỏng tài khoản người được giới thiệu ứng tuyển</p>
                 </div>
 
                 {error && (
@@ -459,7 +459,7 @@ export default function CampaignReferralPage() {
 
                 <div className="space-y-2">
                   <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                    Lời nhắn gửi Brand (F0)
+                    Lời nhắn gửi chủ campaign
                   </label>
                   <textarea
                     rows={4}
@@ -473,15 +473,15 @@ export default function CampaignReferralPage() {
                   <span className="block text-[8px] font-bold text-amber-400 uppercase tracking-wider">Tóm tắt dòng tiền MLM</span>
                   <div className="space-y-1 text-[10px] text-slate-400 font-medium">
                     <div className="flex justify-between">
-                      <span>KOL F2 (Bạn):</span>
+                      <span>Người ứng tuyển:</span>
                       <span className="text-white font-bold">70% Cát-xê</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>KOL F1 (Giới thiệu):</span>
+                      <span>Người giới thiệu:</span>
                       <span className="text-cyan-400 font-bold">5% Cát-xê</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Brand F0 (Quản lý):</span>
+                      <span>Chủ campaign:</span>
                       <span className="text-amber-400 font-bold">10% Cát-xê</span>
                     </div>
                   </div>

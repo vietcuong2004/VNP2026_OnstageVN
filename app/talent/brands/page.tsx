@@ -64,7 +64,7 @@ function mapBackendInvitation(item: Record<string, unknown>): BrandInvitation {
     blocked: "declined",
   };
 
-  const managerName = String(brand.name || partner.contact_name || "Brand Manager");
+  const managerName = String(brand.name || partner.contact_name || "Đối tác");
   const brandName = String(partner.organization_name || brand.name || "Brand");
 
   return {
@@ -287,7 +287,7 @@ export default function TalentBrandsPage() {
       ]);
 
       await loadInvitations();
-      addToast("Đã tham gia mạng lưới Brand từ link mời.", "success");
+      addToast("Đã tham gia mạng lưới hợp tác từ link mời.", "success");
     } catch (error) {
       console.warn("Cannot accept brand invite link", error);
       addToast("Link mời không hợp lệ hoặc đã hết hạn.", "info");
@@ -345,7 +345,7 @@ export default function TalentBrandsPage() {
           Hợp tác Brand
         </h1>
         <p className="text-[11px] md:text-xs text-slate-400 mt-2 font-medium leading-relaxed">
-          Xem lời mời từ các Brand Manager muốn thêm bạn vào mạng lưới hợp tác của họ.
+          Xem lời mời từ các đối tác muốn thêm bạn vào mạng lưới hợp tác của họ.
         </p>
       </div>
 
@@ -375,7 +375,7 @@ export default function TalentBrandsPage() {
             </div>
 
             <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
-              Dán đường dẫn giới thiệu dạng <code className="text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 font-mono text-[10px]">onstage.vn/ref/ten-brand</code> hoặc nhập mã mời của Brand để tự động gia nhập mạng lưới đối tác đặc quyền của Brand Manager.
+              Dán đường dẫn giới thiệu hoặc nhập mã mời để tự động gia nhập mạng lưới hợp tác.
             </p>
           </div>
 
@@ -415,7 +415,7 @@ export default function TalentBrandsPage() {
               <div className="flex-1 min-w-0">
                 <h3 className="text-xs font-black text-amber-300 uppercase tracking-widest">Hợp tác Brand là gì?</h3>
                 <p className="text-[11px] text-slate-300 mt-2 leading-relaxed font-medium">
-                  Khi bạn tham gia vào <strong className="text-white">mạng lưới hợp tác của một Brand Manager</strong>, họ sẽ đại diện giới thiệu bạn với nhiều nhãn hàng đối tác lớn và quản lý các booking trực tiếp. Manager nhận <strong className="text-amber-400 font-bold">10% hoa hồng</strong> từ thù lao job do họ mang lại — phần thù lao còn lại <strong className="text-emerald-400 font-bold">75% hoàn toàn thuộc về bạn</strong> (nền tảng OnStage thu phí 15% phí vận hành & ký quỹ bảo chứng).
+                  Khi bạn tham gia vào <strong className="text-white">mạng lưới hợp tác</strong>, hệ thống sẽ ghi nhận người giới thiệu trực tiếp và áp dụng chính sách thù lao/hoa hồng theo cấu hình từng campaign.
                 </p>
               </div>
             </div>
@@ -608,7 +608,7 @@ export default function TalentBrandsPage() {
               {/* Inviter & Used Link Row */}
               <div className="mt-5 grid gap-3 sm:grid-cols-2 relative z-10 border-t border-white/5 pt-4">
                 <div className="space-y-1 text-left">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Người giới thiệu vào Brand</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Người giới thiệu</span>
                   <span className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
                     <Users2 className="h-4 w-4 text-emerald-450 shrink-0" /> {inv.invitedBy || "Trực tiếp từ Brand"}
                   </span>
@@ -625,10 +625,10 @@ export default function TalentBrandsPage() {
               <div className="mt-4 p-4 rounded-2xl border border-emerald-500/20 bg-emerald-950/20 space-y-2.5 relative z-10 text-left">
                 <div className="flex items-center gap-2">
                   <UserPlus className="h-4 w-4 text-emerald-400" />
-                  <p className="text-xs font-black uppercase tracking-widest text-[#F0C56B]">Mời người khác cùng tham gia Brand</p>
+                  <p className="text-xs font-black uppercase tracking-widest text-[#F0C56B]">Mời người khác cùng tham gia</p>
                 </div>
                 <p className="text-[10px] leading-relaxed text-slate-400">
-                  Link này đưa talent mới vào cùng mạng lưới liên kết của Brand, đồng thời gắn talent mới dưới sự giới thiệu của bạn. Link này không liên quan đến referral campaign.
+                  Link này đưa người mới vào cùng mạng lưới hợp tác, đồng thời ghi nhận bạn là người giới thiệu trực tiếp. Link này không liên quan đến referral campaign.
                 </p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input
@@ -698,7 +698,7 @@ export default function TalentBrandsPage() {
           <Users2 className="h-12 w-12 text-slate-700 mb-4 animate-pulse" />
           <p className="text-slate-400 font-black text-sm uppercase tracking-wider">Không có lời mời nào</p>
           <p className="text-slate-550 text-xs mt-1 max-w-sm">
-            Khi Brand Manager gửi lời mời hợp tác Brand, danh sách sẽ hiển thị tại đây.
+            Khi có lời mời hợp tác, danh sách sẽ hiển thị tại đây.
           </p>
         </div>
       )}
@@ -810,7 +810,7 @@ export default function TalentBrandsPage() {
                   <div>
                     <p className="text-xs font-black uppercase tracking-widest text-white">Danh sách Talent của Brand</p>
                     <p className="mt-1 text-[10px] text-slate-500">
-                      Tất cả Talent đang thuộc mạng lưới liên kết của Brand này, dù được mời bởi Brand hay Talent khác.
+                      Tất cả người dùng đang thuộc mạng lưới liên kết này, dù được mời trực tiếp hay qua người giới thiệu khác.
                     </p>
                   </div>
                   <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[10px] font-black text-cyan-300">
@@ -847,7 +847,7 @@ export default function TalentBrandsPage() {
                     ))
                   ) : (
                     <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/40 p-4 text-center">
-                      <p className="text-xs font-bold text-slate-400">Brand này chưa có Talent nào trong mạng lưới liên kết.</p>
+                      <p className="text-xs font-bold text-slate-400">Mạng lưới này chưa có người dùng nào.</p>
                       <p className="mt-1 text-[10px] text-slate-650">Khi có Talent tham gia, danh sách sẽ hiển thị tại đây.</p>
                     </div>
                   )}

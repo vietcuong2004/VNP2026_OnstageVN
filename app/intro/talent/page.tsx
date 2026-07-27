@@ -84,7 +84,7 @@ export default function TalentIntroPage() {
           {/* Primary CTA */}
           <div className="pt-2">
             <Link
-              href="/talent/dashboard"
+              href="/talent/jobs"
               className="px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest bg-gradient-gold text-slate-950 hover:shadow-[0_0_25px_rgba(240,197,107,0.4)] hover:scale-102 active:scale-98 transition-all duration-300 flex items-center justify-center gap-2"
             >
               Vào cổng Talent <User className="h-4.5 w-4.5" />
@@ -392,7 +392,7 @@ export default function TalentIntroPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center w-full sm:w-auto">
               <Link
-                href="/talent/dashboard"
+                href="/talent/jobs"
                 className="w-full sm:w-auto px-8 py-4 rounded-full text-xs font-black uppercase tracking-widest bg-gradient-gold text-slate-950 hover:shadow-[0_0_25px_rgba(240,197,107,0.4)] hover:scale-102 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2"
               >
                 Trải nghiệm ngay <User className="h-4.5 w-4.5" />

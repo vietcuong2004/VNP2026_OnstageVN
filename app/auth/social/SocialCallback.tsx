@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { avatarFallbackForUser, profileAvatarFromBackend } from "@/lib/avatar";
 import { storeAuthSession } from "@/lib/api-client";
 
-type AccountType = "talent" | "brand";
+type AccountType = "user" | "admin" | string;
 type SocialProvider = "google" | "facebook";
 
 type ImpersonationState = {
@@ -46,16 +46,14 @@ function getApiBaseUrl() {
 }
 
 function getRedirectPath() {
-  return "/brand/dashboard";
+  return "/brand/search";
 }
 
 function getMissingEmailPath() {
-  return "/brand/settings?missingEmail=1";
+  return "/talent/settings?missingEmail=1";
 }
 
 async function hydrateTalentAvatar(apiUrl: string, token: string, user: MeResponse["user"]) {
-  if (user.type !== "talent") return user;
-
   const fallbackAvatar = avatarFallbackForUser(user);
   let avatar = fallbackAvatar;
 
@@ -135,14 +133,14 @@ export default function SocialCallback() {
           return;
         }
       } catch {
-        // Token is already stored; fall back to the type from callback.
+        // Token is already stored; keep a minimal legacy-compatible user shape.
       }
 
       storeAuthSession(token, {
         id: 0,
         name: "User",
         email: null,
-        type: type ?? "talent",
+        type: type ?? "user",
         status: "active",
       });
       router.replace(getRedirectPath());

@@ -51,7 +51,7 @@ export default function RootGatewayPage({
 
     try {
       JSON.parse(storedUser);
-      router.replace("/brand/dashboard");
+      router.replace("/brand/search");
     } catch {
       localStorage.removeItem("onstagevn_auth_user");
     }
@@ -470,10 +470,10 @@ export default function RootGatewayPage({
                     </p>
                   </div>
                   <Link
-                    href="/talent/dashboard"
+                    href="/talent/jobs"
                     className="relative z-10 shrink-0 px-8 py-4 rounded-2xl text-xs font-display font-black uppercase tracking-widest bg-gradient-gold text-slate-950 shadow-[0_4px_20px_rgba(240,197,107,0.3)] hover:shadow-[0_8px_30px_rgba(240,197,107,0.5)] hover:scale-103 active:scale-98 transition-all duration-300 flex items-center gap-2 group/btn"
                   >
-                    Vào cổng Talent
+                    Xem việc làm
                     <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                   </Link>
                 </div>
@@ -608,10 +608,10 @@ export default function RootGatewayPage({
                     </p>
                   </div>
                   <Link
-                    href="/brand/dashboard"
+                    href="/brand/search"
                     className="relative z-10 shrink-0 px-8 py-4 rounded-2xl text-xs font-display font-black uppercase tracking-widest bg-gradient-gold text-slate-950 shadow-[0_4px_20px_rgba(240,197,107,0.3)] hover:shadow-[0_8px_30px_rgba(240,197,107,0.5)] hover:scale-103 active:scale-98 transition-all duration-300 flex items-center gap-2 group/btn"
                   >
-                    Vào cổng Brand
+                    Tìm kiếm Talent
                     <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                   </Link>
                 </div>

@@ -1,8 +1,20 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { Bell, Calendar, ChevronDown, LogIn, LogOut, Search, UserCircle, Building2, Settings, ShieldAlert, Briefcase } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Bell,
+  Briefcase,
+  Building2,
+  ChevronDown,
+  LogIn,
+  LogOut,
+  Search,
+  Settings,
+  ShieldAlert,
+  Sparkles,
+  UserCircle,
+} from "lucide-react";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
 import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
@@ -14,7 +26,7 @@ type AuthUser = {
   id: number;
   name: string;
   email: string | null;
-  type: "talent" | "brand";
+  type?: "user" | "admin" | string | null;
   status: string;
   capabilities?: Array<"talent" | "brand">;
   external_avatar_url?: string | null;
@@ -71,7 +83,6 @@ function readTalentProfileHeader() {
     return null;
   }
 }
-
 function readAuthUser() {
   if (typeof window === "undefined") return null;
 
@@ -92,7 +103,7 @@ function authUserSnapshot() {
 }
 
 function subscribeAuthUser(onStoreChange: () => void) {
-  if (typeof window === "undefined") return () => { };
+  if (typeof window === "undefined") return () => {};
 
   window.addEventListener("storage", onStoreChange);
   window.addEventListener(AUTH_USER_UPDATED_EVENT, onStoreChange);
@@ -106,14 +117,12 @@ function subscribeAuthUser(onStoreChange: () => void) {
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const isBrandPath = pathname.startsWith("/brand");
   const [open, setOpen] = useState(false);
   const authUserJson = useSyncExternalStore(subscribeAuthUser, authUserSnapshot, () => "");
   const user = authUserJson ? (JSON.parse(authUserJson) as AuthUser) : null;
   const [talentAvatar, setTalentAvatar] = useState<string | null>(null);
   const [talentName, setTalentName] = useState<string | null>(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-  // Header remains always visible
 
   useEffect(() => {
     function syncTalentProfileHeader() {
@@ -133,15 +142,17 @@ export default function Header() {
   }, []);
 
   const label = user
-    ? { name: !isBrandPath && talentName ? talentName : user.name, subtitle: user.email || "" }
+    ? { name: talentName || user.name, subtitle: user.email || "" }
     : { name: "Khách truy cập", subtitle: "Chưa đăng nhập" };
   const fallbackAvatarSrc = createInitialAvatarDataUrl(label.name, user?.email || label.subtitle);
   const headerAvatarSrc = user
-    ? (isBrandPath ? (user.external_avatar_url || "/logo.png") : (talentAvatar || fallbackAvatarSrc))
+    ? (talentAvatar || user.external_avatar_url || fallbackAvatarSrc)
     : fallbackAvatarSrc;
-  useEffect(() => {
-    if (!user || isBrandPath) return;
 
+  useEffect(() => {
+    if (!user) return;
+
+    const currentUser = user;
     let cancelled = false;
 
     async function loadProfileAvatar() {
@@ -152,7 +163,7 @@ export default function Header() {
         setTalentName(profile?.name || null);
       } catch {
         if (!cancelled) {
-          setTalentAvatar(fallbackAvatarSrc);
+          setTalentAvatar(currentUser.external_avatar_url || fallbackAvatarSrc);
           setTalentName(null);
         }
       }
@@ -163,7 +174,7 @@ export default function Header() {
     return () => {
       cancelled = true;
     };
-  }, [fallbackAvatarSrc, isBrandPath, user]);
+  }, [fallbackAvatarSrc, user]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -198,7 +209,6 @@ export default function Header() {
 
     const echo = getRealtimeClient();
     const channel = echo?.private(`users.${user.id}`);
-    const portal = isBrandPath ? "brand" : "talent";
     const handleNotification = (notification: RealtimeNotificationPayload) => {
       refreshUnreadCount();
 
@@ -208,7 +218,7 @@ export default function Header() {
         title: notification.title,
         body: notification.body,
         tag: `admin-notification-${notification.type ?? "general"}`,
-        url: notification.link || `/${portal}/notifications`,
+        url: notification.link || "/brand/notifications",
       });
     };
     const handleMessageSent = (event: RealtimeMessageEvent) => {
@@ -220,7 +230,7 @@ export default function Header() {
         title: senderName,
         body: event.message.body,
         tag: `message-${event.message.conversation_id}`,
-        url: `/${portal}/messages?conversationId=${event.message.conversation_id}`,
+        url: `/talent/messages?conversationId=${event.message.conversation_id}`,
       });
     };
 
@@ -233,7 +243,7 @@ export default function Header() {
       channel?.stopListeningForNotification(handleNotification);
       channel?.stopListening(".message.sent", handleMessageSent);
     };
-  }, [isBrandPath, pathname, user?.id]);
+  }, [pathname, user?.id]);
 
   async function handleLogout() {
     await logoutCurrentSession();
@@ -244,6 +254,18 @@ export default function Header() {
     await logoutCurrentSession();
     window.location.href = API_BASE_URL.replace(/\/api$/, "") + "/admin";
   }
+
+  const dropdownItems = user
+    ? [
+        { label: "Tìm kiếm Talent", href: "/brand/search", icon: Search },
+        { label: "Đăng việc làm", href: "/brand/campaigns", icon: Briefcase },
+        { label: "Thông tin Brand", href: "/brand/settings", icon: Building2 },
+        { label: "Việc làm", href: "/talent/jobs", icon: Briefcase },
+        { label: "Khảo sát", href: "/talent/survey", icon: Sparkles },
+        { label: "Hồ sơ cá nhân", href: "/talent/portfolio", icon: UserCircle },
+        { label: "Cài đặt", href: "/talent/settings", icon: Settings },
+      ]
+    : [];
 
   return (
     <>
@@ -299,7 +321,7 @@ export default function Header() {
           {user && (
             <button
               type="button"
-              onClick={() => router.push(isBrandPath ? "/brand/notifications" : "/talent/notifications")}
+              onClick={() => router.push("/brand/notifications")}
               className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 transition-colors hover:text-white"
               aria-label="Thông báo"
             >
@@ -350,34 +372,26 @@ export default function Header() {
                   </div>
                 </div>
 
-                {!user ? null : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        router.push("/brand/search");
-                        setOpen(false);
-                      }}
-                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                    >
-                      <Search className="h-4 w-4 text-slate-400" />
-                      Tìm kiếm Talent
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        router.push("/talent/jobs");
-                        setOpen(false);
-                      }}
-                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                    >
-                      <Briefcase className="h-4 w-4 text-slate-400" />
-                      Chợ việc làm
-                    </button>
-                  </>
-                )}
+                {user && dropdownItems.map((item) => {
+                  const Icon = item.icon;
 
-                <div className="border-t border-white/5 my-1.5" />
+                  return (
+                    <button
+                      key={item.href}
+                      type="button"
+                      onClick={() => {
+                        router.push(item.href);
+                        setOpen(false);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                    >
+                      <Icon className="h-4 w-4 text-slate-400" />
+                      {item.label}
+                    </button>
+                  );
+                })}
+
+                {user && <div className="border-t border-white/5 my-1.5" />}
 
                 {user ? (
                   <button

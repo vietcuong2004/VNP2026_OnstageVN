@@ -24,7 +24,7 @@ export function requireBrandSession() {
   const token = getAuthToken();
 
   if (!token) {
-    throw new Error("Bạn cần đăng nhập bằng tài khoản brand để thực hiện thao tác này.");
+    throw new Error("Bạn cần đăng nhập để thực hiện thao tác này.");
   }
 }
 

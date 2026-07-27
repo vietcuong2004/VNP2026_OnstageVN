@@ -11,7 +11,7 @@ type AuthUser = {
   id: number;
   name?: string | null;
   email?: string | null;
-  type?: "talent" | "brand";
+  type?: "user" | "admin" | string | null;
 };
 
 const DEFAULT_ZALO_BOT_URL = "https://zalo.me/0559829078";
@@ -182,7 +182,7 @@ export default function SettingsPage() {
       {/* Page Header */}
       <div className="flex items-center gap-4">
         <button 
-          onClick={() => router.push("/talent/dashboard")} 
+          onClick={() => router.push("/talent/jobs")}
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#151b2d] bg-[#08090f] text-slate-400 hover:text-white transition-all cursor-pointer"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -233,8 +233,6 @@ export default function SettingsPage() {
 
       {/* Settings Options container - styled like dashboard.htm tables */}
       <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] divide-y divide-[#151b2d]/50 overflow-hidden shadow-2xl">
-        
-
         {/* Change Password */}
         <div 
           onClick={() => addToast("Chức năng đổi mật khẩu đang được đồng bộ hóa với hệ thống xác thực.", "info")}

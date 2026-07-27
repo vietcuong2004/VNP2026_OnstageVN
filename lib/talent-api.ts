@@ -11,7 +11,7 @@ export const TALENT_PROFILE_UPDATED_EVENT = "vnp_talent_profile_updated";
 
 export function requireTalentSession() {
   if (!getAuthToken()) {
-    throw new Error("Bạn cần đăng nhập bằng tài khoản talent để thực hiện thao tác này.");
+    throw new Error("Bạn cần đăng nhập để thực hiện thao tác này.");
   }
 }
 
@@ -614,8 +614,7 @@ export async function deleteTalentCalendarEvent(eventId: number | string) {
 
 export async function loadTalentCampaigns() {
   try {
-    const user = getStoredAuthUser<{ type?: string | null }>();
-    const path = getAuthToken() && user?.type === "talent" ? "/talent/campaigns" : "/public/talent-campaigns";
+    const path = getAuthToken() ? "/talent/campaigns" : "/public/talent-campaigns";
     const response = await apiJson<{ data: any[] }>(path);
     return response.data || [];
   } catch (error) {
@@ -626,8 +625,7 @@ export async function loadTalentCampaigns() {
 
 export async function loadTalentCampaignDetail(idOrSlug: string | number) {
   try {
-    const user = getStoredAuthUser<{ type?: string | null }>();
-    const path = getAuthToken() && user?.type === "talent"
+    const path = getAuthToken()
       ? `/talent/campaigns/${idOrSlug}`
       : `/public/talent-campaigns/${idOrSlug}`;
     const response = await apiJson<{ data: any }>(path);
@@ -676,8 +674,7 @@ export async function loadTalentCampaignsPage(options: {
     if (options.sortOrder) params.set("sort", options.sortOrder);
     if (options.stage) params.set("stage", options.stage);
 
-    const user = getStoredAuthUser<{ type?: string | null }>();
-    const route = getAuthToken() && user?.type === "talent" ? "/talent/campaigns" : "/public/talent-campaigns";
+    const route = getAuthToken() ? "/talent/campaigns" : "/public/talent-campaigns";
     const path = `${route}?${params.toString()}`;
     const response = await apiJson<{ data: any[]; meta?: TalentCampaignPaginationMeta }>(path);
     const data = response.data || [];

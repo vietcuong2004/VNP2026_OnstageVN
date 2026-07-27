@@ -292,7 +292,7 @@ export default function CalendarPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => router.push("/talent/dashboard")} 
+            onClick={() => router.push("/talent/jobs")}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#151b2d] bg-[#08090f] text-slate-400 hover:text-white transition-all cursor-pointer"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -598,7 +598,7 @@ export default function CalendarPage() {
               Bạn chưa ứng tuyển hoặc chưa tham gia chiến dịch nào. Hãy khám phá và ứng tuyển các chiến dịch mới tại trang Dashboard!
             </p>
             <button
-              onClick={() => router.push("/talent/dashboard")}
+              onClick={() => router.push("/talent/jobs")}
               className="mt-4 h-8 rounded-lg bg-amber-400 hover:bg-amber-500 px-4 text-[10px] font-black text-slate-950 transition-all uppercase tracking-wider cursor-pointer"
             >
               Xem danh sách chiến dịch

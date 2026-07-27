@@ -364,7 +364,7 @@ function JobsPageContent() {
   const [showInviteModal, setShowInviteModal] = useState<any>(null);
   const jobRequestRef = useRef(0);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(() => (typeof window !== "undefined" ? !!getAuthToken() : false));
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [jobBackendPage, setJobBackendPage] = useState(() => initialJobsState?.jobBackendPage || 1);
   const [jobTotal, setJobTotal] = useState(0);
   const [jobStageCounts, setJobStageCounts] = useState<Record<StageFilter, number>>({
@@ -382,6 +382,7 @@ function JobsPageContent() {
 
   useEffect(() => {
     const syncAuth = () => setIsLoggedIn(!!getAuthToken());
+    syncAuth();
     window.addEventListener(AUTH_USER_UPDATED_EVENT, syncAuth);
     window.addEventListener("storage", syncAuth);
 
@@ -939,7 +940,7 @@ function JobsPageContent() {
                 Tham gia qua link giới thiệu
               </h2>
               <p className="text-[11px] text-slate-400 font-medium leading-relaxed max-w-2xl">
-                Dán đường dẫn Affiliate nhận từ đối tác (F1) để tham gia trực tiếp chiến dịch với vai trò F2 và nhận 70% cát-xê.
+                Dán đường dẫn giới thiệu nhận từ đối tác để tham gia trực tiếp chiến dịch và ghi nhận người giới thiệu.
               </p>
             </div>
 
@@ -1353,7 +1354,7 @@ function JobsPageContent() {
                           </button>
                         </div>
                         <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
-                          * Mẹo: Chia sẻ link này cho các KOL/KOC trong network của bạn. Khi họ đăng ký & được duyệt, bạn nhận ngay 5% hoa hồng từ việc làm của họ.
+                          * Mẹo: Chia sẻ link này cho người phù hợp trong mạng lưới của bạn. Khi họ đăng ký và được duyệt, hệ thống sẽ ghi nhận bạn là người giới thiệu.
                         </p>
                       </div>
 
@@ -1361,7 +1362,7 @@ function JobsPageContent() {
                       <div className="space-y-3.5 border-t border-[#151b2d] pt-4">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
-                            <Users className="h-4.5 w-4.5 text-amber-400 shrink-0" /> KOL F2 được bạn mời ({referrals.length})
+                            <Users className="h-4.5 w-4.5 text-amber-400 shrink-0" /> Người được bạn giới thiệu ({referrals.length})
                           </h4>
                         </div>
 
@@ -1372,17 +1373,17 @@ function JobsPageContent() {
                         ) : (
                           <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
                             {referrals.map((item: any, idx: number) => {
-                              const name = item.profile?.display_name || item.profile?.user?.name || "KOL F2";
+                              const name = item.profile?.display_name || item.profile?.user?.name || "Người được giới thiệu";
                               const avatar = item.profile?.user?.external_avatar_url || item.profile?.logo_url || "";
                               const status = item.status || "new";
 
-                              let statusText = "CHỜ DUYỆT (F2)";
+                              let statusText = "CHỜ DUYỆT";
                               let statusColor = "text-amber-400 bg-amber-400/10 border-amber-400/20";
                               if (status === "accepted" || status === "executing") {
-                                statusText = "ĐANG THAM GIA (F2)";
+                                statusText = "ĐANG THAM GIA";
                                 statusColor = "text-cyan-400 bg-cyan-400/10 border-cyan-400/20";
                               } else if (status === "completed" || status === "confirmed") {
-                                statusText = "HOÀN THÀNH (F2)";
+                                statusText = "HOÀN THÀNH";
                                 statusColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
                               }
 
@@ -1405,7 +1406,7 @@ function JobsPageContent() {
                                       <div className="flex flex-wrap items-center gap-1.5">
                                         <span className="text-xs font-black text-white truncate max-w-[120px] sm:max-w-none">{name}</span>
                                         <span className="rounded bg-cyan-500/10 border border-cyan-500/25 px-1.5 py-0.5 text-[8px] font-black uppercase text-cyan-300 whitespace-nowrap">
-                                          KOL F2
+                                          Người được giới thiệu
                                         </span>
                                       </div>
                                     </div>

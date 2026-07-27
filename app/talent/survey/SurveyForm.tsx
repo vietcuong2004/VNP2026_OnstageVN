@@ -893,7 +893,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 <div className="text-center pt-1">
                   <button
                     type="button"
-                    onClick={() => router.push("/talent/dashboard")}
+                    onClick={() => router.push("/talent/jobs")}
                     className="text-[11px] md:text-xs text-slate-500 hover:text-slate-300 underline transition-colors cursor-pointer"
                   >
                     Về trang chủ Dashboard

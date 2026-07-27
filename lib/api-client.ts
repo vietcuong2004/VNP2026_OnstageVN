@@ -170,13 +170,13 @@ export async function apiJson<T>(path: string, init: ApiRequestInit = {}) {
   return parseApiResponse<T>(response);
 }
 
-export async function switchCurrentPlatform(type: "talent" | "brand") {
+export async function switchCurrentPlatform(type: "talent" | "brand" | "user") {
   const response = await apiJson<{
     user: {
       id: number;
       name: string;
       email: string | null;
-      type: "talent" | "brand";
+      type: "user" | "admin" | string;
       status: string;
       capabilities?: Array<"talent" | "brand">;
       external_avatar_url?: string | null;
@@ -197,7 +197,7 @@ export async function updateAuthEmail(email: string) {
       id: number;
       name: string;
       email: string | null;
-      type: "talent" | "brand";
+      type: "user" | "admin" | string;
       status: string;
       capabilities?: Array<"talent" | "brand">;
       external_avatar_url?: string | null;

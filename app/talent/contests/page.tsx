@@ -944,7 +944,7 @@ export default function ContestsPage() {
       {/* Title Header */}
       <div className="flex items-center gap-4">
         <button
-          onClick={() => router.push("/talent/dashboard")}
+          onClick={() => router.push("/talent/jobs")}
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#151b2d] bg-[#08090f] text-slate-400 hover:text-white transition-all cursor-pointer"
         >
           <ArrowLeft className="h-5 w-5" />

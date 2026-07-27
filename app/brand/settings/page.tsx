@@ -13,7 +13,7 @@ type AuthUser = {
   id: number;
   name?: string | null;
   email?: string | null;
-  type?: "talent" | "brand";
+  type?: "user" | "admin" | string | null;
   external_avatar_url?: string | null;
 };
 

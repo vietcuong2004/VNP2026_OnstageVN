@@ -25,7 +25,7 @@ export default function AnalyticsPage() {
           </p>
         </div>
         <button
-          onClick={() => router.push("/brand/dashboard")}
+          onClick={() => router.push("/brand/search")}
           className="flex h-10 items-center justify-center rounded-xl border border-[#2B313D] bg-[#171A21] px-4 text-xs font-black text-slate-400 hover:text-white transition-all cursor-pointer uppercase tracking-wider"
         >
           <ArrowLeft className="mr-2 h-4 w-4 shrink-0" />

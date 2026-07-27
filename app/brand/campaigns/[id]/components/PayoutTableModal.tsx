@@ -89,9 +89,9 @@ export default function PayoutTableModal({
     const referrer = hasReferrer ? (displayTalents.find(t => t.id === appl.referredByTalentId) || talents.find(t => t.id === appl.referredByTalentId)) : null;
 
     if (hasReferrer && referrer) {
-      // F2 referred candidate
+      // Referred candidate
       campaignRows.push({
-        role: "KOL F2 (Thực hiện - 70%)",
+        role: "Người thực hiện qua giới thiệu - 70%",
         recipient: talent.name,
         relatedTalent: talent.name,
         base: poolPerTalent,
@@ -100,7 +100,7 @@ export default function PayoutTableModal({
         status: "Chờ duyệt"
       });
       campaignRows.push({
-        role: "Brand F0 (Phí quản lý - 10%)",
+        role: "Chủ campaign - 10%",
         recipient: "Nguyễn Ngọc Anh",
         relatedTalent: talent.name,
         base: poolPerTalent,
@@ -109,7 +109,7 @@ export default function PayoutTableModal({
         status: "Chờ duyệt"
       });
       referralRows.push({
-        role: "F1 (Giới thiệu Campaign - 5%)",
+        role: "Người giới thiệu campaign - 5%",
         recipient: referrer.name,
         relatedTalent: talent.name,
         base: poolPerTalent,
@@ -118,9 +118,9 @@ export default function PayoutTableModal({
         status: "Chờ duyệt"
       });
     } else {
-      // F1 direct candidate
+      // Direct candidate
       campaignRows.push({
-        role: "KOL F1 (Thực hiện - 75%)",
+        role: "Người thực hiện trực tiếp - 75%",
         recipient: talent.name,
         relatedTalent: talent.name,
         base: poolPerTalent,
@@ -129,7 +129,7 @@ export default function PayoutTableModal({
         status: "Chờ duyệt"
       });
       campaignRows.push({
-        role: "Brand F0 (Phí quản lý - 10%)",
+        role: "Chủ campaign - 10%",
         recipient: "Nguyễn Ngọc Anh",
         relatedTalent: talent.name,
         base: poolPerTalent,

@@ -73,7 +73,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
           </div>
           <h2 className="mt-5 font-display text-lg font-black uppercase tracking-wider text-white">Liên kết không hợp lệ</h2>
           <p className="mt-3 text-xs leading-relaxed text-slate-400">
-            {error || "Đường liên kết mời không tồn tại hoặc đã hết hạn. Vui lòng liên hệ Brand Manager để nhận liên kết mới."}
+            {error || "Đường liên kết mời không tồn tại hoặc đã hết hạn. Vui lòng liên hệ người gửi link để nhận liên kết mới."}
           </p>
           <button
             onClick={() => router.push("/")}
@@ -311,7 +311,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
             <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-full border border-[#D4A64A]/30 bg-[#071B42]/45 backdrop-blur-md max-w-full">
               <span className="h-2 w-2 rounded-full bg-[#F0C56B] animate-pulse shrink-0" />
               <span className="text-[10px] md:text-xs font-bold text-[#F0C56B] uppercase tracking-wider flex items-center gap-2 truncate">
-                Được giới thiệu bởi Talent: <strong className="text-white font-black">{inviter.name}</strong>
+                Được giới thiệu bởi: <strong className="text-white font-black">{inviter.name}</strong>
               </span>
             </div>
           )}
@@ -325,7 +325,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
 
             <div className="grid gap-4 sm:grid-cols-2">
               {[
-                { title: "Campaign nhận trực tiếp", desc: "Nhận các lời mời hợp tác trực tiếp từ Brand Manager với mức hoa hồng và chính sách minh bạch." },
+                { title: "Campaign nhận trực tiếp", desc: "Nhận các lời mời hợp tác trực tiếp với mức hoa hồng và chính sách minh bạch." },
                 { title: "Thương lượng chuyên nghiệp", desc: "Đội ngũ chuyên môn hỗ trợ đàm phán hợp đồng, mức cát-xê tối ưu cho các chiến dịch KOL lớn." },
                 { title: "Bảo chứng thanh toán", desc: "Ký quỹ OnstageVN đảm bảo giải ngân thù lao nhanh chóng, an toàn sau khi hoàn tất công việc." },
                 { title: "Hỗ trợ pháp lý & Hợp đồng", desc: "Tất cả điều khoản hợp tác được bảo vệ pháp lý, giảm thiểu tối đa các rủi ro phát sinh tranh chấp." }
@@ -357,7 +357,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Mức hoa hồng đề xuất</span>
               <span className="text-2xl font-black text-gradient-gold mt-1 block tracking-tight font-mono">{commissionRate}% / JOB</span>
               <span className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider mt-1.5 block leading-relaxed">
-                Áp dụng cho các job phát sinh từ Brand Manager
+                Áp dụng cho các job phát sinh từ mạng lưới hợp tác
               </span>
             </div>
 
@@ -368,7 +368,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
                 <div className="min-w-0">
                   <span className="font-black uppercase tracking-wider text-slate-350 block">Truy cập hồ sơ</span>
                   <p className="text-slate-450 mt-1">
-                    Khi tham gia, Brand Manager được quyền xem thông tin liên hệ, chỉ số kênh và portfolio để tuyển chọn.
+                    Khi tham gia, đối tác được quyền xem thông tin liên hệ, chỉ số kênh và portfolio để tuyển chọn.
                   </p>
                 </div>
               </div>
@@ -378,7 +378,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
                 <div className="min-w-0">
                   <span className="font-black uppercase tracking-wider text-slate-350 block">Chính sách bảo vệ</span>
                   <p className="text-slate-450 mt-1">
-                    Bạn luôn giữ quyền tự do thương thảo và có thể rời khỏi mạng lưới Brand theo chính sách bảo chứng.
+                    Bạn luôn giữ quyền tự do thương thảo và có thể rời khỏi mạng lưới hợp tác theo chính sách bảo chứng.
                   </p>
                 </div>
               </div>
@@ -453,7 +453,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
 
             <h3 className="mt-4 text-center font-display text-lg font-black uppercase tracking-wider text-white">Xác nhận tham gia</h3>
             <p className="mt-2 text-center text-xs text-slate-400 leading-relaxed font-medium">
-              Bạn chuẩn bị tham gia mạng lưới của <strong className="text-white">{brandName}</strong>.
+              Bạn chuẩn bị tham gia mạng lưới hợp tác của <strong className="text-white">{brandName}</strong>.
             </p>
 
             <div className="mt-5 rounded-2xl border border-white/5 bg-slate-950/70 p-4 space-y-2.5 text-xs text-left text-slate-350 font-medium">
