@@ -190,16 +190,37 @@ export default function BottomNavigation() {
                 {unifiedLoggedInNavigationSections.map((section) => (
                   <div key={section.title} className="space-y-3">
                     {section.href ? (
-                      <Link
-                        href={section.href}
-                        onClick={() => setShowMoreMenu(false)}
-                        className="flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400 bg-gradient-to-r from-amber-500/10 to-transparent py-1 pl-2 group cursor-pointer"
-                      >
-                        <section.icon className="h-3.5 w-3.5 text-amber-400" />
-                        <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.15em] text-transparent group-hover:text-amber-300 transition-colors">
-                          {section.title}
-                        </span>
-                      </Link>
+                      <>
+                        <div className="flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400 bg-gradient-to-r from-amber-500/10 to-transparent py-1 pl-2">
+                          <section.icon className="h-3.5 w-3.5 text-amber-400" />
+                          <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.15em] text-transparent">
+                            {section.title}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
+                          <Link
+                            href={section.href}
+                            onClick={() => setShowMoreMenu(false)}
+                            className="flex flex-col items-center text-center group cursor-pointer"
+                          >
+                            <div className={cn(
+                              "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 group-active:scale-95",
+                              isActiveHref(section.href)
+                                ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
+                                : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                            )}>
+                              <section.icon className="h-5 w-5 animate-none" />
+                            </div>
+                            <span className={cn(
+                              "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
+                              isActiveHref(section.href) && "text-amber-400 font-extrabold",
+                              "text-slate-400 group-hover:text-white"
+                            )}>
+                              {section.title}
+                            </span>
+                          </Link>
+                        </div>
+                      </>
                     ) : (
                       <>
                         <div className="flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400 bg-gradient-to-r from-amber-500/10 to-transparent py-1 pl-2">

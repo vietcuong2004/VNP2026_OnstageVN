@@ -164,19 +164,16 @@ export default function Sidebar() {
                 <Link
                   href={section.href}
                   className={cn(
-                    "flex items-center gap-3 px-1 py-1 transition-all duration-300 group cursor-pointer relative",
-                    isActiveHref(section.href) ? "text-amber-300" : "text-slate-400 hover:text-slate-100"
+                    "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
+                    isActiveHref(section.href)
+                      ? "border-amber-500/20 bg-gradient-to-r from-amber-400/10 to-yellow-600/5 shadow-[0_4px_12px_rgba(245,158,11,0.055)] text-amber-300"
+                      : "border-transparent text-slate-400 hover:bg-white/2 hover:text-slate-100",
                   )}
                 >
                   {isActiveHref(section.href) && (
                     <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
                   )}
-                  <span className={cn(
-                    "transition-transform duration-300 group-hover:rotate-12",
-                    isActiveHref(section.href) ? "text-amber-400" : "text-slate-400 group-hover:text-amber-400"
-                  )}>
-                    <section.icon className="h-4.5 w-4.5" />
-                  </span>
+                  <section.icon className="h-4.5 w-4.5 text-amber-400 transition-transform duration-300 group-hover:scale-110" />
                   <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
                     {section.title}
                   </span>
