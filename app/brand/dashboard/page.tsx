@@ -32,7 +32,7 @@ const nextActions = [
   {
     title: "Hoàn thiện hồ sơ đối tác",
     description: "Bổ sung thông tin thương hiệu, người phụ trách và kênh liên hệ để sẵn sàng vận hành campaign.",
-    href: "/brand/settings",
+    href: "/brand/informations",
     icon: UserRoundCheck,
   },
   {

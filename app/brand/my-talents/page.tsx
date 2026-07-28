@@ -247,14 +247,14 @@ export default function MyTalentsPage() {
     if (!requireAuthAction({ actionLabel: "Gán talent vào campaign" })) return;
     if (!assigningTalent) return;
     if (!selectedCampaignId) {
-      addToast("Vui lòng chọn chiến dịch!");
+      addToast("Vui lòng chọn việc làm!");
       return;
     }
     setAssigningLoading(true);
     try {
       await addTalentToBrandCampaign(selectedCampaignId, assigningTalent.id, assignNotes);
       const campaign = campaigns.find(c => String(c.id) === String(selectedCampaignId));
-      addToast(`Đã thêm ${assigningTalent.name} vào chiến dịch ${campaign?.title || ""} thành công!`);
+      addToast(`Đã thêm ${assigningTalent.name} vào việc làm ${campaign?.title || ""} thành công!`);
       setShowAssignJobModal(false);
       setAssigningTalent(null);
       setSelectedCampaignId("");
@@ -263,7 +263,7 @@ export default function MyTalentsPage() {
       console.error("Failed to assign job:", error);
       const errMsg = error?.message || "";
       if (errMsg.includes("Talent nay da nam trong campaign.")) {
-        addToast("Talent này đã có trong chiến dịch!", "error");
+        addToast("Talent này đã có trong việc làm!", "error");
       } else {
         addToast("Không thể gán job cho talent. Vui lòng thử lại!", "error");
       }
@@ -568,7 +568,7 @@ export default function MyTalentsPage() {
               Quản lý <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">Talent</span>
             </h1>
             <p className="mt-3 text-xs leading-5 text-slate-400">
-              Quản lý đội ngũ KOL độc quyền, theo dõi tiến độ chiến dịch và hoa hồng giới thiệu Affiliate.
+              Quản lý đội ngũ KOL độc quyền, theo dõi tiến độ việc làm và hoa hồng giới thiệu Affiliate.
             </p>
           </div>
 
@@ -1077,7 +1077,7 @@ export default function MyTalentsPage() {
                   <Briefcase className="h-4.5 w-4.5 text-yellow-400" /> Assign Job cho Talent
                 </h3>
                 <span className="block text-xs font-semibold text-slate-300 mt-1.5 leading-normal">
-                  Thêm <span className="text-yellow-400 font-black">{assigningTalent.name}</span> vào chiến dịch của bạn
+                  Thêm <span className="text-yellow-400 font-black">{assigningTalent.name}</span> vào việc làm của bạn
                 </span>
               </div>
               <button
@@ -1092,13 +1092,13 @@ export default function MyTalentsPage() {
             <div className="p-6 space-y-4">
               {/* Campaign Select */}
               <label className="block text-left space-y-1.5">
-                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">Chọn chiến dịch</span>
+                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">Chọn việc làm</span>
                 <select
                   value={selectedCampaignId}
                   onChange={(e) => setSelectedCampaignId(e.target.value)}
                   className="w-full h-11 px-3.5 rounded-xl border border-[#1d2238] bg-slate-900 text-xs font-semibold text-white focus:outline-none focus:border-amber-400/50 cursor-pointer"
                 >
-                  <option value="">-- Chọn chiến dịch --</option>
+                  <option value="">-- Chọn việc làm --</option>
                   {campaigns.map(c => (
                     <option key={c.id} value={c.id}>{c.title}</option>
                   ))}
@@ -1141,8 +1141,8 @@ export default function MyTalentsPage() {
       {/* ── Toast Notifications ── */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map(t => (
-          <div 
-            key={t.id} 
+          <div
+            key={t.id}
             className={cn(
               "animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-xl px-4 py-3 text-xs font-bold shadow-xl flex items-center gap-2 border",
               t.tone === "error"

@@ -32,7 +32,7 @@ type LandingPageProps = {
   showFeaturesExplanation?: boolean;
 };
 
-export default function AboutPage({
+function AboutContent({
   showLandingHeader = false,
   showHeroCta = false,
   compactHeroTitle = true,
@@ -1039,5 +1039,18 @@ export default function AboutPage({
 
       </div>
     </div>
+  );
+}
+
+export default function AboutPage() {
+  return (
+    <AboutContent
+      showLandingHeader={false}
+      showHeroCta={false}
+      compactHeroTitle={true}
+      showPortals={false}
+      redirectAuthenticatedUsers={false}
+      showFeaturesExplanation={true}
+    />
   );
 }
