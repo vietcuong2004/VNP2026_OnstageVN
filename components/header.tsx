@@ -103,7 +103,7 @@ function authUserSnapshot() {
 }
 
 function subscribeAuthUser(onStoreChange: () => void) {
-  if (typeof window === "undefined") return () => {};
+  if (typeof window === "undefined") return () => { };
 
   window.addEventListener("storage", onStoreChange);
   window.addEventListener(AUTH_USER_UPDATED_EVENT, onStoreChange);
@@ -257,14 +257,14 @@ export default function Header() {
 
   const dropdownItems = user
     ? [
-        { label: "Tìm kiếm Talent", href: "/brand/search", icon: Search },
-        { label: "Đăng việc làm", href: "/brand/campaigns", icon: Briefcase },
-        { label: "Thông tin Brand", href: "/brand/settings", icon: Building2 },
-        { label: "Việc làm", href: "/talent/jobs", icon: Briefcase },
-        { label: "Khảo sát", href: "/talent/survey", icon: Sparkles },
-        { label: "Hồ sơ cá nhân", href: "/talent/portfolio", icon: UserCircle },
-        { label: "Cài đặt", href: "/talent/settings", icon: Settings },
-      ]
+      { label: "Tìm kiếm Talent", href: "/brand/search", icon: Search },
+      { label: "Đăng việc làm", href: "/brand/campaigns", icon: Briefcase },
+      { label: "Thông tin Brand", href: "/brand/informations", icon: Building2 },
+      { label: "Chợ việc làm", href: "/talent/jobs", icon: Briefcase },
+      { label: "Khảo sát", href: "/talent/survey", icon: Sparkles },
+      { label: "Hồ sơ cá nhân", href: "/talent/portfolio", icon: UserCircle },
+      { label: "Cài đặt", href: "/talent/settings", icon: Settings },
+    ]
     : [];
 
   return (

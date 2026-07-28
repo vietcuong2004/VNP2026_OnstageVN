@@ -29,6 +29,7 @@ type LandingPageProps = {
   compactHeroTitle?: boolean;
   showPortals?: boolean;
   redirectAuthenticatedUsers?: boolean;
+  showFeaturesExplanation?: boolean;
 };
 
 export default function RootGatewayPage({
@@ -37,6 +38,7 @@ export default function RootGatewayPage({
   compactHeroTitle = false,
   showPortals = true,
   redirectAuthenticatedUsers = true,
+  showFeaturesExplanation: _showFeaturesExplanation = true,
 }: LandingPageProps = {}) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"talent" | "brand">("talent");

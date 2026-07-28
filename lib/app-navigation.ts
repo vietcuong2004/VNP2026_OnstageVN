@@ -16,7 +16,7 @@ export const unifiedBrandNavigation = [
   { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
   { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
   { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
-  { label: "Thông tin brand", icon: Building2, href: "/brand/settings" },
+  { label: "Thông tin brand", icon: Building2, href: "/brand/informations" },
 ];
 
 export const unifiedTalentNavigation = [

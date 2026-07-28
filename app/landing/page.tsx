@@ -1,4 +1,4 @@
-import LandingPage from "../about/page";
+import LandingPage from "../LandingPage";
 
 export default function LandingRoutePage() {
   return (
