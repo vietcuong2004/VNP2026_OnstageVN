@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Briefcase, HelpCircle, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
-import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/lib/app-navigation";
+import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/components/sidebar";
 import { getGuestMoreNavigation, getGuestPrimaryNavigation } from "@/lib/public-navigation";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
@@ -189,60 +189,75 @@ export default function BottomNavigation() {
               <div className="max-h-[60vh] space-y-6 overflow-y-auto pr-1">
                 {unifiedLoggedInNavigationSections.map((section) => (
                   <div key={section.title} className="space-y-3">
-                    <div className="flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400 bg-gradient-to-r from-amber-500/10 to-transparent py-1 pl-2">
-                      <section.icon className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
-                      <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.15em] text-transparent">
-                        {section.title}
-                      </span>
-                      {section.title !== "Hệ thống" && (
-                        <button
-                          type="button"
-                          onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
-                          className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400/35 bg-amber-400/10 text-[10px] font-black text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.12)] transition-all hover:scale-105 hover:border-amber-300/70 hover:bg-amber-400/20 hover:text-white active:scale-95 cursor-pointer"
-                          aria-label={`Giải thích ${section.title}`}
-                          title={`Giải thích ${section.title}`}
-                        >
-                          <HelpCircle className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
-                      {section.items.map((item) => {
-                        const Icon = item.icon;
-                        const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
-                        const isActive = isActiveHref(itemHref);
-                        const content = (
-                          <>
-                            <div className={cn(
-                              "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 group-active:scale-95",
-                              isActive
-                                ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
-                                : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
-                            )}>
-                              <Icon className="h-5 w-5 animate-none" />
-                            </div>
-                            <span className={cn(
-                              "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
-                              isActive && "text-amber-400 font-extrabold",
-                              "text-slate-400 group-hover:text-white"
-                            )}>
-                              {item.label}
-                            </span>
-                          </>
-                        );
+                    {section.href ? (
+                      <Link
+                        href={section.href}
+                        onClick={() => setShowMoreMenu(false)}
+                        className="flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400 bg-gradient-to-r from-amber-500/10 to-transparent py-1 pl-2 group cursor-pointer"
+                      >
+                        <section.icon className="h-3.5 w-3.5 text-amber-400" />
+                        <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.15em] text-transparent group-hover:text-amber-300 transition-colors">
+                          {section.title}
+                        </span>
+                      </Link>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400 bg-gradient-to-r from-amber-500/10 to-transparent py-1 pl-2">
+                          <section.icon className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+                          <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.15em] text-transparent">
+                            {section.title}
+                          </span>
+                          {section.title !== "Cài đặt" && section.title !== "Hệ thống" && (
+                            <button
+                              type="button"
+                              onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
+                              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400/35 bg-amber-400/10 text-[10px] font-black text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.12)] transition-all hover:scale-105 hover:border-amber-300/70 hover:bg-amber-400/20 hover:text-white active:scale-95 cursor-pointer"
+                              aria-label={`Giải thích ${section.title}`}
+                              title={`Giải thích ${section.title}`}
+                            >
+                              <HelpCircle className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
+                          {section.items?.map((item) => {
+                            const Icon = item.icon;
+                            const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
+                            const isActive = isActiveHref(itemHref);
+                            const content = (
+                              <>
+                                <div className={cn(
+                                  "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 group-active:scale-95",
+                                  isActive
+                                    ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
+                                    : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                                )}>
+                                  <Icon className="h-5 w-5 animate-none" />
+                                </div>
+                                <span className={cn(
+                                  "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
+                                  isActive && "text-amber-400 font-extrabold",
+                                  "text-slate-400 group-hover:text-white"
+                                )}>
+                                  {item.label}
+                                </span>
+                              </>
+                            );
 
-                        return (
-                          <Link
-                            key={item.label}
-                            href={itemHref}
-                            onClick={() => setShowMoreMenu(false)}
-                            className="flex flex-col items-center text-center group cursor-pointer"
-                          >
-                            {content}
-                          </Link>
-                        );
-                      })}
-                    </div>
+                            return (
+                              <Link
+                                key={item.label}
+                                href={itemHref}
+                                onClick={() => setShowMoreMenu(false)}
+                                className="flex flex-col items-center text-center group cursor-pointer"
+                              >
+                                {content}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
 
@@ -279,7 +294,7 @@ export default function BottomNavigation() {
               >
                 <div
                   className={cn(
-                    "relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
+                    "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
                     isActive
                       ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
                       : "text-slate-400 hover:bg-white/5 hover:text-white",
@@ -306,7 +321,7 @@ export default function BottomNavigation() {
           >
             <div
               className={cn(
-                "relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
+                "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
                 showMoreMenu
                   ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
                   : "text-slate-400 hover:bg-white/5 hover:text-white",

@@ -730,7 +730,7 @@ function AboutContent({
                 <span className="h-px w-8 bg-[#D4A64A]/50" />
               </div>
               <h2 className="font-display text-2xl md:text-3xl font-black text-white uppercase tracking-tight">
-                Tính Năng Chi Tiết <span className="text-gradient-gold">Theo Vai Trò</span>
+                Giải pháp dành cho <span className="text-gradient-gold">Talent & Brand</span>
               </h2>
               <p className="mt-3 text-xs text-[#B4BCCB] font-semibold max-w-xl mx-auto leading-relaxed">
                 Khám phá các giải pháp công nghệ vượt trội được thiết kế riêng biệt để đáp ứng nhu cầu phát triển của cả Talent nghệ thuật và Brand/Agency tuyển dụng.

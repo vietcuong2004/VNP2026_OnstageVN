@@ -3,12 +3,60 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Briefcase, HelpCircle, Info, LogIn, Search, Sparkles } from "lucide-react";
+import {
+  BookmarkCheck,
+  Briefcase,
+  Building2,
+  CircleHelp,
+  HelpCircle,
+  Info,
+  LogIn,
+  Search,
+  Settings,
+  Sparkles,
+  User,
+  Users2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken } from "@/lib/api-client";
-import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/lib/app-navigation";
 import { getGuestDesktopNavigation } from "@/lib/public-navigation";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
+
+export const unifiedBrandNavigation = [
+  { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
+  { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
+  { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
+  { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
+  { label: "Thông tin brand", icon: Building2, href: "/brand/informations" },
+];
+
+export const unifiedTalentNavigation = [
+  { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
+  { label: "Hồ sơ Talent", icon: User, href: "/talent/portfolio" },
+  { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
+  { label: "Hợp tác Brand", icon: Users2, href: "/talent/brands" },
+];
+
+export const unifiedSettingsNavigation = [
+  { label: "Cài đặt", icon: Settings, href: "/settings" },
+];
+
+export const unifiedLoggedInNavigationSections = [
+  { title: "Dành cho Brand", icon: Briefcase, helpIcon: CircleHelp, items: unifiedBrandNavigation, href: undefined },
+  { title: "Dành cho Talent", icon: Sparkles, helpIcon: CircleHelp, items: unifiedTalentNavigation, href: undefined },
+  { title: "Cài đặt", icon: Settings, helpIcon: CircleHelp, items: undefined, href: "/settings" },
+];
+
+export const unifiedLoggedInMobilePrimaryNavigation = [
+  unifiedBrandNavigation[0],
+  unifiedBrandNavigation[1],
+  unifiedTalentNavigation[0],
+  unifiedTalentNavigation[2],
+];
+
+export function resolveUnifiedSettingsHref() {
+  return "/settings";
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -112,53 +160,78 @@ export default function Sidebar() {
         ) : (
           unifiedLoggedInNavigationSections.map((section) => (
             <section key={section.title} className="space-y-3">
-              <div className="flex items-center justify-between gap-2 rounded-xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-amber-500/[0.02] to-transparent px-3.5 py-2 shadow-[0_2px_10px_rgba(245,158,11,0.03)] transition-all duration-300 hover:border-amber-400/30">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-5.5 w-5.5 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400 transition-transform duration-300 hover:rotate-12">
-                    <section.icon className="h-3 w-3" />
+              {section.href ? (
+                <Link
+                  href={section.href}
+                  className={cn(
+                    "flex items-center gap-3 px-1 py-1 transition-all duration-300 group cursor-pointer relative",
+                    isActiveHref(section.href) ? "text-amber-300" : "text-slate-400 hover:text-slate-100"
+                  )}
+                >
+                  {isActiveHref(section.href) && (
+                    <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
+                  )}
+                  <span className={cn(
+                    "transition-transform duration-300 group-hover:rotate-12",
+                    isActiveHref(section.href) ? "text-amber-400" : "text-slate-400 group-hover:text-amber-400"
+                  )}>
+                    <section.icon className="h-4.5 w-4.5" />
                   </span>
                   <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
                     {section.title}
                   </span>
-                </div>
-                {section.title !== "Hệ thống" && (
-                  <button
-                    type="button"
-                    onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
-                    className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-amber-400/35 bg-amber-400/10 text-[11px] font-black text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.12)] transition-all duration-300 hover:scale-105 hover:border-amber-300/70 hover:bg-amber-400/20 hover:text-white hover:shadow-[0_0_16px_rgba(245,158,11,0.25)] active:scale-95 cursor-pointer"
-                    aria-label={`Giải thích ${section.title}`}
-                    title={`Giải thích ${section.title}`}
-                  >
-                    <HelpCircle className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-              <div className="space-y-2 px-0.5">
-                {section.items.map((item) => {
-                  const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
-                  const isActive = isActiveHref(itemHref);
-                  const Icon = item.icon;
+                </Link>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between gap-2 px-1 py-1 transition-all duration-300">
+                    <div className="flex items-center gap-3">
+                      <span className="text-amber-400 transition-transform duration-300 hover:rotate-12">
+                        <section.icon className="h-4.5 w-4.5" />
+                      </span>
+                      <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
+                        {section.title}
+                      </span>
+                    </div>
+                    {section.title !== "Cài đặt" && section.title !== "Hệ thống" && (
+                      <button
+                        type="button"
+                        onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
+                        className="text-amber-400 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                        aria-label={`Giải thích ${section.title}`}
+                        title={`Giải thích ${section.title}`}
+                      >
+                        <HelpCircle className="h-4.5 w-4.5" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2 px-0.5">
+                    {section.items?.map((item) => {
+                      const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
+                      const isActive = isActiveHref(itemHref);
+                      const Icon = item.icon;
 
-                return (
-                  <Link
-                    key={item.label}
-                    href={itemHref}
-                    className={cn(
-                      "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
-                      isActive
-                        ? "border-amber-500/20 bg-gradient-to-r from-amber-400/10 to-yellow-600/5 text-amber-300 shadow-[0_4px_12px_rgba(245,158,11,0.05)]"
-                        : "border-transparent text-slate-400 hover:bg-white/2 hover:text-slate-100",
-                    )}
-                  >
-                    {isActive && (
-                      <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
-                    )}
-                    <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-amber-400" : "text-slate-400 group-hover:text-slate-100")} />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-                })}
-              </div>
+                      return (
+                        <Link
+                          key={item.label}
+                          href={itemHref}
+                          className={cn(
+                            "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
+                            isActive
+                              ? "border-amber-500/20 bg-gradient-to-r from-amber-400/10 to-yellow-600/5 text-amber-300 shadow-[0_4px_12px_rgba(245,158,11,0.055)]"
+                              : "border-transparent text-slate-400 hover:bg-white/2 hover:text-slate-100",
+                          )}
+                        >
+                          {isActive && (
+                            <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
+                          )}
+                          <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-amber-400" : "text-slate-400 group-hover:text-slate-100")} />
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </section>
           ))
         )}

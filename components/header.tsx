@@ -11,7 +11,7 @@ import {
   Settings,
   ShieldAlert,
 } from "lucide-react";
-import { resolveUnifiedSettingsHref } from "@/lib/app-navigation";
+import { resolveUnifiedSettingsHref } from "@/components/sidebar";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
 import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
@@ -280,7 +280,7 @@ export default function Header() {
       <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913] px-4 md:px-8 transform translate-z-0">
         <div className="flex w-auto md:w-72 shrink-0 items-center">
           <button
-            onClick={() => router.push("/landing")}
+            onClick={() => router.push("/about")}
             className="flex items-center gap-1.5 hover:opacity-95 transition-opacity focus:outline-none cursor-pointer"
           >
             <img

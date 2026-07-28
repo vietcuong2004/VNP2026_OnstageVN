@@ -27,6 +27,51 @@ const convertToDisplayDate = (dateStr: string) => {
   return dateOnly;
 };
 
+const calculateAgeFromDob = (dateStr?: string | null) => {
+  if (!dateStr) return null;
+
+  const dateOnly = dateStr.split(/[T ]/)[0];
+  let year: number | null = null;
+  let month: number | null = null;
+  let day: number | null = null;
+
+  if (dateOnly.includes("/")) {
+    const [d, m, y] = dateOnly.split("/");
+    day = Number(d);
+    month = Number(m);
+    year = Number(y);
+  } else if (dateOnly.includes("-")) {
+    const parts = dateOnly.split("-");
+    if (parts.length === 3 && parts[0].length === 4) {
+      year = Number(parts[0]);
+      month = Number(parts[1]);
+      day = Number(parts[2]);
+    }
+  }
+
+  if (!year || !month || !day) return null;
+
+  const birthDate = new Date(year, month - 1, day);
+  if (
+    Number.isNaN(birthDate.getTime()) ||
+    birthDate.getFullYear() !== year ||
+    birthDate.getMonth() !== month - 1 ||
+    birthDate.getDate() !== day
+  ) {
+    return null;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const hasHadBirthdayThisYear =
+    today.getMonth() > birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
+
+  if (!hasHadBirthdayThisYear) age -= 1;
+
+  return age >= 0 && age <= 120 ? age : null;
+};
+
 const formatHeight = (h: number | string) => {
   const val = Number(h);
   if (!val) return "—";
@@ -828,18 +873,8 @@ export default function PersonalInfoTab({
             <span className="font-medium text-slate-400">Tuổi</span>
             <span className="font-bold text-white font-mono text-left">
               {(() => {
-                if (!profile.dob) return "Chưa cập nhật";
-                let birthYear: number | null = null;
-                if (profile.dob.includes("/")) {
-                  const parts = profile.dob.split("/");
-                  if (parts.length === 3) birthYear = parseInt(parts[2], 10);
-                } else if (profile.dob.includes("-")) {
-                  const parts = profile.dob.split("-");
-                  if (parts.length === 3 && parts[0].length === 4) birthYear = parseInt(parts[0], 10);
-                }
-                if (!birthYear || isNaN(birthYear)) return "Chưa cập nhật";
-                const currentYear = new Date().getFullYear();
-                return `${currentYear - birthYear} tuổi`;
+                const age = calculateAgeFromDob(profile.dob);
+                return age === null ? "Ch\u01b0a c\u1eadp nh\u1eadt" : age + " tu\u1ed5i";
               })()}
             </span>
 

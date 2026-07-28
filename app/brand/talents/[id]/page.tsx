@@ -362,12 +362,14 @@ export default function BrandTalentProfilePage() {
       name: talent.name,
       gender: talent.gender,
       dob: talent.dob,
+      age: talent.age,
       location: talent.city || "",
       hometown: talent.district || "",
       phone: talent.phone || "",
       email: talent.email || "",
       education: talent.education || "",
       experience: talent.yearsOfExperience,
+      talentTypes: talent.talentTypes || [],
       specialSkills: talent.skills || [],
       skills: talent.skills || [],
       languages: talent.languages || [],
@@ -823,20 +825,7 @@ export default function BrandTalentProfilePage() {
             {/* Tuổi */}
             <span className="font-medium text-slate-400">Tuổi</span>
             <span className="font-bold text-white font-mono text-left">
-              {(() => {
-                if (!profile.dob) return "Chưa cập nhật";
-                let birthYear: number | null = null;
-                if (profile.dob.includes("/")) {
-                  const parts = profile.dob.split("/");
-                  if (parts.length === 3) birthYear = parseInt(parts[2], 10);
-                } else if (profile.dob.includes("-")) {
-                  const parts = profile.dob.split("-");
-                  if (parts.length === 3 && parts[0].length === 4) birthYear = parseInt(parts[0], 10);
-                }
-                if (!birthYear || isNaN(birthYear)) return "Chưa cập nhật";
-                const currentYear = new Date().getFullYear();
-                return `${currentYear - birthYear} tuổi`;
-              })()}
+              {profile.age ? `${profile.age} tuổi` : "Chưa cập nhật"}
             </span>
 
             {/* Mức giá */}
@@ -851,6 +840,27 @@ export default function BrandTalentProfilePage() {
               {(() => {
                 const parts = [profile.hometown, profile.location].filter(Boolean);
                 return parts.length > 0 ? parts.join(", ") : "Chưa cập nhật";
+              })()}
+            </span>
+
+            {/* Học vấn */}
+            <span className="font-medium text-slate-400">Học vấn</span>
+            <span className="font-bold text-white text-left break-words">{profile.education || "Chưa cập nhật"}</span>
+
+            {/* Kinh nghiệm */}
+            <div className="col-span-2 border-t border-dashed border-[#151b2d]/50 my-1"></div>
+
+            <span className="font-medium text-slate-400">Kinh nghiệm</span>
+            <span className="font-bold text-white text-left">
+              {profile.experience !== undefined && profile.experience !== "" && profile.experience !== null ? `${profile.experience} năm` : "Chưa cập nhật"}
+            </span>
+
+            {/* Lĩnh vực hoạt động */}
+            <span className="font-medium text-slate-400">Lĩnh vực hoạt động</span>
+            <span className="font-bold text-white text-left break-words leading-normal">
+              {(() => {
+                const talentTypes = profile.talentTypes;
+                return Array.isArray(talentTypes) && talentTypes.length > 0 ? talentTypes.join(", ") : "Chưa cập nhật";
               })()}
             </span>
 

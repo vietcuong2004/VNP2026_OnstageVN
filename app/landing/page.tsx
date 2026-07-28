@@ -1,14 +1,5 @@
-import LandingPage from "../LandingPage";
+import { redirect } from "next/navigation";
 
 export default function LandingRoutePage() {
-  return (
-    <LandingPage
-      showLandingHeader={true}
-      showHeroCta={true}
-      compactHeroTitle={false}
-      showPortals={true}
-      redirectAuthenticatedUsers={true}
-      showFeaturesExplanation={false}
-    />
-  );
+  redirect("/about");
 }
