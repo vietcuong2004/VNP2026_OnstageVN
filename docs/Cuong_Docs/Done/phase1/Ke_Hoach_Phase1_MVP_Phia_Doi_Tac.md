@@ -454,7 +454,7 @@ Phạm vi MVP:
 
 Phiên bản đơn giản nhất:
 
-- Mỗi brand có một wishlist mặc định tên “Danh sách đã lưu”.
+- Mỗi brand có một wishlist mặc định tên “Danh sách yêu thích”.
 
 Phiên bản tốt hơn trong MVP:
 
@@ -1126,7 +1126,7 @@ Vì vậy, Phase 1 UI cần chỉnh theo các điểm bắt buộc sau:
 - `/brand/discover` phải là màn tìm kiếm chính, có filter sidebar rõ ràng, kết quả dạng card/table, có nút `Xem hồ sơ`, `Lưu`, `Liên hệ`.
 - Nút `Xem hồ sơ` không mở drawer ngắn nữa, mà đi tới route riêng `/brand/talents/[id]`.
 - `/brand/talents/[id]` là trang xem hồ sơ talent ở phía brand. Trang này có thể dùng cấu trúc giàu thông tin giống `/talent/portfolio`, nhưng phải ẩn/sửa các hành động của talent owner. Đối tác chỉ được xem hồ sơ, lưu shortlist, so sánh và gửi yêu cầu liên hệ.
-- `/brand/shortlists` cần hỗ trợ danh sách đã lưu, ghi chú nội bộ, gắn vào campaign và so sánh nhanh nhiều talent.
+- `/brand/shortlists` cần hỗ trợ Danh sách yêu thích, ghi chú nội bộ, gắn vào campaign và so sánh nhanh nhiều talent.
 - `/brand/campaigns` cần thể hiện job posting và ATS ở mức MVP: draft/published/closed, danh sách ứng viên theo stage `new`, `shortlisted`, `interview`, `accepted`, `confirmed`.
 - Các tính năng nâng cao trong `UI_Brand_Phase1.md` như team collaboration, analytics sâu, smart matching tự động, export PDF/Excel, email/SMS automation được ghi nhận là hướng phát triển sau MVP nếu chưa đủ thời gian.
 

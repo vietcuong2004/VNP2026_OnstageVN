@@ -36,12 +36,14 @@ import {
   Trophy,
   HelpCircle,
   Eye,
+  MoreVertical,
+  BookmarkCheck,
 } from "lucide-react";
 import { findTalentById } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
-import { addBrandRosterTalent, loadBrandRosterTalents, loadBrandTalent } from "@/lib/brand-api";
+import { addBrandRosterTalent, loadBrandRosterTalents, loadBrandTalent, loadBrandWishlists, addTalentToWishlist, removeTalentFromWishlist, createBrandWishlist } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
@@ -303,6 +305,20 @@ export default function BrandTalentProfilePage() {
   const [isTierDialogOpen, setIsTierDialogOpen] = useState(false);
   const [isAddingToBrand, setIsAddingToBrand] = useState(false);
   const [isAddedToBrand, setIsAddedToBrand] = useState(false);
+  const [wishlists, setWishlists] = useState<any[]>([]);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [toasts, setToasts] = useState<{ id: string; message: string; tone: "success" | "error" }[]>([]);
+
+  function pushToast(message: string, tone: "success" | "error" = "success") {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setToasts((current) => [...current, { id, message, tone }]);
+
+    window.setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id));
+    }, 3200);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -342,6 +358,30 @@ export default function BrandTalentProfilePage() {
     }).catch(() => {
       if (!cancelled) setIsAddedToBrand(false);
     });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [params.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadBrandWishlists([]).then((lists) => {
+      if (cancelled) return;
+      setWishlists(lists);
+      const primaryWishlist = lists[0];
+      if (primaryWishlist) {
+        const item = primaryWishlist.items?.find((i: any) => String(i.profile_id || i.profile?.id || "") === String(params.id));
+        if (item) {
+          setIsInWishlist(true);
+          setWishlistItemId(String(item.id));
+        } else {
+          setIsInWishlist(false);
+          setWishlistItemId(null);
+        }
+      }
+    }).catch(() => {});
 
     return () => {
       cancelled = true;
@@ -483,26 +523,120 @@ export default function BrandTalentProfilePage() {
     try {
       await addBrandRosterTalent(String(talent.id), "Thêm từ hồ sơ talent.");
       setIsAddedToBrand(true);
-      window.alert(`Đã thêm ${talent.name} vào Brand thành công!`);
+      pushToast(`Đã thêm ${talent.name} vào Brand thành công!`, "success");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không thể thêm talent vào Brand. Vui lòng thử lại.";
       if (/already|exists|duplicate|đã|ton tai|tồn tại/i.test(message)) {
         setIsAddedToBrand(true);
-        window.alert(`${talent.name} đã có trong Brand.`);
+        pushToast(`${talent.name} đã có trong Brand.`, "success");
         return;
       }
-      window.alert(message);
+      pushToast(message, "error");
     } finally {
       setIsAddingToBrand(false);
+    }
+  }
+
+  async function handleAddToWishlist() {
+    if (!requireAuthAction({ actionLabel: "Thêm vào danh sách yêu thích" })) return;
+
+    if (isInWishlist && wishlists[0]?.id && wishlistItemId) {
+      try {
+        await removeTalentFromWishlist(wishlists[0].id, wishlistItemId);
+        setIsInWishlist(false);
+        setWishlistItemId(null);
+        pushToast("Đã xóa khỏi danh sách yêu thích.", "success");
+      } catch (err) {
+        pushToast("Lỗi khi xóa khỏi danh sách yêu thích.", "error");
+      }
+      return;
+    }
+
+    try {
+      let wishlistId = wishlists[0]?.id;
+      if (!wishlistId) {
+        const newWishlist = await createBrandWishlist("Danh sách yêu thích");
+        wishlistId = newWishlist.id;
+        setWishlists([newWishlist]);
+      }
+
+      const item = await addTalentToWishlist(wishlistId, String(params.id));
+      setIsInWishlist(true);
+      setWishlistItemId(String(item.id));
+      pushToast("Đã thêm vào danh sách yêu thích.", "success");
+    } catch (err) {
+      pushToast("Lỗi khi thêm vào danh sách yêu thích.", "error");
     }
   }
 
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-500">
 
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-30 -mt-5 md:-mt-7 lg:-mt-8 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 pt-3 bg-transparent pointer-events-none flex items-center justify-between h-0 overflow-visible">
+        <button
+          onClick={() => router.back()}
+          className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border border-amber-500/30 bg-[#0c1120]/85 backdrop-blur-md text-amber-400 hover:text-amber-300 hover:bg-[#0c1120] hover:border-amber-500/50 shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer"
+          aria-label="Quay lại"
+          title="Quay lại"
+        >
+          <ArrowLeft className="h-5 w-5 shrink-0" />
+        </button>
+
+        <div className="relative pointer-events-auto">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-amber-500/30 bg-[#0c1120]/85 backdrop-blur-md text-amber-400 hover:text-amber-300 hover:bg-[#0c1120] hover:border-amber-500/50 shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer"
+            aria-label="Thao tác"
+            title="Thao tác"
+          >
+            <MoreVertical className="h-5 w-5 shrink-0" />
+          </button>
+
+          {isDropdownOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+              <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-white/5 bg-[#0c1120]/95 backdrop-blur-md p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    handleAddToBrand();
+                  }}
+                  disabled={isAddingToBrand || isAddedToBrand}
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                >
+                  <Users className="h-4 w-4 text-amber-400" />
+                  <span>{isAddedToBrand ? "Đã thêm vào Brand" : "Thêm vào Brand"}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    handleAddToWishlist();
+                  }}
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition duration-200 text-left"
+                >
+                  {isInWishlist ? (
+                    <>
+                      <BookmarkCheck className="h-4 w-4 text-amber-400" />
+                      <span>Xóa khỏi danh sách yêu thích</span>
+                    </>
+                  ) : (
+                    <>
+                      <Star className="h-4 w-4 text-amber-400" />
+                      <span>Thêm vào danh sách yêu thích</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Cover Header */}
-      <section className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#08090f] shadow-xl">
-        <div className="relative h-56 w-full overflow-hidden bg-slate-950 md:h-72">
+      <section className="relative rounded-[32px] border border-white/5 bg-[#08090f] p-4 md:p-6 shadow-xl overflow-hidden">
+        <div className="h-56 sm:h-64 md:h-72 w-full rounded-2xl relative overflow-hidden border border-white/5 bg-[#05070e] group shadow-inner">
           <img
             src={talent.cover || undefined}
             alt={`${talent.name} cover`}
@@ -512,22 +646,11 @@ export default function BrandTalentProfilePage() {
             onClick={() => {
               if (talent.cover) setPreviewImage(talent.cover);
             }}
-            className="h-full w-full object-cover opacity-65 cursor-pointer hover:opacity-80 transition-all duration-300"
+            className="h-full w-full object-cover cursor-pointer transition-transform duration-500 group-hover:scale-[1.01]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-black/75 pointer-events-none" />
-          <button
-            onClick={() => router.back()}
-            className="absolute left-4 top-4 z-10 flex h-9 items-center rounded-full border border-yellow-400/25 bg-[#0c1120]/80 backdrop-blur-md px-4 text-xs font-black text-yellow-400 hover:text-yellow-300 hover:bg-[#0c1120] hover:border-yellow-400/40 shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer uppercase tracking-wider gap-1.5"
-          >
-            <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
-            <span>Quay lại</span>
-          </button>
-          <div className="absolute right-4 top-4 rounded-md border border-amber-400/25 bg-amber-400/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-amber-300">
-            Brand view
-          </div>
         </div>
 
-        <div className="relative flex flex-col gap-5 pl-6 sm:pl-10 pr-6 pb-2 pt-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="relative flex flex-col lg:flex-row justify-between items-start lg:items-start px-3 sm:px-6 gap-6 mt-6 z-20 w-full text-left">
           <div className="flex-1 w-full">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left w-full">
               {/* Avatar block */}
@@ -1198,6 +1321,28 @@ export default function BrandTalentProfilePage() {
         isOpen={isTierDialogOpen} 
         onClose={() => setIsTierDialogOpen(false)} 
       />
+
+      {/* Toast Notifications */}
+      <div className="fixed bottom-6 right-6 z-[70] flex flex-col gap-2 pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={cn(
+              "pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-xl px-4 py-3 text-xs font-bold shadow-xl flex items-center gap-2 border",
+              toast.tone === "error"
+                ? "bg-rose-950 border-rose-500/30 text-rose-300"
+                : "bg-emerald-950 border-emerald-500/30 text-emerald-300"
+            )}
+          >
+            {toast.tone === "error" ? (
+              <X className="h-3.5 w-3.5 text-rose-400 shrink-0" />
+            ) : (
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            )}
+            <span>{toast.message}</span>
+          </div>
+        ))}
+      </div>
 
     </div>
   );

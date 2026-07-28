@@ -26,7 +26,7 @@ export const unifiedBrandNavigation = [
   { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
   { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
   { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
-  { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
+  { label: "Danh sách yêu thích", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Thông tin brand", icon: Building2, href: "/brand/informations" },
 ];
 
@@ -131,107 +131,107 @@ export default function Sidebar() {
     <>
       <aside className="hidden md:flex w-72 shrink-0 flex-col border-r border-white/5 bg-[#050711] p-6 overflow-y-auto">
         <nav className="flex-1 space-y-7 overflow-y-auto pr-1">
-        {!isLoggedIn ? (
-          <div className="space-y-2">
-            {guestMenuItems.map((item) => {
-              const isActive = isActiveHref(item.href);
-              const Icon = item.icon;
+          {!isLoggedIn ? (
+            <div className="space-y-2">
+              {guestMenuItems.map((item) => {
+                const isActive = isActiveHref(item.href);
+                const Icon = item.icon;
 
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold tracking-wide transition-all duration-300 group relative",
-                    isActive
-                      ? "bg-gradient-to-r from-amber-400/10 to-yellow-600/5 text-amber-300 border border-amber-500/20 shadow-[0_4px_12px_rgba(245,158,11,0.05)]"
-                      : "text-slate-400 hover:bg-white/2 hover:text-slate-100 border border-transparent",
-                  )}
-                >
-                  {isActive && (
-                    <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
-                  )}
-                  <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-amber-400" : "text-slate-400 group-hover:text-slate-100")} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        ) : (
-          unifiedLoggedInNavigationSections.map((section) => (
-            <section key={section.title} className="space-y-3">
-              {section.href ? (
-                <Link
-                  href={section.href}
-                  className={cn(
-                    "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
-                    isActiveHref(section.href)
-                      ? "border-amber-500/20 bg-gradient-to-r from-amber-400/10 to-yellow-600/5 shadow-[0_4px_12px_rgba(245,158,11,0.055)] text-amber-300"
-                      : "border-transparent text-slate-400 hover:bg-white/2 hover:text-slate-100",
-                  )}
-                >
-                  {isActiveHref(section.href) && (
-                    <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
-                  )}
-                  <section.icon className="h-4.5 w-4.5 text-amber-400 transition-transform duration-300 group-hover:scale-110" />
-                  <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
-                    {section.title}
-                  </span>
-                </Link>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between gap-2 px-1 py-1 transition-all duration-300">
-                    <div className="flex items-center gap-3">
-                      <span className="text-amber-400 transition-transform duration-300 hover:rotate-12">
-                        <section.icon className="h-4.5 w-4.5" />
-                      </span>
-                      <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
-                        {section.title}
-                      </span>
-                    </div>
-                    {section.title !== "Cài đặt" && section.title !== "Hệ thống" && (
-                      <button
-                        type="button"
-                        onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
-                        className="text-amber-400 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
-                        aria-label={`Giải thích ${section.title}`}
-                        title={`Giải thích ${section.title}`}
-                      >
-                        <HelpCircle className="h-4.5 w-4.5" />
-                      </button>
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold tracking-wide transition-all duration-300 group relative",
+                      isActive
+                        ? "bg-gradient-to-r from-amber-400/10 to-yellow-600/5 text-amber-300 border border-amber-500/20 shadow-[0_4px_12px_rgba(245,158,11,0.05)]"
+                        : "text-slate-400 hover:bg-white/2 hover:text-slate-100 border border-transparent",
                     )}
-                  </div>
-                  <div className="space-y-2 px-0.5">
-                    {section.items?.map((item) => {
-                      const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
-                      const isActive = isActiveHref(itemHref);
-                      const Icon = item.icon;
-
-                      return (
-                        <Link
-                          key={item.label}
-                          href={itemHref}
-                          className={cn(
-                            "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
-                            isActive
-                              ? "border-amber-500/20 bg-gradient-to-r from-amber-400/10 to-yellow-600/5 text-amber-300 shadow-[0_4px_12px_rgba(245,158,11,0.055)]"
-                              : "border-transparent text-slate-400 hover:bg-white/2 hover:text-slate-100",
-                          )}
+                  >
+                    {isActive && (
+                      <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
+                    )}
+                    <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-amber-400" : "text-slate-400 group-hover:text-slate-100")} />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            unifiedLoggedInNavigationSections.map((section) => (
+              <section key={section.title} className="space-y-3">
+                {section.href ? (
+                  <Link
+                    href={section.href}
+                    className={cn(
+                      "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
+                      isActiveHref(section.href)
+                        ? "border-amber-500/20 bg-gradient-to-r from-amber-400/10 to-yellow-600/5 shadow-[0_4px_12px_rgba(245,158,11,0.055)] text-amber-300"
+                        : "border-transparent text-slate-400 hover:bg-white/2 hover:text-slate-100",
+                    )}
+                  >
+                    {isActiveHref(section.href) && (
+                      <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
+                    )}
+                    <section.icon className="h-4.5 w-4.5 text-amber-400 transition-transform duration-300 group-hover:scale-110" />
+                    <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
+                      {section.title}
+                    </span>
+                  </Link>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between gap-2 px-1 py-1 transition-all duration-300">
+                      <div className="flex items-center gap-3">
+                        <span className="text-amber-400 transition-transform duration-300 hover:rotate-12">
+                          <section.icon className="h-4.5 w-4.5" />
+                        </span>
+                        <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
+                          {section.title}
+                        </span>
+                      </div>
+                      {section.title !== "Cài đặt" && section.title !== "Hệ thống" && (
+                        <button
+                          type="button"
+                          onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
+                          className="text-amber-400 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                          aria-label={`Giải thích ${section.title}`}
+                          title={`Giải thích ${section.title}`}
                         >
-                          {isActive && (
-                            <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
-                          )}
-                          <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-amber-400" : "text-slate-400 group-hover:text-slate-100")} />
-                          <span>{item.label}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </section>
-          ))
-        )}
+                          <HelpCircle className="h-4.5 w-4.5" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-2 px-0.5">
+                      {section.items?.map((item) => {
+                        const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
+                        const isActive = isActiveHref(itemHref);
+                        const Icon = item.icon;
+
+                        return (
+                          <Link
+                            key={item.label}
+                            href={itemHref}
+                            className={cn(
+                              "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
+                              isActive
+                                ? "border-amber-500/20 bg-gradient-to-r from-amber-400/10 to-yellow-600/5 text-amber-300 shadow-[0_4px_12px_rgba(245,158,11,0.055)]"
+                                : "border-transparent text-slate-400 hover:bg-white/2 hover:text-slate-100",
+                            )}
+                          >
+                            {isActive && (
+                              <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
+                            )}
+                            <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-amber-400" : "text-slate-400 group-hover:text-slate-100")} />
+                            <span>{item.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </section>
+            ))
+          )}
         </nav>
       </aside>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -167,6 +167,7 @@ export default function CampaignDetailPage() {
   const [replacingMediaId, setReplacingMediaId] = useState<string | number | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
   const [deletingApplicant, setDeletingApplicant] = useState<{ talentId: string; talentName: string } | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const [isShowingOwnerTransferModal, setIsShowingOwnerTransferModal] = useState(false);
   const [campaignOwnerId, setCampaignOwnerId] = useState<string>(() => {
@@ -227,6 +228,23 @@ export default function CampaignDetailPage() {
   const [isGeneratingLink, setIsGeneratingLink] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
+  const refreshSelectedCampaign = useCallback(async () => {
+    const loadedCampaign = await loadBrandCampaign(params.id, []);
+    if (!loadedCampaign) return;
+
+    setCampaigns((current) => {
+      const mergedCampaign = {
+        ...loadedCampaign,
+        applicants: [...loadedCampaign.applicants],
+      };
+
+      const exists = current.some((item) => item.id === loadedCampaign.id);
+      return exists
+        ? current.map((item) => item.id === loadedCampaign.id ? mergedCampaign : item)
+        : [mergedCampaign, ...current];
+    });
+  }, [params.id]);
+
   const handleCopyReferralLink = () => {
     if (!referralLink) return;
     navigator.clipboard.writeText(referralLink);
@@ -262,25 +280,9 @@ export default function CampaignDetailPage() {
       if (!cancelled) setDisplayTalents(talents);
     });
     setCampaignLoading(true);
-    loadBrandCampaign(params.id, []).then((campaign) => {
+    refreshSelectedCampaign().catch((error) => {
       if (cancelled) return;
-      if (!campaign) return;
-      const loadedCampaign = campaign;
-
-      setCampaigns((current) => {
-        const mergedApplicants = [...loadedCampaign.applicants];
-        const mergedCampaign = {
-          ...loadedCampaign,
-          applicants: mergedApplicants
-        };
-
-        const exists = current.some((item) => item.id === loadedCampaign.id);
-        const next = exists
-          ? current.map((item) => item.id === loadedCampaign.id ? mergedCampaign : item)
-          : [mergedCampaign, ...current];
-
-        return next;
-      });
+      console.warn("Cannot load brand campaign detail", error);
     }).finally(() => {
       if (!cancelled) setCampaignLoading(false);
     });
@@ -288,7 +290,17 @@ export default function CampaignDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [params.id]);
+  }, [params.id, refreshSelectedCampaign]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      refreshSelectedCampaign().catch((error) => {
+        console.warn("Cannot refresh brand campaign detail", error);
+      });
+    }, 8000);
+
+    return () => window.clearInterval(interval);
+  }, [refreshSelectedCampaign]);
 
   const selectedCampaign = useMemo(() => {
     return campaigns.find((c) => c.id === params.id);
@@ -364,7 +376,7 @@ export default function CampaignDetailPage() {
     }
 
     if (!isBackendRecordId(selectedCampaign.id)) {
-      window.alert("Campaign này đang là dữ liệu local, cần tạo campaign trên backend trước khi upload ảnh.");
+      window.alert("Job này đang là dữ liệu local, cần tạo job trên backend trước khi upload ảnh.");
       return;
     }
 
@@ -506,7 +518,7 @@ export default function CampaignDetailPage() {
         setCampaigns(nextCampaigns);
         return;
       } catch (error) {
-        window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật trạng thái campaign.");
+        window.alert(error instanceof Error ? error.message : "Chưa thể cập nhật trạng thái job.");
         return;
       }
     }
@@ -702,6 +714,289 @@ export default function CampaignDetailPage() {
         onEditCampaign={() => setIsEditingJob(true)}
       />
 
+      {/* 5. NHÂN SỰ JOB */}
+      <section className="space-y-4 pt-4 border-t border-white/5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-baseline justify-between sm:justify-start gap-3 w-full sm:w-auto text-left">
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-350">NHÂN SỰ JOB</h2>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{selectedCampaign.applicants.length + 1} nhân sự</span>
+          </div>
+          <button
+            onClick={() => setIsAddingStaff(true)}
+            className="flex w-full sm:w-auto h-9 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+          >
+            Thêm nhân sự
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Người phụ trách Job card */}
+          <article
+            className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between space-y-5 animate-in fade-in duration-300"
+          >
+            {/* Top info */}
+            <div className="flex gap-4 items-start text-left">
+              <img
+                src={activeOwner.avatar}
+                alt={activeOwner.name}
+                onError={(event) => {
+                  event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
+                }}
+                className="h-16 w-16 rounded-xl object-cover border border-emerald-500/20 shrink-0 bg-slate-900"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col items-start gap-1">
+                  <h3 className="text-sm font-black text-white">{activeOwner.name}</h3>
+                  <span className="font-display font-extrabold text-[9px] text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded shrink-0">
+                    Người phụ trách Job
+                  </span>
+                </div>
+                <p className="text-[10px] text-emerald-400/80 mt-1">
+                  {activeOwner.role} · {activeOwner.location || "Hà Nội"}
+                </p>
+                {activeOwner.bio && (
+                  <p className="text-[10.5px] text-slate-400 leading-relaxed mt-2.5 italic font-medium">
+                    "{activeOwner.bio}"
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Contact Information Box */}
+            <div className="space-y-2.5 bg-[#050711] border border-emerald-500/10 rounded-xl p-3.5 text-left">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Thông tin liên hệ
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center gap-2 text-slate-300">
+                  <span className="text-[10px] text-slate-500">📞 Số điện thoại:</span>
+                  <span className="font-bold text-white font-mono">{activeOwner.phone}</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-300">
+                  <span className="text-[10px] text-slate-500">✉️ Email:</span>
+                  <span className="font-bold text-white font-mono truncate max-w-[200px]" title={activeOwner.email}>
+                    {activeOwner.email}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions row */}
+            <div className="pt-3.5 border-t border-white/5 w-full">
+              <button
+                onClick={() => setIsShowingOwnerTransferModal(true)}
+                className="flex w-full h-9 items-center justify-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 text-[10px] font-black uppercase tracking-wider text-amber-400 hover:bg-amber-500/20 active:scale-95 transition-all cursor-pointer"
+              >
+                <Users className="h-3.5 w-3.5" />
+                Chuyển quyền phụ trách
+              </button>
+            </div>
+          </article>
+
+          {selectedCampaign.applicants.map((item) => {
+            const talent = displayTalents.find((candidate) => candidate.id === item.talentId)
+              || (item as any)?.talent
+              || (item as any).talent;
+            if (!talent) return null;
+            const stage = item.stage;
+            const referredByName = (item as any).referredByName;
+            const referrer = item.referredByTalentId
+              ? displayTalents.find((candidate) => candidate.id === item.referredByTalentId) || (referredByName ? { name: referredByName } : null)
+              : (referredByName ? { name: referredByName } : null);
+            const referrerName = referrer?.name;
+            return (
+              <article
+                key={item.talentId}
+                className="rounded-2xl border border-white/5 bg-slate-900/30 p-5 hover:border-amber-400/30 transition-all duration-300 flex flex-col justify-between space-y-5"
+              >
+                {/* Top info and note */}
+                <div className="flex gap-4 items-start text-left">
+                  <img
+                    src={talent.avatar}
+                    alt={talent.name}
+                    onError={(event) => {
+                      event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                    }}
+                    className="h-16 w-16 rounded-xl object-cover border border-white/5 shrink-0 bg-slate-950"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-sm font-black text-white truncate">{talent.name}</h3>
+                      <span className="font-display font-extrabold text-[9px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded shrink-0">
+                        {talent.matchScore}% Match
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-[10px] text-slate-400">{talent.type} · {talent.city}</span>
+                      {referrerName && (
+                        <span className="inline-flex items-center gap-1 rounded bg-cyan-400/10 border border-cyan-500/20 px-2 py-0.5 text-[8.5px] font-bold text-cyan-400 uppercase tracking-wider">
+                          Giới thiệu: {referrerName}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10.5px] text-slate-500 leading-relaxed mt-2.5 italic font-medium">
+                      "{item.note || "Tôi rất quan tâm và mong muốn thực hiện chiến dịch này."}"
+                    </p>
+                  </div>
+                </div>
+
+                {/* Progress tracker */}
+                <div className="space-y-2.5 bg-[#050711] border border-white/5 rounded-xl p-3.5 text-left">
+                  <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
+                    <span className="text-slate-500">Tiến độ thực hiện:</span>
+                    <span className={cn(
+                      "font-extrabold",
+                      stage === "confirmed" ? "text-emerald-400" : "text-amber-400"
+                    )}>
+                      {stageLabels[stage]}
+                    </span>
+                  </div>
+                  {/* Visual Progress Bar */}
+                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all duration-500",
+                        stage === "confirmed" ? "bg-emerald-400" : "bg-amber-400"
+                      )}
+                      style={{ width: getProgressPercent(stage) }}
+                    />
+                  </div>
+
+                  {/* Micro stages list */}
+                  <div className="grid grid-cols-5 gap-0.5 pt-1.5 text-[7.5px] xs:text-[8.5px] font-bold text-center">
+                    <span className={cn("transition-colors", isStagePassed(stage, "new") ? "text-amber-400" : "text-slate-600")}>Chờ duyệt</span>
+                    <span className={cn("transition-colors", isStagePassed(stage, "accepted") ? "text-amber-400" : "text-slate-600")}>Đã duyệt</span>
+                    <span className={cn("transition-colors", isStagePassed(stage, "executing") ? "text-amber-400" : "text-slate-600")}>Đang tham gia</span>
+                    <span className={cn("transition-colors", isStagePassed(stage, "completed") ? "text-amber-400" : "text-slate-600")}>Nghiệm thu</span>
+                    <span className={cn("transition-colors", isStagePassed(stage, "confirmed") ? "text-emerald-400" : "text-slate-600")}>Thành công</span>
+                  </div>
+                </div>
+
+                {/* Actions row */}
+                <div className="pt-3.5 border-t border-white/5 w-full">
+                  <div className="grid grid-cols-3 gap-1.5 w-full">
+                    {stage === "new" ? (
+                      <button
+                        onClick={() => {
+                          setSelectedProfileTalent(talent);
+                          setCurrentApplicantItem(item);
+                        }}
+                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95"
+                      >
+                        Xem hồ sơ
+                      </button>
+                    ) : stage === "completed" ? (
+                      <button
+                        onClick={() => setReviewApplicant({ talentId: talent.id, talentName: talent.name })}
+                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                      >
+                        Nghiệm thu
+                      </button>
+                    ) : stage === "confirmed" ? (
+                      <span className="w-full flex items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-1 py-2 text-[9px] sm:text-[9.5px] text-emerald-400 font-extrabold uppercase tracking-normal text-center whitespace-nowrap">
+                        Đã giải ngân
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSelectedProfileTalent(talent);
+                          setCurrentApplicantItem(item);
+                        }}
+                        className="w-full flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 active:scale-95"
+                      >
+                        Xem hồ sơ
+                      </button>
+                    )}
+
+                    {stage === "new" ? (
+                      <button
+                        onClick={() => moveApplicant(selectedCampaign.id, talent.id, "accepted")}
+                        className="w-full flex items-center justify-center rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                      >
+                        Duyệt
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => router.push("/brand/messages")}
+                        className="w-full flex items-center justify-center rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
+                      >
+                        Nhắn tin
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => removeApplicant(selectedCampaign.id, talent.id)}
+                      className="w-full flex items-center justify-center rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-red-950/20 text-red-400 border border-red-900/30 hover:bg-red-900/20 hover:text-red-300 transition-all cursor-pointer"
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Affiliate Link Bar (full width, horizontal) */}
+      <div className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-gradient-to-b from-[#150f02]/90 to-[#050712]/95 shadow-[0_0_30px_rgba(245,158,11,0.08)] p-5">
+        <div className="absolute right-[-60px] top-[-60px] h-40 w-40 rounded-full bg-amber-300/6 blur-3xl pointer-events-none" />
+        <div className="relative flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+          {/* Left: Icon + Label + Description */}
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-amber-400/25 bg-amber-400/10 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.1)]">
+              <Link2 className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-400/25 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
+                AFFILIATE LINK
+              </span>
+              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
+                Ứng tuyển Job
+              </h3>
+              <p className="text-[11px] text-slate-400 leading-normal">
+                Chia sẻ link này cho Talent để họ xem chi tiết chiến dịch và đăng ký tham gia.
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Buttons */}
+          <div className="grid grid-cols-2 gap-2 w-full xl:flex xl:w-auto shrink-0">
+            <button
+              type="button"
+              onClick={handleCopyReferralLink}
+              disabled={!referralLink}
+              className={cn(
+                "flex h-10 items-center justify-center gap-2 rounded-2xl px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer w-full xl:w-auto disabled:opacity-50",
+                copiedLink
+                  ? "border border-emerald-400/30 bg-emerald-400/15 text-emerald-300"
+                  : "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105"
+              )}
+            >
+              {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copiedLink ? "Đã copy" : "Sao chép Link"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowQrModal(true)}
+              disabled={!referralLink}
+              className="flex h-10 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105 px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer active:scale-[0.98] w-full xl:w-auto disabled:opacity-50"
+            >
+              <QrCode className="h-4 w-4" /> Hiện QR
+            </button>
+          </div>
+        </div>
+
+        {/* URL display */}
+        <div className="relative mt-4 flex min-w-0 items-center gap-3 rounded-2xl bg-[#04060a]/90 border border-amber-400/10 px-4 py-3 font-mono text-xs font-bold text-amber-100/90">
+          <Link2 className="h-4 w-4 text-amber-400 shrink-0" />
+          <span className="truncate select-all flex-1">
+            {referralLink || (isGeneratingLink ? "Đang tạo link ứng tuyển..." : "Chưa có liên kết ứng tuyển")}
+          </span>
+        </div>
+      </div>
+
       {/* 2. HÀNG THÔNG TIN CHÍNH (MÔ TẢ CHUNG & THÔNG TIN TUYỂN CHỌN) */}
       <section className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
 
@@ -746,11 +1041,11 @@ export default function CampaignDetailPage() {
             {/* 4 mốc thời gian */}
             <div className="grid grid-cols-2 gap-3 py-3.5">
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Bắt đầu campaign</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Bắt đầu job</span>
                 <p className="mt-1 text-xs font-black text-amber-300">{displayCampaignDate(selectedCampaign.startDate) || "Không có"}</p>
               </div>
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kết thúc campaign</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kết thúc job</span>
                 <p className="mt-1 text-xs font-black text-amber-300">{displayCampaignDate(selectedCampaign.endDate) || "Không có"}</p>
               </div>
               <div>
@@ -915,68 +1210,10 @@ export default function CampaignDetailPage() {
         </div>
       </section>
 
-      {/* 3. AFFILIATE LINK + BỘ ẢNH CHIẾN DỊCH */}
+      {/* 3. Bộ ảnh job */}
       <section className="space-y-5">
-        {/* Affiliate Link Bar (full width, horizontal) */}
-        <div className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-gradient-to-b from-[#150f02]/90 to-[#050712]/95 shadow-[0_0_30px_rgba(245,158,11,0.08)] p-5">
-          <div className="absolute right-[-60px] top-[-60px] h-40 w-40 rounded-full bg-amber-300/6 blur-3xl pointer-events-none" />
-          <div className="relative flex flex-col xl:flex-row xl:items-center justify-between gap-5">
-            {/* Left: Icon + Label + Description */}
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-amber-400/25 bg-amber-400/10 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.1)]">
-                <Link2 className="h-5 w-5" />
-              </div>
-              <div className="space-y-1">
-                <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-400/25 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-                  AFFILIATE LINK
-                </span>
-                <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
-                  Ứng tuyển Campaign
-                </h3>
-                <p className="text-[11px] text-slate-400 leading-normal">
-                  Chia sẻ link này cho Talent để họ xem chi tiết chiến dịch và đăng ký tham gia.
-                </p>
-              </div>
-            </div>
 
-            {/* Right: Buttons */}
-            <div className="grid grid-cols-2 gap-2 w-full xl:flex xl:w-auto shrink-0">
-              <button
-                type="button"
-                onClick={handleCopyReferralLink}
-                disabled={!referralLink}
-                className={cn(
-                  "flex h-10 items-center justify-center gap-2 rounded-2xl px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer w-full xl:w-auto disabled:opacity-50",
-                  copiedLink
-                    ? "border border-emerald-400/30 bg-emerald-400/15 text-emerald-300"
-                    : "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105"
-                )}
-              >
-                {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copiedLink ? "Đã copy" : "Sao chép Link"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowQrModal(true)}
-                disabled={!referralLink}
-                className="flex h-10 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105 px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer active:scale-[0.98] w-full xl:w-auto disabled:opacity-50"
-              >
-                <QrCode className="h-4 w-4" /> Hiện QR
-              </button>
-            </div>
-          </div>
-
-          {/* URL display */}
-          <div className="relative mt-4 flex min-w-0 items-center gap-3 rounded-2xl bg-[#04060a]/90 border border-amber-400/10 px-4 py-3 font-mono text-xs font-bold text-amber-100/90">
-            <Link2 className="h-4 w-4 text-amber-400 shrink-0" />
-            <span className="truncate select-all flex-1">
-              {referralLink || (isGeneratingLink ? "Đang tạo link ứng tuyển..." : "Chưa có liên kết ứng tuyển")}
-            </span>
-          </div>
-        </div>
-
-        {/* Bộ ảnh chiến dịch (full width) */}
+        {/* Bộ ảnh job (full width) */}
         <div className="rounded-3xl border border-white/10 bg-slate-950/25 p-6 text-left">
           <div className="mb-6 flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between text-left">
             <div className="flex items-start gap-3">
@@ -984,9 +1221,9 @@ export default function CampaignDetailPage() {
                 <ImagePlus className="h-4.5 w-4.5 text-amber-300" />
               </div>
               <div>
-                <h2 className="text-sm font-black uppercase tracking-wider text-white">Bộ ảnh chiến dịch</h2>
+                <h2 className="text-sm font-black uppercase tracking-wider text-white">Bộ ảnh job</h2>
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                  Tải lên các hình ảnh bạn muốn dùng cho chiến dịch (Tối đa 10 ảnh)
+                  Tải lên các hình ảnh bạn muốn dùng cho job (Tối đa 10 ảnh)
                 </p>
               </div>
             </div>
@@ -1022,7 +1259,8 @@ export default function CampaignDetailPage() {
                   <img
                     src={media.url}
                     alt={media.caption || selectedCampaign.title}
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03] cursor-pointer"
+                    onClick={() => setPreviewImage(media.url || null)}
                   />
 
                   {/* Delete button (X) */}
@@ -1079,9 +1317,9 @@ export default function CampaignDetailPage() {
             </button>
             <QRCodeContainer
               campaignLink={referralLink}
-              title="Mã QR Tuyển Dụng Campaign"
+              title="Mã QR Tuyển Dụng Job"
               subtitle="Quét mã để ứng tuyển nhanh"
-              badgeText="OnStage Campaign Gateway"
+              badgeText="OnStage Job Gateway"
               shareButtonLabel="Chia sẻ"
               onCopyLink={handleCopyReferralLink}
               onDownloadQr={handleDownloadQRCode}
@@ -1091,220 +1329,6 @@ export default function CampaignDetailPage() {
         </div>
       )}
 
-      {/* 5. NHÂN SỰ CAMPAIGN */}
-      <section className="space-y-4 pt-4 border-t border-white/5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-baseline justify-between sm:justify-start gap-3 w-full sm:w-auto text-left">
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-350">NHÂN SỰ CAMPAIGN</h2>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{selectedCampaign.applicants.length + 1} nhân sự</span>
-          </div>
-          <button
-            onClick={() => setIsAddingStaff(true)}
-            className="flex w-full sm:w-auto h-9 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
-          >
-            Thêm nhân sự
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Người phụ trách Campaign card */}
-          <article
-            className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between space-y-5 animate-in fade-in duration-300"
-          >
-            {/* Top info */}
-            <div className="flex gap-4 items-start text-left">
-              <img
-                src={activeOwner.avatar}
-                alt={activeOwner.name}
-                onError={(event) => {
-                  event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
-                }}
-                className="h-16 w-16 rounded-xl object-cover border border-emerald-500/20 shrink-0 bg-slate-900"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col items-start gap-1">
-                  <h3 className="text-sm font-black text-white">{activeOwner.name}</h3>
-                  <span className="font-display font-extrabold text-[9px] text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded shrink-0">
-                    Người phụ trách Campaign
-                  </span>
-                </div>
-                <p className="text-[10px] text-emerald-400/80 mt-1">
-                  {activeOwner.role} · {activeOwner.location || "Hà Nội"}
-                </p>
-                {activeOwner.bio && (
-                  <p className="text-[10.5px] text-slate-400 leading-relaxed mt-2.5 italic font-medium">
-                    "{activeOwner.bio}"
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Contact Information Box */}
-            <div className="space-y-2.5 bg-[#050711] border border-emerald-500/10 rounded-xl p-3.5 text-left">
-              <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                Thông tin liên hệ
-              </div>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center gap-2 text-slate-300">
-                  <span className="text-[10px] text-slate-500">📞 Số điện thoại:</span>
-                  <span className="font-bold text-white font-mono">{activeOwner.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-300">
-                  <span className="text-[10px] text-slate-500">✉️ Email:</span>
-                  <span className="font-bold text-white font-mono truncate max-w-[200px]" title={activeOwner.email}>
-                    {activeOwner.email}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions row */}
-            <div className="pt-3.5 border-t border-white/5 w-full">
-              <button
-                onClick={() => setIsShowingOwnerTransferModal(true)}
-                className="flex w-full h-9 items-center justify-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 text-[10px] font-black uppercase tracking-wider text-amber-400 hover:bg-amber-500/20 active:scale-95 transition-all cursor-pointer"
-              >
-                <Users className="h-3.5 w-3.5" />
-                Chuyển quyền phụ trách
-              </button>
-            </div>
-          </article>
-
-          {selectedCampaign.applicants.map((item) => {
-            const talent = displayTalents.find((candidate) => candidate.id === item.talentId)
-              || (item as any)?.talent
-              || (item as any).talent;
-            if (!talent) return null;
-            const stage = item.stage;
-            const referredByName = (item as any).referredByName;
-            const referrer = item.referredByTalentId
-              ? displayTalents.find((candidate) => candidate.id === item.referredByTalentId) || (referredByName ? { name: referredByName } : null)
-              : (referredByName ? { name: referredByName } : null);
-            const referrerName = referrer?.name;
-            return (
-              <article
-                key={item.talentId}
-                className="rounded-2xl border border-white/5 bg-slate-900/30 p-5 hover:border-amber-400/30 transition-all duration-300 flex flex-col justify-between space-y-5"
-              >
-                {/* Top info and note */}
-                <div className="flex gap-4 items-start text-left">
-                  <img
-                    src={talent.avatar}
-                    alt={talent.name}
-                    onError={(event) => {
-                      event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
-                    }}
-                    className="h-16 w-16 rounded-xl object-cover border border-white/5 shrink-0 bg-slate-950"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-sm font-black text-white truncate">{talent.name}</h3>
-                      <span className="font-display font-extrabold text-[9px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded shrink-0">
-                        {talent.matchScore}% Match
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-[10px] text-slate-400">{talent.type} · {talent.city}</span>
-                      {referrerName && (
-                        <span className="inline-flex items-center gap-1 rounded bg-cyan-400/10 border border-cyan-500/20 px-2 py-0.5 text-[8.5px] font-bold text-cyan-400 uppercase tracking-wider">
-                          Giới thiệu: {referrerName}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 leading-relaxed mt-2.5 italic font-medium">
-                      "{item.note || "Tôi rất quan tâm và mong muốn thực hiện chiến dịch này."}"
-                    </p>
-                  </div>
-                </div>
-
-                {/* Progress tracker */}
-                <div className="space-y-2.5 bg-[#050711] border border-white/5 rounded-xl p-3.5 text-left">
-                  <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
-                    <span className="text-slate-500">Tiến độ thực hiện:</span>
-                    <span className={cn(
-                      "font-extrabold",
-                      stage === "confirmed" ? "text-emerald-400" : "text-amber-400"
-                    )}>
-                      {stageLabels[stage]}
-                    </span>
-                  </div>
-                  {/* Visual Progress Bar */}
-                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
-                    <div
-                      className={cn(
-                        "h-full rounded-full transition-all duration-500",
-                        stage === "confirmed" ? "bg-emerald-400" : "bg-amber-400"
-                      )}
-                      style={{ width: getProgressPercent(stage) }}
-                    />
-                  </div>
-
-                  {/* Micro stages list */}
-                  <div className="grid grid-cols-5 gap-0.5 pt-1.5 text-[7.5px] xs:text-[8.5px] font-bold text-center">
-                    <span className={cn("transition-colors", isStagePassed(stage, "new") ? "text-amber-400" : "text-slate-600")}>Chờ duyệt</span>
-                    <span className={cn("transition-colors", isStagePassed(stage, "accepted") ? "text-amber-400" : "text-slate-600")}>Đã duyệt</span>
-                    <span className={cn("transition-colors", isStagePassed(stage, "executing") ? "text-amber-400" : "text-slate-600")}>Đang tham gia</span>
-                    <span className={cn("transition-colors", isStagePassed(stage, "completed") ? "text-amber-400" : "text-slate-600")}>Nghiệm thu</span>
-                    <span className={cn("transition-colors", isStagePassed(stage, "confirmed") ? "text-emerald-400" : "text-slate-600")}>Thành công</span>
-                  </div>
-                </div>
-
-                {/* Actions row */}
-                <div className="pt-3.5 border-t border-white/5 w-full">
-                  <div className="grid grid-cols-3 gap-1.5 w-full">
-                    {stage === "new" ? (
-                      <button
-                        onClick={() => {
-                          setSelectedProfileTalent(talent);
-                          setCurrentApplicantItem(item);
-                        }}
-                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95"
-                      >
-                        Xem hồ sơ
-                      </button>
-                    ) : stage === "completed" ? (
-                      <button
-                        onClick={() => setReviewApplicant({ talentId: talent.id, talentName: talent.name })}
-                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
-                      >
-                        Nghiệm thu
-                      </button>
-                    ) : stage === "confirmed" ? (
-                      <span className="w-full flex items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-1 py-2 text-[9px] sm:text-[9.5px] text-emerald-400 font-extrabold uppercase tracking-normal text-center whitespace-nowrap">
-                        Đã giải ngân
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setSelectedProfileTalent(talent);
-                          setCurrentApplicantItem(item);
-                        }}
-                        className="w-full flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 active:scale-95"
-                      >
-                        Xem hồ sơ
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => router.push("/brand/messages")}
-                      className="w-full flex items-center justify-center rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
-                    >
-                      Nhắn tin
-                    </button>
-
-                    <button
-                      onClick={() => removeApplicant(selectedCampaign.id, talent.id)}
-                      className="w-full flex items-center justify-center rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-red-950/20 text-red-400 border border-red-900/30 hover:bg-red-900/20 hover:text-red-300 transition-all cursor-pointer"
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      </section>
 
       {/* Profile Detail Modal */}
       {selectedProfileTalent && currentApplicantItem && (
@@ -1407,7 +1431,7 @@ export default function CampaignDetailPage() {
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-[#151b2d] bg-slate-950/45">
               <div className="text-left">
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Chuyển quyền phụ trách Campaign</h3>
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">Chuyển quyền phụ trách Job</h3>
                 <p className="text-[10px] text-slate-500 mt-1">Chọn nhân sự để bàn giao quản lý chiến dịch này</p>
               </div>
               <button onClick={() => setIsShowingOwnerTransferModal(false)} className="text-slate-400 hover:text-white cursor-pointer transition-colors">
@@ -1502,6 +1526,32 @@ export default function CampaignDetailPage() {
           </div>
         </div>
       )}
+      {/* Full Image Preview Modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#020408]/90 backdrop-blur-md transition-all duration-300 animate-in fade-in cursor-zoom-out"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl animate-in zoom-in-95 duration-300">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewImage(null);
+              }}
+              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-xl bg-black/60 border border-white/10 text-white hover:bg-black/80 hover:text-[#f4c430] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer shadow-lg"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <img
+              src={previewImage}
+              alt="Preview"
+              className="max-h-[85vh] max-w-full object-contain select-none"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

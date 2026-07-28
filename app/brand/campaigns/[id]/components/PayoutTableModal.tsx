@@ -100,7 +100,7 @@ export default function PayoutTableModal({
         status: "Chờ duyệt"
       });
       campaignRows.push({
-        role: "Chủ campaign - 10%",
+        role: "Chủ job - 10%",
         recipient: "Nguyễn Ngọc Anh",
         relatedTalent: talent.name,
         base: poolPerTalent,
@@ -109,7 +109,7 @@ export default function PayoutTableModal({
         status: "Chờ duyệt"
       });
       referralRows.push({
-        role: "Người giới thiệu campaign - 5%",
+        role: "Người giới thiệu job - 5%",
         recipient: referrer.name,
         relatedTalent: talent.name,
         base: poolPerTalent,
@@ -129,7 +129,7 @@ export default function PayoutTableModal({
         status: "Chờ duyệt"
       });
       campaignRows.push({
-        role: "Chủ campaign - 10%",
+        role: "Chủ job - 10%",
         recipient: "Nguyễn Ngọc Anh",
         relatedTalent: talent.name,
         base: poolPerTalent,
@@ -173,7 +173,7 @@ export default function PayoutTableModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#151b2d] bg-slate-950/45">
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider">Đối soát & Chia tiền campaign</h3>
+            <h3 className="text-sm font-black text-white uppercase tracking-wider">Đối soát & Chia tiền job</h3>
             <p className="text-[10px] text-slate-500 mt-1">Thông tin giải ngân dòng tiền cho đại diện Brand, KOCs và Uplines theo phân bổ MLM</p>
           </div>
           <button
@@ -191,7 +191,7 @@ export default function PayoutTableModal({
             {/* Top Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 bg-[#0F1115]/60 border border-white/5 rounded-2xl p-5">
               <div>
-                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Campaign</span>
+                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Job</span>
                 <span className="text-xs font-black text-white mt-1 block truncate">{selectedCampaign.title}</span>
               </div>
               <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
@@ -241,7 +241,7 @@ export default function PayoutTableModal({
             <div className="space-y-2">
               <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                Chia tiền campaign
+                Chia tiền job
               </h4>
               <div className="overflow-x-auto rounded-xl border border-white/5 bg-[#0F1115]/30">
                 <table className="w-full text-left text-xs border-collapse font-medium">

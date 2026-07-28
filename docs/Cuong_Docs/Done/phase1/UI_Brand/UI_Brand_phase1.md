@@ -572,7 +572,7 @@ Buttons:
 
 ---
 
-# 7. DANH SÁCH ĐÃ LƯU
+# 7. Danh sách yêu thích
 
 Route
 

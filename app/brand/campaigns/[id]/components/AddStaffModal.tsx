@@ -59,7 +59,7 @@ export default function AddStaffModal({
                     talent={talent}
                     status={status}
                     viewLabel="Xem hồ sơ"
-                    messageLabel="Thêm vào Campaigns"
+                    messageLabel="Thêm vào Jobs"
                     showMessageIcon={false}
                     showLifestyleServices
                     showSocialStats

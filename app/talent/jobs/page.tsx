@@ -976,11 +976,11 @@ function JobsPageContent() {
       )}
 
       {/* Search & filters */}
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-col sm:flex-row gap-3 w-full">
         <div className="group relative flex-1">
-          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/25 via-[#f5c518]/35 to-yellow-600/25 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100" />
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#f5c518]" />
+          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/30 via-[#f5c518]/40 to-yellow-600/30 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
+          <div className="relative w-full">
+            <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#f5c518] transition-colors group-focus-within:text-amber-300" />
             <input
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
@@ -988,15 +988,16 @@ function JobsPageContent() {
                 if (event.key === "Enter") applyFilters();
               }}
               placeholder="Tìm kiếm job theo tên, brand, loại chiến dịch, địa điểm..."
-              className="h-12 w-full rounded-2xl border border-white/10 bg-[#08090f] py-3 pl-11 pr-11 text-sm font-medium text-white outline-none transition-all placeholder:text-slate-500 focus:border-[#f5c518]/60"
+              className="w-full rounded-2xl border border-amber-500/10 bg-[#0a0c12]/90 py-4 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#f5c518]/60 placeholder:text-slate-500 shadow-2xl"
             />
             {searchInput && (
               <button
                 type="button"
                 onClick={() => {
                   setSearchInput("");
+                  setSearchQuery("");
                 }}
-                className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-white/10 hover:text-white"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1004,6 +1005,12 @@ function JobsPageContent() {
           </div>
         </div>
 
+        <button
+          onClick={applyFilters}
+          className="flex h-[50px] items-center justify-center rounded-2xl bg-gradient-to-r from-amber-100 via-[#f5c518] to-yellow-600 px-8 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(245,197,24,0.3)] shrink-0"
+        >
+          Tìm kiếm
+        </button>
       </div>
 
       <div className="relative z-40 space-y-4 overflow-visible rounded-2xl border border-[#f5c518]/25 bg-[#0f121d]/90 p-5 shadow-[0_0_30px_rgba(245,197,24,0.06)] backdrop-blur-md">

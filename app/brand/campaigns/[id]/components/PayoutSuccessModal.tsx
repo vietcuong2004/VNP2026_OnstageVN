@@ -63,10 +63,10 @@ export default function PayoutSuccessModal({
           </div>
 
           <div className="space-y-3 bg-[#050711] border border-white/5 rounded-xl p-3.5">
-            <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Phân bổ hoa hồng chi tiết (Campaign Affiliate)</span>
+            <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Phân bổ hoa hồng chi tiết (Job Affiliate)</span>
             <div className="space-y-2">
               <div className="flex justify-between items-center text-[10px]">
-                <span className="text-slate-400">Phí quản lý chủ campaign (10%):</span>
+                <span className="text-slate-400">Phí quản lý chủ job (10%):</span>
                 <span className="font-bold text-amber-400 font-mono">+{moneyText(brandAmount)}</span>
               </div>
               {hasReferrer && referrer && (

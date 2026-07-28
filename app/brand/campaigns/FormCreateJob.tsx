@@ -279,6 +279,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   const [campaignImages, setCampaignImages] = useState<File[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [formStep, setFormStep] = useState(1);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const finalStepSubmitReadyAt = useRef(0);
   const imagePreviews = useMemo(
     () => campaignImages.map((file) => URL.createObjectURL(file)),
@@ -913,9 +914,9 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                       <ImagePlus className="h-5 w-5 text-amber-300" />
                     </div>
                     <div>
-                      <h2 className="text-xs font-black uppercase tracking-wider text-white">Bộ ảnh chiến dịch</h2>
+                      <h2 className="text-xs font-black uppercase tracking-wider text-white">Bộ ảnh job</h2>
                       <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Tải lên các hình ảnh bạn muốn dùng cho chiến dịch (Tối đa 10 ảnh)
+                        Tải lên các hình ảnh bạn muốn dùng cho job (Tối đa 10 ảnh)
                       </p>
                     </div>
                   </div>
@@ -955,7 +956,8 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                       <img
                         src={url}
                         alt="Campaign preview"
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.05]"
+                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.05] cursor-pointer"
+                        onClick={() => setPreviewImage(url)}
                       />
 
                       {/* Delete button (X) */}
@@ -1091,6 +1093,32 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
             )}
           </div>
         </div>
+        {/* Full Image Preview Modal */}
+        {previewImage && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#020408]/90 backdrop-blur-md transition-all duration-300 animate-in fade-in cursor-zoom-out"
+            onClick={() => setPreviewImage(null)}
+          >
+            <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl animate-in zoom-in-95 duration-300">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPreviewImage(null);
+                }}
+                className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-xl bg-black/60 border border-white/10 text-white hover:bg-black/80 hover:text-[#f4c430] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer shadow-lg"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <img
+                src={previewImage}
+                alt="Preview"
+                className="max-h-[85vh] max-w-full object-contain select-none"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </div>
+        )}
+
       </form>
     </div>
   );
@@ -1187,7 +1215,15 @@ function MultiChoiceField({
   const summary = selectedItems.length > 0
     ? id === "responsibilities"
       ? `Đã chọn ${selectedItems.length} đầu việc`
-      : selectedItems.slice(0, 2).join(", ") + (selectedItems.length > 2 ? ` +${selectedItems.length - 2}` : "")
+      : id === "roles"
+        ? `Đã chọn ${selectedItems.length} vị trí`
+        : id === "benefits"
+          ? `Đã chọn ${selectedItems.length} quyền lợi`
+          : id === "industries"
+            ? `Đã chọn ${selectedItems.length} lĩnh vực`
+            : id === "targetProfiles"
+              ? `Đã chọn ${selectedItems.length} nhóm`
+              : `Đã chọn ${selectedItems.length} mục`
     : "Chọn từ danh sách";
 
   const allSelected = options.every((option) => selectedSet.has(option));

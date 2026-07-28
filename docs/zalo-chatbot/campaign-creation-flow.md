@@ -35,7 +35,7 @@ Những thông tin này có thể được bổ sung sau để tối ưu hiệu 
 | **`targetProfiles`** | `campaigns.target_profiles` | Nhóm Talent phù hợp | Tự động phân loại dựa trên `jobType` |
 | **`heightMin` / `weightMax`** | `campaigns.height_min_cm` / `campaigns.weight_max_kg` | Yêu cầu chiều cao, cân nặng | Để trống (Không yêu cầu) |
 | **`experienceMin`** | `campaigns.experience_min_years` | Yêu cầu số năm kinh nghiệm | Để trống (Không yêu cầu) |
-| **`campaignImages`** | `campaign_media.path` (disk: `campaign`) | Bộ ảnh chiến dịch (Tối đa 10) | Sử dụng ảnh placeholder của hệ thống |
+| **`campaignImages`** | `campaign_media.path` (disk: `campaign`) | Bộ ảnh job (Tối đa 10) | Sử dụng ảnh placeholder của hệ thống |
 | **`contactNote`** | `campaigns.contact_note` | Ghi chú liên hệ | Để trống |
 | **`escrowed`** | *N/A* (Ký quỹ qua Stripe/MoMo) | Ký quỹ bảo chứng | **`false`** (Ký quỹ sau khi khớp nối thành công) |
 

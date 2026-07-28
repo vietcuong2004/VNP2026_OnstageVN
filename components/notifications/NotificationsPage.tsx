@@ -39,6 +39,14 @@ function notificationTarget(portal: Props["portal"], notification: UserNotificat
       : `/brand/campaigns/${notification.data.campaign_id}`;
   }
 
+  if (notification.data.type === "campaign_application" && notification.data.campaign_id) {
+    return `/brand/campaigns/${notification.data.campaign_id}`;
+  }
+
+  if (notification.data.type === "campaign_application_approved" && notification.data.campaign_id) {
+    return `/talent/jobs/${notification.data.campaign_id}`;
+  }
+
   if (notification.data.type === "brand_roster_invitation") {
     return portal === "talent" ? "/talent/brands" : "/brand/my-talents";
   }
@@ -53,6 +61,8 @@ function notificationTarget(portal: Props["portal"], notification: UserNotificat
 function notificationIcon(type?: string) {
   if (type === "new_message") return <MessageSquare className="h-5 w-5" />;
   if (type === "campaign_invitation") return <Briefcase className="h-5 w-5" />;
+  if (type === "campaign_application") return <Briefcase className="h-5 w-5" />;
+  if (type === "campaign_application_approved") return <Briefcase className="h-5 w-5" />;
   if (type === "brand_roster_invitation") return <Users className="h-5 w-5" />;
   return <Bell className="h-5 w-5" />;
 }

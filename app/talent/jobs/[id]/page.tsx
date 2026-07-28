@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -25,6 +25,7 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -78,7 +79,45 @@ export default function JobDetailPage() {
   const [isApplied, setIsApplied] = useState(false);
   const [stage, setStage] = useState<string>("new");
   const [showAllBenefits, setShowAllBenefits] = useState(false);
-  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [previewImageIndex, setPreviewImageIndex] = useState<number | null>(null);
+  const [toasts, setToasts] = useState<{ id: string; msg: string; tone?: "success" | "error" }[]>([]);
+
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
+  const handlePrevImage = () => {
+    if (previewImageIndex === null || allMediaImages.length <= 1) return;
+    setPreviewImageIndex((previewImageIndex - 1 + allMediaImages.length) % allMediaImages.length);
+  };
+
+  const handleNextImage = () => {
+    if (previewImageIndex === null || allMediaImages.length <= 1) return;
+    setPreviewImageIndex((previewImageIndex + 1) % allMediaImages.length);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (diff > 50) {
+      handleNextImage();
+    } else if (diff < -50) {
+      handlePrevImage();
+    }
+  };
+
+  const addToast = (msg: string, tone: "success" | "error" = "success") => {
+    const id = Date.now().toString();
+    setToasts(p => [...p, { id, msg, tone }]);
+    setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3200);
+  };
 
   useEffect(() => {
     if (!jobId) return;
@@ -159,6 +198,18 @@ export default function JobDetailPage() {
 
     if (list.length === 0) {
       list.push({ url: "/brand_cover_default.png", caption: job?.title || "Bìa chiến dịch" });
+    }
+
+    if (list.length > 1) {
+      const customs = list.filter(
+        (item) =>
+          item.url !== "/brand_cover_default.png" &&
+          item.url !== "brand_cover_default.png" &&
+          item.url !== "/brand_cover_default"
+      );
+      if (customs.length > 0) {
+        return customs;
+      }
     }
 
     return list;
@@ -297,8 +348,78 @@ export default function JobDetailPage() {
     );
   };
 
+  const renderMobileFooterAction = () => {
+    if (!isApplied) {
+      return (
+        <button
+          onClick={handleApply}
+          className="flex-1 py-3 rounded-xl font-display text-xs font-black bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-widest text-center justify-center items-center"
+        >
+          Ứng tuyển ngay
+        </button>
+      );
+    }
+
+    if (stage === "new") {
+      return (
+        <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
+          Chờ duyệt hồ sơ
+        </button>
+      );
+    }
+
+    if (stage === "accepted") {
+      return (
+        <button
+          onClick={() => handleUpdateStage("executing")}
+          className="flex-1 py-3 rounded-xl font-display text-xs font-black bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-widest text-center justify-center"
+        >
+          Bắt đầu tham gia
+        </button>
+      );
+    }
+
+    if (stage === "executing") {
+      return (
+        <button
+          onClick={() => handleUpdateStage("completed")}
+          className="flex-1 py-3 rounded-xl font-display text-xs font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-widest text-center justify-center"
+        >
+          Báo cáo hoàn thành
+        </button>
+      );
+    }
+
+    if (stage === "completed") {
+      return (
+        <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
+          Đang chờ nghiệm thu
+        </button>
+      );
+    }
+
+    return (
+      <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
+        Thành công (Đã rút ví)
+      </button>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#080a12] text-slate-100 flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
+
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-30 -mt-5 md:-mt-7 lg:-mt-8 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 pt-3 bg-transparent pointer-events-none flex items-center justify-between h-0 overflow-visible">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border border-amber-500/30 bg-[#0c1120]/85 backdrop-blur-md text-amber-400 hover:text-amber-300 hover:bg-[#0c1120] hover:border-amber-500/50 shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer"
+          aria-label="Quay lại"
+          title="Quay lại"
+        >
+          <ArrowLeft className="h-5 w-5 shrink-0" />
+        </button>
+      </div>
 
       {/* Top Hero Image Banner */}
       <div className="relative w-full h-64 sm:h-80 bg-[#050711] shrink-0 overflow-hidden border-b border-[#151b2d]">
@@ -307,7 +428,7 @@ export default function JobDetailPage() {
             {allMediaImages.map((img, idx) => (
               <div
                 key={`${img.url}-${idx}`}
-                onClick={() => setPreviewImageUrl(img.url)}
+                onClick={() => setPreviewImageIndex(idx)}
                 className="w-full h-full shrink-0 snap-center relative cursor-pointer group"
               >
                 <img
@@ -328,15 +449,6 @@ export default function JobDetailPage() {
             <span className="text-xs font-semibold">Chưa có hình ảnh chiến dịch</span>
           </div>
         )}
-
-        {/* Floating Back Button */}
-        <button
-          type="button"
-          onClick={handleBack}
-          className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20 hover:bg-black/80 transition-all cursor-pointer shadow-lg"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
 
         {/* Floating Top Right Status Badge */}
         <div className="absolute top-4 right-4 z-20">
@@ -409,6 +521,10 @@ export default function JobDetailPage() {
                 {job.location || "Không có"}
               </div>
             </div>
+          </div>
+          {/* Desktop Only Action Button */}
+          <div className="hidden md:flex justify-center pt-3">
+            {renderFooterAction()}
           </div>
         </div>
 
@@ -608,35 +724,101 @@ export default function JobDetailPage() {
           </div>
         </div>
 
-        {/* Bottom Action Bar */}
-        <div className="flex items-center justify-end gap-3 sm:gap-4 pt-6 border-t border-[#151b2d]">
-          <button
-            onClick={handleBack}
-            className="px-6 py-3 rounded-xl border border-slate-700/80 bg-[#121827] text-slate-200 text-xs sm:text-sm font-bold uppercase tracking-wider hover:bg-[#1a2238] hover:border-slate-500 hover:text-white shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Quay lại
-          </button>
-          {renderFooterAction()}
-        </div>
+
 
       </div>
 
-      {/* Image Preview Modal */}
-      {previewImageUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-3 animate-in fade-in duration-200">
+      {/* Image Preview Modal with Swipe / Carousel support */}
+      {previewImageIndex !== null && allMediaImages[previewImageIndex] && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-3 animate-in fade-in duration-200"
+          onClick={() => setPreviewImageIndex(null)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Close Button */}
           <button
             type="button"
-            onClick={() => setPreviewImageUrl(null)}
-            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all cursor-pointer"
+            onClick={() => setPreviewImageIndex(null)}
+            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all cursor-pointer animate-in fade-in duration-200"
           >
             <X className="h-5 w-5" />
           </button>
-          <img src={previewImageUrl} alt="Preview" className="max-h-full max-w-full object-contain rounded-lg" />
+
+          {/* Image Container */}
+          <div className="relative max-h-[70vh] max-w-full flex items-center justify-center">
+            <img
+              src={allMediaImages[previewImageIndex].url}
+              alt={allMediaImages[previewImageIndex].caption || "Preview"}
+              className="max-h-[70vh] max-w-full object-contain rounded-lg select-none transition-all duration-300 animate-in zoom-in-95"
+              onClick={(e) => e.stopPropagation()}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/brand_cover_default.png";
+              }}
+            />
+          </div>
+
+          {/* Under-Image Navigation Buttons (For both mobile and desktop) */}
+          {allMediaImages.length > 1 && (
+            <div
+              className="flex items-center gap-6 mt-6 shrink-0 bg-black/40 border border-white/10 rounded-full py-1.5 px-4 backdrop-blur-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={handlePrevImage}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/15 text-white border border-white/10 active:scale-90 transition-all cursor-pointer"
+                title="Ảnh trước"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+
+              <span className="text-xs font-mono font-bold text-slate-350 min-w-[50px] text-center select-none">
+                {previewImageIndex + 1} / {allMediaImages.length}
+              </span>
+
+              <button
+                type="button"
+                onClick={handleNextImage}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/15 text-white border border-white/10 active:scale-90 transition-all cursor-pointer"
+                title="Ảnh sau"
+              >
+                <ArrowLeft className="h-4 w-4 rotate-180" />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Guest Action Prompt Modal */}
+      {/* Mobile Fixed Bottom Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#0c101d] border-t border-white/5 px-6 py-4 flex items-center shadow-[0_-10px_30px_rgba(0,0,0,0.55)]">
+        {renderMobileFooterAction()}
+      </div>
+
+      {/* Toast Notifications */}
+      <div className="fixed bottom-24 right-6 z-[70] flex flex-col gap-2 pointer-events-none">
+        {toasts.map(t => (
+          <div
+            key={t.id}
+            className={cn(
+              "pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-xl px-4 py-3 text-xs font-bold shadow-xl flex items-center gap-2 border",
+              t.tone === "error"
+                ? "bg-rose-950 border-rose-500/30 text-rose-300"
+                : "bg-emerald-950 border-emerald-500/30 text-emerald-300"
+            )}
+          >
+            {t.tone === "error" ? (
+              <X className="h-3.5 w-3.5 text-rose-400 shrink-0" />
+            ) : (
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            )}
+            <span>{t.msg}</span>
+          </div>
+        ))}
+      </div>
+
       <GuestActionPrompt />
     </div>
   );

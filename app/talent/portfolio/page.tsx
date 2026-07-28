@@ -304,7 +304,7 @@ export default function PortfolioPage() {
             <img
               src={normalizeBackendAssetUrl(profile.cover)}
               alt="Cover banner"
-              className="h-full w-full object-cover filter brightness-[0.7] transition-transform duration-500 group-hover:scale-[1.01] cursor-pointer"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.01] cursor-pointer"
               onClick={() => setPreviewImage(normalizeBackendAssetUrl(profile.cover))}
             />
           ) : (
@@ -313,7 +313,6 @@ export default function PortfolioPage() {
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Chưa có ảnh bìa</span>
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#05070e] via-black/20 to-black/40 pointer-events-none" />
 
 
 

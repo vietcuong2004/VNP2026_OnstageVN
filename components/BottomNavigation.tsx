@@ -164,7 +164,7 @@ export default function BottomNavigation() {
                         <Icon className="h-5 w-5 animate-none" />
                       </div>
                       <span className={cn(
-                        "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
+                        "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[76px] text-center line-clamp-2 break-words",
                         isActive && "text-amber-400 font-extrabold",
                         isLogin ? "text-emerald-400 group-hover:text-emerald-300 font-black" : "text-slate-400 group-hover:text-white"
                       )}>
@@ -212,7 +212,7 @@ export default function BottomNavigation() {
                               <section.icon className="h-5 w-5 animate-none" />
                             </div>
                             <span className={cn(
-                              "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
+                              "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[76px] text-center line-clamp-2 break-words",
                               isActiveHref(section.href) && "text-amber-400 font-extrabold",
                               "text-slate-400 group-hover:text-white"
                             )}>
@@ -256,7 +256,7 @@ export default function BottomNavigation() {
                                   <Icon className="h-5 w-5 animate-none" />
                                 </div>
                                 <span className={cn(
-                                  "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[70px] truncate",
+                                  "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[76px] text-center line-clamp-2 break-words",
                                   isActive && "text-amber-400 font-extrabold",
                                   "text-slate-400 group-hover:text-white"
                                 )}>

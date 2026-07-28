@@ -15,6 +15,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isStandalonePublic = isStandalonePublicPath(pathname || "/");
   const isMessages = pathname?.endsWith("/messages") ?? false;
   const isAbout = pathname === "/about";
+  const isBrandTalentDetail = pathname ? /^\/brand\/talents\/[^/]+$/.test(pathname) : false;
+  const isTalentJobDetail = pathname ? /^\/talent\/jobs\/[^/]+$/.test(pathname) : false;
+  const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
 
   return (
     <ThemeProvider>
@@ -26,7 +29,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="absolute top-[-10%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none" />
           <div className="absolute bottom-[-10%] left-[-10%] -z-10 h-[700px] w-[700px] rounded-full bg-purple-600/5 blur-[160px] pointer-events-none" />
 
-          {!isStandalonePublic && <Header />}
+          {!isStandalonePublic && (
+            <div className={isSpecialDetail ? "hidden md:block" : "block"}>
+              <Header />
+            </div>
+          )}
 
           <div className="flex flex-1 min-h-0 relative w-full">
             {!isStandalonePublic && <Sidebar />}
@@ -43,7 +50,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {!isStandalonePublic && <BottomNavigation />}
+          {!isStandalonePublic && (
+            <div className={isTalentJobDetail ? "hidden md:block" : "block"}>
+              <BottomNavigation />
+            </div>
+          )}
         </div>
       </AuthGuard>
     </ThemeProvider>
