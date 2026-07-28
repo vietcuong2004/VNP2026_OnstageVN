@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Briefcase, HelpCircle, Info, LogIn, Search, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken } from "@/lib/api-client";
-import { unifiedLoggedInNavigationSections } from "@/lib/app-navigation";
+import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/lib/app-navigation";
 import { getGuestDesktopNavigation } from "@/lib/public-navigation";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
@@ -17,7 +17,7 @@ export default function Sidebar() {
   const [explanationTab, setExplanationTab] = useState<"talent" | "brand" | null>(null);
 
   const isGateway = pathname === "/";
-  const isAppPath = pathname.startsWith("/talent") || pathname.startsWith("/brand") || pathname === "/about";
+  const isAppPath = pathname.startsWith("/talent") || pathname.startsWith("/brand") || pathname === "/about" || pathname === "/settings";
   const guestIconMap = {
     talent: Search,
     jobs: Briefcase,
@@ -51,12 +51,16 @@ export default function Sidebar() {
   }, []);
 
   useEffect(() => {
-    if (!pathname.startsWith("/brand/talents/") && !pathname.startsWith("/talent/jobs/")) {
-      setSourcePath("");
-      return;
-    }
+    const timeout = window.setTimeout(() => {
+      if (!pathname.startsWith("/brand/talents/") && !pathname.startsWith("/talent/jobs/")) {
+        setSourcePath("");
+        return;
+      }
 
-    setSourcePath(new URLSearchParams(window.location.search).get("from") || "");
+      setSourcePath(new URLSearchParams(window.location.search).get("from") || "");
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, [pathname]);
 
   if (isGateway || !isAppPath) {
@@ -117,25 +121,28 @@ export default function Sidebar() {
                     {section.title}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-amber-400/35 bg-amber-400/10 text-[11px] font-black text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.12)] transition-all duration-300 hover:scale-105 hover:border-amber-300/70 hover:bg-amber-400/20 hover:text-white hover:shadow-[0_0_16px_rgba(245,158,11,0.25)] active:scale-95 cursor-pointer"
-                  aria-label={`Giải thích ${section.title}`}
-                  title={`Giải thích ${section.title}`}
-                >
-                  <HelpCircle className="h-3.5 w-3.5" />
-                </button>
+                {section.title !== "Hệ thống" && (
+                  <button
+                    type="button"
+                    onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
+                    className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-amber-400/35 bg-amber-400/10 text-[11px] font-black text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.12)] transition-all duration-300 hover:scale-105 hover:border-amber-300/70 hover:bg-amber-400/20 hover:text-white hover:shadow-[0_0_16px_rgba(245,158,11,0.25)] active:scale-95 cursor-pointer"
+                    aria-label={`Giải thích ${section.title}`}
+                    title={`Giải thích ${section.title}`}
+                  >
+                    <HelpCircle className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
               <div className="space-y-2 px-0.5">
-              {section.items.map((item) => {
-                const isActive = isActiveHref(item.href);
-                const Icon = item.icon;
+                {section.items.map((item) => {
+                  const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
+                  const isActive = isActiveHref(itemHref);
+                  const Icon = item.icon;
 
                 return (
                   <Link
                     key={item.label}
-                    href={item.href}
+                    href={itemHref}
                     className={cn(
                       "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
                       isActive
@@ -150,7 +157,7 @@ export default function Sidebar() {
                     <span>{item.label}</span>
                   </Link>
                 );
-              })}
+                })}
               </div>
             </section>
           ))

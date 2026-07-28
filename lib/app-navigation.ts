@@ -6,6 +6,7 @@ import {
   Building2,
   CircleHelp,
   Search,
+  Settings,
   Sparkles,
   User,
   Users2,
@@ -26,9 +27,14 @@ export const unifiedTalentNavigation = [
   { label: "Hợp tác Brand", icon: Users2, href: "/talent/brands" },
 ];
 
+export const unifiedSettingsNavigation = [
+  { label: "Cài đặt", icon: Settings, href: "/settings" },
+];
+
 export const unifiedLoggedInNavigationSections = [
   { title: "Dành cho Brand", icon: Briefcase, helpIcon: CircleHelp, items: unifiedBrandNavigation },
   { title: "Dành cho Talent", icon: Sparkles, helpIcon: CircleHelp, items: unifiedTalentNavigation },
+  { title: "Hệ thống", icon: Settings, helpIcon: CircleHelp, items: unifiedSettingsNavigation },
 ];
 
 export const unifiedLoggedInMobilePrimaryNavigation = [
@@ -37,3 +43,7 @@ export const unifiedLoggedInMobilePrimaryNavigation = [
   unifiedTalentNavigation[0],
   unifiedTalentNavigation[2],
 ];
+
+export function resolveUnifiedSettingsHref() {
+  return "/settings";
+}

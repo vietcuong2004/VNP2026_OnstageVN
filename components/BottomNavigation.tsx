@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Briefcase, HelpCircle, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
-import { unifiedLoggedInNavigationSections } from "@/lib/app-navigation";
+import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/lib/app-navigation";
 import { getGuestMoreNavigation, getGuestPrimaryNavigation } from "@/lib/public-navigation";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
@@ -76,7 +76,7 @@ export default function BottomNavigation() {
     return () => window.removeEventListener("scroll", handleScroll, { capture: true });
   }, [showMoreMenu]);
 
-  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/about") {
+  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/about" && pathname !== "/settings") {
     return null;
   }
 
@@ -194,20 +194,23 @@ export default function BottomNavigation() {
                       <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.15em] text-transparent">
                         {section.title}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
-                        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400/35 bg-amber-400/10 text-[10px] font-black text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.12)] transition-all hover:scale-105 hover:border-amber-300/70 hover:bg-amber-400/20 hover:text-white active:scale-95 cursor-pointer"
-                        aria-label={`Giải thích ${section.title}`}
-                        title={`Giải thích ${section.title}`}
-                      >
-                        <HelpCircle className="h-3 w-3" />
-                      </button>
+                      {section.title !== "Hệ thống" && (
+                        <button
+                          type="button"
+                          onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
+                          className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400/35 bg-amber-400/10 text-[10px] font-black text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.12)] transition-all hover:scale-105 hover:border-amber-300/70 hover:bg-amber-400/20 hover:text-white active:scale-95 cursor-pointer"
+                          aria-label={`Giải thích ${section.title}`}
+                          title={`Giải thích ${section.title}`}
+                        >
+                          <HelpCircle className="h-3 w-3" />
+                        </button>
+                      )}
                     </div>
                     <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
                       {section.items.map((item) => {
                         const Icon = item.icon;
-                        const isActive = isActiveHref(item.href);
+                        const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
+                        const isActive = isActiveHref(itemHref);
                         const content = (
                           <>
                             <div className={cn(
@@ -231,7 +234,7 @@ export default function BottomNavigation() {
                         return (
                           <Link
                             key={item.label}
-                            href={item.href}
+                            href={itemHref}
                             onClick={() => setShowMoreMenu(false)}
                             className="flex flex-col items-center text-center group cursor-pointer"
                           >

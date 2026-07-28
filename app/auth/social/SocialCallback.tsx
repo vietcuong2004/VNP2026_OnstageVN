@@ -50,7 +50,7 @@ function getRedirectPath() {
 }
 
 function getMissingEmailPath() {
-  return "/talent/settings?missingEmail=1";
+  return "/settings?missingEmail=1";
 }
 
 async function hydrateTalentAvatar(apiUrl: string, token: string, user: MeResponse["user"]) {

@@ -4,17 +4,14 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
-  Briefcase,
-  Building2,
   ChevronDown,
   LogIn,
   LogOut,
   Search,
   Settings,
   ShieldAlert,
-  Sparkles,
-  UserCircle,
 } from "lucide-react";
+import { resolveUnifiedSettingsHref } from "@/lib/app-navigation";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
 import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
@@ -257,16 +254,9 @@ export default function Header() {
 
   const dropdownItems = user
     ? [
-        { label: "Tìm kiếm Talent", href: "/brand/search", icon: Search },
-        { label: "Đăng việc làm", href: "/brand/campaigns", icon: Briefcase },
-        { label: "Thông tin Brand", href: "/brand/settings", icon: Building2 },
-        { label: "Việc làm", href: "/talent/jobs", icon: Briefcase },
-        { label: "Khảo sát", href: "/talent/survey", icon: Sparkles },
-        { label: "Hồ sơ cá nhân", href: "/talent/portfolio", icon: UserCircle },
-        { label: "Cài đặt", href: "/talent/settings", icon: Settings },
+        { label: "Cài đặt", href: resolveUnifiedSettingsHref(), icon: Settings },
       ]
     : [];
-
   return (
     <>
       {user?.impersonation?.active && (
