@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { ArrowLeft, Bell, Briefcase, CheckCheck, LoaderCircle, MessageSquare, Trash2, Users } from "lucide-react";
@@ -36,11 +36,11 @@ function notificationTarget(portal: Props["portal"], notification: UserNotificat
   if (notification.data.type === "campaign_invitation" && notification.data.campaign_id) {
     return portal === "talent"
       ? `/talent/jobs?campaignId=${notification.data.campaign_id}`
-      : `/brand/campaigns/${notification.data.campaign_id}`;
+      : `/brand/manage-jobs/${notification.data.campaign_id}`;
   }
 
   if (notification.data.type === "campaign_application" && notification.data.campaign_id) {
-    return `/brand/campaigns/${notification.data.campaign_id}`;
+    return `/brand/manage-jobs/${notification.data.campaign_id}`;
   }
 
   if (notification.data.type === "campaign_application_approved" && notification.data.campaign_id) {
@@ -241,3 +241,4 @@ export default function NotificationsPage({ portal }: Props) {
     </div>
   );
 }
+

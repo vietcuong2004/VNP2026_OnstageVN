@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  Award,
   BookmarkCheck,
   Briefcase,
   Building2,
@@ -15,6 +16,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  Trophy,
   User,
   Users2,
 } from "lucide-react";
@@ -25,7 +27,8 @@ import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplana
 
 export const unifiedBrandNavigation = [
   { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
-  { label: "Đăng việc làm", icon: Briefcase, href: "/brand/campaigns" },
+  { label: "Quản lý việc làm", icon: Briefcase, href: "/brand/manage-jobs" },
+  { label: "Quản lý cuộc thi", icon: Trophy, href: "/brand/manage-competitions" },
   { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
   { label: "Danh sách yêu thích", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Thông tin brand", icon: Building2, href: "/brand/informations" },
@@ -272,3 +275,4 @@ export default function Sidebar() {
     </>
   );
 }
+

@@ -675,7 +675,7 @@ export default function CampaignDetailPage() {
     } catch (e) {
       console.error(e);
     } finally {
-      router.push("/brand/campaigns");
+      router.push("/brand/manage-jobs");
     }
   }
 
@@ -693,7 +693,7 @@ export default function CampaignDetailPage() {
         <h2 className="text-lg font-black text-white">Không tìm thấy job</h2>
         <p className="text-xs text-slate-500 mt-2">Job này có thể đã bị xóa hoặc không tồn tại.</p>
         <button
-          onClick={() => router.push("/brand/campaigns")}
+          onClick={() => router.push("/brand/manage-jobs")}
           className="mt-6 inline-flex h-10 items-center justify-center rounded-xl bg-white/5 border border-white/10 px-4 text-xs font-black text-white hover:bg-white/10 cursor-pointer"
         >
           Quay lại danh sách
@@ -707,7 +707,7 @@ export default function CampaignDetailPage() {
       {/* 1. HERO MỞ RỘNG (HERO + KPI) */}
       <Hero
         selectedCampaign={selectedCampaign}
-        onBack={() => router.push("/brand/campaigns")}
+        onBack={() => router.push("/brand/manage-jobs")}
         onOpenPayoutModal={openPayoutModal}
         onUpdateStatus={(status) => updateCampaignStatus(selectedCampaign.id, status)}
         onDeleteCampaign={handleDeleteCampaign}

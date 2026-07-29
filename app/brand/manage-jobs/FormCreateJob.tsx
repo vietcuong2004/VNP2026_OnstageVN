@@ -529,7 +529,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
 
     onCampaignCreated(newCampaign);
     handleClose();
-    router.push(`/brand/campaigns/${newCampaign.id}`);
+    router.push(`/brand/manage-jobs/${newCampaign.id}`);
   }
 
   if (!isOpen) return null;

@@ -176,7 +176,7 @@ export default function CampaignsPage() {
           return (
             <article
               key={campaign.id}
-              onClick={() => router.push(`/brand/campaigns/${campaign.id}`)}
+              onClick={() => router.push(`/brand/manage-jobs/${campaign.id}`)}
               className={cn(
                 "flex flex-col justify-between rounded-3xl border p-5 transition-all duration-300 hover:-translate-y-0.5 flex-1 w-full text-left relative group h-[320px] cursor-pointer",
                 isClosed
@@ -260,7 +260,7 @@ export default function CampaignsPage() {
 
                 <div className="flex gap-2 items-center">
                   <button
-                    onClick={() => router.push(`/brand/campaigns/${campaign.id}`)}
+                    onClick={() => router.push(`/brand/manage-jobs/${campaign.id}`)}
                     className="flex-1 flex h-10 items-center justify-center rounded-xl bg-white/5 border border-white/5 hover:border-white/10 text-[9.5px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 cursor-pointer"
                   >
                     Xem thông tin <ChevronRight className="ml-1 h-3.5 w-3.5" />
