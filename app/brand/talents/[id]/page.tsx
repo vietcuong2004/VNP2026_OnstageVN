@@ -46,6 +46,7 @@ import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
 import { addBrandRosterTalent, loadBrandRosterTalents, loadBrandTalent, loadBrandWishlists, addTalentToWishlist, removeTalentFromWishlist, createBrandWishlist } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
+import { getAuthToken } from "@/lib/api-client";
 
 const convertToDisplayDate = (dateStr: string) => {
   if (!dateStr) return "Chưa cập nhật";
@@ -345,6 +346,12 @@ export default function BrandTalentProfilePage() {
   useEffect(() => {
     let cancelled = false;
 
+    if (!getAuthToken()) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
     loadBrandRosterTalents().then((items) => {
       if (cancelled) return;
 
@@ -366,6 +373,12 @@ export default function BrandTalentProfilePage() {
 
   useEffect(() => {
     let cancelled = false;
+
+    if (!getAuthToken()) {
+      return () => {
+        cancelled = true;
+      };
+    }
 
     loadBrandWishlists([]).then((lists) => {
       if (cancelled) return;
