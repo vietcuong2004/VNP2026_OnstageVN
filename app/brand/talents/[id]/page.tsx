@@ -792,16 +792,6 @@ export default function BrandTalentProfilePage() {
             </a>
           )}
           <button
-            onClick={() => {
-              if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
-              router.push(`/brand/messages?talentId=${talent.id}`);
-            }}
-            className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-950 transition active:scale-95 cursor-pointer whitespace-nowrap"
-          >
-            <MessageSquare className="mr-1.5 h-3.5 w-3.5 shrink-0" />
-            Nhắn tin
-          </button>
-          <button
             onClick={handleAddToBrand}
             disabled={isAddingToBrand || isAddedToBrand}
             className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#C9A86A] transition active:scale-95 cursor-pointer hover:bg-[#C9A86A]/20 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-70"
