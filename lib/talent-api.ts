@@ -648,6 +648,9 @@ export type TalentCampaignPaginationMeta = {
     recruiting: number;
     pending: number;
     completed: number;
+    approved?: number;
+    accepted?: number;
+    confirmed?: number;
   };
 };
 

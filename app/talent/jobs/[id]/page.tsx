@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  ArrowRight,
   Award,
   Briefcase,
   Calendar,
@@ -32,26 +33,28 @@ import {
   applyTalentCampaign,
   loadTalentCampaignDetail,
   loadTalentCampaignsPage,
-  updateTalentCampaignApplicationStatus,
 } from "@/lib/talent-api";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 const JOBS_PAGE_STATE_KEY = "vnp_jobs_page_state";
 
 function statusMeta(stage: string, isApplied: boolean) {
-  if (stage === "completed" || stage === "confirmed") {
-    return { label: "Đã hoàn thành", className: "bg-emerald-500 text-slate-950 font-black shadow-lg shadow-emerald-500/30 border-0" };
+  if (["approved", "accepted", "executing", "completed", "confirmed", "done", "hired", "selected"].includes(String(stage || "").toLowerCase())) {
+    return { label: "Đã duyệt", className: "bg-emerald-500 text-slate-950 font-black shadow-lg shadow-emerald-500/30 border-0" };
   }
 
-  if (stage === "executing" || stage === "accepted") {
-    return { label: "Đang tham gia", className: "bg-cyan-400 text-slate-950 font-black shadow-lg shadow-cyan-400/30 border-0" };
+  if (stage === "pending" || stage === "new" || (isApplied && !stage)) {
+    return { label: "Chờ duyệt", className: "bg-yellow-400 text-slate-950 font-black shadow-lg shadow-yellow-400/30 border-0" };
   }
 
-  if (stage === "new" || (isApplied && !stage)) {
-    return { label: "Chờ duyệt hồ sơ", className: "bg-yellow-400 text-slate-950 font-black shadow-lg shadow-yellow-400/30 border-0" };
-  }
+  return { label: "Ứng tuyển", className: "bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black shadow-lg shadow-amber-500/30 border-0" };
+}
 
-  return { label: "Đang tuyển dụng", className: "bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black shadow-lg shadow-amber-500/30 border-0" };
+function normalizeApplicationStage(value?: string | null) {
+  const stage = String(value || "").toLowerCase().trim();
+  if (!stage) return "";
+  if (["approved", "accepted", "executing", "completed", "confirmed", "done", "hired", "selected"].includes(stage)) return "approved";
+  return "pending";
 }
 
 function formatDate(isoDate?: string | null) {
@@ -81,6 +84,39 @@ export default function JobDetailPage() {
   const [showAllBenefits, setShowAllBenefits] = useState(false);
   const [previewImageIndex, setPreviewImageIndex] = useState<number | null>(null);
   const [toasts, setToasts] = useState<{ id: string; msg: string; tone?: "success" | "error" }[]>([]);
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const bannerCarouselRef = useRef<HTMLDivElement>(null);
+
+  const handleBannerScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    if (!target.clientWidth) return;
+    const index = Math.round(target.scrollLeft / target.clientWidth);
+    if (index !== activeBannerIndex && index >= 0 && index < allMediaImages.length) {
+      setActiveBannerIndex(index);
+    }
+  };
+
+  const handleScrollBannerPrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!bannerCarouselRef.current) return;
+    const nextIndex = (activeBannerIndex - 1 + allMediaImages.length) % allMediaImages.length;
+    setActiveBannerIndex(nextIndex);
+    bannerCarouselRef.current.scrollTo({
+      left: nextIndex * bannerCarouselRef.current.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
+  const handleScrollBannerNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!bannerCarouselRef.current) return;
+    const nextIndex = (activeBannerIndex + 1) % allMediaImages.length;
+    setActiveBannerIndex(nextIndex);
+    bannerCarouselRef.current.scrollTo({
+      left: nextIndex * bannerCarouselRef.current.clientWidth,
+      behavior: "smooth",
+    });
+  };
 
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -143,7 +179,7 @@ export default function JobDetailPage() {
           if (data) {
             setJob(data);
             setIsApplied(Boolean(data.hasApplied || data.application));
-            setStage(data.application?.status || (data.hasApplied ? "new" : "recruiting"));
+            setStage(normalizeApplicationStage(data.application?.status) || (data.hasApplied ? "pending" : "recruiting"));
           } else {
             setJob(null);
           }
@@ -236,19 +272,11 @@ export default function JobDetailPage() {
     try {
       await applyTalentCampaign(job.id);
       setIsApplied(true);
-      setStage("new");
+      setStage("pending");
+      addToast("Ứng tuyển chiến dịch thành công!", "success");
     } catch (err) {
       console.error(err);
-    }
-  };
-
-  const handleUpdateStage = async (nextStage: "executing" | "completed") => {
-    if (!job) return;
-    try {
-      await updateTalentCampaignApplicationStatus(job.id, nextStage);
-      setStage(nextStage);
-    } catch (err) {
-      console.error(err);
+      addToast(err instanceof Error ? err.message : "Chưa thể ứng tuyển chiến dịch này.", "error");
     }
   };
 
@@ -303,47 +331,17 @@ export default function JobDetailPage() {
       );
     }
 
-    if (stage === "new") {
+    if (stage === "pending") {
       return (
         <button disabled className="px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400 cursor-not-allowed uppercase tracking-wider">
-          Chờ duyệt hồ sơ
-        </button>
-      );
-    }
-
-    if (stage === "accepted") {
-      return (
-        <button
-          onClick={() => handleUpdateStage("executing")}
-          className="px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-black bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-wider"
-        >
-          Bắt đầu tham gia
-        </button>
-      );
-    }
-
-    if (stage === "executing") {
-      return (
-        <button
-          onClick={() => handleUpdateStage("completed")}
-          className="px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.5)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-wider"
-        >
-          Báo cáo hoàn thành
-        </button>
-      );
-    }
-
-    if (stage === "completed") {
-      return (
-        <button disabled className="px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 cursor-not-allowed uppercase tracking-wider">
-          Đang chờ nghiệm thu
+          Chờ duyệt
         </button>
       );
     }
 
     return (
       <button disabled className="px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 cursor-not-allowed uppercase tracking-wider">
-        Thành công (Đã rút ví)
+        Đã duyệt
       </button>
     );
   };
@@ -360,47 +358,17 @@ export default function JobDetailPage() {
       );
     }
 
-    if (stage === "new") {
+    if (stage === "pending") {
       return (
         <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
-          Chờ duyệt hồ sơ
-        </button>
-      );
-    }
-
-    if (stage === "accepted") {
-      return (
-        <button
-          onClick={() => handleUpdateStage("executing")}
-          className="flex-1 py-3 rounded-xl font-display text-xs font-black bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-widest text-center justify-center"
-        >
-          Bắt đầu tham gia
-        </button>
-      );
-    }
-
-    if (stage === "executing") {
-      return (
-        <button
-          onClick={() => handleUpdateStage("completed")}
-          className="flex-1 py-3 rounded-xl font-display text-xs font-black bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-widest text-center justify-center"
-        >
-          Báo cáo hoàn thành
-        </button>
-      );
-    }
-
-    if (stage === "completed") {
-      return (
-        <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
-          Đang chờ nghiệm thu
+          Chờ duyệt
         </button>
       );
     }
 
     return (
       <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
-        Thành công (Đã rút ví)
+        Đã duyệt
       </button>
     );
   };
@@ -424,7 +392,11 @@ export default function JobDetailPage() {
       {/* Top Hero Image Banner */}
       <div className="relative w-full h-64 sm:h-80 bg-[#050711] shrink-0 overflow-hidden border-b border-[#151b2d]">
         {allMediaImages.length > 0 ? (
-          <div className="flex h-full w-full overflow-x-auto snap-x snap-mandatory scrollbar-none">
+          <div
+            ref={bannerCarouselRef}
+            onScroll={handleBannerScroll}
+            className="flex h-full w-full overflow-x-auto snap-x snap-mandatory scrollbar-none"
+          >
             {allMediaImages.map((img, idx) => (
               <div
                 key={`${img.url}-${idx}`}
@@ -457,10 +429,25 @@ export default function JobDetailPage() {
           </span>
         </div>
 
-        {/* Image count badge */}
+        {/* Floating Centered Dimmed Image Control Pill Badge */}
         {allMediaImages.length > 1 && (
-          <div className="absolute bottom-4 right-4 z-10 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[10px] font-bold text-white border border-white/10">
-            Vuốt sang để xem thêm ➔
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 rounded-full bg-black/40 backdrop-blur-md p-1 border border-white/10 shadow-lg opacity-70 hover:opacity-100 transition-opacity">
+            <button
+              type="button"
+              onClick={handleScrollBannerPrev}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white/80 hover:text-white transition-all cursor-pointer"
+              title="Hình trước"
+            >
+              <ArrowLeft className="h-3 w-3" />
+            </button>
+            <button
+              type="button"
+              onClick={handleScrollBannerNext}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white/80 hover:text-white transition-all cursor-pointer"
+              title="Hình tiếp theo"
+            >
+              <ArrowRight className="h-3 w-3" />
+            </button>
           </div>
         )}
       </div>
@@ -760,32 +747,28 @@ export default function JobDetailPage() {
             />
           </div>
 
-          {/* Under-Image Navigation Buttons (For both mobile and desktop) */}
+          {/* Under-Image Navigation Buttons */}
           {allMediaImages.length > 1 && (
             <div
-              className="flex items-center gap-6 mt-6 shrink-0 bg-black/40 border border-white/10 rounded-full py-1.5 px-4 backdrop-blur-md"
+              className="flex items-center gap-1.5 mt-4 shrink-0 bg-black/40 border border-white/10 rounded-full p-1 backdrop-blur-md opacity-70 hover:opacity-100 transition-opacity"
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 type="button"
                 onClick={handlePrevImage}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/15 text-white border border-white/10 active:scale-90 transition-all cursor-pointer"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white/80 hover:text-white active:scale-95 transition-all cursor-pointer"
                 title="Ảnh trước"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-3.5 w-3.5" />
               </button>
-
-              <span className="text-xs font-mono font-bold text-slate-350 min-w-[50px] text-center select-none">
-                {previewImageIndex + 1} / {allMediaImages.length}
-              </span>
 
               <button
                 type="button"
                 onClick={handleNextImage}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/15 text-white border border-white/10 active:scale-90 transition-all cursor-pointer"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white/80 hover:text-white active:scale-95 transition-all cursor-pointer"
                 title="Ảnh sau"
               >
-                <ArrowLeft className="h-4 w-4 rotate-180" />
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
@@ -803,18 +786,22 @@ export default function JobDetailPage() {
           <div
             key={t.id}
             className={cn(
-              "pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-xl px-4 py-3 text-xs font-bold shadow-xl flex items-center gap-2 border",
+              "pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-full px-4.5 py-2.5 text-xs font-bold shadow-2xl flex items-center gap-2.5 border backdrop-blur-md",
               t.tone === "error"
-                ? "bg-rose-950 border-rose-500/30 text-rose-300"
-                : "bg-emerald-950 border-emerald-500/30 text-emerald-300"
+                ? "bg-[#090b14]/95 border-rose-500/30 text-rose-200"
+                : "bg-[#090b14]/95 border-emerald-500/30 text-white"
             )}
           >
             {t.tone === "error" ? (
-              <X className="h-3.5 w-3.5 text-rose-400 shrink-0" />
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-400">
+                <X className="h-3.5 w-3.5 stroke-[2.5]" />
+              </div>
             ) : (
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/10 text-emerald-400">
+                <CheckCircle2 className="h-3.5 w-3.5 stroke-[2.5]" />
+              </div>
             )}
-            <span>{t.msg}</span>
+            <span className="text-[12px] font-semibold">{t.msg}</span>
           </div>
         ))}
       </div>

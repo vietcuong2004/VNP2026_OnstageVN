@@ -690,7 +690,7 @@ export default function FormEditJob({
                 <FormInput label="Tiêu đề job *" value={form.title} onChange={(value) => setForm((c) => ({ ...c, title: value }))} required />
               </div>
               <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Loại hình *</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Loại hình job *</span>
                 <select
                   value={form.jobType}
                   onChange={(e) => setForm((c) => ({ ...c, jobType: e.target.value }))}
@@ -1075,7 +1075,7 @@ export default function FormEditJob({
                   <SummarySection title="Thông tin cơ bản">
                     <SummaryGrid>
                       <SummaryField label="Tiêu đề job" value={form.title} wide />
-                      <SummaryField label="Loại hình" value={form.jobType} />
+                      <SummaryField label="Loại hình job" value={form.jobType} />
                       <SummaryField label="Số lượng cần tuyển" value={form.talentQuantity} />
                       <SummaryField label="Thù lao" value={form.budgetNegotiable ? "Thỏa thuận" : form.budget} wide />
                     </SummaryGrid>

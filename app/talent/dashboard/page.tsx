@@ -202,6 +202,7 @@ export default function DashboardPage() {
       );
     } catch (err) {
       console.warn("Failed to apply", err);
+      window.alert(err instanceof Error ? err.message : "Chưa thể ứng tuyển chiến dịch này.");
     }
   };
 

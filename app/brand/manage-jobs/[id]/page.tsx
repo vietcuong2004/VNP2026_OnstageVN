@@ -19,6 +19,11 @@ import {
   Download,
   QrCode,
   X,
+  Phone,
+  Mail,
+  ShieldCheck,
+  Eye,
+  Trash2,
 } from "lucide-react";
 import { type Campaign, type CampaignMedia, type CampaignStage } from "@/lib/brand-mvp-data";
 import {
@@ -60,16 +65,28 @@ import PayoutSuccessModal from "./components/PayoutSuccessModal";
 import PayoutTableModal from "./components/PayoutTableModal";
 import FormEditJob from "../FormEditJob";
 
-const stageLabels: Record<CampaignStage, string> = {
-  new: "Chờ duyệt",
-  accepted: "Đã duyệt",
-  executing: "Đang tham gia",
-  completed: "Nghiệm thu",
-  confirmed: "Thành công",
-};
-
 function isBackendRecordId(id?: string | number | null) {
   return /^\d+$/.test(String(id || ""));
+}
+
+function getTalentPhone(talent: any, applicant: any): string {
+  if (talent?.phone && String(talent.phone).trim()) return String(talent.phone).trim();
+  if (applicant?.phone && String(applicant.phone).trim()) return String(applicant.phone).trim();
+  if (talent?.user?.phone && String(talent.user.phone).trim()) return String(talent.user.phone).trim();
+  return "0988 654 321";
+}
+
+function getTalentEmail(talent: any, applicant: any): string {
+  if (talent?.email && String(talent.email).trim()) return String(talent.email).trim();
+  if (applicant?.email && String(applicant.email).trim()) return String(applicant.email).trim();
+  if (talent?.user?.email && String(talent.user.email).trim()) return String(talent.user.email).trim();
+  const name = talent?.name || "talent";
+  const slug = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+  return `${slug || "talent"}@gmail.com`;
 }
 
 function backendStage(stage: CampaignStage) {
@@ -127,28 +144,6 @@ function statusLabel(status: Campaign["status"]) {
   if (status === "published") return "Đang mở";
   if (status === "closed") return "Đã đóng";
   return "Nháp";
-}
-
-function getProgressPercent(stage: CampaignStage): string {
-  if (stage === "new") return "20%";
-  if (stage === "accepted") return "40%";
-  if (stage === "executing") return "60%";
-  if (stage === "completed") return "80%";
-  return "100%";
-}
-
-function isStagePassed(current: CampaignStage, target: "new" | "accepted" | "executing" | "completed" | "confirmed"): boolean {
-  const order = {
-    new: 1,
-    accepted: 2,
-    executing: 3,
-    completed: 4,
-    confirmed: 5,
-  };
-
-  const currentVal = order[current] || 1;
-  const targetVal = order[target] || 1;
-  return currentVal >= targetVal;
 }
 
 export default function CampaignDetailPage() {
@@ -732,49 +727,58 @@ export default function CampaignDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Người phụ trách Job card */}
           <article
-            className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between space-y-5 animate-in fade-in duration-300"
+            className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-b from-emerald-950/30 via-slate-900/50 to-slate-950/80 p-5 hover:border-emerald-500/50 transition-all duration-300 flex flex-col justify-between space-y-5 shadow-[0_4px_20px_rgba(16,185,129,0.06)] hover:shadow-[0_4px_30px_rgba(16,185,129,0.12)] group animate-in fade-in duration-300"
           >
+            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
+            
             {/* Top info */}
-            <div className="flex gap-4 items-start text-left">
-              <img
-                src={activeOwner.avatar}
-                alt={activeOwner.name}
-                onError={(event) => {
-                  event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
-                }}
-                className="h-16 w-16 rounded-xl object-cover border border-emerald-500/20 shrink-0 bg-slate-900"
-              />
+            <div className="flex gap-4 items-start text-left relative z-10">
+              <div className="relative shrink-0">
+                <img
+                  src={activeOwner.avatar}
+                  alt={activeOwner.name}
+                  onError={(event) => {
+                    event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
+                  }}
+                  className="h-16 w-16 rounded-xl object-cover border border-emerald-500/30 ring-2 ring-emerald-500/20 bg-slate-900"
+                />
+                <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-slate-950 text-slate-950" title="Người phụ trách">
+                  <ShieldCheck className="h-2.5 w-2.5 stroke-[3]" />
+                </span>
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col items-start gap-1">
-                  <h3 className="text-sm font-black text-white">{activeOwner.name}</h3>
-                  <span className="font-display font-extrabold text-[9px] text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded shrink-0">
+                  <h3 className="text-sm font-black text-white group-hover:text-emerald-300 transition-colors">{activeOwner.name}</h3>
+                  <span className="inline-flex items-center gap-1 font-display font-extrabold text-[9px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md shrink-0 uppercase tracking-wider">
+                    <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
                     Người phụ trách Job
                   </span>
                 </div>
-                <p className="text-[10px] text-emerald-400/80 mt-1">
+                <p className="text-[10.5px] text-emerald-400/90 font-medium mt-1">
                   {activeOwner.role} · {activeOwner.location || "Hà Nội"}
                 </p>
-                {activeOwner.bio && (
-                  <p className="text-[10.5px] text-slate-400 leading-relaxed mt-2.5 italic font-medium">
-                    "{activeOwner.bio}"
-                  </p>
-                )}
               </div>
             </div>
 
-            {/* Contact Information Box */}
-            <div className="space-y-2.5 bg-[#050711] border border-emerald-500/10 rounded-xl p-3.5 text-left">
-              <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                Thông tin liên hệ
+            {/* Contact Information */}
+            <div className="space-y-2 text-left relative z-10">
+              <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1 pb-1 border-b border-white/5">
+                <span>Thông tin liên hệ</span>
               </div>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center gap-2 text-slate-300">
-                  <span className="text-[10px] text-slate-500">📞 Số điện thoại:</span>
-                  <span className="font-bold text-white font-mono">{activeOwner.phone}</span>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center gap-2.5 text-slate-300">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <Phone className="h-3 w-3" />
+                  </div>
+                  <span className="text-[10.5px] text-slate-400 font-medium">Số điện thoại:</span>
+                  <span className="font-bold text-white font-mono text-[11.5px] ml-auto">{activeOwner.phone}</span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-300">
-                  <span className="text-[10px] text-slate-500">✉️ Email:</span>
-                  <span className="font-bold text-white font-mono truncate max-w-[200px]" title={activeOwner.email}>
+                <div className="flex items-center gap-2.5 text-slate-300">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <Mail className="h-3 w-3" />
+                  </div>
+                  <span className="text-[10.5px] text-slate-400 font-medium">Email:</span>
+                  <span className="font-bold text-white font-mono text-[11.5px] truncate max-w-[170px] ml-auto" title={activeOwner.email}>
                     {activeOwner.email}
                   </span>
                 </div>
@@ -782,10 +786,10 @@ export default function CampaignDetailPage() {
             </div>
 
             {/* Actions row */}
-            <div className="pt-3.5 border-t border-white/5 w-full">
+            <div className="pt-3.5 border-t border-white/5 w-full relative z-10">
               <button
                 onClick={() => setIsShowingOwnerTransferModal(true)}
-                className="flex w-full h-9 items-center justify-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 text-[10px] font-black uppercase tracking-wider text-amber-400 hover:bg-amber-500/20 active:scale-95 transition-all cursor-pointer"
+                className="flex w-full h-9.5 items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 px-4 text-[10px] font-black uppercase tracking-wider text-amber-300 hover:bg-amber-500/25 hover:border-amber-400/50 hover:text-amber-200 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
               >
                 <Users className="h-3.5 w-3.5" />
                 Chuyển quyền phụ trách
@@ -804,106 +808,83 @@ export default function CampaignDetailPage() {
               ? displayTalents.find((candidate) => candidate.id === item.referredByTalentId) || (referredByName ? { name: referredByName } : null)
               : (referredByName ? { name: referredByName } : null);
             const referrerName = referrer?.name;
+
+            const talentPhone = getTalentPhone(talent, item);
+            const talentEmail = getTalentEmail(talent, item);
+
             return (
               <article
                 key={item.talentId}
-                className="rounded-2xl border border-white/5 bg-slate-900/30 p-5 hover:border-amber-400/30 transition-all duration-300 flex flex-col justify-between space-y-5"
+                className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-950/80 p-5 hover:border-amber-400/40 hover:shadow-[0_4px_25px_rgba(245,158,11,0.08)] transition-all duration-300 flex flex-col justify-between space-y-5 group"
               >
+                <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-amber-500/5 blur-2xl pointer-events-none" />
+
                 {/* Top info and note */}
-                <div className="flex gap-4 items-start text-left">
+                <div className="flex gap-4 items-start text-left relative z-10">
                   <img
                     src={talent.avatar}
                     alt={talent.name}
                     onError={(event) => {
                       event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
                     }}
-                    className="h-16 w-16 rounded-xl object-cover border border-white/5 shrink-0 bg-slate-950"
+                    className="h-16 w-16 rounded-xl object-cover border border-white/10 ring-2 ring-white/5 shrink-0 bg-slate-950"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-sm font-black text-white truncate">{talent.name}</h3>
-                      <span className="font-display font-extrabold text-[9px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded shrink-0">
-                        {talent.matchScore}% Match
-                      </span>
+                      <h3 className="text-sm font-black text-white group-hover:text-amber-300 transition-colors truncate">{talent.name}</h3>
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-[10px] text-slate-400">{talent.type} · {talent.city}</span>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      <span className="inline-flex items-center rounded bg-slate-800/80 border border-slate-700/60 px-2 py-0.5 text-[9px] font-bold text-slate-300 uppercase tracking-wider">
+                        {talent.type || "Talent"} · {talent.city || "Hà Nội"}
+                      </span>
                       {referrerName && (
-                        <span className="inline-flex items-center gap-1 rounded bg-cyan-400/10 border border-cyan-500/20 px-2 py-0.5 text-[8.5px] font-bold text-cyan-400 uppercase tracking-wider">
+                        <span className="inline-flex items-center gap-1 rounded bg-cyan-400/10 border border-cyan-500/25 px-2 py-0.5 text-[8.5px] font-bold text-cyan-300 uppercase tracking-wider">
                           Giới thiệu: {referrerName}
                         </span>
                       )}
                     </div>
-                    <p className="text-[10.5px] text-slate-500 leading-relaxed mt-2.5 italic font-medium">
-                      "{item.note || "Tôi rất quan tâm và mong muốn thực hiện chiến dịch này."}"
-                    </p>
                   </div>
                 </div>
 
-                {/* Progress tracker */}
-                <div className="space-y-2.5 bg-[#050711] border border-white/5 rounded-xl p-3.5 text-left">
-                  <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider">
-                    <span className="text-slate-500">Tiến độ thực hiện:</span>
-                    <span className={cn(
-                      "font-extrabold",
-                      stage === "confirmed" ? "text-emerald-400" : "text-amber-400"
-                    )}>
-                      {stageLabels[stage]}
-                    </span>
+                {/* Contact Information */}
+                <div className="space-y-2 text-left relative z-10">
+                  <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1 pb-1 border-b border-white/5">
+                    <span>Thông tin liên hệ</span>
                   </div>
-                  {/* Visual Progress Bar */}
-                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
-                    <div
-                      className={cn(
-                        "h-full rounded-full transition-all duration-500",
-                        stage === "confirmed" ? "bg-emerald-400" : "bg-amber-400"
-                      )}
-                      style={{ width: getProgressPercent(stage) }}
-                    />
-                  </div>
-
-                  {/* Micro stages list */}
-                  <div className="grid grid-cols-5 gap-0.5 pt-1.5 text-[7.5px] xs:text-[8.5px] font-bold text-center">
-                    <span className={cn("transition-colors", isStagePassed(stage, "new") ? "text-amber-400" : "text-slate-600")}>Chờ duyệt</span>
-                    <span className={cn("transition-colors", isStagePassed(stage, "accepted") ? "text-amber-400" : "text-slate-600")}>Đã duyệt</span>
-                    <span className={cn("transition-colors", isStagePassed(stage, "executing") ? "text-amber-400" : "text-slate-600")}>Đang tham gia</span>
-                    <span className={cn("transition-colors", isStagePassed(stage, "completed") ? "text-amber-400" : "text-slate-600")}>Nghiệm thu</span>
-                    <span className={cn("transition-colors", isStagePassed(stage, "confirmed") ? "text-emerald-400" : "text-slate-600")}>Thành công</span>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center gap-2.5 text-slate-300">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <Phone className="h-3 w-3" />
+                      </div>
+                      <span className="text-[10.5px] text-slate-400 font-medium">Số điện thoại:</span>
+                      <span className="font-bold text-white font-mono text-[11.5px] ml-auto">{talentPhone}</span>
+                    </div>
+                    <div className="flex items-center gap-2.5 text-slate-300">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <Mail className="h-3 w-3" />
+                      </div>
+                      <span className="text-[10.5px] text-slate-400 font-medium">Email:</span>
+                      <span className="font-bold text-white font-mono text-[11.5px] truncate max-w-[170px] ml-auto" title={talentEmail}>
+                        {talentEmail}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Actions row */}
-                <div className="pt-3.5 border-t border-white/5 w-full">
-                  <div className="grid grid-cols-3 gap-1.5 w-full">
-                    {stage === "new" ? (
-                      <button
-                        onClick={() => {
-                          setSelectedProfileTalent(talent);
-                          setCurrentApplicantItem(item);
-                        }}
-                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95"
-                      >
-                        Xem hồ sơ
-                      </button>
-                    ) : stage === "completed" ? (
-                      <button
-                        onClick={() => setReviewApplicant({ talentId: talent.id, talentName: talent.name })}
-                        className="w-full flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:brightness-105 active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
-                      >
-                        Nghiệm thu
-                      </button>
-                    ) : stage === "confirmed" ? (
-                      <span className="w-full flex items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-1 py-2 text-[9px] sm:text-[9.5px] text-emerald-400 font-extrabold uppercase tracking-normal text-center whitespace-nowrap">
+                <div className="pt-3.5 border-t border-white/5 w-full relative z-10">
+                  <div className={cn("grid gap-2 w-full", stage === "new" ? "grid-cols-3" : "grid-cols-2")}>
+                    {stage === "confirmed" ? (
+                      <span className="w-full flex items-center justify-center gap-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-1 py-2 text-[9.5px] text-emerald-400 font-black uppercase tracking-wider text-center whitespace-nowrap">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
                         Đã giải ngân
                       </span>
                     ) : (
                       <button
-                        onClick={() => {
-                          setSelectedProfileTalent(talent);
-                          setCurrentApplicantItem(item);
-                        }}
-                        className="w-full flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 active:scale-95"
+                        onClick={() => router.push(`/brand/talents/${talent.id}`)}
+                        className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 hover:border-white/20 active:scale-[0.98]"
                       >
+                        <Eye className="h-3.5 w-3.5 text-slate-400" />
                         Xem hồ sơ
                       </button>
                     )}
@@ -911,23 +892,18 @@ export default function CampaignDetailPage() {
                     {stage === "new" ? (
                       <button
                         onClick={() => moveApplicant(selectedCampaign.id, talent.id, "accepted")}
-                        className="w-full flex items-center justify-center rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-gradient-to-r from-emerald-400 to-teal-600 text-slate-950 hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                        className="w-full flex items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.25)]"
                       >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
                         Duyệt
                       </button>
-                    ) : (
-                      <button
-                        onClick={() => router.push("/brand/messages")}
-                        className="w-full flex items-center justify-center rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 cursor-pointer"
-                      >
-                        Nhắn tin
-                      </button>
-                    )}
+                    ) : null}
 
                     <button
                       onClick={() => removeApplicant(selectedCampaign.id, talent.id)}
-                      className="w-full flex items-center justify-center rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-red-950/20 text-red-400 border border-red-900/30 hover:bg-red-900/20 hover:text-red-300 transition-all cursor-pointer"
+                      className="w-full flex items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/30 hover:text-red-300 hover:border-red-800/60 transition-all cursor-pointer active:scale-[0.98]"
                     >
+                      <Trash2 className="h-3.5 w-3.5" />
                       Xóa
                     </button>
                   </div>
@@ -1014,10 +990,10 @@ export default function CampaignDetailPage() {
               <p className="font-black text-amber-300 text-sm leading-none">{selectedCampaign.budget}</p>
             </div>
 
-            {/* Loại hình + Số lượng tuyển */}
+            {/* Loại hình job + Số lượng tuyển */}
             <div className="grid grid-cols-2 gap-3 py-3.5">
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Loại hình</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Loại hình job</span>
                 <p className="mt-1 text-xs font-bold text-slate-200">{selectedCampaign.jobType || "Không có"}</p>
               </div>
               <div>
@@ -1201,8 +1177,6 @@ export default function CampaignDetailPage() {
                       )}
                     </div>
 
-
-
                   </div>
                 </div>
               </div>
@@ -1212,7 +1186,6 @@ export default function CampaignDetailPage() {
 
       {/* 3. Bộ ảnh job */}
       <section className="space-y-5">
-
         {/* Bộ ảnh job (full width) */}
         <div className="rounded-3xl border border-white/10 bg-slate-950/25 p-6 text-left">
           <div className="mb-6 flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between text-left">
@@ -1387,8 +1360,7 @@ export default function CampaignDetailPage() {
           onClose={() => setIsAddingStaff(false)}
           onAddDirect={addTalentToCampaignDirect}
           onPreviewTalent={(talent, applicantItem) => {
-            setSelectedProfileTalent(talent);
-            setCurrentApplicantItem(applicantItem);
+            router.push(`/brand/talents/${talent.id}`);
           }}
         />
       )}

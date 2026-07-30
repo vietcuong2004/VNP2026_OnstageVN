@@ -4,7 +4,7 @@ import type { MouseEvent } from "react";
 import { Calendar, CircleDollarSign, MapPin, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type TalentJobStage = "new" | "accepted" | "executing" | "completed" | "confirmed" | string | null | undefined;
+export type TalentJobStage = "pending" | "approved" | string | null | undefined;
 
 type JobCardProps = {
   job: any;
@@ -36,19 +36,15 @@ function formatDisplayBudget(budgetStr?: string | null) {
 }
 
 function getStatusBadge(stage: TalentJobStage, isApplied: boolean) {
-  if (stage === "completed" || stage === "confirmed") {
-    return { label: "ĐÃ HOÀN THÀNH", className: "bg-emerald-600" };
+  if (stage === "approved") {
+    return { label: "ĐÃ DUYỆT", className: "bg-emerald-600" };
   }
 
-  if (stage === "executing" || stage === "accepted") {
-    return { label: "ĐANG THAM GIA", className: "bg-cyan-600" };
-  }
-
-  if (stage === "new" || (isApplied && !stage)) {
+  if (stage === "pending" || isApplied) {
     return { label: "CHỜ DUYỆT", className: "bg-amber-500" };
   }
 
-  return { label: "ĐANG TUYỂN", className: "bg-[#00c875]" };
+  return { label: "ỨNG TUYỂN", className: "bg-[#00c875]" };
 }
 
 export default function JobCard({
@@ -84,54 +80,13 @@ export default function JobCard({
       );
     }
 
-    const currentStage = stage || "new";
-
-    if (currentStage === "new") {
+    if (stage === "approved") {
       return (
         <button
           disabled
-          className="flex h-11 cursor-not-allowed items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10 text-xs font-black uppercase tracking-wider text-amber-400"
+          className="flex h-11 cursor-not-allowed items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10 text-xs font-black uppercase tracking-wider text-emerald-400"
         >
-          CHỜ DUYỆT
-        </button>
-      );
-    }
-
-    if (currentStage === "accepted") {
-      return (
-        <button
-          onClick={(event) => {
-            stopCardClick(event);
-            onUpdateStage(job, "executing");
-          }}
-          className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-[#f5c518] via-[#e6b600] to-[#d49e00] text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_4px_20px_rgba(245,197,24,0.3)] transition-all hover:brightness-110 active:scale-[0.98]"
-        >
-          BẮT ĐẦU
-        </button>
-      );
-    }
-
-    if (currentStage === "executing") {
-      return (
-        <button
-          onClick={(event) => {
-            stopCardClick(event);
-            onUpdateStage(job, "completed");
-          }}
-          className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_4px_20px_rgba(6,182,212,0.3)] transition-all hover:brightness-110 active:scale-[0.98]"
-        >
-          BÁO CÁO
-        </button>
-      );
-    }
-
-    if (currentStage === "completed") {
-      return (
-        <button
-          disabled
-          className="flex h-11 cursor-not-allowed items-center justify-center rounded-full border border-cyan-500/20 bg-cyan-500/10 text-xs font-black uppercase tracking-wider text-cyan-400"
-        >
-          NGHIỆM THU
+          ĐÃ DUYỆT
         </button>
       );
     }
@@ -139,9 +94,9 @@ export default function JobCard({
     return (
       <button
         disabled
-        className="flex h-11 cursor-not-allowed items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10 text-xs font-black uppercase tracking-wider text-emerald-400"
+        className="flex h-11 cursor-not-allowed items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10 text-xs font-black uppercase tracking-wider text-amber-400"
       >
-        THÀNH CÔNG
+        CHỜ DUYỆT
       </button>
     );
   };

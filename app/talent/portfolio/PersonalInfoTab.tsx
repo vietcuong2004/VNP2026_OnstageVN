@@ -903,8 +903,8 @@ export default function PersonalInfoTab({
             <span className="font-medium text-slate-400">Kinh nghiệm</span>
             <span className="font-bold text-white text-left">{profile.experience !== undefined && profile.experience !== "" && profile.experience !== null ? `${profile.experience} năm` : "Chưa cập nhật"}</span>
 
-            {/* Lĩnh vực hoạt động */}
-            <span className="font-medium text-slate-400">Lĩnh vực hoạt động</span>
+            {/* Loại hình Talent */}
+            <span className="font-medium text-slate-400">Loại hình Talent</span>
             <span className="font-bold text-white text-left break-words leading-normal">
               {(() => {
                 const talentTypes = profile.talentTypes || profile.talent_types || profile.specialSkills || profile.skills;

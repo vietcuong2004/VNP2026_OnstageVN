@@ -72,7 +72,7 @@ const genderOptions = [
   { value: "Nam", label: "Nam" },
 ];
 const typeOptions = [
-  { value: allValue, label: "Tất cả loại hình" },
+  { value: allValue, label: "Tất cả loại hình Talent" },
   ...talentTypeOptions.map((type) => ({ value: type, label: type })),
 ];
 const experienceOptions = [
@@ -695,7 +695,7 @@ export default function DiscoverTalentsPage() {
 
           {/* Loại hình Talent */}
           <div className="flex-1 min-w-[140px]">
-            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">Loại hình</span>
+            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">Loại hình Talent</span>
             <FilterDropdown
               value={selectedType}
               onChange={setSelectedType}

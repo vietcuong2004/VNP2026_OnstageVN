@@ -25,14 +25,13 @@ import QRCodeContainer from "@/components/QR_Code";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import JobCard from "../../../components/JobCard";
 
-type StageFilter = "executing" | "recruiting" | "pending" | "completed" | "all";
+type StageFilter = "apply" | "pending" | "approved" | "all";
 type SortOrder = "newest" | "oldest";
 
 const stageFilterLabels: Record<StageFilter, string> = {
-  executing: "Đang tham gia",
-  recruiting: "Đang tuyển dụng",
+  apply: "Ứng tuyển",
   pending: "Chờ duyệt",
-  completed: "Đã hoàn thành",
+  approved: "Đã duyệt",
   all: "Tất cả",
 };
 
@@ -41,6 +40,13 @@ const JOB_PAGES_PER_RESULT_PAGE = 5;
 const JOBS_PER_RESULT_PAGE = JOBS_PER_PAGE * JOB_PAGES_PER_RESULT_PAGE;
 const JOBS_PAGE_STATE_KEY = "vnp_jobs_page_state";
 const allValue = "all";
+
+function normalizeStageFilter(value?: string | null): StageFilter {
+  if (value === "executing" || value === "completed" || value === "approved") return "approved";
+  if (value === "recruiting" || value === "apply") return "apply";
+  if (value === "pending") return "pending";
+  return "all";
+}
 
 const cityOptions = [
   "Tỉnh An Giang",
@@ -80,16 +86,14 @@ const cityOptions = [
 ];
 
 const jobTypeOptions = [
-  "KOL Livestream",
-  "Runway Model",
-  "Event PG",
-  "MC Event",
-  "Fashion Shoot",
-  "Tuyển KOL",
-  "Sự kiện",
-  "Chụp hình",
-  "Livestream",
-  "Ra mắt sản phẩm",
+  "Tuyển cộng tác viên",
+  "Tuyển đại sứ",
+  "Beauty KOL/KOC",
+  "KOL livestream",
+  "Model lookbook",
+  "PG event",
+  "MC sự kiện",
+  "Dancer performance",
 ];
 
 function normalizeCityName(value: string) {
@@ -102,7 +106,7 @@ const cityDropdownOptions = [
 ];
 
 const jobTypeDropdownOptions = [
-  { value: allValue, label: "Tất cả loại job" },
+  { value: allValue, label: "Tất cả loại hình job" },
   ...jobTypeOptions.map((type) => ({ value: type, label: type })),
 ];
 
@@ -350,7 +354,7 @@ function JobsPageContent() {
   const [maxBudget, setMaxBudget] = useState(() => initialJobsState?.maxBudget || 0);
   const [appliedMaxBudget, setAppliedMaxBudget] = useState(() => initialJobsState?.appliedMaxBudget || 0);
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState(() => initialJobsState?.selectedSponsorshipFilter || "all");
-  const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>(() => initialJobsState?.selectedStageFilter || "all");
+  const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>(() => normalizeStageFilter(initialJobsState?.selectedStageFilter));
   const [sortOrder, setSortOrder] = useState<SortOrder>(() => initialJobsState?.sortOrder || "newest");
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
@@ -369,10 +373,9 @@ function JobsPageContent() {
   const [jobTotal, setJobTotal] = useState(0);
   const [jobStageCounts, setJobStageCounts] = useState<Record<StageFilter, number>>({
     all: 0,
-    executing: 0,
-    recruiting: 0,
+    apply: 0,
     pending: 0,
-    completed: 0,
+    approved: 0,
   });
   const [jobResultPage, setJobResultPage] = useState(() => initialJobsState?.jobResultPage || 1);
   const [jobResultPageCount, setJobResultPageCount] = useState(1);
@@ -505,10 +508,12 @@ function JobsPageContent() {
   };
 
   const normalizeJobStage = (status?: string | null) => {
-    if (!status) return "";
-    if (status === "pending") return "new";
-    if (status === "approved") return "accepted";
-    return status;
+    const value = String(status || "").toLowerCase().trim();
+    if (!value) return "";
+    if (["approved", "accepted", "executing", "completed", "confirmed", "done", "hired", "selected"].includes(value)) {
+      return "approved";
+    }
+    return "pending";
   };
 
   const getTalentJobStage = (job: any) => {
@@ -525,10 +530,7 @@ function JobsPageContent() {
 
   const stageCountKey = (stage?: string | null): StageFilter | null => {
     const normalized = normalizeJobStage(stage);
-    if (normalized === "accepted" || normalized === "executing") return "executing";
-    if (normalized === "completed" || normalized === "confirmed") return "completed";
-    if (normalized === "new") return "pending";
-    return null;
+    return normalized ? normalized as StageFilter : null;
   };
 
   const hasTalentApplication = (job: any) => {
@@ -546,6 +548,13 @@ function JobsPageContent() {
     setShowAllBenefits(false);
   }, [selectedJob?.id]);
 
+  const backendStageFilter = useMemo<"recruiting" | "pending" | "executing" | undefined>(() => {
+    if (selectedStageFilter === "apply") return "recruiting";
+    if (selectedStageFilter === "approved") return "executing";
+    if (selectedStageFilter === "pending") return "pending";
+    return undefined;
+  }, [selectedStageFilter]);
+
   const jobQueryOptions = useMemo(() => ({
     q: searchQuery || undefined,
     type: appliedJobType !== allValue ? appliedJobType : undefined,
@@ -553,8 +562,8 @@ function JobsPageContent() {
     minBudget: appliedShowAdvancedFilters && appliedMinBudget > 0 ? appliedMinBudget : undefined,
     maxBudget: appliedShowAdvancedFilters && appliedMaxBudget > 0 ? appliedMaxBudget : undefined,
     sortOrder,
-    stage: selectedStageFilter !== allValue ? selectedStageFilter : undefined,
-  }), [searchQuery, appliedJobType, appliedCity, appliedShowAdvancedFilters, appliedMinBudget, appliedMaxBudget, sortOrder, selectedStageFilter]);
+    stage: backendStageFilter,
+  }), [searchQuery, appliedJobType, appliedCity, appliedShowAdvancedFilters, appliedMinBudget, appliedMaxBudget, sortOrder, backendStageFilter]);
 
   const loadJobsPage = useCallback(async (page: number, mode: "replace" | "append", resultPage: number) => {
     const requestId = ++jobRequestRef.current;
@@ -589,10 +598,14 @@ function JobsPageContent() {
       setJobTotal(response.meta.total);
       setJobStageCounts({
         all: response.meta.stage_counts?.all ?? response.meta.total,
-        executing: response.meta.stage_counts?.executing ?? 0,
-        recruiting: response.meta.stage_counts?.recruiting ?? response.meta.total,
+        apply: response.meta.stage_counts?.recruiting ?? response.meta.total,
         pending: response.meta.stage_counts?.pending ?? 0,
-        completed: response.meta.stage_counts?.completed ?? 0,
+        approved:
+          (response.meta.stage_counts?.approved ?? 0)
+          + (response.meta.stage_counts?.accepted ?? 0)
+          + (response.meta.stage_counts?.executing ?? 0)
+          + (response.meta.stage_counts?.completed ?? 0)
+          + (response.meta.stage_counts?.confirmed ?? 0),
       });
       setJobResultPage(resultPage);
       setJobResultPageCount(Math.max(1, Math.ceil((response.meta.total || backendJobs.length) / JOBS_PER_RESULT_PAGE)));
@@ -673,7 +686,7 @@ function JobsPageContent() {
         )));
       } catch (error) {
         console.warn("Cannot apply campaign from backend", error);
-        addToast("Chưa gửi được ứng tuyển lên backend. Vui lòng thử lại.", "info");
+        addToast(error instanceof Error ? error.message : "Chưa gửi được ứng tuyển. Vui lòng thử lại.", "info");
         return;
       }
     }
@@ -681,7 +694,7 @@ function JobsPageContent() {
     setAppliedJobs((prev) => [...prev, id]);
     setJobStageCounts((current) => ({
       ...current,
-      recruiting: Math.max(0, current.recruiting - 1),
+      apply: Math.max(0, current.apply - 1),
       pending: current.pending + 1,
     }));
     addToast(`Ứng tuyển thành công công việc "${title}"!`);
@@ -726,7 +739,7 @@ function JobsPageContent() {
     }
 
     if (previousCountKey !== nextCountKey && nextCountKey) {
-      const decrementKey = previousCountKey || "recruiting";
+      const decrementKey = previousCountKey || "apply";
       setJobStageCounts((current) => ({
         ...current,
         [decrementKey]: Math.max(0, current[decrementKey] - 1),
@@ -917,7 +930,7 @@ function JobsPageContent() {
     setAppliedMaxBudget(maxBudget);
   }
 
-  const stageFilterOptions: StageFilter[] = ["all", "executing", "recruiting", "pending", "completed"];
+  const stageFilterOptions: StageFilter[] = ["all", "apply", "pending", "approved"];
   const stageCounts = jobStageCounts;
   const activeResultTotal = stageCounts[selectedStageFilter] ?? jobTotal;
 
@@ -1031,7 +1044,7 @@ function JobsPageContent() {
 
           <div className="min-w-[180px] flex-1">
             <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">
-              Loại job
+              Loại hình job
             </span>
             <FilterDropdown
               value={selectedJobType}

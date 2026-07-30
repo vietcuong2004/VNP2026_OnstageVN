@@ -817,12 +817,12 @@ export default function EditInfoTab({
                 />
               </div>
 
-              {/* Lĩnh vực hoạt động */}
+              {/* Loại hình Talent */}
               <div className="space-y-3">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Lĩnh vực hoạt động</label>
+                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Loại hình Talent</label>
                 <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-[#05070e] border border-white/5 rounded-xl text-left">
                   {editForm.talentTypes.length === 0 ? (
-                    <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn lĩnh vực nào</span>
+                    <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn loại hình nào</span>
                   ) : (
                     editForm.talentTypes.map((skill: string) => (
                       <span key={skill} className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
@@ -853,7 +853,7 @@ export default function EditInfoTab({
                     paddingRight: "2rem"
                   }}
                 >
-                  <option value="" disabled hidden>Thêm lĩnh vực hoạt động...</option>
+                  <option value="" disabled hidden>Thêm loại hình Talent...</option>
                   {talentTypeOptions
                     .filter((s: string) => !editForm.talentTypes.includes(s))
                     .map((s: string) => (

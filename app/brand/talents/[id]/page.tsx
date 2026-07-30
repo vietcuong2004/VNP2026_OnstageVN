@@ -981,8 +981,8 @@ export default function BrandTalentProfilePage() {
               {profile.experience !== undefined && profile.experience !== "" && profile.experience !== null ? `${profile.experience} năm` : "Chưa cập nhật"}
             </span>
 
-            {/* Lĩnh vực hoạt động */}
-            <span className="font-medium text-slate-400">Lĩnh vực hoạt động</span>
+            {/* Loại hình Talent */}
+            <span className="font-medium text-slate-400">Loại hình Talent</span>
             <span className="font-bold text-white text-left break-words leading-normal">
               {(() => {
                 const talentTypes = profile.talentTypes;
