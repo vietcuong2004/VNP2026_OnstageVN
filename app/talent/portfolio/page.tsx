@@ -398,7 +398,7 @@ export default function PortfolioPage() {
                     ))
                   ) : (
                     <span className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
-                      Tài năng mới
+                      Idol mới
                     </span>
                   )}
 

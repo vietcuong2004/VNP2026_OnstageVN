@@ -69,7 +69,7 @@ export default function BrandIntroPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/5 shadow-[0_0_12px_rgba(240,197,107,0.1)]">
             <Sparkles className="h-3.5 w-3.5 text-[#F0C56B]" />
             <span className="text-[9px] font-black text-[#F0C56B] uppercase tracking-wider">
-              ONSTAGE BRAND — KẾN TẠO THƯƠNG HIỆU VỚI TÀI NĂNG SẮC ĐẸP
+              ONSTAGE BRAND — KẾN TẠO THƯƠNG HIỆU VỚI IDOL SẮC ĐẸP
             </span>
           </div>
 
@@ -357,7 +357,7 @@ export default function BrandIntroPage() {
               Bắt đầu hành trình <br /> tối ưu chiến dịch casting
             </h2>
             <p className="text-xs md:text-sm text-slate-400 leading-relaxed max-w-xl">
-              Gia nhập Onstage Brand ngay hôm nay để khởi tạo chiến dịch tuyển dụng, kết nối với những tài năng hàng đầu và quản lý tiến độ hợp tác thông minh.
+              Gia nhập Onstage Brand ngay hôm nay để khởi tạo chiến dịch tuyển dụng, kết nối với những idol hàng đầu và quản lý tiến độ hợp tác thông minh.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center w-full sm:w-auto">
@@ -397,7 +397,7 @@ export default function BrandIntroPage() {
             />
           </div>
           <p className="text-xs text-slate-400 max-w-2xl leading-relaxed text-center px-4 font-medium">
-            Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ tài năng cùng nhãn hàng.
+            Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ idol cùng nhãn hàng.
           </p>
         </div>
 

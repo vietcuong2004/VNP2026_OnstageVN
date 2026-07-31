@@ -62,7 +62,7 @@ export default function TalentCard({
   experienceLabel = "full",
   className,
 }: TalentCardProps) {
-  const talentAvatar = avatar || talent?.avatar || createInitialAvatarDataUrl(talent?.name || "Talent", "");
+  const talentAvatar = avatar || talent?.avatar || createInitialAvatarDataUrl(talent?.name || "Idol", "");
   const locationText = [talent?.district, talent?.city].filter(Boolean).join(", ");
   const experienceYears = Number(talent?.yearsOfExperience ?? talent?.experience_years ?? 0);
   const talentTypes = getTalentTypes(talent);
@@ -84,12 +84,12 @@ export default function TalentCard({
         <div className="relative mb-3.5 aspect-square w-full overflow-hidden rounded-xl border border-white/5 bg-slate-900">
           <img
             src={talentAvatar}
-            alt={talent?.name || "Talent"}
+            alt={talent?.name || "Idol"}
             loading="lazy"
             decoding="async"
             onError={(event) => {
               event.currentTarget.onerror = null;
-              event.currentTarget.src = createInitialAvatarDataUrl(talent?.name || "Talent", "");
+              event.currentTarget.src = createInitialAvatarDataUrl(talent?.name || "Idol", "");
             }}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />

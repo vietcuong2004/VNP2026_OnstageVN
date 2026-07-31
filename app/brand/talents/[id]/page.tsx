@@ -97,6 +97,64 @@ const LinkedinIcon = () => (
   </svg>
 );
 
+const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
+  const p = (rawPlatform || "").toLowerCase().trim();
+  const u = (url || "").toLowerCase().trim();
+
+  if (p.includes("facebook") || p.includes("fb") || u.includes("facebook.com") || u.includes("fb.com")) {
+    return {
+      platformKey: "Facebook",
+      icon: <FacebookIcon />,
+      colorClass: "hover:text-[#1877F2] hover:border-[#1877F2]/50 hover:bg-[#1877F2]/10 text-[#1877F2]",
+    };
+  }
+  if (p.includes("tiktok") || u.includes("tiktok.com")) {
+    return {
+      platformKey: "Tiktok",
+      icon: <TiktokIcon />,
+      colorClass: "hover:text-[#FE2C55] hover:border-[#FE2C55]/50 hover:bg-[#FE2C55]/10 text-[#FE2C55]",
+    };
+  }
+  if (p.includes("instagram") || p.includes("insta") || u.includes("instagram.com") || u.includes("instagr.am")) {
+    return {
+      platformKey: "Instagram",
+      icon: <InstagramIcon />,
+      colorClass: "hover:text-[#E1306C] hover:border-[#E1306C]/50 hover:bg-[#E1306C]/10 text-[#E1306C]",
+    };
+  }
+  if (p.includes("thread") || u.includes("threads.net")) {
+    return {
+      platformKey: "Thread",
+      icon: <ThreadIcon />,
+      colorClass: "hover:text-[#ffffff] hover:border-[#ffffff]/50 hover:bg-[#ffffff]/10 text-white",
+    };
+  }
+  if (p.includes("linkedin") || u.includes("linkedin.com")) {
+    return {
+      platformKey: "Linkedin",
+      icon: <LinkedinIcon />,
+      colorClass: "hover:text-[#0A66C2] hover:border-[#0A66C2]/50 hover:bg-[#0A66C2]/10 text-[#0A66C2]",
+    };
+  }
+  if (p.includes("youtube") || u.includes("youtube.com") || u.includes("youtu.be")) {
+    return {
+      platformKey: "Youtube",
+      icon: (
+        <svg className="h-4 w-4 shrink-0 fill-current text-[#FF0000]" viewBox="0 0 24 24">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+      ),
+      colorClass: "hover:text-[#FF0000] hover:border-[#FF0000]/50 hover:bg-[#FF0000]/10 text-[#FF0000]",
+    };
+  }
+
+  return {
+    platformKey: rawPlatform || "Globe",
+    icon: <Globe className="h-4 w-4 shrink-0 text-amber-400" />,
+    colorClass: "hover:text-amber-300 hover:border-amber-400/50 hover:bg-amber-400/10 text-amber-400",
+  };
+};
+
 const getSocialHandle = (url: string, platform: string) => {
   try {
     const trimmed = url.trim().replace(/\/$/, "");
@@ -115,21 +173,41 @@ const getSocialHandle = (url: string, platform: string) => {
 
 function ContactInfoCard({ profile }: ContactInfoCardProps) {
   const parseSocialAccounts = (prof: any): { platform: string; url: string }[] => {
-    if (!Array.isArray(prof?.socialAccounts)) return [];
+    let list: { platform: string; url: string }[] = [];
 
-    return prof.socialAccounts
-      .map((account: any) => ({ platform: String(account.platform || ""), url: String(account.url || "") }))
-      .filter((account: { platform: string; url: string }) => account.platform && account.url);
+    if (Array.isArray(prof?.socialAccounts) && prof.socialAccounts.length > 0) {
+      list = prof.socialAccounts
+        .map((account: any) => ({
+          platform: String(account.platform || "").trim(),
+          url: String(account.url || "").trim(),
+        }))
+        .filter((account: { platform: string; url: string }) => account.url);
+    }
+
+    const legacyFields: { name: string; key: string }[] = [
+      { name: "Tiktok", key: "tiktok" },
+      { name: "Facebook", key: "facebook" },
+      { name: "Instagram", key: "instagram" },
+      { name: "Thread", key: "thread" },
+      { name: "Thread", key: "threads" },
+      { name: "Linkedin", key: "linkedin" },
+      { name: "Youtube", key: "youtube" },
+    ];
+
+    legacyFields.forEach(({ name, key }) => {
+      if (prof?.[key] && typeof prof[key] === "string" && prof[key].trim()) {
+        const val = prof[key].trim();
+        const url = val.startsWith("http") ? val : `https://${key === 'thread' || key === 'threads' ? 'threads.net' : key + '.com'}/${val.replace(/^@/, "")}`;
+        if (!list.some((item) => item.url === url)) {
+          list.push({ platform: name, url });
+        }
+      }
+    });
+
+    return list;
   };
 
   const socialAccounts = parseSocialAccounts(profile);
-
-  // Group accounts by platform
-  const groupedAccounts = socialAccounts.reduce((acc: Record<string, string[]>, curr) => {
-    acc[curr.platform] = acc[curr.platform] || [];
-    acc[curr.platform].push(curr.url);
-    return acc;
-  }, {});
 
   return (
     <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6 text-left">
@@ -189,51 +267,29 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
       ) : null}
 
       {/* Social Accounts Area */}
-      {Object.keys(groupedAccounts).length > 0 ? (
+      {socialAccounts.length > 0 ? (
         <div className="border-t border-[#151b2d]/50 pt-5 space-y-3">
           <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider mb-2">
             Liên kết mạng xã hội
           </span>
           <div className="flex flex-wrap gap-2.5">
-            {Object.entries(groupedAccounts).flatMap(([platform, urls]) =>
-              urls.map((url, idx) => {
-                let brandColorClass = "";
-                if (platform === "Facebook") {
-                  brandColorClass = "hover:text-[#1877F2] hover:border-[#1877F2]/40 hover:bg-[#1877F2]/5";
-                } else if (platform === "Tiktok") {
-                  brandColorClass = "hover:text-[#FE2C55] hover:border-[#FE2C55]/40 hover:bg-[#FE2C55]/5";
-                } else if (platform === "Instagram") {
-                  brandColorClass = "hover:text-[#E1306C] hover:border-[#E1306C]/40 hover:bg-[#E1306C]/5";
-                } else if (platform === "Thread") {
-                  brandColorClass = "hover:text-[#ffffff] hover:border-[#ffffff]/40 hover:bg-[#ffffff]/5";
-                } else if (platform === "Linkedin") {
-                  brandColorClass = "hover:text-[#0A66C2] hover:border-[#0A66C2]/40 hover:bg-[#0A66C2]/5";
-                }
-
-                const renderSocialIcon = () => {
-                  if (platform === "Facebook") return <FacebookIcon />;
-                  if (platform === "Tiktok") return <TiktokIcon />;
-                  if (platform === "Instagram") return <InstagramIcon />;
-                  if (platform === "Thread") return <ThreadIcon />;
-                  if (platform === "Linkedin") return <LinkedinIcon />;
-                  return <Globe className="h-4 w-4 shrink-0" />;
-                };
-
-                return (
-                  <a
-                    key={`${platform}-${idx}`}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex items-center gap-2 bg-slate-950/60 border border-white/5 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-300 transition-all duration-300 active:scale-95 ${brandColorClass}`}
-                    title={url}
-                  >
-                    {renderSocialIcon()}
-                    <span>{getSocialHandle(url, platform)}</span>
-                  </a>
-                );
-              })
-            )}
+            {socialAccounts.map((account, idx) => {
+              const info = getSocialPlatformInfo(account.platform, account.url);
+              const handle = getSocialHandle(account.url, info.platformKey);
+              return (
+                <a
+                  key={`${account.platform}-${idx}`}
+                  href={account.url.startsWith("http") ? account.url : `https://${account.url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center gap-2 bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-200 transition-all duration-300 active:scale-95 shadow-sm ${info.colorClass}`}
+                  title={account.url}
+                >
+                  {info.icon}
+                  <span>{handle}</span>
+                </a>
+              );
+            })}
           </div>
         </div>
       ) : (
@@ -514,7 +570,7 @@ export default function BrandTalentProfilePage() {
     return (
       <div className="flex min-h-[65vh] items-center justify-center">
         <div className="rounded-2xl border border-white/5 bg-slate-950/30 p-8 text-center">
-          <h1 className="text-xl font-black text-white">Talent chưa kích hoạt hồ sơ</h1>
+          <h1 className="text-xl font-black text-white">Idol chưa kích hoạt hồ sơ</h1>
           <button onClick={() => router.back()} className="mt-5 rounded-xl bg-white/10 px-4 py-2 text-xs font-bold text-white">
             Quay lại
           </button>
@@ -833,7 +889,7 @@ export default function BrandTalentProfilePage() {
                 <Upload className="h-10 w-10 text-slate-500" />
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Chưa có ảnh full-body</p>
-                  <p className="mt-1 text-[10px] font-semibold leading-relaxed text-slate-600">Talent chưa cập nhật ảnh toàn thân.</p>
+                  <p className="mt-1 text-[10px] font-semibold leading-relaxed text-slate-600">Idol chưa cập nhật ảnh toàn thân.</p>
                 </div>
               </div>
             )}
@@ -849,7 +905,7 @@ export default function BrandTalentProfilePage() {
                 <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ sưu tập
               </h3>
               <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                Hiển thị bộ sưu tập ảnh của Talent
+                Hiển thị bộ sưu tập ảnh của Idol
               </span>
             </div>
           </div>
@@ -981,8 +1037,8 @@ export default function BrandTalentProfilePage() {
               {profile.experience !== undefined && profile.experience !== "" && profile.experience !== null ? `${profile.experience} năm` : "Chưa cập nhật"}
             </span>
 
-            {/* Loại hình Talent */}
-            <span className="font-medium text-slate-400">Loại hình Talent</span>
+            {/* Loại hình Idol */}
+            <span className="font-medium text-slate-400">Loại hình Idol</span>
             <span className="font-bold text-white text-left break-words leading-normal">
               {(() => {
                 const talentTypes = profile.talentTypes;
@@ -1047,7 +1103,7 @@ export default function BrandTalentProfilePage() {
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-3">
                     <Sparkles className="h-8 w-8 text-purple-400/40" />
-                    <p className="text-[11px] text-slate-500 leading-relaxed">Talent chưa hoàn thành bài khảo sát AI.<br />Dữ liệu radar sẽ hiển thị sau khi có kết quả khảo sát.</p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">Idol chưa hoàn thành bài khảo sát AI.<br />Dữ liệu radar sẽ hiển thị sau khi có kết quả khảo sát.</p>
                   </div>
                 )}
               </div>

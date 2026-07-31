@@ -65,7 +65,7 @@ export default function ControlCenterExplanationDialog({
                   : "text-slate-400 hover:text-white"
               )}
             >
-              Talent (Người Mẫu & KOLs...)
+              Idol (Người Mẫu & KOLs...)
             </button>
             <button
               onClick={() => setActiveTab("brand")}
@@ -86,19 +86,22 @@ export default function ControlCenterExplanationDialog({
               <div className="space-y-6 animate-in fade-in duration-300">
                 {/* Who are Talents */}
                 <div className="p-5 rounded-2xl bg-amber-500/[0.03] border border-amber-400/25">
-                  <h4 className="text-xs font-black text-amber-450 uppercase tracking-wider mb-2">
-                    👤 ĐỐI TƯỢNG TALENT LÀ NHỮNG AI?
-                  </h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
+                    <h4 className="text-xs font-black text-amber-450 uppercase tracking-wider">
+                      ĐỐI TƯỢNG IDOL LÀ NHỮNG AI?
+                    </h4>
+                  </div>
                   <p className="text-xs text-slate-200 leading-relaxed text-justify">
                     Dành cho các cá nhân hoạt động trong lĩnh vực nghệ thuật, giải trí và thời trang bao gồm:{" "}
-                    <strong className="text-white font-bold">Người mẫu ảnh/Runway, Diễn viên, KOLs, KOCs, MCs, PG/PB</strong>, người tìm kiếm cơ hội việc làm tự do hoặc các tài năng sáng tạo có mong muốn xây dựng thương hiệu cá nhân bền vững.
+                    <strong className="text-white font-bold">Người mẫu ảnh/Runway, Diễn viên, KOLs, KOCs, MCs, PG/PB</strong>, người tìm kiếm cơ hội việc làm tự do hoặc các idol sáng tạo có mong muốn xây dựng thương hiệu cá nhân bền vững.
                   </p>
                 </div>
 
                 {/* Core Features */}
                 <div className="space-y-4">
                   <h4 className="text-xs font-black text-white uppercase tracking-wider">
-                    🚀 CÁC TÍNH NĂNG NỔI BẬT DÀNH CHO TALENT
+                    CÁC TÍNH NĂNG NỔI BẬT DÀNH CHO IDOL
                   </h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -147,11 +150,14 @@ export default function ControlCenterExplanationDialog({
               <div className="space-y-6 animate-in fade-in duration-300">
                 {/* Who are Brands */}
                 <div className="p-5 rounded-2xl bg-[#C9A86A]/[0.03] border border-[#C9A86A]/30">
-                  <h4 className="text-xs font-black text-[#C9A86A] uppercase tracking-wider mb-2">
-                    🏢 ĐỐI TƯỢNG BRAND LÀ NHỮNG AI?
-                  </h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Briefcase className="h-4 w-4 text-[#C9A86A] shrink-0" />
+                    <h4 className="text-xs font-black text-[#C9A86A] uppercase tracking-wider">
+                      ĐỐI TƯỢNG BRAND LÀ NHỮNG AI?
+                    </h4>
+                  </div>
                   <p className="text-xs text-slate-200 leading-relaxed text-justify">
-                    Dành cho các đơn vị, cá nhân có nhu cầu tuyển dụng nhân sự/tài năng nghệ thuật bao gồm:{" "}
+                    Dành cho các đơn vị, cá nhân có nhu cầu tuyển dụng nhân sự/idol nghệ thuật bao gồm:{" "}
                     <strong className="text-white font-bold">Thương hiệu thời trang, nhãn hàng tiêu dùng, người đăng việc làm, Agency quảng cáo, nhà thiết kế thời trang</strong>, hoặc các đơn vị tổ chức sự kiện muốn tìm kiếm gương mặt đại diện và nhân sự hỗ trợ chiến dịch quảng bá.
                   </p>
                 </div>
@@ -159,7 +165,7 @@ export default function ControlCenterExplanationDialog({
                 {/* Core Features */}
                 <div className="space-y-4">
                   <h4 className="text-xs font-black text-white uppercase tracking-wider">
-                    🚀 CÁC TÍNH NĂNG NỔI BẬT DÀNH CHO BRAND
+                    CÁC TÍNH NĂNG NỔI BẬT DÀNH CHO BRAND
                   </h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -182,10 +188,10 @@ export default function ControlCenterExplanationDialog({
                         <Search className="h-4.5 w-4.5" />
                       </div>
                       <h5 className="text-xs md:text-sm font-black text-white uppercase tracking-wide min-h-[36px] flex items-center mb-1">
-                        Tìm kiếm Talent
+                        Tìm kiếm Idol
                       </h5>
                       <p className="text-xs text-slate-300 leading-relaxed flex-1 text-justify">
-                        Lọc thông minh qua hàng ngàn hồ sơ Talent theo chiều cao, cân nặng, số đo, lượt follow mạng xã hội hoặc phân hạng Tier (S/A/B/C) chuẩn hóa.
+                        Lọc thông minh qua hàng ngàn hồ sơ Idol theo chiều cao, cân nặng, số đo, lượt follow mạng xã hội hoặc phân hạng Tier (S/A/B/C) chuẩn hóa.
                       </p>
                     </div>
 
@@ -195,10 +201,10 @@ export default function ControlCenterExplanationDialog({
                         <Users className="h-4.5 w-4.5" />
                       </div>
                       <h5 className="text-xs md:text-sm font-black text-white uppercase tracking-wide min-h-[36px] flex items-center mb-1">
-                        Quản lý mạng lưới Talent
+                        Quản lý mạng lưới Idol
                       </h5>
                       <p className="text-xs text-slate-300 leading-relaxed flex-1 text-justify">
-                        Tích hợp tính năng quản lý danh sách Talent yêu thích, gửi link hoặc mã QR mời Talent tham gia hợp tác trực tiếp không qua trung gian.
+                        Tích hợp tính năng quản lý danh sách Idol yêu thích, gửi link hoặc mã QR mời Idol tham gia hợp tác trực tiếp không qua trung gian.
                       </p>
                     </div>
                   </div>

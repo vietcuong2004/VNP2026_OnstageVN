@@ -86,13 +86,13 @@ interface ContactInfoCardProps {
 
 const FacebookIcon = () => (
   <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z"/>
+    <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z" />
   </svg>
 );
 
 const TiktokIcon = () => (
   <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.24-.11-.47-.24-.7-.37v5.52c.03 2.16-.76 4.38-2.3 5.89-1.58 1.58-3.9 2.37-6.14 2.11-2.4-.21-4.73-1.74-5.69-3.97-.98-2.18-.73-4.9.72-6.79 1.34-1.79 3.63-2.73 5.85-2.5v4.03c-1.44-.19-3 .42-3.66 1.74-.53.97-.33 2.27.46 3.01.78.78 2.05.94 3.01.4 1-.53 1.54-1.67 1.53-2.84V.02z"/>
+    <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.24-.11-.47-.24-.7-.37v5.52c.03 2.16-.76 4.38-2.3 5.89-1.58 1.58-3.9 2.37-6.14 2.11-2.4-.21-4.73-1.74-5.69-3.97-.98-2.18-.73-4.9.72-6.79 1.34-1.79 3.63-2.73 5.85-2.5v4.03c-1.44-.19-3 .42-3.66 1.74-.53.97-.33 2.27.46 3.01.78.78 2.05.94 3.01.4 1-.53 1.54-1.67 1.53-2.84V.02z" />
   </svg>
 );
 
@@ -106,15 +106,73 @@ const InstagramIcon = () => (
 
 const ThreadIcon = () => (
   <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.48 13.9c-.83.09-1.58-.2-2-.84-.33-.51-.39-1.12-.39-2.22 0-1.89.87-2.92 2.32-2.92 1.41 0 2.22.99 2.22 2.76 0 1.94-.89 2.97-2.15 3.22zm2.09-6.3c-.63-.61-1.54-.95-2.57-.95-1.95 0-3.34 1.34-3.34 3.79s1.39 3.79 3.34 3.79c.8 0 1.51-.2 2.03-.59.18-.13.43-.1.58.07l.79.9c.28.32.18.84-.2 1.04-1 .55-2.14.78-3.2.78-3.33 0-5.74-2.17-5.74-5.99s2.41-5.99 5.74-5.99c1.67 0 3.2.53 4.31 1.49.27.23.31.63.09.91l-.88 1.13c-.15.2-.42.24-.62.08z"/>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.48 13.9c-.83.09-1.58-.2-2-.84-.33-.51-.39-1.12-.39-2.22 0-1.89.87-2.92 2.32-2.92 1.41 0 2.22.99 2.22 2.76 0 1.94-.89 2.97-2.15 3.22zm2.09-6.3c-.63-.61-1.54-.95-2.57-.95-1.95 0-3.34 1.34-3.34 3.79s1.39 3.79 3.34 3.79c.8 0 1.51-.2 2.03-.59.18-.13.43-.1.58.07l.79.9c.28.32.18.84-.2 1.04-1 .55-2.14.78-3.2.78-3.33 0-5.74-2.17-5.74-5.99s2.41-5.99 5.74-5.99c1.67 0 3.2.53 4.31 1.49.27.23.31.63.09.91l-.88 1.13c-.15.2-.42.24-.62.08z" />
   </svg>
 );
 
 const LinkedinIcon = () => (
   <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
   </svg>
 );
+
+const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
+  const p = (rawPlatform || "").toLowerCase().trim();
+  const u = (url || "").toLowerCase().trim();
+
+  if (p.includes("facebook") || p.includes("fb") || u.includes("facebook.com") || u.includes("fb.com")) {
+    return {
+      platformKey: "Facebook",
+      icon: <FacebookIcon />,
+      colorClass: "hover:text-[#1877F2] hover:border-[#1877F2]/50 hover:bg-[#1877F2]/10 text-[#1877F2]",
+    };
+  }
+  if (p.includes("tiktok") || u.includes("tiktok.com")) {
+    return {
+      platformKey: "Tiktok",
+      icon: <TiktokIcon />,
+      colorClass: "hover:text-[#FE2C55] hover:border-[#FE2C55]/50 hover:bg-[#FE2C55]/10 text-[#FE2C55]",
+    };
+  }
+  if (p.includes("instagram") || p.includes("insta") || u.includes("instagram.com") || u.includes("instagr.am")) {
+    return {
+      platformKey: "Instagram",
+      icon: <InstagramIcon />,
+      colorClass: "hover:text-[#E1306C] hover:border-[#E1306C]/50 hover:bg-[#E1306C]/10 text-[#E1306C]",
+    };
+  }
+  if (p.includes("thread") || u.includes("threads.net")) {
+    return {
+      platformKey: "Thread",
+      icon: <ThreadIcon />,
+      colorClass: "hover:text-[#ffffff] hover:border-[#ffffff]/50 hover:bg-[#ffffff]/10 text-white",
+    };
+  }
+  if (p.includes("linkedin") || u.includes("linkedin.com")) {
+    return {
+      platformKey: "Linkedin",
+      icon: <LinkedinIcon />,
+      colorClass: "hover:text-[#0A66C2] hover:border-[#0A66C2]/50 hover:bg-[#0A66C2]/10 text-[#0A66C2]",
+    };
+  }
+  if (p.includes("youtube") || u.includes("youtube.com") || u.includes("youtu.be")) {
+    return {
+      platformKey: "Youtube",
+      icon: (
+        <svg className="h-4 w-4 shrink-0 fill-current text-[#FF0000]" viewBox="0 0 24 24">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+      ),
+      colorClass: "hover:text-[#FF0000] hover:border-[#FF0000]/50 hover:bg-[#FF0000]/10 text-[#FF0000]",
+    };
+  }
+
+  return {
+    platformKey: rawPlatform || "Globe",
+    icon: <Globe className="h-4 w-4 shrink-0 text-amber-400" />,
+    colorClass: "hover:text-amber-300 hover:border-amber-400/50 hover:bg-amber-400/10 text-amber-400",
+  };
+};
 
 const getSocialHandle = (url: string, platform: string) => {
   try {
@@ -128,27 +186,47 @@ const getSocialHandle = (url: string, platform: string) => {
       }
       return platform === "Tiktok" ? `@${lastPart}` : lastPart;
     }
-  } catch (e) {}
+  } catch (e) { }
   return url.replace(/https?:\/\/(www\.)?/, "");
 };
 
 function ContactInfoCard({ profile }: ContactInfoCardProps) {
   const parseSocialAccounts = (prof: any): { platform: string; url: string }[] => {
-    if (!Array.isArray(prof?.socialAccounts)) return [];
+    let list: { platform: string; url: string }[] = [];
 
-    return prof.socialAccounts
-      .map((account: any) => ({ platform: String(account.platform || ""), url: String(account.url || "") }))
-      .filter((account: { platform: string; url: string }) => account.platform && account.url);
+    if (Array.isArray(prof?.socialAccounts) && prof.socialAccounts.length > 0) {
+      list = prof.socialAccounts
+        .map((account: any) => ({
+          platform: String(account.platform || "").trim(),
+          url: String(account.url || "").trim(),
+        }))
+        .filter((account: { platform: string; url: string }) => account.url);
+    }
+
+    const legacyFields: { name: string; key: string }[] = [
+      { name: "Tiktok", key: "tiktok" },
+      { name: "Facebook", key: "facebook" },
+      { name: "Instagram", key: "instagram" },
+      { name: "Thread", key: "thread" },
+      { name: "Thread", key: "threads" },
+      { name: "Linkedin", key: "linkedin" },
+      { name: "Youtube", key: "youtube" },
+    ];
+
+    legacyFields.forEach(({ name, key }) => {
+      if (prof?.[key] && typeof prof[key] === "string" && prof[key].trim()) {
+        const val = prof[key].trim();
+        const url = val.startsWith("http") ? val : `https://${key === 'thread' || key === 'threads' ? 'threads.net' : key + '.com'}/${val.replace(/^@/, "")}`;
+        if (!list.some((item) => item.url === url)) {
+          list.push({ platform: name, url });
+        }
+      }
+    });
+
+    return list;
   };
 
   const socialAccounts = parseSocialAccounts(profile);
-
-  // Group accounts by platform
-  const groupedAccounts = socialAccounts.reduce((acc: Record<string, string[]>, curr) => {
-    acc[curr.platform] = acc[curr.platform] || [];
-    acc[curr.platform].push(curr.url);
-    return acc;
-  }, {});
 
   return (
     <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6 text-left">
@@ -182,7 +260,7 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
             <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider leading-none mb-1">
               Email
             </span>
-            <a 
+            <a
               href={profile.email ? `mailto:${profile.email}` : undefined}
               className={`text-xs font-bold block truncate transition-colors ${profile.email ? 'text-slate-200 hover:text-amber-400' : 'text-slate-400'}`}
             >
@@ -208,51 +286,29 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
       ) : null}
 
       {/* Social Accounts Area */}
-      {Object.keys(groupedAccounts).length > 0 ? (
+      {socialAccounts.length > 0 ? (
         <div className="border-t border-[#151b2d]/50 pt-5 space-y-3">
           <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider mb-2">
             Liên kết mạng xã hội
           </span>
           <div className="flex flex-wrap gap-2.5">
-            {Object.entries(groupedAccounts).flatMap(([platform, urls]) => 
-              urls.map((url, idx) => {
-                let brandColorClass = "";
-                if (platform === "Facebook") {
-                  brandColorClass = "hover:text-[#1877F2] hover:border-[#1877F2]/40 hover:bg-[#1877F2]/5";
-                } else if (platform === "Tiktok") {
-                  brandColorClass = "hover:text-[#FE2C55] hover:border-[#FE2C55]/40 hover:bg-[#FE2C55]/5";
-                } else if (platform === "Instagram") {
-                  brandColorClass = "hover:text-[#E1306C] hover:border-[#E1306C]/40 hover:bg-[#E1306C]/5";
-                } else if (platform === "Thread") {
-                  brandColorClass = "hover:text-[#ffffff] hover:border-[#ffffff]/40 hover:bg-[#ffffff]/5";
-                } else if (platform === "Linkedin") {
-                  brandColorClass = "hover:text-[#0A66C2] hover:border-[#0A66C2]/40 hover:bg-[#0A66C2]/5";
-                }
-
-                const renderSocialIcon = () => {
-                  if (platform === "Facebook") return <FacebookIcon />;
-                  if (platform === "Tiktok") return <TiktokIcon />;
-                  if (platform === "Instagram") return <InstagramIcon />;
-                  if (platform === "Thread") return <ThreadIcon />;
-                  if (platform === "Linkedin") return <LinkedinIcon />;
-                  return <Globe className="h-4 w-4 shrink-0" />;
-                };
-
-                return (
-                  <a
-                    key={`${platform}-${idx}`}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex items-center gap-2 bg-slate-950/60 border border-white/5 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-300 transition-all duration-300 active:scale-95 ${brandColorClass}`}
-                    title={url}
-                  >
-                    {renderSocialIcon()}
-                    <span>{getSocialHandle(url, platform)}</span>
-                  </a>
-                );
-              })
-            )}
+            {socialAccounts.map((account, idx) => {
+              const info = getSocialPlatformInfo(account.platform, account.url);
+              const handle = getSocialHandle(account.url, info.platformKey);
+              return (
+                <a
+                  key={`${account.platform}-${idx}`}
+                  href={account.url.startsWith("http") ? account.url : `https://${account.url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center gap-2 bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-200 transition-all duration-300 active:scale-95 shadow-sm ${info.colorClass}`}
+                  title={account.url}
+                >
+                  {info.icon}
+                  <span>{handle}</span>
+                </a>
+              );
+            })}
           </div>
         </div>
       ) : (
@@ -730,7 +786,7 @@ export default function PersonalInfoTab({
               <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> BỘ SƯU TẬP
             </h3>
             <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-              HIỂN THỊ BỘ SƯU TẬP ẢNH CỦA TALENT
+              HIỂN THỊ BỘ SƯU TẬP ẢNH CỦA IDOL
             </span>
           </div>
         </div>
@@ -899,12 +955,12 @@ export default function PersonalInfoTab({
 
             {/* Kinh nghiệm */}
             <div className="col-span-2 border-t border-dashed border-[#151b2d]/50 my-1"></div>
-            
+
             <span className="font-medium text-slate-400">Kinh nghiệm</span>
             <span className="font-bold text-white text-left">{profile.experience !== undefined && profile.experience !== "" && profile.experience !== null ? `${profile.experience} năm` : "Chưa cập nhật"}</span>
 
-            {/* Loại hình Talent */}
-            <span className="font-medium text-slate-400">Loại hình Talent</span>
+            {/* Loại hình Idol */}
+            <span className="font-medium text-slate-400">Loại hình Idol</span>
             <span className="font-bold text-white text-left break-words leading-normal">
               {(() => {
                 const talentTypes = profile.talentTypes || profile.talent_types || profile.specialSkills || profile.skills;
@@ -1009,125 +1065,125 @@ export default function PersonalInfoTab({
 
         {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
         <div className="rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
-        <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
-            <div>
-              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
-                ĐỊNH HƯỚNG SỰ NGHIỆP
-              </h3>
-              <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                ĐỊNH HƯỚNG 3 TRỤC CHÍNH XÁC THEO NHÂN TRẮC HỌC & KỸ NĂNG
-              </span>
+          <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
+              <div>
+                <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
+                  ĐỊNH HƯỚNG SỰ NGHIỆP
+                </h3>
+                <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                  ĐỊNH HƯỚNG 3 TRỤC CHÍNH XÁC THEO NHÂN TRẮC HỌC & KỸ NĂNG
+                </span>
+              </div>
+            </div>
+            <div className="text-[11px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 uppercase tracking-wide">
+              AI Powered
             </div>
           </div>
-          <div className="text-[11px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20 uppercase tracking-wide">
-            AI Powered
-          </div>
-        </div>
 
-        {!profile.isOnboarded ? (
-          <div className="flex flex-col items-center justify-center text-center p-8 py-12 rounded-xl border border-purple-500/15 bg-slate-950/45 max-w-md mx-auto space-y-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400">
-              <Sparkles className="h-5.5 w-5.5 animate-pulse" />
-            </div>
-            <div className="space-y-1">
-              <h4 className="text-xs font-black text-white uppercase tracking-wider">Kích Hoạt Bản Đồ Năng Lực AI</h4>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                Vui lòng thực hiện bài khảo sát định hướng gồm 20 câu hỏi định tính để mở khóa bản đồ năng lực 3 trục, biểu đồ radar & độ tương thích chi tiết với 20 vị trí công việc.
-              </p>
-            </div>
-            <button
-              onClick={() => window.location.href = "/talent/survey"}
-              className="h-9 px-5 rounded-lg bg-gradient-to-r from-purple-400 to-pink-500 text-[10px] font-black text-white hover:brightness-105 active:scale-98 transition-all uppercase tracking-wider cursor-pointer"
-            >
-              Làm Khảo Sát Ngay
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-            {/* Radar Chart Summary Column */}
-            <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
-              <div className="space-y-2">
-                <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">NHÓM TƯƠNG THÍCH NHẤT</span>
-                <h4 className="text-xs font-black text-amber-300 leading-relaxed uppercase tracking-wide">
-                  {profile.mainCategory}
-                </h4>
-                <p className="text-[11px] text-slate-400 leading-normal">
-                  Biểu đồ radar 3 trục: <strong>Pageant, Runway, KOL</strong>.
+          {!profile.isOnboarded ? (
+            <div className="flex flex-col items-center justify-center text-center p-8 py-12 rounded-xl border border-purple-500/15 bg-slate-950/45 max-w-md mx-auto space-y-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400">
+                <Sparkles className="h-5.5 w-5.5 animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-xs font-black text-white uppercase tracking-wider">Kích Hoạt Bản Đồ Năng Lực AI</h4>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Vui lòng thực hiện bài khảo sát định hướng gồm 20 câu hỏi định tính để mở khóa bản đồ năng lực 3 trục, biểu đồ radar & độ tương thích chi tiết với 20 vị trí công việc.
                 </p>
               </div>
-
-              {/* SVG 3-axis Radar */}
-              <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
-                <RadarChart
-                  scores={profile.surveyScores}
-                />
-              </div>
+              <button
+                onClick={() => window.location.href = "/talent/survey"}
+                className="h-9 px-5 rounded-lg bg-gradient-to-r from-purple-400 to-pink-500 text-[10px] font-black text-white hover:brightness-105 active:scale-98 transition-all uppercase tracking-wider cursor-pointer"
+              >
+                Làm Khảo Sát Ngay
+              </button>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+              {/* Radar Chart Summary Column */}
+              <div className="md:col-span-5 flex flex-col justify-between p-4 rounded-xl border border-white/2 bg-slate-950/40">
+                <div className="space-y-2">
+                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black">NHÓM TƯƠNG THÍCH NHẤT</span>
+                  <h4 className="text-xs font-black text-amber-300 leading-relaxed uppercase tracking-wide">
+                    {profile.mainCategory}
+                  </h4>
+                  <p className="text-[11px] text-slate-400 leading-normal">
+                    Biểu đồ radar 3 trục: <strong>Pageant, Runway, KOL</strong>.
+                  </p>
+                </div>
 
-            {/* 20 Recommended Roles Column */}
-            <div className="md:col-span-7 space-y-3 flex flex-col justify-between">
-              <div>
-                <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">ĐỘ TƯƠNG THÍCH VỚI 20 VỊ TRÍ CÔNG VIỆC</span>
+                {/* SVG 3-axis Radar */}
+                <div className="h-44 w-44 mx-auto my-4 shrink-0 rounded-xl border border-[#151b2d] bg-slate-950 p-2 shadow-inner flex items-center justify-center">
+                  <RadarChart
+                    scores={profile.surveyScores}
+                  />
+                </div>
+              </div>
 
-                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                  {(() => {
-                    const scores = profile.surveyScores || { pageant: 50, runway: 45, kol: 95 };
-                    const calculatedJobs = JOBS_LIST.map((job) => {
-                      const matchScore = Math.round(
-                        scores.pageant * job.weights.pageant +
-                        scores.runway * job.weights.runway +
-                        scores.kol * job.weights.kol
-                      );
-                      return { ...job, matchScore };
-                    }).sort((a, b) => b.matchScore - a.matchScore);
+              {/* 20 Recommended Roles Column */}
+              <div className="md:col-span-7 space-y-3 flex flex-col justify-between">
+                <div>
+                  <span className="block text-[10px] text-slate-500 uppercase tracking-widest font-black text-left mb-2">ĐỘ TƯƠNG THÍCH VỚI 20 VỊ TRÍ CÔNG VIỆC</span>
 
-                    return calculatedJobs.map((job, idx) => {
-                      const isHigh = job.matchScore >= 80;
-                      const isMid = job.matchScore >= 50 && job.matchScore < 80;
+                  <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                    {(() => {
+                      const scores = profile.surveyScores || { pageant: 50, runway: 45, kol: 95 };
+                      const calculatedJobs = JOBS_LIST.map((job) => {
+                        const matchScore = Math.round(
+                          scores.pageant * job.weights.pageant +
+                          scores.runway * job.weights.runway +
+                          scores.kol * job.weights.kol
+                        );
+                        return { ...job, matchScore };
+                      }).sort((a, b) => b.matchScore - a.matchScore);
 
-                      return (
-                        <div
-                          key={job.id}
-                          className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950 p-2.5 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
-                        >
-                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
-                            {idx + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-center">
-                              <h4 className="text-[10px] sm:text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
-                                {job.title}
-                              </h4>
-                              <span className={cn(
-                                "font-display text-[9px] font-extrabold",
-                                isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
-                              )}>
-                                {job.matchScore}% Match
-                              </span>
+                      return calculatedJobs.map((job, idx) => {
+                        const isHigh = job.matchScore >= 80;
+                        const isMid = job.matchScore >= 50 && job.matchScore < 80;
+
+                        return (
+                          <div
+                            key={job.id}
+                            className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950 p-2.5 hover:bg-slate-900/20 hover:border-white/10 transition-all duration-300 group"
+                          >
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/5 text-[9px] font-bold text-slate-400 group-hover:bg-amber-400/10 group-hover:text-amber-400 transition-colors">
+                              {idx + 1}
                             </div>
-                            <p className="text-[8px] text-slate-500 truncate mt-0.5">{job.desc}</p>
-                            <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full transition-all duration-500",
-                                  isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
-                                )}
-                                style={{ width: `${job.matchScore}%` }}
-                              />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-center">
+                                <h4 className="text-[10px] sm:text-[11px] font-bold text-white truncate group-hover:text-amber-400 transition-colors">
+                                  {job.title}
+                                </h4>
+                                <span className={cn(
+                                  "font-display text-[9px] font-extrabold",
+                                  isHigh ? "text-amber-400" : isMid ? "text-purple-400" : "text-slate-500"
+                                )}>
+                                  {job.matchScore}% Match
+                                </span>
+                              </div>
+                              <p className="text-[8px] text-slate-500 truncate mt-0.5">{job.desc}</p>
+                              <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden mt-1">
+                                <div
+                                  className={cn(
+                                    "h-full rounded-full transition-all duration-500",
+                                    isHigh ? "bg-gradient-to-r from-amber-200 to-amber-500" : isMid ? "bg-purple-500" : "bg-slate-700"
+                                  )}
+                                  style={{ width: `${job.matchScore}%` }}
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    });
-                  })()}
+                        );
+                      });
+                    })()}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       </div>
 
       {/* SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}

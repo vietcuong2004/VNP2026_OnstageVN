@@ -98,7 +98,7 @@ export default function TalentLoginSetupPage() {
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">OnstageVN</p>
               <h1 className="mt-1 font-display text-xl font-black uppercase tracking-tight text-white">Thiết lập đăng nhập web</h1>
               <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-400">
-                Tài khoản Talent của bạn đã được tạo từ Zalo. Hãy thêm email và mật khẩu để đăng nhập trên website.
+                Tài khoản Idol của bạn đã được tạo từ Zalo. Hãy thêm email và mật khẩu để đăng nhập trên website.
               </p>
             </div>
           </div>
@@ -113,7 +113,7 @@ export default function TalentLoginSetupPage() {
             <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-5 text-center">
               <CheckCircle className="mx-auto h-10 w-10 text-emerald-300" />
               <p className="mt-3 text-sm font-black text-white">Đã thiết lập đăng nhập web.</p>
-              <p className="mt-1 text-xs font-semibold text-slate-400">Đang chuyển bạn về trang tổng quan Talent...</p>
+              <p className="mt-1 text-xs font-semibold text-slate-400">Đang chuyển bạn về trang tổng quan Idol...</p>
             </div>
           ) : hasExistingSession ? (
             <div className="space-y-4">
@@ -123,7 +123,7 @@ export default function TalentLoginSetupPage() {
                   <div>
                     <p className="text-sm font-black text-white">Bạn đang đăng nhập một tài khoản khác.</p>
                     <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-300">
-                      Link này dùng để thiết lập đăng nhập cho tài khoản Talent đã tạo từ Zalo. Hãy đăng xuất tài khoản hiện tại trước khi tiếp tục.
+                      Link này dùng để thiết lập đăng nhập cho tài khoản Idol đã tạo từ Zalo. Hãy đăng xuất tài khoản hiện tại trước khi tiếp tục.
                     </p>
                   </div>
                 </div>
@@ -149,8 +149,8 @@ export default function TalentLoginSetupPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Talent</p>
-                <p className="mt-1 text-lg font-black text-white">{data?.talent?.name || "Talent"}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Idol</p>
+                <p className="mt-1 text-lg font-black text-white">{data?.talent?.name || "Idol"}</p>
                 <p className="mt-2 text-xs font-semibold text-slate-400">Hồ sơ này đã được tạo từ phiên chat Zalo.</p>
               </div>
 

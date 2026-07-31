@@ -148,10 +148,10 @@ export default function EditTalentModal({
         <div className="flex items-center justify-between p-6 border-b border-[#151b2d]/60 bg-slate-950/45">
           <div>
             <span className="rounded-md border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-yellow-300">
-              EDIT TALENT
+              EDIT IDOL
             </span>
             <h2 className="font-display font-black text-lg text-white uppercase tracking-tight mt-2 flex items-center gap-2">
-              <Edit className="h-5 w-5 text-yellow-400" /> Chỉnh sửa Talent
+              <Edit className="h-5 w-5 text-yellow-400" /> Chỉnh sửa Idol
             </h2>
             <p className="text-[10px] text-slate-500 mt-1 font-semibold">
               Cập nhật thông tin của <span className="text-white font-bold">{talent.name}</span>

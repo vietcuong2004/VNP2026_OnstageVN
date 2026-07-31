@@ -378,7 +378,7 @@ export default function MyTalentsPage() {
   };
 
   const handleInvite = async (talentId: string) => {
-    if (!requireAuthAction({ actionLabel: "Gửi lời mời talent vào Brand" })) return;
+    if (!requireAuthAction({ actionLabel: "Gửi lời mời idol vào Brand" })) return;
     const existing = roster.find(r => r.talentId === talentId);
     let nextRoster = [...roster];
     if (existing) {
@@ -558,14 +558,14 @@ export default function MyTalentsPage() {
           <div className="max-w-2xl">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-amber-400/40 bg-amber-400/10 text-amber-300">
-                TALENT MANAGEMENT
+                IDOL MANAGEMENT
               </span>
               <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-yellow-400/30 bg-yellow-400/10 text-yellow-200">
                 Brand Portal
               </span>
             </div>
             <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-4xl uppercase">
-              Quản lý <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">Talent</span>
+              Quản lý <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">Idol</span>
             </h1>
             <p className="mt-3 text-xs leading-5 text-slate-400">
               Quản lý đội ngũ KOL độc quyền, theo dõi tiến độ việc làm và hoa hồng giới thiệu Affiliate.
@@ -575,13 +575,13 @@ export default function MyTalentsPage() {
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
             <button
               onClick={() => {
-                if (!requireAuthAction({ actionLabel: "Tạo talent nhanh" })) return;
+                if (!requireAuthAction({ actionLabel: "Tạo idol nhanh" })) return;
                 setShowCreateModal(true);
               }}
               className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(244,196,48,0.25)] hover:shadow-[0_0_25px_rgba(244,196,48,0.45)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-300 shrink-0"
             >
               <UserPlus className="h-4 w-4" />
-              Thêm Talent mới
+              Thêm Idol mới
             </button>
             <button
               onClick={() => router.push("/brand/search")}
@@ -609,10 +609,10 @@ export default function MyTalentsPage() {
                   LINK MỜI VÀO BRAND
                 </span>
                 <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
-                  Tuyển Dụng Talent
+                  Tuyển Dụng Idol
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-normal">
-                  Chia sẻ link này cho Talent để họ đăng ký tham gia mạng lưới của Brand.
+                  Chia sẻ link này cho Idol để họ đăng ký tham gia mạng lưới của Brand.
                 </p>
               </div>
             </div>
@@ -655,7 +655,7 @@ export default function MyTalentsPage() {
         <div className="space-y-4 pt-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h3 className="font-display font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
-              <Users2 className="h-4.5 w-4.5 text-amber-400 fill-amber-400/20 animate-pulse" /> Danh sách talent của tôi
+              <Users2 className="h-4.5 w-4.5 text-amber-400 fill-amber-400/20 animate-pulse" /> Danh sách idol của tôi
             </h3>
             {/* Search Input with nested button */}
             <div className="relative w-full sm:w-64">
@@ -699,25 +699,25 @@ export default function MyTalentsPage() {
           {roster.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-14 md:py-20 px-4 text-center rounded-3xl border border-dashed border-white/5 bg-[#08090f]/40">
               <Users2 className="h-12 w-12 text-slate-700 mb-4 animate-pulse" />
-              <p className="text-white font-black text-sm uppercase tracking-wider">Chưa có Talent nào</p>
+              <p className="text-white font-black text-sm uppercase tracking-wider">Chưa có Idol nào</p>
               <p className="text-slate-400 text-xs mt-2 max-w-sm font-semibold leading-relaxed">
-                Hãy mời Talent đầu tiên tham gia mạng lưới của Brand bằng link hoặc mã QR.
+                Hãy mời Idol đầu tiên tham gia mạng lưới của Brand bằng link hoặc mã QR.
               </p>
               <button
                 onClick={() => {
-                  if (!requireAuthAction({ actionLabel: "Mời talent vào Brand" })) return;
+                  if (!requireAuthAction({ actionLabel: "Mời idol vào Brand" })) return;
                   setShowInviteModal(true);
                 }}
                 className="mt-6 flex w-full max-w-xs items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 cursor-pointer shadow-[0_0_15px_rgba(244,196,48,0.2)] hover:shadow-[0_0_25px_rgba(244,196,48,0.3)] hover:brightness-105 active:scale-[0.98] transition-all duration-300 md:w-auto"
               >
-                <Plus className="h-4 w-4" /> Thêm Talent
+                <Plus className="h-4 w-4" /> Thêm Idol
               </button>
             </div>
           ) : (
             <>
               {filteredRoster.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-14 px-4 text-center rounded-3xl border border-[#1d2238] bg-[#08090f]/20">
-                  <p className="text-slate-400 text-xs font-semibold">Không tìm thấy Talent nào phù hợp với từ khóa tìm kiếm.</p>
+                  <p className="text-slate-400 text-xs font-semibold">Không tìm thấy Idol nào phù hợp với từ khóa tìm kiếm.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">

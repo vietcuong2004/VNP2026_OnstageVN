@@ -354,22 +354,32 @@ export default function FormEditJob({
     };
   }, [imagePreviews]);
 
+  const prevOpenRef = useRef(false);
+  const prevCampaignIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (isOpen && campaignToEdit) {
-      const initialForm = campaignToFormState(campaignToEdit);
-      setForm(initialForm);
-      if (initialForm.budgetMin || initialForm.budgetMax) {
-        setBudgetFrom(formatBudgetDigits(initialForm.budgetMin));
-        setBudgetTo(formatBudgetDigits(initialForm.budgetMax));
-      } else {
-        setBudgetFrom("");
-        setBudgetTo("");
+      const justOpened = !prevOpenRef.current && isOpen;
+      const campaignIdChanged = prevCampaignIdRef.current !== campaignToEdit.id;
+
+      if (justOpened || campaignIdChanged) {
+        const initialForm = campaignToFormState(campaignToEdit);
+        setForm(initialForm);
+        if (initialForm.budgetMin || initialForm.budgetMax) {
+          setBudgetFrom(formatBudgetDigits(initialForm.budgetMin));
+          setBudgetTo(formatBudgetDigits(initialForm.budgetMax));
+        } else {
+          setBudgetFrom("");
+          setBudgetTo("");
+        }
+        setBudgetNegotiable(initialForm.budgetNegotiable);
+        setFormStep(1);
+        setDateErrors({});
+        setCampaignImages([]);
       }
-      setBudgetNegotiable(initialForm.budgetNegotiable);
-      setFormStep(1);
-      setDateErrors({});
-      setCampaignImages([]);
     }
+    prevOpenRef.current = isOpen;
+    prevCampaignIdRef.current = campaignToEdit?.id || null;
   }, [isOpen, campaignToEdit]);
 
   const handleImagesAdd = (files: File[]) => {
@@ -606,10 +616,10 @@ export default function FormEditJob({
   if (!isOpen || !campaignToEdit) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-0 sm:p-4 backdrop-blur-md animate-in fade-in duration-200">
       <form
         onSubmit={handleFormSubmit}
-        className="relative w-full max-w-2xl rounded-3xl border border-amber-500/30 bg-[#0c1021] shadow-[0_0_50px_rgba(245,158,11,0.15),0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh] text-left"
+        className="relative w-full h-full sm:h-auto max-w-2xl sm:rounded-3xl border-0 sm:border border-amber-500/30 bg-[#0c1021] shadow-[0_0_50px_rgba(245,158,11,0.15),0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-full sm:max-h-[90vh] text-left"
       >
         {/* Top accent glow line */}
         <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-amber-300 to-yellow-500 shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.6)]" />
@@ -619,7 +629,7 @@ export default function FormEditJob({
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-yellow-500/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* ── HEADER with step indicator ── */}
-        <div className="relative z-10 px-6 pt-5 pb-4 border-b border-slate-800/80 bg-slate-900/40 shrink-0">
+        <div className="relative z-10 px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-slate-800/80 bg-slate-900/40 shrink-0">
           <div className="flex items-start justify-between mb-3.5">
             <div>
               <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
@@ -681,7 +691,7 @@ export default function FormEditJob({
         </div>
 
         {/* ── STEP CONTENT (scrollable) ── */}
-        <div className="relative z-10 flex-1 overflow-y-auto px-6 py-5 space-y-4 custom-scrollbar">
+        <div className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4 custom-scrollbar">
 
           {/* STEP 1: Thông tin cơ bản */}
           {formStep === 1 && (
@@ -1124,46 +1134,48 @@ export default function FormEditJob({
         </div>
 
         {/* ── FOOTER navigation ── */}
-        <div className="relative z-10 flex items-center justify-between gap-3 border-t border-slate-800/80 bg-slate-900/40 px-6 py-4 shrink-0">
-          <button
-            type="button"
-            onClick={() => formStep > 1 ? moveToStep(formStep - 1) : handleClose()}
-            className="flex h-10 items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/80 px-4 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:border-slate-600 hover:text-white cursor-pointer transition-all shadow-sm"
-            disabled={isSubmitting}
-          >
-            {formStep > 1 ? "← Quay lại" : "Hủy"}
-          </button>
+        {!openDropdown && (
+          <div className="relative z-10 flex items-center justify-between gap-3 border-t border-slate-800/80 bg-slate-900/40 px-4 sm:px-6 py-3 sm:py-4 shrink-0">
+            <button
+              type="button"
+              onClick={() => formStep > 1 ? moveToStep(formStep - 1) : handleClose()}
+              className="flex h-10 items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/80 px-4 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:border-slate-600 hover:text-white cursor-pointer transition-all shadow-sm"
+              disabled={isSubmitting}
+            >
+              {formStep > 1 ? "← Quay lại" : "Hủy"}
+            </button>
 
-          <div className="flex items-center gap-3">
-            {/* Progress bar */}
-            <div className="hidden sm:flex h-2 w-24 rounded-full bg-slate-800 overflow-hidden border border-slate-700/60 p-0.5">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 transition-all duration-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"
-                style={{ width: `${(formStep / TOTAL_STEPS) * 100}%` }}
-              />
+            <div className="flex items-center gap-3">
+              {/* Progress bar */}
+              <div className="hidden sm:flex h-2 w-24 rounded-full bg-slate-800 overflow-hidden border border-slate-700/60 p-0.5">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 transition-all duration-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"
+                  style={{ width: `${(formStep / TOTAL_STEPS) * 100}%` }}
+                />
+              </div>
+
+              {formStep < TOTAL_STEPS ? (
+                <button
+                  type="button"
+                  onClick={() => moveToStep(formStep + 1)}
+                  className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 px-5 text-xs font-black text-slate-950 hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-[0_0_20px_rgba(245,158,11,0.35)]"
+                >
+                  Tiếp theo →
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleUpdateCampaign}
+                  disabled={isSubmitting}
+                  className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 px-5 text-xs font-black text-slate-950 hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-[0_0_25px_rgba(245,158,11,0.45)] disabled:opacity-40"
+                >
+                  <Briefcase className="h-4 w-4" />
+                  {isSubmitting ? "Đang cập nhật..." : "Lưu thay đổi"}
+                </button>
+              )}
             </div>
-
-            {formStep < TOTAL_STEPS ? (
-              <button
-                type="button"
-                onClick={() => moveToStep(formStep + 1)}
-                className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 px-5 text-xs font-black text-slate-950 hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-[0_0_20px_rgba(245,158,11,0.35)]"
-              >
-                Tiếp theo →
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleUpdateCampaign}
-                disabled={isSubmitting}
-                className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 px-5 text-xs font-black text-slate-950 hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-[0_0_25px_rgba(245,158,11,0.45)] disabled:opacity-40"
-              >
-                <Briefcase className="h-4 w-4" />
-                {isSubmitting ? "Đang cập nhật..." : "Lưu thay đổi"}
-              </button>
-            )}
           </div>
-        </div>
+        )}
         {/* Full Image Preview Modal */}
         {previewImage && (
           <div
@@ -1297,7 +1309,7 @@ function MultiChoiceField({
               : `Đã chọn ${selectedItems.length} mục`
     : "Chọn từ danh sách";
 
-  const allSelected = options.every((option) => selectedSet.has(option));
+  const allSelected = options.length > 0 && options.every((option) => selectedSet.has(option));
   const someSelected = options.some((option) => selectedSet.has(option)) && !allSelected;
 
   function toggleAll() {
@@ -1346,8 +1358,9 @@ function MultiChoiceField({
         </button>
 
         {open && (
-          <div className="absolute left-0 right-0 top-full z-[70] mt-2 rounded-2xl border border-amber-500/30 bg-[#0d1226] p-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between gap-3 pb-2 mb-2 border-b border-slate-800">
+          <div className="fixed inset-0 z-[100] sm:absolute sm:inset-auto sm:left-0 sm:right-0 sm:top-full sm:z-[70] sm:mt-2 h-full sm:h-auto max-h-full sm:max-h-[85vh] rounded-none sm:rounded-2xl border-0 sm:border border-amber-500/30 bg-[#0c1021] sm:bg-[#0d1226] p-4 sm:p-3.5 shadow-[0_25px_60px_rgba(0,0,0,0.9)] backdrop-blur-xl animate-in fade-in sm:zoom-in-95 duration-150 flex flex-col justify-between overflow-hidden">
+            {/* Header bar */}
+            <div className="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-800 shrink-0">
               <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-xs font-bold text-slate-200 hover:text-amber-300 transition-colors">
                 <input
                   type="checkbox"
@@ -1362,60 +1375,75 @@ function MultiChoiceField({
                 />
                 <span>{allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}</span>
               </label>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOpenDropdown(null)}
+                  className="rounded-xl bg-gradient-to-r from-amber-300 to-yellow-500 px-5 py-2 sm:py-1.5 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.4)] hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                >
+                  Xong
+                </button>
+              </div>
+            </div>
+
+            {/* Content area scrollable */}
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar">
+              {/* Checkboxes grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {options.map((option) => {
+                  const checked = selectedSet.has(option);
+
+                  return (
+                    <label
+                      key={option}
+                      className={cn(
+                        "flex cursor-pointer items-center gap-2.5 rounded-xl border px-3.5 py-2.5 sm:py-2 text-xs font-medium transition-all",
+                        checked
+                          ? "border-amber-400/50 bg-amber-400/15 text-amber-200 font-bold shadow-sm"
+                          : "border-slate-800 bg-slate-900/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80 hover:text-white"
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleOption(option)}
+                        className="h-4 w-4 sm:h-3.5 sm:w-3.5 shrink-0 rounded accent-amber-400 cursor-pointer"
+                      />
+                      <span>{option}</span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Multiline textarea for entering custom items inside popover */}
+              <div className="pt-3 border-t border-slate-800/80 space-y-1.5 text-left">
+                <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider block">
+                  Nhập thêm tùy chỉnh (mỗi dòng 1 mục):
+                </span>
+                <textarea
+                  value={customTextValue}
+                  onChange={(event) => handleTextChange(event.target.value)}
+                  rows={4}
+                  placeholder={placeholder || "Nhập thêm tùy chỉnh, mỗi dòng 1 mục..."}
+                  className="w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 shadow-inner"
+                />
+              </div>
+            </div>
+
+            {/* Bottom sticky confirm button for mobile */}
+            <div className="pt-3 mt-3 border-t border-slate-800 shrink-0 sm:hidden">
               <button
                 type="button"
                 onClick={() => setOpenDropdown(null)}
-                className="shrink-0 rounded-xl bg-gradient-to-r from-amber-300 to-yellow-500 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.4)] hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-300 to-yellow-500 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.4)] active:scale-95 transition-all cursor-pointer"
               >
-                Xong
+                Hoàn tất chọn
               </button>
             </div>
-            <div className="grid max-h-56 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 custom-scrollbar">
-              {options.map((option) => {
-                const checked = selectedSet.has(option);
-
-                return (
-                  <label
-                    key={option}
-                    className={cn(
-                      "flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-all",
-                      checked
-                        ? "border-amber-400/50 bg-amber-400/15 text-amber-200 font-bold shadow-sm"
-                        : "border-slate-800 bg-slate-900/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80 hover:text-white"
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleOption(option)}
-                      className="h-3.5 w-3.5 shrink-0 rounded accent-amber-400 cursor-pointer"
-                    />
-                    <span>{option}</span>
-                  </label>
-                );
-              })}
-            </div>
-            {!showCustomInput && (
-              <textarea
-                value={customTextValue}
-                onChange={(event) => handleTextChange(event.target.value)}
-                rows={2}
-                placeholder={placeholder}
-                className="mt-3 w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
-              />
-            )}
           </div>
         )}
       </div>
-      {showCustomInput && (
-        <textarea
-          value={customTextValue}
-          onChange={(event) => handleTextChange(event.target.value)}
-          rows={3}
-          placeholder={placeholder}
-          className="w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 shadow-inner"
-        />
-      )}
     </div>
   );
 }

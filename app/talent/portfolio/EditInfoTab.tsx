@@ -127,30 +127,30 @@ function CitySelect({ label, value, onChange }: CitySelectProps) {
 
   return (
     <div ref={dropdownRef} className="space-y-1.5 relative text-left">
-      <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">{label}</label>
+      <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px] mb-1.5">{label}</label>
       <div className="relative">
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="flex w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-slate-950 px-3.5 py-2 text-left text-xs text-white outline-none transition-all hover:border-amber-400 focus:border-amber-400"
+          className="flex w-full items-center justify-between gap-2 rounded-xl border border-white/20 bg-[#060918] px-3.5 py-2.5 text-left text-xs font-semibold text-white outline-none transition-all hover:border-amber-400 focus:border-amber-400 shadow-inner"
         >
           <span className="truncate">{value || `Chọn ${label.toLowerCase()}...`}</span>
-          <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-400 transition-transform", isOpen && "rotate-180")} />
+          <ChevronDown className={cn("h-4 w-4 shrink-0 text-amber-400 transition-transform", isOpen && "rotate-180")} />
         </button>
 
         {isOpen && (
-          <div className="absolute left-0 right-0 top-full z-[100] mt-1.5 rounded-xl border border-white/10 bg-[#08051d] p-2 shadow-2xl max-h-[220px] flex flex-col">
+          <div className="absolute left-0 right-0 top-full z-[100] mt-1.5 rounded-2xl border border-white/25 bg-[#0e142e] p-2.5 shadow-[0_10px_40px_rgba(0,0,0,0.8)] max-h-[220px] flex flex-col backdrop-blur-xl">
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Tìm kiếm..."
-              className="w-full rounded-lg border border-white/10 bg-slate-950 py-1.5 px-3 mb-2 text-xs text-white outline-none placeholder:text-slate-500 focus:border-amber-400"
+              placeholder="Tìm kiếm thành phố..."
+              className="w-full rounded-xl border border-white/20 bg-[#060918] py-2 px-3 mb-2 text-xs text-white outline-none placeholder:text-slate-400 focus:border-amber-400"
               autoFocus
             />
 
-            <div className="overflow-y-auto flex-1 space-y-0.5 custom-scrollbar">
+            <div className="overflow-y-auto flex-1 space-y-1 custom-scrollbar">
               {filteredOptions.length === 0 ? (
-                <div className="px-3 py-2 text-xs text-slate-500 italic">Không tìm thấy kết quả</div>
+                <div className="px-3 py-2 text-xs text-slate-400 italic">Không tìm thấy kết quả</div>
               ) : (
                 filteredOptions.map((city) => {
                   const isSelected = city === value;
@@ -164,8 +164,8 @@ function CitySelect({ label, value, onChange }: CitySelectProps) {
                         setIsOpen(false);
                       }}
                       className={cn(
-                        "block w-full px-3 py-2 rounded-lg text-left text-xs font-semibold transition-colors hover:bg-white/5",
-                        isSelected ? "bg-amber-400/10 text-amber-300 font-bold" : "text-slate-300"
+                        "block w-full px-3 py-2 rounded-xl text-left text-xs font-semibold transition-colors hover:bg-white/10",
+                        isSelected ? "bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30" : "text-slate-200"
                       )}
                     >
                       {city}
@@ -476,6 +476,7 @@ export default function EditInfoTab({
         ...syncedProfile,
         ...profile,
         [field]: photoUrl,
+        photos: (profile.photos || []).filter((p: string) => p !== photoUrl && p !== previewUrl),
         ...(syncedProfile.backendProfileId
           ? {
             isOnboarded: true,
@@ -508,6 +509,20 @@ export default function EditInfoTab({
       addToast(error instanceof Error ? error.message : "Có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.", "info");
       URL.revokeObjectURL(previewUrl);
     }
+  };
+
+  const handleDeleteCccd = (type: "cccd_front" | "cccd_back" | "cccd_selfie") => {
+    const fieldMap = {
+      cccd_front: "cccdFront",
+      cccd_back: "cccdBack",
+      cccd_selfie: "cccdSelfie"
+    };
+    const field = fieldMap[type];
+    setProfile((current: any) => ({ ...current, [field]: null }));
+    if (type === "cccd_front") setCccdFront(null);
+    if (type === "cccd_back") setCccdBack(null);
+    if (type === "cccd_selfie") setSelfie(null);
+    addToast("Đã xóa ảnh.", "info");
   };
 
   // Submit Identity Verification Request
@@ -588,133 +603,133 @@ export default function EditInfoTab({
     <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-300">
 
       {/* SUB-SECTION 1: PERSONAL INFORMATION & METRICS FORM */}
-      <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
-        <div className="border-b border-[#151b2d] pb-4 flex justify-between items-center gap-4">
+      <div className="rounded-3xl border border-white/10 bg-[#090c1e]/90 p-6 md:p-8 space-y-6 shadow-2xl backdrop-blur-xl">
+        <div className="border-b border-white/10 pb-4 flex justify-between items-center gap-4">
           <div>
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-              <Edit3 className="h-4.5 w-4.5 text-[#f4c430]" /> Cập Nhật Thông Tin Cá Nhân
+            <h3 className="font-display font-black text-sm md:text-base text-white uppercase tracking-wider flex items-center gap-2">
+              <Edit3 className="h-5 w-5 text-[#F0C56B]" /> Cập Nhật Thông Tin Cá Nhân
             </h3>
-            <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+            <span className="block text-[10px] md:text-xs text-slate-400 font-medium uppercase mt-1 tracking-wider">
               Đồng bộ trực tiếp lên hệ thống và hiển thị chỉ số ngoại hình của bạn
             </span>
           </div>
           <button
             type="button"
             onClick={() => handleSave()}
-            className="shrink-0 px-4 py-1.5 rounded-xl bg-[#f4c430] hover:brightness-105 active:scale-95 text-slate-950 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-md"
+            className="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-gold hover:shadow-[0_0_15px_rgba(240,197,107,0.4)] hover:scale-103 active:scale-95 text-slate-950 text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-md"
           >
             Lưu
           </button>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-4 text-xs">
+        <form onSubmit={handleSave} className="space-y-6 text-xs">
 
           {/* PHÂN NHÓM 1: THÔNG TIN CÁ NHÂN & LIÊN HỆ */}
-          <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
-            <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
+          <div className="bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
+            <h4 className="font-bold text-xs md:text-sm text-[#F0C56B] uppercase tracking-widest border-b border-white/10 pb-2.5 mb-3 flex items-center gap-2">
               Thông tin cá nhân & Liên hệ
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Họ tên / Nghệ danh</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Họ tên / Nghệ danh</label>
                 <input
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Giới tính</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Giới tính</label>
                 <select
                   value={editForm.gender}
                   onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner cursor-pointer"
                 >
-                  <option value="Nữ">Nữ</option>
-                  <option value="Nam">Nam</option>
-                  <option value="Khác">Khác</option>
+                  <option value="Nữ" className="bg-[#0e142e] text-white">Nữ</option>
+                  <option value="Nam" className="bg-[#0e142e] text-white">Nam</option>
+                  <option value="Khác" className="bg-[#0e142e] text-white">Khác</option>
                 </select>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngày sinh</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Ngày sinh</label>
                 <input
                   type="date"
                   value={editForm.dob}
                   onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Học vấn</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Học vấn</label>
                 <input
                   type="text"
                   value={editForm.education}
                   onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Email</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Email</label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Số điện thoại</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Số điện thoại</label>
                 <input
                   type="text"
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5 md:col-span-2">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Portfolio URL</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Portfolio URL</label>
                 <input
                   type="url"
                   value={editForm.portfolio_url}
                   onChange={(e) => setEditForm({ ...editForm, portfolio_url: e.target.value })}
                   placeholder="https://..."
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5 md:col-span-2">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Mô tả bản thân (Giới thiệu)</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Mô tả bản thân (Giới thiệu)</label>
                 <textarea
                   value={editForm.bio || ""}
                   onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
                   rows={3}
                   placeholder="Nhập mô tả ngắn giới thiệu về bản thân của bạn..."
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors resize-none"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all resize-none shadow-inner"
                 />
               </div>
             </div>
           </div>
 
           {/* PHÂN NHÓM 2: KHU VỰC HOẠT ĐỘNG */}
-          <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
-            <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
+          <div className="bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
+            <h4 className="font-bold text-xs md:text-sm text-[#F0C56B] uppercase tracking-widest border-b border-white/10 pb-2.5 mb-3 flex items-center gap-2">
               Khu vực hoạt động
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
               <CitySelect
                 label="Thành phố"
                 value={editForm.location}
                 onChange={(val) => setEditForm((prev: any) => ({ ...prev, location: val }))}
               />
               <div className="space-y-1.5 text-left">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px] mb-1.5">
                   Địa chỉ chi tiết
                 </label>
                 <input
@@ -722,65 +737,65 @@ export default function EditInfoTab({
                   value={editForm.hometown}
                   onChange={(e) => setEditForm((prev: any) => ({ ...prev, hometown: e.target.value }))}
                   placeholder="Nhập địa chỉ chi tiết (ví dụ: 123 Đường ABC, Quận XYZ)"
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors text-xs placeholder:text-slate-600"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner placeholder:text-slate-400"
                 />
               </div>
             </div>
           </div>
 
           {/* PHÂN NHÓM 3: NGOẠI HÌNH & CHỈ SỐ CƠ THỂ */}
-          <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
-            <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
+          <div className="bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
+            <h4 className="font-bold text-xs md:text-sm text-[#F0C56B] uppercase tracking-widest border-b border-white/10 pb-2.5 mb-3 flex items-center gap-2">
               Ngoại hình
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Chiều cao (cm)</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Chiều cao (cm)</label>
                 <input
                   type="number"
                   value={editForm.height}
                   onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Cân nặng (kg)</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Cân nặng (kg)</label>
                 <input
                   type="number"
                   value={editForm.weight}
                   onChange={(e) => setEditForm({ ...editForm, weight: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5 md:col-span-2">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px] mb-1">Số đo 3 vòng (cm)</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px] mb-1.5">Số đo 3 vòng (cm)</label>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <span className="text-[9px] text-slate-500 font-semibold block text-left">Vòng 1</span>
+                    <span className="text-[10px] text-slate-300 font-bold block text-left">Vòng 1</span>
                     <input
                       type="number"
                       value={editForm.bust}
                       onChange={(e) => setEditForm({ ...editForm, bust: e.target.value })}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                      className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 transition-colors shadow-inner"
                     />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[9px] text-slate-500 font-semibold block text-left">Vòng 2</span>
+                    <span className="text-[10px] text-slate-300 font-bold block text-left">Vòng 2</span>
                     <input
                       type="number"
                       value={editForm.waist}
                       onChange={(e) => setEditForm({ ...editForm, waist: e.target.value })}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                      className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 transition-colors shadow-inner"
                     />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[9px] text-slate-500 font-semibold block text-left">Vòng 3</span>
+                    <span className="text-[10px] text-slate-300 font-bold block text-left">Vòng 3</span>
                     <input
                       type="number"
                       value={editForm.hips}
                       onChange={(e) => setEditForm({ ...editForm, hips: e.target.value })}
-                      className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                      className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 transition-colors shadow-inner"
                     />
                   </div>
                 </div>
@@ -789,50 +804,50 @@ export default function EditInfoTab({
           </div>
 
           {/* PHÂN NHÓM 4: THÔNG TIN NGHỀ NGHIỆP & MỨC GIÁ */}
-          <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
-            <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
+          <div className="bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
+            <h4 className="font-bold text-xs md:text-sm text-[#F0C56B] uppercase tracking-widest border-b border-white/10 pb-2.5 mb-3 flex items-center gap-2">
               Thông tin nghề nghiệp
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Mức giá (VD: "5.000.000đ/ngày" hoặc "Thỏa thuận")</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Mức giá (VD: "5.000.000đ/ngày" hoặc "Thỏa thuận")</label>
                 <input
                   type="text"
                   value={editForm.price}
                   onChange={(e) => handlePriceChange(e.target.value, editForm.price)}
                   placeholder="Nhập mức giá dịch vụ của bạn..."
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Kinh nghiệm (năm)</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Kinh nghiệm (năm)</label>
                 <input
                   type="number"
                   min={0}
                   max={20}
                   value={editForm.experience}
                   onChange={(e) => setEditForm({ ...editForm, experience: e.target.value })}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
 
-              {/* Loại hình Talent */}
+              {/* Loại hình Idol */}
               <div className="space-y-3">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Loại hình Talent</label>
-                <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-[#05070e] border border-white/5 rounded-xl text-left">
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Loại hình Idol</label>
+                <div className="flex flex-wrap gap-2 min-h-[42px] p-2.5 bg-[#060918] border border-white/15 rounded-xl text-left shadow-inner">
                   {editForm.talentTypes.length === 0 ? (
-                    <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn loại hình nào</span>
+                    <span className="text-xs text-slate-400 italic px-2 py-1">Chưa chọn loại hình nào</span>
                   ) : (
                     editForm.talentTypes.map((skill: string) => (
-                      <span key={skill} className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                      <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
                         {skill}
                         <button
                           type="button"
                           onClick={() => handleRemoveSkill(skill)}
                           className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       </span>
                     ))
@@ -844,7 +859,7 @@ export default function EditInfoTab({
                     handleAddSkill(e.target.value);
                     e.target.value = "";
                   }}
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-300 text-[11px] font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none"
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3 py-2.5 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none shadow-inner"
                   style={{
                     backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
                     backgroundRepeat: "no-repeat",
@@ -853,11 +868,11 @@ export default function EditInfoTab({
                     paddingRight: "2rem"
                   }}
                 >
-                  <option value="" disabled hidden>Thêm loại hình Talent...</option>
+                  <option value="" disabled hidden>Thêm loại hình Idol...</option>
                   {talentTypeOptions
                     .filter((s: string) => !editForm.talentTypes.includes(s))
                     .map((s: string) => (
-                      <option key={s} value={s} className="bg-slate-950 text-white">{s}</option>
+                      <option key={s} value={s} className="bg-[#0e142e] text-white py-1">{s}</option>
                     ))
                   }
                 </select>
@@ -865,64 +880,110 @@ export default function EditInfoTab({
 
               {/* Ngôn ngữ */}
               <div className="space-y-3">
-                <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Ngôn ngữ</label>
-                <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-[#05070e] border border-white/5 rounded-xl text-left">
-                  {editForm.languages.length === 0 ? (
-                    <span className="text-[10px] text-slate-600 italic px-2 py-1">Chưa chọn ngôn ngữ nào</span>
-                  ) : (
-                    editForm.languages.map((lang: string) => (
-                      <span key={lang} className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Trình độ ngoại ngữ</label>
+
+                {/* Active languages list */}
+                {editForm.languages.length > 0 && (
+                  <div className="flex flex-wrap gap-2 p-2.5 bg-[#060918] border border-white/15 rounded-xl text-left shadow-inner">
+                    {editForm.languages.map((lang: string) => (
+                      <span key={lang} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
                         {lang}
                         <button
                           type="button"
                           onClick={() => handleRemoveLanguage(lang)}
                           className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       </span>
-                    ))
-                  )}
-                </div>
-                <div className="flex flex-col gap-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <select
-                      value={selectedLangName}
-                      onChange={(e) => setSelectedLangName(e.target.value)}
-                      className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-slate-300 text-[11px] font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none"
-                      style={{
-                        backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "right 0.75rem center",
-                        backgroundSize: "0.85em",
-                        paddingRight: "2rem"
-                      }}
-                    >
-                      <option value="" disabled hidden>Chọn ngôn ngữ...</option>
-                      {availableLanguages.map((l: string) => (
-                        <option key={l} value={l} className="bg-slate-950 text-white">{l}</option>
-                      ))}
-                    </select>
+                    ))}
+                  </div>
+                )}
 
-                    <input
-                      type="text"
-                      value={langProficiency}
-                      onChange={(e) => setLangProficiency(e.target.value)}
-                      placeholder="Trình độ (e.g. Bản xứ, IELTS 7.5)"
-                      className="bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-white text-[11px] font-semibold focus:outline-none focus:border-amber-400 transition-colors"
-                    />
+                {/* Quick Add Suggestions */}
+                <div className="space-y-1.5">
+                  <span className="text-[9px] text-slate-400 font-semibold block">Gợi ý chọn nhanh:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["Tiếng Việt", "Tiếng Anh", "Tiếng Trung", "Tiếng Hàn", "Tiếng Nhật", "Tiếng Pháp"].map((lang) => {
+                      const isAdded = editForm.languages.some((l: string) => l.includes(lang));
+                      if (isAdded) return null;
+                      return (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => {
+                            setSelectedLangName(lang);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                            selectedLangName === lang
+                              ? "bg-amber-400/20 border-amber-400 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+                              : "bg-white/5 hover:bg-amber-400/20 border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300"
+                          }`}
+                        >
+                          <Plus className="h-3 w-3" /> {lang}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Inputs with explicit labels */}
+                <div className="space-y-3 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Field 1: Chọn ngôn ngữ */}
+                    <div className="space-y-1.5 text-left">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-300">
+                        Chọn ngôn ngữ <span className="text-amber-400">*</span>
+                      </label>
+                      <select
+                        value={selectedLangName}
+                        onChange={(e) => setSelectedLangName(e.target.value)}
+                        className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none shadow-inner"
+                        style={{
+                          backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "right 0.75rem center",
+                          backgroundSize: "0.85em",
+                          paddingRight: "2rem"
+                        }}
+                      >
+                        <option value="" disabled hidden>-- Chọn ngôn ngữ --</option>
+                        {availableLanguages
+                          .filter((l: string) => !editForm.languages.some((added: string) => added.includes(l)))
+                          .map((l: string) => (
+                            <option key={l} value={l} className="bg-[#0e142e] text-white py-1">{l}</option>
+                          ))
+                        }
+                      </select>
+                    </div>
+
+                    {/* Field 2: Trình độ */}
+                    <div className="space-y-1.5 text-left">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-300">
+                        Trình độ <span className="text-slate-400 text-[8px] uppercase font-normal">(tùy chọn)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={langProficiency}
+                        onChange={(e) => setLangProficiency(e.target.value)}
+                        placeholder="Ví dụ: Bản xứ, IELTS 7.5..."
+                        className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-white text-xs font-medium placeholder:text-slate-500 focus:outline-none focus:border-amber-400 transition-colors shadow-inner"
+                      />
+                    </div>
                   </div>
 
+                  {/* Add language button */}
                   <button
                     type="button"
                     onClick={handleAddLanguage}
                     disabled={!selectedLangName}
-                    className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${selectedLangName
-                      ? "bg-[#f4c430] text-slate-950 hover:opacity-90 active:scale-95 cursor-pointer"
-                      : "bg-slate-800 text-slate-500 cursor-not-allowed"
-                      }`}
+                    className={`w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                      selectedLangName
+                        ? "bg-gradient-gold text-slate-950 hover:shadow-[0_0_15px_rgba(240,197,107,0.3)] active:scale-95 cursor-pointer"
+                        : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                    }`}
                   >
-                    <Plus className="h-3.5 w-3.5" /> Thêm ngoại ngữ
+                    <Plus className="h-4 w-4" /> Thêm ngoại ngữ
                   </button>
                 </div>
               </div>
@@ -930,28 +991,28 @@ export default function EditInfoTab({
           </div>
 
           {/* PHÂN NHÓM 5: LIÊN KẾT MẠNG XÃ HỘI */}
-          <div className="bg-[#05070e]/40 p-5 rounded-2xl border border-white/5 space-y-4 text-left">
-            <h4 className="font-bold text-[10px] text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 mb-2">
+          <div className="bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
+            <h4 className="font-bold text-xs md:text-sm text-[#F0C56B] uppercase tracking-widest border-b border-white/10 pb-2.5 mb-3 flex items-center gap-2">
               Liên kết Mạng xã hội
             </h4>
 
             {/* List of added accounts */}
             <div className="space-y-2">
               {socialAccounts.length === 0 ? (
-                <div className="text-slate-500 italic text-[11px] py-1">Chưa có liên kết mạng xã hội nào được thêm.</div>
+                <div className="text-slate-400 italic text-xs py-1">Chưa có liên kết mạng xã hội nào được thêm.</div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {socialAccounts.map((account, index) => (
-                    <div key={index} className="flex items-center justify-between gap-3 bg-slate-950 border border-white/5 rounded-xl px-3.5 py-2">
+                    <div key={index} className="flex items-center justify-between gap-3 bg-[#060918] border border-white/15 rounded-xl px-3.5 py-2.5 shadow-inner">
                       <div className="min-w-0 flex-1">
-                        <span className="text-[9px] font-black text-amber-400 uppercase tracking-wider block">
+                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider block">
                           {account.platform}
                         </span>
                         <a
                           href={account.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[11px] text-slate-300 hover:text-white truncate block font-semibold"
+                          className="text-xs text-slate-200 hover:text-white truncate block font-semibold"
                           title={account.url}
                         >
                           {account.url.replace(/https?:\/\/(www\.)?/, '')}
@@ -962,7 +1023,7 @@ export default function EditInfoTab({
                         onClick={() => {
                           setSocialAccounts(prev => prev.filter((_, idx) => idx !== index));
                         }}
-                        className="text-slate-500 hover:text-red-400 p-1 cursor-pointer transition-colors"
+                        className="text-slate-400 hover:text-red-400 p-1 cursor-pointer transition-colors"
                         title="Xóa liên kết"
                       >
                         <Trash2 className="h-4.5 w-4.5" />
@@ -974,30 +1035,30 @@ export default function EditInfoTab({
             </div>
 
             {/* Input to add new account */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end pt-3 border-t border-white/5">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end pt-3 border-t border-white/10">
               <div className="space-y-1.5 md:col-span-3">
-                <span className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Chọn nền tảng</span>
+                <span className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Chọn nền tảng</span>
                 <select
                   value={socialPlatform}
                   onChange={(e) => setSocialPlatform(e.target.value as any)}
-                  className="w-full h-[38px] bg-slate-950 border border-white/10 rounded-xl px-3 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full h-[40px] bg-[#060918] border border-white/20 rounded-xl px-3 text-white focus:outline-none focus:border-amber-400 transition-colors shadow-inner"
                 >
-                  <option value="Tiktok">Tiktok</option>
-                  <option value="Facebook">Facebook</option>
-                  <option value="Instagram">Instagram</option>
-                  <option value="Thread">Thread</option>
-                  <option value="Linkedin">Linkedin</option>
+                  <option value="Tiktok" className="bg-[#0e142e]">Tiktok</option>
+                  <option value="Facebook" className="bg-[#0e142e]">Facebook</option>
+                  <option value="Instagram" className="bg-[#0e142e]">Instagram</option>
+                  <option value="Thread" className="bg-[#0e142e]">Thread</option>
+                  <option value="Linkedin" className="bg-[#0e142e]">Linkedin</option>
                 </select>
               </div>
 
               <div className="space-y-1.5 md:col-span-7">
-                <span className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Đường dẫn (Link)</span>
+                <span className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Đường dẫn (Link)</span>
                 <input
                   type="url"
                   value={socialLink}
                   onChange={(e) => setSocialLink(e.target.value)}
                   placeholder="https://..."
-                  className="w-full h-[38px] bg-slate-950 border border-white/10 rounded-xl px-3.5 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full h-[40px] bg-[#060918] border border-white/20 rounded-xl px-3.5 text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 transition-colors shadow-inner"
                 />
               </div>
 
@@ -1013,7 +1074,7 @@ export default function EditInfoTab({
                     setSocialAccounts(prev => [...prev, { platform: socialPlatform, url: targetUrl }]);
                     setSocialLink("");
                   }}
-                  className="w-full bg-[#f4c430] hover:opacity-90 active:scale-95 text-slate-950 rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider h-[38px] flex items-center justify-center cursor-pointer transition-all shadow-sm shrink-0"
+                  className="w-full bg-gradient-gold hover:shadow-[0_0_15px_rgba(240,197,107,0.3)] active:scale-95 text-slate-950 rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider h-[40px] flex items-center justify-center cursor-pointer transition-all shadow-sm shrink-0"
                 >
                   Thêm
                 </button>
@@ -1023,21 +1084,21 @@ export default function EditInfoTab({
 
           {/* Lifestyle Companion services config editing */}
           {lifestyleServices && lifestyleServices.length > 0 && (
-            <div className="border-t border-[#151b2d] pt-4 space-y-4">
+            <div className="border-t border-white/10 pt-4 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-300 uppercase tracking-wider text-[8px] text-left">
+                <span className="font-bold text-slate-200 uppercase tracking-wider text-[10px] text-left">
                   Dịch Vụ Đồng Hành VIP
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsLifestyleExpanded(!isLifestyleExpanded)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 hover:border-amber-400/40 text-[9px] font-black uppercase transition-all duration-300 focus:outline-none hover:shadow-[0_0_10px_rgba(244,196,48,0.15)]"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-400/15 border border-amber-400/30 text-amber-300 hover:bg-amber-400/25 hover:border-amber-400/50 text-[10px] font-black uppercase transition-all duration-300 focus:outline-none shadow-sm"
                 >
                   <span>{isLifestyleExpanded ? "Thu gọn" : "Cấu hình"}</span>
                   {isLifestyleExpanded ? (
-                    <ChevronUp className="h-3.5 w-3.5" />
+                    <ChevronUp className="h-4 w-4" />
                   ) : (
-                    <ChevronDown className="h-3.5 w-3.5" />
+                    <ChevronDown className="h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -1046,7 +1107,7 @@ export default function EditInfoTab({
                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                   {/* Select All Toggle - shown only when expanded */}
                   <div className="flex justify-end">
-                    <label className="flex items-center gap-1.5 cursor-pointer select-none bg-slate-950/60 border border-white/5 px-2.5 py-1.5 rounded-lg hover:border-white/10 transition-colors">
+                    <label className="flex items-center gap-2 cursor-pointer select-none bg-[#060918] border border-white/15 px-3 py-1.5 rounded-xl hover:border-white/30 transition-colors">
                       <input
                         type="checkbox"
                         checked={lifestyleServices.length > 0 && lifestyleServices.every(s => s.enabled)}
@@ -1055,9 +1116,9 @@ export default function EditInfoTab({
                           const updated = lifestyleServices.map(s => ({ ...s, enabled: checked }));
                           setLifestyleServices(updated);
                         }}
-                        className="rounded accent-[#f4c430] h-3.5 w-3.5 cursor-pointer"
+                        className="rounded accent-amber-400 h-4 w-4 cursor-pointer"
                       />
-                      <span className="text-[8px] font-black text-slate-400 uppercase">Chọn tất cả</span>
+                      <span className="text-[10px] font-black text-slate-300 uppercase">Chọn tất cả</span>
                     </label>
                   </div>
 
@@ -1065,7 +1126,7 @@ export default function EditInfoTab({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {lifestyleServices.map((service, index) => {
                       return (
-                        <div key={service.id} className="rounded-xl border border-white/5 bg-slate-950 p-4 space-y-3 text-left">
+                        <div key={service.id} className="rounded-2xl border border-white/10 bg-[#060918] p-4.5 space-y-3 text-left shadow-inner">
                           <div className="flex justify-between items-center">
                             <span className="font-bold text-xs text-white">{service.title}</span>
                             <label className="flex items-center gap-1.5 cursor-pointer select-none">
@@ -1077,17 +1138,17 @@ export default function EditInfoTab({
                                   updated[index] = { ...service, enabled: e.target.checked };
                                   setLifestyleServices(updated);
                                 }}
-                                className="rounded accent-[#f4c430] h-3.5 w-3.5 cursor-pointer"
+                                className="rounded accent-amber-400 h-4 w-4 cursor-pointer"
                               />
-                              <span className="text-[8px] font-black text-slate-400 uppercase">Kích hoạt</span>
+                              <span className="text-[9px] font-black text-slate-300 uppercase">Kích hoạt</span>
                             </label>
                           </div>
 
-                          <p className="text-xs text-slate-500 leading-normal">{service.description}</p>
+                          <p className="text-xs text-slate-400 leading-normal">{service.description}</p>
 
                           {service.enabled && (
                             <div className="space-y-1.5 animate-in fade-in duration-200">
-                              <label className="block font-bold text-slate-400 uppercase tracking-wider text-[8px]">Giá dịch vụ đề xuất (VND / {service.unit})</label>
+                              <label className="block font-bold text-slate-300 uppercase tracking-wider text-[9px]">Giá dịch vụ đề xuất (VND / {service.unit})</label>
                               <input
                                 type="number"
                                 value={service.rate}
@@ -1096,7 +1157,7 @@ export default function EditInfoTab({
                                   updated[index] = { ...service, rate: Number(e.target.value) };
                                   setLifestyleServices(updated);
                                 }}
-                                className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-amber-400 transition-colors"
+                                className="w-full bg-[#0e142e] border border-white/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400 transition-colors"
                               />
                             </div>
                           )}
@@ -1110,10 +1171,10 @@ export default function EditInfoTab({
           )}
 
           {/* Submit Button */}
-          <div className="pt-2">
+          <div className="pt-3">
             <button
               type="submit"
-              className="w-full h-10 rounded-xl bg-[#f4c430] text-slate-950 font-black uppercase tracking-wider hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-lg"
+              className="w-full h-11 rounded-xl bg-gradient-gold text-slate-950 font-black uppercase tracking-wider hover:shadow-[0_0_20px_rgba(240,197,107,0.4)] hover:scale-[1.01] active:scale-98 transition-all cursor-pointer shadow-lg text-xs"
             >
               Lưu thay đổi
             </button>
@@ -1121,28 +1182,40 @@ export default function EditInfoTab({
         </form>
       </div>
 
-      {/* SUB-SECTION 2: CCCD IDENTITY DOCUMENT VERIFICATION */}
-      <div className="rounded-2xl border border-cyan-500/20 bg-[#08090f] p-6 space-y-6">
-        <div className="border-b border-[#151b2d] pb-4">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-            <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> Xác Minh Căn Cước Công Dân (CCCD)
+      {/* SUB-SECTION 2: CCCD IDENTITY DOCUMENT VERIFICATION (Temporarily disabled) */}
+      {/*
+      <div className="rounded-3xl border border-cyan-500/30 bg-[#081224]/90 p-6 md:p-8 space-y-6 shadow-2xl backdrop-blur-xl">
+        <div className="border-b border-cyan-500/20 pb-4">
+          <h3 className="font-display font-black text-sm md:text-base text-white uppercase tracking-wider flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-cyan-400" /> Xác Minh Căn Cước Công Dân (CCCD)
           </h3>
-          <span className="block text-[8px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+          <span className="block text-[10px] md:text-xs text-slate-300 font-medium uppercase mt-1 tracking-wider">
             Tải lên thông tin bắt buộc để nhận Tích xanh/Tích vàng Elite xác thực tài khoản
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-300">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 text-xs text-slate-200">
 
-          {/* Front CCCD */}
-          <div className="rounded-xl bg-slate-950 p-4 border border-white/5 flex flex-col justify-between items-center text-center space-y-3">
-            <span className="font-bold block uppercase text-[8px] text-slate-400">CCCD Mặt trước</span>
-            <div className="h-24 w-full rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden group">
+          <div className="rounded-2xl bg-[#09152a] p-4.5 border border-cyan-500/20 hover:border-cyan-400/40 transition-all flex flex-col justify-between items-center text-center space-y-3.5 shadow-md">
+            <span className="font-bold block uppercase text-[9px] md:text-[10px] text-cyan-300 tracking-wider">CCCD Mặt trước</span>
+            <div className="h-28 w-full rounded-xl bg-[#050b18] border border-white/10 flex items-center justify-center text-slate-500 relative overflow-hidden group">
               {cccdFront ? (
                 <>
                   <img src={normalizeBackendAssetUrl(cccdFront)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" alt="CCCD Mặt trước" />
-                  <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                    <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteCccd("cccd_front");
+                    }}
+                    disabled={verificationStatus === "verified"}
+                    className="absolute top-2 right-2 z-30 h-7 w-7 rounded-full bg-slate-950/80 hover:bg-rose-600 border border-white/20 text-white hover:border-rose-400 flex items-center justify-center transition-all shadow-lg cursor-pointer focus:outline-none"
+                    title="Xóa ảnh mặt trước"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <div className="absolute inset-0 bg-black/35 sm:bg-black/55 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/80 hover:bg-black/95 border border-white/20 hover:border-amber-400 rounded-xl px-3.5 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                       <Upload className="h-5 w-5 text-amber-400" />
                       <span>Thay đổi ảnh</span>
                       <input
@@ -1157,9 +1230,9 @@ export default function EditInfoTab({
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center p-4">
-                  <span className="text-[8px] text-slate-500 mb-2">Chưa chọn ảnh nào</span>
-                  <label className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-[8px] font-black uppercase tracking-wider cursor-pointer transition-all">
-                    <Upload className="h-3.5 w-3.5 text-white" />
+                  <span className="text-[10px] text-slate-400 mb-2 font-medium">Chưa chọn ảnh nào</span>
+                  <label className="flex items-center gap-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 rounded-xl px-3 py-1.5 text-cyan-300 text-[9px] font-black uppercase tracking-wider cursor-pointer transition-all">
+                    <Upload className="h-3.5 w-3.5 text-cyan-300" />
                     <span>Tải ảnh lên</span>
                     <input
                       type="file"
@@ -1172,7 +1245,6 @@ export default function EditInfoTab({
                 </div>
               )}
 
-              {/* Progress bar overlay */}
               {uploadingState["cccd_front"] && (
                 <ProgressBar
                   progress={uploadingState["cccd_front"].progress}
@@ -1182,15 +1254,26 @@ export default function EditInfoTab({
             </div>
           </div>
 
-          {/* Back CCCD */}
-          <div className="rounded-xl bg-slate-950 p-4 border border-white/5 flex flex-col justify-between items-center text-center space-y-3">
-            <span className="font-bold block uppercase text-[8px] text-slate-400">CCCD Mặt sau</span>
-            <div className="h-24 w-full rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden group">
+          <div className="rounded-2xl bg-[#09152a] p-4.5 border border-cyan-500/20 hover:border-cyan-400/40 transition-all flex flex-col justify-between items-center text-center space-y-3.5 shadow-md">
+            <span className="font-bold block uppercase text-[9px] md:text-[10px] text-cyan-300 tracking-wider">CCCD Mặt sau</span>
+            <div className="h-28 w-full rounded-xl bg-[#050b18] border border-white/10 flex items-center justify-center text-slate-500 relative overflow-hidden group">
               {cccdBack ? (
                 <>
                   <img src={normalizeBackendAssetUrl(cccdBack)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" alt="CCCD Mặt sau" />
-                  <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                    <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteCccd("cccd_back");
+                    }}
+                    disabled={verificationStatus === "verified"}
+                    className="absolute top-2 right-2 z-30 h-7 w-7 rounded-full bg-slate-950/80 hover:bg-rose-600 border border-white/20 text-white hover:border-rose-400 flex items-center justify-center transition-all shadow-lg cursor-pointer focus:outline-none"
+                    title="Xóa ảnh mặt sau"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <div className="absolute inset-0 bg-black/35 sm:bg-black/55 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/80 hover:bg-black/95 border border-white/20 hover:border-amber-400 rounded-xl px-3.5 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                       <Upload className="h-5 w-5 text-amber-400" />
                       <span>Thay đổi ảnh</span>
                       <input
@@ -1205,9 +1288,9 @@ export default function EditInfoTab({
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center p-4">
-                  <span className="text-[8px] text-slate-500 mb-2">Chưa chọn ảnh nào</span>
-                  <label className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-[8px] font-black uppercase tracking-wider cursor-pointer transition-all">
-                    <Upload className="h-3.5 w-3.5 text-white" />
+                  <span className="text-[10px] text-slate-400 mb-2 font-medium">Chưa chọn ảnh nào</span>
+                  <label className="flex items-center gap-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 rounded-xl px-3 py-1.5 text-cyan-300 text-[9px] font-black uppercase tracking-wider cursor-pointer transition-all">
+                    <Upload className="h-3.5 w-3.5 text-cyan-300" />
                     <span>Tải ảnh lên</span>
                     <input
                       type="file"
@@ -1220,7 +1303,6 @@ export default function EditInfoTab({
                 </div>
               )}
 
-              {/* Progress bar overlay */}
               {uploadingState["cccd_back"] && (
                 <ProgressBar
                   progress={uploadingState["cccd_back"].progress}
@@ -1230,15 +1312,26 @@ export default function EditInfoTab({
             </div>
           </div>
 
-          {/* Selfie Verified */}
-          <div className="rounded-xl bg-slate-950 p-4 border border-white/5 flex flex-col justify-between items-center text-center space-y-3">
-            <span className="font-bold block uppercase text-[8px] text-slate-400">Ảnh chân dung Selfie</span>
-            <div className="h-24 w-full rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600 relative overflow-hidden group">
+          <div className="rounded-2xl bg-[#09152a] p-4.5 border border-cyan-500/20 hover:border-cyan-400/40 transition-all flex flex-col justify-between items-center text-center space-y-3.5 shadow-md">
+            <span className="font-bold block uppercase text-[9px] md:text-[10px] text-cyan-300 tracking-wider">Ảnh chân dung Selfie</span>
+            <div className="h-28 w-full rounded-xl bg-[#050b18] border border-white/10 flex items-center justify-center text-slate-500 relative overflow-hidden group">
               {selfie ? (
                 <>
                   <img src={normalizeBackendAssetUrl(selfie)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Ảnh chân dung Selfie" />
-                  <div className="absolute inset-0 bg-black/25 sm:bg-black/45 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
-                    <label className="flex flex-col items-center gap-1.5 bg-black/75 hover:bg-black/90 border border-white/15 hover:border-amber-400/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteCccd("cccd_selfie");
+                    }}
+                    disabled={verificationStatus === "verified"}
+                    className="absolute top-2 right-2 z-30 h-7 w-7 rounded-full bg-slate-950/80 hover:bg-rose-600 border border-white/20 text-white hover:border-rose-400 flex items-center justify-center transition-all shadow-lg cursor-pointer focus:outline-none"
+                    title="Xóa ảnh chân dung"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <div className="absolute inset-0 bg-black/35 sm:bg-black/55 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                    <label className="flex flex-col items-center gap-1.5 bg-black/80 hover:bg-black/95 border border-white/20 hover:border-amber-400 rounded-xl px-3.5 py-2.5 sm:px-4 sm:py-3 text-white text-[10px] font-bold cursor-pointer transition-all">
                       <Upload className="h-5 w-5 text-amber-400" />
                       <span>Thay đổi ảnh</span>
                       <input
@@ -1253,9 +1346,9 @@ export default function EditInfoTab({
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center p-4">
-                  <span className="text-[8px] text-slate-500 mb-2">Chưa chọn ảnh nào</span>
-                  <label className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-[8px] font-black uppercase tracking-wider cursor-pointer transition-all">
-                    <Upload className="h-3.5 w-3.5 text-white" />
+                  <span className="text-[10px] text-slate-400 mb-2 font-medium">Chưa chọn ảnh nào</span>
+                  <label className="flex items-center gap-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 rounded-xl px-3 py-1.5 text-cyan-300 text-[9px] font-black uppercase tracking-wider cursor-pointer transition-all">
+                    <Upload className="h-3.5 w-3.5 text-cyan-300" />
                     <span>Tải ảnh lên</span>
                     <input
                       type="file"
@@ -1268,7 +1361,6 @@ export default function EditInfoTab({
                 </div>
               )}
 
-              {/* Progress bar overlay */}
               {uploadingState["cccd_selfie"] && (
                 <ProgressBar
                   progress={uploadingState["cccd_selfie"].progress}
@@ -1280,10 +1372,10 @@ export default function EditInfoTab({
 
         </div>
 
-        <div className="bg-slate-950/60 p-4 rounded-xl border border-dashed border-[#151b2d] flex justify-between items-center gap-4 text-xs">
+        <div className="bg-[#050b18] p-4.5 rounded-2xl border border-cyan-500/20 flex justify-between items-center gap-4 text-xs shadow-inner">
           <div className="space-y-1">
             <span className="font-bold text-white block">Trạng thái phê duyệt CCCD</span>
-            <span className="text-[9.5px] text-slate-400 block">
+            <span className="text-xs text-slate-300 block font-medium">
               {verificationStatus === "unverified" && "Chưa gửi yêu cầu. Vui lòng tải đủ 3 ảnh trên."}
               {verificationStatus === "pending" && "⏳ Hồ sơ đang chờ quản trị viên phê duyệt trong vòng 120 phút."}
               {verificationStatus === "verified" && "🎉 Tài khoản đã được định danh thật thành công trên hệ thống!"}
@@ -1293,13 +1385,14 @@ export default function EditInfoTab({
             <button
               type="button"
               onClick={handleIdentitySubmit}
-              className="bg-cyan-500 text-slate-950 hover:bg-cyan-400 text-[9px] font-black uppercase tracking-wider px-4 py-2 rounded-lg transition-all"
+              className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[10px] font-black uppercase tracking-wider px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-md shrink-0"
             >
               {verificationStatus === "pending" ? "Đang xử lý..." : "Gửi yêu cầu xác thực"}
             </button>
           )}
         </div>
       </div>
+      */}
 
       {/* SUB-SECTION 4: VIDEO UPLOAD MANAGER (Commented out) */}
 

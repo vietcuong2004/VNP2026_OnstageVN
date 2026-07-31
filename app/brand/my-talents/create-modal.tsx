@@ -132,10 +132,10 @@ export default function CreateTalentModal({
 
           <div className="space-y-2">
             <h3 className="font-display font-black text-lg text-white uppercase tracking-tight">
-              Đã thêm Talent thành công
+              Đã thêm Idol thành công
             </h3>
             <p className="text-xs text-slate-400 font-semibold leading-relaxed">
-              Bạn có thể bắt đầu quản lý Talent ngay bây giờ.<br />Thông tin chi tiết có thể bổ sung sau.
+              Bạn có thể bắt đầu quản lý Idol ngay bây giờ.<br />Thông tin chi tiết có thể bổ sung sau.
             </p>
           </div>
 
@@ -161,13 +161,13 @@ export default function CreateTalentModal({
         <div className="flex shrink-0 items-center justify-between border-b border-[#151b2d]/60 bg-slate-950/45 p-5 sm:p-6">
           <div>
             <span className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-amber-300">
-              CREATE TALENT
+              CREATE IDOL
             </span>
             <h2 className="font-display font-black text-lg text-white uppercase tracking-tight mt-2 flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-amber-400" /> Thêm Talent mới
+              <UserPlus className="h-5 w-5 text-amber-400" /> Thêm Idol mới
             </h2>
             <p className="text-[10px] text-slate-500 mt-1 font-semibold">
-              Tạo nhanh tài khoản quản lý nội bộ (Managed Account) cho Talent của bạn.
+              Tạo nhanh tài khoản quản lý nội bộ (Managed Account) cho Idol của bạn.
             </p>
           </div>
           <button

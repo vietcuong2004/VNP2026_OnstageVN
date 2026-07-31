@@ -1163,7 +1163,7 @@ export default function CampaignDetailPage() {
 
                     {/* Lĩnh vực */}
                     <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực liên quan</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực công việc</span>
                       {selectedCampaign.industries && selectedCampaign.industries.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {selectedCampaign.industries.map((industry, idx) => (

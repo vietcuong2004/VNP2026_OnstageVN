@@ -124,17 +124,6 @@ export function getDefaultTalentProfile() {
 }
 
 export function sanitizeTalentProfile(profile: any) {
-  const photos = Array.isArray(profile?.photos)
-    ? profile.photos.map(normalizeBackendAssetUrl).filter(isRealProfileImage)
-    : profile?.photos;
-  const photoRecords = Array.isArray(profile?.photoRecords)
-    ? profile.photoRecords
-        .map((photo: BackendPhoto) => ({
-          ...photo,
-          url: normalizeBackendAssetUrl(photo.url || photo.path),
-        }))
-        .filter((photo: BackendPhoto) => isRealProfileImage(photo.url || photo.path))
-    : profile?.photoRecords;
   const normalizedAvatar = normalizeBackendAssetUrl(profile?.avatar);
   const normalizedCover = normalizeBackendAssetUrl(profile?.cover);
   const normalizedFullBody = normalizeBackendAssetUrl(profile?.fullBody);
@@ -145,6 +134,27 @@ export function sanitizeTalentProfile(profile: any) {
   const normalizedLookbook2 = normalizeBackendAssetUrl(profile?.lookbook2);
   const normalizedLookbook3 = normalizeBackendAssetUrl(profile?.lookbook3);
   const normalizedLookbook4 = normalizeBackendAssetUrl(profile?.lookbook4);
+
+  const cccdUrls = [normalizedCccdFront, normalizedCccdBack, normalizedCccdSelfie].filter(Boolean) as string[];
+
+  const photos = Array.isArray(profile?.photos)
+    ? profile.photos
+        .map(normalizeBackendAssetUrl)
+        .filter((url: string) => isRealProfileImage(url) && !cccdUrls.includes(url))
+    : profile?.photos;
+
+  const photoRecords = Array.isArray(profile?.photoRecords)
+    ? profile.photoRecords
+        .map((photo: BackendPhoto) => ({
+          ...photo,
+          url: normalizeBackendAssetUrl(photo.url || photo.path),
+        }))
+        .filter((photo: BackendPhoto) => {
+          const url = photo.url || photo.path;
+          return !!url && isRealProfileImage(url) && photo.category !== "avatar" && photo.category !== "cover" && !photo.category?.startsWith("cccd") && !cccdUrls.includes(url);
+        })
+    : profile?.photoRecords;
+
   const avatar = isPortablePhotoUrl(normalizedAvatar)
     ? normalizedAvatar
     : createInitialAvatarDataUrl(profile?.name, profile?.email);
@@ -371,10 +381,20 @@ export function mapBackendProfile(profile: BackendProfile | null) {
   }
 
   const backendPhotos = profile.photos || [];
-  const portfolioPhotoRecords = backendPhotos.filter((photo) => photo.category !== "avatar" && photo.category !== "cover");
+  const cccdFrontUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_front"));
+  const cccdBackUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_back"));
+  const cccdSelfieUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_selfie"));
+  const cccdUrls = [cccdFrontUrl, cccdBackUrl, cccdSelfieUrl].filter(Boolean);
+
+  const portfolioPhotoRecords = backendPhotos.filter(
+    (photo) =>
+      photo.category !== "avatar" &&
+      photo.category !== "cover" &&
+      !photo.category?.startsWith("cccd")
+  );
   const photos = portfolioPhotoRecords
     .map(photoUrl)
-    .filter(isRealProfileImage) as string[];
+    .filter((url: string) => isRealProfileImage(url) && !cccdUrls.includes(url)) as string[];
   const avatarUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "avatar"));
   const coverUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cover"));
   const fullBodyPhotoObj = [...backendPhotos].reverse().find((photo) => photo.category === "full_body")
@@ -382,10 +402,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     || backendPhotos.find((photo) => photo.category === "portfolio")
     || backendPhotos[0];
   const fullBodyUrl = photoUrl(fullBodyPhotoObj) || avatarUrl;
-  const cccdFrontUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_front"));
-  const cccdBackUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_back"));
-  const cccdSelfieUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cccd_selfie"));
-  const localPhotos = (Array.isArray(local.photos) ? local.photos : []).filter(isRealProfileImage);
+  const localPhotos = (Array.isArray(local.photos) ? local.photos : []).filter((url: string) => isRealProfileImage(url) && !cccdUrls.includes(url));
   const measurements = parseMeasurements(profile.measurements);
   const busyDates = busyDatesFromEvents(profile.calendar_events);
 
@@ -483,8 +500,8 @@ export function buildBackendProfilePayload(profile: any) {
     portfolio_url: profile.portfolio_url || undefined,
     social_accounts: Array.isArray(profile.socialAccounts)
       ? profile.socialAccounts
-          .map((a: any) => ({ platform: a.platform, url: a.url }))
-          .filter((a: any) => a.platform && a.url)
+        .map((a: any) => ({ platform: a.platform, url: a.url }))
+        .filter((a: any) => a.platform && a.url)
       : undefined,
     is_public: true,
   };
@@ -770,16 +787,16 @@ export async function resolveCampaignReferralLinkBySlug(campaignSlug: string, re
 
 export type ParsedCampaignReferralUrl =
   | {
-      mode: "slug";
-      campaignSlug: string;
-      referrerSlug: string;
-      referralCode: string;
-    }
+    mode: "slug";
+    campaignSlug: string;
+    referrerSlug: string;
+    referralCode: string;
+  }
   | {
-      mode: "legacy";
-      campaignId: string;
-      referralCode: string;
-    };
+    mode: "legacy";
+    campaignId: string;
+    referralCode: string;
+  };
 
 export function parseCampaignReferralUrl(rawUrl: string): ParsedCampaignReferralUrl {
   let urlStr = String(rawUrl || "").trim();
@@ -1102,11 +1119,11 @@ export function mapCampaignToTalentJob(campaign: any) {
   const hasBudget = Boolean(budget);
   const media = Array.isArray(campaign.media)
     ? campaign.media
-        .map((item: any) => ({
-          ...item,
-          url: normalizeBackendAssetUrl(item?.url) || item?.url || null,
-        }))
-        .filter((item: any) => item.url)
+      .map((item: any) => ({
+        ...item,
+        url: normalizeBackendAssetUrl(item?.url) || item?.url || null,
+      }))
+      .filter((item: any) => item.url)
     : [];
   const coverMedia = campaign.cover_media || campaign.coverMedia || media[0] || null;
   const coverUrl = normalizeBackendAssetUrl(coverMedia?.url) || coverMedia?.url || null;

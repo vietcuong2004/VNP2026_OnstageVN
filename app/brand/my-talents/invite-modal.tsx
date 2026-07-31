@@ -39,8 +39,8 @@ export default function InviteModal({
             <span className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-300">
               RECRUITMENT
             </span>
-            <h2 className="font-display font-black text-lg text-white uppercase tracking-tight mt-1">Mời Talent vào Brand</h2>
-            <p className="text-[10px] text-slate-500 mt-1 font-semibold">Chọn từ danh sách các Talent xuất sắc để gửi lời mời tham gia Brand</p>
+            <h2 className="font-display font-black text-lg text-white uppercase tracking-tight mt-1">Mời Idol vào Brand</h2>
+            <p className="text-[10px] text-slate-500 mt-1 font-semibold">Chọn từ danh sách các Idol xuất sắc để gửi lời mời tham gia Brand</p>
           </div>
           <button
             onClick={onClose}
@@ -56,7 +56,7 @@ export default function InviteModal({
             <Search className="h-4 w-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Tìm kiếm theo tên hoặc danh mục của Talent..."
+              placeholder="Tìm kiếm theo tên hoặc danh mục của Idol..."
               value={inviteSearch}
               onChange={e => onSearchChange(e.target.value)}
               className="flex-1 bg-transparent text-xs text-white placeholder:text-slate-600 outline-none font-medium"
@@ -69,8 +69,8 @@ export default function InviteModal({
           {availableToInvite.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-500 text-center">
               <Users2 className="h-10 w-10 text-slate-700 mb-3" />
-              <p className="text-xs font-bold">Không tìm thấy Talent phù hợp</p>
-              <p className="text-[10px] text-slate-600 mt-1 leading-normal">Hãy thử từ khoá khác hoặc tất cả Talent đã được liên kết</p>
+              <p className="text-xs font-bold">Không tìm thấy Idol phù hợp</p>
+              <p className="text-[10px] text-slate-600 mt-1 leading-normal">Hãy thử từ khoá khác hoặc tất cả Idol đã được liên kết</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

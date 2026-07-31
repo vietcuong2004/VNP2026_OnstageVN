@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Crown, Trophy, Star, Award, ShieldAlert } from "lucide-react";
+import { X, Crown, Trophy, Star, Award, ShieldAlert, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TierExplanationDialogProps {
@@ -155,7 +155,8 @@ export default function TierExplanationDialog({ isOpen, onClose }: TierExplanati
           {/* Làm thế nào để nâng hạng? */}
           <div className="bg-slate-950/60 p-5 rounded-2xl border border-white/5 space-y-3 text-left">
             <h4 className="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-              🚀 Làm thế nào để nâng hạng (Tier Up)?
+              <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
+              Làm thế nào để nâng hạng (Tier Up)?
             </h4>
             <ul className="space-y-2 text-[10.5px] text-slate-300 list-disc list-inside">
               <li>

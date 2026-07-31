@@ -525,7 +525,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     : createInitialAvatarDataUrl(displayName, profile.user?.email || profile.user?.name);
   const cover = firstPhoto(profile, "cover") || null;
   const portfolio = (profile.photos ?? [])
-    .filter((photo) => photo.category !== 'avatar' && photo.category !== 'cover')
+    .filter((photo) => photo.category !== 'avatar' && photo.category !== 'cover' && !photo.category?.startsWith('cccd'))
     .map((photo) => photo.url || photo.path || "")
     .filter(Boolean);
   const rawExperience = String(profile.experience || profile.bio || fallback?.experience || "");
@@ -589,10 +589,10 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
       .filter((account) => account.platform && account.url),
     surveyScores: profile.latest_survey
       ? {
-          pageant: Number(profile.latest_survey.pageant_score) || 0,
-          runway: Number(profile.latest_survey.runway_score) || 0,
-          kol: Number(profile.latest_survey.kol_score) || 0,
-        }
+        pageant: Number(profile.latest_survey.pageant_score) || 0,
+        runway: Number(profile.latest_survey.runway_score) || 0,
+        kol: Number(profile.latest_survey.kol_score) || 0,
+      }
       : (fallback as any)?.surveyScores || { pageant: 0, runway: 0, kol: 0 },
     mainCategory: profile.latest_survey?.main_category || (fallback as any)?.mainCategory || "",
     aiScore: Number(profile.latest_survey?.profile_score) || (fallback as any)?.aiScore || 0,

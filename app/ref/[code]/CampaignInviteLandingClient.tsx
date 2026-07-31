@@ -356,7 +356,7 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
             onClick={() => router.push("/talent/jobs")}
             className="mt-8 flex h-12 w-full items-center justify-center rounded-xl bg-gradient-gold text-xs font-black uppercase tracking-widest text-slate-950 shadow-lg shadow-amber-500/10 transition hover:brightness-110 active:scale-[0.99] cursor-pointer"
           >
-            Đi tới chợ việc làm
+            Đi tới cơ hội việc làm
           </button>
         </div>
       </div>
@@ -644,7 +644,7 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
             <img src="/logo_text.png" alt="OnstageVN Logo Text" className="h-10 object-contain shrink-0" />
           </div>
           <p className="text-xs text-slate-400 max-w-2xl leading-relaxed text-center px-4 font-medium">
-            Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ tài năng cùng nhãn hàng.
+            Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ idol cùng nhãn hàng.
           </p>
         </div>
 

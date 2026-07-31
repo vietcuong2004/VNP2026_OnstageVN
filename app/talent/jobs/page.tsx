@@ -829,7 +829,7 @@ function JobsPageContent() {
       }
 
       if (!currentTalentId) {
-        addToast("Không xác định được tài khoản Talent hiện tại. Vui lòng đăng nhập lại.", "info");
+        addToast("Không xác định được tài khoản Idol hiện tại. Vui lòng đăng nhập lại.", "info");
         return;
       }
 
@@ -939,8 +939,8 @@ function JobsPageContent() {
 
       {/* Title block */}
       <div>
-        <h1 className="font-display text-3xl font-black text-white tracking-tight uppercase leading-none">Chợ việc làm</h1>
-        <p className="text-xs text-slate-400 mt-2 font-medium">Khám phá và ứng tuyển các job sắc đẹp phù hợp nhất với bản thân.</p>
+        <h1 className="font-display text-3xl font-black text-white tracking-tight uppercase leading-none">Cơ hội việc làm</h1>
+        <p className="text-xs text-slate-400 mt-2 font-medium">Danh sách cơ hội việc làm hấp dẫn dành cho bạn.</p>
       </div>
 
       {isLoggedIn && (

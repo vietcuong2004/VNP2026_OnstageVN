@@ -301,7 +301,7 @@ export default function Header() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
-              placeholder="Tìm kiếm tài năng, chiến dịch, giao dịch..."
+              placeholder="Tìm kiếm Idol, chiến dịch, giao dịch..."
               className="w-full rounded-xl border border-white/5 bg-slate-900/30 py-2 pl-9 pr-4 text-xs text-white transition-all focus:border-amber-400/50 focus:bg-slate-900/50 focus:outline-none"
             />
           </div>

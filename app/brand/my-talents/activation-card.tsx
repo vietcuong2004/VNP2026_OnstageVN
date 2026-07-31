@@ -58,7 +58,7 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
     } catch (error) {
       console.error("Cannot create managed talent activation link", error);
       setDismissedRosterIds((prev) => prev.includes(rosterId) ? prev : [...prev, rosterId]);
-      addToast("Talent này đã kích hoạt tài khoản hoặc không phải tài khoản do Brand tạo.", "error");
+      addToast("Idol này đã kích hoạt tài khoản hoặc không phải tài khoản do Brand tạo.", "error");
     } finally {
       setLoadingRosterId(null);
     }
@@ -107,8 +107,8 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
             <UserCheck className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-display text-sm font-black uppercase tracking-wider text-white">Kích hoạt tài khoản Talent</h3>
-            <p className="mt-1 text-xs font-semibold text-slate-400">Tất cả Talent do Brand tạo đã được kích hoạt hoặc chưa có tài khoản cần nhận.</p>
+            <h3 className="font-display text-sm font-black uppercase tracking-wider text-white">Kích hoạt tài khoản Idol</h3>
+            <p className="mt-1 text-xs font-semibold text-slate-400">Tất cả Idol do Brand tạo đã được kích hoạt hoặc chưa có tài khoản cần nhận.</p>
           </div>
         </div>
       </section>
@@ -126,14 +126,14 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-display text-sm font-black uppercase tracking-wider text-white">Kích hoạt tài khoản Talent</h3>
+                <h3 className="font-display text-sm font-black uppercase tracking-wider text-white">Kích hoạt tài khoản Idol</h3>
                 <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-300">
                   {visibleItems.length} chưa kích hoạt
                 </span>
               </div>
               {!isCollapsed && (
                 <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-400">
-                  Khi sử dụng tính năng Thêm Talent mới, talent này vẫn chưa có tài khoản/hồ sơ trên hệ thống Onstage VN. Nhấn "Tạo link" và gửi link này cho talent bạn vừa tạo để họ vào kích hoạt tài khoản trên hệ thống Onstage VN
+                  Khi sử dụng tính năng Thêm Idol mới, idol này vẫn chưa có tài khoản/hồ sơ trên hệ thống Onstage VN. Nhấn "Tạo link" và gửi link này cho idol bạn vừa tạo để họ vào kích hoạt tài khoản trên hệ thống Onstage VN
                 </p>
               )}
             </div>

@@ -752,7 +752,7 @@ export default function TalentBrandsPage() {
                   <p className="mt-2 text-sm font-black text-white">{Math.round(selectedInvitation.commissionRate * 100)}% / JOB</p>
                 </div>
                 <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-cyan-300">Talent của Brand</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-cyan-300">Idol của Brand</p>
                   <p className="mt-2 text-sm font-black text-white">{selectedInvitation.members?.length || selectedInvitation.childCount || 0}</p>
                 </div>
               </div>
@@ -795,7 +795,7 @@ export default function TalentBrandsPage() {
                     <div className="space-y-1">
                       <p className="text-xs font-extrabold text-white">Hợp đồng & Thanh toán Bảo chứng</p>
                       <p className="text-[10.5px] leading-relaxed text-slate-400">
-                        Mọi hợp đồng booking được quản lý minh bạch, thanh toán được OnStage ký quỹ bảo vệ quyền lợi 100% cho Talent.
+                        Mọi hợp đồng booking được quản lý minh bạch, thanh toán được OnStage ký quỹ bảo vệ quyền lợi 100% cho Idol.
                       </p>
                     </div>
                   </div>
@@ -808,7 +808,7 @@ export default function TalentBrandsPage() {
               <div className="mt-5 rounded-2xl border border-[#151b2d] bg-[#050711] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-widest text-white">Danh sách Talent của Brand</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-white">Danh sách Idol của Brand</p>
                     <p className="mt-1 text-[10px] text-slate-500">
                       Tất cả người dùng đang thuộc mạng lưới liên kết này, dù được mời trực tiếp hay qua người giới thiệu khác.
                     </p>
@@ -848,7 +848,7 @@ export default function TalentBrandsPage() {
                   ) : (
                     <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/40 p-4 text-center">
                       <p className="text-xs font-bold text-slate-400">Mạng lưới này chưa có người dùng nào.</p>
-                      <p className="mt-1 text-[10px] text-slate-650">Khi có Talent tham gia, danh sách sẽ hiển thị tại đây.</p>
+                      <p className="mt-1 text-[10px] text-slate-650">Khi có Idol tham gia, danh sách sẽ hiển thị tại đây.</p>
                     </div>
                   )}
                 </div>

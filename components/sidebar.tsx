@@ -26,17 +26,17 @@ import { getGuestDesktopNavigation } from "@/lib/public-navigation";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
 export const unifiedBrandNavigation = [
-  { label: "Tìm kiếm Talent", icon: Search, href: "/brand/search" },
+  { label: "Tìm kiếm Idol", icon: Search, href: "/brand/search" },
   { label: "Quản lý việc làm", icon: Briefcase, href: "/brand/manage-jobs" },
   // { label: "Quản lý cuộc thi", icon: Trophy, href: "/brand/manage-competitions" },
-  { label: "Quản lý Talent", icon: Users2, href: "/brand/my-talents" },
+  { label: "Quản lý Idol", icon: Users2, href: "/brand/my-talents" },
   { label: "Danh sách yêu thích", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Thông tin brand", icon: Building2, href: "/brand/informations" },
 ];
 
 export const unifiedTalentNavigation = [
-  { label: "Chợ việc làm", icon: Briefcase, href: "/talent/jobs" },
-  { label: "Hồ sơ Talent", icon: User, href: "/talent/portfolio" },
+  { label: "Cơ hội việc làm", icon: Briefcase, href: "/talent/jobs" },
+  { label: "Hồ sơ Idol", icon: User, href: "/talent/portfolio" },
   { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
   { label: "Hợp tác Brand", icon: Users2, href: "/talent/brands" },
 ];
@@ -47,7 +47,7 @@ export const unifiedSettingsNavigation = [
 
 export const unifiedLoggedInNavigationSections = [
   { title: "Dành cho Brand", icon: Briefcase, helpIcon: CircleHelp, items: unifiedBrandNavigation, href: undefined },
-  { title: "Dành cho Talent", icon: Sparkles, helpIcon: CircleHelp, items: unifiedTalentNavigation, href: undefined },
+  { title: "Dành cho Idol", icon: Sparkles, helpIcon: CircleHelp, items: unifiedTalentNavigation, href: undefined },
   { title: "Cài đặt", icon: Settings, helpIcon: CircleHelp, items: undefined, href: "/settings" },
 ];
 

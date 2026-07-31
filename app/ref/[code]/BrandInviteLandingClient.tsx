@@ -431,7 +431,7 @@ export default function BrandInviteLandingClient({ code, talentSlug }: Props) {
             <img src="/logo_text.png" alt="OnstageVN Logo Text" className="h-10 object-contain shrink-0" />
           </div>
           <p className="text-xs text-slate-400 max-w-2xl leading-relaxed text-center px-4 font-medium">
-            Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ tài năng cùng nhãn hàng.
+            Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ idol cùng nhãn hàng.
           </p>
         </div>
 

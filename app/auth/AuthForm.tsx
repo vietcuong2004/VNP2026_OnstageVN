@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Loader2, Lock, Mail, User, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, User, X } from "lucide-react";
 import { storeAuthSession } from "@/lib/api-client";
 import { syncGuestDraftsAfterNewRegistration } from "@/lib/guest-draft";
 
@@ -100,6 +100,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState(() => pendingLogin.email);
   const [password, setPassword] = useState(() => pendingLogin.password);
+  const [showPassword, setShowPassword] = useState(false);
   const [shouldSyncGuestDraftAfterLogin] = useState(() => pendingLogin.syncGuestDraft === true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -312,12 +313,20 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
                 <input
                   required
                   minLength={8}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   className="h-full flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
                   placeholder="Tối thiểu 8 ký tự"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-slate-400 hover:text-amber-300 focus:outline-none transition-colors p-1"
+                  title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </label>
 
@@ -340,24 +349,17 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
 
           <div className="my-6 flex items-center gap-3">
             <span className="h-px flex-1 bg-white/10" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Hoặc</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Hoặc đăng nhập bằng</span>
             <span className="h-px flex-1 bg-white/10" />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-3">
             <a
               href={`${apiUrl}/auth/social/google/redirect`}
-              className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-xs font-bold uppercase tracking-wider text-slate-200 transition-colors hover:border-amber-400/40 hover:text-amber-300"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-xs font-bold uppercase tracking-wider text-slate-200 transition-colors hover:border-amber-400/40 hover:text-amber-300"
             >
               <span className="text-base font-black">G</span>
               Google
-            </a>
-            <a
-              href={`${apiUrl}/auth/social/facebook/redirect`}
-              className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-xs font-bold uppercase tracking-wider text-slate-200 transition-colors hover:border-blue-400/40 hover:text-blue-300"
-            >
-              <span className="text-base font-black">f</span>
-              Facebook
             </a>
           </div>
 

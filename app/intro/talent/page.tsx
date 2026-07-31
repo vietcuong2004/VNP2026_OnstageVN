@@ -66,14 +66,14 @@ export default function TalentIntroPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/5 shadow-[0_0_12px_rgba(240,197,107,0.1)]">
             <Sparkles className="h-3.5 w-3.5 text-[#F0C56B]" />
             <span className="text-[9px] font-black text-[#F0C56B] uppercase tracking-wider">
-              ONSTAGE TALENT — KẾT NỐI TÀI NĂNG VỚI CƠ HỘI
+              ONSTAGE IDOL — KẾT NỐI IDOL VỚI CƠ HỘI
             </span>
           </div>
 
           {/* Heading */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-black tracking-tight leading-tight uppercase text-white">
             Tôn vinh sắc đẹp <br />
-            <span className="text-gradient-gold whitespace-nowrap">Tài năng tỏa sáng</span>
+            <span className="text-gradient-gold whitespace-nowrap">Idol tỏa sáng</span>
           </h1>
 
           {/* Subtitle */}
@@ -427,7 +427,7 @@ export default function TalentIntroPage() {
             />
           </div>
           <p className="text-xs text-slate-400 max-w-2xl leading-relaxed text-center px-4 font-medium">
-            Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ tài năng cùng nhãn hàng.
+            Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ idol cùng nhãn hàng.
           </p>
         </div>
 
@@ -461,7 +461,7 @@ export default function TalentIntroPage() {
               <h4 className="text-[11px] font-black text-[#F0C56B] uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Hệ sinh thái</h4>
               <ul className="space-y-3 text-[11px] font-semibold text-slate-400">
                 <li>
-                  <Link href="/intro/talent" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Talent</Link>
+                  <Link href="/intro/talent" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Idol</Link>
                 </li>
                 <li>
                   <Link href="/intro/brand" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Brand</Link>

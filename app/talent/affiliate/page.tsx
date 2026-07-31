@@ -278,7 +278,7 @@ export default function TalentAffiliatePage() {
 
       const currentTalentId = currentTalent.profileId || currentTalent.userId;
       if (!currentTalentId) {
-        addToast("Không xác định được tài khoản Talent hiện tại. Vui lòng đăng nhập lại.", "info");
+        addToast("Không xác định được tài khoản Idol hiện tại. Vui lòng đăng nhập lại.", "info");
         return;
       }
 
@@ -643,7 +643,7 @@ export default function TalentAffiliatePage() {
                 href="/talent/jobs"
                 className="mt-6 flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-950 hover:from-amber-300 hover:to-yellow-400 transition-all duration-300 shadow-[0_4px_20px_rgba(245,158,11,0.2)] hover:scale-[1.02]"
               >
-                Khám phá Chợ việc làm <ArrowUpRight className="h-4 w-4 text-slate-950" />
+                Khám phá Cơ hội việc làm <ArrowUpRight className="h-4 w-4 text-slate-950" />
               </Link>
             </div>
           ) : (

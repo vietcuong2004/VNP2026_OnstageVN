@@ -72,7 +72,7 @@ const genderOptions = [
   { value: "Nam", label: "Nam" },
 ];
 const typeOptions = [
-  { value: allValue, label: "Tất cả loại hình Talent" },
+  { value: allValue, label: "Tất cả loại hình Idol" },
   ...talentTypeOptions.map((type) => ({ value: type, label: type })),
 ];
 const experienceOptions = [
@@ -553,13 +553,13 @@ export default function DiscoverTalentsPage() {
 
   async function ensureWishlist() {
     if (wishlistId) return wishlistId;
-    const created = await createBrandWishlist("Talent yêu thích", "Danh sách talent yêu thích của Brand");
+    const created = await createBrandWishlist("Idol yêu thích", "Danh sách idol yêu thích của Brand");
     setWishlistId(created.id);
     return created.id;
   }
 
   async function toggleSaved(id: string) {
-    if (!requireAuthAction({ actionLabel: "Lưu talent vào danh sách yêu thích" })) return;
+    if (!requireAuthAction({ actionLabel: "Lưu idol vào danh sách yêu thích" })) return;
 
     try {
       if (savedIds.includes(id)) {
@@ -613,14 +613,14 @@ export default function DiscoverTalentsPage() {
       <section className="border-b border-[#2B313D] pb-5">
         <div className="mb-2 flex items-center gap-2">
           <span className="rounded-md border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
-            TÌM KIẾM TÀI NĂNG
+            TÌM KIẾM IDOL
           </span>
         </div>
         <h1 className="font-display text-2xl font-black tracking-tight text-white uppercase">
-          DANH SÁCH TÀI NĂNG NỔI BẬT
+          DANH SÁCH IDOL NỔI BẬT
         </h1>
         <p className="mt-2 max-w-3xl text-xs font-semibold leading-relaxed text-slate-400 uppercase tracking-wide">
-          Hãy tìm tài năng phù hợp nhất cho các chiến dịch của bạn
+          Hãy tìm idol phù hợp nhất cho các chiến dịch của bạn
         </p>
       </section>
 
@@ -638,7 +638,7 @@ export default function DiscoverTalentsPage() {
                   setSearchQuery(searchInput);
                 }
               }}
-              placeholder="Tìm kiếm tài năng theo tên, kỹ năng (ví dụ: MC, livestream, catwalk...)"
+              placeholder="Tìm kiếm idol theo tên, kỹ năng (ví dụ: MC, livestream, catwalk...)"
               className="w-full rounded-2xl border border-amber-500/10 bg-[#0a0c12]/90 py-4 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500 shadow-2xl"
             />
             {searchInput && (
@@ -693,9 +693,9 @@ export default function DiscoverTalentsPage() {
             />
           </div>
 
-          {/* Loại hình Talent */}
+          {/* Loại hình Idol */}
           <div className="flex-1 min-w-[140px]">
-            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">Loại hình Talent</span>
+            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">Loại hình Idol</span>
             <FilterDropdown
               value={selectedType}
               onChange={setSelectedType}
@@ -784,23 +784,23 @@ export default function DiscoverTalentsPage() {
           <div className="flex flex-col gap-3 border-b border-[#2B313D] pb-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="flex items-center gap-2 text-xs text-slate-400">
               <Filter className="h-4 w-4 text-[#C9A86A]" />
-              Tìm thấy <b className="text-white">{displayedTalentCount}</b> talent phù hợp.
+              Tìm thấy <b className="text-white">{displayedTalentCount}</b> idol phù hợp.
             </span>
             <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono shrink-0">
-              ĐÃ LƯU <b className="text-white">{savedIds.length}</b> talent vào danh sách yêu thích
+              ĐÃ LƯU <b className="text-white">{savedIds.length}</b> idol vào danh sách yêu thích
             </span>
           </div>
 
           {isLoadingTalents ? (
             <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-16 text-center">
               <Search className="mx-auto mb-3 h-8 w-8 animate-pulse text-[#C9A86A]" />
-              <h3 className="text-sm font-black text-white">Đang tải danh sách talent</h3>
+              <h3 className="text-sm font-black text-white">Đang tải danh sách idol</h3>
               <p className="mt-2 text-xs text-slate-500">Một chút thôi, hệ thống đang lấy dữ liệu phù hợp.</p>
             </div>
           ) : filteredTalents.length === 0 ? (
             <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-16 text-center">
               <Search className="mx-auto mb-3 h-8 w-8 text-slate-600" />
-              <h3 className="text-sm font-black text-white">Không tìm thấy talent phù hợp</h3>
+              <h3 className="text-sm font-black text-white">Không tìm thấy idol phù hợp</h3>
               <p className="mt-2 text-xs text-slate-500">Hãy thử nới lỏng bộ lọc hoặc điều chỉnh từ khóa tìm kiếm.</p>
             </div>
           ) : (
@@ -834,7 +834,7 @@ export default function DiscoverTalentsPage() {
           {!isLoadingTalents && hasMoreTalents && (
             <div ref={loadMoreRef} className="flex min-h-16 justify-center pt-3">
               <div className="flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#C9A86A]/20 bg-[#C9A86A]/5 px-6 text-xs font-black uppercase tracking-wider text-[#C9A86A]">
-                <span>{isLoadingMoreTalents ? "Đang tải thêm talent" : "Kéo xuống để tải thêm"}</span>
+                <span>{isLoadingMoreTalents ? "Đang tải thêm idol" : "Kéo xuống để tải thêm"}</span>
                 <span className="flex items-center gap-1" aria-hidden="true">
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#C9A86A]" />
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#C9A86A] [animation-delay:120ms]" />

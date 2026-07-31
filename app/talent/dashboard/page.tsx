@@ -187,7 +187,7 @@ export default function DashboardPage() {
   const handleApply = async (job: any) => {
     if (!requireAuthAction({
       actionLabel: `Ứng tuyển chiến dịch "${job.title}"`,
-      description: "Bạn cần đăng nhập tài khoản Talent để ứng tuyển chiến dịch này và kết nối với Brand.",
+      description: "Bạn cần đăng nhập tài khoản Idol để ứng tuyển chiến dịch này và kết nối với Brand.",
     })) {
       return;
     }
@@ -251,7 +251,7 @@ export default function DashboardPage() {
 
           <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight uppercase text-white">
             Kích Hoạt Trung Tâm <br />
-            <span className="text-gradient-gold">Điều Khiển Talent</span>
+            <span className="text-gradient-gold">Điều Khiển Idol</span>
           </h1>
 
           <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/50 backdrop-blur-md border border-white/5 shadow-xl max-w-md mx-auto my-6 text-center">
@@ -295,7 +295,7 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => setShowControlCenterDialog(true)}
                 className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/35 text-amber-300 text-[9px] font-black shadow-[0_0_8px_rgba(245,158,11,0.15)] hover:scale-110 hover:shadow-[0_0_12px_rgba(245,158,11,0.35)] transition-all duration-300 cursor-pointer"
-                title="Tìm hiểu vai trò Talent"
+                title="Tìm hiểu vai trò Idol"
               >
                 ?
               </button>
@@ -307,7 +307,7 @@ export default function DashboardPage() {
 
             <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-5xl">
               {currentUser ? (
-                <>Chào mừng <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">{profile.name || (currentUser as any)?.name || "Talent"}</span>!</>
+                <>Chào mừng <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">{profile.name || (currentUser as any)?.name || "Idol"}</span>!</>
               ) : (
                 <>Chào mừng bạn đến với <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">OnstageVN</span>!</>
               )}
@@ -316,7 +316,7 @@ export default function DashboardPage() {
               {currentUser ? (
                 "Khám phá các chiến dịch tuyển dụng từ các nhãn hàng, tìm kiếm cơ hội phù hợp để phát triển sự nghiệp của bạn."
               ) : (
-                "Mỗi tài năng đều xứng đáng có một sân khấu. Onstage giúp bạn kết nối đúng người, đúng cơ hội và phát triển sự nghiệp bền vững."
+                "Mỗi idol đều xứng đáng có một sân khấu. Onstage giúp bạn kết nối đúng người, đúng cơ hội và phát triển sự nghiệp bền vững."
               )}
             </p>
           </div>

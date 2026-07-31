@@ -185,7 +185,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
           <FileText className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
           <p className={cn("leading-relaxed font-semibold", entry.notes ? "text-slate-300" : "text-slate-500 italic")}>
             {(() => {
-              if (!entry.notes) return "Talent được tạo bởi Brand.";
+              if (!entry.notes) return "Idol được tạo bởi Brand.";
               const notes = entry.notes.trim();
               if (
                 notes.startsWith("Thêm từ") ||
@@ -193,7 +193,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
                 notes.includes("Thêm từ trang tìm kiếm") ||
                 notes.includes("Thêm từ hồ sơ")
               ) {
-                return "Talent được thêm từ danh sách talent của hệ thống Onstage VN";
+                return "Idol được thêm từ danh sách idol của hệ thống Onstage VN";
               }
               return entry.notes;
             })()}
@@ -204,7 +204,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
         {isAccepted && isManaged && (
           <div className="mt-2.5 flex flex-col gap-2 rounded-xl border border-dashed border-amber-400/30 bg-amber-400/[0.03] p-2.5">
             <div>
-              <p className="text-[10px] font-black text-white uppercase tracking-wider">Mời Talent tham gia OnstageVN</p>
+              <p className="text-[10px] font-black text-white uppercase tracking-wider">Mời Idol tham gia OnstageVN</p>
               <p
                 onClick={(e) => {
                   e.stopPropagation();
@@ -216,7 +216,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
                 )}
                 title="Click để xem chi tiết mô tả"
               >
-                Hiện tại chỉ Brand có thể quản lý hồ sơ này. Gửi lời mời để Talent tự đăng nhập và cập nhật thông tin của mình.
+                Hiện tại chỉ Brand có thể quản lý hồ sơ này. Gửi lời mời để Idol tự đăng nhập và cập nhật thông tin của mình.
               </p>
             </div>
             <button
@@ -263,7 +263,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
             onAssignJobClick(talent);
           }}
           className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer hover:brightness-110"
-          title="Giao việc cho talent"
+          title="Giao việc cho idol"
         >
           <Briefcase className="h-4 w-4 shrink-0" />
           <span>Assign Job</span>

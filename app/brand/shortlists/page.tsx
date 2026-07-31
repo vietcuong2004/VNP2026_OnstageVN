@@ -137,13 +137,13 @@ export default function BrandShortlistsPage() {
             </span>
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
-            Quản lý danh sách talent yêu thích và thêm họ trực tiếp vào danh sách hoạt động của Brand.
+            Quản lý danh sách idol yêu thích và thêm họ trực tiếp vào danh sách hoạt động của Brand.
           </p>
         </div>
 
         <div className="rounded-xl border border-white/5 bg-slate-950/30 px-4 py-3">
           <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Danh sách yêu thích</span>
-          <span className="text-lg font-black text-white">{savedTalents.length} talent</span>
+          <span className="text-lg font-black text-white">{savedTalents.length} idol</span>
         </div>
       </section>
 
@@ -151,8 +151,8 @@ export default function BrandShortlistsPage() {
         {savedTalents.length === 0 ? (
           <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-10 text-center">
             <BookmarkCheck className="mx-auto mb-3 h-8 w-8 text-slate-600" />
-            <h3 className="text-sm font-black text-white">Chưa có talent nào trong danh sách yêu thích</h3>
-            <p className="mt-2 text-xs text-slate-500">Hãy vào màn Tìm kiếm Talent để lưu talent phù hợp.</p>
+            <h3 className="text-sm font-black text-white">Chưa có idol nào trong danh sách yêu thích</h3>
+            <p className="mt-2 text-xs text-slate-500">Hãy vào màn Tìm kiếm Idol để lưu idol phù hợp.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
