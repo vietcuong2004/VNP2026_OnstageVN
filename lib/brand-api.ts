@@ -83,6 +83,8 @@ type BackendPhoto = {
 
 type BackendVideo = {
   id?: number | string;
+  path?: string | null;
+  disk?: string | null;
   url?: string | null;
   title?: string | null;
   thumbnail_url?: string | null;
@@ -544,6 +546,8 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
       id: String(video.id ?? `video-${index + 1}`),
       title: String(repairMojibake(video.title || `Video ${index + 1}`)).trim(),
       url: normalizeBackendAssetUrl(video.url || ""),
+      path: video.path ?? null,
+      disk: video.disk ?? null,
       thumbnailUrl: normalizeBackendAssetUrl(video.thumbnail_url || ""),
       videoType: String(video.video_type || ""),
       sortOrder: Number(video.sort_order) || index,

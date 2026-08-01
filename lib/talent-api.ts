@@ -26,6 +26,8 @@ type BackendPhoto = {
 
 type BackendVideo = {
   id: number;
+  path?: string | null;
+  disk?: string | null;
   url?: string | null;
   title?: string | null;
   video_type?: string | null;
@@ -624,6 +626,11 @@ export async function deleteTalentPhoto(profileId: number, photoId: number) {
 
 export async function deleteTalentPhotoCategory(profileId: number, category: string) {
   await apiJson(`/profiles/${profileId}/photos/category/${encodeURIComponent(category)}`, { method: "DELETE" });
+}
+
+
+export async function deleteTalentVideo(profileId: number, videoId: string | number) {
+  await apiJson(`/profiles/${profileId}/videos/${encodeURIComponent(String(videoId))}`, { method: "DELETE" });
 }
 
 function eventDate(value?: string | null) {

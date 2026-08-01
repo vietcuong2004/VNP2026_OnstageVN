@@ -5,12 +5,12 @@ import {
   Award, User,
   ShieldCheck, Calendar, Image as ImageIcon, Sparkles,
   ChevronLeft, ChevronRight, Upload, ChevronDown, ChevronUp, Camera,
-  Ruler, Scale, Globe, FileText, Video, Link as LinkIcon, Trash2, Plus
+  Ruler, Scale, Globe, FileText, Video, Link as LinkIcon, ExternalLink, Trash2, Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import ProgressBar from "@/components/ui/ProgressBar";
-import { createTalentVideoLink, deleteTalentPhotoCategory, ensureTalentProfile, persistTalentProfile, uploadTalentPhoto, uploadTalentVideo } from "@/lib/talent-api";
+import { createTalentVideoLink, deleteTalentPhotoCategory, deleteTalentVideo, ensureTalentProfile, persistTalentProfile, uploadTalentPhoto, uploadTalentVideo } from "@/lib/talent-api";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import { getTalentDayStatus, toggleManualBusyDate } from "@/lib/talent-calendar";
 
@@ -35,6 +35,10 @@ function portfolioLinksFromProfile(profile: any): string[] {
 
 function portfolioHref(link: string): string {
   return /^https?:\/\//i.test(link) ? link : `https://${link}`;
+}
+
+function isDirectVideoUrl(url: string): boolean {
+  return /\.(mp4|mov|m4v|webm|ogg)(\?|#|$)/i.test(url);
 }
 
 function formatLanguageList(value: unknown) {
@@ -761,14 +765,29 @@ export default function PersonalInfoTab({
     }
   };
 
-  const handleRemoveVideo = (videoId: string | number | undefined, index: number) => {
+  const handleRemoveVideo = async (videoId: string | number | undefined, index: number) => {
     const currentVideos = Array.isArray(profile.videos) ? profile.videos : [];
-    const updatedProfile = persistTalentProfile({
-      ...profile,
-      videos: currentVideos.filter((video: any, idx: number) => idx !== index && video.id !== videoId),
-    });
-    setProfile(updatedProfile);
-    addToast("Đã xóa video khỏi bộ sưu tập.", "info");
+    const targetVideo = currentVideos.find((video: any, idx: number) => idx === index || video.id === videoId);
+
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+      const numericVideoId = Number(targetVideo?.id ?? videoId);
+
+      if (syncedProfile.backendProfileId && Number.isFinite(numericVideoId)) {
+        await deleteTalentVideo(syncedProfile.backendProfileId, numericVideoId);
+      }
+
+      const updatedProfile = persistTalentProfile({
+        ...syncedProfile,
+        ...profile,
+        videos: currentVideos.filter((video: any, idx: number) => idx !== index && video.id !== videoId),
+      });
+      setProfile(updatedProfile);
+      addToast("Đã xóa video khỏi bộ sưu tập.", "info");
+    } catch (error) {
+      console.error(error);
+      addToast(error instanceof Error ? error.message : "Không xóa được video, vui lòng thử lại.", "info");
+    }
   };
 
   const portfolioPhotoUrls = Array.from(new Set(
@@ -1272,13 +1291,35 @@ export default function PersonalInfoTab({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {portfolioVideos.map((video, index) => (
                 <div key={`${video.id}-${index}`} className="relative aspect-[9/16] overflow-hidden rounded-xl border border-white/5 bg-slate-950 shadow-md group">
-                  <video
-                    src={video.url}
-                    controls
-                    preload="metadata"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
+                  {isDirectVideoUrl(video.url) ? (
+                    <video
+                      src={video.url}
+                      controls
+                      preload="metadata"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  ) : (
+                    <a
+                      href={video.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center text-slate-300 transition hover:text-amber-300"
+                    >
+                      <Video className="h-8 w-8" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">Mở video</span>
+                    </a>
+                  )}
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
+                  <a
+                    href={video.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute left-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-amber-400/50 hover:text-amber-300 active:scale-95"
+                    title="Mở video"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
 
                   <button
                     type="button"

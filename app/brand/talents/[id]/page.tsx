@@ -41,6 +41,7 @@ import {
   Eye,
   MoreVertical,
   BookmarkCheck,
+  ExternalLink,
 } from "lucide-react";
 import { findTalentById } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
@@ -83,6 +84,10 @@ function portfolioLinksFromProfile(profile: any): string[] {
 
 function portfolioHref(link: string): string {
   return /^https?:\/\//i.test(link) ? link : `https://${link}`;
+}
+
+function isDirectVideoUrl(url: string): boolean {
+  return /\.(mp4|mov|m4v|webm|ogg)(\?|#|$)/i.test(url);
 }
 
 function formatLanguageList(value: unknown) {
@@ -561,7 +566,7 @@ export default function BrandTalentProfilePage() {
     }).filter(Boolean) as Array<{ id: number; label: string; url: string }>;
   }, [profile]);
 
-  const portfolioVideos = useMemo<Array<{ id: string | number; title: string; url: string }>>(() => {
+  const portfolioVideos = useMemo<Array<{ id: string | number; title: string; url: string; path?: string | null; disk?: string | null }>>(() => {
     if (!profile || !Array.isArray((profile as any).videos)) return [];
 
     return (profile as any).videos
@@ -569,6 +574,8 @@ export default function BrandTalentProfilePage() {
         id: video?.id ?? `video-${index + 1}`,
         title: String(video?.title || `Video ${index + 1}`),
         url: normalizeBackendAssetUrl(video?.url || ""),
+        path: video?.path ?? null,
+        disk: video?.disk ?? null,
       }))
       .filter((video: { url: string }) => Boolean(video.url))
       .slice(0, 4);
@@ -1061,13 +1068,34 @@ export default function BrandTalentProfilePage() {
                     key={`${video.id}-${index}`}
                     className="relative aspect-[9/16] overflow-hidden rounded-xl border border-white/5 bg-slate-950 shadow-md group"
                   >
-                    <video
-                      src={video.url}
-                      controls
-                      preload="metadata"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
+                    {isDirectVideoUrl(video.url) ? (
+                      <video
+                        src={video.url}
+                        controls
+                        preload="metadata"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <a
+                        href={video.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center text-slate-300 transition hover:text-amber-300"
+                      >
+                        <Video className="h-8 w-8" />
+                        <span className="text-[10px] font-black uppercase tracking-wider">Mở video</span>
+                      </a>
+                    )}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
+                    <a
+                      href={video.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="absolute left-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-amber-400/50 hover:text-amber-300 active:scale-95"
+                      title="Mở video"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
                   </div>
                 ))}
               </div>

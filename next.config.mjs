@@ -10,6 +10,9 @@ const nextConfig = {
     buildActivity: false,
     appIsrStatus: false,
   },
+  experimental: {
+    proxyClientMaxBodySize: "100mb",
+  },
   async rewrites() {
     return [
       {
