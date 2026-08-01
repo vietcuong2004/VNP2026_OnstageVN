@@ -1,264 +1,262 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Briefcase,
-  Filter,
-  Search,
-  SlidersHorizontal,
-  X,
+  ArrowUpDown,
+  BookmarkCheck,
+  Building2,
+  Check,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Filter,
+  Loader2,
+  Lock,
+  LogOut,
+  MapPin,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  Sparkles,
+  Star,
+  Trash2,
+  UserCheck,
+  UserPlus,
+  Users2,
+  X,
 } from "lucide-react";
-import { addBrandRosterTalent, addTalentToWishlist, createBrandWishlist, loadBrandRosterTalents, loadBrandTalentsPage, loadBrandWishlists, removeTalentFromWishlist, loadBrandCampaigns } from "@/lib/brand-api";
-import { useGuestActionPrompt } from "@/components/guest-action-prompt";
-import { cn } from "@/lib/utils";
 import TalentCard from "@/components/TalentCard";
+import { cn } from "@/lib/utils";
+import {
+  addTalentToWishlist,
+  addBrandRosterTalent,
+  createBrandWishlist,
+  loadBrandCampaigns,
+  loadBrandRosterTalents,
+  loadBrandTalentsPage,
+  loadBrandWishlists,
+  removeBrandRosterTalent,
+  removeTalentFromWishlist,
+} from "@/lib/brand-api";
+import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
-const allValue = "all";
-const TALENTS_PER_PAGE = 20;
-const TALENT_PAGES_PER_RESULT_PAGE = 5;
+const TALENTS_PER_PAGE = 24;
+const TALENT_PAGES_PER_RESULT_PAGE = 2;
 const TALENTS_PER_RESULT_PAGE = TALENTS_PER_PAGE * TALENT_PAGES_PER_RESULT_PAGE;
-const cityOptions = [
-  "Tỉnh An Giang",
-  "Tỉnh Bắc Ninh",
-  "Tỉnh Cà Mau",
-  "Tỉnh Cao Bằng",
-  "TP. Cần Thơ",
-  "TP. Đà Nẵng",
-  "Tỉnh Đắk Lắk",
-  "Tỉnh Điện Biên",
-  "Tỉnh Đồng Nai",
-  "Tỉnh Đồng Tháp",
-  "Tỉnh Gia Lai",
-  "TP. Hà Nội",
-  "Tỉnh Hà Tĩnh",
-  "TP. Hải Phòng",
+
+const allValue = "Tất cả";
+
+const VIETNAM_CITIES = [
+  "Hà Nội",
   "TP. Hồ Chí Minh",
-  "TP. Huế",
-  "Tỉnh Hưng Yên",
-  "Tỉnh Khánh Hòa",
-  "Tỉnh Lai Châu",
-  "Tỉnh Lâm Đồng",
-  "Tỉnh Lạng Sơn",
-  "Tỉnh Lào Cai",
-  "Tỉnh Nghệ An",
-  "Tỉnh Ninh Bình",
-  "Tỉnh Phú Thọ",
-  "Tỉnh Quảng Ngãi",
-  "Tỉnh Quảng Ninh",
-  "Tỉnh Quảng Trị",
-  "Tỉnh Sơn La",
-  "Tỉnh Tây Ninh",
-  "Tỉnh Thái Nguyên",
-  "Tỉnh Thanh Hóa",
-  "Tỉnh Tuyên Quang",
-  "Tỉnh Vĩnh Long",
+  "Đà Nẵng",
+  "Cần Thơ",
+  "Hải Phòng",
+  "Quảng Ninh",
+  "Bình Dương",
+  "Đồng Nai",
+  "Nha Trang",
+  "Đà Lạt",
+  "Khác",
 ];
-const talentTypeOptions = [
+
+const ALL_TALENT_TYPES = [
   "Diễn viên",
-  "Người mẫu",
-  "KOLs",
-  "KOCs",
-  "Livestreamers",
+  "KOL",
+  "KOC",
+  "Livestreamer",
   "MC",
   "PG",
+  "PB",
   "Hoa hậu",
 ];
+
+function formatTalentType(type: string): string {
+  return type;
+}
+
+function normalizeTalentType(type: string): string {
+  return type.toLowerCase().trim();
+}
+
+function formatActionError(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
+
 const genderOptions = [
-  { value: allValue, label: "Tất cả giới tính" },
-  { value: "Nữ", label: "Nữ" },
-  { value: "Nam", label: "Nam" },
+  { label: "Tất cả giới tính", value: allValue },
+  { label: "Nữ", value: "female" },
+  { label: "Nam", value: "male" },
+  { label: "Khác", value: "other" },
 ];
+
+const cityOptions = [
+  { label: "Toàn quốc", value: allValue },
+  ...VIETNAM_CITIES.map((city: string) => ({ label: city, value: city })),
+];
+
 const typeOptions = [
-  { value: allValue, label: "Tất cả loại hình Idol" },
-  ...talentTypeOptions.map((type) => ({ value: type, label: type })),
-];
-const experienceOptions = [
-  { value: allValue, label: "Tất cả kinh nghiệm" },
-  { value: "under_1", label: "Dưới 1 năm" },
-  { value: "1_3", label: "Từ 1 - 3 năm" },
-  { value: "3_5", label: "Từ 3 - 5 năm" },
-  { value: "over_5", label: "Trên 5 năm" },
+  { label: "Tất cả loại hình Idol", value: allValue },
+  ...ALL_TALENT_TYPES.map((type: string) => ({ label: formatTalentType(type), value: type })),
 ];
 
-function normalizeCityName(value: string) {
-  return value.replace(/^(TP\.|Tỉnh)\s*/i, "").trim();
+function normalizeCityName(cityName: string): string {
+  return cityName.toLowerCase().replace(/^(tỉnh|thành phố|tp\.?)\s+/i, "").trim();
 }
 
-const cityDropdownOptions = [
-  { value: allValue, label: "Toàn quốc" },
-  ...cityOptions.map((city) => ({ value: normalizeCityName(city), label: city })),
-];
+function getTalentTypes(talent: any): string[] {
+  if (Array.isArray(talent?.talentTypes) && talent.talentTypes.length) {
+    return talent.talentTypes.map((type: unknown) => String(type).trim()).filter(Boolean);
+  }
 
-function normalizeSearchText(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D")
-    .toLowerCase()
-    .trim();
+  if (Array.isArray(talent?.talent_types) && talent.talent_types.length) {
+    return talent.talent_types.map((type: unknown) => String(type).trim()).filter(Boolean);
+  }
+
+  if (Array.isArray(talent?.categories) && talent.categories.length) {
+    return talent.categories.map((c: any) => (typeof c === "string" ? c : c.name || c.title || "")).filter(Boolean);
+  }
+
+  if (Array.isArray(talent?.categoryNames) && talent.categoryNames.length) {
+    return talent.categoryNames.map((type: unknown) => String(type).trim()).filter(Boolean);
+  }
+
+  return talent?.type ? [String(talent.type)] : [];
 }
 
-function normalizeTalentType(value: string) {
-  const normalized = value.trim().toLowerCase();
-  const aliases: Record<string, string> = {
-    model: "người mẫu",
-    "người mẫu": "người mẫu",
-    kol: "kols",
-    kols: "kols",
-    koc: "kocs",
-    kocs: "kocs",
-    livestreamer: "livestreamers",
-    livestreamers: "livestreamers",
-    mc: "mc",
-    pg: "pg",
-    "diễn viên": "diễn viên",
-    "hoa hậu": "hoa hậu",
-  };
-
-  return aliases[normalized] || normalized;
-}
-
-function backendGenderValue(value: string) {
-  const normalized = normalizeSearchText(value);
-  if (normalized === "nam") return "male";
-  if (normalized === "nu") return "female";
+function backendGenderValue(gender: string): string | undefined {
+  if (gender === "female" || gender === "Nữ") return "female";
+  if (gender === "male" || gender === "Nam") return "male";
+  if (gender === "other" || gender === "Khác") return "other";
   return undefined;
 }
 
-function getTalentTypes(talent: unknown) {
-  const record = talent && typeof talent === "object" ? talent as Record<string, unknown> : {};
-
-  if (Array.isArray(record.talentTypes) && record.talentTypes.length) {
-    return record.talentTypes.map((type: unknown) => String(type).trim()).filter(Boolean);
+function getVisiblePageNumbers(currentPage: number, totalPages: number): (number | string)[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
 
-  if (Array.isArray(record.talent_types) && record.talent_types.length) {
-    return record.talent_types.map((type: unknown) => String(type).trim()).filter(Boolean);
-  }
+  const pages: (number | string)[] = [1];
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
 
-  return record.type ? [String(record.type)] : [];
+  if (start > 2) pages.push("...");
+  for (let index = start; index <= end; index += 1) pages.push(index);
+  if (end < totalPages - 1) pages.push("...");
+  pages.push(totalPages);
+
+  return pages;
 }
 
-function getVisiblePageNumbers(currentPage: number, totalPages: number) {
-  const maxVisible = 10;
-  const safeTotal = Math.max(1, totalPages);
-  const half = Math.floor(maxVisible / 2);
-  let start = Math.max(1, currentPage - half);
-  const end = Math.min(safeTotal, start + maxVisible - 1);
-  start = Math.max(1, end - maxVisible + 1);
-
-  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
-}
-
-type FilterDropdownOption = {
+type FilterDropdownProps = {
   value: string;
-  label: string;
+  onChange: (value: string) => void;
+  options: { label: string; value: string }[];
+  placeholder?: string;
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  className?: string;
 };
 
 function FilterDropdown({
   value,
   onChange,
   options,
-  searchPlaceholder = "Tìm kiếm...",
-  emptyText = "Không tìm thấy lựa chọn",
+  placeholder = "Chọn...",
   searchable = true,
+  searchPlaceholder = "Tìm kiếm...",
+  emptyText = "Không tìm thấy",
   className,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  options: FilterDropdownOption[];
-  searchPlaceholder?: string;
-  emptyText?: string;
-  searchable?: boolean;
-  className?: string;
-}) {
-  const dropdownRef = useRef<HTMLDivElement>(null);
+}: FilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedOption = options.find((option) => option.value === value) || options[0];
+  const selectedOption = options.find((opt) => opt.value === value) || options[0];
+
   const filteredOptions = useMemo(() => {
-    const keyword = normalizeSearchText(searchInput);
-    if (!keyword) return options;
-
-    return options.filter((option) => {
-      const label = normalizeSearchText(option.label);
-      const optionValue = normalizeSearchText(option.value);
-
-      return label.includes(keyword) || optionValue.includes(keyword);
-    });
-  }, [options, searchInput]);
+    if (!searchable || !search.trim()) return options;
+    const term = search.toLowerCase();
+    return options.filter((opt) => opt.label.toLowerCase().includes(term));
+  }, [options, search, searchable]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (!dropdownRef.current?.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div ref={dropdownRef} className={cn("relative", className)}>
+    <div ref={dropdownRef} className={cn("relative w-full", className)}>
       <button
         type="button"
-        onClick={() => setIsOpen((open) => !open)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-left text-xs text-white outline-none transition-all hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "flex h-9 w-full items-center justify-between gap-2 rounded-xl border border-white/5 bg-slate-950/60 px-3 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
+          isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+        )}
       >
-        <span className="truncate">{selectedOption?.label}</span>
-        <ChevronDown className={cn("h-4 w-4 shrink-0 text-white transition-transform", isOpen && "rotate-180")} />
+        <span className="truncate text-left font-medium text-slate-200">
+          {selectedOption?.label || placeholder}
+        </span>
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-300",
+            isOpen && "rotate-180 text-[#C9A86A]"
+          )}
+        />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-[100] mt-1 rounded-xl border border-white/10 bg-[#08051d] shadow-2xl">
+        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-60 w-full overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
           {searchable && (
-            <div className="border-b border-white/10 p-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#C9A86A]" />
-                <input
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder={searchPlaceholder}
-                  className="w-full rounded-lg border border-white/10 bg-slate-950/80 py-2 pl-9 pr-3 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/60"
-                  autoFocus
-                />
-              </div>
+            <div className="mb-1.5 px-1">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={searchPlaceholder}
+                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-2.5 py-1.5 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/50"
+                autoFocus
+              />
             </div>
           )}
 
-          <div className="max-h-[320px] overflow-y-auto py-1">
-            {filteredOptions.map((option) => {
-              const isSelected = option.value === value;
-
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(option.value);
-                    setSearchInput("");
-                    setIsOpen(false);
-                  }}
-                  className={cn(
-                    "block w-full px-4 py-2 text-left text-xs font-medium transition-colors hover:bg-[#C9A86A]/15",
-                    isSelected ? "bg-[#C9A86A]/25 text-white" : "text-slate-200"
-                  )}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-
-            {filteredOptions.length === 0 && (
-              <div className="px-4 py-3 text-xs font-semibold text-slate-500">
-                {emptyText}
-              </div>
+          <div className="max-h-44 overflow-y-auto space-y-0.5 pr-0.5 custom-scrollbar">
+            {filteredOptions.length === 0 ? (
+              <div className="px-3 py-2 text-center text-xs text-slate-500">{emptyText}</div>
+            ) : (
+              filteredOptions.map((opt) => {
+                const isSelected = opt.value === value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      onChange(opt.value);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors text-left cursor-pointer",
+                      isSelected
+                        ? "bg-[#C9A86A]/20 text-[#C9A86A] font-bold"
+                        : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    )}
+                  >
+                    <span className="truncate">{opt.label}</span>
+                    {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />}
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
@@ -288,21 +286,31 @@ export default function DiscoverTalentsPage() {
     }, 3200);
   }
 
-  // Search and Filters states
-  const [searchQuery, setSearchQuery] = useState("");
+  // Draft Search and Filters states (controlled inputs)
   const [searchInput, setSearchInput] = useState("");
   const [selectedGender, setSelectedGender] = useState(allValue);
   const [selectedType, setSelectedType] = useState(allValue);
   const [selectedCity, setSelectedCity] = useState(allValue);
 
-  const [minAge, setMinAge] = useState(18);
-  const [maxAge, setMaxAge] = useState(40);
   const [minHeight, setMinHeight] = useState(150);
   const [maxHeight, setMaxHeight] = useState(190);
   const [minWeight, setMinWeight] = useState(40);
   const [maxWeight, setMaxWeight] = useState(90);
 
-  const [selectedExperience, setSelectedExperience] = useState(allValue);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Applied Filters state (ONLY updated when user clicks "ÁP DỤNG" or submits search)
+  const [appliedFilters, setAppliedFilters] = useState({
+    query: "",
+    gender: allValue,
+    type: allValue,
+    city: allValue,
+    minHeight: 150,
+    maxHeight: 190,
+    minWeight: 40,
+    maxWeight: 90,
+    showAdvancedFilters: false,
+  });
 
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [wishlistId, setWishlistId] = useState<string | null>(null);
@@ -311,8 +319,6 @@ export default function DiscoverTalentsPage() {
   const [selectedCampaignForInvite, setSelectedCampaignForInvite] = useState("");
   const talentRequestRef = useRef(0);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const [displayTalents, setDisplayTalents] = useState<any[]>([]);
   const [talentPage, setTalentPage] = useState(1);
@@ -324,18 +330,32 @@ export default function DiscoverTalentsPage() {
   const [isLoadingMoreTalents, setIsLoadingMoreTalents] = useState(false);
   const [brandCampaigns, setBrandCampaigns] = useState<any[]>([]);
   const [brandTalentIds, setBrandTalentIds] = useState<string[]>([]);
+  const [brandRosterMap, setBrandRosterMap] = useState<Record<string, string>>({});
   const [addingBrandTalentIds, setAddingBrandTalentIds] = useState<string[]>([]);
 
+  // Function to apply current draft filters
+  const applyFilters = useCallback(() => {
+    setAppliedFilters({
+      query: searchInput,
+      gender: selectedGender,
+      type: selectedType,
+      city: selectedCity,
+      minHeight,
+      maxHeight,
+      minWeight,
+      maxWeight,
+      showAdvancedFilters,
+    });
+  }, [searchInput, selectedGender, selectedType, selectedCity, minHeight, maxHeight, minWeight, maxWeight, showAdvancedFilters]);
+
   const talentQueryOptions = useMemo(() => ({
-    q: searchQuery || undefined,
-    type: selectedType !== allValue ? selectedType : undefined,
-    city: selectedCity !== allValue ? selectedCity : undefined,
-    gender: selectedGender !== allValue ? backendGenderValue(selectedGender) : undefined,
-    minAge: showAdvancedFilters ? minAge : undefined,
-    maxAge: showAdvancedFilters ? maxAge : undefined,
-    minHeight: showAdvancedFilters ? minHeight : undefined,
-    maxHeight: showAdvancedFilters ? maxHeight : undefined,
-  }), [searchQuery, selectedType, selectedCity, selectedGender, showAdvancedFilters, minAge, maxAge, minHeight, maxHeight]);
+    q: appliedFilters.query || undefined,
+    type: appliedFilters.type !== allValue ? appliedFilters.type : undefined,
+    city: appliedFilters.city !== allValue ? appliedFilters.city : undefined,
+    gender: appliedFilters.gender !== allValue ? backendGenderValue(appliedFilters.gender) : undefined,
+    minHeight: appliedFilters.showAdvancedFilters ? appliedFilters.minHeight : undefined,
+    maxHeight: appliedFilters.showAdvancedFilters ? appliedFilters.maxHeight : undefined,
+  }), [appliedFilters]);
 
   const loadTalentPage = useCallback(async (page: number, mode: "replace" | "append", resultPage: number) => {
     const requestId = ++talentRequestRef.current;
@@ -440,9 +460,17 @@ export default function DiscoverTalentsPage() {
       .then((items) => {
         if (cancelled) return;
         setBrandTalentIds(items.map((item) => String(item.talent_profile_id)));
+        const map: Record<string, string> = {};
+        items.forEach((item) => {
+          map[String(item.talent_profile_id)] = String(item.id);
+        });
+        setBrandRosterMap(map);
       })
       .catch(() => {
-        if (!cancelled) setBrandTalentIds([]);
+        if (!cancelled) {
+          setBrandTalentIds([]);
+          setBrandRosterMap({});
+        }
       });
 
     return () => {
@@ -450,9 +478,9 @@ export default function DiscoverTalentsPage() {
     };
   }, []);
 
-  // Filter Algorithm
+  // Filter Algorithm based strictly on appliedFilters
   const filteredTalents = useMemo(() => {
-    const keyword = searchQuery.trim().toLowerCase();
+    const keyword = appliedFilters.query.trim().toLowerCase();
 
     return displayTalents
       .filter((talent) => {
@@ -463,54 +491,29 @@ export default function DiscoverTalentsPage() {
           talent.skills.some((skill: string) => skill.toLowerCase().includes(keyword)) ||
           talentTypes.some((type) => type.toLowerCase().includes(keyword));
 
-        const matchesGender = selectedGender === allValue || talent.gender === selectedGender;
+        const matchesGender = appliedFilters.gender === allValue || talent.gender === appliedFilters.gender;
         const matchesType =
-          selectedType === allValue ||
-          talentTypes.some((type) => normalizeTalentType(type) === normalizeTalentType(selectedType));
+          appliedFilters.type === allValue ||
+          talentTypes.some((type) => normalizeTalentType(type) === normalizeTalentType(appliedFilters.type));
         const matchesCity =
-          selectedCity === allValue ||
-          normalizeCityName(talent.city || "") === normalizeCityName(selectedCity);
+          appliedFilters.city === allValue ||
+          normalizeCityName(talent.city || "") === normalizeCityName(appliedFilters.city);
 
-        const usesAdvancedFilters = showAdvancedFilters;
-        const matchesAge = !usesAdvancedFilters || !talent.age || (talent.age >= minAge && talent.age <= maxAge);
-        const matchesHeight = !usesAdvancedFilters || !talent.height || (talent.height >= minHeight && talent.height <= maxHeight);
-        const matchesWeight = !usesAdvancedFilters || !talent.weight || (talent.weight >= minWeight && talent.weight <= maxWeight);
-
-        let matchesExperience = true;
-        if (usesAdvancedFilters && selectedExperience !== allValue) {
-          if (selectedExperience === "under_1") matchesExperience = talent.yearsOfExperience < 1;
-          else if (selectedExperience === "1_3") matchesExperience = talent.yearsOfExperience >= 1 && talent.yearsOfExperience <= 3;
-          else if (selectedExperience === "3_5") matchesExperience = talent.yearsOfExperience >= 3 && talent.yearsOfExperience <= 5;
-          else if (selectedExperience === "over_5") matchesExperience = talent.yearsOfExperience > 5;
-        }
+        const usesAdvancedFilters = appliedFilters.showAdvancedFilters;
+        const matchesHeight = !usesAdvancedFilters || !talent.height || (talent.height >= appliedFilters.minHeight && talent.height <= appliedFilters.maxHeight);
+        const matchesWeight = !usesAdvancedFilters || !talent.weight || (talent.weight >= appliedFilters.minWeight && talent.weight <= appliedFilters.maxWeight);
 
         return (
           matchesSearch &&
           matchesGender &&
           matchesType &&
           matchesCity &&
-          matchesAge &&
           matchesHeight &&
-          matchesWeight &&
-          matchesExperience
+          matchesWeight
         );
       })
       .sort((a, b) => b.matchScore - a.matchScore);
-  }, [
-    searchQuery,
-    selectedGender,
-    selectedType,
-    selectedCity,
-    minAge,
-    maxAge,
-    minHeight,
-    maxHeight,
-    minWeight,
-    maxWeight,
-    selectedExperience,
-    showAdvancedFilters,
-    displayTalents,
-  ]);
+  }, [appliedFilters, displayTalents]);
 
   const getTalentStatus = (id: string) => {
     if (id === "tal-1" || id === "tal-2") return "available";
@@ -519,8 +522,8 @@ export default function DiscoverTalentsPage() {
   };
 
   const hasClientOnlyFilters =
-    showAdvancedFilters &&
-    (minWeight !== 40 || maxWeight !== 90 || selectedExperience !== allValue);
+    appliedFilters.showAdvancedFilters &&
+    (appliedFilters.minWeight !== 40 || appliedFilters.maxWeight !== 90);
   const displayedTalentCount = hasClientOnlyFilters ? filteredTalents.length : talentTotal || filteredTalents.length;
   const talentPageNumbers = getVisiblePageNumbers(talentResultPage, talentResultPageCount);
 
@@ -536,30 +539,17 @@ export default function DiscoverTalentsPage() {
     }
   }
 
-  function resetFilters() {
-    setSearchQuery("");
-    setSearchInput("");
-    setSelectedGender(allValue);
-    setSelectedType(allValue);
-    setSelectedCity(allValue);
-    setMinAge(18);
-    setMaxAge(40);
-    setMinHeight(150);
-    setMaxHeight(190);
-    setMinWeight(40);
-    setMaxWeight(90);
-    setSelectedExperience(allValue);
-  }
-
   async function ensureWishlist() {
     if (wishlistId) return wishlistId;
-    const created = await createBrandWishlist("Idol yêu thích", "Danh sách idol yêu thích của Brand");
+    const created = await createBrandWishlist("Danh sách đã lưu");
     setWishlistId(created.id);
     return created.id;
   }
 
-  async function toggleSaved(id: string) {
-    if (!requireAuthAction({ actionLabel: "Lưu idol vào danh sách yêu thích" })) return;
+  // Toggle Saved Talent
+  async function toggleSaved(talentId: string | number) {
+    const id = String(talentId);
+    if (!requireAuthAction({ actionLabel: "Thêm talent vào danh sách đã lưu" })) return;
 
     try {
       if (savedIds.includes(id)) {
@@ -574,7 +564,7 @@ export default function DiscoverTalentsPage() {
           delete next[id];
           return next;
         });
-        pushToast("Đã xoá khỏi danh sách yêu thích.");
+        pushToast("Đã xóa khỏi danh sách đã lưu.");
         return;
       }
 
@@ -582,9 +572,9 @@ export default function DiscoverTalentsPage() {
       const created = await addTalentToWishlist(nextWishlistId, id);
       setSavedIds((current) => current.includes(id) ? current : [...current, id]);
       setWishlistItemIds((current) => ({ ...current, [id]: String(created.id) }));
-      pushToast("Đã thêm vào danh sách yêu thích.");
+      pushToast("Đã thêm vào danh sách đã lưu.");
     } catch (error) {
-      pushToast(error instanceof Error ? error.message : "Chưa thể cập nhật danh sách yêu thích. Vui lòng thử lại.", "error");
+      pushToast(error instanceof Error ? error.message : "Chưa thể cập nhật danh sách đã lưu. Vui lòng thử lại.", "error");
     }
   }
 
@@ -596,37 +586,113 @@ export default function DiscoverTalentsPage() {
     setAddingBrandTalentIds((current) => [...current, talentId]);
 
     try {
-      await addBrandRosterTalent(talentId, "Thêm từ danh sách tìm kiếm talent.");
+      const res = await addBrandRosterTalent(talentId, `Thêm idol ${talent?.name || ""} vào Brand.`);
       setBrandTalentIds((current) => current.includes(talentId) ? current : [...current, talentId]);
+      if (res?.id) {
+        setBrandRosterMap((current) => ({ ...current, [talentId]: String(res.id) }));
+      }
       pushToast("Đã thêm talent vào Brand.");
     } catch (error) {
-      pushToast("Chưa thể thêm talent vào Brand. Vui lòng thử lại.", "error");
-      console.error("Failed to add talent to brand", error);
+      pushToast(formatActionError(error, "Chưa thể thêm talent vào Brand. Vui lòng thử lại."), "error");
+    } finally {
+      setAddingBrandTalentIds((current) => current.filter((id) => id !== talentId));
+    }
+  }
+
+  async function removeTalentFromBrand(talent: any) {
+    const talentId = String(talent?.id || "");
+    if (!talentId || addingBrandTalentIds.includes(talentId)) return;
+    if (!requireAuthAction({ actionLabel: "Xóa talent khỏi Brand" })) return;
+
+    setAddingBrandTalentIds((current) => [...current, talentId]);
+
+    try {
+      let rosterId = brandRosterMap[talentId];
+      if (!rosterId) {
+        const rosterItems = await loadBrandRosterTalents();
+        const found = rosterItems.find((r) => String(r.talent_profile_id) === talentId || String(r.talent_profile?.id) === talentId);
+        if (found?.id) rosterId = String(found.id);
+      }
+
+      if (rosterId) {
+        await removeBrandRosterTalent(rosterId);
+      }
+      setBrandTalentIds((current) => current.filter((id) => id !== talentId));
+      setBrandRosterMap((current) => {
+        const next = { ...current };
+        delete next[talentId];
+        return next;
+      });
+      pushToast("Đã xóa talent khỏi Brand.");
+    } catch (error) {
+      pushToast(formatActionError(error, "Chưa thể xóa talent khỏi Brand. Vui lòng thử lại."), "error");
     } finally {
       setAddingBrandTalentIds((current) => current.filter((id) => id !== talentId));
     }
   }
 
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
-      {/* Header */}
-      <section className="border-b border-[#2B313D] pb-5">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="rounded-md border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
-            TÌM KIẾM IDOL
-          </span>
+    <div className="space-y-6 pb-16">
+      {/* Toast Notification Bar */}
+      {toasts.length > 0 && (
+        <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-md pointer-events-none">
+          {toasts.map((toast) => (
+            <div
+              key={toast.id}
+              className={cn(
+                "pointer-events-auto flex items-center gap-3 rounded-2xl border px-4 py-3 text-xs font-bold shadow-2xl backdrop-blur-xl animate-in slide-in-from-top-4 duration-300",
+                toast.tone === "success"
+                  ? "border-emerald-500/30 bg-[#07130F]/95 text-emerald-300"
+                  : "border-rose-500/30 bg-[#17080A]/95 text-rose-300"
+              )}
+            >
+              {toast.tone === "success" ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+              ) : (
+                <X className="h-4 w-4 shrink-0 text-rose-400" />
+              )}
+              <span className="flex-1">{toast.message}</span>
+            </div>
+          ))}
         </div>
-        <h1 className="font-display text-2xl font-black tracking-tight text-white uppercase">
-          DANH SÁCH IDOL NỔI BẬT
-        </h1>
-        <p className="mt-2 max-w-3xl text-xs font-semibold leading-relaxed text-slate-400 uppercase tracking-wide">
-          Hãy tìm idol phù hợp nhất cho các chiến dịch của bạn
-        </p>
+      )}
+
+      {/* Header Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-[#0C0F17] via-[#141824] to-[#0A0C13] p-6 md:p-8 shadow-2xl">
+        <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#C9A86A]/5 blur-3xl" />
+        <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="rounded-md border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                OnstageVN Idol
+              </span>
+            </div>
+            <h1 className="font-display text-2xl font-black tracking-tight text-white md:text-3xl">
+              Khám phá &amp; Tìm kiếm{" "}
+              <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+                Idol Phù Hợp
+              </span>
+            </h1>
+            <p className="mt-2 max-w-xl text-xs leading-relaxed text-slate-400 md:text-sm">
+              Khám phá hàng trăm hồ sơ Talent, tìm kiếm theo tiêu chí phù hợp và lưu lại để sẵn sàng kết nối trong các chiến dịch tiếp theo.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <Link
+              href="/brand/shortlists"
+              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/10 hover:text-white cursor-pointer"
+            >
+              <BookmarkCheck className="h-4 w-4 text-[#C9A86A]" />
+              <span>Danh sách đã lưu ({savedIds.length})</span>
+            </Link>
+          </div>
+        </div>
       </section>
 
-      {/* Search Bar - First Row */}
-      <div className="flex flex-col sm:flex-row gap-3 w-full">
-        <div className="relative flex-1 group">
+      {/* Search Input Bar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="group relative flex-1">
           <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/30 via-[#C9A86A]/40 to-yellow-600/30 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
           <div className="relative w-full">
             <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A] transition-colors group-focus-within:text-amber-300" />
@@ -635,7 +701,7 @@ export default function DiscoverTalentsPage() {
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  setSearchQuery(searchInput);
+                  applyFilters();
                 }
               }}
               placeholder="Tìm kiếm idol theo tên, kỹ năng (ví dụ: MC, livestream, catwalk...)"
@@ -643,11 +709,12 @@ export default function DiscoverTalentsPage() {
             />
             {searchInput && (
               <button
+                type="button"
                 onClick={() => {
                   setSearchInput("");
-                  setSearchQuery("");
+                  setAppliedFilters((prev) => ({ ...prev, query: "" }));
                 }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -656,7 +723,8 @@ export default function DiscoverTalentsPage() {
         </div>
 
         <button
-          onClick={() => setSearchQuery(searchInput)}
+          type="button"
+          onClick={applyFilters}
           className="flex h-[50px] items-center justify-center rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-8 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(201,168,106,0.3)] shrink-0"
         >
           Tìm kiếm
@@ -687,7 +755,7 @@ export default function DiscoverTalentsPage() {
             <FilterDropdown
               value={selectedCity}
               onChange={setSelectedCity}
-              options={cityDropdownOptions}
+              options={cityOptions}
               searchPlaceholder="Nhập tỉnh/thành..."
               emptyText="Không tìm thấy địa điểm"
             />
@@ -707,6 +775,7 @@ export default function DiscoverTalentsPage() {
           {/* Buttons Group */}
           <div className="flex items-center gap-2 mt-2 sm:mt-0">
             <button
+              type="button"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className={cn(
                 "flex h-9 items-center justify-center gap-1.5 rounded-xl border px-4 text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer whitespace-nowrap shadow-md",
@@ -721,10 +790,12 @@ export default function DiscoverTalentsPage() {
             </button>
 
             <button
-              onClick={resetFilters}
-              className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 text-xs font-black uppercase tracking-wider text-slate-400 hover:bg-white/10 hover:border-white/20 hover:text-white transition active:scale-95 cursor-pointer"
+              type="button"
+              onClick={applyFilters}
+              className="flex h-9 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-110 transition active:scale-95 cursor-pointer shadow-md"
             >
-              Reset
+              <Filter className="h-3.5 w-3.5" />
+              <span>Áp dụng</span>
             </button>
           </div>
         </div>
@@ -732,16 +803,7 @@ export default function DiscoverTalentsPage() {
         {/* Collapsible Advanced Filters Area */}
         {showAdvancedFilters && (
           <div className="border-t border-white/5 pt-4 space-y-4 animate-in slide-in-from-top-2 duration-300">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-
-              {/* Độ tuổi */}
-              <div className="space-y-1.5">
-                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Độ tuổi ({minAge} - {maxAge})</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="number" min={16} max={50} value={minAge} onChange={(e) => setMinAge(Number(e.target.value))} className="w-full rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center" />
-                  <input type="number" min={16} max={50} value={maxAge} onChange={(e) => setMaxAge(Number(e.target.value))} className="w-full rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center" />
-                </div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* Chiều cao */}
               <div className="space-y-1.5">
@@ -761,17 +823,6 @@ export default function DiscoverTalentsPage() {
                 </div>
               </div>
 
-              {/* Kinh nghiệm */}
-              <div className="space-y-1.5">
-                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Kinh nghiệm chuyên môn</span>
-                <FilterDropdown
-                  value={selectedExperience}
-                  onChange={setSelectedExperience}
-                  options={experienceOptions}
-                  searchable={false}
-                />
-              </div>
-
             </div>
           </div>
         )}
@@ -787,7 +838,7 @@ export default function DiscoverTalentsPage() {
               Tìm thấy <b className="text-white">{displayedTalentCount}</b> idol phù hợp.
             </span>
             <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono shrink-0">
-              ĐÃ LƯU <b className="text-white">{savedIds.length}</b> idol vào danh sách yêu thích
+              ĐÃ LƯU <b className="text-white">{savedIds.length}</b> idol vào danh sách đã lưu
             </span>
           </div>
 
@@ -798,17 +849,15 @@ export default function DiscoverTalentsPage() {
               <p className="mt-2 text-xs text-slate-500">Một chút thôi, hệ thống đang lấy dữ liệu phù hợp.</p>
             </div>
           ) : filteredTalents.length === 0 ? (
-            <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-16 text-center">
+            <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-12 text-center">
               <Search className="mx-auto mb-3 h-8 w-8 text-slate-600" />
               <h3 className="text-sm font-black text-white">Không tìm thấy idol phù hợp</h3>
-              <p className="mt-2 text-xs text-slate-500">Hãy thử nới lỏng bộ lọc hoặc điều chỉnh từ khóa tìm kiếm.</p>
+              <p className="mt-2 text-xs text-slate-500">Thử chỉnh lại từ khóa hoặc xóa bớt bộ lọc xem sao.</p>
             </div>
           ) : (
-            /* Result Grid */
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredTalents.map((talent) => {
-                const isSaved = savedIds.includes(talent.id);
-                const status = getTalentStatus(talent.id);
+                const isSaved = savedIds.includes(String(talent.id));
                 const isInBrand = brandTalentIds.includes(String(talent.id));
                 const isAddingToBrand = addingBrandTalentIds.includes(String(talent.id));
 
@@ -816,142 +865,70 @@ export default function DiscoverTalentsPage() {
                   <TalentCard
                     key={talent.id}
                     talent={talent}
-                    status={status}
+                    status={getTalentStatus(String(talent.id))}
                     isSaved={isSaved}
-                    onToggleSaved={(item) => void toggleSaved(item.id)}
-                    onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
-                    onMessage={(item) => void addTalentToBrand(item)}
-                    messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào Brand"}
                     messageDisabled={isInBrand}
                     messageLoading={isAddingToBrand}
-                    showMessageIcon
+                    onToggleSaved={() => toggleSaved(talent.id)}
+                    onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
+                    onMessage={() => addTalentToBrand(talent)}
+                    onRemoveFromBrand={() => removeTalentFromBrand(talent)}
                   />
                 );
               })}
             </div>
           )}
 
-          {!isLoadingTalents && hasMoreTalents && (
-            <div ref={loadMoreRef} className="flex min-h-16 justify-center pt-3">
-              <div className="flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#C9A86A]/20 bg-[#C9A86A]/5 px-6 text-xs font-black uppercase tracking-wider text-[#C9A86A]">
-                <span>{isLoadingMoreTalents ? "Đang tải thêm idol" : "Kéo xuống để tải thêm"}</span>
-                <span className="flex items-center gap-1" aria-hidden="true">
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#C9A86A]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#C9A86A] [animation-delay:120ms]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#C9A86A] [animation-delay:240ms]" />
-                </span>
-              </div>
-            </div>
-          )}
-
-          {!isLoadingTalents && talentResultPageCount > 1 && (
-            <div className="flex flex-wrap items-center justify-center gap-2 pt-8 pb-4">
+          {!hasClientOnlyFilters && talentResultPageCount > 1 && (
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-6">
               <button
                 type="button"
-                disabled={talentResultPage <= 1 || isLoadingTalents}
                 onClick={() => goToTalentResultPage(talentResultPage - 1)}
-                className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 text-xs font-bold text-slate-300 transition hover:bg-white/10 hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={talentResultPage === 1 || isLoadingTalents}
+                className="rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-bold text-slate-300 transition hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:hover:bg-slate-950/60 cursor-pointer"
               >
-                Trước
+                Trang trước
               </button>
 
-              <div className="flex items-center gap-1.5 px-1">
-                {talentPageNumbers.map((page) => (
+              {talentPageNumbers.map((pageNumber, index) =>
+                typeof pageNumber === "number" ? (
                   <button
-                    key={page}
+                    key={pageNumber}
                     type="button"
-                    onClick={() => goToTalentResultPage(page)}
+                    onClick={() => goToTalentResultPage(pageNumber)}
+                    disabled={isLoadingTalents}
                     className={cn(
-                      "flex h-9 w-9 items-center justify-center rounded-xl text-xs font-black transition-all cursor-pointer",
-                      page === talentResultPage
-                        ? "bg-[#C9A86A] text-slate-950 shadow-md shadow-[#C9A86A]/20"
-                        : "border border-white/10 bg-slate-950/80 text-slate-400 hover:border-[#C9A86A]/40 hover:text-white"
+                      "min-w-[36px] h-9 rounded-xl border text-xs font-black transition cursor-pointer",
+                      pageNumber === talentResultPage
+                        ? "border-[#C9A86A] bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 shadow-md"
+                        : "border-white/10 bg-slate-950/60 text-slate-300 hover:bg-white/10 hover:text-white"
                     )}
                   >
-                    {page}
+                    {pageNumber}
                   </button>
-                ))}
-              </div>
+                ) : (
+                  <span key={`ellipsis-${index}`} className="px-1 text-xs font-bold text-slate-500">
+                    {pageNumber}
+                  </span>
+                )
+              )}
 
               <button
                 type="button"
-                disabled={talentResultPage >= talentResultPageCount || isLoadingTalents}
                 onClick={() => goToTalentResultPage(talentResultPage + 1)}
-                className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 text-xs font-bold text-slate-300 transition hover:bg-white/10 hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={talentResultPage === talentResultPageCount || isLoadingTalents}
+                className="rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-xs font-bold text-slate-300 transition hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:hover:bg-slate-950/60 cursor-pointer"
               >
-                Tiếp theo
+                Trang sau
               </button>
             </div>
           )}
+
+          {hasMoreTalents && <div ref={loadMoreRef} className="h-10 w-full" />}
         </main>
       </div>
 
-      {/* Invite to Campaign Modal Dialog */}
       <GuestActionPrompt />
-
-      {selectedInviteTalent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="flex items-start justify-between p-6 border-b border-[#151b2d]">
-              <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Mời Ứng Tuyển</h3>
-                <p className="text-[10px] text-slate-500 mt-1">Gửi lời mời tham gia campaign tới {selectedInviteTalent.name}</p>
-              </div>
-              <button onClick={() => setSelectedInviteTalent(null)} className="text-slate-400 hover:text-white cursor-pointer"><X className="h-4.5 w-4.5" /></button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <label className="block space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Chọn chiến dịch tuyển dụng</span>
-                <select
-                  value={selectedCampaignForInvite}
-                  onChange={(e) => setSelectedCampaignForInvite(e.target.value)}
-                  className="w-full rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-400/60"
-                >
-                  <option value="">-- Chọn chiến dịch --</option>
-                  {brandCampaigns.map(c => (
-                    <option key={c.id} value={c.id}>{c.title}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-[#151b2d] bg-[#050711]">
-              <button onClick={() => setSelectedInviteTalent(null)} className="px-4 py-2 rounded-xl border border-[#151b2d] text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Hủy</button>
-              <button
-                onClick={() => {
-                  if (!requireAuthAction({ actionLabel: "Gửi lời mời talent tham gia campaign" })) return;
-                  if (!selectedCampaignForInvite) {
-                    window.alert("Vui lòng chọn chiến dịch!");
-                    return;
-                  }
-                  window.alert(`Đã gửi lời mời ứng tuyển tới ${selectedInviteTalent.name} tham gia chiến dịch thành công!`);
-                  setSelectedInviteTalent(null);
-                }}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 font-black text-xs uppercase tracking-wider cursor-pointer"
-              >
-                Gửi lời mời
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="pointer-events-none fixed bottom-6 right-6 z-[70] flex w-full max-w-sm flex-col gap-2 px-4 sm:px-0">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={cn(
-              "rounded-2xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-md animate-in slide-in-from-bottom duration-300",
-              toast.tone === "success"
-                ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-100"
-                : "border-rose-400/30 bg-rose-500/10 text-rose-100",
-            )}
-          >
-            {toast.message}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

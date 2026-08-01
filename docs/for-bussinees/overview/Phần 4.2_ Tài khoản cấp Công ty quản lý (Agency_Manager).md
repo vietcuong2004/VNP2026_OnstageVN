@@ -17,7 +17,7 @@ Kiến trúc phân quyền của hệ thống sẽ được chia làm 3 tầng r
 
 * **Tạo & Chỉnh sửa Profile:** Agency có quyền tự tạo hàng loạt hồ sơ cho các KOL/Model trực thuộc công ty mình (không cần KOL phải tự đăng ký bằng số điện thoại).  
 * **Gắn thẻ "Độc quyền":** Trên hồ sơ của các KOL này (khi hiển thị ra ngoài trang chủ) sẽ có huy hiệu **"Được quản lý bởi Công ty \[Tên Agency\]"** để tăng độ uy tín và tránh việc đối tác liên hệ chui để phá giá.  
-* **Cập nhật hàng loạt:** Agency có thể nhanh chóng cập nhật lịch rảnh, bộ ảnh mới hoặc mức giá cát-xê cho nhiều người đẹp cùng lúc.
+* **Cập nhật hàng loạt:** Agency có thể nhanh chóng cập nhật lịch rảnh, bộ ảnh mới hoặc Phí booking cát-xê cho nhiều người đẹp cùng lúc.
 
 ### **B. Quản lý Nhận việc tập trung (Centralized Booking)**
 

@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Star,
   Users,
+  Heart,
   MessageSquare,
   TrendingUp,
   Wallet,
@@ -32,6 +33,8 @@ import {
   Mail,
   Phone,
   Globe,
+  FileText,
+  Video,
   Crown,
   Trophy,
   HelpCircle,
@@ -63,6 +66,42 @@ const convertToDisplayDate = (dateStr: string) => {
 
 interface ContactInfoCardProps {
   profile: any;
+}
+
+function portfolioLinksFromProfile(profile: any): string[] {
+  const rawLinks = profile?.portfolioLinks ?? profile?.portfolio_links ?? profile?.portfolio_url ?? "";
+  const links = Array.isArray(rawLinks)
+    ? rawLinks
+    : String(rawLinks).split(/[\n,;]+/);
+
+  return Array.from(new Set(
+    links
+      .map((link: unknown) => String(link).trim())
+      .filter(Boolean),
+  ));
+}
+
+function portfolioHref(link: string): string {
+  return /^https?:\/\//i.test(link) ? link : `https://${link}`;
+}
+
+function formatLanguageList(value: unknown) {
+  const list = Array.isArray(value) ? value : value ? [value] : [];
+  const labels = list
+    .map((item) => {
+      if (item && typeof item === "object") {
+        const record = item as Record<string, unknown>;
+        const name = String(record.language || record.name || record.label || "").trim();
+        const proficiency = String(record.proficiency || record.level || record.proficiency_level || "").trim();
+        if (name && proficiency && !name.includes("(")) return `${name} (${proficiency})`;
+        return name || proficiency;
+      }
+
+      return String(item || "").trim();
+    })
+    .filter(Boolean);
+
+  return labels.length > 0 ? labels.join(", ") : "Chưa cập nhật";
 }
 
 const FacebookIcon = () => (
@@ -141,7 +180,7 @@ const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
       platformKey: "Youtube",
       icon: (
         <svg className="h-4 w-4 shrink-0 fill-current text-[#FF0000]" viewBox="0 0 24 24">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
         </svg>
       ),
       colorClass: "hover:text-[#FF0000] hover:border-[#FF0000]/50 hover:bg-[#FF0000]/10 text-[#FF0000]",
@@ -208,63 +247,47 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
   };
 
   const socialAccounts = parseSocialAccounts(profile);
+  const portfolioLinks = portfolioLinksFromProfile(profile);
+  const portfolioOwnerName = String(profile?.name || "Idol").trim().replace(/\s+/g, "_");
 
   return (
     <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6 text-left">
       <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-        <Mail className="h-4.5 w-4.5 text-[#f4c430]" /> THÔNG TIN LIÊN HỆ
+        <FileText className="h-4.5 w-4.5 text-[#f4c430]" /> Portfolio & Mạng xã hội
       </h3>
 
-      {/* Phone & Email Blocks */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Phone */}
+      <div className="grid grid-cols-1 gap-4">
         <div className="flex items-center gap-3 bg-slate-950/50 border border-white/5 rounded-2xl p-4 transition-all duration-300 hover:border-amber-400/20">
           <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-amber-400/10 text-amber-400 shrink-0">
-            <Phone className="h-5 w-5" />
+            <FileText className="h-5 w-5" />
           </div>
           <div className="min-w-0 text-left">
             <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider leading-none mb-1">
-              Số điện thoại
+              Portfolio
             </span>
-            <span className="text-xs font-bold text-slate-200 block font-mono">
-              {profile.phone || "Chưa cập nhật"}
-            </span>
-          </div>
-        </div>
-
-        {/* Email */}
-        <div className="flex items-center gap-3 bg-slate-950/50 border border-white/5 rounded-2xl p-4 transition-all duration-300 hover:border-amber-400/20">
-          <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-amber-400/10 text-amber-400 shrink-0">
-            <Mail className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 text-left">
-            <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider leading-none mb-1">
-              Email
-            </span>
-            <a
-              href={profile.email ? `mailto:${profile.email}` : undefined}
-              className={`text-xs font-bold block truncate transition-colors ${profile.email ? 'text-slate-200 hover:text-amber-400' : 'text-slate-400'}`}
-            >
-              {profile.email || "Chưa cập nhật"}
-            </a>
+            {portfolioLinks.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {portfolioLinks.map((link, index) => (
+                  <a
+                    key={`${link}-${index}`}
+                    href={portfolioHref(link)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex max-w-full rounded-lg border border-white/10 bg-slate-950/60 px-2.5 py-1 text-xs font-bold text-slate-200 transition-colors hover:border-amber-400/40 hover:text-amber-400"
+                    title={link}
+                  >
+                    <span className="truncate">{`Portfolio${index + 1}_${portfolioOwnerName}`}</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <span className="text-xs font-bold text-slate-400 block">
+                Không có portfolio
+              </span>
+            )}
           </div>
         </div>
       </div>
-
-      {profile.portfolio_url ? (
-        <div className="border-t border-[#151b2d]/50 pt-5">
-          <a
-            href={profile.portfolio_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2.5 rounded-xl border border-white/5 bg-slate-950/60 px-3.5 py-2.5 text-xs font-bold text-slate-300 transition-all duration-300 hover:border-amber-400/40 hover:bg-amber-400/5 hover:text-amber-300"
-            title={profile.portfolio_url}
-          >
-            <Globe className="h-4 w-4 shrink-0" />
-            <span className="truncate">Link portfolio/CV</span>
-          </a>
-        </div>
-      ) : null}
 
       {/* Social Accounts Area */}
       {socialAccounts.length > 0 ? (
@@ -305,9 +328,15 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
 const formatHeight = (h: number | string) => {
   const val = Number(h);
   if (!val) return "—";
-  const m = Math.floor(val / 100);
-  const cm = val % 100;
-  return `${m}m${String(cm).padStart(2, '0')}`;
+  return `${val} cm`;
+};
+
+const formatMeasurements = (profile: any) => {
+  if (profile?.bust && profile?.waist && profile?.hips) {
+    return `${profile.bust}-${profile.waist}-${profile.hips}`;
+  }
+
+  return "Chưa cập nhật";
 };
 
 const formatNumber = (num: number) => {
@@ -326,6 +355,11 @@ function getTalentTypes(talent: unknown) {
   }
 
   return record.type ? [String(record.type)] : [];
+}
+
+function getStringList(value: unknown) {
+  const list = Array.isArray(value) ? value : value ? [value] : [];
+  return Array.from(new Set(list.map((item) => String(item).trim()).filter(Boolean)));
 }
 
 const JOBS_LIST = [
@@ -366,6 +400,7 @@ export default function BrandTalentProfilePage() {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isPortfolioDialogOpen, setIsPortfolioDialogOpen] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; message: string; tone: "success" | "error" }[]>([]);
 
   function pushToast(message: string, tone: "success" | "error" = "success") {
@@ -450,7 +485,7 @@ export default function BrandTalentProfilePage() {
           setWishlistItemId(null);
         }
       }
-    }).catch(() => {});
+    }).catch(() => { });
 
     return () => {
       cancelled = true;
@@ -481,6 +516,7 @@ export default function BrandTalentProfilePage() {
       talentTypes: talent.talentTypes || [],
       specialSkills: talent.skills || [],
       skills: talent.skills || [],
+      socialHighlights: talent.socialHighlights || [],
       languages: talent.languages || [],
       lifestyleServices: talent.lifestyleServices || [],
       tier: talent.tier,
@@ -491,10 +527,11 @@ export default function BrandTalentProfilePage() {
       mainCategory: (talent as any).mainCategory || "",
       price: talent.price,
       portfolio_url: talent.portfolio_url,
+      videos: talent.videos || [],
       socialAccounts: talent.socialAccounts || [],
       reviews: [
         { brand: "L'Oréal Paris Vietnam", rating: 5, date: "15/05/2026", comment: `${talent.name} làm việc vô cùng chuyên nghiệp, đúng giờ và hoàn thành tốt KPI chiến dịch truyền thông của nhãn hàng. Rất mong tiếp tục hợp tác.` },
-        { brand: "Gucci Beauty Event", rating: 5, date: "29/04/2026", comment: "Thần thái xuất sắc, hình ảnh high-fashion phù hợp tiêu chuẩn quốc tế. Cảm ơn vì sự hỗ trợ nhiệt tình." },
+        { brand: "Gucci Beauty Event", rating: 5, date: "29/04/2026", comment: "Thần thái xuất sắc, hình ảnh high-fashion phù hợp tiêu chuẩn quốc tế. Cảm ơn vì sự h�— trợ nhiệt tình." },
         { brand: "Vogue Vietnam Editorial", rating: 5, date: "12/04/2026", comment: "Thái độ làm việc nghiêm túc, tạo dáng xuất sắc và có kiến thức chuyên môn cao. Rất khuyên dùng." }
       ] as any[]
     };
@@ -522,6 +559,19 @@ export default function BrandTalentProfilePage() {
         url,
       };
     }).filter(Boolean) as Array<{ id: number; label: string; url: string }>;
+  }, [profile]);
+
+  const portfolioVideos = useMemo<Array<{ id: string | number; title: string; url: string }>>(() => {
+    if (!profile || !Array.isArray((profile as any).videos)) return [];
+
+    return (profile as any).videos
+      .map((video: any, index: number) => ({
+        id: video?.id ?? `video-${index + 1}`,
+        title: String(video?.title || `Video ${index + 1}`),
+        url: normalizeBackendAssetUrl(video?.url || ""),
+      }))
+      .filter((video: { url: string }) => Boolean(video.url))
+      .slice(0, 4);
   }, [profile]);
 
   // State for Month-switching Calendar
@@ -583,6 +633,28 @@ export default function BrandTalentProfilePage() {
     return talent.availabilityDates?.includes(dateStr) ? "busy" : "available";
   };
   const talentTypes = getTalentTypes(talent);
+  const profileSkills = getStringList(profile.skills ?? profile.specialSkills);
+  const profileSocialHighlights = getStringList(profile.socialHighlights);
+  const portfolioLinks = portfolioLinksFromProfile(profile);
+  const portfolioOwnerName = String(profile?.name || "Idol").trim().replace(/\s+/g, "_");
+
+  function openPortfolioLink(link: string) {
+    window.open(portfolioHref(link), "_blank", "noopener,noreferrer");
+  }
+
+  function handleViewPortfolio() {
+    if (portfolioLinks.length === 0) {
+      pushToast("Chưa có portfolio", "error");
+      return;
+    }
+
+    if (portfolioLinks.length === 1) {
+      openPortfolioLink(portfolioLinks[0]);
+      return;
+    }
+
+    setIsPortfolioDialogOpen(true);
+  }
 
   async function handleAddToBrand() {
     if (!requireAuthAction({ actionLabel: "Thêm talent vào Brand" })) return;
@@ -616,7 +688,7 @@ export default function BrandTalentProfilePage() {
         setWishlistItemId(null);
         pushToast("Đã xóa khỏi danh sách yêu thích.", "success");
       } catch (err) {
-        pushToast("Lỗi khi xóa khỏi danh sách yêu thích.", "error");
+        pushToast("L�—i khi xóa khỏi danh sách yêu thích.", "error");
       }
       return;
     }
@@ -634,7 +706,7 @@ export default function BrandTalentProfilePage() {
       setWishlistItemId(String(item.id));
       pushToast("Đã thêm vào danh sách yêu thích.", "success");
     } catch (err) {
-      pushToast("Lỗi khi thêm vào danh sách yêu thích.", "error");
+      pushToast("L�—i khi thêm vào danh sách yêu thích.", "error");
     }
   }
 
@@ -688,12 +760,12 @@ export default function BrandTalentProfilePage() {
                   {isInWishlist ? (
                     <>
                       <BookmarkCheck className="h-4 w-4 text-amber-400" />
-                      <span>Xóa khỏi danh sách yêu thích</span>
+                      <span>Xóa khỏi danh sách đã lưu</span>
                     </>
                   ) : (
                     <>
-                      <Star className="h-4 w-4 text-amber-400" />
-                      <span>Thêm vào danh sách yêu thích</span>
+                      <Heart className="h-4 w-4 text-amber-400" />
+                      <span>Lưu thông tin</span>
                     </>
                   )}
                 </button>
@@ -764,6 +836,12 @@ export default function BrandTalentProfilePage() {
                     </span>
                   )}
 
+                  {profileSocialHighlights.map((highlight) => (
+                    <span key={highlight} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                      {highlight}
+                    </span>
+                  ))}
+
                   {/* Tier Badge inside the same row */}
                   {profile?.tier && (() => {
                     const tier = profile.tier.toUpperCase();
@@ -804,7 +882,7 @@ export default function BrandTalentProfilePage() {
                   })()}
                 </div>
 
-                {/* Location, Email & Phone Contacts Row */}
+                {/* Location & Measurements Row */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="h-4 w-4 text-[#F0C56B]" />
@@ -813,14 +891,31 @@ export default function BrandTalentProfilePage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Mail className="h-4 w-4 text-[#F0C56B]" />
-                    <span className="text-slate-300 font-medium">{profile?.email || "Chưa cập nhật"}</span>
+                    <Ruler className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium">{profile?.height ? formatHeight(profile.height) : "Chưa cập nhật"}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Phone className="h-4 w-4 text-[#F0C56B]" />
-                    <span className="text-slate-300 font-medium font-mono">{profile?.phone || "Chưa cập nhật"}</span>
+                    <Scale className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium">{profile?.weight ? `${profile.weight} kg` : "Chưa cập nhật"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <User className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium font-mono">{formatMeasurements(profile)}</span>
                   </div>
                 </div>
+
+                {profileSkills.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 pt-1">
+                    {profileSkills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="inline-flex rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-slate-300"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Bio (Description) Row */}
                 <div className="text-[11px] sm:text-xs text-slate-400 font-medium leading-relaxed pt-2.5 border-t border-white/5 mt-1 text-center sm:text-left">
@@ -836,37 +931,50 @@ export default function BrandTalentProfilePage() {
 
         {/* Centered Action Buttons Row */}
         <div className="flex flex-wrap items-center justify-center gap-3 px-6 pb-6 pt-4 w-full">
-          {profile?.portfolio_url && (
-            <a
-              href={profile.portfolio_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-950 transition active:scale-95 cursor-pointer whitespace-nowrap hover:brightness-110 duration-300"
-            >
-              <Eye className="mr-1.5 h-3.5 w-3.5 shrink-0 text-slate-950" />
-              Xem Portfolio
-            </a>
-          )}
           <button
-            onClick={handleAddToBrand}
-            disabled={isAddingToBrand || isAddedToBrand}
-            className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#C9A86A] transition active:scale-95 cursor-pointer hover:bg-[#C9A86A]/20 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isAddedToBrand ? (
-              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5 shrink-0" />
-            ) : (
-              <Users className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+            type="button"
+            aria-disabled={portfolioLinks.length === 0}
+            onClick={handleViewPortfolio}
+            className={cn(
+              "flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-full border px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider transition active:scale-95 whitespace-nowrap duration-300",
+              portfolioLinks.length > 0
+                ? "cursor-pointer border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                : "cursor-not-allowed border-white/10 bg-white/[0.03] text-slate-500"
             )}
-            {isAddingToBrand ? "Đang thêm..." : isAddedToBrand ? "Đã thêm" : "Thêm vào Brand"}
+          >
+            <Eye className="mr-1.5 h-3.5 w-3.5 shrink-0 text-current" />
+            Xem Portfolio
+          </button>
+          <button
+            type="button"
+            onClick={handleAddToWishlist}
+            className={cn(
+              "flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-full px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer whitespace-nowrap shadow-md",
+              isInWishlist
+                ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110 shadow-[0_0_15px_rgba(201,168,106,0.2)]"
+            )}
+          >
+            {isInWishlist ? (
+              <>
+                <CheckCircle2 className="mr-2 h-4 w-4 shrink-0 text-emerald-400" />
+                <span>ĐÃ LƯU</span>
+              </>
+            ) : (
+              <>
+                <Heart className="mr-2 h-4 w-4 shrink-0 fill-slate-950 text-slate-950" />
+                <span>LƯU THÔNG TIN</span>
+              </>
+            )}
           </button>
         </div>
       </section>
 
       {/* Main Grid Portfolio */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
 
         {/* 1. Model Full-Body Photo Card */}
-        <div className="col-span-1 rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
+        <div className="order-[10] col-span-1 h-full rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
             <Award className="h-4.5 w-4.5 text-amber-400" /> Ảnh Toàn Thân (Full-body)
           </h3>
@@ -898,14 +1006,14 @@ export default function BrandTalentProfilePage() {
         </div>
 
         {/* 2. SECTION D: LOOKBOOK PHOTOS & DISPLAY */}
-        <div className="lg:col-span-2 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+        <div className="order-[30] lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
           <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
                 <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ sưu tập
               </h3>
               <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                Hiển thị bộ sưu tập ảnh của Idol
+                Bộ sưu tập hình ảnh, video tốt nhất của idol
               </span>
             </div>
           </div>
@@ -928,11 +1036,6 @@ export default function BrandTalentProfilePage() {
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10 pointer-events-none text-left">
-                      <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                        {img.label}
-                      </span>
-                    </div>
                   </div>
                 </div>
               ))}
@@ -943,75 +1046,107 @@ export default function BrandTalentProfilePage() {
               )}
             </div>
           </div>
+
+          <div className="border-t border-[#151b2d] pt-5 space-y-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+                ({portfolioVideos.length}/4 Video)
+              </span>
+            </div>
+
+            {portfolioVideos.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {portfolioVideos.map((video, index) => (
+                  <div
+                    key={`${video.id}-${index}`}
+                    className="relative aspect-[9/16] overflow-hidden rounded-xl border border-white/5 bg-slate-950 shadow-md group"
+                  >
+                    <video
+                      src={video.url}
+                      controls
+                      preload="metadata"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/50 p-5 text-center">
+                <Video className="mx-auto mb-2 h-7 w-7 text-slate-500" />
+                <p className="text-xs font-semibold text-slate-450">Chưa có video trong bộ sưu tập.</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 3. Physical Measurements Card */}
-        <div className="col-span-1 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
+        <div className="order-[10] lg:col-span-2 h-full rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
             <User className="h-4.5 w-4.5 text-slate-400" /> Thông tin cơ bản
           </h3>
 
-          <div className="grid grid-cols-3 gap-2">
-            {/* Chiều Cao */}
-            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
-              <Ruler className="h-5 w-5 text-[#f4c430]" />
-              <div className="space-y-1.5 my-2">
-                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Chiều Cao</span>
-                <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
-                  {profile.height ? formatHeight(profile.height) : "—"}
-                </span>
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              {/* Chiều Cao */}
+              <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 min-h-[90px] text-center">
+                <div className="mb-1 flex items-center justify-center gap-1.5">
+                  <Ruler className="h-4 w-4 text-[#f4c430]" />
+                  <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Chiều Cao</span>
+                </div>
+                <div className="flex min-h-[40px] items-center justify-center">
+                  <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
+                    {profile.height ? formatHeight(profile.height) : "—"}
+                  </span>
+                </div>
               </div>
-              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">CM</span>
-            </div>
 
-            {/* Cân Nặng */}
-            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
-              <Scale className="h-5 w-5 text-[#f4c430]" />
-              <div className="space-y-1.5 my-2">
-                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cân Nặng</span>
-                <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
-                  {profile.weight ? profile.weight : "—"}
-                </span>
+              {/* Cân Nặng */}
+              <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 min-h-[90px] text-center">
+                <div className="mb-1 flex items-center justify-center gap-1.5">
+                  <Scale className="h-4 w-4 text-[#f4c430]" />
+                  <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cân Nặng</span>
+                </div>
+                <div className="flex min-h-[40px] items-center justify-center">
+                  <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
+                    {profile.weight ? `${profile.weight} kg` : "—"}
+                  </span>
+                </div>
               </div>
-              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">KG</span>
             </div>
 
             {/* Số đo 3 vòng */}
-            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
-              <User className="h-5 w-5 text-[#f4c430]" />
-              <div className="space-y-1.5 my-2">
-                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Số đo 3 vòng</span>
-                <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
-                  {profile.bust && profile.waist && profile.hips
-                    ? `${profile.bust}-${profile.waist}-${profile.hips}`
-                    : "—"}
-                </span>
+            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 text-center">
+              <div className="mb-2 flex items-center justify-center gap-1.5">
+                <User className="h-4 w-4 text-[#f4c430]" />
+                <span className="text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Số đo 3 vòng (cm)</span>
               </div>
-              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">CM</span>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  ["B", profile.bust],
+                  ["W", profile.waist],
+                  ["H", profile.hips],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-xl border border-white/5 bg-slate-950/40 px-2 py-2">
+                    <span className="block text-[8px] font-black uppercase tracking-wider text-slate-500">{label}</span>
+                    <span className="mt-1 block text-sm sm:text-base font-extrabold text-[#f4c430]">{value || "—"}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-[120px_1fr] gap-x-3.5 gap-y-3.5 border-t border-[#151b2d] pt-4 text-left text-xs text-slate-300">
-            {/* Họ và tên */}
-            <span className="font-medium text-slate-400">Họ và tên</span>
+            {/* Nghệ danh */}
+            <span className="font-medium text-slate-400">Nghệ danh</span>
             <span className="font-bold text-white text-left break-words">{profile.name || "Chưa cập nhật"}</span>
 
             {/* Giới tính */}
             <span className="font-medium text-slate-400">Giới tính</span>
             <span className="font-bold text-white text-left">{profile.gender || "Chưa cập nhật"}</span>
 
-            {/* Ngày sinh */}
-            <span className="font-medium text-slate-400">Ngày sinh</span>
-            <span className="font-bold text-white font-mono text-left">{profile.dob ? convertToDisplayDate(profile.dob) : "Chưa cập nhật"}</span>
-
-            {/* Tuổi */}
-            <span className="font-medium text-slate-400">Tuổi</span>
-            <span className="font-bold text-white font-mono text-left">
-              {profile.age ? `${profile.age} tuổi` : "Chưa cập nhật"}
-            </span>
-
-            {/* Mức giá */}
-            <span className="font-medium text-slate-400">Mức giá</span>
+            {/* Phí booking */}
+            <span className="font-medium text-slate-400">Phí booking</span>
             <span className="font-bold text-white text-left break-words">
               {profile.price ? profile.price : "Chưa cập nhật"}
             </span>
@@ -1025,13 +1160,7 @@ export default function BrandTalentProfilePage() {
               })()}
             </span>
 
-            {/* Học vấn */}
-            <span className="font-medium text-slate-400">Học vấn</span>
-            <span className="font-bold text-white text-left break-words">{profile.education || "Chưa cập nhật"}</span>
-
             {/* Kinh nghiệm */}
-            <div className="col-span-2 border-t border-dashed border-[#151b2d]/50 my-1"></div>
-
             <span className="font-medium text-slate-400">Kinh nghiệm</span>
             <span className="font-bold text-white text-left">
               {profile.experience !== undefined && profile.experience !== "" && profile.experience !== null ? `${profile.experience} năm` : "Chưa cập nhật"}
@@ -1046,23 +1175,27 @@ export default function BrandTalentProfilePage() {
               })()}
             </span>
 
+            <span className="font-medium text-slate-400">Lĩnh vực chuyên sâu</span>
+            <span className="font-bold text-white text-left break-words leading-normal">
+              {profileSkills.length > 0 ? profileSkills.join(", ") : "Chưa cập nhật"}
+            </span>
+
             {/* Ngôn ngữ */}
             <span className="font-medium text-slate-400">Ngôn ngữ</span>
             <span className="font-bold text-white text-left break-words leading-normal">
-              {(() => {
-                const langs = profile.languages;
-                return Array.isArray(langs) && langs.length > 0 ? langs.join(", ") : "Chưa cập nhật";
-              })()}
+              {formatLanguageList(profile.languages)}
             </span>
           </div>
         </div>
 
         {/* RIGHT COLUMN wrapper: Contact Info and AI Career Alignment Map */}
-        <div className="lg:col-span-2 space-y-6 md:space-y-8">
-          <ContactInfoCard profile={profile} />
+        <div className="contents">
+          <div className="order-[20] lg:col-span-3">
+            <ContactInfoCard profile={profile} />
+          </div>
 
           {/* 4. SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
-          <div className="rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
+          <div className="order-[50] lg:col-span-3 rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
             <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
@@ -1179,7 +1312,7 @@ export default function BrandTalentProfilePage() {
 
 
         {/* 5. SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
-        <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
+        <div className="order-[40] lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
             <div className="flex items-center gap-2">
               <Calendar className="h-4.5 w-4.5 text-slate-400" />
@@ -1253,7 +1386,7 @@ export default function BrandTalentProfilePage() {
 
         {/* 6. Lifestyle Co-Space Companion Services Card */}
         {profile.lifestyleServices && profile.lifestyleServices.some((s: any) => s.enabled) && (
-          <div className="col-span-1 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 transition-all duration-300">
+          <div className="order-[60] lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 transition-all duration-300">
             <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
               <Sparkles className="h-4.5 w-4.5 text-amber-400" /> Dịch Vụ Đồng Hành (VIP)
             </h3>
@@ -1376,10 +1509,53 @@ export default function BrandTalentProfilePage() {
       )}
 
       {/* Tier Explanation Dialog */}
-      <TierExplanationDialog 
-        isOpen={isTierDialogOpen} 
-        onClose={() => setIsTierDialogOpen(false)} 
+      <TierExplanationDialog
+        isOpen={isTierDialogOpen}
+        onClose={() => setIsTierDialogOpen(false)}
       />
+
+      {isPortfolioDialogOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md animate-in fade-in duration-150"
+          onClick={() => setIsPortfolioDialogOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-[#2B313D] bg-[#08090f] p-5 shadow-2xl animate-in zoom-in-95 duration-200"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between border-b border-[#151b2d] pb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4.5 w-4.5 text-[#f4c430]" />
+                <h3 className="font-display text-xs font-black uppercase tracking-wider text-white">Chọn portfolio</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPortfolioDialogOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {portfolioLinks.map((link, index) => (
+                <button
+                  key={`${link}-${index}`}
+                  type="button"
+                  onClick={() => {
+                    setIsPortfolioDialogOpen(false);
+                    openPortfolioLink(link);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2.5 text-left text-xs font-bold text-slate-200 transition hover:border-amber-400/40 hover:bg-amber-400/5 hover:text-amber-300"
+                  title={link}
+                >
+                  <FileText className="h-4 w-4 shrink-0 text-[#f4c430]" />
+                  <span className="truncate">{`Portfolio${index + 1}_${portfolioOwnerName}`}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notifications */}
       <div className="fixed bottom-6 right-6 z-[70] flex flex-col gap-2 pointer-events-none">

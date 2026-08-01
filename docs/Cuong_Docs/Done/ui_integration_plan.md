@@ -40,7 +40,7 @@ Danh sách 25 lĩnh vực tài trợ (bằng tiền mặt hoặc hiện vật/d�
 #### **A. Phía Talent (Tài năng) - [ĐÃ HOÀN THÀNH]**
 1. **Thiết lập & Cập nhật Dịch vụ VIP** ([EditInfoTab.tsx](file:///c:/CONG_VIEC/VNP_BeutyTalent/app/talent/portfolio/EditInfoTab.tsx#L512-L550)):
    * **Đã bổ sung:** Tab **"Cập nhật thông tin"** có khu vực quản lý **"Dịch vụ đồng hành VIP (Lifestyle Services)"**.
-   * **Cách hoạt động:** Talent có thể bật/tắt từng dịch vụ trong số 10 dịch vụ VIP, điều chỉnh mức giá (Rate Card) và đơn vị tính (giờ/buổi/ngày).
+   * **Cách hoạt động:** Talent có thể bật/tắt từng dịch vụ trong số 10 dịch vụ VIP, điều chỉnh Phí booking (Rate Card) và đơn vị tính (giờ/buổi/ngày).
 2. **Trang hiển thị Profile (Talent View)** ([PersonalInfoTab.tsx](file:///c:/CONG_VIEC/VNP_BeutyTalent/app/talent/portfolio/PersonalInfoTab.tsx#L386-L445)):
    * Hiển thị danh sách dịch vụ VIP đang hoạt động kèm theo widget **Cam Kết Bảo Mật & An Toàn Giao Dịch** (Smart Contract, GPS Check-in, Escrow).
 3. **Trang Dashboard của Talent** ([page.tsx](file:///c:/CONG_VIEC/VNP_BeutyTalent/app/talent/dashboard/page.tsx#L615-L656)):

@@ -61,6 +61,39 @@ const availableLanguages = [
   "Tiếng Tây Ban Nha"
 ];
 
+const socialHighlightSuggestions = [
+  "50K+ Followers",
+  "10K+ Viewers",
+  "1000+ Followers",
+  "4000+ Likes"
+];
+
+const contentSkillSuggestions = [
+  "Beauty",
+  "Food",
+  "Make-up",
+  "Thời trang",
+  "Travel",
+  "Cafe",
+  "Lifestyle"
+];
+
+function normalizePortfolioLinks(rawLinks: unknown): string[] {
+  const links = Array.isArray(rawLinks)
+    ? rawLinks
+    : String(rawLinks || "").split(/[\n,;]+/);
+
+  return Array.from(new Set(
+    links
+      .map((link) => String(link).trim())
+      .filter(Boolean)
+  ));
+}
+
+function portfolioHref(link: string): string {
+  return /^https?:\/\//i.test(link) ? link : `https://${link}`;
+}
+
 const cityOptions = [
   "Tỉnh An Giang",
   "Tỉnh Bắc Ninh",
@@ -207,6 +240,10 @@ export default function EditInfoTab({
   const [socialPlatform, setSocialPlatform] = useState<"Tiktok" | "Facebook" | "Instagram" | "Thread" | "Linkedin">("Tiktok");
   const [socialLink, setSocialLink] = useState("");
   const [socialAccounts, setSocialAccounts] = useState<{ platform: string; url: string }[]>([]);
+  const [portfolioLink, setPortfolioLink] = useState("");
+  const [portfolioLinks, setPortfolioLinks] = useState<string[]>([]);
+  const [socialHighlightInput, setSocialHighlightInput] = useState("");
+  const [contentSkillInput, setContentSkillInput] = useState("");
 
   // Form states for profile editing
   const [editForm, setEditForm] = useState<any>({
@@ -222,6 +259,7 @@ export default function EditInfoTab({
     hometown: "",
     education: "",
     bio: "",
+    experienceText: "",
     languages: [],
     rateCard: {},
     plasticSurgery: "false",
@@ -235,6 +273,7 @@ export default function EditInfoTab({
     experience: "",
     talentTypes: [],
     specialSkills: [],
+    socialHighlights: [],
     price: "",
     portfolio_url: ""
   });
@@ -252,6 +291,42 @@ export default function EditInfoTab({
     setEditForm((prev: any) => ({
       ...prev,
       talentTypes: prev.talentTypes.filter((s: string) => s !== skillToRemove)
+    }));
+  };
+
+  const handleAddContentSkill = (skill: string) => {
+    const nextSkill = skill.trim();
+    if (!nextSkill || editForm.specialSkills.includes(nextSkill)) return;
+
+    setEditForm((prev: any) => ({
+      ...prev,
+      specialSkills: [...prev.specialSkills, nextSkill]
+    }));
+    setContentSkillInput("");
+  };
+
+  const handleRemoveContentSkill = (skillToRemove: string) => {
+    setEditForm((prev: any) => ({
+      ...prev,
+      specialSkills: prev.specialSkills.filter((s: string) => s !== skillToRemove)
+    }));
+  };
+
+  const handleAddSocialHighlight = (highlight: string) => {
+    const nextHighlight = highlight.trim();
+    if (!nextHighlight || editForm.socialHighlights.includes(nextHighlight)) return;
+
+    setEditForm((prev: any) => ({
+      ...prev,
+      socialHighlights: [...prev.socialHighlights, nextHighlight]
+    }));
+    setSocialHighlightInput("");
+  };
+
+  const handleRemoveSocialHighlight = (highlightToRemove: string) => {
+    setEditForm((prev: any) => ({
+      ...prev,
+      socialHighlights: prev.socialHighlights.filter((s: string) => s !== highlightToRemove)
     }));
   };
 
@@ -277,6 +352,19 @@ export default function EditInfoTab({
       ...prev,
       languages: prev.languages.filter((l: string) => l !== langToRemove)
     }));
+  };
+
+  const handleAddPortfolioLink = () => {
+    const rawLink = portfolioLink.trim();
+    if (!rawLink) return;
+
+    const nextLink = portfolioHref(rawLink);
+    setPortfolioLinks(prev => Array.from(new Set([...prev, nextLink])));
+    setPortfolioLink("");
+  };
+
+  const handleRemovePortfolioLink = (linkToRemove: string) => {
+    setPortfolioLinks(prev => prev.filter(link => link !== linkToRemove));
   };
 
   const handlePriceChange = (val: string, oldVal: string) => {
@@ -342,6 +430,7 @@ export default function EditInfoTab({
         hometown: profile.hometown || "",
         education: profile.education || "",
         bio: profile.bio || "",
+        experienceText: profile.experienceText || profile.experience_text || "",
         languages: Array.isArray(profile.languages) ? profile.languages : (profile.languages ? [profile.languages] : []),
         rateCard: { ...(profile.rateCard || {}) },
         plasticSurgery: profile.plasticSurgery || "false",
@@ -355,9 +444,11 @@ export default function EditInfoTab({
         experience: profile.experience !== undefined && profile.experience !== null ? profile.experience : "",
         talentTypes: Array.isArray(profile.talentTypes) ? profile.talentTypes : (Array.isArray(profile.talent_types) ? profile.talent_types : []),
         specialSkills: Array.isArray(profile.specialSkills) ? profile.specialSkills : (Array.isArray(profile.skills) ? profile.skills : []),
+        socialHighlights: Array.isArray(profile.socialHighlights) ? profile.socialHighlights : (Array.isArray(profile.social_highlights) ? profile.social_highlights : []),
         price: profile.price || "",
         portfolio_url: profile.portfolio_url || ""
       });
+      setPortfolioLinks(normalizePortfolioLinks(profile.portfolioLinks ?? profile.portfolio_links ?? profile.portfolio_url));
 
       // Parse social accounts
       let accounts: { platform: string; url: string }[] = [];
@@ -556,7 +647,8 @@ export default function EditInfoTab({
         location: editForm.location,
         hometown: editForm.hometown,
         education: editForm.education,
-        bio: editForm.bio,
+        bio: editForm.experienceText,
+        experienceText: editForm.experienceText,
         languages: editForm.languages,
         rateCard: { ...editForm.rateCard },
         plasticSurgery: editForm.plasticSurgery,
@@ -571,9 +663,13 @@ export default function EditInfoTab({
         talentTypes: editForm.talentTypes,
         specialSkills: editForm.specialSkills,
         skills: editForm.specialSkills,
+        socialHighlights: editForm.socialHighlights,
+        social_highlights: editForm.socialHighlights,
         lifestyleServices: lifestyleServices,
         price: editForm.price,
-        portfolio_url: editForm.portfolio_url,
+        portfolio_url: portfolioLinks.join("\n"),
+        portfolioLinks: portfolioLinks,
+        portfolio_links: portfolioLinks,
         socialAccounts: socialAccounts
       };
       const syncedProfile = await saveTalentProfile(updated);
@@ -609,9 +705,7 @@ export default function EditInfoTab({
             <h3 className="font-display font-black text-sm md:text-base text-white uppercase tracking-wider flex items-center gap-2">
               <Edit3 className="h-5 w-5 text-[#F0C56B]" /> Cập Nhật Thông Tin Cá Nhân
             </h3>
-            <span className="block text-[10px] md:text-xs text-slate-400 font-medium uppercase mt-1 tracking-wider">
-              Đồng bộ trực tiếp lên hệ thống và hiển thị chỉ số ngoại hình của bạn
-            </span>
+
           </div>
           <button
             type="button"
@@ -622,12 +716,12 @@ export default function EditInfoTab({
           </button>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-6 text-xs">
+        <form onSubmit={handleSave} className="flex flex-col gap-6 text-xs">
 
           {/* PHÂN NHÓM 1: THÔNG TIN CÁ NHÂN & LIÊN HỆ */}
           <div className="bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
             <h4 className="font-bold text-xs md:text-sm text-[#F0C56B] uppercase tracking-widest border-b border-white/10 pb-2.5 mb-3 flex items-center gap-2">
-              Thông tin cá nhân & Liên hệ
+              Thông tin cá nhân
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
               <div className="space-y-1.5">
@@ -664,16 +758,6 @@ export default function EditInfoTab({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Học vấn</label>
-                <input
-                  type="text"
-                  value={editForm.education}
-                  onChange={(e) => setEditForm({ ...editForm, education: e.target.value })}
-                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
-                />
-              </div>
-
-              <div className="space-y-1.5">
                 <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Email</label>
                 <input
                   type="email"
@@ -693,41 +777,12 @@ export default function EditInfoTab({
                 />
               </div>
 
-              <div className="space-y-1.5 md:col-span-2">
-                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Portfolio URL</label>
-                <input
-                  type="url"
-                  value={editForm.portfolio_url}
-                  onChange={(e) => setEditForm({ ...editForm, portfolio_url: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
-                />
-              </div>
-
-              <div className="space-y-1.5 md:col-span-2">
-                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Mô tả bản thân (Giới thiệu)</label>
-                <textarea
-                  value={editForm.bio || ""}
-                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                  rows={3}
-                  placeholder="Nhập mô tả ngắn giới thiệu về bản thân của bạn..."
-                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all resize-none shadow-inner"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* PHÂN NHÓM 2: KHU VỰC HOẠT ĐỘNG */}
-          <div className="bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
-            <h4 className="font-bold text-xs md:text-sm text-[#F0C56B] uppercase tracking-widest border-b border-white/10 pb-2.5 mb-3 flex items-center gap-2">
-              Khu vực hoạt động
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
               <CitySelect
                 label="Thành phố"
                 value={editForm.location}
                 onChange={(val) => setEditForm((prev: any) => ({ ...prev, location: val }))}
               />
+
               <div className="space-y-1.5 text-left">
                 <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px] mb-1.5">
                   Địa chỉ chi tiết
@@ -740,10 +795,11 @@ export default function EditInfoTab({
                   className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner placeholder:text-slate-400"
                 />
               </div>
+
             </div>
           </div>
 
-          {/* PHÂN NHÓM 3: NGOẠI HÌNH & CHỈ SỐ CƠ THỂ */}
+          {/* PHÂN NHÓM 2: NGOẠI HÌNH & CHỈ SỐ CƠ THỂ */}
           <div className="bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
             <h4 className="font-bold text-xs md:text-sm text-[#F0C56B] uppercase tracking-widest border-b border-white/10 pb-2.5 mb-3 flex items-center gap-2">
               Ngoại hình
@@ -772,7 +828,7 @@ export default function EditInfoTab({
                 <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px] mb-1.5">Số đo 3 vòng (cm)</label>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <span className="text-[10px] text-slate-300 font-bold block text-left">Vòng 1</span>
+                    <span className="text-[10px] text-slate-300 font-bold block text-left">Vòng 1 (B - Ngực)</span>
                     <input
                       type="number"
                       value={editForm.bust}
@@ -781,7 +837,7 @@ export default function EditInfoTab({
                     />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[10px] text-slate-300 font-bold block text-left">Vòng 2</span>
+                    <span className="text-[10px] text-slate-300 font-bold block text-left">Vòng 2 (W - Eo)</span>
                     <input
                       type="number"
                       value={editForm.waist}
@@ -790,7 +846,7 @@ export default function EditInfoTab({
                     />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[10px] text-slate-300 font-bold block text-left">Vòng 3</span>
+                    <span className="text-[10px] text-slate-300 font-bold block text-left">Vòng 3 (H - Hông)</span>
                     <input
                       type="number"
                       value={editForm.hips}
@@ -803,25 +859,25 @@ export default function EditInfoTab({
             </div>
           </div>
 
-          {/* PHÂN NHÓM 4: THÔNG TIN NGHỀ NGHIỆP & MỨC GIÁ */}
-          <div className="bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
+          {/* PHÂN NHÓM 3: THÔNG TIN NGHỀ NGHIỆP & Phí booking */}
+          <div className="order-[90] bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
             <h4 className="font-bold text-xs md:text-sm text-[#F0C56B] uppercase tracking-widest border-b border-white/10 pb-2.5 mb-3 flex items-center gap-2">
               Thông tin nghề nghiệp
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Mức giá (VD: "5.000.000đ/ngày" hoặc "Thỏa thuận")</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Phí booking (VD: "5.000.000đ/ngày" hoặc "Thỏa thuận")</label>
                 <input
                   type="text"
                   value={editForm.price}
                   onChange={(e) => handlePriceChange(e.target.value, editForm.price)}
-                  placeholder="Nhập mức giá dịch vụ của bạn..."
+                  placeholder="Nhập Phí booking dịch vụ của bạn..."
                   className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Kinh nghiệm (năm)</label>
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Số năm kinh nghiệm</label>
                 <input
                   type="number"
                   min={0}
@@ -830,6 +886,77 @@ export default function EditInfoTab({
                   onChange={(e) => setEditForm({ ...editForm, experience: e.target.value })}
                   className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Kinh nghiệm làm việc</label>
+                <textarea
+                  value={editForm.experienceText || ""}
+                  onChange={(e) => setEditForm({ ...editForm, experienceText: e.target.value })}
+                  rows={4}
+                  placeholder="Nhập một số kinh nghiệm làm việc của bạn..."
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all resize-none shadow-inner"
+                />
+              </div>
+
+              <div className="space-y-3 md:col-span-2">
+                <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                  Lĩnh vực nội dung / kỹ năng
+                </label>
+                <div className="flex flex-wrap gap-2 min-h-[42px] p-2.5 bg-[#060918] border border-white/15 rounded-xl text-left shadow-inner">
+                  {editForm.specialSkills.length === 0 ? (
+                    <span className="text-xs text-slate-400 italic px-2 py-1">Chưa thêm lĩnh vực nào</span>
+                  ) : (
+                    editForm.specialSkills.map((skill: string) => (
+                      <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                        {skill}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveContentSkill(skill)}
+                          className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {contentSkillSuggestions
+                    .filter((item) => !editForm.specialSkills.includes(item))
+                    .map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => handleAddContentSkill(item)}
+                        className="px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer bg-white/5 hover:bg-amber-400/20 border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300"
+                      >
+                        <Plus className="h-3 w-3" /> {item}
+                      </button>
+                    ))}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                  <input
+                    type="text"
+                    value={contentSkillInput}
+                    onChange={(e) => setContentSkillInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddContentSkill(contentSkillInput);
+                      }
+                    }}
+                    placeholder="Ví dụ: Beauty, Food, Thời trang..."
+                    className="md:col-span-9 w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddContentSkill(contentSkillInput)}
+                    className="md:col-span-3 w-full bg-gradient-gold text-slate-950 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-sm"
+                  >
+                    <Plus className="h-4 w-4" /> Thêm
+                  </button>
+                </div>
               </div>
 
               {/* Loại hình Idol */}
@@ -914,11 +1041,10 @@ export default function EditInfoTab({
                           onClick={() => {
                             setSelectedLangName(lang);
                           }}
-                          className={`px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                            selectedLangName === lang
-                              ? "bg-amber-400/20 border-amber-400 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
-                              : "bg-white/5 hover:bg-amber-400/20 border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300"
-                          }`}
+                          className={`px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer ${selectedLangName === lang
+                            ? "bg-amber-400/20 border-amber-400 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+                            : "bg-white/5 hover:bg-amber-400/20 border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300"
+                            }`}
                         >
                           <Plus className="h-3 w-3" /> {lang}
                         </button>
@@ -977,11 +1103,10 @@ export default function EditInfoTab({
                     type="button"
                     onClick={handleAddLanguage}
                     disabled={!selectedLangName}
-                    className={`w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
-                      selectedLangName
-                        ? "bg-gradient-gold text-slate-950 hover:shadow-[0_0_15px_rgba(240,197,107,0.3)] active:scale-95 cursor-pointer"
-                        : "bg-slate-800 text-slate-500 cursor-not-allowed"
-                    }`}
+                    className={`w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${selectedLangName
+                      ? "bg-gradient-gold text-slate-950 hover:shadow-[0_0_15px_rgba(240,197,107,0.3)] active:scale-95 cursor-pointer"
+                      : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                      }`}
                   >
                     <Plus className="h-4 w-4" /> Thêm ngoại ngữ
                   </button>
@@ -990,11 +1115,140 @@ export default function EditInfoTab({
             </div>
           </div>
 
-          {/* PHÂN NHÓM 5: LIÊN KẾT MẠNG XÃ HỘI */}
+          {/* PHÂN NHÓM 4: PORTFOLIO & MẠNG XÃ HỘI */}
           <div className="bg-[#0e142e]/80 p-5 md:p-6 rounded-2xl border border-white/10 hover:border-amber-400/20 transition-all space-y-4 text-left shadow-md">
             <h4 className="font-bold text-xs md:text-sm text-[#F0C56B] uppercase tracking-widest border-b border-white/10 pb-2.5 mb-3 flex items-center gap-2">
-              Liên kết Mạng xã hội
+              Portfolio & Mạng xã hội
             </h4>
+
+            <div className="space-y-3">
+              <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                Chỉ số nổi bật
+              </label>
+              <div className="flex flex-wrap gap-2 min-h-[42px] p-2.5 bg-[#060918] border border-white/15 rounded-xl text-left shadow-inner">
+                {editForm.socialHighlights.length === 0 ? (
+                  <span className="text-xs text-slate-400 italic px-2 py-1">Chưa thêm chỉ số nổi bật nào</span>
+                ) : (
+                  editForm.socialHighlights.map((highlight: string) => (
+                    <span key={highlight} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                      {highlight}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSocialHighlight(highlight)}
+                        className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  ))
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {socialHighlightSuggestions
+                  .filter((item) => !editForm.socialHighlights.includes(item))
+                  .map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => handleAddSocialHighlight(item)}
+                      className="px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer bg-white/5 hover:bg-amber-400/20 border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300"
+                    >
+                      <Plus className="h-3 w-3" /> {item}
+                    </button>
+                  ))}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <input
+                  type="text"
+                  value={socialHighlightInput}
+                  onChange={(e) => setSocialHighlightInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddSocialHighlight(socialHighlightInput);
+                    }
+                  }}
+                  placeholder="Ví dụ: 50K+ Followers, 11K+ Viewers..."
+                  className="md:col-span-9 w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleAddSocialHighlight(socialHighlightInput)}
+                  className="md:col-span-3 w-full bg-gradient-gold text-slate-950 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-sm"
+                >
+                  <Plus className="h-4 w-4" /> Thêm
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t border-white/10" />
+
+            <div className="space-y-3">
+              <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Portfolio URL</label>
+              {portfolioLinks.length === 0 ? (
+                <div className="text-slate-400 italic text-xs py-1">Chưa có portfolio nào được thêm.</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {portfolioLinks.map((link, index) => (
+                    <div key={`${link}-${index}`} className="flex items-center justify-between gap-3 bg-[#060918] border border-white/15 rounded-xl px-3.5 py-2.5 shadow-inner">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider block">
+                          Portfolio {index + 1}
+                        </span>
+                        <a
+                          href={portfolioHref(link)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-slate-200 hover:text-white truncate block font-semibold"
+                          title={link}
+                        >
+                          {link.replace(/https?:\/\/(www\.)?/, '')}
+                        </a>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePortfolioLink(link)}
+                        className="text-slate-400 hover:text-red-400 p-1 cursor-pointer transition-colors"
+                        title="Xóa portfolio"
+                      >
+                        <Trash2 className="h-4.5 w-4.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div className="space-y-1.5 md:col-span-9">
+                  <span className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">Đường dẫn Portfolio</span>
+                  <input
+                    type="url"
+                    value={portfolioLink}
+                    onChange={(e) => setPortfolioLink(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddPortfolioLink();
+                      }
+                    }}
+                    placeholder="https://..."
+                    className="w-full h-[40px] bg-[#060918] border border-white/20 rounded-xl px-3.5 text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 transition-colors shadow-inner"
+                  />
+                </div>
+
+                <div className="md:col-span-3">
+                  <button
+                    type="button"
+                    onClick={handleAddPortfolioLink}
+                    className="w-full bg-gradient-gold hover:shadow-[0_0_15px_rgba(240,197,107,0.3)] active:scale-95 text-slate-950 rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider h-[40px] flex items-center justify-center cursor-pointer transition-all shadow-sm shrink-0"
+                  >
+                    Thêm
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-white/10" />
 
             {/* List of added accounts */}
             <div className="space-y-2">
@@ -1171,7 +1425,7 @@ export default function EditInfoTab({
           )}
 
           {/* Submit Button */}
-          <div className="pt-3">
+          <div className="order-[100] pt-3">
             <button
               type="submit"
               className="w-full h-11 rounded-xl bg-gradient-gold text-slate-950 font-black uppercase tracking-wider hover:shadow-[0_0_20px_rgba(240,197,107,0.4)] hover:scale-[1.01] active:scale-98 transition-all cursor-pointer shadow-lg text-xs"

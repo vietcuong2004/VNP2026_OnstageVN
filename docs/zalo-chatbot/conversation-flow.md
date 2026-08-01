@@ -328,7 +328,7 @@ Sau khi người dùng gửi ảnh:
 
 **Chatbot**
 
-> Bạn thường nhận công việc với mức giá khoảng bao nhiêu?
+> Bạn thường nhận công việc với Phí booking khoảng bao nhiêu?
 >
 > Ví dụ:
 >
@@ -336,7 +336,7 @@ Sau khi người dùng gửi ảnh:
 >
 > • 1.000.000/ngày
 >
-> • Chưa có mức giá
+> • Chưa có Phí booking
 
 ---
 
@@ -611,7 +611,7 @@ Người dùng chỉ cần nói nội dung muốn thay đổi, chatbot sẽ xử
 
 **Chatbot**
 
-> Mức giá mới của bạn là bao nhiêu?
+> Phí booking mới của bạn là bao nhiêu?
 >
 > Ví dụ:
 >

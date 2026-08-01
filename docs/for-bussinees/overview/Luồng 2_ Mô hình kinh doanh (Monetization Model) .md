@@ -938,7 +938,7 @@ Bán insights và reports cho brands dựa trên data của nền tảng.
    - Boost → Verified: "Tăng hiệu quả gấp đôi với Verified Badge"
 
 3. **Data-driven Optimization:**
-   - A/B test pricing (test 3 mức giá khác nhau)
+   - A/B test pricing (test 3 Phí booking khác nhau)
    - A/B test landing page
    - Phân tích conversion funnel, tìm điểm rơi
    - Optimize onboarding flow

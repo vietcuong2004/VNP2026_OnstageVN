@@ -204,7 +204,7 @@ export default function ControlCenterExplanationDialog({
                         Quản lý mạng lưới Idol
                       </h5>
                       <p className="text-xs text-slate-300 leading-relaxed flex-1 text-justify">
-                        Tích hợp tính năng quản lý danh sách Idol yêu thích, gửi link hoặc mã QR mời Idol tham gia hợp tác trực tiếp không qua trung gian.
+                        Tích hợp tính năng quản lý danh sách Idol đã lưu, gửi link hoặc mã QR mời Idol tham gia hợp tác trực tiếp không qua trung gian.
                       </p>
                     </div>
                   </div>

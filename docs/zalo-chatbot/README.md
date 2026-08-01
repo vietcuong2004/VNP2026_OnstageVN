@@ -58,7 +58,7 @@ Trong tương lai, Assistant sẽ trở thành một AI Agent có khả năng:
 
 * Quản lý hồ sơ
 * Quản lý lịch làm việc
-* Đề xuất mức giá
+* Đề xuất Phí booking
 * Tư vấn hoàn thiện Portfolio
 * Hỗ trợ giao tiếp với Brand
 * Tự động hóa các công việc lặp lại
@@ -147,7 +147,7 @@ AI hỗ trợ:
 * Trả lời câu hỏi
 * Phân tích hồ sơ
 * Đề xuất cải thiện Portfolio
-* Đề xuất mức giá
+* Đề xuất Phí booking
 * Gợi ý bổ sung thông tin còn thiếu
 
 ---

@@ -40,8 +40,17 @@ export type TalentProfile = {
   cover: string | null;
   fullBodyImage: string | null;
   skills: string[];
+  socialHighlights?: string[];
   experience: string;
   portfolio: string[];
+  videos?: Array<{
+    id: string | number;
+    title: string;
+    url: string;
+    thumbnailUrl?: string;
+    videoType?: string;
+    sortOrder?: number;
+  }>;
   availability: string;
   availabilityDates: string[];
   completion: number;
@@ -670,4 +679,3 @@ export const contactRequests = [
 export function findTalentById(id: string) {
   return talents.find((talent) => talent.id === id);
 }
-

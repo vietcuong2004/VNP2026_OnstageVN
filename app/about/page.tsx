@@ -861,7 +861,7 @@ function AboutContent({
                         </div>
                         <h5 className="text-xs font-black text-white uppercase tracking-widest mb-2">Quản lý mạng lưới Idol</h5>
                         <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
-                          Tích hợp tính năng quản lý danh sách Idol yêu thích, gửi link hoặc mã QR mời Idol tham gia hợp tác trực tiếp không qua trung gian.
+                          Tích hợp tính năng quản lý danh sách Idol đã lưu, gửi link hoặc mã QR mời Idol tham gia hợp tác trực tiếp không qua trung gian.
                         </p>
                       </div>
                     </div>

@@ -9,6 +9,7 @@ import {
   loadBrandTalents,
   loadBrandWishlists,
   removeTalentFromWishlist,
+  removeBrandRosterTalent,
 } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ export default function BrandShortlistsPage() {
   const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [brandTalentIds, setBrandTalentIds] = useState<string[]>([]);
+  const [brandRosterMap, setBrandRosterMap] = useState<Record<string, string>>({});
   const [addingBrandTalentIds, setAddingBrandTalentIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -37,6 +39,12 @@ export default function BrandShortlistsPage() {
       loadBrandRosterTalents().catch(() => []),
     ]).then(([backendTalents, wishlists, rosterItems]) => {
       setBrandTalentIds(rosterItems.map((item) => String(item.talent_profile_id)));
+      const map: Record<string, string> = {};
+      rosterItems.forEach((item) => {
+        map[String(item.talent_profile_id)] = String(item.id);
+      });
+      setBrandRosterMap(map);
+
       const primaryWishlist = wishlists[0];
 
       if (!primaryWishlist) {
@@ -61,48 +69,45 @@ export default function BrandShortlistsPage() {
           const profileId = String(item.profile_id || item.profile?.id || "");
           if (profileId) acc[profileId] = String(item.id);
           return acc;
-        }, {}),
+        }, {})
       );
     });
   }, []);
 
-  const savedTalents = useMemo(
-    () => talentList.filter((talent) => savedIds.includes(talent.id)),
-    [savedIds, talentList],
-  );
+  const savedTalents = useMemo(() => {
+    return talentList.filter((talent) => savedIds.includes(String(talent.id)));
+  }, [savedIds, talentList]);
 
-  function pushToast(message: string, tone: ToastItem["tone"] = "success") {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  function pushToast(message: string, tone: "success" | "error" = "success") {
+    const id = `${Date.now()}-${Math.random()}`;
     setToasts((current) => [...current, { id, message, tone }]);
-
-    window.setTimeout(() => {
-      setToasts((current) => current.filter((toast) => toast.id !== id));
-    }, 3200);
+    setTimeout(() => {
+      setToasts((current) => current.filter((item) => item.id !== id));
+    }, 3000);
   }
 
   function formatActionError(error: unknown, fallback: string) {
-    return error instanceof Error ? error.message : fallback;
+    if (error instanceof Error && error.message) return error.message;
+    return fallback;
   }
 
-  async function removeTalent(id: string) {
-    const itemId = wishlistItemIds[id];
-    if (wishlistId && itemId) {
-      try {
-        await removeTalentFromWishlist(wishlistId, itemId);
-      } catch (error) {
-        pushToast(formatActionError(error, "Chưa thể xoá talent khỏi danh sách yêu thích."), "error");
-        return;
-      }
+  async function removeTalent(talentId: string) {
+    const itemId = wishlistItemIds[talentId];
+    if (!wishlistId || !itemId) return;
+
+    try {
+      await removeTalentFromWishlist(wishlistId, itemId);
+    } catch (error) {
+      console.warn("Backend remove failed, updating locally", error);
     }
 
-    setSavedIds((current) => current.filter((item) => item !== id));
-    setTalentList((current) => current.filter((item) => item.id !== id));
+    setSavedIds((current) => current.filter((id) => id !== talentId));
     setWishlistItemIds((current) => {
       const next = { ...current };
-      delete next[id];
+      delete next[talentId];
       return next;
     });
-    pushToast("Đã xoá khỏi danh sách yêu thích.");
+    pushToast("Đã xoá khỏi danh sách đã lưu.");
   }
 
   async function addTalentToBrand(talentId: string) {
@@ -111,11 +116,44 @@ export default function BrandShortlistsPage() {
     setAddingBrandTalentIds((current) => [...current, talentId]);
 
     try {
-      await addBrandRosterTalent(talentId, "Thêm từ danh sách yêu thích.");
+      const res = await addBrandRosterTalent(talentId, "Thêm từ danh sách đã lưu.");
       setBrandTalentIds((current) => current.includes(talentId) ? current : [...current, talentId]);
+      if (res?.id) {
+        setBrandRosterMap((current) => ({ ...current, [talentId]: String(res.id) }));
+      }
       pushToast("Đã thêm talent vào Brand.");
     } catch (error) {
       pushToast(formatActionError(error, "Chưa thể thêm talent vào Brand. Vui lòng thử lại."), "error");
+    } finally {
+      setAddingBrandTalentIds((current) => current.filter((id) => id !== talentId));
+    }
+  }
+
+  async function removeTalentFromBrand(talentId: string) {
+    if (!talentId || addingBrandTalentIds.includes(talentId)) return;
+
+    setAddingBrandTalentIds((current) => [...current, talentId]);
+
+    try {
+      let rosterId = brandRosterMap[talentId];
+      if (!rosterId) {
+        const rosterItems = await loadBrandRosterTalents();
+        const found = rosterItems.find((r) => String(r.talent_profile_id) === talentId || String(r.talent_profile?.id) === talentId);
+        if (found?.id) rosterId = String(found.id);
+      }
+
+      if (rosterId) {
+        await removeBrandRosterTalent(rosterId);
+      }
+      setBrandTalentIds((current) => current.filter((id) => id !== talentId));
+      setBrandRosterMap((current) => {
+        const next = { ...current };
+        delete next[talentId];
+        return next;
+      });
+      pushToast("Đã xóa talent khỏi Brand.");
+    } catch (error) {
+      pushToast(formatActionError(error, "Chưa thể xóa talent khỏi Brand. Vui lòng thử lại."), "error");
     } finally {
       setAddingBrandTalentIds((current) => current.filter((id) => id !== talentId));
     }
@@ -127,22 +165,22 @@ export default function BrandShortlistsPage() {
         <div>
           <div className="mb-2 flex items-center gap-2">
             <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-              Danh sách yêu thích
+              Danh sách đã lưu
             </span>
           </div>
           <h1 className="font-display text-2xl font-black tracking-tight text-white">
             Danh sách{" "}
             <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
-              người mẫu yêu thích
+              người mẫu đã lưu
             </span>
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
-            Quản lý danh sách idol yêu thích và thêm họ trực tiếp vào danh sách hoạt động của Brand.
+            Quản lý danh sách idol đã lưu và thêm họ trực tiếp vào danh sách hoạt động của Brand.
           </p>
         </div>
 
         <div className="rounded-xl border border-white/5 bg-slate-950/30 px-4 py-3">
-          <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Danh sách yêu thích</span>
+          <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Danh sách đã lưu</span>
           <span className="text-lg font-black text-white">{savedTalents.length} idol</span>
         </div>
       </section>
@@ -151,13 +189,13 @@ export default function BrandShortlistsPage() {
         {savedTalents.length === 0 ? (
           <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-10 text-center">
             <BookmarkCheck className="mx-auto mb-3 h-8 w-8 text-slate-600" />
-            <h3 className="text-sm font-black text-white">Chưa có idol nào trong danh sách yêu thích</h3>
+            <h3 className="text-sm font-black text-white">Chưa có idol nào trong danh sách đã lưu</h3>
             <p className="mt-2 text-xs text-slate-500">Hãy vào màn Tìm kiếm Idol để lưu idol phù hợp.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {savedTalents.map((talent) => {
-              const isSaved = savedIds.includes(talent.id);
+              const isSaved = savedIds.includes(String(talent.id));
               const isInBrand = brandTalentIds.includes(String(talent.id));
               const isAddingToBrand = addingBrandTalentIds.includes(String(talent.id));
 
@@ -170,6 +208,7 @@ export default function BrandShortlistsPage() {
                   onToggleSaved={(item) => void removeTalent(String(item.id))}
                   onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/shortlists`)}
                   onMessage={(item) => void addTalentToBrand(String(item.id))}
+                  onRemoveFromBrand={(item) => void removeTalentFromBrand(String(item.id))}
                   messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào Brand"}
                   messageDisabled={isInBrand}
                   messageLoading={isAddingToBrand}

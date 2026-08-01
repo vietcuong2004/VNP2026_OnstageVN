@@ -27,10 +27,10 @@ import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplana
 
 export const unifiedBrandNavigation = [
   { label: "Tìm kiếm Idol", icon: Search, href: "/brand/search" },
+  { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Quản lý việc làm", icon: Briefcase, href: "/brand/manage-jobs" },
   // { label: "Quản lý cuộc thi", icon: Trophy, href: "/brand/manage-competitions" },
   { label: "Quản lý Idol", icon: Users2, href: "/brand/my-talents" },
-  { label: "Danh sách yêu thích", icon: BookmarkCheck, href: "/brand/shortlists" },
   { label: "Thông tin brand", icon: Building2, href: "/brand/informations" },
 ];
 

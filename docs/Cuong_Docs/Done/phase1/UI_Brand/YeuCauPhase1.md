@@ -18,10 +18,10 @@ Phù hợp với: Dự án cụ thể, yêu cầu đặc biệt, timeline gấp
 |----------|---------|----------|
 | **Demographics** | Giới tính, Độ tuổi (range slider), Thành phố, Quận/Huyện | "Cần nữ 20-25 tuổi ở Q1 TP.HCM" |
 | **Physical Attributes** | Chiều cao (range), Cân nặng (range), Số đo 3 vòng, Màu da, Màu tóc | "Model cao trên 1m70" |
-| **Professional** | Loại hình (Model/KOL/PG/MC), Kinh nghiệm (năm), Kỹ năng đặc biệt | "MC có kinh nghiệm 3+ năm" |
+| **Professional** | Loại hình (Model/KOL/PG/MC), Số năm kinh nghiệm, Kỹ năng đặc biệt | "MC có kinh nghiệm 3+ năm" |
 | **Social Media** | Platform (IG/TikTok/FB), Follower count (range), Engagement rate | "Influencer có 50K+ followers" |
 | **Availability** | Ngày rảnh, Khu vực làm việc, Sẵn sàng đi xa | "Rảnh ngày 15-17/6" |
-| **Budget** | Mức giá (range), Đơn vị (giờ/ngày/dự án) | "Budget 2-3 triệu/ngày" |
+| **Budget** | Phí booking (range), Đơn vị (giờ/ngày/dự án) | "Budget 2-3 triệu/ngày" |
 | **Quality** | Verified badge, Rating (stars), Số job hoàn thành | "Chỉ xem profile verified" |
 
 **Search Algorithm:**

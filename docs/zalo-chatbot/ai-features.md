@@ -61,7 +61,7 @@ Ví dụ:
 * Cần bổ sung ảnh toàn thân.
 * Nên xác minh CCCD.
 * Nên cập nhật Portfolio mới.
-* Đề xuất mức giá phù hợp.
+* Đề xuất Phí booking phù hợp.
 
 ---
 

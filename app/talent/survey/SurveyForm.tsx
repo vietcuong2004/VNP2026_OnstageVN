@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft,
   CheckCircle2, Info, Star, ChevronRight, Trophy, Heart,
-  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2
+  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
@@ -53,8 +53,20 @@ const TiktokIcon = (props: React.SVGProps<SVGSVGElement>) => (
 function clampSurveyStep(value: unknown) {
   const step = Number(value);
   if (!Number.isFinite(step)) return 1;
-  return Math.min(5, Math.max(1, Math.trunc(step)));
+  return Math.min(4, Math.max(1, Math.trunc(step)));
 }
+
+const talentTypeOptions = [
+  "Diễn viên",
+  "Người mẫu",
+  "KOL",
+  "KOC",
+  "Livestreamer",
+  "MC",
+  "PG",
+  "PB",
+  "Hoa hậu"
+];
 
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
@@ -112,14 +124,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     };
   }, []);
 
-  // Outer Step 5 (Orientation survey) inner question tracker (0 to 19)
+  // Outer Step 4 (Orientation survey) inner question tracker (0 to 19)
   const [activeSurveyQIdx, setActiveSurveyQIdx] = useState(0);
 
   const [formData, setFormData] = useState({
     name: "",
-    birthYear: "",
     location: "",
-    hometown: "",
     phone: "",
     email: "",
     height: "",
@@ -130,9 +140,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     plasticSurgery: "Vẻ đẹp hoàn toàn tự nhiên, chưa từng can thiệp",
     maritalStatus: "Độc thân, chưa từng sinh con",
     education: "",
-    languages: "",
+    languages: [] as string[],
+    talentTypes: [] as string[],
+    price: "",
     skills: "",
     experience: "",
+    professionalExperience: "",
     tiktokUrl: "",
     instagramUrl: "",
     facebookUrl: "",
@@ -253,6 +266,42 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleAddTalentType = (type: string) => {
+    if (!type) return;
+    setFormData((prev) => {
+      if (prev.talentTypes.includes(type)) return prev;
+      return { ...prev, talentTypes: [...prev.talentTypes, type] };
+    });
+  };
+
+  const handleRemoveTalentType = (typeToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      talentTypes: prev.talentTypes.filter((type) => type !== typeToRemove),
+    }));
+  };
+
+  const handlePriceChange = (val: string) => {
+    if (!val) {
+      setFormData((prev) => ({ ...prev, price: "" }));
+      return;
+    }
+
+    const cleanText = val.replace(/[0-9.\s/ngàyđ]/gi, "");
+    const isNumeric = cleanText === "";
+
+    if (!isNumeric) {
+      setFormData((prev) => ({ ...prev, price: val }));
+      return;
+    }
+
+    const nextDigits = val.replace(/[^\d]/g, "");
+    setFormData((prev) => ({
+      ...prev,
+      price: nextDigits ? `${Number(nextDigits).toLocaleString("vi-VN")}/ngày` : "",
+    }));
+  };
+
   const handleSurveySelect = (qId: number, optionIdx: number) => {
     setSurveyAnswers((prev) => ({ ...prev, [qId]: optionIdx }));
     // Auto advance to next question after short delay for optimal speed & comfort
@@ -272,41 +321,36 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       // Basic info inputs filled ratio
       let count = 0;
       if (formData.name) count++;
-      if (formData.birthYear) count++;
       if (formData.location) count++;
-      if (formData.hometown) count++;
       if (formData.phone) count++;
       if (formData.email) count++;
       if (mediaUploads.avatar) count++;
-      basePct = Math.round((count / 7) * 20); // max 20%
-    } else if (step === 2) {
-      basePct = 20;
-      let count = 0;
       if (formData.height) count++;
       if (formData.weight) count++;
       if (formData.bust) count++;
       if (formData.waist) count++;
       if (formData.hips) count++;
-      basePct += Math.round((count / 5) * 20); // max 40%
-    } else if (step === 3) {
-      basePct = 40;
+      basePct = Math.round((count / 10) * 25); // max 25%
+    } else if (step === 2) {
+      basePct = 25;
       let count = 0;
-      if (formData.education) count++;
-      if (formData.languages) count++;
-      if (formData.skills) count++;
-      basePct += Math.round((count / 3) * 20); // max 60%
-    } else if (step === 4) {
-      basePct = 60;
+      if (formData.price) count++;
+      if (formData.experience) count++;
+      if (formData.talentTypes.length) count++;
+      if (formData.professionalExperience) count++;
+      basePct += Math.round((count / 4) * 25); // max 50%
+    } else if (step === 3) {
+      basePct = 50;
       let count = 0;
       if (getTotalFollowers() > 0) count++;
       if (formData.tiktokUrl || formData.instagramUrl || formData.facebookUrl || formData.youtubeUrl) count++;
       if (mediaUploads.portfolio) count++;
-      basePct += Math.round((count / 3) * 20); // max 80%
-    } else if (step === 5) {
-      basePct = 80;
+      basePct += Math.round((count / 3) * 25); // max 75%
+    } else if (step === 4) {
+      basePct = 75;
       // Survey answered count ratio
       const answeredCount = Object.keys(surveyAnswers).length;
-      basePct += Math.round((answeredCount / SURVEY_QUESTIONS.length) * 20); // max 100%
+      basePct += Math.round((answeredCount / SURVEY_QUESTIONS.length) * 25); // max 100%
     }
     return Math.min(100, basePct);
   };
@@ -319,14 +363,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       return true;
     }
     if (step === 3) {
-      return true;
-    }
-    if (step === 4) {
-      // Portfolio upload UI is hidden – always valid at step 4
+      // Portfolio upload UI is hidden – always valid at step 3
       // return mediaUploads.portfolio !== null;
       return true;
     }
-    if (step === 5) {
+    if (step === 4) {
       // Valid if all 20 questions are answered
       return SURVEY_QUESTIONS.every((q) => surveyAnswers[q.id] !== undefined);
     }
@@ -341,7 +382,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   };
 
   const nextStep = () => {
-    if (step < 5 && isStepValid()) {
+    if (step < 4 && isStepValid()) {
       goToStep(step + 1);
     }
   };
@@ -461,7 +502,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       const runwayAllowed = heightVal >= 165;
 
       // Rule 3: English proficient -> priority points
-      const hasLanguagePriority = formData.languages.includes("Thành thạo");
+      const hasLanguagePriority = formData.languages.some((lang) =>
+        /thành thạo|lưu loát|ielts|toeic|n1|n2|bản xứ/i.test(lang)
+      );
 
       // Survey grading algorithm
       let countA = 0;
@@ -555,7 +598,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         isOnboarded: true,
         avatar: mediaUploads.avatar ? `/uploads/${mediaUploads.avatar}` : "/avatar.png",
         skills: formData.skills.split(",").map(s => s.trim()),
-        languages: formData.languages.split(",").map(s => s.trim()),
+        languages: formData.languages,
+        talentTypes: formData.talentTypes,
+        experienceText: formData.professionalExperience,
         mediaUploads
       };
       const savedProfile = await saveTalentProfile(userProfile);
@@ -585,6 +630,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         { question_code: "B1", answer_value: experienceYears },
         { question_code: "C1", answer_value: getTotalFollowers() },
         { question_code: "D1", answer_value: mainCategory },
+        { question_code: "P1", answer_value: formData.price },
+        { question_code: "P2", answer_value: formData.talentTypes },
+        { question_code: "P3", answer_value: formData.professionalExperience },
       ]);
       await submitTalentSurvey("S", surveyQuestionAnswers);
       const aiResult = await analyzeTalentSurvey().catch((error) => {
@@ -1018,14 +1066,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="shrink-0 text-[11px] md:text-xs font-black text-amber-300 uppercase tracking-widest bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 whitespace-nowrap">
-                Bước {step} / 5
+                Bước {step} / 4
               </span>
               <span className="text-xs font-black text-white truncate">
                 {step === 1 && "Thông tin cơ bản"}
-                {step === 2 && "Nhân trắc học"}
-                {step === 3 && "Học vấn & Kỹ năng"}
-                {step === 4 && "Social & Portfolio"}
-                {step === 5 && "Khảo sát định hướng"}
+                {step === 2 && "Nghề nghiệp"}
+                {step === 3 && "Social & Portfolio"}
+                {step === 4 && "Khảo sát định hướng"}
               </span>
             </div>
             {/* Micro feedback text */}
@@ -1051,20 +1098,19 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           <div className="absolute top-8 left-8 right-8 h-[2px] bg-white/10 -translate-y-1/2 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 transition-all duration-500"
-              style={{ width: `${((step - 1) / 4) * 100}%` }}
+              style={{ width: `${((step - 1) / 3) * 100}%` }}
             />
           </div>
 
           <div className="flex items-center justify-between w-full relative z-10">
-            {[1, 2, 3, 4, 5].map((s) => {
+            {[1, 2, 3, 4].map((s) => {
               const isCurrent = s === step;
               const isPast = s < step;
               const isClickable = s <= maxStep;
 
               const stepNames = [
                 "Thông tin",
-                "Nhân trắc",
-                "Kỹ năng",
+                "Nghề nghiệp",
                 "Social & Media",
                 "Khảo sát AI"
               ];
@@ -1079,7 +1125,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     "flex flex-col items-center transition-all duration-300 relative group focus:outline-none",
                     isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-60"
                   )}
-                  style={{ width: "18%" }}
+                  style={{ width: "22%" }}
                 >
                   {/* Step Bubble */}
                   <div className={cn(
@@ -1125,7 +1171,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             {/* Left: Avatar Dropzone */}
             <div className="md:col-span-4 flex flex-col items-center space-y-4">
               <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider self-start">Ảnh Đại Diện</span>
- 
+
               <div
                 onClick={() => handleFileUploadClick("avatar")}
                 className={cn(
@@ -1160,7 +1206,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               </div>
               <p className="text-[11px] md:text-xs text-slate-400 text-center font-medium">Chọn ảnh rõ mặt, biểu cảm tự nhiên</p>
             </div>
- 
+
             {/* Right: Inputs */}
             <div className="md:col-span-8 grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-1">
@@ -1174,18 +1220,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   placeholder="Nhập họ và tên"
                 />
               </div>
- 
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Năm sinh</label>
-                <input
-                  type="number"
-                  name="birthYear"
-                  value={formData.birthYear}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                />
-              </div>
- 
+
               <div className="space-y-1">
                 <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Khu vực sinh sống</label>
                 <select
@@ -1200,19 +1235,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   <option value="Khác">Tỉnh thành khác</option>
                 </select>
               </div>
- 
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Quê quán</label>
-                <input
-                  type="text"
-                  name="hometown"
-                  value={formData.hometown}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                  placeholder="Ví dụ: Nam Định"
-                />
-              </div>
- 
+
               <div className="space-y-1">
                 <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Số điện thoại</label>
                 <input
@@ -1224,7 +1247,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   placeholder="0912345678"
                 />
               </div>
- 
+
               <div className="col-span-2 space-y-1">
                 <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Email liên hệ</label>
                 <input
@@ -1236,96 +1259,36 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   placeholder="maianh@gmail.com"
                 />
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* STEP 2: ANTHROPOMETRICS (Widescreen Silhouette & Horizontal Inputs) */}
-        {step === 2 && (
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center animate-in fade-in duration-300">
-            {/* Left Column: Visual mannequin statistics showcase */}
-            <div className="md:col-span-5 rounded-2xl border border-white/10 bg-slate-900/60 p-5 flex flex-col items-center justify-center space-y-4">
-              <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider self-start">Ngoại hình</span>
-
-              {/* Silhouette diagram with lines and custom measurement nodes */}
-              <div className="relative w-full max-w-[160px] aspect-[1/2] border border-white/10 rounded-xl bg-[#070913]/80 flex items-center justify-center p-3">
-                {/* SVG Silhouette representation */}
-                <svg viewBox="0 0 100 200" className="h-full w-full opacity-65 text-slate-300">
-                  {/* Elegant symmetric head */}
-                  <circle cx="50" cy="18" r="6" fill="currentColor" />
-                  {/* Elegant symmetric neck */}
-                  <path d="M 48,24 C 48,27 48.5,28 48.5,30 L 51.5,30 C 51.5,28 52,27 52,24 Z" fill="currentColor" />
-                  {/* Elegant symmetric mannequin body torso and legs */}
-                  <path d="M 50,30 
-                           C 42,30 36,32 34,36 
-                           C 33,42 35,54 36,60 
-                           C 38,68 43,76 43,84 
-                           C 43,92 39,102 38,108 
-                           L 42,178 
-                           C 43,182 46,182 47,178 
-                           L 50,120 
-                           L 53,178 
-                           C 54,182 57,182 58,178 
-                           L 62,108 
-                           C 61,102 57,92 57,84 
-                           C 57,76 62,68 64,60 
-                           C 65,54 67,42 66,36 
-                           C 64,32 58,30 50,30 Z"
-                    fill="currentColor" />
-
-                  {/* Indicator nodes circles */}
-                  <circle cx="50" cy="60" r="3.5" fill="#f5a623" />
-                  <circle cx="50" cy="84" r="3.5" fill="#a855f7" />
-                  <circle cx="50" cy="108" r="3.5" fill="#14b8a6" />
-                </svg>
-
-                {/* Measuring labels with direct values */}
-                <div className="absolute top-[28%] left-[-24px] bg-slate-900 px-2 py-1 rounded-lg border border-white/20 text-[10px] md:text-[11px] font-extrabold text-white shadow-lg">
-                  Vòng 1: {formData.bust} cm
-                </div>
-                <div className="absolute top-[40%] right-[-24px] bg-slate-900 px-2 py-1 rounded-lg border border-white/20 text-[10px] md:text-[11px] font-extrabold text-white shadow-lg">
-                  Vòng 2: {formData.waist} cm
-                </div>
-                <div className="absolute top-[52%] left-[-24px] bg-slate-900 px-2 py-1 rounded-lg border border-white/20 text-[10px] md:text-[11px] font-extrabold text-white shadow-lg">
-                  Vòng 3: {formData.hips} cm
-                </div>
+              <div className="col-span-2 border-t border-white/10 pt-4">
+                <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">
+                  Ngoại hình
+                </span>
               </div>
 
-              {/* Height & Weight centered directly below the silhouette body */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-400/10 border border-amber-400/25 text-[11px] md:text-xs font-black text-amber-300 shadow-sm mt-1">
-                <span>Chiều cao: <strong className="text-white">{formData.height} cm</strong></span>
-                <span className="text-amber-500/40">|</span>
-                <span>Cân nặng: <strong className="text-white">{formData.weight} kg</strong></span>
+              <div className="space-y-1">
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Chiều cao (cm)</label>
+                <input
+                  type="number"
+                  name="height"
+                  value={formData.height}
+                  onChange={handleInputChange}
+                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                />
               </div>
-            </div>
 
-            {/* Right Column: Numeric Inputs row & dropdowns */}
-            <div className="md:col-span-7 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Chiều cao (cm)</label>
-                  <input
-                    type="number"
-                    name="height"
-                    value={formData.height}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Cân nặng (kg)</label>
-                  <input
-                    type="number"
-                    name="weight"
-                    value={formData.weight}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Cân nặng (kg)</label>
+                <input
+                  type="number"
+                  name="weight"
+                  value={formData.weight}
+                  onChange={handleInputChange}
+                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                />
               </div>
- 
-              {/* Three rings measurement laid out horizontally */}
-              <div className="space-y-1.5">
+
+              <div className="col-span-2 space-y-1.5">
                 <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Số đo 3 vòng (cm)</label>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="relative">
@@ -1360,75 +1323,107 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   </div>
                 </div>
               </div>
-
-
-
-
             </div>
           </div>
         )}
 
-        {/* STEP 3: EDUCATION & SKILLS (Stacked Layout) */}
+        {/* STEP 2: PROFESSIONAL INFO */}
+        {step === 2 && (
+          <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto">
+            <div className="py-3 md:py-5 space-y-6">
+              <h3 className="font-display text-base font-black uppercase tracking-wider text-slate-300">
+                Thông tin nghề nghiệp
+              </h3>
+
+              <div className="grid grid-cols-1 gap-5">
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                    Phí booking (VD: "5.000.000đ/ngày" hoặc "thỏa thuận")
+                  </label>
+                  <input
+                    type="text"
+                    name="price"
+                    value={formData.price}
+                    onChange={(e) => handlePriceChange(e.target.value)}
+                    placeholder="Nhập Phí booking dịch vụ của bạn..."
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:bg-[#0e122b] transition-all shadow-inner"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                    Loại hình Idol
+                  </label>
+                  <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
+                    {formData.talentTypes.length === 0 ? (
+                      <span className="text-xs text-slate-400 italic px-2 py-1">Chưa chọn loại hình nào</span>
+                    ) : (
+                      formData.talentTypes.map((type) => (
+                        <span key={type} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                          {type}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTalentType(type)}
+                            className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      handleAddTalentType(e.target.value);
+                      e.target.value = "";
+                    }}
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3 py-3 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-400 focus:bg-[#0e122b] cursor-pointer appearance-none shadow-inner"
+                  >
+                    <option value="" disabled hidden>Thêm loại hình Idol...</option>
+                    {talentTypeOptions
+                      .filter((type) => !formData.talentTypes.includes(type))
+                      .map((type) => (
+                        <option key={type} value={type} className="bg-[#0e142e] text-white py-1">{type}</option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                    Số năm kinh nghiệm
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={80}
+                    name="experience"
+                    value={formData.experience}
+                    onChange={handleInputChange}
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:bg-[#0e122b] transition-all shadow-inner"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                    Nhập một số kinh nghiệm của bạn
+                  </label>
+                  <textarea
+                    name="professionalExperience"
+                    value={formData.professionalExperience}
+                    onChange={handleInputChange}
+                    rows={5}
+                    placeholder="Ví dụ: Đã từng tham gia chụp lookbook, livestream bán hàng, làm mẫu ảnh, tham dự sự kiện..."
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-400 focus:bg-[#0e122b] transition-colors shadow-inner resize-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: SOCIAL & PORTFOLIO (Left Socials, Right Upload Zone) */}
         {step === 3 && (
-          <div className="space-y-5 animate-in fade-in duration-300 w-full max-w-3xl mx-auto">
-            {/* Education */}
-            <div className="space-y-1">
-              <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Trình độ học vấn hiện tại</label>
-              <input
-                type="text"
-                name="education"
-                value={formData.education}
-                onChange={handleInputChange}
-                className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                placeholder="Ví dụ: Cử nhân Học viện Ngoại giao"
-              />
-            </div>
-
-            {/* Languages */}
-            <div className="space-y-1">
-              <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Ngoại ngữ</label>
-              <select
-                name="languages"
-                value={formData.languages}
-                onChange={handleInputChange}
-                className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-medium"
-              >
-                <option value="Giao tiếp cơ bản / Chưa có chứng chỉ">Giao tiếp cơ bản / Chưa có chứng chỉ</option>
-                <option value="Khá (Tương đương IELTS 5.0 - 6.0)">Khá (Tương đương IELTS 5.0 - 6.0)</option>
-                <option value="Thành thạo / Lưu loát (Tương đương IELTS 6.5 trở lên)">Thành thạo / Lưu loát (IELTS &ge; 6.5)</option>
-              </select>
-            </div>
-
-            {/* Skills */}
-            <div className="space-y-1">
-              <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Kỹ năng nổi bật</label>
-              <textarea
-                name="skills"
-                value={formData.skills}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium resize-none"
-                placeholder="Ví dụ: Catwalk, Diễn xuất trước ống kính, Livestream"
-              />
-            </div>
-
-            {/* Experience */}
-            <div className="space-y-1">
-              <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Kinh nghiệm cuộc thi / Công việc từng làm</label>
-              <textarea
-                name="experience"
-                value={formData.experience}
-                onChange={handleInputChange}
-                rows={5}
-                className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium resize-none"
-                placeholder="Ví dụ: Từng tham gia Miss Teen Việt Nam, làm người mẫu ảnh lookbook tự do 2 năm..."
-              />
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4: SOCIAL & PORTFOLIO (Left Socials, Right Upload Zone) */}
-        {step === 4 && (
           <div className="animate-in fade-in duration-300">
             {/* Left: Social Media Profiles and Followers */}
             <div className="space-y-4 w-full max-w-xl mx-auto">
@@ -1667,8 +1662,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           </div>
         )}
 
-        {/* STEP 5: ORIENTATION SURVEY (Single Question Card UI, zero scroll) */}
-        {step === 5 && (
+        {/* STEP 4: ORIENTATION SURVEY (Single Question Card UI, zero scroll) */}
+        {step === 4 && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-5xl mx-auto py-2 animate-in fade-in duration-300">
             {/* Left Column: The Question Block */}
             <div className="lg:col-span-8 space-y-6 w-full">
@@ -1732,8 +1727,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     if (activeSurveyQIdx > 0) {
                       setActiveSurveyQIdx(prev => prev - 1);
                     } else {
-                      // Go back to Step 4
-                      goToStep(4);
+                      // Go back to Step 3
+                      goToStep(3);
                     }
                   }}
                   className={cn(
@@ -1845,8 +1840,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           </div>
         )}
 
-        {/* Global Navigation Action Bar (Except Step 5 which has its own) */}
-        {step < 5 && (
+        {/* Global Navigation Action Bar (Except Step 4 which has its own) */}
+        {step < 4 && (
           <div className="flex gap-3 pt-5 border-t border-white/10">
             {step > 1 && (
               <button
@@ -1874,7 +1869,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           </div>
         )}
 
-        {/* Final Submit action button – hidden at step 5, handled inline in survey nav */}
+        {/* Final Submit action button – hidden at step 4, handled inline in survey nav */}
 
       </form>
     </div>

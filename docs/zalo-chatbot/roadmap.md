@@ -136,7 +136,7 @@ Xây dựng trợ lý AI hỗ trợ Talent trong quá trình phát triển hồ 
 * Intent Detection.
 * AI Recommendation.
 * AI Scoring.
-* Đề xuất mức giá.
+* Đề xuất Phí booking.
 * Gợi ý cải thiện Portfolio.
 * Trả lời các câu hỏi thường gặp.
 

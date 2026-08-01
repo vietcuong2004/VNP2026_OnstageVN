@@ -24,6 +24,14 @@ type BackendPhoto = {
   is_primary?: boolean;
 };
 
+type BackendVideo = {
+  id: number;
+  url?: string | null;
+  title?: string | null;
+  video_type?: string | null;
+  thumbnail_url?: string | null;
+};
+
 type BackendProfile = {
   id: number;
   display_name?: string | null;
@@ -43,13 +51,16 @@ type BackendProfile = {
   experience?: string | null;
   experience_years?: number | null;
   skills?: string[] | null;
+  social_highlights?: string[] | null;
   bio?: string | null;
   education?: string | null;
   budget_min?: number | null;
   budget_max?: number | null;
   price?: string | null;
   portfolio_url?: string | null;
+  portfolio_links?: string[] | null;
   photos?: BackendPhoto[] | null;
+  videos?: BackendVideo[] | null;
   social_accounts?: Array<{ platform?: string | null; url?: string | null; followers_count?: number | null; engagement_rate?: number | null }> | null;
   calendar_events?: any[] | null;
   user?: { name?: string | null; email?: string | null; phone?: string | null; external_avatar_url?: string | null } | null;
@@ -80,6 +91,7 @@ export function getDefaultTalentProfile() {
     talentTypes: [],
     skills: [],
     specialSkills: [],
+    socialHighlights: [],
     followersCount: 0,
     engagementRate: 0,
     profileScore: 0,
@@ -113,14 +125,28 @@ export function getDefaultTalentProfile() {
     isSuperBoosted: false,
     isPremiumBoosted: false,
     photos: [],
+    videos: [],
     photoRecords: [],
     hasUploadedCatwalk: false,
     hasUploadedIntro: false,
     hasUploadedMC: false,
     price: "",
     portfolio_url: "",
+    portfolioLinks: [],
     socialAccounts: [],
   };
+}
+
+function normalizePortfolioLinks(rawLinks: unknown): string[] {
+  const links = Array.isArray(rawLinks)
+    ? rawLinks
+    : String(rawLinks || "").split(/[\n,;]+/);
+
+  return Array.from(new Set(
+    links
+      .map((link) => String(link).trim())
+      .filter(Boolean),
+  ));
 }
 
 export function sanitizeTalentProfile(profile: any) {
@@ -177,6 +203,14 @@ export function sanitizeTalentProfile(profile: any) {
     lookbook4: isRealProfileImage(normalizedLookbook4) ? normalizedLookbook4 : "",
     photos,
     photoRecords,
+    videos: Array.isArray(profile?.videos)
+      ? profile.videos.map((video: BackendVideo) => ({
+          ...video,
+          url: normalizeBackendAssetUrl(video.url),
+          thumbnail_url: normalizeBackendAssetUrl(video.thumbnail_url),
+        }))
+      : [],
+    portfolioLinks: normalizePortfolioLinks(profile?.portfolioLinks ?? profile?.portfolio_links ?? profile?.portfolio_url),
   };
 }
 
@@ -243,39 +277,38 @@ function splitCsv(value: string | string[] | undefined) {
     .filter(Boolean);
 }
 
+function normalizeLanguageLabel(value: string) {
+  const item = String(value || "").trim();
+  const proficiency = item.match(/\(([^)]+)\)/)?.[1]?.trim() || "";
+  const baseInput = item.replace(/\s*\([^)]*\)\s*/g, " ").trim();
+  const lowered = baseInput.toLowerCase();
+  const fullLowered = item.toLowerCase();
+  let base = baseInput;
+
+  if (
+    lowered.includes("english") ||
+    lowered.includes("tiếng anh") ||
+    lowered.includes("tieng anh") ||
+    fullLowered.includes("ielts") ||
+    fullLowered.includes("toeic")
+  ) {
+    base = "Tiếng Anh";
+  } else if (lowered.includes("vietnamese") || lowered.includes("tiếng việt") || lowered.includes("tieng viet")) {
+    base = "Tiếng Việt";
+  } else if (lowered.includes("korean") || lowered.includes("tiếng hàn") || lowered.includes("tieng han")) {
+    base = "Tiếng Hàn";
+  } else if (lowered.includes("japanese") || lowered.includes("tiếng nhật") || lowered.includes("tieng nhat")) {
+    base = "Tiếng Nhật";
+  } else if (lowered.includes("chinese") || lowered.includes("tiếng trung") || lowered.includes("tieng trung")) {
+    base = "Tiếng Trung";
+  }
+
+  const label = proficiency ? `${base} (${proficiency})` : base;
+  return label.length > 50 ? label.slice(0, 50).trim() : label;
+}
+
 function normalizeLanguages(value: string | string[] | undefined) {
-  const labels = splitCsv(value).map((item) => {
-    const lowered = item.toLowerCase();
-
-    if (
-      lowered.includes("english") ||
-      lowered.includes("tiếng anh") ||
-      lowered.includes("ielts") ||
-      lowered.includes("toeic") ||
-      lowered.includes("thành thạo") ||
-      lowered.includes("lưu loát")
-    ) {
-      return "Tiếng Anh";
-    }
-
-    if (lowered.includes("vietnamese") || lowered.includes("tiếng việt")) {
-      return "Tiếng Việt";
-    }
-
-    if (lowered.includes("korean") || lowered.includes("tiếng hàn")) {
-      return "Tiếng Hàn";
-    }
-
-    if (lowered.includes("japanese") || lowered.includes("tiếng nhật")) {
-      return "Tiếng Nhật";
-    }
-
-    if (lowered.includes("chinese") || lowered.includes("tiếng trung")) {
-      return "Tiếng Trung";
-    }
-
-    return item.length > 50 ? item.slice(0, 50).trim() : item;
-  });
+  const labels = splitCsv(value).map(normalizeLanguageLabel);
 
   return Array.from(new Set(labels)).filter(Boolean);
 }
@@ -435,8 +468,10 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     talentTypes: profile.talent_types?.length ? profile.talent_types : [],
     skills: profile.skills?.length ? profile.skills : [],
     specialSkills: profile.skills?.length ? profile.skills : [],
+    socialHighlights: profile.social_highlights?.length ? profile.social_highlights : [],
     experience: profile.experience_years ?? "",
-    education: profile.education || profile.bio || profile.experience || "",
+    experienceText: profile.experience || "",
+    education: profile.education || "",
     bio: profile.bio || "",
     followersCount: sumFollowers(profile) ?? 0,
     engagementRate: averageEngagement(profile) ?? 0,
@@ -444,8 +479,14 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     busyDates,
     photos: photos.length ? photos : localPhotos,
     photoRecords: portfolioPhotoRecords,
+    videos: (profile.videos || local.videos || []).map((video: BackendVideo) => ({
+      ...video,
+      url: normalizeBackendAssetUrl(video.url),
+      thumbnail_url: normalizeBackendAssetUrl(video.thumbnail_url),
+    })),
     price: profile.price || "",
     portfolio_url: profile.portfolio_url || "",
+    portfolioLinks: normalizePortfolioLinks(profile.portfolio_links ?? profile.portfolio_url),
     socialAccounts: profile.social_accounts || []
   };
 
@@ -471,12 +512,13 @@ export function buildBackendProfilePayload(profile: any) {
   const waist = Number(profile.waist || 0) || null;
   const hips = Number(profile.hips || 0) || null;
   const talentTypes = splitCsv(profile.talentTypes?.length ? profile.talentTypes : profile.specialSkills);
+  const portfolioLinks = normalizePortfolioLinks(profile.portfolioLinks ?? profile.portfolio_links ?? profile.portfolio_url);
 
   return {
     display_name: profile.name || undefined,
     email: profile.email || undefined,
     phone: profile.phone || undefined,
-    talent_types: talentTypes.length ? talentTypes : ["KOLs"],
+    talent_types: talentTypes.length ? talentTypes : ["KOL"],
     city: profile.location || undefined,
     district: profile.hometown || undefined,
     gender: normalizeGender(profile.gender),
@@ -490,14 +532,16 @@ export function buildBackendProfilePayload(profile: any) {
     tattoo_description: profile.tattoo === "Có" ? profile.tattooDesc || undefined : undefined,
     languages: normalizeLanguages(profile.languages),
     education: profile.education || undefined,
-    experience: profile.bio || profile.education || undefined,
+    experience: profile.experienceText || undefined,
     skills: splitCsv(profile.specialSkills?.length ? profile.specialSkills : profile.skills),
+    social_highlights: splitCsv(profile.socialHighlights),
     experience_years: Number(profile.experience || 0) || 0,
-    bio: profile.bio || profile.education || undefined,
+    bio: profile.experienceText || profile.bio || undefined,
     budget_min: profile.rateCard ? Math.min(...Object.values(profile.rateCard).map(Number).filter(Boolean)) : undefined,
     budget_max: profile.rateCard ? Math.max(...Object.values(profile.rateCard).map(Number).filter(Boolean)) : undefined,
     price: profile.price || undefined,
-    portfolio_url: profile.portfolio_url || undefined,
+    portfolio_url: portfolioLinks.join("\n") || undefined,
+    portfolio_links: portfolioLinks,
     social_accounts: Array.isArray(profile.socialAccounts)
       ? profile.socialAccounts
         .map((a: any) => ({ platform: a.platform, url: a.url }))
@@ -547,8 +591,39 @@ export async function uploadTalentPhoto(profileId: number, file: File, category 
   };
 }
 
+export async function uploadTalentVideo(profileId: number, file: File, title?: string) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("video_type", "portfolio");
+  if (title) formData.append("title", title);
+
+  const response = await apiForm<{ data: BackendVideo }>(`/profiles/${profileId}/videos`, formData);
+
+  return {
+    ...response.data,
+    url: bustAssetCache(response.data.url || ""),
+  };
+}
+
+export async function createTalentVideoLink(profileId: number, url: string, title?: string) {
+  const response = await apiJson<{ data: BackendVideo }>(`/profiles/${profileId}/videos`, {
+    method: "POST",
+    body: JSON.stringify({
+      url,
+      title,
+      video_type: "portfolio",
+    }),
+  });
+
+  return response.data;
+}
+
 export async function deleteTalentPhoto(profileId: number, photoId: number) {
   await apiJson(`/profiles/${profileId}/photos/${photoId}`, { method: "DELETE" });
+}
+
+export async function deleteTalentPhotoCategory(profileId: number, category: string) {
+  await apiJson(`/profiles/${profileId}/photos/category/${encodeURIComponent(category)}`, { method: "DELETE" });
 }
 
 function eventDate(value?: string | null) {

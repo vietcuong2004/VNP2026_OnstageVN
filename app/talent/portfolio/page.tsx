@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from "react";
 import {
   MapPin, User, Edit3, Sparkles,
-  CheckCircle, Camera, Mail, Phone, X,
-  Crown, Trophy, Star, Award, HelpCircle, Eye
+  CheckCircle, Camera, X,
+  Crown, Trophy, Star, Award, HelpCircle, Eye,
+  Ruler, Scale, FileText, Upload, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PersonalInfoTab from "./PersonalInfoTab";
@@ -14,11 +15,11 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { getAuthToken } from "@/lib/api-client";
-import { ensureTalentProfile, loadTalentProfile, persistTalentProfile, TALENT_PROFILE_UPDATED_EVENT, uploadTalentPhoto } from "@/lib/talent-api";
+import { deleteTalentPhotoCategory, ensureTalentProfile, loadTalentProfile, persistTalentProfile, TALENT_PROFILE_UPDATED_EVENT, uploadTalentPhoto } from "@/lib/talent-api";
 
 function getProfileTalentTypes(profile: unknown) {
   const record = profile && typeof profile === "object" ? profile as Record<string, unknown> : {};
-  const candidates = [record.talentTypes, record.talent_types, record.specialSkills, record.skills];
+  const candidates = [record.talentTypes, record.talent_types];
 
   for (const value of candidates) {
     if (Array.isArray(value) && value.length) {
@@ -33,6 +34,42 @@ function getProfileTalentTypes(profile: unknown) {
   return [];
 }
 
+function getStringList(value: unknown) {
+  const list = Array.isArray(value) ? value : value ? [value] : [];
+  return Array.from(new Set(list.map((item) => String(item).trim()).filter(Boolean)));
+}
+
+const formatHeight = (h: number | string) => {
+  const val = Number(h);
+  if (!val) return "—";
+  return `${val} cm`;
+};
+
+const formatMeasurements = (profile: any) => {
+  if (profile?.bust && profile?.waist && profile?.hips) {
+    return `${profile.bust}-${profile.waist}-${profile.hips}`;
+  }
+
+  return "Chưa cập nhật";
+};
+
+function portfolioLinksFromProfile(profile: any): string[] {
+  const rawLinks = profile?.portfolioLinks ?? profile?.portfolio_links ?? profile?.portfolio_url ?? "";
+  const links = Array.isArray(rawLinks)
+    ? rawLinks
+    : String(rawLinks).split(/[\n,;]+/);
+
+  return Array.from(new Set(
+    links
+      .map((link: unknown) => String(link).trim())
+      .filter(Boolean),
+  ));
+}
+
+function portfolioHref(link: string): string {
+  return /^https?:\/\//i.test(link) ? link : `https://${link}`;
+}
+
 export default function PortfolioPage() {
   const [profile, setProfile] = useState<any>(null);
 
@@ -40,6 +77,8 @@ export default function PortfolioPage() {
   const [activeTab, setActiveTab] = useState<"edit-info" | "personal-info" | "addon-services" | "portrait-3d">("personal-info");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isTierDialogOpen, setIsTierDialogOpen] = useState(false);
+  const [isPortfolioDialogOpen, setIsPortfolioDialogOpen] = useState(false);
+  const [openImageActionMenu, setOpenImageActionMenu] = useState<"avatar" | "cover" | null>(null);
 
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
 
@@ -50,6 +89,19 @@ export default function PortfolioPage() {
       status: "uploading" | "done" | "error" | "idle";
     };
   }>({});
+
+  useEffect(() => {
+    if (!openImageActionMenu) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("[data-image-action-menu]")) return;
+      setOpenImageActionMenu(null);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openImageActionMenu]);
 
   const addToast = (message: string, type: "success" | "info" = "success") => {
     const id = Date.now();
@@ -166,6 +218,29 @@ export default function PortfolioPage() {
   const currentBoostLevel = getBoostLevel(profile);
   const rankingScore = Math.round((currentBoostLevel * 100) + (Number(profile.profileScore) || 0) * 0.5 + (Number(profile.reliability) || 0) * 0.3 + (Number(profile.averageRating) || 0) * 2);
   const profileTalentTypes = getProfileTalentTypes(profile);
+  const profileSkills = getStringList(profile.skills ?? profile.specialSkills);
+  const profileSocialHighlights = getStringList(profile.socialHighlights ?? profile.social_highlights);
+  const portfolioLinks = portfolioLinksFromProfile(profile);
+  const portfolioOwnerName = String(profile?.name || "Idol").trim().replace(/\s+/g, "_");
+  const headerBio = profile.bio && profile.bio !== profile.education ? profile.bio : "";
+
+  function openPortfolioLink(link: string) {
+    window.open(portfolioHref(link), "_blank", "noopener,noreferrer");
+  }
+
+  function handleViewPortfolio() {
+    if (portfolioLinks.length === 0) {
+      addToast("Chưa có portfolio", "info");
+      return;
+    }
+
+    if (portfolioLinks.length === 1) {
+      openPortfolioLink(portfolioLinks[0]);
+      return;
+    }
+
+    setIsPortfolioDialogOpen(true);
+  }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
     const file = e.target.files?.[0];
@@ -291,6 +366,27 @@ export default function PortfolioPage() {
     }
   };
 
+  const handleRemoveProfileImage = async (type: "avatar" | "cover") => {
+    setOpenImageActionMenu(null);
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+      if (syncedProfile.backendProfileId) {
+        await deleteTalentPhotoCategory(syncedProfile.backendProfileId, type);
+      }
+
+      const updatedProfile = persistTalentProfile({
+        ...syncedProfile,
+        ...profile,
+        [type]: "",
+      });
+      setProfile(updatedProfile);
+      addToast(`Đã xóa ${type === "avatar" ? "ảnh đại diện" : "ảnh bìa"}.`, "info");
+    } catch (error) {
+      console.error(error);
+      addToast(error instanceof Error ? error.message : "Không xóa được ảnh, vui lòng thử lại.", "info");
+    }
+  };
+
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-300">
 
@@ -317,17 +413,40 @@ export default function PortfolioPage() {
 
 
           {/* Cover camera edit button in bottom-right corner */}
-          <div className="absolute bottom-3 right-6 z-20">
-            <label className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-[#F0C56B]/80 text-white hover:text-[#F0C56B] cursor-pointer shadow-soft transition-all active:scale-95">
+          <div className="absolute bottom-3 right-6 z-20" data-image-action-menu>
+            <button
+              type="button"
+              onClick={() => setOpenImageActionMenu(openImageActionMenu === "cover" ? null : "cover")}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-[#F0C56B]/80 text-white hover:text-[#F0C56B] cursor-pointer shadow-soft transition-all active:scale-95"
+            >
               <Camera className="h-4.5 w-4.5" />
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={!!uploadingState["cover"]}
-                onChange={(e) => handleImageUpload(e, "cover")}
-              />
-            </label>
+            </button>
+            {openImageActionMenu === "cover" && (
+              <div className="absolute right-0 bottom-full mb-2 z-50 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#08090f] shadow-2xl">
+                <label className="flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/10 hover:text-[#F0C56B]">
+                  <Upload className="h-4 w-4 shrink-0" />
+                  Chọn ảnh mới
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={!!uploadingState["cover"]}
+                    onChange={(e) => {
+                      setOpenImageActionMenu(null);
+                      handleImageUpload(e, "cover");
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveProfileImage("cover")}
+                  className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-xs font-bold text-rose-300 transition hover:bg-rose-500/10 hover:text-rose-200"
+                >
+                  <Trash2 className="h-4 w-4 shrink-0" />
+                  Xóa ảnh
+                </button>
+              </div>
+            )}
           </div>
 
           {uploadingState["cover"] && (
@@ -360,16 +479,41 @@ export default function PortfolioPage() {
                 </div>
 
                 {/* Avatar camera edit button on bottom right */}
-                <label className="absolute bottom-0.5 right-0.5 h-9 w-9 bg-[#F0C56B] text-slate-950 rounded-full border-2 border-[#05070e] hover:brightness-110 active:scale-95 shadow-lg flex items-center justify-center cursor-pointer transition-all">
-                  <Camera className="h-4.5 w-4.5" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={!!uploadingState["avatar"]}
-                    onChange={(e) => handleImageUpload(e, "avatar")}
-                  />
-                </label>
+                <div className="absolute bottom-0.5 right-0.5 z-30" data-image-action-menu>
+                  <button
+                    type="button"
+                    onClick={() => setOpenImageActionMenu(openImageActionMenu === "avatar" ? null : "avatar")}
+                    className="h-9 w-9 bg-[#F0C56B] text-slate-950 rounded-full border-2 border-[#05070e] hover:brightness-110 active:scale-95 shadow-lg flex items-center justify-center cursor-pointer transition-all"
+                  >
+                    <Camera className="h-4.5 w-4.5" />
+                  </button>
+                  {openImageActionMenu === "avatar" && (
+                    <div className="absolute right-0 bottom-full mb-2 z-50 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#08090f] shadow-2xl">
+                      <label className="flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/10 hover:text-[#F0C56B]">
+                        <Upload className="h-4 w-4 shrink-0" />
+                        Chọn ảnh mới
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={!!uploadingState["avatar"]}
+                          onChange={(e) => {
+                            setOpenImageActionMenu(null);
+                            handleImageUpload(e, "avatar");
+                          }}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveProfileImage("avatar")}
+                        className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-xs font-bold text-rose-300 transition hover:bg-rose-500/10 hover:text-rose-200"
+                      >
+                        <Trash2 className="h-4 w-4 shrink-0" />
+                        Xóa ảnh
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {uploadingState["avatar"] && (
                   <ProgressBar
@@ -401,6 +545,12 @@ export default function PortfolioPage() {
                       Idol mới
                     </span>
                   )}
+
+                  {profileSocialHighlights.map((highlight) => (
+                    <span key={highlight} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                      {highlight}
+                    </span>
+                  ))}
 
                   {/* Tier Badge inside the same row */}
                   {profile.isOnboarded && profile.tier && (() => {
@@ -442,41 +592,63 @@ export default function PortfolioPage() {
                   })()}
                 </div>
                 
-                {/* Location, Email & Phone Contacts Row */}
+                {/* Location & Measurements Row */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="h-4 w-4 text-[#F0C56B]" />
                     <span className="text-slate-300 font-medium">{profile.location || "Chưa cập nhật"}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Mail className="h-4 w-4 text-[#F0C56B]" />
-                    <span className="text-slate-300 font-medium">{profile.email || "Chưa cập nhật"}</span>
+                    <Ruler className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium">{profile.height ? formatHeight(profile.height) : "Chưa cập nhật"}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Phone className="h-4 w-4 text-[#F0C56B]" />
-                    <span className="text-slate-300 font-medium font-mono">{profile.phone || "Chưa cập nhật"}</span>
+                    <Scale className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium">{profile.weight ? `${profile.weight} kg` : "Chưa cập nhật"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <User className="h-4 w-4 text-[#F0C56B]" />
+                    <span className="text-slate-300 font-medium font-mono">{formatMeasurements(profile)}</span>
                   </div>
                 </div>
 
-                {/* Bio (Description) Row */}
-                <div className="text-[11px] sm:text-xs text-slate-400 font-medium leading-relaxed pt-2.5 border-t border-white/5 mt-1 text-center sm:text-left">
-                  {profile.bio || "Chưa cập nhật giới thiệu bản thân."}
-                </div>
-
-                {/* Portfolio URL Button */}
-                {profile.portfolio_url && (
-                  <div className="pt-3 flex justify-center">
-                    <a
-                      href={profile.portfolio_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110 rounded-xl text-xs font-black uppercase tracking-wider shadow-[0_4px_15px_rgba(240,197,107,0.2)] hover:scale-[1.02] active:scale-98 transition-all duration-300"
-                    >
-                      <Eye className="h-4 w-4 shrink-0 text-slate-950" />
-                      Xem Portfolio
-                    </a>
+                {profileSkills.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 pt-1">
+                    {profileSkills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="inline-flex rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-slate-300"
+                      >
+                        {skill}
+                      </span>
+                    ))}
                   </div>
                 )}
+
+                {/* Bio (Description) Row */}
+                {headerBio ? (
+                  <div className="text-[11px] sm:text-xs text-slate-400 font-medium leading-relaxed pt-2.5 border-t border-white/5 mt-1 text-center sm:text-left">
+                    {headerBio}
+                  </div>
+                ) : null}
+
+                {/* Portfolio URL Button */}
+                <div className="pt-3 flex justify-center">
+                  <button
+                    type="button"
+                    aria-disabled={portfolioLinks.length === 0}
+                    onClick={handleViewPortfolio}
+                    className={cn(
+                      "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-[0_4px_15px_rgba(240,197,107,0.2)] active:scale-98 transition-all duration-300",
+                      portfolioLinks.length > 0
+                        ? "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110 hover:scale-[1.02] cursor-pointer"
+                        : "border border-white/10 bg-white/[0.03] text-slate-500 cursor-not-allowed"
+                    )}
+                  >
+                    <Eye className="h-4 w-4 shrink-0 text-current" />
+                    Xem Portfolio
+                  </button>
+                </div>
               </div>
 
             </div>
@@ -614,6 +786,49 @@ export default function PortfolioPage() {
         isOpen={isTierDialogOpen} 
         onClose={() => setIsTierDialogOpen(false)} 
       />
+
+      {isPortfolioDialogOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md animate-in fade-in duration-150"
+          onClick={() => setIsPortfolioDialogOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-[#2B313D] bg-[#08090f] p-5 shadow-2xl animate-in zoom-in-95 duration-200"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between border-b border-[#151b2d] pb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4.5 w-4.5 text-[#f4c430]" />
+                <h3 className="font-display text-xs font-black uppercase tracking-wider text-white">Chọn portfolio</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPortfolioDialogOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {portfolioLinks.map((link, index) => (
+                <button
+                  key={`${link}-${index}`}
+                  type="button"
+                  onClick={() => {
+                    setIsPortfolioDialogOpen(false);
+                    openPortfolioLink(link);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2.5 text-left text-xs font-bold text-slate-200 transition hover:border-amber-400/40 hover:bg-amber-400/5 hover:text-amber-300"
+                  title={link}
+                >
+                  <FileText className="h-4 w-4 shrink-0 text-[#f4c430]" />
+                  <span className="truncate">{`Portfolio${index + 1}_${portfolioOwnerName}`}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -3,7 +3,7 @@
 import React, { Suspense, useCallback, useMemo, useState, useEffect, useRef } from "react";
 import {
   Sparkles, CheckCircle,
-  X,
+  X, Check, Filter,
   ArrowUpRight, Copy, Users, Briefcase, Calendar,
   Search, SlidersHorizontal, ChevronDown, ChevronUp
 } from "lucide-react";
@@ -131,20 +131,19 @@ function normalizeSearchText(value: string) {
     .trim();
 }
 
-function normalizeFilterText(value: unknown) {
-  return normalizeSearchText(String(value || ""));
+function normalizeFilterText(text?: string | null): string {
+  if (!text) return "";
+  return text.toLowerCase().trim();
 }
 
-function formatVNDNumber(value?: number | string | null): string {
-  if (!value && value !== 0) return "";
-  const num = typeof value === "number" ? value : Number(String(value).replace(/\D/g, ""));
-  if (isNaN(num) || num === 0) return "";
-  return num.toLocaleString("vi-VN");
-}
-
-function parseVNDNumber(raw: string): number {
-  const digits = raw.replace(/\D/g, "");
+function parseVNDNumber(val: string): number {
+  const digits = val.replace(/\D/g, "");
   return digits ? parseInt(digits, 10) : 0;
+}
+
+function formatVNDNumber(num: number): string {
+  if (!num || num <= 0) return "";
+  return num.toLocaleString("vi-VN");
 }
 
 function formatVNDHint(num: number): string {
@@ -200,34 +199,37 @@ function FilterDropdown({
   }, []);
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div ref={dropdownRef} className="relative w-full">
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-left text-xs text-white outline-none transition-all hover:border-[#f5c518]/40 focus:border-[#f5c518]/60"
+        className={cn(
+          "flex h-9 w-full items-center justify-between gap-2 rounded-xl border border-white/5 bg-slate-950/60 px-3 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
+          isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+        )}
       >
-        <span className="truncate">{selectedOption?.label}</span>
-        <ChevronDown className={cn("h-4 w-4 shrink-0 text-white transition-transform", isOpen && "rotate-180")} />
+        <span className="truncate text-left font-medium text-slate-200">{selectedOption?.label}</span>
+        <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-300", isOpen && "rotate-180 text-[#C9A86A]")} />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-[100] mt-1 rounded-xl border border-white/10 bg-[#08090f] shadow-2xl">
+        <div className="absolute left-0 top-full z-[100] mt-1.5 max-h-60 w-full overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
           {searchable && (
-            <div className="border-b border-white/10 p-2">
+            <div className="mb-1.5 px-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#f5c518]" />
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#C9A86A]" />
                 <input
                   value={searchInput}
                   onChange={(event) => setSearchInput(event.target.value)}
                   placeholder={searchPlaceholder}
-                  className="w-full rounded-lg border border-white/10 bg-slate-950/80 py-2 pl-9 pr-3 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#f5c518]/60"
+                  className="w-full rounded-lg border border-white/10 bg-slate-950/80 py-1.5 pl-8 pr-2.5 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/50"
                   autoFocus
                 />
               </div>
             </div>
           )}
 
-          <div className="max-h-[320px] overflow-y-auto py-1">
+          <div className="max-h-44 overflow-y-auto space-y-0.5 pr-0.5 custom-scrollbar">
             {filteredOptions.map((option) => (
               <button
                 key={option.value}
@@ -238,18 +240,19 @@ function FilterDropdown({
                   setIsOpen(false);
                 }}
                 className={cn(
-                  "block w-full px-4 py-2 text-left text-xs font-medium transition-colors hover:bg-[#f5c518]/15",
-                  option.value === value ? "bg-[#f5c518]/25 text-white" : "text-slate-200"
+                  "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors text-left cursor-pointer",
+                  option.value === value
+                    ? "bg-[#C9A86A]/20 text-[#C9A86A] font-bold"
+                    : "text-slate-300 hover:bg-white/5 hover:text-white"
                 )}
               >
-                {option.label}
+                <span className="truncate">{option.label}</span>
+                {option.value === value && <Check className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />}
               </button>
             ))}
 
             {filteredOptions.length === 0 && (
-              <div className="px-4 py-3 text-xs font-semibold text-slate-500">
-                {emptyText}
-              </div>
+              <div className="px-3 py-2 text-center text-xs text-slate-500">{emptyText}</div>
             )}
           </div>
         </div>
@@ -601,11 +604,11 @@ function JobsPageContent() {
         apply: response.meta.stage_counts?.recruiting ?? response.meta.total,
         pending: response.meta.stage_counts?.pending ?? 0,
         approved:
-          (response.meta.stage_counts?.approved ?? 0)
-          + (response.meta.stage_counts?.accepted ?? 0)
-          + (response.meta.stage_counts?.executing ?? 0)
-          + (response.meta.stage_counts?.completed ?? 0)
-          + (response.meta.stage_counts?.confirmed ?? 0),
+          (response.meta.stage_counts?.approved ?? 0) +
+          (response.meta.stage_counts?.accepted ?? 0) +
+          (response.meta.stage_counts?.executing ?? 0) +
+          (response.meta.stage_counts?.completed ?? 0) +
+          (response.meta.stage_counts?.confirmed ?? 0),
       });
       setJobResultPage(resultPage);
       setJobResultPageCount(Math.max(1, Math.ceil((response.meta.total || backendJobs.length) / JOBS_PER_RESULT_PAGE)));
@@ -991,9 +994,9 @@ function JobsPageContent() {
       {/* Search & filters */}
       <div className="flex flex-col sm:flex-row gap-3 w-full">
         <div className="group relative flex-1">
-          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/30 via-[#f5c518]/40 to-yellow-600/30 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
+          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/30 via-[#C9A86A]/40 to-yellow-600/30 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
           <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#f5c518] transition-colors group-focus-within:text-amber-300" />
+            <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A] transition-colors group-focus-within:text-amber-300" />
             <input
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
@@ -1001,7 +1004,7 @@ function JobsPageContent() {
                 if (event.key === "Enter") applyFilters();
               }}
               placeholder="Tìm kiếm job theo tên, brand, loại chiến dịch, địa điểm..."
-              className="w-full rounded-2xl border border-amber-500/10 bg-[#0a0c12]/90 py-4 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#f5c518]/60 placeholder:text-slate-500 shadow-2xl"
+              className="w-full rounded-2xl border border-amber-500/10 bg-[#0a0c12]/90 py-4 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500 shadow-2xl"
             />
             {searchInput && (
               <button
@@ -1010,7 +1013,7 @@ function JobsPageContent() {
                   setSearchInput("");
                   setSearchQuery("");
                 }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1019,18 +1022,22 @@ function JobsPageContent() {
         </div>
 
         <button
+          type="button"
           onClick={applyFilters}
-          className="flex h-[50px] items-center justify-center rounded-2xl bg-gradient-to-r from-amber-100 via-[#f5c518] to-yellow-600 px-8 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(245,197,24,0.3)] shrink-0"
+          className="flex h-[50px] items-center justify-center rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-8 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(201,168,106,0.3)] shrink-0"
         >
           Tìm kiếm
         </button>
       </div>
 
-      <div className="relative z-40 space-y-4 overflow-visible rounded-2xl border border-[#f5c518]/25 bg-[#0f121d]/90 p-5 shadow-[0_0_30px_rgba(245,197,24,0.06)] backdrop-blur-md">
-        <div className="absolute left-0 right-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#f5c518] to-transparent" />
-        <div className="relative z-10 flex flex-wrap items-end gap-3.5">
-          <div className="min-w-[180px] flex-1">
-            <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">
+      <div className="relative z-40 rounded-2xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-5 space-y-4 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md overflow-visible">
+        {/* Top Highlight line */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A86A] to-transparent" />
+
+        {/* Main Filters Row */}
+        <div className="flex flex-wrap items-end gap-3.5 relative z-10">
+          <div className="flex-1 min-w-[180px]">
+            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">
               Địa điểm
             </span>
             <FilterDropdown
@@ -1042,8 +1049,8 @@ function JobsPageContent() {
             />
           </div>
 
-          <div className="min-w-[180px] flex-1">
-            <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <div className="flex-1 min-w-[180px]">
+            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">
               Loại hình job
             </span>
             <FilterDropdown
@@ -1054,28 +1061,30 @@ function JobsPageContent() {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Buttons Group */}
+          <div className="flex items-center gap-2 mt-2 sm:mt-0">
             <button
               type="button"
               onClick={() => setShowAdvancedFilters((current: boolean) => !current)}
               className={cn(
-                "flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-bold transition-colors",
+                "flex h-9 items-center justify-center gap-1.5 rounded-xl border px-4 text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer whitespace-nowrap shadow-md",
                 showAdvancedFilters
-                  ? "border-[#f5c518]/50 bg-[#f5c518]/15 text-[#f5c518]"
-                  : "border-white/10 bg-slate-950/70 text-slate-300 hover:border-white/20 hover:text-white"
+                  ? "border-[#C9A86A] bg-gradient-to-r from-amber-400/20 to-yellow-600/20 text-[#C9A86A] shadow-[0_0_12px_rgba(201,168,106,0.15)]"
+                  : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:border-[#C9A86A]/40 hover:text-white"
               )}
             >
-              <SlidersHorizontal className="h-4 w-4" />
+              <SlidersHorizontal className="h-3.5 w-3.5" />
               <span>Lọc nâng cao</span>
-              {showAdvancedFilters ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              {showAdvancedFilters ? <ChevronUp className="h-3.5 w-3.5 shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 shrink-0" />}
             </button>
 
             <button
               type="button"
               onClick={applyFilters}
-              className="flex h-10 items-center rounded-xl border border-[#f5c518]/40 bg-[#f5c518] px-4 text-xs font-black uppercase tracking-wider text-slate-950 transition-colors hover:bg-amber-300"
+              className="flex h-9 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-110 transition active:scale-95 cursor-pointer shadow-md"
             >
-              Áp dụng
+              <Filter className="h-3.5 w-3.5" />
+              <span>Áp dụng</span>
             </button>
           </div>
         </div>
@@ -1235,26 +1244,28 @@ function JobsPageContent() {
               Hiện chưa có chiến dịch tuyển dụng nào khớp với bộ lọc của bạn. Hãy quay lại sau hoặc thử đổi bộ lọc.
             </p>
           </div>
-        ) : visibleCampaigns.map((camp) => {
-          const isApplied = appliedJobs.includes(camp.id) || hasTalentApplication(camp);
-          const stage = getTalentJobStage(camp);
+        ) : (
+          visibleCampaigns.map((camp) => {
+            const isApplied = appliedJobs.includes(camp.id) || hasTalentApplication(camp);
+            const stage = getTalentJobStage(camp);
 
-          return (
-            <JobCard
-              key={camp.id}
-              job={camp}
-              isApplied={isApplied}
-              stage={stage}
-              isLoadingReferral={loadingReferral === camp.id}
-              formatDate={displayCampaignDate}
-              onView={handleViewJob}
-              onApply={(job) => handleApply(job.id, job.title)}
-              onUpdateStage={(job, nextStage) => handleUpdateStage(job.id, nextStage)}
-              onInvite={handleInviteClick}
-              onInviteBlocked={() => addToast("Vui lòng ứng tuyển chiến dịch trước khi mời thành viên khác.", "info")}
-            />
-          );
-        })}
+            return (
+              <JobCard
+                key={camp.id}
+                job={camp}
+                isApplied={isApplied}
+                stage={stage}
+                isLoadingReferral={loadingReferral === camp.id}
+                formatDate={displayCampaignDate}
+                onView={handleViewJob}
+                onApply={(job) => handleApply(job.id, job.title)}
+                onUpdateStage={(job, nextStage) => handleUpdateStage(job.id, nextStage)}
+                onInvite={handleInviteClick}
+                onInviteBlocked={() => addToast("Vui lòng ứng tuyển chiến dịch trước khi mời thành viên khác.", "info")}
+              />
+            );
+          })
+        )}
       </div>
 
       {/* Lazy Load Sentinel Indicator */}

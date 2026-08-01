@@ -287,7 +287,7 @@ Hệ thống được thiết kế theo mô hình **Microservices Architecture**
 - Talent nhận thông báo push notification
 - Talent có 3 lựa chọn:
   - **Chấp nhận:** Booking thành công, chuyển sang bước 6
-  - **Đàm phán:** Đề xuất mức giá khác hoặc điều chỉnh điều khoản
+  - **Đàm phán:** Đề xuất Phí booking khác hoặc điều chỉnh điều khoản
   - **Từ chối:** Ghi rõ lý do (bận lịch, không phù hợp, giá thấp...)
 
 **Bước 6: Ký hợp đồng điện tử và Escrow**

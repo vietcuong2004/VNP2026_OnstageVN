@@ -48,6 +48,7 @@ type BackendProfile = {
   profile_completion?: number | string | null;
   verification_status?: string | null;
   skills?: string[] | null;
+  social_highlights?: string[] | null;
   languages?: string[] | null;
   experience?: string | null;
   bio?: string | null;
@@ -58,6 +59,7 @@ type BackendProfile = {
   price?: string | null;
   portfolio_url?: string | null;
   photos?: BackendPhoto[] | null;
+  videos?: BackendVideo[] | null;
   social_accounts?: BackendSocialAccount[] | null;
   calendar_events?: Array<{ starts_at?: string | null }> | null;
   user?: BackendUser | null;
@@ -77,6 +79,15 @@ type BackendPhoto = {
   path?: string | null;
   category?: string | null;
   is_primary?: boolean | number | null;
+};
+
+type BackendVideo = {
+  id?: number | string;
+  url?: string | null;
+  title?: string | null;
+  thumbnail_url?: string | null;
+  video_type?: string | null;
+  sort_order?: number | string | null;
 };
 
 export type PaginationMeta = {
@@ -528,6 +539,17 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     .filter((photo) => photo.category !== 'avatar' && photo.category !== 'cover' && !photo.category?.startsWith('cccd'))
     .map((photo) => photo.url || photo.path || "")
     .filter(Boolean);
+  const videos = (profile.videos ?? [])
+    .map((video, index) => ({
+      id: String(video.id ?? `video-${index + 1}`),
+      title: String(repairMojibake(video.title || `Video ${index + 1}`)).trim(),
+      url: normalizeBackendAssetUrl(video.url || ""),
+      thumbnailUrl: normalizeBackendAssetUrl(video.thumbnail_url || ""),
+      videoType: String(video.video_type || ""),
+      sortOrder: Number(video.sort_order) || index,
+    }))
+    .filter((video) => video.url)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
   const rawExperience = String(profile.experience || profile.bio || fallback?.experience || "");
   const repairedExperience = String(repairMojibake(rawExperience)).trim();
   const displayExperience = repairedExperience && !hasSuspiciousQuestionMojibake(repairedExperience)
@@ -571,8 +593,10 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     cover,
     fullBodyImage: firstPhoto(profile, "full_body") || firstPhoto(profile, "lookbook") || firstPhoto(profile, "portfolio") || firstPhoto(profile) || avatar || null,
     skills: (profile.skills?.length ? profile.skills : fallback?.skills || []).map((item) => String(repairMojibake(item))),
+    socialHighlights: (profile.social_highlights?.length ? profile.social_highlights : (fallback as any)?.socialHighlights || []).map((item: string) => String(repairMojibake(item))),
     experience: displayExperience,
     portfolio: portfolio.length ? portfolio : fallback?.portfolio || [],
+    videos,
     availability: String(repairMojibake(fallback?.availability || "Chưa có lịch")),
     availabilityDates: (profile.calendar_events ?? []).map((event) => String(event.starts_at || "").slice(0, 10)).filter(Boolean),
     completion: Number(profile.profile_completion) || fallback?.completion || 0,

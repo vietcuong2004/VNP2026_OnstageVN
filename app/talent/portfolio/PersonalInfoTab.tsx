@@ -1,84 +1,65 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Award, User,
   ShieldCheck, Calendar, Image as ImageIcon, Sparkles,
   ChevronLeft, ChevronRight, Upload, ChevronDown, ChevronUp, Camera,
-  Ruler, Scale, Mail, Phone, Globe
+  Ruler, Scale, Globe, FileText, Video, Link as LinkIcon, Trash2, Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import ProgressBar from "@/components/ui/ProgressBar";
-import { ensureTalentProfile, persistTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
+import { createTalentVideoLink, deleteTalentPhotoCategory, ensureTalentProfile, persistTalentProfile, uploadTalentPhoto, uploadTalentVideo } from "@/lib/talent-api";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import { getTalentDayStatus, toggleManualBusyDate } from "@/lib/talent-calendar";
-
-const convertToDisplayDate = (dateStr: string) => {
-  if (!dateStr) return "Chưa cập nhật";
-  const dateOnly = dateStr.split(/[T ]/)[0];
-  if (dateOnly.includes("-")) {
-    const parts = dateOnly.split("-");
-    if (parts.length === 3) {
-      const [y, m, d] = parts;
-      return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
-    }
-  }
-  return dateOnly;
-};
-
-const calculateAgeFromDob = (dateStr?: string | null) => {
-  if (!dateStr) return null;
-
-  const dateOnly = dateStr.split(/[T ]/)[0];
-  let year: number | null = null;
-  let month: number | null = null;
-  let day: number | null = null;
-
-  if (dateOnly.includes("/")) {
-    const [d, m, y] = dateOnly.split("/");
-    day = Number(d);
-    month = Number(m);
-    year = Number(y);
-  } else if (dateOnly.includes("-")) {
-    const parts = dateOnly.split("-");
-    if (parts.length === 3 && parts[0].length === 4) {
-      year = Number(parts[0]);
-      month = Number(parts[1]);
-      day = Number(parts[2]);
-    }
-  }
-
-  if (!year || !month || !day) return null;
-
-  const birthDate = new Date(year, month - 1, day);
-  if (
-    Number.isNaN(birthDate.getTime()) ||
-    birthDate.getFullYear() !== year ||
-    birthDate.getMonth() !== month - 1 ||
-    birthDate.getDate() !== day
-  ) {
-    return null;
-  }
-
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const hasHadBirthdayThisYear =
-    today.getMonth() > birthDate.getMonth() ||
-    (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
-
-  if (!hasHadBirthdayThisYear) age -= 1;
-
-  return age >= 0 && age <= 120 ? age : null;
-};
 
 const formatHeight = (h: number | string) => {
   const val = Number(h);
   if (!val) return "—";
-  const m = Math.floor(val / 100);
-  const cm = val % 100;
-  return `${m}m${String(cm).padStart(2, '0')}`;
+  return `${val} cm`;
 };
+
+function portfolioLinksFromProfile(profile: any): string[] {
+  const rawLinks = profile?.portfolioLinks ?? profile?.portfolio_links ?? profile?.portfolio_url ?? "";
+  const links = Array.isArray(rawLinks)
+    ? rawLinks
+    : String(rawLinks).split(/[\n,;]+/);
+
+  return Array.from(new Set(
+    links
+      .map((link: unknown) => String(link).trim())
+      .filter(Boolean),
+  ));
+}
+
+function portfolioHref(link: string): string {
+  return /^https?:\/\//i.test(link) ? link : `https://${link}`;
+}
+
+function formatLanguageList(value: unknown) {
+  const list = Array.isArray(value) ? value : value ? [value] : [];
+  const labels = list
+    .map((item) => {
+      if (item && typeof item === "object") {
+        const record = item as Record<string, unknown>;
+        const name = String(record.language || record.name || record.label || "").trim();
+        const proficiency = String(record.proficiency || record.level || record.proficiency_level || "").trim();
+        if (name && proficiency && !name.includes("(")) return `${name} (${proficiency})`;
+        return name || proficiency;
+      }
+
+      return String(item || "").trim();
+    })
+    .filter(Boolean);
+
+  return labels.length > 0 ? labels.join(", ") : "Chưa cập nhật";
+}
+
+function getStringList(value: unknown) {
+  const list = Array.isArray(value) ? value : value ? [value] : [];
+  return Array.from(new Set(list.map((item) => String(item).trim()).filter(Boolean)));
+}
 
 interface ContactInfoCardProps {
   profile: any;
@@ -160,7 +141,7 @@ const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
       platformKey: "Youtube",
       icon: (
         <svg className="h-4 w-4 shrink-0 fill-current text-[#FF0000]" viewBox="0 0 24 24">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
         </svg>
       ),
       colorClass: "hover:text-[#FF0000] hover:border-[#FF0000]/50 hover:bg-[#FF0000]/10 text-[#FF0000]",
@@ -227,63 +208,47 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
   };
 
   const socialAccounts = parseSocialAccounts(profile);
+  const portfolioLinks = portfolioLinksFromProfile(profile);
+  const portfolioOwnerName = String(profile?.name || "Idol").trim().replace(/\s+/g, "_");
 
   return (
     <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6 text-left">
       <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-        <Mail className="h-4.5 w-4.5 text-[#f4c430]" /> THÔNG TIN LIÊN HỆ
+        <FileText className="h-4.5 w-4.5 text-[#f4c430]" /> Portfolio & Mạng xã hội
       </h3>
 
-      {/* Phone & Email Blocks */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Phone */}
+      <div className="grid grid-cols-1 gap-4">
         <div className="flex items-center gap-3 bg-slate-950/50 border border-white/5 rounded-2xl p-4 transition-all duration-300 hover:border-amber-400/20">
           <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-amber-400/10 text-amber-400 shrink-0">
-            <Phone className="h-5 w-5" />
+            <FileText className="h-5 w-5" />
           </div>
           <div className="min-w-0 text-left">
             <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider leading-none mb-1">
-              Số điện thoại
+              Portfolio
             </span>
-            <span className="text-xs font-bold text-slate-200 block font-mono">
-              {profile.phone || "Chưa cập nhật"}
-            </span>
-          </div>
-        </div>
-
-        {/* Email */}
-        <div className="flex items-center gap-3 bg-slate-950/50 border border-white/5 rounded-2xl p-4 transition-all duration-300 hover:border-amber-400/20">
-          <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-amber-400/10 text-amber-400 shrink-0">
-            <Mail className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 text-left">
-            <span className="block text-[9px] font-black text-slate-500 uppercase tracking-wider leading-none mb-1">
-              Email
-            </span>
-            <a
-              href={profile.email ? `mailto:${profile.email}` : undefined}
-              className={`text-xs font-bold block truncate transition-colors ${profile.email ? 'text-slate-200 hover:text-amber-400' : 'text-slate-400'}`}
-            >
-              {profile.email || "Chưa cập nhật"}
-            </a>
+            {portfolioLinks.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {portfolioLinks.map((link, index) => (
+                  <a
+                    key={`${link}-${index}`}
+                    href={portfolioHref(link)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex max-w-full rounded-lg border border-white/10 bg-slate-950/60 px-2.5 py-1 text-xs font-bold text-slate-200 transition-colors hover:border-amber-400/40 hover:text-amber-400"
+                    title={link}
+                  >
+                    <span className="truncate">{`Portfolio${index + 1}_${portfolioOwnerName}`}</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <span className="text-xs font-bold text-slate-400 block">
+                Không có portfolio
+              </span>
+            )}
           </div>
         </div>
       </div>
-
-      {profile.portfolio_url ? (
-        <div className="border-t border-[#151b2d]/50 pt-5">
-          <a
-            href={profile.portfolio_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2.5 rounded-xl border border-white/5 bg-slate-950/60 px-3.5 py-2.5 text-xs font-bold text-slate-300 transition-all duration-300 hover:border-amber-400/40 hover:bg-amber-400/5 hover:text-amber-300"
-            title={profile.portfolio_url}
-          >
-            <Globe className="h-4 w-4 shrink-0" />
-            <span className="truncate">Link Portfolio / CV</span>
-          </a>
-        </div>
-      ) : null}
 
       {/* Social Accounts Area */}
       {socialAccounts.length > 0 ? (
@@ -370,6 +335,8 @@ export default function PersonalInfoTab({
 }: PersonalInfoTabProps) {
 
   const [isLifestyleExpanded, setIsLifestyleExpanded] = useState(false);
+  const [videoLinkInput, setVideoLinkInput] = useState("");
+  const [isFullBodyImageMenuOpen, setIsFullBodyImageMenuOpen] = useState(false);
 
   const [uploadingState, setUploadingState] = useState<{
     [key: string]: {
@@ -378,6 +345,19 @@ export default function PersonalInfoTab({
       status: "uploading" | "done" | "error" | "idle";
     };
   }>({});
+
+  useEffect(() => {
+    if (!isFullBodyImageMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("[data-full-body-image-action-menu]")) return;
+      setIsFullBodyImageMenuOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isFullBodyImageMenuOpen]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover" | "fullBody") => {
     const file = e.target.files?.[0];
@@ -486,6 +466,27 @@ export default function PersonalInfoTab({
       console.error(error);
       addToast(error instanceof Error ? error.message : "Không tải được ảnh lên, vui lòng thử lại.", "info");
       URL.revokeObjectURL(previewUrl);
+    }
+  };
+
+  const handleRemoveFullBodyImage = async () => {
+    setIsFullBodyImageMenuOpen(false);
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+      if (syncedProfile.backendProfileId) {
+        await deleteTalentPhotoCategory(syncedProfile.backendProfileId, "full_body");
+      }
+
+      const updatedProfile = persistTalentProfile({
+        ...syncedProfile,
+        ...profile,
+        fullBody: "",
+      });
+      setProfile(updatedProfile);
+      addToast("Đã xóa ảnh toàn thân.", "info");
+    } catch (error) {
+      console.error(error);
+      addToast(error instanceof Error ? error.message : "Không xóa được ảnh toàn thân, vui lòng thử lại.", "info");
     }
   };
 
@@ -603,6 +604,173 @@ export default function PersonalInfoTab({
     }
   };
 
+  const handleRemoveLookbookPhoto = (id: number) => {
+    const fieldKey = `lookbook${id}`;
+    const nextPhotos = [...(profile.photos || [])];
+    nextPhotos[id - 1] = "";
+
+    const updatedProfile = persistTalentProfile({
+      ...profile,
+      [fieldKey]: "",
+      photos: nextPhotos.filter(Boolean),
+    });
+    setProfile(updatedProfile);
+    addToast(`Đã xóa Ảnh ${id}.`, "info");
+  };
+
+  const normalizeVideoUrl = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return "";
+    return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  };
+
+  const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    const currentVideos = Array.isArray(profile.videos) ? profile.videos : [];
+    if (currentVideos.length >= 4) {
+      addToast("Chỉ được tải tối đa 4 video.", "info");
+      return;
+    }
+
+    const stateKey = "portfolio-video";
+    const previewUrl = URL.createObjectURL(file);
+
+    setUploadingState(prev => ({
+      ...prev,
+      [stateKey]: {
+        progress: 0,
+        fileName: file.name,
+        status: "uploading"
+      }
+    }));
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 8;
+      if (progress > 95) progress = 95;
+      setUploadingState(prev => {
+        if (!prev[stateKey]) return prev;
+        return {
+          ...prev,
+          [stateKey]: {
+            ...prev[stateKey],
+            progress
+          }
+        };
+      });
+    }, 150);
+
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+
+      if (!syncedProfile.backendProfileId) {
+        clearInterval(interval);
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[stateKey];
+          return next;
+        });
+        addToast("Vui lòng đăng nhập để tải video lên", "info");
+        URL.revokeObjectURL(previewUrl);
+        return;
+      }
+
+      const video = await uploadTalentVideo(syncedProfile.backendProfileId, file, file.name.replace(/\.[^.]+$/, ""));
+      const nextVideos = [...currentVideos, video].slice(0, 4);
+      const updatedProfile = persistTalentProfile({
+        ...syncedProfile,
+        ...profile,
+        videos: nextVideos,
+        isOnboarded: true,
+        tier: profile.tier || "Potential",
+      });
+      setProfile(updatedProfile);
+      URL.revokeObjectURL(previewUrl);
+
+      clearInterval(interval);
+      setUploadingState(prev => ({
+        ...prev,
+        [stateKey]: {
+          ...prev[stateKey],
+          progress: 100,
+          status: "done"
+        }
+      }));
+
+      setTimeout(() => {
+        setUploadingState(prev => {
+          const next = { ...prev };
+          delete next[stateKey];
+          return next;
+        });
+      }, 800);
+
+      addToast("Cập nhật video thành công!", "success");
+    } catch (error) {
+      clearInterval(interval);
+      setUploadingState(prev => {
+        const next = { ...prev };
+        delete next[stateKey];
+        return next;
+      });
+      console.error(error);
+      addToast(error instanceof Error ? error.message : "Không tải được video lên, vui lòng thử lại.", "info");
+      URL.revokeObjectURL(previewUrl);
+    }
+  };
+
+  const handleAddVideoLink = async () => {
+    const currentVideos = Array.isArray(profile.videos) ? profile.videos : [];
+    if (currentVideos.length >= 4) {
+      addToast("Chỉ được thêm tối đa 4 video.", "info");
+      return;
+    }
+
+    const url = normalizeVideoUrl(videoLinkInput);
+    if (!url) return;
+
+    try {
+      let nextVideo: any = {
+        id: `local-video-${Date.now()}`,
+        url,
+        title: `Video ${currentVideos.length + 1}`,
+        video_type: "portfolio",
+      };
+
+      const syncedProfile = await ensureTalentProfile(profile);
+      if (syncedProfile.backendProfileId) {
+        nextVideo = await createTalentVideoLink(syncedProfile.backendProfileId, url, `Video ${currentVideos.length + 1}`);
+      }
+
+      const updatedProfile = persistTalentProfile({
+        ...syncedProfile,
+        ...profile,
+        videos: [...currentVideos, nextVideo].slice(0, 4),
+        isOnboarded: true,
+        tier: profile.tier || "Potential",
+      });
+      setProfile(updatedProfile);
+      setVideoLinkInput("");
+      addToast("Đã thêm video vào bộ sưu tập.", "success");
+    } catch (error) {
+      console.error(error);
+      addToast(error instanceof Error ? error.message : "Không thêm được video, vui lòng thử lại.", "info");
+    }
+  };
+
+  const handleRemoveVideo = (videoId: string | number | undefined, index: number) => {
+    const currentVideos = Array.isArray(profile.videos) ? profile.videos : [];
+    const updatedProfile = persistTalentProfile({
+      ...profile,
+      videos: currentVideos.filter((video: any, idx: number) => idx !== index && video.id !== videoId),
+    });
+    setProfile(updatedProfile);
+    addToast("Đã xóa video khỏi bộ sưu tập.", "info");
+  };
+
   const portfolioPhotoUrls = Array.from(new Set(
     (profile.photos || [])
       .map((url: string) => normalizeBackendAssetUrl(url))
@@ -624,7 +792,17 @@ export default function PersonalInfoTab({
   }).filter(Boolean) as Array<{ id: number; label: string; url: string }>;
 
   const nextLookbookSlot = lookbookPhotos.length < 8 ? lookbookPhotos.length + 1 : null;
+  const portfolioVideos: Array<{ id: string | number; title: string; url: string }> = (Array.isArray(profile.videos) ? profile.videos : [])
+    .map((video: any, index: number) => ({
+      id: video.id ?? `video-${index}`,
+      title: video.title || `Video ${index + 1}`,
+      url: String(video.url || "").trim(),
+    }))
+    .filter((video: { url: string }) => video.url)
+    .slice(0, 4);
+  const canAddVideo = portfolioVideos.length < 4;
   const reviews: ProfileReview[] = Array.isArray(profile.reviews) ? profile.reviews : [];
+  const profileSkills = getStringList(profile.skills ?? profile.specialSkills);
 
   // State for Month-switching Calendar
   const [currentYear, setCurrentYear] = useState(2026);
@@ -716,45 +894,31 @@ export default function PersonalInfoTab({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-300">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-in fade-in duration-300">
 
-      {/* Model Full-Body Photo Card */}
-      <div className="lg:col-span-1 rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
-        <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-          <Award className="h-4.5 w-4.5 text-[#f4c430]" /> ẢNH TOÀN THÂN (FULL-BODY)
-        </h3>
+      {/* LEFT COLUMN: Full-body photo and basic info */}
+      <div className="order-[10] lg:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+        {/* Model Full-Body Photo Card */}
+        <div className="h-full rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
+          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
+            <Award className="h-4.5 w-4.5 text-[#f4c430]" /> ẢNH TOÀN THÂN (FULL-BODY)
+          </h3>
 
-        <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-inner">
-          {normalizeBackendAssetUrl(profile.fullBody) ? (
-            <img
-              src={normalizeBackendAssetUrl(profile.fullBody)}
-              alt="Model Full-body portrait"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] cursor-pointer"
-              onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(profile.fullBody))}
-            />
-          ) : (
-            <label className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-600 cursor-pointer hover:bg-slate-900/10 transition-colors">
-              <Upload className="h-10 w-10 text-slate-500 hover:text-amber-400 transition-colors" />
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Chưa có ảnh full-body</p>
-                <p className="mt-1 text-[10px] font-semibold leading-relaxed text-slate-600">Tải ảnh lên để hoàn thiện hồ sơ người mẫu.</p>
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={!!uploadingState["fullBody"]}
-                onChange={(e) => handleImageUpload(e, "fullBody")}
+          <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-inner">
+            {normalizeBackendAssetUrl(profile.fullBody) ? (
+              <img
+                src={normalizeBackendAssetUrl(profile.fullBody)}
+                alt="Model Full-body portrait"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] cursor-pointer"
+                onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(profile.fullBody))}
               />
-            </label>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80 pointer-events-none" />
-
-          {/* Camera edit button in bottom-right corner */}
-          {normalizeBackendAssetUrl(profile.fullBody) && (
-            <div className="absolute bottom-3 right-3 z-20">
-              <label className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
-                <Camera className="h-4.5 w-4.5" />
+            ) : (
+              <label className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-600 cursor-pointer hover:bg-slate-900/10 transition-colors">
+                <Upload className="h-10 w-10 text-slate-500 hover:text-amber-400 transition-colors" />
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Chưa có ảnh full-body</p>
+                  <p className="mt-1 text-[10px] font-semibold leading-relaxed text-slate-600">Tải ảnh lên để hoàn thiện hồ sơ người mẫu.</p>
+                </div>
                 <input
                   type="file"
                   accept="image/*"
@@ -763,179 +927,127 @@ export default function PersonalInfoTab({
                   onChange={(e) => handleImageUpload(e, "fullBody")}
                 />
               </label>
-            </div>
-          )}
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80 pointer-events-none" />
 
-          {/* Progress bar overlay */}
-          {uploadingState["fullBody"] && (
-            <ProgressBar
-              progress={uploadingState["fullBody"].progress}
-              message="Đang tải ảnh toàn thân lên..."
-            />
-          )}
-
-
-        </div>
-      </div>
-
-      {/* SECTION D: LOOKBOOK PHOTOS & VIDEOS DISPLAY */}
-      <div className="lg:col-span-2 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
-        <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-              <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> BỘ SƯU TẬP
-            </h3>
-            <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-              HIỂN THỊ BỘ SƯU TẬP ẢNH CỦA IDOL
-            </span>
-          </div>
-        </div>
-
-        {/* Sub-grid 1: Lookbook Photos */}
-        <div className="space-y-3">
-          <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
-            ({lookbookPhotos.length}/8 Ảnh)
-          </span>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {lookbookPhotos.map((img) => (
-              <div key={img.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
-                <img
-                  src={normalizeBackendAssetUrl(img.url)}
-                  alt={img.label}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
-                  onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(img.url))}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent pointer-events-none" />
-
-                {/* Camera edit button in bottom-right corner */}
-                <div className="absolute bottom-3 right-3 z-20">
-                  <label className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
-                    <Camera className="h-3.5 w-3.5" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={!!uploadingState[`lookbook-${img.id}`]}
-                      onChange={(e) => handleLookbookUpload(e, img.id)}
-                    />
-                  </label>
-                </div>
-
-                {uploadingState[`lookbook-${img.id}`] && (
-                  <ProgressBar
-                    progress={uploadingState[`lookbook-${img.id}`].progress}
-                    message="Đang tải ảnh lên..."
-                  />
-                )}
-
-                <div className="absolute bottom-3 left-3 z-10 pointer-events-none text-left">
-                  <span className="inline-block bg-[#f4c430] text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                    {img.label}
-                  </span>
-                </div>
-              </div>
-            ))}
-
-            {nextLookbookSlot && (
-              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors">
-                <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
-                  <Upload className="h-7 w-7" />
-                  <span className="text-[10px] font-black uppercase tracking-wider">Tải ảnh lên</span>
-                  <span className="rounded bg-[#f4c430] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-slate-950">
-                    Ảnh {nextLookbookSlot}
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={!!uploadingState[`lookbook-${nextLookbookSlot}`]}
-                    onChange={(e) => handleLookbookUpload(e, nextLookbookSlot)}
-                  />
-                </label>
-                {uploadingState[`lookbook-${nextLookbookSlot}`] && (
-                  <ProgressBar
-                    progress={uploadingState[`lookbook-${nextLookbookSlot}`].progress}
-                    message="Đang tải ảnh lên..."
-                  />
+            {/* Camera edit button in bottom-right corner */}
+            {normalizeBackendAssetUrl(profile.fullBody) && (
+              <div className="absolute bottom-3 right-3 z-20" data-full-body-image-action-menu>
+                <button
+                  type="button"
+                  onClick={() => setIsFullBodyImageMenuOpen(!isFullBodyImageMenuOpen)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20"
+                >
+                  <Camera className="h-4.5 w-4.5" />
+                </button>
+                {isFullBodyImageMenuOpen && (
+                  <div className="absolute right-0 bottom-full mb-2 z-50 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#08090f] shadow-2xl">
+                    <label className="flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/10 hover:text-[#F0C56B]">
+                      <Upload className="h-4 w-4 shrink-0" />
+                      Chọn ảnh mới
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={!!uploadingState["fullBody"]}
+                        onChange={(e) => {
+                          setIsFullBodyImageMenuOpen(false);
+                          handleImageUpload(e, "fullBody");
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFullBodyImage}
+                      className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-xs font-bold text-rose-300 transition hover:bg-rose-500/10 hover:text-rose-200"
+                    >
+                      <Trash2 className="h-4 w-4 shrink-0" />
+                      Xóa ảnh
+                    </button>
+                  </div>
                 )}
               </div>
             )}
+
+            {/* Progress bar overlay */}
+            {uploadingState["fullBody"] && (
+              <ProgressBar
+                progress={uploadingState["fullBody"].progress}
+                message="Đang tải ảnh toàn thân lên..."
+              />
+            )}
+
+
           </div>
         </div>
-      </div>
 
-      {/* LEFT COLUMN wrapper */}
-      <div className="lg:col-span-1 space-y-6 md:space-y-8">
         {/* Physical Measurements Card */}
-        <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
+        <div className="lg:col-span-2 h-full rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
             <User className="h-4.5 w-4.5 text-[#f4c430]" /> THÔNG TIN CƠ BẢN
           </h3>
 
-          <div className="grid grid-cols-3 gap-2">
-            {/* Chiều Cao */}
-            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
-              <Ruler className="h-5 w-5 text-[#f4c430]" />
-              <div className="space-y-1.5 my-2">
-                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">CHIỀU CAO</span>
-                <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
-                  {profile.height ? formatHeight(profile.height) : "—"}
-                </span>
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              {/* Chiều Cao */}
+              <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 min-h-[90px] text-center">
+                <div className="mb-1 flex items-center justify-center gap-1.5">
+                  <Ruler className="h-4 w-4 text-[#f4c430]" />
+                  <span className="text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Chiều Cao</span>
+                </div>
+                <div className="flex min-h-[40px] items-center justify-center">
+                  <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
+                    {profile.height ? formatHeight(profile.height) : "—"}
+                  </span>
+                </div>
               </div>
-              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">CM</span>
-            </div>
 
-            {/* Cân Nặng */}
-            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
-              <Scale className="h-5 w-5 text-[#f4c430]" />
-              <div className="space-y-1.5 my-2">
-                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">CÂN NẶNG</span>
-                <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
-                  {profile.weight ? profile.weight : "—"}
-                </span>
+              {/* Cân Nặng */}
+              <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 min-h-[90px] text-center">
+                <div className="mb-1 flex items-center justify-center gap-1.5">
+                  <Scale className="h-4 w-4 text-[#f4c430]" />
+                  <span className="text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cân Nặng</span>
+                </div>
+                <div className="flex min-h-[40px] items-center justify-center">
+                  <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
+                    {profile.weight ? `${profile.weight} kg` : "—"}
+                  </span>
+                </div>
               </div>
-              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">KG</span>
             </div>
 
             {/* Số đo 3 vòng */}
-            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 flex flex-col items-center justify-between min-h-[140px] text-center">
-              <User className="h-5 w-5 text-[#f4c430]" />
-              <div className="space-y-1.5 my-2">
-                <span className="block text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">SỐ ĐO 3 VÒNG</span>
-                <span className="text-sm sm:text-base font-extrabold text-[#f4c430] block">
-                  {profile.bust && profile.waist && profile.hips
-                    ? `${profile.bust}-${profile.waist}-${profile.hips}`
-                    : "—"}
-                </span>
+            <div className="rounded-2xl bg-slate-950/40 p-3 border border-white/5 text-center">
+              <div className="mb-2 flex items-center justify-center gap-1.5">
+                <User className="h-4 w-4 text-[#f4c430]" />
+                <span className="text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase tracking-wider">Số đo 3 vòng (cm)</span>
               </div>
-              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">CM</span>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  ["B", profile.bust],
+                  ["W", profile.waist],
+                  ["H", profile.hips],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-xl border border-white/5 bg-slate-950/40 px-2 py-2">
+                    <span className="block text-[8px] font-black uppercase tracking-wider text-slate-500">{label}</span>
+                    <span className="mt-1 block text-sm sm:text-base font-extrabold text-[#f4c430]">{value || "—"}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-[120px_1fr] gap-x-3.5 gap-y-3.5 border-t border-[#151b2d] pt-4 text-left text-xs text-slate-300">
             {/* Họ và tên */}
-            <span className="font-medium text-slate-400">Họ và tên</span>
+            <span className="font-medium text-slate-400">Nghệ danh</span>
             <span className="font-bold text-white text-left break-words">{profile.name || "Chưa cập nhật"}</span>
 
             {/* Giới tính */}
             <span className="font-medium text-slate-400">Giới tính</span>
             <span className="font-bold text-white text-left">{profile.gender || "Chưa cập nhật"}</span>
 
-            {/* Ngày sinh */}
-            <span className="font-medium text-slate-400">Ngày sinh</span>
-            <span className="font-bold text-white font-mono text-left">{profile.dob ? convertToDisplayDate(profile.dob) : "Chưa cập nhật"}</span>
-
-            {/* Tuổi */}
-            <span className="font-medium text-slate-400">Tuổi</span>
-            <span className="font-bold text-white font-mono text-left">
-              {(() => {
-                const age = calculateAgeFromDob(profile.dob);
-                return age === null ? "Ch\u01b0a c\u1eadp nh\u1eadt" : age + " tu\u1ed5i";
-              })()}
-            </span>
-
-            {/* Mức giá */}
-            <span className="font-medium text-slate-400">Mức giá</span>
+            {/* Phí booking */}
+            <span className="font-medium text-slate-400">Phí booking</span>
             <span className="font-bold text-white text-left break-words">
               {profile.price ? profile.price : "Chưa cập nhật"}
             </span>
@@ -949,13 +1061,7 @@ export default function PersonalInfoTab({
               })()}
             </span>
 
-            {/* Học vấn */}
-            <span className="font-medium text-slate-400">Học vấn</span>
-            <span className="font-bold text-white text-left break-words">{profile.education || "Chưa cập nhật"}</span>
-
             {/* Kinh nghiệm */}
-            <div className="col-span-2 border-t border-dashed border-[#151b2d]/50 my-1"></div>
-
             <span className="font-medium text-slate-400">Kinh nghiệm</span>
             <span className="font-bold text-white text-left">{profile.experience !== undefined && profile.experience !== "" && profile.experience !== null ? `${profile.experience} năm` : "Chưa cập nhật"}</span>
 
@@ -963,18 +1069,20 @@ export default function PersonalInfoTab({
             <span className="font-medium text-slate-400">Loại hình Idol</span>
             <span className="font-bold text-white text-left break-words leading-normal">
               {(() => {
-                const talentTypes = profile.talentTypes || profile.talent_types || profile.specialSkills || profile.skills;
+                const talentTypes = profile.talentTypes || profile.talent_types;
                 return Array.isArray(talentTypes) && talentTypes.length > 0 ? talentTypes.join(", ") : "Chưa cập nhật";
               })()}
+            </span>
+
+            <span className="font-medium text-slate-400">Lĩnh vực chuyên sâu</span>
+            <span className="font-bold text-white text-left break-words leading-normal">
+              {profileSkills.length > 0 ? profileSkills.join(", ") : "Chưa cập nhật"}
             </span>
 
             {/* Ngôn ngữ */}
             <span className="font-medium text-slate-400">Ngôn ngữ</span>
             <span className="font-bold text-white text-left break-words leading-normal">
-              {(() => {
-                const langs = profile.languages;
-                return Array.isArray(langs) && langs.length > 0 ? langs.join(", ") : "Chưa cập nhật";
-              })()}
+              {formatLanguageList(profile.languages)}
             </span>
           </div>
         </div>
@@ -1057,14 +1165,212 @@ export default function PersonalInfoTab({
           </div>
         )}
 
+
+
+      </div>
+
+      {/* SECTION D: LOOKBOOK PHOTOS & VIDEOS DISPLAY */}
+      <div className="order-[30] lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+        <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
+              <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> BỘ SƯU TẬP
+            </h3>
+            <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+              HIỂN THỊ BỘ SƯU TẬP ẢNH, VIDEO CỦA IDOL
+            </span>
+          </div>
+        </div>
+
+        {/* Sub-grid 1: Lookbook Photos */}
+        <div className="space-y-3">
+          <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+            ({lookbookPhotos.length}/8 Ảnh)
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {lookbookPhotos.map((img) => (
+              <div key={img.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
+                <img
+                  src={normalizeBackendAssetUrl(img.url)}
+                  alt={img.label}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
+                  onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(img.url))}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent pointer-events-none" />
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveLookbookPhoto(img.id);
+                  }}
+                  className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
+                  title="Xóa ảnh"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+
+                {/* Camera edit button in bottom-right corner */}
+                <div className="absolute bottom-3 right-3 z-20">
+                  <label className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
+                    <Camera className="h-3.5 w-3.5" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={!!uploadingState[`lookbook-${img.id}`]}
+                      onChange={(e) => handleLookbookUpload(e, img.id)}
+                    />
+                  </label>
+                </div>
+
+                {uploadingState[`lookbook-${img.id}`] && (
+                  <ProgressBar
+                    progress={uploadingState[`lookbook-${img.id}`].progress}
+                    message="Đang tải ảnh lên..."
+                  />
+                )}
+
+              </div>
+            ))}
+
+            {nextLookbookSlot && (
+              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors">
+                <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
+                  <Upload className="h-7 w-7" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">Tải ảnh lên</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={!!uploadingState[`lookbook-${nextLookbookSlot}`]}
+                    onChange={(e) => handleLookbookUpload(e, nextLookbookSlot)}
+                  />
+                </label>
+                {uploadingState[`lookbook-${nextLookbookSlot}`] && (
+                  <ProgressBar
+                    progress={uploadingState[`lookbook-${nextLookbookSlot}`].progress}
+                    message="Đang tải ảnh lên..."
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-[#151b2d] pt-5 space-y-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+              ({portfolioVideos.length}/4 Video)
+            </span>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
+              Gắn link hoặc tải trực tiếp từ thiết bị
+            </span>
+          </div>
+
+          {portfolioVideos.length > 0 || canAddVideo ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {portfolioVideos.map((video, index) => (
+                <div key={`${video.id}-${index}`} className="relative aspect-[9/16] overflow-hidden rounded-xl border border-white/5 bg-slate-950 shadow-md group">
+                  <video
+                    src={video.url}
+                    controls
+                    preload="metadata"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveVideo(video.id, index);
+                    }}
+                    className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
+                    title="Xóa video"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+
+                </div>
+              ))}
+              {canAddVideo && (
+                <label className="flex aspect-[9/16] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 bg-slate-950/70 text-slate-500 transition-colors hover:border-amber-400/70 hover:text-amber-400">
+                  <Upload className="h-7 w-7" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">Tải video</span>
+                  <input
+                    type="file"
+                    accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,video/x-matroska"
+                    className="hidden"
+                    disabled={!!uploadingState["portfolio-video"]}
+                    onChange={handleVideoFileUpload}
+                  />
+                </label>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/50 p-5 text-center">
+              <Video className="mx-auto mb-2 h-7 w-7 text-slate-500" />
+              <p className="text-xs font-semibold text-slate-450">Chưa có video trong bộ sưu tập.</p>
+            </div>
+          )}
+
+          {canAddVideo && (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+              <div className="space-y-1.5 md:col-span-10">
+                <label className="block text-[9px] font-black uppercase tracking-wider text-slate-400">
+                  Đường dẫn video
+                </label>
+                <div className="relative">
+                  <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  <input
+                    type="url"
+                    value={videoLinkInput}
+                    onChange={(e) => setVideoLinkInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddVideoLink();
+                      }
+                    }}
+                    placeholder="https://..."
+                    className="h-10 w-full rounded-xl border border-white/20 bg-[#060918] pl-9 pr-3.5 text-xs font-semibold text-white shadow-inner outline-none transition-colors placeholder:text-slate-500 focus:border-amber-400"
+                  />
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <button
+                  type="button"
+                  onClick={handleAddVideoLink}
+                  className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all hover:brightness-110 active:scale-95"
+                >
+                  <Plus className="h-4 w-4" />
+                  Thêm link
+                </button>
+              </div>
+
+              {uploadingState["portfolio-video"] && (
+                <div className="md:col-span-12">
+                  <ProgressBar
+                    progress={uploadingState["portfolio-video"].progress}
+                    message="Đang tải video lên..."
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* RIGHT COLUMN wrapper: Contact Info and AI Career Alignment Map */}
-      <div className="lg:col-span-2 space-y-6 md:space-y-8">
-        <ContactInfoCard profile={profile} />
+      <div className="contents">
+        <div className="order-[20] lg:col-span-3">
+          <ContactInfoCard profile={profile} />
+        </div>
 
         {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
-        <div className="rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
+        <div className="order-[50] lg:col-span-3 rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
           <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
@@ -1187,7 +1493,7 @@ export default function PersonalInfoTab({
       </div>
 
       {/* SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
-      <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
+      <div className="order-[40] lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
           <div className="flex items-center gap-2">
             <Calendar className="h-4.5 w-4.5 text-slate-400" />
