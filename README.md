@@ -71,7 +71,7 @@ Ngân sách thanh toán của nhãn hàng được chuyển vào ví trung gian 
 │   ├── talent/            # Portal dành cho Thí sinh & Người mẫu (giao diện chính)
 │   │   ├── dashboard/     # Bảng điều khiển phân tích số liệu
 │   │   ├── onboarding/    # Bộ câu hỏi khảo sát & Thiết lập hồ sơ số
-│   │   ├── portfolio/     # Trang hồ sơ điện tử công khai (PersonalInfoTab.tsx)
+│   │   ├── profile/       # Trang hồ sơ điện tử công khai (PersonalInfoTab.tsx)
 │   │   ├── jobs/          # Sàn nhận việc và ứng tuyển chiến dịch nhãn hàng
 │   │   └── crownfunding/  # Trang gây quỹ dự án nhân ái (Quỹ Vương Miện)
 │   ├── layout.tsx         # Khung giao diện responsive chung (Sidebar & Bottom Navigation)

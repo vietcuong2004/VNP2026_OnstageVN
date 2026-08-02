@@ -5,16 +5,15 @@ import { useRouter } from "next/navigation";
 import {
   User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft,
   CheckCircle2, Info, Star, ChevronRight, Trophy, Heart,
-  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X, ChevronDown, Plus, Trash2, Lock
+  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X, ChevronDown, Plus, Trash2, Lock, AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
-import Step3Dialog, { rememberSurveyGuestLogin } from "./Step3Dialog";
+import Step3Dialog from "./Step3Dialog";
 import {
   completeStep3GuestProfile,
   fileToDataUrl,
-  persistGuestProfileSyncDraft,
   splitSkillValues,
 } from "./Step3ProfileSave";
 import {
@@ -140,6 +139,20 @@ function resolveCityValue(value: unknown) {
   return includedMatch?.value || rawValue;
 }
 
+function resolveSurveyGender(value: unknown) {
+  const rawValue = String(value || "").trim();
+  if (!rawValue) return "";
+
+  const normalizedValue = rawValue
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (normalizedValue === "female" || normalizedValue === "nu") return "Nữ";
+  if (normalizedValue === "male" || normalizedValue === "nam") return "Nam";
+  return "Khác";
+}
+
 function hasSurveyAnswerValue(value: unknown) {
   if (value === null || value === undefined) return false;
   if (typeof value === "string") return value.trim().length > 0;
@@ -152,6 +165,15 @@ function compactSurveyAnswers(answers: { question_code: string; answer_value: un
   return answers.filter((answer) => hasSurveyAnswerValue(answer.answer_value));
 }
 
+function scrollSurveyToTop() {
+  if (typeof window === "undefined") return;
+  window.requestAnimationFrame(() => {
+    const scrollRoot = document.querySelector<HTMLElement>("[data-app-scroll-root]");
+    scrollRoot?.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
 function persistGuestSurveySyncDraft(payload: {
   profile: Record<string, unknown>;
   sectionAAnswers: { question_code: string; answer_value: unknown }[];
@@ -160,6 +182,12 @@ function persistGuestSurveySyncDraft(payload: {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(GUEST_SURVEY_SYNC_KEY, JSON.stringify(payload));
 }
+
+type GuestSurveySyncPayload = {
+  profile: Record<string, unknown>;
+  sectionAAnswers: { question_code: string; answer_value: unknown }[];
+  sectionSAnswers: { question_code: string; answer_value: unknown }[];
+};
 
 type SurveyCityComboboxProps = {
   value: string;
@@ -387,6 +415,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           name: profile.name || prev.name,
           email: profile.email || prev.email,
           phone: profile.phone || prev.phone,
+          gender: resolveSurveyGender(profile.gender) || prev.gender,
           location: location || prev.location,
           height: profile.height ? String(profile.height) : prev.height,
           weight: profile.weight ? String(profile.weight) : prev.weight,
@@ -430,6 +459,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     location: "",
     phone: "",
     email: "",
+    gender: "Nữ",
     height: "",
     weight: "",
     bust: "",
@@ -474,6 +504,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const [socialLinkInput, setSocialLinkInput] = useState("");
   const [skillInput, setSkillInput] = useState("");
 
+  const getCurrentPortfolioLinks = () => {
+    const pendingLink = portfolioLinkInput.trim();
+    return Array.from(new Set([
+      ...portfolioLinks,
+      ...(pendingLink ? [pendingLink] : []),
+    ]));
+  };
+
   const getTotalFollowers = () => {
     return (
       (parseInt(formData.tiktokFollowers) || 0) +
@@ -492,6 +530,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const [guestAccountReady, setGuestAccountReady] = useState(false);
   const [isCreatingGuestAccount, setIsCreatingGuestAccount] = useState(false);
   const [guestAccountError, setGuestAccountError] = useState("");
+  const [pendingGuestSurveySyncPayload, setPendingGuestSurveySyncPayload] = useState<GuestSurveySyncPayload | null>(null);
+  const [showCancelSurveyDialog, setShowCancelSurveyDialog] = useState(false);
   const [registeredComp, setRegisteredComp] = useState<Record<string, boolean>>({});
   const [aiAnalysis, setAiAnalysis] = useState<TalentSurveyAnalysis | null>(null);
 
@@ -739,10 +779,18 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     setStep(savedStep);
     setMaxStep((prev) => Math.max(prev, savedStep));
     void saveTalentSurveyProgress(savedStep, status);
+    scrollSurveyToTop();
   };
 
-  const openGuestAccountDialog = async () => {
+  const openGuestAccountDialog = () => {
     setGuestAccountError("");
+    setSubmitError("");
+    setShowGuestAccountDialog(true);
+  };
+
+  const handleGuestDialogLogin = async () => {
+    setGuestAccountError("");
+    setSubmitError("");
     setIsCreatingGuestAccount(true);
 
     try {
@@ -753,18 +801,21 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         avatarPreviewUrl,
         mediaUploads,
         socialHighlights,
-        portfolioLinks,
+        portfolioLinks: getCurrentPortfolioLinks(),
         socialAccounts,
         guestAccountReady,
       });
+      if (pendingGuestSurveySyncPayload) {
+        persistGuestSurveySyncDraft(pendingGuestSurveySyncPayload);
+      }
+
       setGuestAccountReady(true);
       setSubmitError("");
-      rememberSurveyGuestLogin(formData.email);
-      setShowGuestAccountDialog(true);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không thể tạo tài khoản OnstageVN. Vui lòng thử lại.";
       setGuestAccountError(message);
       setSubmitError(message);
+      throw error;
     } finally {
       setIsCreatingGuestAccount(false);
     }
@@ -776,12 +827,18 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     setStep(4);
     setMaxStep((prev) => Math.max(prev, 4));
     void saveTalentSurveyProgress(4, "draft");
+    scrollSurveyToTop();
+  };
+
+  const handleStopSurvey = () => {
+    setShowCancelSurveyDialog(false);
+    onBackToDashboard?.();
   };
 
   const nextStep = async () => {
     if (step < 4 && isStepValid()) {
       if (!isAuthenticated && step === 3 && !guestSurveyUnlocked) {
-        await openGuestAccountDialog();
+        openGuestAccountDialog();
         return;
       }
       goToStep(step + 1);
@@ -1000,6 +1057,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
       // Save to local storage for other views in the application
       const normalizedTalentTypes = normalizeTalentTypeList(formData.talentTypes);
+      const currentPortfolioLinks = getCurrentPortfolioLinks();
       const hasAuth = !!getAuthToken();
       const selectedAvatar = avatarFile
         ? avatarDataUrl || await fileToDataUrl(avatarFile).catch(() => "")
@@ -1025,9 +1083,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         hips: formData.hips,
         socialHighlights,
         social_highlights: socialHighlights,
-        portfolioLinks,
-        portfolio_links: portfolioLinks,
-        portfolio_url: portfolioLinks.join("\n"),
+        portfolioLinks: currentPortfolioLinks,
+        portfolio_links: currentPortfolioLinks,
+        portfolio_url: currentPortfolioLinks.join("\n"),
         socialAccounts,
         experienceText: formData.professionalExperience,
         bio: formData.professionalExperience,
@@ -1036,10 +1094,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       const savedProfile = hasAuth
         ? await saveTalentProfileOrThrow(userProfile)
         : persistTalentProfile(userProfile);
-
-      if (!hasAuth) {
-        persistGuestProfileSyncDraft(userProfile);
-      }
 
       if (hasAuth && avatarFile && savedProfile.backendProfileId) {
         const uploadedAvatar = await uploadTalentPhoto(Number(savedProfile.backendProfileId), avatarFile, "avatar");
@@ -1081,7 +1135,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         { question_code: "P3", answer_value: formData.professionalExperience },
         { question_code: "P4", answer_value: splitSkillValues(formData.skills) },
         { question_code: "P5", answer_value: socialHighlights },
-        { question_code: "P6", answer_value: portfolioLinks },
+        { question_code: "P6", answer_value: currentPortfolioLinks },
         { question_code: "P7", answer_value: socialAccounts },
       ]);
       const sectionSAnswers = compactSurveyAnswers(surveyQuestionAnswers);
@@ -1090,7 +1144,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         await submitTalentSurvey("A", sectionAAnswers);
         await submitTalentSurvey("S", sectionSAnswers);
       } else {
-        persistGuestSurveySyncDraft({
+        setPendingGuestSurveySyncPayload({
           profile: userProfile,
           sectionAAnswers,
           sectionSAnswers,
@@ -1130,8 +1184,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       void saveTalentSurveyProgress(5, "analyzed");
       setIsSubmitted(true);
       if (!hasAuth) {
-        setGuestAccountReady(true);
-        rememberSurveyGuestLogin(formData.email);
+        setGuestAccountReady(false);
         setShowGuestAccountDialog(true);
       }
     } catch (error) {
@@ -1239,12 +1292,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   const handleResultPrimaryAction = () => {
     if (isAuthenticated) {
-      router.push("/talent/portfolio");
+      router.push("/talent/profile");
       return;
     }
 
-    rememberSurveyGuestLogin(formData.email);
-    router.push("/auth/login?redirect=/talent/portfolio");
+    openGuestAccountDialog();
   };
 
   if (isSubmitted) {
@@ -1304,10 +1356,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
-                onClick={onBackToDashboard}
+                onClick={() => setShowCancelSurveyDialog(true)}
                 className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-400/30 bg-gradient-to-r from-amber-200 via-amber-300 to-amber-500 px-4 text-[11px] font-black uppercase tracking-wider text-[#070913] shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all hover:scale-[1.02] hover:brightness-105 active:scale-98 md:text-xs"
               >
-                <ArrowLeft className="h-3.5 w-3.5 stroke-[3]" /> Quay lại
+                <X className="h-3.5 w-3.5 stroke-[3]" /> Hủy
               </button>
               <button
                 type="button"
@@ -1523,22 +1575,22 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   }
 
   return (
-    <div className="w-full rounded-3xl border border-white/5 bg-[#070913]/95 p-6 md:p-8 shadow-2xl relative overflow-hidden transition-all duration-500">
+    <div className="relative min-h-dvh w-full overflow-visible rounded-none border-0 border-white/5 bg-[#070913]/95 p-4 shadow-2xl transition-all duration-500 md:min-h-0 md:overflow-hidden md:rounded-3xl md:border md:p-8">
 
       {/* Top ambient glow light */}
       <div className="absolute top-0 right-0 -z-10 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -z-10 h-32 w-32 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
 
       {/* Modern Stepper Header Progress */}
-      <div className="mb-8 pb-6 border-b border-white/10 space-y-6">
-        <div className="flex items-center justify-between gap-2 w-full min-w-0">
+      <div className="mb-6 space-y-4 border-b border-white/10 pb-4 md:mb-8 md:space-y-6 md:pb-6">
+        <div className="flex items-start justify-between gap-3 w-full min-w-0">
           {/* Left: step badge + step name + progress text – single row on all screens */}
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="shrink-0 text-[11px] md:text-xs font-black text-amber-300 uppercase tracking-widest bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 whitespace-nowrap">
                 Bước {step} / 4
               </span>
-              <span className="text-xs font-black text-white truncate">
+              <span className="min-w-0 text-xs font-black leading-snug text-white">
                 {step === 1 && "Thông tin cơ bản"}
                 {step === 2 && "Nghề nghiệp"}
                 {step === 3 && "Social & Portfolio"}
@@ -1554,18 +1606,18 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           {onBackToDashboard && (
             <button
               type="button"
-              onClick={onBackToDashboard}
+              onClick={() => setShowCancelSurveyDialog(true)}
               className="shrink-0 flex items-center gap-1 text-[11px] md:text-xs font-black uppercase tracking-wider text-[#070913] bg-gradient-to-r from-amber-200 via-amber-300 to-amber-500 hover:brightness-105 hover:scale-[1.02] active:scale-98 transition-all cursor-pointer px-3 py-2 rounded-xl border border-amber-400/30 shadow-[0_0_15px_rgba(245,158,11,0.2)] whitespace-nowrap"
             >
-              <ArrowLeft className="h-3 w-3 stroke-[3]" /> Quay lại
+              <X className="h-3 w-3 stroke-[3]" /> Hủy
             </button>
           )}
         </div>
 
         {/* The New Interactive Stepper */}
-        <div className="w-full relative py-4 px-4">
+        <div className="w-full relative px-1 py-3 md:px-4 md:py-4">
           {/* Progress bar container (aligned to bubble centers) */}
-          <div className="absolute top-8 left-8 right-8 h-[2px] bg-white/10 -translate-y-1/2 rounded-full overflow-hidden">
+          <div className="absolute top-7 left-7 right-7 h-[2px] bg-white/10 -translate-y-1/2 rounded-full overflow-hidden md:top-8 md:left-8 md:right-8">
             <div
               className="h-full bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 transition-all duration-500"
               style={{ width: `${((step - 1) / 3) * 100}%` }}
@@ -1619,7 +1671,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
                   {/* Step Labels */}
                   <span className={cn(
-                    "mt-2 text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-300 block truncate w-full px-0.5",
+                    "mt-2 block w-full px-0.5 text-center text-[9px] font-bold uppercase leading-tight tracking-wider transition-all duration-300 md:text-[11px]",
                     isCurrent
                       ? "text-amber-300 scale-105 font-extrabold"
                       : isClickable
@@ -1635,12 +1687,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 text-left">
+      <form onSubmit={handleSubmit} className="space-y-6 pb-24 text-left md:pb-0">
 
         {step === 1 && (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start animate-in fade-in duration-300">
             {/* Left: Avatar Dropzone */}
-            <div className="md:col-span-4 flex flex-col items-center space-y-4">
+            <div className="md:col-span-4 flex flex-col items-center space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
               <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider self-start">Ảnh Đại Diện</span>
 
               <div
@@ -1679,119 +1731,138 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             </div>
 
             {/* Right: Inputs */}
-            <div className="md:col-span-8 grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Họ và tên <span className="text-amber-300">*</span></label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                  placeholder="Nhập họ và tên"
-                />
+            <div className="md:col-span-8 space-y-4">
+              <div className="grid grid-cols-2 gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                <div className="col-span-2 space-y-1">
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Họ và tên <span className="text-amber-300">*</span></label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                    placeholder="Nhập họ và tên"
+                  />
+                </div>
+
+                <div className="col-span-2 space-y-1">
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Email liên hệ <span className="text-amber-300">*</span></label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    disabled={isAuthenticated}
+                    required
+                    className={cn(
+                      "w-full rounded-xl border border-white/20 bg-slate-900/60 px-4 py-3 text-xs text-white transition-all placeholder-slate-400 font-medium",
+                      isAuthenticated
+                        ? "cursor-not-allowed opacity-70"
+                        : "hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                    )}
+                    placeholder="onstagevn-idol@gmail.com"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Giới tính</label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-4 py-3 text-xs font-medium text-white transition-all hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                  >
+                    <option value="Nữ" className="bg-[#0e142e]">Nữ</option>
+                    <option value="Nam" className="bg-[#0e142e]">Nam</option>
+                    <option value="Khác" className="bg-[#0e142e]">Khác</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Khu vực sinh sống</label>
+                  <SurveyCityCombobox
+                    value={formData.location}
+                    onChange={(location) => setFormData((prev) => ({ ...prev, location }))}
+                  />
+                </div>
+
+                <div className="col-span-2 space-y-1 md:col-span-1">
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Số điện thoại</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                    placeholder="0912345678"
+                  />
+                </div>
+
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Khu vực sinh sống</label>
-                <SurveyCityCombobox
-                  value={formData.location}
-                  onChange={(location) => setFormData((prev) => ({ ...prev, location }))}
-                />
-              </div>
+              <div className="grid grid-cols-2 gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                <div className="col-span-2">
+                  <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">
+                    Ngoại hình
+                  </span>
+                </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Số điện thoại</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                  placeholder="0912345678"
-                />
-              </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Chiều cao (cm)</label>
+                  <input
+                    type="number"
+                    name="height"
+                    value={formData.height}
+                    onChange={handleInputChange}
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                  />
+                </div>
 
-              <div className="col-span-2 space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Email liên hệ <span className="text-amber-300">*</span></label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  disabled={isAuthenticated}
-                  required
-                  className={cn(
-                    "w-full rounded-xl border border-white/20 bg-slate-900/60 px-4 py-3 text-xs text-white transition-all placeholder-slate-400 font-medium",
-                    isAuthenticated
-                      ? "cursor-not-allowed opacity-70"
-                      : "hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
-                  )}
-                  placeholder="onstagevn-idol@gmail.com"
-                />
-              </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Cân nặng (kg)</label>
+                  <input
+                    type="number"
+                    name="weight"
+                    value={formData.weight}
+                    onChange={handleInputChange}
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                  />
+                </div>
 
-              <div className="col-span-2 border-t border-white/10 pt-4">
-                <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">
-                  Ngoại hình
-                </span>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Chiều cao (cm)</label>
-                <input
-                  type="number"
-                  name="height"
-                  value={formData.height}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Cân nặng (kg)</label>
-                <input
-                  type="number"
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                />
-              </div>
-
-              <div className="col-span-2 space-y-1.5">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Số đo 3 vòng (cm)</label>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="relative">
-                    <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-slate-400">V1</span>
-                    <input
-                      type="number"
-                      name="bust"
-                      value={formData.bust}
-                      onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                    />
-                  </div>
-                  <div className="relative">
-                    <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-slate-400">V2</span>
-                    <input
-                      type="number"
-                      name="waist"
-                      value={formData.waist}
-                      onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                    />
-                  </div>
-                  <div className="relative">
-                    <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-slate-400">V3</span>
-                    <input
-                      type="number"
-                      name="hips"
-                      value={formData.hips}
-                      onChange={handleInputChange}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                    />
+                <div className="col-span-2 space-y-1.5">
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Số đo 3 vòng (cm)</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="relative">
+                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-slate-400">V1</span>
+                      <input
+                        type="number"
+                        name="bust"
+                        value={formData.bust}
+                        onChange={handleInputChange}
+                        className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      />
+                    </div>
+                    <div className="relative">
+                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-slate-400">V2</span>
+                      <input
+                        type="number"
+                        name="waist"
+                        value={formData.waist}
+                        onChange={handleInputChange}
+                        className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      />
+                    </div>
+                    <div className="relative">
+                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-slate-400">V3</span>
+                      <input
+                        type="number"
+                        name="hips"
+                        value={formData.hips}
+                        onChange={handleInputChange}
+                        className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1808,7 +1879,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               </h3>
 
               <div className="grid grid-cols-1 gap-5">
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
                   <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
                     Phí booking (VD: "5.000.000đ/ngày" hoặc "thỏa thuận")
                   </label>
@@ -1822,13 +1893,21 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   />
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
                   <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
                     Loại hình Idol
                   </label>
+                  <SurveyOptionCombobox
+                    value=""
+                    placeholder="Thêm loại hình Idol..."
+                    options={talentTypeOptions.filter((type) => !formData.talentTypes.includes(type))}
+                    onChange={handleAddTalentType}
+                  />
                   <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
                     {formData.talentTypes.length === 0 ? (
-                      <span className="text-xs text-slate-400 italic px-2 py-1">Chưa chọn loại hình nào</span>
+                      <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-amber-300">
+                        <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa chọn loại hình nào
+                      </span>
                     ) : (
                       formData.talentTypes.map((type) => (
                         <span key={type} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
@@ -1844,36 +1923,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       ))
                     )}
                   </div>
-                  <SurveyOptionCombobox
-                    value=""
-                    placeholder="Thêm loại hình Idol..."
-                    options={talentTypeOptions.filter((type) => !formData.talentTypes.includes(type))}
-                    onChange={handleAddTalentType}
-                  />
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
                   <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
                     Lĩnh vực nội dung / kỹ năng chuyên sâu
                   </label>
-                  <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
-                    {splitSkillValues(formData.skills).length === 0 ? (
-                      <span className="text-xs text-slate-400 italic px-2 py-1">Chưa thêm lĩnh vực nào</span>
-                    ) : (
-                      splitSkillValues(formData.skills).map((skill) => (
-                        <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
-                          {skill}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveContentSkill(skill)}
-                            className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
-                        </span>
-                      ))
-                    )}
-                  </div>
                   <div className="flex flex-wrap gap-1.5">
                     {contentSkillSuggestions
                       .filter((skill) => !splitSkillValues(formData.skills).includes(skill))
@@ -1910,9 +1965,29 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       <Plus className="h-4 w-4" /> Thêm
                     </button>
                   </div>
+                  <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
+                    {splitSkillValues(formData.skills).length === 0 ? (
+                      <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-amber-300">
+                        <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm lĩnh vực nào
+                      </span>
+                    ) : (
+                      splitSkillValues(formData.skills).map((skill) => (
+                        <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveContentSkill(skill)}
+                            className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
                   <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
                     Số năm kinh nghiệm
                   </label>
@@ -1927,7 +2002,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
                   <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
                     Nhập một số kinh nghiệm của bạn
                   </label>
@@ -1953,13 +2028,15 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 Portfolio & Mạng xã hội
               </h4>
 
-              <div className="order-2 space-y-3">
+              <div className="order-2 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
                 <label className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">
                   Chỉ số nổi bật
                 </label>
-                <div className="flex min-h-[52px] flex-wrap gap-2 rounded-xl border border-white/20 bg-slate-900/60 p-2.5 text-left shadow-inner">
+                <div className="order-3 flex min-h-[52px] flex-wrap gap-2 rounded-xl border border-white/20 bg-slate-900/60 p-2.5 text-left shadow-inner">
                   {socialHighlights.length === 0 ? (
-                    <span className="px-2 py-1 text-xs italic text-slate-400">Chưa thêm chỉ số nổi bật nào</span>
+                    <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-amber-300">
+                      <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm chỉ số nổi bật nào
+                    </span>
                   ) : (
                     socialHighlights.map((highlight) => (
                       <span key={highlight} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300 shadow-sm">
@@ -1976,7 +2053,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   )}
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
+                <div className="order-1 flex flex-wrap gap-1.5">
                   {socialHighlightSuggestions
                     .filter((item) => !socialHighlights.includes(item))
                     .map((item) => (
@@ -1991,7 +2068,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     ))}
                 </div>
 
-                <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                <div className="order-2 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
                   <input
                     type="text"
                     value={socialHighlightInput}
@@ -2017,12 +2094,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
               <div className="hidden" />
 
-              <div className="order-1 space-y-3">
-                <label className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">Portfolio URL</label>
+              <div className="order-1 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+
                 {portfolioLinks.length === 0 ? (
-                  <div className="py-1 text-xs italic text-slate-400">Chưa có portfolio nào được thêm.</div>
+                  <div className="order-2 inline-flex items-center gap-2 py-1 text-xs italic text-amber-300">
+                    <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa có portfolio nào được thêm.
+                  </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  <div className="order-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                     {portfolioLinks.map((link, index) => (
                       <div key={`${link}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-2.5 shadow-inner">
                         <div className="min-w-0 flex-1">
@@ -2044,7 +2123,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                <div className="order-1 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
                   <div className="space-y-1.5 md:col-span-9">
                     <span className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">Đường dẫn Portfolio</span>
                     <input
@@ -2075,9 +2154,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
               <div className="hidden" />
 
-              <div className="order-3 space-y-2">
+              <div className="order-4 space-y-2 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
                 {socialAccounts.length === 0 ? (
-                  <div className="py-1 text-xs italic text-slate-400">Chưa có liên kết mạng xã hội nào được thêm.</div>
+                  <div className="inline-flex items-center gap-2 py-1 text-xs italic text-amber-300">
+                    <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa có liên kết mạng xã hội nào được thêm.
+                  </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                     {socialAccounts.map((account, index) => (
@@ -2102,7 +2183,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 )}
               </div>
 
-              <div className="order-4 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+              <div className="order-3 grid grid-cols-1 items-end gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4 md:grid-cols-12">
                 <div className="space-y-1.5 md:col-span-3">
                   <span className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">Chọn nền tảng</span>
                   <select
@@ -2356,6 +2437,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   onClick={() => {
                     if (activeSurveyQIdx > 0) {
                       setActiveSurveyQIdx(prev => prev - 1);
+                      scrollSurveyToTop();
                     } else {
                       // Go back to Step 3
                       goToStep(3);
@@ -2395,7 +2477,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   // Các câu khác – nút "Tiếp Theo"
                   <button
                     type="button"
-                    onClick={() => setActiveSurveyQIdx(prev => prev + 1)}
+                    onClick={() => {
+                      setActiveSurveyQIdx(prev => prev + 1);
+                      scrollSurveyToTop();
+                    }}
                     disabled={surveyAnswers[activeQuestion.id] === undefined || isAnalyzing}
                     className={cn(
                       "flex h-9 items-center justify-center rounded-lg px-4 text-[11px] md:text-xs font-black transition-all gap-1 cursor-pointer",
@@ -2432,7 +2517,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       type="button"
                       key={q.id}
                       disabled={isAnalyzing}
-                      onClick={() => setActiveSurveyQIdx(qIdx)}
+                      onClick={() => {
+                        setActiveSurveyQIdx(qIdx);
+                        scrollSurveyToTop();
+                      }}
                       className={cn(
                         "aspect-square rounded-xl text-xs md:text-[13px] font-bold flex items-center justify-center border transition-all duration-300 cursor-pointer",
                         isActive
@@ -2478,7 +2566,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
         {/* Global Navigation Action Bar (Except Step 4 which has its own) */}
         {step < 4 && (
-          <div className="flex gap-3 pt-5 border-t border-white/10">
+          <div className="fixed inset-x-0 bottom-0 z-40 flex gap-3 border-t border-white/10 bg-[#070913]/98 px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-4 shadow-[0_-14px_30px_rgba(0,0,0,0.55)] backdrop-blur-xl md:static md:border-t md:bg-transparent md:px-0 md:pb-0 md:pt-5 md:shadow-none md:backdrop-blur-none">
             {step > 1 && (
               <button
                 type="button"
@@ -2521,10 +2609,49 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         <Step3Dialog
           email={formData.email}
           error={guestAccountError}
+          isLoginLoading={isCreatingGuestAccount}
           showContinueSurvey={!isSubmitted}
           onClose={() => setShowGuestAccountDialog(false)}
           onContinueSurvey={handleContinueGuestSurvey}
+          onLoginNow={handleGuestDialogLogin}
         />
+      )}
+
+      {showCancelSurveyDialog && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-amber-400/30 bg-[#090a14] p-5 text-left shadow-[0_0_40px_rgba(245,158,11,0.16)]">
+            <div className="mb-4 flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/30 bg-amber-400/10 text-amber-300">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-display text-base font-black uppercase tracking-wider text-white">
+                  Dừng làm bài khảo sát?
+                </h3>
+                <p className="mt-1 text-sm font-medium leading-relaxed text-slate-300">
+                  Bạn có muốn dừng làm bài khảo sát không?
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setShowCancelSurveyDialog(false)}
+                className="flex h-11 items-center justify-center rounded-xl border border-white/15 bg-transparent text-xs font-black uppercase tracking-wider text-slate-100 transition-all hover:border-amber-400/50 hover:text-amber-300"
+              >
+                Tiếp tục làm
+              </button>
+              <button
+                type="button"
+                onClick={handleStopSurvey}
+                className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-300 to-yellow-500 text-xs font-black uppercase tracking-wider text-slate-950 transition-all hover:brightness-110"
+              >
+                Dừng làm
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -268,7 +268,7 @@ export default function DashboardPage() {
               <Plus className="h-4 w-4 stroke-[3]" /> Làm Khảo Sát Ngay
             </button>
             <button
-              onClick={() => router.push("/talent/portfolio")}
+              onClick={() => router.push("/talent/profile")}
               className="w-full sm:w-auto px-6 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-950 text-[#F0C56B] hover:text-white hover:scale-[1.02] active:scale-98 transition-all duration-305 cursor-pointer flex items-center justify-center gap-2 border border-[#D4A64A]/50 shadow-[0_0_15px_rgba(212,166,74,0.15)]"
             >
               Xem Hồ Sơ Cá Nhân

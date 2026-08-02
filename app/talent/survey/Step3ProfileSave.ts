@@ -12,6 +12,7 @@ type Step3SurveyFormData = {
   location: string;
   phone: string;
   email: string;
+  gender: string;
   height: string;
   weight: string;
   bust: string;

@@ -13,6 +13,15 @@ const nextConfig = {
   experimental: {
     proxyClientMaxBodySize: "100mb",
   },
+  async redirects() {
+    return [
+      {
+        source: "/talent/portfolio",
+        destination: "/talent/profile",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

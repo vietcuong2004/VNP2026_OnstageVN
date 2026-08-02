@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ThemeProvider } from "@/components/theme-provider";
 import AuthGuard from "@/components/auth-guard";
@@ -13,12 +13,32 @@ import { cn } from "@/lib/utils";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isTalentSurveyForm, setIsTalentSurveyForm] = useState(false);
   const isStandalonePublic = isStandalonePublicPath(pathname || "/");
   const isMessages = pathname?.endsWith("/messages") ?? false;
   const isAbout = pathname === "/about";
   const isBrandTalentDetail = pathname ? /^\/brand\/talents\/[^/]+$/.test(pathname) : false;
   const isTalentJobDetail = pathname ? /^\/talent\/jobs\/[^/]+$/.test(pathname) : false;
+  const isTalentSurvey = pathname === "/talent/survey";
   const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
+  const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail;
+
+  useEffect(() => {
+    const syncSurveyFormMode = () => {
+      const isFormMode = pathname === "/talent/survey"
+        && new URLSearchParams(window.location.search).get("form") === "1";
+      setIsTalentSurveyForm(isFormMode);
+    };
+
+    syncSurveyFormMode();
+    window.addEventListener("popstate", syncSurveyFormMode);
+    window.addEventListener("onstage:survey-form-mode", syncSurveyFormMode);
+
+    return () => {
+      window.removeEventListener("popstate", syncSurveyFormMode);
+      window.removeEventListener("onstage:survey-form-mode", syncSurveyFormMode);
+    };
+  }, [pathname]);
 
   return (
     <ThemeProvider>
@@ -31,7 +51,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="absolute bottom-[-10%] left-[-10%] -z-10 h-[700px] w-[700px] rounded-full bg-purple-600/5 blur-[160px] pointer-events-none" />
 
           {!isStandalonePublic && (
-            <div className={isSpecialDetail ? "hidden md:block" : "block"}>
+            <div className={hideHeaderOnMobile ? "hidden md:block" : "block"}>
               <Header />
             </div>
           )}
@@ -42,7 +62,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex-1 flex flex-col min-h-0 min-w-0 w-full">
               <main
                 data-app-scroll-root
-                className={`flex-1 ${isMessages ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden"} ${isStandalonePublic || isMessages || isAbout ? "p-0" : "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8"}`}
+                className={cn(
+                  "flex-1",
+                  isMessages ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden",
+                  isStandalonePublic || isMessages || isAbout || isTalentSurvey
+                    ? "p-0"
+                    : "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",
+                  isTalentSurvey && "md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 md:pb-8"
+                )}
               >
                 <div className={`w-full ${isStandalonePublic ? "mx-auto max-w-none" : "mx-0 max-w-none [@media(min-width:2400px)]:mx-auto [@media(min-width:2400px)]:max-w-[2040px] [@media(min-width:3200px)]:max-w-[2280px]"}`}>
                   {children}
@@ -52,7 +79,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {!isStandalonePublic && (
-            <div className={cn(isTalentJobDetail ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
+            <div className={cn((isTalentJobDetail || isTalentSurveyForm) ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
               <BottomNavigation />
             </div>
           )}

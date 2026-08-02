@@ -30,24 +30,50 @@ export default function SurveyPage() {
     };
   }, [isSurveyActive]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const isFormMode = new URLSearchParams(window.location.search).get("form") === "1";
+    if (isFormMode) {
+      setIsSurveyActive(true);
+    }
+  }, []);
+
+  const setSurveyFormMode = (enabled: boolean) => {
+    if (typeof window === "undefined") return;
+    window.history.replaceState(null, "", enabled ? "/talent/survey?form=1" : "/talent/survey");
+    window.dispatchEvent(new Event("onstage:survey-form-mode"));
+  };
+
   const handleStartSurvey = () => {
     setViewingEntry(null);
     setIsSurveyActive(true);
+    setSurveyFormMode(true);
   };
 
   const handleViewHistoryDetail = (entry: TalentSurveyHistoryEntry) => {
     setViewingEntry(entry);
     setIsSurveyActive(true);
+    setSurveyFormMode(true);
+  };
+
+  const handleBackToSurveyHome = () => {
+    setIsSurveyActive(false);
+    setViewingEntry(null);
+    setSurveyFormMode(false);
   };
 
   return (
-    <div className="flex min-h-[85vh] w-full flex-col items-stretch justify-start py-6 space-y-8">
+    <div className={cn(
+      "flex min-h-dvh w-full max-w-full flex-col items-stretch justify-start overflow-x-hidden",
+      isSurveyActive ? "py-0 md:min-h-[85vh] md:py-6" : "space-y-6 px-4 pb-8 pt-8 md:min-h-[85vh] md:space-y-8 md:px-0 md:py-6"
+    )}>
       {!isSurveyActive && (
-        <div className="mx-auto mb-2 flex max-w-3xl animate-in fade-in duration-500 flex-col items-center text-center">
-          <h1 className="font-display text-3xl font-black text-white tracking-tight uppercase">
+        <div className="mx-auto mb-1 flex w-full max-w-3xl animate-in fade-in flex-col items-center text-center duration-500">
+          <h1 className="max-w-full font-display text-[clamp(2rem,9vw,3rem)] font-black uppercase leading-[1.05] tracking-tight text-white">
             Khám Phá <span className="text-gradient-gold">Bản Thân</span>
           </h1>
-          <p className="text-xs md:text-[13px] text-slate-300 mt-3 leading-relaxed max-w-xl">
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-300 md:text-[13px]">
             Làm bài khảo sát của chúng tôi để xem thứ hạng người mẫu của bạn. Chúng tôi sẽ phân tích và đo lường độ phù hợp với các việc làm, sau đó đề xuất các cuộc thi sắc đẹp phù hợp với bạn.
           </p>
           
@@ -55,7 +81,7 @@ export default function SurveyPage() {
           <button
             type="button"
             onClick={handleStartSurvey}
-            className="mt-6 px-10 py-4 bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 rounded-full font-display text-xs font-black text-[#070913] shadow-[0_0_25px_rgba(245,158,11,0.25)] hover:shadow-[0_0_40px_rgba(245,158,11,0.45)] hover:scale-[1.04] active:scale-98 transition-all duration-300 cursor-pointer uppercase tracking-widest flex items-center gap-2"
+            className="mt-6 flex w-full max-w-[18rem] cursor-pointer items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 px-6 py-4 font-display text-xs font-black uppercase tracking-widest text-[#070913] shadow-[0_0_25px_rgba(245,158,11,0.25)] transition-all duration-300 hover:scale-[1.04] hover:shadow-[0_0_40px_rgba(245,158,11,0.45)] active:scale-98 sm:w-auto sm:max-w-none sm:px-10"
           >
             <Sparkles className="h-4 w-4 text-[#070913] fill-[#070913]/25 animate-pulse" />
             Làm bài khảo sát
@@ -84,7 +110,7 @@ export default function SurveyPage() {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => router.push("/talent/portfolio")}
+                onClick={() => router.push("/talent/profile")}
                 className="h-9 px-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white text-[11px] md:text-xs font-bold text-slate-300 transition-all cursor-pointer"
               >
                 Hồ Sơ Cá Nhân
@@ -172,10 +198,7 @@ export default function SurveyPage() {
       {isSurveyActive && (
         <SurveyForm 
           initialHistoryEntry={viewingEntry} 
-          onBackToDashboard={() => {
-            setIsSurveyActive(false);
-            setViewingEntry(null);
-          }} 
+          onBackToDashboard={handleBackToSurveyHome} 
         />
       )}
     </div>

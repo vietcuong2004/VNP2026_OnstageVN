@@ -287,7 +287,7 @@ export default function TalentIntroPage() {
         </Link>
 
         {/* Card 2: Hồ sơ sắc đẹp số */}
-        <Link href="/talent/portfolio" className="block p-6 md:p-8 rounded-2xl bg-[#090b16]/45 border border-white/5 hover:border-amber-500/20 hover:bg-[#0c0f24]/60 transition-all duration-300 backdrop-blur-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
+        <Link href="/talent/profile" className="block p-6 md:p-8 rounded-2xl bg-[#090b16]/45 border border-white/5 hover:border-amber-500/20 hover:bg-[#0c0f24]/60 transition-all duration-300 backdrop-blur-xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
           <div className="space-y-4">
             <div className="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <FileText className="h-6 w-6" />

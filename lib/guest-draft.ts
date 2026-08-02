@@ -1,7 +1,7 @@
 "use client";
 
 import { clearGuestBrandProfileDraft, hasGuestBrandProfileDraft, loadGuestBrandProfileDraft, mapBackendPartnerProfile, saveBrandPartnerProfile } from "@/lib/brand-api";
-import { analyzeTalentSurvey, saveTalentProfile, saveTalentSurveyProgress, submitTalentSurvey, uploadTalentPhoto } from "@/lib/talent-api";
+import { analyzeTalentSurvey, saveTalentProfileOrThrow, saveTalentSurveyProgress, submitTalentSurvey, uploadTalentPhoto } from "@/lib/talent-api";
 
 const TALENT_PROFILE_DRAFT_KEY = "vnp_talent_profile";
 const GUEST_PROFILE_SYNC_KEY = "vnp_guest_profile_sync";
@@ -51,7 +51,7 @@ function hasUsefulTalentDraft(profile: Record<string, unknown>) {
 
 async function saveTalentProfileWithAvatar(profile: Record<string, unknown>) {
   const { email: _email, phone: _phone, ...profilePayload } = profile;
-  const savedProfile = await saveTalentProfile(profilePayload);
+  const savedProfile = await saveTalentProfileOrThrow(profilePayload);
   const avatar = String(profile.avatar || "");
 
   if (avatar.startsWith("data:image/") && savedProfile?.backendProfileId) {

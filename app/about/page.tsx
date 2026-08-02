@@ -484,7 +484,7 @@ function AboutContent({
                   {/* 3 Detail Cards Redesign */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
                     {/* Talent Card 1 */}
-                    <Link href="/talent/portfolio" className="group relative block p-6 md:p-8 rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-amber-400/30 hover:bg-[#0c0f24]/70 transition-all duration-500 backdrop-blur-xl cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
+                    <Link href="/talent/profile" className="group relative block p-6 md:p-8 rounded-3xl bg-[#090b16]/45 border border-white/5 hover:border-amber-400/30 hover:bg-[#0c0f24]/70 transition-all duration-500 backdrop-blur-xl cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
                       <div className="absolute top-0 left-0 w-24 h-24 bg-amber-400/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                       <div className="absolute top-4 right-6 text-6xl font-display font-black text-white/[0.02] group-hover:text-amber-400/[0.04] transition-colors pointer-events-none">01</div>
                       <div className="space-y-4 relative z-10">

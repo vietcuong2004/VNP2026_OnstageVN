@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -259,8 +259,11 @@ function inputDate(display?: string | null) {
 
 function normalizeGender(value?: string | null) {
   if (!value) return undefined;
-  const lowered = value.toLowerCase();
-  if (lowered === "nữ" || lowered === "female") return "female";
+  const lowered = value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (lowered === "nu" || lowered === "female") return "female";
   if (lowered === "nam" || lowered === "male") return "male";
   return "other";
 }
@@ -270,7 +273,6 @@ function displayGender(value?: string | null) {
   if (value === "male") return "Nam";
   return value ? "Khác" : undefined;
 }
-
 function splitCsv(value: unknown): string[] {
   if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
   if (value && typeof value === "object") {

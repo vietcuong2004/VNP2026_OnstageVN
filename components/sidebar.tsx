@@ -36,7 +36,7 @@ export const unifiedBrandNavigation = [
 
 export const unifiedTalentNavigation = [
   { label: "Cơ hội việc làm", icon: Briefcase, href: "/talent/jobs" },
-  { label: "Hồ sơ Idol", icon: User, href: "/talent/portfolio" },
+  { label: "Hồ sơ Idol", icon: User, href: "/talent/profile" },
   { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
   { label: "Hợp tác Brand", icon: Users2, href: "/talent/brands" },
 ];
