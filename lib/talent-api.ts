@@ -179,7 +179,7 @@ export function sanitizeTalentProfile(profile: any) {
         }))
         .filter((photo: BackendPhoto) => {
           const url = photo.url || photo.path;
-          return !!url && isRealProfileImage(url) && photo.category !== "avatar" && photo.category !== "cover" && !photo.category?.startsWith("cccd") && !cccdUrls.includes(url);
+          return !!url && isRealProfileImage(url) && photo.category !== "avatar" && photo.category !== "cover" && photo.category !== "full_body" && !photo.category?.startsWith("cccd") && !cccdUrls.includes(url);
         })
     : profile?.photoRecords;
 
@@ -277,6 +277,11 @@ function splitCsv(value: string | string[] | undefined) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function normalizeTalentTypeLabel(type: string) {
+  const normalized = type.toLowerCase().trim();
+  return ["pg", "pb", "pg/pb"].includes(normalized) ? "PG/PB" : type;
 }
 
 function normalizeLanguageLabel(value: string) {
@@ -425,6 +430,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     (photo) =>
       photo.category !== "avatar" &&
       photo.category !== "cover" &&
+      photo.category !== "full_body" &&
       !photo.category?.startsWith("cccd")
   );
   const photos = portfolioPhotoRecords
@@ -432,12 +438,8 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     .filter((url: string) => isRealProfileImage(url) && !cccdUrls.includes(url)) as string[];
   const avatarUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "avatar"));
   const coverUrl = photoUrl([...backendPhotos].reverse().find((photo) => photo.category === "cover"));
-  const fullBodyPhotoObj = [...backendPhotos].reverse().find((photo) => photo.category === "full_body")
-    || backendPhotos.find((photo) => photo.category === "lookbook")
-    || backendPhotos.find((photo) => photo.category === "portfolio")
-    || backendPhotos[0];
-  const fullBodyUrl = photoUrl(fullBodyPhotoObj) || avatarUrl;
-  const localPhotos = (Array.isArray(local.photos) ? local.photos : []).filter((url: string) => isRealProfileImage(url) && !cccdUrls.includes(url));
+  const fullBodyPhotoObj = [...backendPhotos].reverse().find((photo) => photo.category === "full_body");
+  const fullBodyUrl = photoUrl(fullBodyPhotoObj);
   const measurements = parseMeasurements(profile.measurements);
   const busyDates = busyDatesFromEvents(profile.calendar_events);
 
@@ -447,9 +449,9 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     name: profileDisplayName(profile, local.name),
     email: profile.user?.email || local.email,
     phone: (profile.user as any)?.phone || local.phone || "",
-    avatar: avatarUrl || local.avatar || createInitialAvatarDataUrl(profileDisplayName(profile, local.name), profile.user?.email),
-    cover: coverUrl || local.cover || "",
-    fullBody: fullBodyUrl || local.fullBody || "",
+    avatar: avatarUrl || createInitialAvatarDataUrl(profileDisplayName(profile, local.name), profile.user?.email),
+    cover: coverUrl || "",
+    fullBody: fullBodyUrl || "",
     cccdFront: cccdFrontUrl || local.cccdFront || "",
     cccdBack: cccdBackUrl || local.cccdBack || "",
     cccdSelfie: cccdSelfieUrl || local.cccdSelfie || "",
@@ -467,7 +469,7 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     tattoo: profile.has_tattoo ? "Có" : "Không",
     tattooDesc: profile.tattoo_description || "",
     languages: profile.languages?.length ? profile.languages : [],
-    talentTypes: profile.talent_types?.length ? profile.talent_types : [],
+    talentTypes: profile.talent_types?.length ? profile.talent_types.map((type) => normalizeTalentTypeLabel(String(type).trim())).filter(Boolean) : [],
     skills: profile.skills?.length ? profile.skills : [],
     specialSkills: profile.skills?.length ? profile.skills : [],
     socialHighlights: profile.social_highlights?.length ? profile.social_highlights : [],
@@ -479,9 +481,9 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     engagementRate: averageEngagement(profile) ?? 0,
     availabilityCalendar: normalizeAvailabilityCalendar(local.availabilityCalendar),
     busyDates,
-    photos: photos.length ? photos : localPhotos,
+    photos,
     photoRecords: portfolioPhotoRecords,
-    videos: (profile.videos || local.videos || []).map((video: BackendVideo) => ({
+    videos: (profile.videos || []).map((video: BackendVideo) => ({
       ...video,
       url: normalizeBackendAssetUrl(video.url),
       thumbnail_url: normalizeBackendAssetUrl(video.thumbnail_url),
@@ -513,7 +515,7 @@ export function buildBackendProfilePayload(profile: any) {
   const bust = Number(profile.bust || 0) || null;
   const waist = Number(profile.waist || 0) || null;
   const hips = Number(profile.hips || 0) || null;
-  const talentTypes = splitCsv(profile.talentTypes?.length ? profile.talentTypes : profile.specialSkills);
+  const talentTypes = splitCsv(profile.talentTypes?.length ? profile.talentTypes : profile.specialSkills).map(normalizeTalentTypeLabel);
   const portfolioLinks = normalizePortfolioLinks(profile.portfolioLinks ?? profile.portfolio_links ?? profile.portfolio_url);
 
   return {

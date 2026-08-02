@@ -3,6 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { X, UserPlus, MapPin, Phone, Briefcase, FileText, Check, ImagePlus } from "lucide-react";
 import { createBrandManagedTalent, type BrandRosterTalent } from "@/lib/brand-api";
+import {
+  CITY_VALUES,
+  DEFAULT_CITY_VALUE,
+  DEFAULT_TALENT_TYPE_VALUE,
+  TALENT_TYPE_OPTIONS,
+  normalizeTalentTypeLabel,
+} from "@/components/ui/ComboboxOptionValues";
 
 interface CreateModalProps {
   isOpen: boolean;
@@ -11,26 +18,8 @@ interface CreateModalProps {
   addToast: (msg: string) => void;
 }
 
-const CITIES = [
-  "Hà Nội",
-  "Hồ Chí Minh",
-  "Đà Nẵng",
-  "Hải Phòng",
-  "Cần Thơ",
-  "Nha Trang",
-  "Đà Lạt",
-  "Bình Dương",
-  "Đồng Nai",
-];
-
-const TALENT_TYPES = [
-  { value: "Diễn viên", label: "Diễn viên" },
-  { value: "Người mẫu", label: "Người mẫu" },
-  { value: "KOLs", label: "KOLs" },
-  { value: "KOCs", label: "KOCs" },
-  { value: "MC", label: "MC" },
-  { value: "PG", label: "PG" },
-];
+const CITIES = CITY_VALUES;
+const TALENT_TYPES = TALENT_TYPE_OPTIONS;
 
 export default function CreateTalentModal({
   isOpen,
@@ -40,8 +29,8 @@ export default function CreateTalentModal({
 }: CreateModalProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("Hà Nội");
-  const [talentType, setTalentType] = useState("Người mẫu");
+  const [city, setCity] = useState(DEFAULT_CITY_VALUE);
+  const [talentType, setTalentType] = useState(DEFAULT_TALENT_TYPE_VALUE);
   const [notes, setNotes] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -96,7 +85,7 @@ export default function CreateTalentModal({
         name: name.trim(),
         phone: phone.trim() || undefined,
         city,
-        talent_types: [talentType],
+        talent_types: [normalizeTalentTypeLabel(talentType)],
         notes: notes.trim() || undefined,
         avatar: avatarFile,
       });
@@ -108,8 +97,8 @@ export default function CreateTalentModal({
       // Reset form
       setName("");
       setPhone("");
-      setCity("Hà Nội");
-      setTalentType("Người mẫu");
+      setCity(DEFAULT_CITY_VALUE);
+      setTalentType(DEFAULT_TALENT_TYPE_VALUE);
       setNotes("");
       clearAvatar();
     } catch (err: any) {

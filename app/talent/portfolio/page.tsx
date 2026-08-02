@@ -82,6 +82,17 @@ export default function PortfolioPage() {
 
   const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "info" }[]>([]);
 
+  useEffect(() => {
+    if (activeTab === "edit-info") {
+      document.documentElement.classList.add("hide-bottom-nav-override");
+    } else {
+      document.documentElement.classList.remove("hide-bottom-nav-override");
+    }
+    return () => {
+      document.documentElement.classList.remove("hide-bottom-nav-override");
+    };
+  }, [activeTab]);
+
   const [uploadingState, setUploadingState] = useState<{
     [key: string]: {
       progress: number;

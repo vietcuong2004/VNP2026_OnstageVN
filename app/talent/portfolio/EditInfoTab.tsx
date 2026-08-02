@@ -10,6 +10,13 @@ import { getAuthToken } from "@/lib/api-client";
 import { persistTalentProfile, ensureTalentProfile, saveTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import ProgressBar from "@/components/ui/ProgressBar";
+import {
+  CITY_VALUES,
+  CONTENT_SKILL_VALUES,
+  TALENT_TYPE_VALUES,
+  normalizeTalentTypeLabel,
+  normalizeTalentTypeList,
+} from "@/components/ui/ComboboxOptionValues";
 
 const convertToInputDate = (dateStr: string) => {
   if (!dateStr) return "";
@@ -37,17 +44,7 @@ const convertToDisplayDate = (dateStr: string) => {
   return dateOnly;
 };
 
-const talentTypeOptions = [
-  "Diễn viên",
-  "Người mẫu",
-  "KOL",
-  "KOC",
-  "Livestreamer",
-  "MC",
-  "PG",
-  "PB",
-  "Hoa hậu"
-];
+const talentTypeOptions = TALENT_TYPE_VALUES;
 
 const availableLanguages = [
   "Tiếng Việt",
@@ -68,15 +65,7 @@ const socialHighlightSuggestions = [
   "4000+ Likes"
 ];
 
-const contentSkillSuggestions = [
-  "Beauty",
-  "Food",
-  "Make-up",
-  "Thời trang",
-  "Travel",
-  "Cafe",
-  "Lifestyle"
-];
+const contentSkillSuggestions = CONTENT_SKILL_VALUES;
 
 function normalizePortfolioLinks(rawLinks: unknown): string[] {
   const links = Array.isArray(rawLinks)
@@ -94,42 +83,7 @@ function portfolioHref(link: string): string {
   return /^https?:\/\//i.test(link) ? link : `https://${link}`;
 }
 
-const cityOptions = [
-  "Tỉnh An Giang",
-  "Tỉnh Bắc Ninh",
-  "Tỉnh Cà Mau",
-  "Tỉnh Cao Bằng",
-  "TP. Cần Thơ",
-  "TP. Đà Nẵng",
-  "Tỉnh Đắk Lắk",
-  "Tỉnh Điện Biên",
-  "Tỉnh Đồng Nai",
-  "Tỉnh Đồng Tháp",
-  "Tỉnh Gia Lai",
-  "TP. Hà Nội",
-  "Tỉnh Hà Tĩnh",
-  "TP. Hải Phòng",
-  "TP. Hồ Chí Minh",
-  "TP. Huế",
-  "Tỉnh Hưng Yên",
-  "Tỉnh Khánh Hòa",
-  "Tỉnh Lai Châu",
-  "Tỉnh Lâm Đồng",
-  "Tỉnh Lạng Sơn",
-  "Tỉnh Lào Cai",
-  "Tỉnh Nghệ An",
-  "Tỉnh Ninh Bình",
-  "Tỉnh Phú Thọ",
-  "Tỉnh Quảng Ngãi",
-  "Tỉnh Quảng Ninh",
-  "Tỉnh Quảng Trị",
-  "Tỉnh Sơn La",
-  "Tỉnh Tây Ninh",
-  "Tỉnh Thái Nguyên",
-  "Tỉnh Thanh Hóa",
-  "Tỉnh Tuyên Quang",
-  "Tỉnh Vĩnh Long",
-];
+const cityOptions = CITY_VALUES;
 
 interface CitySelectProps {
   label: string;
@@ -279,18 +233,20 @@ export default function EditInfoTab({
   });
 
   const handleAddSkill = (skill: string) => {
-    if (skill && !editForm.talentTypes.includes(skill)) {
+    const nextSkill = normalizeTalentTypeLabel(skill);
+    if (nextSkill && !editForm.talentTypes.includes(nextSkill)) {
       setEditForm((prev: any) => ({
         ...prev,
-        talentTypes: [...prev.talentTypes, skill]
+        talentTypes: normalizeTalentTypeList([...prev.talentTypes, nextSkill])
       }));
     }
   };
 
   const handleRemoveSkill = (skillToRemove: string) => {
+    const normalizedSkill = normalizeTalentTypeLabel(skillToRemove);
     setEditForm((prev: any) => ({
       ...prev,
-      talentTypes: prev.talentTypes.filter((s: string) => s !== skillToRemove)
+      talentTypes: prev.talentTypes.filter((s: string) => normalizeTalentTypeLabel(s) !== normalizedSkill)
     }));
   };
 
@@ -442,7 +398,7 @@ export default function EditInfoTab({
         tattoo: profile.tattoo || "Không",
         tattooDesc: profile.tattooDesc || "",
         experience: profile.experience !== undefined && profile.experience !== null ? profile.experience : "",
-        talentTypes: Array.isArray(profile.talentTypes) ? profile.talentTypes : (Array.isArray(profile.talent_types) ? profile.talent_types : []),
+        talentTypes: normalizeTalentTypeList(Array.isArray(profile.talentTypes) ? profile.talentTypes : (Array.isArray(profile.talent_types) ? profile.talent_types : [])),
         specialSkills: Array.isArray(profile.specialSkills) ? profile.specialSkills : (Array.isArray(profile.skills) ? profile.skills : []),
         socialHighlights: Array.isArray(profile.socialHighlights) ? profile.socialHighlights : (Array.isArray(profile.social_highlights) ? profile.social_highlights : []),
         price: profile.price || "",
@@ -660,7 +616,7 @@ export default function EditInfoTab({
         tattoo: editForm.tattoo,
         tattooDesc: editForm.tattoo === "Có" ? editForm.tattooDesc : "",
         experience: Number(editForm.experience),
-        talentTypes: editForm.talentTypes,
+        talentTypes: normalizeTalentTypeList(editForm.talentTypes),
         specialSkills: editForm.specialSkills,
         skills: editForm.specialSkills,
         socialHighlights: editForm.socialHighlights,
@@ -696,7 +652,7 @@ export default function EditInfoTab({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-300">
+    <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-300 pb-24 md:pb-8">
 
       {/* SUB-SECTION 1: PERSONAL INFORMATION & METRICS FORM */}
       <div className="rounded-3xl border border-white/10 bg-[#090c1e]/90 p-6 md:p-8 space-y-6 shadow-2xl backdrop-blur-xl">
@@ -710,7 +666,7 @@ export default function EditInfoTab({
           <button
             type="button"
             onClick={() => handleSave()}
-            className="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-gold hover:shadow-[0_0_15px_rgba(240,197,107,0.4)] hover:scale-103 active:scale-95 text-slate-950 text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-md"
+            className="hidden md:block shrink-0 px-5 py-2.5 rounded-xl bg-gradient-gold hover:shadow-[0_0_15px_rgba(240,197,107,0.4)] hover:scale-103 active:scale-95 text-slate-950 text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-md"
           >
             Lưu
           </button>
@@ -753,6 +709,7 @@ export default function EditInfoTab({
                   type="date"
                   value={editForm.dob}
                   onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
+                  style={{ colorScheme: "dark" }}
                   className="w-full bg-[#060918] border border-white/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 hover:border-white/35 transition-all shadow-inner"
                 />
               </div>
@@ -966,7 +923,7 @@ export default function EditInfoTab({
                   {editForm.talentTypes.length === 0 ? (
                     <span className="text-xs text-slate-400 italic px-2 py-1">Chưa chọn loại hình nào</span>
                   ) : (
-                    editForm.talentTypes.map((skill: string) => (
+                    normalizeTalentTypeList(editForm.talentTypes).map((skill: string) => (
                       <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
                         {skill}
                         <button
@@ -997,7 +954,7 @@ export default function EditInfoTab({
                 >
                   <option value="" disabled hidden>Thêm loại hình Idol...</option>
                   {talentTypeOptions
-                    .filter((s: string) => !editForm.talentTypes.includes(s))
+                    .filter((s: string) => !normalizeTalentTypeList(editForm.talentTypes).includes(normalizeTalentTypeLabel(s)))
                     .map((s: string) => (
                       <option key={s} value={s} className="bg-[#0e142e] text-white py-1">{s}</option>
                     ))
@@ -1425,7 +1382,7 @@ export default function EditInfoTab({
           )}
 
           {/* Submit Button */}
-          <div className="order-[100] pt-3">
+          <div className="hidden md:block order-[100] pt-3">
             <button
               type="submit"
               className="w-full h-11 rounded-xl bg-gradient-gold text-slate-950 font-black uppercase tracking-wider hover:shadow-[0_0_20px_rgba(240,197,107,0.4)] hover:scale-[1.01] active:scale-98 transition-all cursor-pointer shadow-lg text-xs"
@@ -1648,7 +1605,16 @@ export default function EditInfoTab({
       </div>
       */}
 
-      {/* SUB-SECTION 4: VIDEO UPLOAD MANAGER (Commented out) */}
+      {/* Mobile Fixed Bottom Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#0c101d]/90 backdrop-blur-md border-t border-white/5 px-6 py-4 flex items-center shadow-[0_-10px_30px_rgba(0,0,0,0.55)]">
+        <button
+          type="button"
+          onClick={() => handleSave()}
+          className="w-full py-3.5 rounded-xl font-display text-xs font-black bg-gradient-gold text-slate-950 shadow-[0_0_15px_rgba(240,197,107,0.3)] active:scale-[0.97] cursor-pointer transition-all uppercase tracking-widest text-center justify-center items-center"
+        >
+          Lưu thông tin
+        </button>
+      </div>
 
     </div>
   );

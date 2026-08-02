@@ -69,6 +69,8 @@ export type TalentProfile = {
   price?: string;
   portfolio_url?: string;
   socialAccounts?: Array<{ platform: string; url: string }>;
+  createdAt?: string;
+  created_at?: string;
 };
 
 export type CampaignStage = "new" | "accepted" | "executing" | "completed" | "confirmed";
@@ -352,7 +354,7 @@ export const talents: TalentProfile[] = [
   {
     id: "tal-4",
     name: "Trần Thu Thảo",
-    type: "PG",
+    type: "PG/PB",
     city: "Hà Nội",
     district: "Cầu Giấy",
     gender: "Nữ",

@@ -3,6 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { X, Edit, MapPin, Phone, Briefcase, FileText, Check } from "lucide-react";
 import { updateBrandManagedTalent } from "@/lib/brand-api";
+import {
+  CITY_VALUES,
+  DEFAULT_CITY_VALUE,
+  DEFAULT_TALENT_TYPE_VALUE,
+  TALENT_TYPE_OPTIONS,
+  normalizeTalentTypeLabel,
+} from "@/components/ui/ComboboxOptionValues";
 import type { BrandTalentCard, RosterTalent } from "./page";
 
 interface EditTalentModalProps {
@@ -14,26 +21,8 @@ interface EditTalentModalProps {
   entry: RosterTalent | null;
 }
 
-const CITIES = [
-  "Hà Nội",
-  "Hồ Chí Minh",
-  "Đà Nẵng",
-  "Hải Phòng",
-  "Cần Thơ",
-  "Nha Trang",
-  "Đà Lạt",
-  "Bình Dương",
-  "Đồng Nai",
-];
-
-const TALENT_TYPES = [
-  { value: "Diễn viên", label: "Diễn viên" },
-  { value: "Người mẫu", label: "Người mẫu" },
-  { value: "KOLs", label: "KOLs" },
-  { value: "KOCs", label: "KOCs" },
-  { value: "MC", label: "MC" },
-  { value: "PG", label: "PG" },
-];
+const CITIES = CITY_VALUES;
+const TALENT_TYPES = TALENT_TYPE_OPTIONS;
 
 export default function EditTalentModal({
   isOpen,
@@ -45,8 +34,8 @@ export default function EditTalentModal({
 }: EditTalentModalProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("Hà Nội");
-  const [talentType, setTalentType] = useState("Người mẫu");
+  const [city, setCity] = useState(DEFAULT_CITY_VALUE);
+  const [talentType, setTalentType] = useState(DEFAULT_TALENT_TYPE_VALUE);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -57,8 +46,8 @@ export default function EditTalentModal({
     if (isOpen && talent) {
       setName(talent.name || "");
       setPhone(talent.phone || "");
-      setCity(talent.city || "Hà Nội");
-      setTalentType(talent.type || "Người mẫu");
+      setCity(talent.city || DEFAULT_CITY_VALUE);
+      setTalentType(normalizeTalentTypeLabel(talent.type || DEFAULT_TALENT_TYPE_VALUE));
       setNotes(entry?.notes || "");
       setErrorMsg("");
       setIsSuccess(false);
@@ -85,7 +74,7 @@ export default function EditTalentModal({
         name: name.trim(),
         phone: phone.trim() || undefined,
         city,
-        talent_types: [talentType],
+        talent_types: [normalizeTalentTypeLabel(talentType)],
         notes: notes.trim() || null,
       });
 
@@ -98,7 +87,7 @@ export default function EditTalentModal({
         name: name.trim(),
         phone: phone.trim(),
         city,
-        type: talentType,
+        type: normalizeTalentTypeLabel(talentType),
       };
 
       addToast("Đã cập nhật thông tin Talent.");

@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft,
   CheckCircle2, Info, Star, ChevronRight, Trophy, Heart,
-  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X
+  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X, ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
@@ -21,6 +21,12 @@ import {
   type TalentSurveyAnalysis,
   type TalentSurveyHistoryEntry,
 } from "@/lib/talent-api";
+import {
+  CITY_OPTIONS,
+  TALENT_TYPE_VALUES,
+  normalizeTalentTypeLabel,
+  normalizeTalentTypeList,
+} from "@/components/ui/ComboboxOptionValues";
 
 // Custom SVG Icons to avoid import errors from old lucide version
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -56,17 +62,99 @@ function clampSurveyStep(value: unknown) {
   return Math.min(4, Math.max(1, Math.trunc(step)));
 }
 
-const talentTypeOptions = [
-  "Diễn viên",
-  "Người mẫu",
-  "KOL",
-  "KOC",
-  "Livestreamer",
-  "MC",
-  "PG",
-  "PB",
-  "Hoa hậu"
-];
+const talentTypeOptions = TALENT_TYPE_VALUES;
+
+type SurveyCityComboboxProps = {
+  value: string;
+  onChange: (value: string) => void;
+};
+
+function SurveyCityCombobox({ value, onChange }: SurveyCityComboboxProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = CITY_OPTIONS.find((option) => option.value === value);
+  const filteredOptions = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+    if (!keyword) return CITY_OPTIONS;
+    return CITY_OPTIONS.filter((option) => option.label.toLowerCase().includes(keyword));
+  }, [search]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+        className={cn(
+          "flex w-full items-center justify-between gap-2 rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-medium text-white outline-none transition-all hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b]",
+          isOpen && "border-amber-400 bg-[#0e122b]"
+        )}
+      >
+        <span className={cn("truncate text-left", selectedOption ? "text-white" : "text-slate-400")}>
+          {selectedOption?.label || "Chọn khu vực sinh sống"}
+        </span>
+        <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-400 transition-transform", isOpen && "rotate-180 text-amber-400")} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-64 w-full overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="mb-1.5 px-1">
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Tìm tên tỉnh thành..."
+              className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-2.5 py-1.5 text-xs text-white outline-none placeholder:text-slate-500 focus:border-amber-400/60"
+              autoFocus
+            />
+          </div>
+
+          <div className="max-h-48 space-y-0.5 overflow-y-auto pr-0.5 custom-scrollbar">
+            {filteredOptions.length === 0 ? (
+              <div className="px-3 py-2 text-center text-xs text-slate-500">Không tìm thấy tỉnh thành</div>
+            ) : (
+              filteredOptions.map((option) => {
+                const isSelected = option.value === value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      onChange(option.value);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-medium transition-colors",
+                      isSelected
+                        ? "bg-amber-400/20 text-amber-300 font-bold"
+                        : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    )}
+                  >
+                    <span className="truncate">{option.label}</span>
+                    {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-amber-300" />}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
@@ -267,17 +355,19 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   };
 
   const handleAddTalentType = (type: string) => {
-    if (!type) return;
+    const nextType = normalizeTalentTypeLabel(type);
+    if (!nextType) return;
     setFormData((prev) => {
-      if (prev.talentTypes.includes(type)) return prev;
-      return { ...prev, talentTypes: [...prev.talentTypes, type] };
+      if (prev.talentTypes.includes(nextType)) return prev;
+      return { ...prev, talentTypes: normalizeTalentTypeList([...prev.talentTypes, nextType]) };
     });
   };
 
   const handleRemoveTalentType = (typeToRemove: string) => {
+    const normalizedType = normalizeTalentTypeLabel(typeToRemove);
     setFormData((prev) => ({
       ...prev,
-      talentTypes: prev.talentTypes.filter((type) => type !== typeToRemove),
+      talentTypes: prev.talentTypes.filter((type) => normalizeTalentTypeLabel(type) !== normalizedType),
     }));
   };
 
@@ -584,6 +674,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       setResults(computedResults);
 
       // Save to local storage for other views in the application
+      const normalizedTalentTypes = normalizeTalentTypeList(formData.talentTypes);
       const userProfile: Record<string, unknown> = {
         ...formData,
         followersCount: getTotalFollowers().toString(),
@@ -599,7 +690,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         avatar: mediaUploads.avatar ? `/uploads/${mediaUploads.avatar}` : "/avatar.png",
         skills: formData.skills.split(",").map(s => s.trim()),
         languages: formData.languages,
-        talentTypes: formData.talentTypes,
+        talentTypes: normalizedTalentTypes,
         experienceText: formData.professionalExperience,
         mediaUploads
       };
@@ -631,7 +722,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         { question_code: "C1", answer_value: getTotalFollowers() },
         { question_code: "D1", answer_value: mainCategory },
         { question_code: "P1", answer_value: formData.price },
-        { question_code: "P2", answer_value: formData.talentTypes },
+        { question_code: "P2", answer_value: normalizedTalentTypes },
         { question_code: "P3", answer_value: formData.professionalExperience },
       ]);
       await submitTalentSurvey("S", surveyQuestionAnswers);
@@ -1199,7 +1290,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 {!avatarPreviewUrl && (
                   <div className="relative z-10 text-center p-4">
                     <Upload className="h-8 w-8 text-slate-400 group-hover:text-amber-300 transition-colors mx-auto mb-2" />
-                    <span className="block text-[11px] md:text-xs text-slate-100 font-extrabold">Kéo thả hoặc click</span>
+                    <span className="block text-[11px] md:text-xs text-slate-100 font-extrabold">Tải ảnh lên</span>
                     <span className="block text-[9px] md:text-[10px] text-slate-400 mt-1 leading-normal">PNG, JPG tối đa 5MB</span>
                   </div>
                 )}
@@ -1223,17 +1314,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
               <div className="space-y-1">
                 <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Khu vực sinh sống</label>
-                <select
-                  name="location"
+                <SurveyCityCombobox
                   value={formData.location}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-medium"
-                >
-                  <option value="Hà Nội">Hà Nội</option>
-                  <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
-                  <option value="Đà Nẵng">Đà Nẵng</option>
-                  <option value="Khác">Tỉnh thành khác</option>
-                </select>
+                  onChange={(location) => setFormData((prev) => ({ ...prev, location }))}
+                />
               </div>
 
               <div className="space-y-1">
@@ -1372,21 +1456,24 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       ))
                     )}
                   </div>
-                  <select
-                    value=""
-                    onChange={(e) => {
-                      handleAddTalentType(e.target.value);
-                      e.target.value = "";
-                    }}
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3 py-3 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-400 focus:bg-[#0e122b] cursor-pointer appearance-none shadow-inner"
-                  >
-                    <option value="" disabled hidden>Thêm loại hình Idol...</option>
-                    {talentTypeOptions
-                      .filter((type) => !formData.talentTypes.includes(type))
-                      .map((type) => (
-                        <option key={type} value={type} className="bg-[#0e142e] text-white py-1">{type}</option>
-                      ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        handleAddTalentType(e.target.value);
+                        e.target.value = "";
+                      }}
+                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3 py-3 pr-10 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-400 focus:bg-[#0e122b] cursor-pointer appearance-none shadow-inner"
+                    >
+                      <option value="" disabled hidden>Thêm loại hình Idol...</option>
+                      {talentTypeOptions
+                        .filter((type) => !formData.talentTypes.includes(type))
+                        .map((type) => (
+                          <option key={type} value={type} className="bg-[#0e142e] text-white py-1">{type}</option>
+                        ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">

@@ -6,6 +6,7 @@ import { X, ImagePlus, Briefcase, ChevronDown, Pencil, Calendar } from "lucide-r
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { createBrandCampaign, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
+import { TALENT_TYPE_VALUES } from "@/components/ui/ComboboxOptionValues";
 
 const ROLE_OPTIONS = [
   "CTV Take Care nghệ sĩ",
@@ -83,14 +84,7 @@ const INDUSTRY_OPTIONS = [
 ];
 
 const TARGET_PROFILE_OPTIONS = [
-  "Diễn viên",
-  "Người mẫu",
-  "KOL",
-  "KOC",
-  "Livestreamer",
-  "MC",
-  "PG",
-  "Hoa hậu",
+  ...TALENT_TYPE_VALUES,
   "Người đẹp",
   "Đại sứ",
 ];

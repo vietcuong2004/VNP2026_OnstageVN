@@ -71,6 +71,7 @@ type BackendProfile = {
     tier?: string | null;
     main_category?: string | null;
   } | null;
+  created_at?: string | null;
 };
 
 type BackendPhoto = {
@@ -524,6 +525,11 @@ function avgEngagement(profile: BackendProfile) {
   return Number((rates.reduce((total, rate) => total + rate, 0) / rates.length).toFixed(1));
 }
 
+function normalizeTalentTypeLabel(type: string) {
+  const normalized = type.toLowerCase().trim();
+  return ["pg", "pb", "pg/pb"].includes(normalized) ? "PG/PB" : type;
+}
+
 function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): TalentProfile {
   const measurements = parseMeasurements(profile.measurements);
   const followersCount = sumFollowers(profile) || fallback?.followersCount || 0;
@@ -560,7 +566,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     ? repairedExperience
     : fallbackTalentExperience(profile, fallback);
   const talentTypes = (profile.talent_types?.length ? profile.talent_types : fallback?.talentTypes || [fallback?.type || "Talent"])
-    .map((item) => String(repairMojibake(item)).trim())
+    .map((item) => normalizeTalentTypeLabel(String(repairMojibake(item)).trim()))
     .filter(Boolean);
 
   return {
@@ -615,6 +621,8 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     socialAccounts: (profile.social_accounts ?? [])
       .map((account) => ({ platform: account.platform || "", url: account.url || "" }))
       .filter((account) => account.platform && account.url),
+    createdAt: profile.created_at || fallback?.createdAt || "",
+    created_at: profile.created_at || fallback?.created_at || "",
     surveyScores: profile.latest_survey
       ? {
         pageant: Number(profile.latest_survey.pageant_score) || 0,

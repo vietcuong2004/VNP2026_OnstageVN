@@ -26,13 +26,18 @@ const statusConfig = {
 };
 
 function getTalentTypes(talent: any): string[] {
+  const normalizeType = (type: unknown) => {
+    const value = String(type).trim();
+    return ["pg", "pb", "pg/pb"].includes(value.toLowerCase()) ? "PG/PB" : value;
+  };
+
   if (Array.isArray(talent?.talentTypes) && talent.talentTypes.length) {
-    return talent.talentTypes.map((type: unknown) => String(type).trim()).filter(Boolean);
+    return Array.from(new Set(talent.talentTypes.map(normalizeType).filter(Boolean)));
   }
   if (Array.isArray(talent?.talent_types) && talent.talent_types.length) {
-    return talent.talent_types.map((type: unknown) => String(type).trim()).filter(Boolean);
+    return Array.from(new Set(talent.talent_types.map(normalizeType).filter(Boolean)));
   }
-  return talent?.type ? [String(talent.type)] : [];
+  return talent?.type ? [normalizeType(talent.type)] : [];
 }
 
 export default function TalentCard({ entry, talent, onDeleteClick, onActivateClick, onEditClick, onAssignJobClick }: TalentCardProps) {

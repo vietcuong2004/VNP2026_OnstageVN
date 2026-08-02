@@ -30,6 +30,12 @@ import {
 import TalentCard from "@/components/TalentCard";
 import { cn } from "@/lib/utils";
 import {
+  CITY_VALUES,
+  TALENT_TYPE_VALUES,
+  normalizeTalentTypeKey,
+  normalizeTalentTypeLabel,
+} from "@/components/ui/ComboboxOptionValues";
+import {
   addTalentToWishlist,
   addBrandRosterTalent,
   createBrandWishlist,
@@ -46,39 +52,19 @@ const TALENTS_PER_PAGE = 24;
 const TALENT_PAGES_PER_RESULT_PAGE = 2;
 const TALENTS_PER_RESULT_PAGE = TALENTS_PER_PAGE * TALENT_PAGES_PER_RESULT_PAGE;
 
+type TalentSortOption = "name_asc" | "name_desc" | "newest" | "oldest";
+
+const TALENT_SORT_OPTIONS: Array<{ value: TalentSortOption; label: string }> = [
+  { value: "name_asc", label: "Theo tên từ A - Z" },
+  { value: "name_desc", label: "Theo tên từ Z - A" },
+  { value: "newest", label: "Mới nhất" },
+  { value: "oldest", label: "Cũ nhất" },
+];
+
 const allValue = "Tất cả";
 
-const VIETNAM_CITIES = [
-  "Hà Nội",
-  "TP. Hồ Chí Minh",
-  "Đà Nẵng",
-  "Cần Thơ",
-  "Hải Phòng",
-  "Quảng Ninh",
-  "Bình Dương",
-  "Đồng Nai",
-  "Nha Trang",
-  "Đà Lạt",
-  "Khác",
-];
-
-const ALL_TALENT_TYPES = [
-  "Diễn viên",
-  "KOL",
-  "KOC",
-  "Livestreamer",
-  "MC",
-  "PG",
-  "PB",
-  "Hoa hậu",
-];
-
-function formatTalentType(type: string): string {
-  return type;
-}
-
 function normalizeTalentType(type: string): string {
-  return type.toLowerCase().trim();
+  return normalizeTalentTypeKey(type);
 }
 
 function formatActionError(error: unknown, fallback: string): string {
@@ -95,12 +81,12 @@ const genderOptions = [
 
 const cityOptions = [
   { label: "Toàn quốc", value: allValue },
-  ...VIETNAM_CITIES.map((city: string) => ({ label: city, value: city })),
+  ...CITY_VALUES.map((city: string) => ({ label: city, value: city })),
 ];
 
 const typeOptions = [
   { label: "Tất cả loại hình Idol", value: allValue },
-  ...ALL_TALENT_TYPES.map((type: string) => ({ label: formatTalentType(type), value: type })),
+  ...TALENT_TYPE_VALUES.map((type: string) => ({ label: normalizeTalentTypeLabel(type), value: type })),
 ];
 
 function normalizeCityName(cityName: string): string {
@@ -109,11 +95,11 @@ function normalizeCityName(cityName: string): string {
 
 function getTalentTypes(talent: any): string[] {
   if (Array.isArray(talent?.talentTypes) && talent.talentTypes.length) {
-    return talent.talentTypes.map((type: unknown) => String(type).trim()).filter(Boolean);
+    return Array.from(new Set(talent.talentTypes.map((type: unknown) => normalizeTalentTypeLabel(String(type).trim())).filter(Boolean)));
   }
 
   if (Array.isArray(talent?.talent_types) && talent.talent_types.length) {
-    return talent.talent_types.map((type: unknown) => String(type).trim()).filter(Boolean);
+    return Array.from(new Set(talent.talent_types.map((type: unknown) => normalizeTalentTypeLabel(String(type).trim())).filter(Boolean)));
   }
 
   if (Array.isArray(talent?.categories) && talent.categories.length) {
@@ -317,6 +303,7 @@ export default function DiscoverTalentsPage() {
   const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
   const [selectedInviteTalent, setSelectedInviteTalent] = useState<any | null>(null);
   const [selectedCampaignForInvite, setSelectedCampaignForInvite] = useState("");
+  const [sortOption, setSortOption] = useState<TalentSortOption>("newest");
   const talentRequestRef = useRef(0);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -368,7 +355,7 @@ export default function DiscoverTalentsPage() {
         ...talentQueryOptions,
         page,
         perPage: TALENTS_PER_PAGE,
-        sort: "match",
+        sort: sortOption,
       });
 
       if (requestId !== talentRequestRef.current) return;
@@ -391,7 +378,7 @@ export default function DiscoverTalentsPage() {
         setIsLoadingMoreTalents(false);
       }
     }
-  }, [talentQueryOptions]);
+  }, [sortOption, talentQueryOptions]);
 
   useEffect(() => {
     void loadTalentPage(1, "replace", 1);
@@ -512,8 +499,23 @@ export default function DiscoverTalentsPage() {
           matchesWeight
         );
       })
-      .sort((a, b) => b.matchScore - a.matchScore);
-  }, [appliedFilters, displayTalents]);
+      .sort((a, b) => {
+        if (sortOption === "name_asc") {
+          return String(a.name || "").localeCompare(String(b.name || ""), "vi", { sensitivity: "base" });
+        }
+
+        if (sortOption === "name_desc") {
+          return String(b.name || "").localeCompare(String(a.name || ""), "vi", { sensitivity: "base" });
+        }
+
+        const aCreatedAt = Date.parse(String(a.createdAt || a.created_at || ""));
+        const bCreatedAt = Date.parse(String(b.createdAt || b.created_at || ""));
+        const safeA = Number.isFinite(aCreatedAt) ? aCreatedAt : 0;
+        const safeB = Number.isFinite(bCreatedAt) ? bCreatedAt : 0;
+
+        return sortOption === "oldest" ? safeA - safeB : safeB - safeA;
+      });
+  }, [appliedFilters, displayTalents, sortOption]);
 
   const getTalentStatus = (id: string) => {
     if (id === "tal-1" || id === "tal-2") return "available";
@@ -832,14 +834,26 @@ export default function DiscoverTalentsPage() {
       <div className="relative z-0 w-full">
         {/* Content - Flexible */}
         <main className="w-full space-y-4">
-          <div className="flex flex-col gap-3 border-b border-[#2B313D] pb-3 sm:flex-row sm:items-center sm:justify-between">
-            <span className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="flex flex-row items-center justify-between gap-3 border-b border-[#2B313D] pb-3">
+            <span className="flex min-w-0 flex-1 items-center gap-2 whitespace-nowrap text-[11px] text-slate-400 sm:text-xs">
               <Filter className="h-4 w-4 text-[#C9A86A]" />
-              Tìm thấy <b className="text-white">{displayedTalentCount}</b> idol phù hợp.
+              <span className="truncate">Tìm thấy <b className="text-white">{displayedTalentCount}</b> kết quả.</span>
             </span>
-            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono shrink-0">
-              ĐÃ LƯU <b className="text-white">{savedIds.length}</b> idol vào danh sách đã lưu
-            </span>
+            <label className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-slate-950/70 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors focus-within:border-[#C9A86A]/70">
+              <ArrowUpDown className="h-4 w-4 text-[#C9A86A]" />
+              <select
+                value={sortOption}
+                onChange={(event) => setSortOption(event.target.value as TalentSortOption)}
+                className="w-[112px] cursor-pointer appearance-none bg-transparent pr-5 text-[9px] font-black uppercase tracking-wider text-white outline-none sm:w-[150px] sm:text-[10px]"
+              >
+                {TALENT_SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value} className="bg-[#080414] text-white">
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-slate-500" />
+            </label>
           </div>
 
           {isLoadingTalents ? (

@@ -23,6 +23,7 @@ import { AUTH_USER_UPDATED_EVENT, getAuthToken, getStoredAuthUser } from "@/lib/
 import { useRouter, useSearchParams } from "next/navigation";
 import QRCodeContainer from "@/components/QR_Code";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
+import { CITY_VALUES } from "@/components/ui/ComboboxOptionValues";
 import JobCard from "../../../components/JobCard";
 
 type StageFilter = "apply" | "pending" | "approved" | "all";
@@ -48,42 +49,7 @@ function normalizeStageFilter(value?: string | null): StageFilter {
   return "all";
 }
 
-const cityOptions = [
-  "Tỉnh An Giang",
-  "Tỉnh Bắc Ninh",
-  "Tỉnh Cà Mau",
-  "Tỉnh Cao Bằng",
-  "TP. Cần Thơ",
-  "TP. Đà Nẵng",
-  "Tỉnh Đắk Lắk",
-  "Tỉnh Điện Biên",
-  "Tỉnh Đồng Nai",
-  "Tỉnh Đồng Tháp",
-  "Tỉnh Gia Lai",
-  "TP. Hà Nội",
-  "Tỉnh Hà Tĩnh",
-  "TP. Hải Phòng",
-  "TP. Hồ Chí Minh",
-  "TP. Huế",
-  "Tỉnh Hưng Yên",
-  "Tỉnh Khánh Hòa",
-  "Tỉnh Lai Châu",
-  "Tỉnh Lâm Đồng",
-  "Tỉnh Lạng Sơn",
-  "Tỉnh Lào Cai",
-  "Tỉnh Nghệ An",
-  "Tỉnh Ninh Bình",
-  "Tỉnh Phú Thọ",
-  "Tỉnh Quảng Ngãi",
-  "Tỉnh Quảng Ninh",
-  "Tỉnh Quảng Trị",
-  "Tỉnh Sơn La",
-  "Tỉnh Tây Ninh",
-  "Tỉnh Thái Nguyên",
-  "Tỉnh Thanh Hóa",
-  "Tỉnh Tuyên Quang",
-  "Tỉnh Vĩnh Long",
-];
+const cityOptions = CITY_VALUES;
 
 const jobTypeOptions = [
   "Tuyển cộng tác viên",

@@ -10,7 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import ProgressBar from "@/components/ui/ProgressBar";
-import { createTalentVideoLink, deleteTalentPhotoCategory, deleteTalentVideo, ensureTalentProfile, persistTalentProfile, uploadTalentPhoto, uploadTalentVideo } from "@/lib/talent-api";
+import { createTalentVideoLink, deleteTalentPhoto, deleteTalentPhotoCategory, deleteTalentVideo, ensureTalentProfile, persistTalentProfile, uploadTalentPhoto, uploadTalentVideo } from "@/lib/talent-api";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import { getTalentDayStatus, toggleManualBusyDate } from "@/lib/talent-calendar";
 
@@ -320,6 +320,11 @@ interface PersonalInfoTabProps {
   onPreviewImage?: (url: string) => void;
 }
 
+function normalizeTalentTypeLabel(type: unknown) {
+  const value = String(type || "").trim();
+  return ["pg", "pb", "pg/pb"].includes(value.toLowerCase()) ? "PG/PB" : value;
+}
+
 type ProfileReview = {
   id?: string | number;
   brand?: string;
@@ -608,7 +613,129 @@ export default function PersonalInfoTab({
     }
   };
 
-  const handleRemoveLookbookPhoto = (id: number) => {
+  const handleLookbookMultiUpload = async (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
+    const selectedFiles = Array.from(e.target.files || []).filter((file) => file.type.startsWith("image/"));
+    e.target.value = "";
+    if (selectedFiles.length === 0) return;
+
+    const remainingSlots = Math.max(0, 9 - id);
+    const files = selectedFiles.slice(0, remainingSlots);
+
+    if (selectedFiles.length > remainingSlots) {
+      addToast("Chỉ được tải tối đa 8 ảnh trong bộ sưu tập.", "info");
+    }
+
+    const previews = files.map((file) => URL.createObjectURL(file));
+    const stateKeys = files.map((_, index) => `lookbook-${id + index}`);
+
+    setProfile((current: any) => {
+      const nextPhotos = [...(current?.photos || [])];
+      const updates: Record<string, string> = {};
+
+      previews.forEach((previewUrl, index) => {
+        const slot = id + index;
+        nextPhotos[slot - 1] = previewUrl;
+        updates[`lookbook${slot}`] = previewUrl;
+      });
+
+      return { ...current, ...updates, photos: nextPhotos.filter(Boolean) };
+    });
+
+    setUploadingState(prev => {
+      const next = { ...prev };
+      files.forEach((file, index) => {
+        next[stateKeys[index]] = {
+          progress: 10,
+          fileName: file.name,
+          status: "uploading"
+        };
+      });
+      return next;
+    });
+
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+
+      if (!syncedProfile.backendProfileId) {
+        setUploadingState(prev => {
+          const next = { ...prev };
+          stateKeys.forEach((key) => delete next[key]);
+          return next;
+        });
+        previews.forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
+        addToast("Vui lòng đăng nhập để tải ảnh lên", "info");
+        return;
+      }
+
+      const uploadedUrls: string[] = [];
+      const uploadedRecords: any[] = [];
+
+      for (let index = 0; index < files.length; index++) {
+        const photo = await uploadTalentPhoto(syncedProfile.backendProfileId, files[index], "portfolio");
+        const photoUrl = photo.url || photo.path;
+
+        if (!photoUrl) {
+          throw new Error("Backend chưa trả về URL ảnh.");
+        }
+
+        uploadedUrls[index] = photoUrl;
+        uploadedRecords[index] = photo;
+        setUploadingState(prev => ({
+          ...prev,
+          [stateKeys[index]]: {
+            ...prev[stateKeys[index]],
+            progress: 100,
+            status: "done"
+          }
+        }));
+      }
+
+      const nextPhotos = [...(profile.photos || [])];
+      const updates: Record<string, string> = {};
+
+      uploadedUrls.forEach((photoUrl, index) => {
+        const slot = id + index;
+        nextPhotos[slot - 1] = photoUrl;
+        updates[`lookbook${slot}`] = photoUrl;
+      });
+
+      const updatedProfile = persistTalentProfile({
+        ...syncedProfile,
+        ...profile,
+        ...updates,
+        photos: nextPhotos.filter(Boolean),
+        photoRecords: [
+          ...(Array.isArray(profile.photoRecords) ? profile.photoRecords : []),
+          ...uploadedRecords,
+        ],
+        isOnboarded: true,
+        tier: profile.tier || "Potential",
+      });
+      setProfile(updatedProfile);
+      previews.forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
+
+      setTimeout(() => {
+        setUploadingState(prev => {
+          const next = { ...prev };
+          stateKeys.forEach((key) => delete next[key]);
+          return next;
+        });
+      }, 800);
+
+      addToast(`Cập nhật ${uploadedUrls.length} ảnh thành công!`, "success");
+    } catch (error) {
+      setUploadingState(prev => {
+        const next = { ...prev };
+        stateKeys.forEach((key) => delete next[key]);
+        return next;
+      });
+      previews.forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
+      console.error(error);
+      addToast(error instanceof Error ? error.message : "Không tải được ảnh lên, vui lòng thử lại.", "info");
+    }
+  };
+
+  const handleRemoveLookbookPhotoLocal = (id: number) => {
     const fieldKey = `lookbook${id}`;
     const nextPhotos = [...(profile.photos || [])];
     nextPhotos[id - 1] = "";
@@ -620,6 +747,38 @@ export default function PersonalInfoTab({
     });
     setProfile(updatedProfile);
     addToast(`Đã xóa Ảnh ${id}.`, "info");
+  };
+
+  const handleRemoveLookbookPhoto = async (id: number, photoId?: number | string) => {
+    const numericPhotoId = Number(photoId);
+
+    try {
+      const syncedProfile = await ensureTalentProfile(profile);
+
+      if (syncedProfile.backendProfileId && Number.isFinite(numericPhotoId) && numericPhotoId > 0) {
+        await deleteTalentPhoto(syncedProfile.backendProfileId, numericPhotoId);
+      }
+
+      const fieldKey = `lookbook${id}`;
+      const nextPhotos = [...(profile.photos || [])];
+      nextPhotos[id - 1] = "";
+      const nextPhotoRecords = Array.isArray(profile.photoRecords)
+        ? profile.photoRecords.filter((photo: any) => Number(photo.id) !== numericPhotoId)
+        : profile.photoRecords;
+
+      const updatedProfile = persistTalentProfile({
+        ...profile,
+        [fieldKey]: "",
+        photos: nextPhotos.filter(Boolean),
+        photoRecords: nextPhotoRecords,
+      });
+
+      setProfile(updatedProfile);
+      addToast(`Đã xóa Ảnh ${id}.`, "info");
+    } catch (error) {
+      console.error(error);
+      addToast(error instanceof Error ? error.message : "Không xóa được ảnh, vui lòng thử lại.", "info");
+    }
   };
 
   const normalizeVideoUrl = (url: string) => {
@@ -795,11 +954,20 @@ export default function PersonalInfoTab({
       .map((url: string) => normalizeBackendAssetUrl(url))
       .filter(Boolean),
   ));
+  const portfolioPhotoRecords = Array.isArray(profile.photoRecords)
+    ? profile.photoRecords
+      .map((photo: any) => ({
+        ...photo,
+        url: normalizeBackendAssetUrl(photo.url || photo.path),
+      }))
+      .filter((photo: any) => photo.url)
+    : [];
 
   const lookbookPhotos = Array.from({ length: 8 }, (_, index) => {
     const id = index + 1;
     const explicitUrl = normalizeBackendAssetUrl(profile["lookbook" + id]);
     const url = explicitUrl || portfolioPhotoUrls[index] || "";
+    const photoRecord = portfolioPhotoRecords.find((photo: any) => photo.url === url);
 
     if (!url) return null;
 
@@ -807,8 +975,9 @@ export default function PersonalInfoTab({
       id,
       label: "Ảnh " + id,
       url,
+      photoId: photoRecord?.id,
     };
-  }).filter(Boolean) as Array<{ id: number; label: string; url: string }>;
+  }).filter(Boolean) as Array<{ id: number; label: string; url: string; photoId?: number | string }>;
 
   const nextLookbookSlot = lookbookPhotos.length < 8 ? lookbookPhotos.length + 1 : null;
   const portfolioVideos: Array<{ id: string | number; title: string; url: string }> = (Array.isArray(profile.videos) ? profile.videos : [])
@@ -1089,7 +1258,9 @@ export default function PersonalInfoTab({
             <span className="font-bold text-white text-left break-words leading-normal">
               {(() => {
                 const talentTypes = profile.talentTypes || profile.talent_types;
-                return Array.isArray(talentTypes) && talentTypes.length > 0 ? talentTypes.join(", ") : "Chưa cập nhật";
+                return Array.isArray(talentTypes) && talentTypes.length > 0
+                  ? Array.from(new Set(talentTypes.map(normalizeTalentTypeLabel).filter(Boolean))).join(", ")
+                  : "Chưa cập nhật";
               })()}
             </span>
 
@@ -1221,7 +1392,7 @@ export default function PersonalInfoTab({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleRemoveLookbookPhoto(img.id);
+                    handleRemoveLookbookPhoto(img.id, img.photoId);
                   }}
                   className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
                   title="Xóa ảnh"
@@ -1234,11 +1405,12 @@ export default function PersonalInfoTab({
                   <label className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
                     <Camera className="h-3.5 w-3.5" />
                     <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={!!uploadingState[`lookbook-${img.id}`]}
-                      onChange={(e) => handleLookbookUpload(e, img.id)}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    disabled={!!uploadingState[`lookbook-${img.id}`]}
+                    onChange={(e) => handleLookbookMultiUpload(e, img.id)}
                     />
                   </label>
                 </div>
@@ -1261,9 +1433,10 @@ export default function PersonalInfoTab({
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     className="hidden"
                     disabled={!!uploadingState[`lookbook-${nextLookbookSlot}`]}
-                    onChange={(e) => handleLookbookUpload(e, nextLookbookSlot)}
+                    onChange={(e) => handleLookbookMultiUpload(e, nextLookbookSlot)}
                   />
                 </label>
                 {uploadingState[`lookbook-${nextLookbookSlot}`] && (
@@ -1303,10 +1476,13 @@ export default function PersonalInfoTab({
                       href={video.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center text-slate-300 transition hover:text-amber-300"
+                      className="block h-full w-full bg-slate-950"
                     >
-                      <Video className="h-8 w-8" />
-                      <span className="text-[10px] font-black uppercase tracking-wider">Mở video</span>
+                      <img
+                        src="/video_thumb.png"
+                        alt="Video thumbnail"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
                     </a>
                   )}
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />

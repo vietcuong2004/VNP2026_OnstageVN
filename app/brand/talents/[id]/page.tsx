@@ -350,16 +350,20 @@ const formatNumber = (num: number) => {
 
 function getTalentTypes(talent: unknown) {
   const record = talent && typeof talent === "object" ? talent as Record<string, unknown> : {};
+  const normalizeType = (type: unknown) => {
+    const value = String(type).trim();
+    return ["pg", "pb", "pg/pb"].includes(value.toLowerCase()) ? "PG/PB" : value;
+  };
 
   if (Array.isArray(record.talentTypes) && record.talentTypes.length) {
-    return record.talentTypes.map((type) => String(type).trim()).filter(Boolean);
+    return Array.from(new Set(record.talentTypes.map(normalizeType).filter(Boolean)));
   }
 
   if (Array.isArray(record.talent_types) && record.talent_types.length) {
-    return record.talent_types.map((type) => String(type).trim()).filter(Boolean);
+    return Array.from(new Set(record.talent_types.map(normalizeType).filter(Boolean)));
   }
 
-  return record.type ? [String(record.type)] : [];
+  return record.type ? [normalizeType(record.type)] : [];
 }
 
 function getStringList(value: unknown) {
@@ -1080,10 +1084,13 @@ export default function BrandTalentProfilePage() {
                         href={video.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center text-slate-300 transition hover:text-amber-300"
+                        className="block h-full w-full bg-slate-950"
                       >
-                        <Video className="h-8 w-8" />
-                        <span className="text-[10px] font-black uppercase tracking-wider">Mở video</span>
+                        <img
+                          src="/video_thumb.png"
+                          alt="Video thumbnail"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
                       </a>
                     )}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />

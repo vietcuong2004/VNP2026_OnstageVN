@@ -9,6 +9,7 @@ import Header from "@/components/header";
 import RouteScrollReset from "@/components/route-scroll-reset";
 import Sidebar from "@/components/sidebar";
 import { isStandalonePublicPath } from "@/lib/auth-routes";
+import { cn } from "@/lib/utils";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -51,7 +52,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {!isStandalonePublic && (
-            <div className={isTalentJobDetail ? "hidden md:block" : "block"}>
+            <div className={cn(isTalentJobDetail ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
               <BottomNavigation />
             </div>
           )}

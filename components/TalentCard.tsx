@@ -30,12 +30,17 @@ type TalentCardProps = {
 };
 
 function getTalentTypes(talent: any): string[] {
+  const normalizeType = (type: unknown) => {
+    const value = String(type).trim();
+    return ["pg", "pb", "pg/pb"].includes(value.toLowerCase()) ? "PG/PB" : value;
+  };
+
   if (Array.isArray(talent?.talentTypes) && talent.talentTypes.length) {
-    return talent.talentTypes.map((type: unknown) => String(type).trim()).filter(Boolean);
+    return Array.from(new Set(talent.talentTypes.map(normalizeType).filter(Boolean)));
   }
 
   if (Array.isArray(talent?.talent_types) && talent.talent_types.length) {
-    return talent.talent_types.map((type: unknown) => String(type).trim()).filter(Boolean);
+    return Array.from(new Set(talent.talent_types.map(normalizeType).filter(Boolean)));
   }
 
   if (Array.isArray(talent?.categories) && talent.categories.length) {
@@ -247,17 +252,17 @@ export default function TalentCard({
 
         {/* Info Pills: Chiều cao > Cân nặng > Số đo 3 vòng (1 Hàng) */}
         {profilePills.length > 0 && (
-        <div className="my-3 flex flex-wrap gap-1">
-          {profilePills.map((pill) => (
-            <span
-              key={pill}
-              className="inline-flex max-w-full items-center rounded-lg border border-white/10 bg-slate-800/90 px-2 py-1 text-[9.5px] font-black uppercase tracking-wider text-slate-100 shadow-sm"
-              title={pill}
-            >
-              <span className="truncate">{pill}</span>
-            </span>
-          ))}
-        </div>
+          <div className="my-3 flex flex-wrap gap-1">
+            {profilePills.map((pill) => (
+              <span
+                key={pill}
+                className="inline-flex max-w-full items-center rounded-lg border border-white/10 bg-slate-800/90 px-2 py-1 text-[9.5px] font-black uppercase tracking-wider text-slate-100 shadow-sm"
+                title={pill}
+              >
+                <span className="truncate">{pill}</span>
+              </span>
+            ))}
+          </div>
         )}
 
         {showLifestyleServices && Array.isArray(talent?.lifestyleServices) && talent.lifestyleServices.some((service: any) => service.enabled) && (
@@ -380,7 +385,7 @@ export default function TalentCard({
                 onClick={closeModals}
                 className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-black uppercase tracking-wider text-slate-300 transition hover:bg-white/10 active:scale-95 cursor-pointer"
               >
-                Bỏ qua
+                Hủy
               </button>
               <button
                 type="button"
@@ -425,7 +430,7 @@ export default function TalentCard({
                 onClick={closeModals}
                 className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-black uppercase tracking-wider text-slate-300 transition hover:bg-white/10 active:scale-95 cursor-pointer"
               >
-                Bỏ qua
+                Hủy
               </button>
               <button
                 type="button"
