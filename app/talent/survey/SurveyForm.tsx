@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft,
   CheckCircle2, Info, Star, ChevronRight, Trophy, Heart,
-  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X, ChevronDown
+  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X, ChevronDown, Plus, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
@@ -15,14 +15,17 @@ import {
   loadTalentProfile,
   loadTalentSurveyProgress,
   persistTalentProfile,
-  saveTalentProfile,
+  saveTalentProfileOrThrow,
   saveTalentSurveyProgress,
   submitTalentSurvey,
+  uploadTalentPhoto,
   type TalentSurveyAnalysis,
   type TalentSurveyHistoryEntry,
 } from "@/lib/talent-api";
+import { getAuthToken } from "@/lib/api-client";
 import {
   CITY_OPTIONS,
+  CONTENT_SKILL_VALUES,
   TALENT_TYPE_VALUES,
   normalizeTalentTypeLabel,
   normalizeTalentTypeList,
@@ -63,6 +66,99 @@ function clampSurveyStep(value: unknown) {
 }
 
 const talentTypeOptions = TALENT_TYPE_VALUES;
+const contentSkillSuggestions = CONTENT_SKILL_VALUES;
+const socialHighlightSuggestions = [
+  "50K+ Followers",
+  "10K+ Viewers",
+  "1000+ Followers",
+  "4000+ Likes",
+];
+
+function portfolioHref(link: string): string {
+  return /^https?:\/\//i.test(link) ? link : `https://${link}`;
+}
+
+function splitSkillValues(value: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function listFromProfileValue(...values: unknown[]) {
+  for (const value of values) {
+    const list = Array.isArray(value)
+      ? value.map((item) => String(item).trim()).filter(Boolean)
+      : value && typeof value === "object"
+        ? Object.values(value).map((item) => String(item).trim()).filter(Boolean)
+        : String(value || "")
+          .split(/[\n,;]+/)
+          .map((item) => item.trim())
+          .filter(Boolean);
+
+    if (list.length) return list;
+  }
+
+  return [];
+}
+
+function firstProfileText(...values: unknown[]) {
+  for (const value of values) {
+    const text = String(value ?? "").trim();
+    if (text) return text;
+  }
+
+  return "";
+}
+
+function normalizeComboboxLookup(value: unknown) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\b(tp|tinh|thanh pho|province)\b\.?/gi, "")
+    .replace(/[^a-z0-9]+/gi, "")
+    .toLowerCase();
+}
+
+function resolveCityValue(value: unknown) {
+  const rawValue = String(value || "").trim();
+  if (!rawValue) return "";
+
+  const exactMatch = CITY_OPTIONS.find((option) => option.value === rawValue || option.label === rawValue);
+  if (exactMatch) return exactMatch.value;
+
+  const normalizedValue = normalizeComboboxLookup(rawValue);
+  const softMatch = CITY_OPTIONS.find((option) => normalizeComboboxLookup(option.value) === normalizedValue);
+  if (softMatch) return softMatch.value;
+
+  const includedMatch = CITY_OPTIONS.find((option) => {
+    const normalizedOption = normalizeComboboxLookup(option.value);
+    return normalizedOption.includes(normalizedValue) || normalizedValue.includes(normalizedOption);
+  });
+
+  return includedMatch?.value || rawValue;
+}
+
+function hasSurveyAnswerValue(value: unknown) {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value).length > 0;
+  return true;
+}
+
+function compactSurveyAnswers(answers: { question_code: string; answer_value: unknown }[]) {
+  return answers.filter((answer) => hasSurveyAnswerValue(answer.answer_value));
+}
+
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
 
 type SurveyCityComboboxProps = {
   value: string;
@@ -156,6 +252,72 @@ function SurveyCityCombobox({ value, onChange }: SurveyCityComboboxProps) {
   );
 }
 
+type SurveyOptionComboboxProps = {
+  value?: string;
+  options: readonly string[];
+  placeholder: string;
+  onChange: (value: string) => void;
+};
+
+function SurveyOptionCombobox({ value = "", options, placeholder, onChange }: SurveyOptionComboboxProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedLabel = options.find((option) => option === value);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+        className={cn(
+          "flex w-full items-center justify-between gap-2 rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-medium text-white outline-none transition-all hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b]",
+          isOpen && "border-amber-400 bg-[#0e122b]"
+        )}
+      >
+        <span className={cn("truncate text-left", selectedLabel ? "text-white" : "text-slate-400")}>
+          {selectedLabel || placeholder}
+        </span>
+        <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-400 transition-transform", isOpen && "rotate-180 text-amber-400")} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-64 w-full overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="max-h-56 space-y-0.5 overflow-y-auto pr-0.5 custom-scrollbar">
+            {options.length === 0 ? (
+              <div className="px-3 py-2 text-center text-xs text-slate-500">Đã chọn tất cả loại hình</div>
+            ) : (
+              options.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    onChange(option);
+                    setIsOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                >
+                  <span className="truncate">{option}</span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
   { id: 2, title: "KOLs/Influencer quảng cáo", desc: "Sáng tạo nội dung video ngắn", weights: { pageant: 0.1, runway: 0.1, kol: 0.8 } },
@@ -194,6 +356,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const avatarPreviewUrlRef = useRef<string | null>(null);
   const portfolioPreviewUrlRef = useRef<string | null>(null);
   const introVideoPreviewUrlRef = useRef<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Track max step reached to allow click-to-navigation on header stepper
   React.useEffect(() => {
@@ -202,9 +365,55 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   React.useEffect(() => {
     let active = true;
+    setIsAuthenticated(!!getAuthToken());
     loadTalentProfile().then((profile) => {
-      if (active && profile && profile.name) {
-        setFormData((prev) => ({ ...prev, name: profile.name }));
+      if (active && profile) {
+        const location = resolveCityValue(profile.location || profile.city);
+        const talentTypes = normalizeTalentTypeList(profile.talentTypes || profile.talent_types || []);
+        const skills = listFromProfileValue(profile.skills, profile.specialSkills);
+        const nextSocialHighlights = listFromProfileValue(profile.socialHighlights, profile.social_highlights);
+        const nextPortfolioLinks = listFromProfileValue(profile.portfolioLinks, profile.portfolio_links, profile.portfolio_url);
+        const nextSocialAccounts = Array.isArray(profile.socialAccounts)
+          ? profile.socialAccounts
+          : Array.isArray(profile.social_accounts)
+            ? profile.social_accounts
+            : [];
+        const experienceYears = firstProfileText(profile.experience, profile.experience_years);
+        const experienceText = firstProfileText(profile.experienceText, profile.profile_experience);
+
+        setFormData((prev) => ({
+          ...prev,
+          name: profile.name || prev.name,
+          email: profile.email || prev.email,
+          phone: profile.phone || prev.phone,
+          location: location || prev.location,
+          height: profile.height ? String(profile.height) : prev.height,
+          weight: profile.weight ? String(profile.weight) : prev.weight,
+          bust: profile.bust ? String(profile.bust) : prev.bust,
+          waist: profile.waist ? String(profile.waist) : prev.waist,
+          hips: profile.hips ? String(profile.hips) : prev.hips,
+          price: profile.price || prev.price,
+          talentTypes: talentTypes.length ? talentTypes : prev.talentTypes,
+          skills: skills.length ? skills.join(", ") : prev.skills,
+          experience: experienceYears || prev.experience,
+          professionalExperience: experienceText || prev.professionalExperience,
+        }));
+
+        setSocialHighlights(nextSocialHighlights);
+        setPortfolioLinks(nextPortfolioLinks);
+        setSocialAccounts(
+          nextSocialAccounts
+            .map((account: any) => ({
+              platform: String(account.platform || ""),
+              url: String(account.url || ""),
+            }))
+            .filter((account: { platform: string; url: string }) => account.platform && account.url)
+        );
+
+        if (profile.avatar) {
+          setAvatarPreviewUrl(profile.avatar);
+          setMediaUploads((prev) => ({ ...prev, avatar: "current-avatar" }));
+        }
       }
     });
     return () => {
@@ -253,6 +462,16 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [portfolioPreviewUrl, setPortfolioPreviewUrl] = useState<string | null>(null);
   const [introVideoPreviewUrl, setIntroVideoPreviewUrl] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarDataUrl, setAvatarDataUrl] = useState("");
+  const [socialHighlights, setSocialHighlights] = useState<string[]>([]);
+  const [socialHighlightInput, setSocialHighlightInput] = useState("");
+  const [portfolioLinks, setPortfolioLinks] = useState<string[]>([]);
+  const [portfolioLinkInput, setPortfolioLinkInput] = useState("");
+  const [socialAccounts, setSocialAccounts] = useState<{ platform: string; url: string }[]>([]);
+  const [socialPlatform, setSocialPlatform] = useState("Tiktok");
+  const [socialLinkInput, setSocialLinkInput] = useState("");
+  const [skillInput, setSkillInput] = useState("");
 
   const getTotalFollowers = () => {
     return (
@@ -266,6 +485,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const [surveyAnswers, setSurveyAnswers] = useState<Record<number, number>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [registeredComp, setRegisteredComp] = useState<Record<string, boolean>>({});
   const [aiAnalysis, setAiAnalysis] = useState<TalentSurveyAnalysis | null>(null);
 
@@ -371,6 +591,46 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     }));
   };
 
+  const handleAddContentSkill = (value: string) => {
+    const nextSkill = value.trim();
+    if (!nextSkill) return;
+    setFormData((prev) => {
+      const skills = splitSkillValues(prev.skills);
+      if (skills.includes(nextSkill)) return prev;
+      return { ...prev, skills: [...skills, nextSkill].join(", ") };
+    });
+    setSkillInput("");
+  };
+
+  const handleRemoveContentSkill = (skillToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      skills: splitSkillValues(prev.skills).filter((skill) => skill !== skillToRemove).join(", "),
+    }));
+  };
+
+  const handleAddSocialHighlight = (value: string) => {
+    const nextValue = value.trim();
+    if (!nextValue || socialHighlights.includes(nextValue)) return;
+    setSocialHighlights((current) => [...current, nextValue]);
+    setSocialHighlightInput("");
+  };
+
+  const handleAddPortfolioLink = () => {
+    const nextLink = portfolioLinkInput.trim();
+    if (!nextLink || portfolioLinks.includes(nextLink)) return;
+    setPortfolioLinks((current) => [...current, nextLink]);
+    setPortfolioLinkInput("");
+  };
+
+  const handleAddSocialAccount = () => {
+    let nextUrl = socialLinkInput.trim();
+    if (!nextUrl) return;
+    if (!/^https?:\/\//i.test(nextUrl)) nextUrl = `https://${nextUrl}`;
+    setSocialAccounts((current) => [...current, { platform: socialPlatform, url: nextUrl }]);
+    setSocialLinkInput("");
+  };
+
   const handlePriceChange = (val: string) => {
     if (!val) {
       setFormData((prev) => ({ ...prev, price: "" }));
@@ -427,14 +687,15 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       if (formData.price) count++;
       if (formData.experience) count++;
       if (formData.talentTypes.length) count++;
+      if (splitSkillValues(formData.skills).length) count++;
       if (formData.professionalExperience) count++;
-      basePct += Math.round((count / 4) * 25); // max 50%
+      basePct += Math.round((count / 5) * 25); // max 50%
     } else if (step === 3) {
       basePct = 50;
       let count = 0;
-      if (getTotalFollowers() > 0) count++;
-      if (formData.tiktokUrl || formData.instagramUrl || formData.facebookUrl || formData.youtubeUrl) count++;
-      if (mediaUploads.portfolio) count++;
+      if (socialHighlights.length) count++;
+      if (portfolioLinks.length) count++;
+      if (socialAccounts.length) count++;
       basePct += Math.round((count / 3) * 25); // max 75%
     } else if (step === 4) {
       basePct = 75;
@@ -517,6 +778,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
       avatarPreviewUrlRef.current = nextPreviewUrl;
       setAvatarPreviewUrl(nextPreviewUrl);
+      setAvatarFile(file);
+      void fileToDataUrl(file).then(setAvatarDataUrl).catch(() => setAvatarDataUrl(""));
     } else if (field === "portfolio") {
       if (portfolioPreviewUrlRef.current) {
         URL.revokeObjectURL(portfolioPreviewUrlRef.current);
@@ -542,6 +805,17 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   };
 
   const handleClearUploadedFile = (field: keyof typeof mediaUploads) => {
+    if (field === "avatar") {
+      if (avatarPreviewUrlRef.current) {
+        URL.revokeObjectURL(avatarPreviewUrlRef.current);
+        avatarPreviewUrlRef.current = null;
+      }
+
+      setAvatarPreviewUrl(null);
+      setAvatarFile(null);
+      setAvatarDataUrl("");
+    }
+
     if (field === "portfolio") {
       if (portfolioPreviewUrlRef.current) {
         URL.revokeObjectURL(portfolioPreviewUrlRef.current);
@@ -579,6 +853,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     if (!isStepValid() || isAnalyzing) return;
     setIsAnalyzing(true);
     setAiAnalysis(null);
+    setSubmitError("");
 
     try {
       // Hard Rules checks (Q1 - Q10)
@@ -675,6 +950,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
       // Save to local storage for other views in the application
       const normalizedTalentTypes = normalizeTalentTypeList(formData.talentTypes);
+      const hasAuth = !!getAuthToken();
+      const selectedAvatar = avatarFile
+        ? avatarDataUrl || await fileToDataUrl(avatarFile).catch(() => "")
+        : avatarPreviewUrl || "";
       const userProfile: Record<string, unknown> = {
         ...formData,
         followersCount: getTotalFollowers().toString(),
@@ -687,14 +966,36 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         profileScore: evaluationScore,
         tier,
         isOnboarded: true,
-        avatar: mediaUploads.avatar ? `/uploads/${mediaUploads.avatar}` : "/avatar.png",
-        skills: formData.skills.split(",").map(s => s.trim()),
+        avatar: selectedAvatar || "/avatar.png",
+        skills: splitSkillValues(formData.skills),
         languages: formData.languages,
         talentTypes: normalizedTalentTypes,
+        bust: formData.bust,
+        waist: formData.waist,
+        hips: formData.hips,
+        socialHighlights,
+        social_highlights: socialHighlights,
+        portfolioLinks,
+        portfolio_links: portfolioLinks,
+        portfolio_url: portfolioLinks.join("\n"),
+        socialAccounts,
         experienceText: formData.professionalExperience,
+        bio: formData.professionalExperience,
         mediaUploads
       };
-      const savedProfile = await saveTalentProfile(userProfile);
+      const savedProfile = hasAuth
+        ? await saveTalentProfileOrThrow(userProfile)
+        : persistTalentProfile(userProfile);
+
+      if (hasAuth && avatarFile && savedProfile.backendProfileId) {
+        const uploadedAvatar = await uploadTalentPhoto(Number(savedProfile.backendProfileId), avatarFile, "avatar");
+        if (uploadedAvatar.url) {
+          userProfile.avatar = uploadedAvatar.url;
+          savedProfile.avatar = uploadedAvatar.url;
+          setAvatarPreviewUrl(uploadedAvatar.url);
+          setMediaUploads((prev) => ({ ...prev, avatar: "current-avatar" }));
+        }
+      }
 
       const surveyQuestionAnswers = SURVEY_QUESTIONS
         .map((question) => {
@@ -716,7 +1017,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
       const experienceYears = parseInt(formData.experience.match(/\d+/)?.[0] || "0", 10);
 
-      await submitTalentSurvey("A", [
+      await submitTalentSurvey("A", compactSurveyAnswers([
         { question_code: "A1", answer_value: parseFloat(formData.height) || 0 },
         { question_code: "B1", answer_value: experienceYears },
         { question_code: "C1", answer_value: getTotalFollowers() },
@@ -724,8 +1025,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         { question_code: "P1", answer_value: formData.price },
         { question_code: "P2", answer_value: normalizedTalentTypes },
         { question_code: "P3", answer_value: formData.professionalExperience },
-      ]);
-      await submitTalentSurvey("S", surveyQuestionAnswers);
+        { question_code: "P4", answer_value: splitSkillValues(formData.skills) },
+        { question_code: "P5", answer_value: socialHighlights },
+        { question_code: "P6", answer_value: portfolioLinks },
+        { question_code: "P7", answer_value: socialAccounts },
+      ]));
+      await submitTalentSurvey("S", compactSurveyAnswers(surveyQuestionAnswers));
       const aiResult = await analyzeTalentSurvey().catch((error) => {
         console.warn(error);
         return null;
@@ -758,6 +1063,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       setIsSubmitted(true);
     } catch (error) {
       console.error("Error submitting survey:", error);
+      setSubmitError(error instanceof Error ? error.message : "Không lưu được thông tin khảo sát vào cơ sở dữ liệu.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -1197,12 +1503,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             {[1, 2, 3, 4].map((s) => {
               const isCurrent = s === step;
               const isPast = s < step;
-              const isClickable = s <= maxStep;
+              const isClickable = true;
 
               const stepNames = [
                 "Thông tin",
                 "Nghề nghiệp",
-                "Social & Media",
+                "Portfolio & Media",
                 "Khảo sát AI"
               ];
 
@@ -1210,7 +1516,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 <button
                   type="button"
                   key={s}
-                  disabled={!isClickable}
                   onClick={() => goToStep(s)}
                   className={cn(
                     "flex flex-col items-center transition-all duration-300 relative group focus:outline-none",
@@ -1339,7 +1644,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                  disabled={isAuthenticated}
+                  className={cn(
+                    "w-full rounded-xl border border-white/20 bg-slate-900/60 px-4 py-3 text-xs text-white transition-all placeholder-slate-400 font-medium",
+                    isAuthenticated
+                      ? "cursor-not-allowed opacity-70"
+                      : "hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                  )}
                   placeholder="maianh@gmail.com"
                 />
               </div>
@@ -1456,23 +1767,71 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       ))
                     )}
                   </div>
-                  <div className="relative">
-                    <select
-                      value=""
-                      onChange={(e) => {
-                        handleAddTalentType(e.target.value);
-                        e.target.value = "";
+                  <SurveyOptionCombobox
+                    value=""
+                    placeholder="Thêm loại hình Idol..."
+                    options={talentTypeOptions.filter((type) => !formData.talentTypes.includes(type))}
+                    onChange={handleAddTalentType}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                    Lĩnh vực nội dung / kỹ năng chuyên sâu
+                  </label>
+                  <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
+                    {splitSkillValues(formData.skills).length === 0 ? (
+                      <span className="text-xs text-slate-400 italic px-2 py-1">Chưa thêm lĩnh vực nào</span>
+                    ) : (
+                      splitSkillValues(formData.skills).map((skill) => (
+                        <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveContentSkill(skill)}
+                            className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {contentSkillSuggestions
+                      .filter((skill) => !splitSkillValues(formData.skills).includes(skill))
+                      .map((skill) => (
+                        <button
+                          key={skill}
+                          type="button"
+                          onClick={() => handleAddContentSkill(skill)}
+                          className="px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer bg-white/5 hover:bg-amber-400/20 border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300"
+                        >
+                          <Plus className="h-3 w-3" /> {skill}
+                        </button>
+                      ))}
+                  </div>
+                  <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                    <input
+                      type="text"
+                      value={skillInput}
+                      onChange={(event) => setSkillInput(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          handleAddContentSkill(skillInput);
+                        }
                       }}
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3 py-3 pr-10 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-400 focus:bg-[#0e122b] cursor-pointer appearance-none shadow-inner"
+                      placeholder="Ví dụ: Beauty, Food, Thời trang..."
+                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none md:col-span-9"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAddContentSkill(skillInput)}
+                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all md:col-span-3"
                     >
-                      <option value="" disabled hidden>Thêm loại hình Idol...</option>
-                      {talentTypeOptions
-                        .filter((type) => !formData.talentTypes.includes(type))
-                        .map((type) => (
-                          <option key={type} value={type} className="bg-[#0e142e] text-white py-1">{type}</option>
-                        ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <Plus className="h-4 w-4" /> Thêm
+                    </button>
                   </div>
                 </div>
 
@@ -1509,8 +1868,210 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           </div>
         )}
 
-        {/* STEP 3: SOCIAL & PORTFOLIO (Left Socials, Right Upload Zone) */}
+        {/* STEP 3: PORTFOLIO & SOCIAL LINKS */}
         {step === 3 && (
+          <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto">
+            <div className="flex flex-col gap-6 py-3 text-left md:py-5">
+              <h4 className="font-display text-base font-black uppercase tracking-wider text-slate-300">
+                Portfolio & Mạng xã hội
+              </h4>
+
+              <div className="order-2 space-y-3">
+                <label className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">
+                  Chỉ số nổi bật
+                </label>
+                <div className="flex min-h-[52px] flex-wrap gap-2 rounded-xl border border-white/20 bg-slate-900/60 p-2.5 text-left shadow-inner">
+                  {socialHighlights.length === 0 ? (
+                    <span className="px-2 py-1 text-xs italic text-slate-400">Chưa thêm chỉ số nổi bật nào</span>
+                  ) : (
+                    socialHighlights.map((highlight) => (
+                      <span key={highlight} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300 shadow-sm">
+                        {highlight}
+                        <button
+                          type="button"
+                          onClick={() => setSocialHighlights((current) => current.filter((item) => item !== highlight))}
+                          className="flex cursor-pointer items-center justify-center text-slate-400 hover:text-rose-400 focus:outline-none"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {socialHighlightSuggestions
+                    .filter((item) => !socialHighlights.includes(item))
+                    .map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => handleAddSocialHighlight(item)}
+                        className="flex cursor-pointer items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold text-slate-300 transition-all hover:border-amber-400/40 hover:bg-amber-400/20 hover:text-amber-300"
+                      >
+                        <Plus className="h-3 w-3" /> {item}
+                      </button>
+                    ))}
+                </div>
+
+                <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                  <input
+                    type="text"
+                    value={socialHighlightInput}
+                    onChange={(event) => setSocialHighlightInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleAddSocialHighlight(socialHighlightInput);
+                      }
+                    }}
+                    placeholder="Ví dụ: 50K+ Followers, 11K+ Viewers..."
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none md:col-span-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddSocialHighlight(socialHighlightInput)}
+                    className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all md:col-span-3"
+                  >
+                    <Plus className="h-4 w-4" /> Thêm
+                  </button>
+                </div>
+              </div>
+
+              <div className="hidden" />
+
+              <div className="order-1 space-y-3">
+                <label className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">Portfolio URL</label>
+                {portfolioLinks.length === 0 ? (
+                  <div className="py-1 text-xs italic text-slate-400">Chưa có portfolio nào được thêm.</div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    {portfolioLinks.map((link, index) => (
+                      <div key={`${link}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-2.5 shadow-inner">
+                        <div className="min-w-0 flex-1">
+                          <span className="block text-[10px] font-black uppercase tracking-wider text-amber-400">Portfolio {index + 1}</span>
+                          <a href={portfolioHref(link)} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-slate-200 hover:text-white" title={link}>
+                            {link.replace(/https?:\/\/(www\.)?/, "")}
+                          </a>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setPortfolioLinks((current) => current.filter((item) => item !== link))}
+                          className="cursor-pointer p-1 text-slate-400 transition-colors hover:text-red-400"
+                          title="Xóa portfolio"
+                        >
+                          <Trash2 className="h-4.5 w-4.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                  <div className="space-y-1.5 md:col-span-9">
+                    <span className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">Đường dẫn Portfolio</span>
+                    <input
+                      type="url"
+                      value={portfolioLinkInput}
+                      onChange={(event) => setPortfolioLinkInput(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          handleAddPortfolioLink();
+                        }
+                      }}
+                      placeholder="https://..."
+                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-3">
+                    <button
+                      type="button"
+                      onClick={handleAddPortfolioLink}
+                      className="flex w-full shrink-0 cursor-pointer items-center justify-center rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all hover:shadow-[0_0_15px_rgba(240,197,107,0.3)] active:scale-95"
+                    >
+                      Thêm
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="hidden" />
+
+              <div className="order-3 space-y-2">
+                {socialAccounts.length === 0 ? (
+                  <div className="py-1 text-xs italic text-slate-400">Chưa có liên kết mạng xã hội nào được thêm.</div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    {socialAccounts.map((account, index) => (
+                      <div key={`${account.platform}-${account.url}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-2.5 shadow-inner">
+                        <div className="min-w-0 flex-1">
+                          <span className="block text-[10px] font-black uppercase tracking-wider text-amber-400">{account.platform}</span>
+                          <a href={account.url} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-slate-200 hover:text-white" title={account.url}>
+                            {account.url.replace(/https?:\/\/(www\.)?/, "")}
+                          </a>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSocialAccounts((current) => current.filter((_, idx) => idx !== index))}
+                          className="cursor-pointer p-1 text-slate-400 transition-colors hover:text-red-400"
+                          title="Xóa liên kết"
+                        >
+                          <Trash2 className="h-4.5 w-4.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="order-4 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                <div className="space-y-1.5 md:col-span-3">
+                  <span className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">Chọn nền tảng</span>
+                  <select
+                    value={socialPlatform}
+                    onChange={(event) => setSocialPlatform(event.target.value)}
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                  >
+                    <option value="Tiktok" className="bg-[#0e142e]">Tiktok</option>
+                    <option value="Facebook" className="bg-[#0e142e]">Facebook</option>
+                    <option value="Instagram" className="bg-[#0e142e]">Instagram</option>
+                    <option value="Thread" className="bg-[#0e142e]">Thread</option>
+                    <option value="Linkedin" className="bg-[#0e142e]">Linkedin</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5 md:col-span-6">
+                  <span className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">Đường dẫn (Link)</span>
+                  <input
+                    type="url"
+                    value={socialLinkInput}
+                    onChange={(event) => setSocialLinkInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleAddSocialAccount();
+                      }
+                    }}
+                    placeholder="https://..."
+                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <button
+                    type="button"
+                    onClick={handleAddSocialAccount}
+                    className="flex w-full shrink-0 cursor-pointer items-center justify-center rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all hover:shadow-[0_0_15px_rgba(240,197,107,0.3)] active:scale-95"
+                  >
+                    Thêm
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: SOCIAL & PORTFOLIO (Left Socials, Right Upload Zone) */}
+        {false && step === 3 && (
           <div className="animate-in fade-in duration-300">
             {/* Left: Social Media Profiles and Followers */}
             <div className="space-y-4 w-full max-w-xl mx-auto">
@@ -1924,6 +2485,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {submitError && (
+          <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-xs font-bold leading-relaxed text-rose-100">
+            {submitError}
           </div>
         )}
 

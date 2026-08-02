@@ -858,7 +858,7 @@ export default function EditInfoTab({
 
               <div className="space-y-3 md:col-span-2">
                 <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
-                  Lĩnh vực nội dung / kỹ năng
+                  Lĩnh vực nội dung / kỹ năng chuyên sâu
                 </label>
                 <div className="flex flex-wrap gap-2 min-h-[42px] p-2.5 bg-[#060918] border border-white/15 rounded-xl text-left shadow-inner">
                   {editForm.specialSkills.length === 0 ? (

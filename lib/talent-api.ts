@@ -271,10 +271,16 @@ function displayGender(value?: string | null) {
   return value ? "Khác" : undefined;
 }
 
-function splitCsv(value: string | string[] | undefined) {
+function splitCsv(value: unknown): string[] {
   if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+  if (value && typeof value === "object") {
+    return Object.values(value)
+      .flatMap((item) => splitCsv(item))
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+  }
   return String(value || "")
-    .split(",")
+    .split(/[\n,;]+/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
@@ -442,6 +448,8 @@ export function mapBackendProfile(profile: BackendProfile | null) {
   const fullBodyUrl = photoUrl(fullBodyPhotoObj);
   const measurements = parseMeasurements(profile.measurements);
   const busyDates = busyDatesFromEvents(profile.calendar_events);
+  const skillValues = splitCsv(profile.skills);
+  const socialHighlightValues = splitCsv(profile.social_highlights);
 
   const mapped = {
     ...local,
@@ -470,9 +478,9 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     tattooDesc: profile.tattoo_description || "",
     languages: profile.languages?.length ? profile.languages : [],
     talentTypes: profile.talent_types?.length ? profile.talent_types.map((type) => normalizeTalentTypeLabel(String(type).trim())).filter(Boolean) : [],
-    skills: profile.skills?.length ? profile.skills : [],
-    specialSkills: profile.skills?.length ? profile.skills : [],
-    socialHighlights: profile.social_highlights?.length ? profile.social_highlights : [],
+    skills: skillValues,
+    specialSkills: skillValues,
+    socialHighlights: socialHighlightValues,
     experience: profile.experience_years ?? "",
     experienceText: profile.experience || "",
     education: profile.education || "",
@@ -579,6 +587,19 @@ export async function saveTalentProfile(profile: any) {
     console.warn(error);
     return persistTalentProfile(profile);
   }
+}
+
+export async function saveTalentProfileOrThrow(profile: any) {
+  if (!getAuthToken()) {
+    throw new Error("Bạn cần đăng nhập để lưu thông tin khảo sát vào cơ sở dữ liệu.");
+  }
+
+  const response = await apiJson<{ data: BackendProfile }>("/my/profile", {
+    method: "PUT",
+    body: JSON.stringify(buildBackendProfilePayload(profile)),
+  });
+
+  return mapBackendProfile(response.data);
 }
 
 export async function uploadTalentPhoto(profileId: number, file: File, category = "portfolio") {
