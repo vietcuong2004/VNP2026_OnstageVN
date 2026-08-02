@@ -5,11 +5,18 @@ import { useRouter } from "next/navigation";
 import {
   User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft,
   CheckCircle2, Info, Star, ChevronRight, Trophy, Heart,
-  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X, ChevronDown, Plus, Trash2
+  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X, ChevronDown, Plus, Trash2, Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
+import Step3Dialog, { rememberSurveyGuestLogin } from "./Step3Dialog";
+import {
+  completeStep3GuestProfile,
+  fileToDataUrl,
+  persistGuestProfileSyncDraft,
+  splitSkillValues,
+} from "./Step3ProfileSave";
 import {
   analyzeTalentSurvey,
   loadTalentProfile,
@@ -67,6 +74,7 @@ function clampSurveyStep(value: unknown) {
 
 const talentTypeOptions = TALENT_TYPE_VALUES;
 const contentSkillSuggestions = CONTENT_SKILL_VALUES;
+const GUEST_SURVEY_SYNC_KEY = "vnp_guest_survey_sync";
 const socialHighlightSuggestions = [
   "50K+ Followers",
   "10K+ Viewers",
@@ -76,13 +84,6 @@ const socialHighlightSuggestions = [
 
 function portfolioHref(link: string): string {
   return /^https?:\/\//i.test(link) ? link : `https://${link}`;
-}
-
-function splitSkillValues(value: string) {
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
 }
 
 function listFromProfileValue(...values: unknown[]) {
@@ -151,13 +152,13 @@ function compactSurveyAnswers(answers: { question_code: string; answer_value: un
   return answers.filter((answer) => hasSurveyAnswerValue(answer.answer_value));
 }
 
-function fileToDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+function persistGuestSurveySyncDraft(payload: {
+  profile: Record<string, unknown>;
+  sectionAAnswers: { question_code: string; answer_value: unknown }[];
+  sectionSAnswers: { question_code: string; answer_value: unknown }[];
+}) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(GUEST_SURVEY_SYNC_KEY, JSON.stringify(payload));
 }
 
 type SurveyCityComboboxProps = {
@@ -486,6 +487,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [guestSurveyUnlocked, setGuestSurveyUnlocked] = useState(false);
+  const [showGuestAccountDialog, setShowGuestAccountDialog] = useState(false);
+  const [guestAccountReady, setGuestAccountReady] = useState(false);
+  const [isCreatingGuestAccount, setIsCreatingGuestAccount] = useState(false);
+  const [guestAccountError, setGuestAccountError] = useState("");
   const [registeredComp, setRegisteredComp] = useState<Record<string, boolean>>({});
   const [aiAnalysis, setAiAnalysis] = useState<TalentSurveyAnalysis | null>(null);
 
@@ -708,7 +714,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   const isStepValid = () => {
     if (step === 1) {
-      return true;
+      return formData.name.trim().length > 0 && formData.email.trim().length > 0;
     }
     if (step === 2) {
       return true;
@@ -727,13 +733,57 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   const goToStep = (nextStep: number, status: "draft" | "completed" | "analyzed" = "draft") => {
     const savedStep = clampSurveyStep(nextStep);
+    if (!isAuthenticated && savedStep === 4 && !guestSurveyUnlocked) {
+      return;
+    }
     setStep(savedStep);
     setMaxStep((prev) => Math.max(prev, savedStep));
     void saveTalentSurveyProgress(savedStep, status);
   };
 
-  const nextStep = () => {
+  const openGuestAccountDialog = async () => {
+    setGuestAccountError("");
+    setIsCreatingGuestAccount(true);
+
+    try {
+      await completeStep3GuestProfile({
+        formData,
+        avatarFile,
+        avatarDataUrl,
+        avatarPreviewUrl,
+        mediaUploads,
+        socialHighlights,
+        portfolioLinks,
+        socialAccounts,
+        guestAccountReady,
+      });
+      setGuestAccountReady(true);
+      setSubmitError("");
+      rememberSurveyGuestLogin(formData.email);
+      setShowGuestAccountDialog(true);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Không thể tạo tài khoản OnstageVN. Vui lòng thử lại.";
+      setGuestAccountError(message);
+      setSubmitError(message);
+    } finally {
+      setIsCreatingGuestAccount(false);
+    }
+  };
+
+  const handleContinueGuestSurvey = () => {
+    setGuestSurveyUnlocked(true);
+    setShowGuestAccountDialog(false);
+    setStep(4);
+    setMaxStep((prev) => Math.max(prev, 4));
+    void saveTalentSurveyProgress(4, "draft");
+  };
+
+  const nextStep = async () => {
     if (step < 4 && isStepValid()) {
+      if (!isAuthenticated && step === 3 && !guestSurveyUnlocked) {
+        await openGuestAccountDialog();
+        return;
+      }
       goToStep(step + 1);
     }
   };
@@ -987,6 +1037,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         ? await saveTalentProfileOrThrow(userProfile)
         : persistTalentProfile(userProfile);
 
+      if (!hasAuth) {
+        persistGuestProfileSyncDraft(userProfile);
+      }
+
       if (hasAuth && avatarFile && savedProfile.backendProfileId) {
         const uploadedAvatar = await uploadTalentPhoto(Number(savedProfile.backendProfileId), avatarFile, "avatar");
         if (uploadedAvatar.url) {
@@ -1017,7 +1071,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
       const experienceYears = parseInt(formData.experience.match(/\d+/)?.[0] || "0", 10);
 
-      await submitTalentSurvey("A", compactSurveyAnswers([
+      const sectionAAnswers = compactSurveyAnswers([
         { question_code: "A1", answer_value: parseFloat(formData.height) || 0 },
         { question_code: "B1", answer_value: experienceYears },
         { question_code: "C1", answer_value: getTotalFollowers() },
@@ -1029,12 +1083,26 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         { question_code: "P5", answer_value: socialHighlights },
         { question_code: "P6", answer_value: portfolioLinks },
         { question_code: "P7", answer_value: socialAccounts },
-      ]));
-      await submitTalentSurvey("S", compactSurveyAnswers(surveyQuestionAnswers));
-      const aiResult = await analyzeTalentSurvey().catch((error) => {
-        console.warn(error);
-        return null;
-      });
+      ]);
+      const sectionSAnswers = compactSurveyAnswers(surveyQuestionAnswers);
+
+      if (hasAuth) {
+        await submitTalentSurvey("A", sectionAAnswers);
+        await submitTalentSurvey("S", sectionSAnswers);
+      } else {
+        persistGuestSurveySyncDraft({
+          profile: userProfile,
+          sectionAAnswers,
+          sectionSAnswers,
+        });
+      }
+
+      const aiResult = hasAuth
+        ? await analyzeTalentSurvey().catch((error) => {
+          console.warn(error);
+          return null;
+        })
+        : null;
 
       setAiAnalysis(aiResult);
 
@@ -1061,6 +1129,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
       void saveTalentSurveyProgress(5, "analyzed");
       setIsSubmitted(true);
+      if (!hasAuth) {
+        setGuestAccountReady(true);
+        rememberSurveyGuestLogin(formData.email);
+        setShowGuestAccountDialog(true);
+      }
     } catch (error) {
       console.error("Error submitting survey:", error);
       setSubmitError(error instanceof Error ? error.message : "Không lưu được thông tin khảo sát vào cơ sở dữ liệu.");
@@ -1164,6 +1237,16 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     };
   }
 
+  const handleResultPrimaryAction = () => {
+    if (isAuthenticated) {
+      router.push("/talent/portfolio");
+      return;
+    }
+
+    rememberSurveyGuestLogin(formData.email);
+    router.push("/auth/login?redirect=/talent/portfolio");
+  };
+
   if (isSubmitted) {
     const fallbackJobs = JOBS_LIST.map((job) => {
       const matchScore = Math.round(
@@ -1211,20 +1294,43 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
         {/* Back to history button row */}
         {onBackToDashboard && (
-          <div className="flex justify-between items-start pb-4 border-b border-white/5 mb-6">
+          <div className="flex flex-col gap-3 pb-4 border-b border-white/5 mb-6 md:flex-row md:items-center md:justify-between">
             <div className="flex h-11 items-center">
               <div className="text-[10px] md:text-[11px] font-bold text-slate-500 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 leading-none">
                 Thời gian: {results.date || "Vừa thực hiện"}
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={onBackToDashboard}
-              className="flex items-center gap-1.5 text-[11px] md:text-xs font-black uppercase tracking-wider text-[#070913] bg-gradient-to-r from-amber-200 via-amber-300 to-amber-500 hover:brightness-105 hover:scale-[1.02] active:scale-98 transition-all cursor-pointer px-4 py-2.5 rounded-xl border border-amber-400/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-            >
-              <ArrowLeft className="h-3.5 w-3.5 stroke-[3]" /> Quay lại
-            </button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={onBackToDashboard}
+                className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-400/30 bg-gradient-to-r from-amber-200 via-amber-300 to-amber-500 px-4 text-[11px] font-black uppercase tracking-wider text-[#070913] shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all hover:scale-[1.02] hover:brightness-105 active:scale-98 md:text-xs"
+              >
+                <ArrowLeft className="h-3.5 w-3.5 stroke-[3]" /> Quay lại
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAiAnalysis(null);
+                  setIsSubmitted(false);
+                  goToStep(1);
+                  setMaxStep(1);
+                  setActiveSurveyQIdx(0);
+                  setSurveyAnswers({});
+                }}
+                className="flex h-10 items-center justify-center rounded-xl border border-white/10 bg-transparent px-4 font-display text-[11px] font-bold text-slate-300 transition-all hover:bg-white/5 hover:text-white md:text-xs"
+              >
+                Làm lại bài khảo sát
+              </button>
+              <button
+                type="button"
+                onClick={handleResultPrimaryAction}
+                className="flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 px-4 font-display text-[11px] font-bold text-[#070913] shadow-lg transition-all hover:brightness-105 active:scale-98 md:text-xs"
+              >
+                {isAuthenticated ? "Chuyển đến hồ sơ cá nhân" : "Đăng nhập ngay"} <ArrowRight className="ml-1.5 h-4 w-4" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -1312,39 +1418,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 )}
               </div>
 
-              <div className="space-y-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAiAnalysis(null);
-                    setIsSubmitted(false);
-                    goToStep(1);
-                    setMaxStep(1);
-                    setActiveSurveyQIdx(0);
-                    setSurveyAnswers({});
-                  }}
-                  className="flex h-11 w-full items-center justify-center rounded-xl border border-white/10 bg-transparent hover:bg-white/5 hover:text-white font-display text-xs font-bold text-slate-300 transition-all cursor-pointer"
-                >
-                  Làm lại bài khảo sát
-                </button>
-                <button
-                  type="button"
-                  onClick={() => router.push("/talent/portfolio")}
-                  className="flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-600 font-display text-xs font-bold text-[#070913] shadow-lg hover:shadow-amber-500/10 hover:brightness-105 active:scale-98 transition-all cursor-pointer"
-                >
-                  Chuyển đến hồ sơ cá nhân <ArrowRight className="ml-1.5 h-4 w-4" />
-                </button>
-
-                <div className="text-center pt-1">
-                  <button
-                    type="button"
-                    onClick={() => router.push("/talent/jobs")}
-                    className="text-[11px] md:text-xs text-slate-500 hover:text-slate-300 underline transition-colors cursor-pointer"
-                  >
-                    Về trang chủ Dashboard
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -1503,7 +1576,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             {[1, 2, 3, 4].map((s) => {
               const isCurrent = s === step;
               const isPast = s < step;
-              const isClickable = true;
+              const isLockedGuestSurveyStep = !isAuthenticated && !guestSurveyUnlocked && s === 4;
+              const isClickable = !isLockedGuestSurveyStep;
 
               const stepNames = [
                 "Thông tin",
@@ -1516,6 +1590,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 <button
                   type="button"
                   key={s}
+                  disabled={!isClickable}
                   onClick={() => goToStep(s)}
                   className={cn(
                     "flex flex-col items-center transition-all duration-300 relative group focus:outline-none",
@@ -1534,7 +1609,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                           ? "bg-[#070913] border-amber-400/50 text-amber-300/80 hover:border-amber-400 hover:text-amber-300 hover:scale-105 hover:shadow-[0_0_10px_rgba(245,158,11,0.2)]"
                           : "bg-[#070913] border-white/10 text-slate-500"
                   )}>
-                    {isPast ? <Check className="h-4 w-4 stroke-[3.5]" /> : s}
+                    {isLockedGuestSurveyStep ? <Lock className="h-3.5 w-3.5 stroke-[3]" /> : isPast ? <Check className="h-4 w-4 stroke-[3.5]" /> : s}
 
                     {/* Ring highlight animation on active step */}
                     {isCurrent && (
@@ -1606,12 +1681,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             {/* Right: Inputs */}
             <div className="md:col-span-8 grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Họ và tên</label>
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Họ và tên <span className="text-amber-300">*</span></label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
+                  required
                   className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
                   placeholder="Nhập họ và tên"
                 />
@@ -1638,20 +1714,21 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               </div>
 
               <div className="col-span-2 space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Email liên hệ</label>
+                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Email liên hệ <span className="text-amber-300">*</span></label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   disabled={isAuthenticated}
+                  required
                   className={cn(
                     "w-full rounded-xl border border-white/20 bg-slate-900/60 px-4 py-3 text-xs text-white transition-all placeholder-slate-400 font-medium",
                     isAuthenticated
                       ? "cursor-not-allowed opacity-70"
                       : "hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
                   )}
-                  placeholder="maianh@gmail.com"
+                  placeholder="onstagevn-idol@gmail.com"
                 />
               </div>
 
@@ -2212,101 +2289,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               </div>
             </div>
 
-            {/* Right: Media upload zones (Portfolio book, Intro video) – HIDDEN, code preserved */}
-            {/* COMMENTED OUT: Phần tải lên Portfolio/CV và Video Giới Thiệu – ẩn khỏi UI, giữ nguyên code */}
-            {/* <div className="md:col-span-6 space-y-3.5">
-              <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Hồ Sơ Năng Lực (Media Uploads)</span>
-              
-              <div className="grid grid-cols-2 gap-3.5">
-                {/* Portfolio images / CV zone */}
-            {/* <div 
-                  onClick={() => handleFileUploadClick("portfolio")}
-                  className={cn(
-                    "rounded-xl border border-dashed p-5 cursor-pointer text-center transition-all duration-300 relative overflow-hidden group aspect-[9/16] w-full flex flex-col justify-center items-center",
-                    mediaUploads.portfolio ? "border-emerald-400 bg-emerald-500/10" : "border-white/20 bg-slate-900/60 hover:border-amber-400 hover:bg-slate-900"
-                  )}
-                >
-                  <input
-                    ref={portfolioInputRef}
-                    type="file"
-                    accept=".pdf,.zip,.doc,.docx"
-                    className="hidden"
-                    onChange={(event) => handleFileSelection("portfolio", event)}
-                  />
-                  {portfolioPreviewUrl ? (
-                    <iframe
-                      src={portfolioPreviewUrl}
-                      title="Xem trước Portfolio / CV"
-                      className="absolute inset-0 h-full w-full border-0 bg-white"
-                    />
-                  ) : (
-                    <>
-                      <FileText className={cn("h-7 w-7 mx-auto mb-2", mediaUploads.portfolio ? "text-emerald-400 animate-pulse" : "text-slate-400 group-hover:text-amber-300 transition-colors")} />
-                      <span className="block text-[11px] md:text-xs text-slate-100 font-extrabold truncate">Portfolio / CV *</span>
-                      <span className="block text-[7.5px] text-slate-400 mt-1">
-                        Tải lên tệp PDF/ZIP/DOCX
-                      </span>
-                    </>
-                  )}
-                  {mediaUploads.portfolio && portfolioPreviewUrl && (
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleClearUploadedFile("portfolio");
-                      }}
-                      className="absolute top-2 right-2 z-20 rounded-full border border-rose-300/70 bg-rose-600 px-2.5 py-1 text-[10px] md:text-[11px] font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.45)] backdrop-blur-sm transition-colors hover:bg-rose-500 hover:border-rose-200"
-                    >
-                      Xóa
-                    </button>
-                  )}
-                </div> */}
-
-            {/* Intro video zone (Optional) */}
-            {/* <div 
-                  onClick={() => handleFileUploadClick("introVideo")}
-                  className={cn(
-                    "rounded-xl border border-dashed p-5 cursor-pointer text-center transition-all duration-300 relative overflow-hidden group aspect-[9/16] w-full flex flex-col justify-center items-center",
-                    mediaUploads.introVideo ? "border-emerald-400 bg-emerald-500/10" : "border-white/20 bg-slate-900/60 hover:border-amber-400 hover:bg-slate-900"
-                  )}
-                >
-                  <input
-                    ref={introVideoInputRef}
-                    type="file"
-                    accept="video/*"
-                    className="hidden"
-                    onChange={(event) => handleFileSelection("introVideo", event)}
-                  />
-                  {introVideoPreviewUrl ? (
-                    <video
-                      src={introVideoPreviewUrl}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      controls
-                    />
-                  ) : (
-                    <>
-                      <Video className={cn("h-7 w-7 mx-auto mb-2", mediaUploads.introVideo ? "text-emerald-400 animate-pulse" : "text-slate-500 group-hover:text-amber-400 transition-colors")} />
-                      <span className="block text-[11px] md:text-xs text-slate-100 font-extrabold truncate">Video Giới Thiệu</span>
-                      <span className="block text-[7.5px] text-slate-400 mt-1">
-                        Tải lên tệp MP4 (Không bắt buộc)
-                      </span>
-                    </>
-                  )}
-                  {mediaUploads.introVideo && introVideoPreviewUrl && (
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleClearUploadedFile("introVideo");
-                      }}
-                      className="absolute top-2 right-2 z-20 rounded-full border border-rose-300/70 bg-rose-600 px-2.5 py-1 text-[10px] md:text-[11px] font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.45)] backdrop-blur-sm transition-colors hover:bg-rose-500 hover:border-rose-200"
-                    >
-                      Xóa
-                    </button>
-                  )}
-                </div> */}
-            {/* </div>
-            </div> */}
           </div>
         )}
 
@@ -2510,15 +2492,23 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             <button
               type="button"
               onClick={nextStep}
-              disabled={!isStepValid()}
+              disabled={!isStepValid() || isCreatingGuestAccount}
               className={cn(
                 "flex h-11 flex-1 items-center justify-center rounded-xl font-display text-xs md:text-[13px] font-black transition-all gap-1.5 cursor-pointer shadow-md",
-                isStepValid()
+                isStepValid() && !isCreatingGuestAccount
                   ? "bg-gradient-to-r from-amber-300 to-yellow-500 text-slate-950 hover:brightness-110"
                   : "bg-[#131936] text-slate-450 border border-white/10 cursor-not-allowed"
               )}
             >
-              Tiếp Tục <ArrowRight className="h-3.5 w-3.5" />
+              {isCreatingGuestAccount ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tạo tài khoản...
+                </>
+              ) : (
+                <>
+                  Tiếp Tục <ArrowRight className="h-3.5 w-3.5" />
+                </>
+              )}
             </button>
           </div>
         )}
@@ -2526,6 +2516,17 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         {/* Final Submit action button – hidden at step 4, handled inline in survey nav */}
 
       </form>
+
+      {showGuestAccountDialog && (
+        <Step3Dialog
+          email={formData.email}
+          error={guestAccountError}
+          showContinueSurvey={!isSubmitted}
+          onClose={() => setShowGuestAccountDialog(false)}
+          onContinueSurvey={handleContinueGuestSurvey}
+        />
+      )}
     </div>
   );
 }
+

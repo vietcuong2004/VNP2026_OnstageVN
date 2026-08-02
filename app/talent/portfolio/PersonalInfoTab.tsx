@@ -65,6 +65,37 @@ function getStringList(value: unknown) {
   return Array.from(new Set(list.map((item) => String(item).trim()).filter(Boolean)));
 }
 
+function hasBasicProfileData(profile: any) {
+  const textFields = [
+    profile?.name,
+    profile?.display_name,
+    profile?.location,
+    profile?.city,
+    profile?.height,
+    profile?.weight,
+    profile?.price,
+    profile?.experienceText,
+    profile?.bio,
+  ];
+
+  const listFields = [
+    profile?.talentTypes,
+    profile?.skills,
+    profile?.specialSkills,
+    profile?.socialHighlights,
+    profile?.portfolioLinks,
+    profile?.socialAccounts,
+  ];
+
+  return (
+    textFields.some((value) => {
+      const text = String(value ?? "").trim();
+      return text && text !== "Chưa cập nhật" && text !== "Chua cap nhat";
+    }) ||
+    listFields.some((value) => Array.isArray(value) && value.length > 0)
+  );
+}
+
 interface ContactInfoCardProps {
   profile: any;
 }
@@ -1052,7 +1083,7 @@ export default function PersonalInfoTab({
     );
   };
 
-  if (!profile.isOnboarded) {
+  if (!profile.isOnboarded && !hasBasicProfileData(profile)) {
     return (
       <div className="flex flex-col items-center justify-center text-center p-8 py-16 rounded-3xl border border-white/10 bg-[#08090f] shadow-2xl relative overflow-hidden backdrop-blur-xl min-h-[50vh] max-w-xl mx-auto w-full animate-in fade-in duration-500">
         <div className="absolute top-0 right-0 -z-10 h-32 w-32 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
@@ -1817,4 +1848,3 @@ export default function PersonalInfoTab({
     </div>
   );
 }
-
