@@ -29,9 +29,9 @@ import {
   type TalentSurveyHistoryEntry,
 } from "@/lib/talent-api";
 import { getAuthToken } from "@/lib/api-client";
+import { SPECIALTY_PRESET_GROUPS, SOCIAL_HIGHLIGHT_PRESET_GROUPS, flattenTalentPresetOptions } from "@/lib/talent-profile-presets";
 import {
   CITY_OPTIONS,
-  CONTENT_SKILL_VALUES,
   TALENT_TYPE_VALUES,
   normalizeTalentTypeLabel,
   normalizeTalentTypeList,
@@ -76,14 +76,7 @@ const SURVEY_STEP_COUNT = ORIENTATION_SURVEY_ENABLED ? 4 : 3;
 const SURVEY_STEPS = ORIENTATION_SURVEY_ENABLED ? [1, 2, 3, 4] : [1, 2, 3];
 
 const talentTypeOptions = TALENT_TYPE_VALUES;
-const contentSkillSuggestions = CONTENT_SKILL_VALUES;
 const GUEST_SURVEY_SYNC_KEY = "vnp_guest_survey_sync";
-const socialHighlightSuggestions = [
-  "50K+ Followers",
-  "10K+ Viewers",
-  "1000+ Followers",
-  "4000+ Likes",
-];
 
 function portfolioHref(link: string): string {
   return /^https?:\/\//i.test(link) ? link : `https://${link}`;
@@ -2212,97 +2205,91 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   />
                 </div>
 
-                <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                  <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
-                    Loại hình Idol
-                  </label>
-                  <SurveyOptionCombobox
-                    value=""
-                    placeholder="Thêm loại hình Idol..."
-                    options={talentTypeOptions.filter((type) => !formData.talentTypes.includes(type))}
-                    onChange={handleAddTalentType}
-                  />
-                  <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
-                    {formData.talentTypes.length === 0 ? (
-                      <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-amber-300">
-                        <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa chọn loại hình nào
-                      </span>
-                    ) : (
-                      formData.talentTypes.map((type) => (
-                        <span key={type} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
-                          {type}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTalentType(type)}
-                            className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
-                        </span>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                  <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
-                    Lĩnh vực nội dung / kỹ năng chuyên sâu
-                  </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {contentSkillSuggestions
-                      .filter((skill) => !splitSkillValues(formData.skills).includes(skill))
-                      .map((skill) => (
-                        <button
-                          key={skill}
-                          type="button"
-                          onClick={() => handleAddContentSkill(skill)}
-                          className="px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer bg-white/5 hover:bg-amber-400/20 border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300"
-                        >
-                          <Plus className="h-3 w-3" /> {skill}
-                        </button>
-                      ))}
-                  </div>
-                  <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
-                    <input
-                      type="text"
-                      value={skillInput}
-                      onChange={(event) => setSkillInput(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          event.preventDefault();
-                          handleAddContentSkill(skillInput);
-                        }
-                      }}
-                      placeholder="Ví dụ: Beauty, Food, Thời trang..."
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none md:col-span-9"
+                <div className="space-y-5 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                  <div className="space-y-3">
+                    <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                      Loại hình Idol
+                    </label>
+                    <SurveyOptionCombobox
+                      value=""
+                      placeholder="Thêm loại hình Idol..."
+                      options={talentTypeOptions.filter((type) => !formData.talentTypes.includes(type))}
+                      onChange={handleAddTalentType}
                     />
-                    <button
-                      type="button"
-                      onClick={() => handleAddContentSkill(skillInput)}
-                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all md:col-span-3"
-                    >
-                      <Plus className="h-4 w-4" /> Thêm
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
-                    {splitSkillValues(formData.skills).length === 0 ? (
-                      <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-amber-300">
-                        <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm lĩnh vực nào
-                      </span>
-                    ) : (
-                      splitSkillValues(formData.skills).map((skill) => (
-                        <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
-                          {skill}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveContentSkill(skill)}
-                            className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
+                    <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
+                      {formData.talentTypes.length === 0 ? (
+                        <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-amber-300">
+                          <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa chọn loại hình nào
                         </span>
-                      ))
-                    )}
+                      ) : (
+                        formData.talentTypes.map((type) => (
+                          <span key={type} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                            {type}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTalentType(type)}
+                              className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </span>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 border-t border-white/10 pt-4">
+                    <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                      Lĩnh vực nội dung / kỹ năng chuyên sâu
+                    </label>
+                    <SurveyOptionCombobox
+                      value=""
+                      placeholder="Thêm lĩnh vực / kỹ năng..."
+                      options={flattenTalentPresetOptions(SPECIALTY_PRESET_GROUPS, formData.talentTypes).filter((skill) => !splitSkillValues(formData.skills).includes(skill))}
+                      onChange={handleAddContentSkill}
+                    />
+                    <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                      <input
+                        type="text"
+                        value={skillInput}
+                        onChange={(event) => setSkillInput(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            handleAddContentSkill(skillInput);
+                          }
+                        }}
+                        placeholder="Nhập lĩnh vực khác nếu chưa có trong danh sách"
+                        className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none md:col-span-9"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddContentSkill(skillInput)}
+                        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all md:col-span-3"
+                      >
+                        <Plus className="h-4 w-4" /> Thêm
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
+                      {splitSkillValues(formData.skills).length === 0 ? (
+                        <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-amber-300">
+                          <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm lĩnh vực nào
+                        </span>
+                      ) : (
+                        splitSkillValues(formData.skills).map((skill) => (
+                          <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                            {skill}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveContentSkill(skill)}
+                              className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </span>
+                        ))
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -2372,43 +2359,38 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   )}
                 </div>
 
-                <div className="order-1 flex flex-wrap gap-1.5">
-                  {socialHighlightSuggestions
-                    .filter((item) => !socialHighlights.includes(item))
-                    .map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => handleAddSocialHighlight(item)}
-                        className="flex cursor-pointer items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold text-slate-300 transition-all hover:border-amber-400/40 hover:bg-amber-400/20 hover:text-amber-300"
-                      >
-                        <Plus className="h-3 w-3" /> {item}
-                      </button>
-                    ))}
+                <div className="order-1">
+                  <SurveyOptionCombobox
+                    value=""
+                    placeholder="Thêm chỉ số / thành tựu nổi bật..."
+                    options={flattenTalentPresetOptions(SOCIAL_HIGHLIGHT_PRESET_GROUPS, formData.talentTypes).filter((item) => !socialHighlights.includes(item))}
+                    onChange={handleAddSocialHighlight}
+                  />
+                  <div className="mt-3 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                    <input
+                      type="text"
+                      value={socialHighlightInput}
+                      onChange={(event) => setSocialHighlightInput(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          handleAddSocialHighlight(socialHighlightInput);
+                        }
+                      }}
+                      placeholder="Nhập chỉ số hoặc thành tựu khác nếu chưa có trong danh sách"
+                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none md:col-span-9"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAddSocialHighlight(socialHighlightInput)}
+                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all md:col-span-3"
+                    >
+                      <Plus className="h-4 w-4" /> Thêm
+                    </button>
+                  </div>
                 </div>
 
-                <div className="order-2 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
-                  <input
-                    type="text"
-                    value={socialHighlightInput}
-                    onChange={(event) => setSocialHighlightInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        handleAddSocialHighlight(socialHighlightInput);
-                      }
-                    }}
-                    placeholder="Ví dụ: 50K+ Followers, 11K+ Viewers..."
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none md:col-span-9"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleAddSocialHighlight(socialHighlightInput)}
-                    className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all md:col-span-3"
-                  >
-                    <Plus className="h-4 w-4" /> Thêm
-                  </button>
-                </div>
+
               </div>
 
               <div className="hidden" />
@@ -2458,6 +2440,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       placeholder="https://..."
                       className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
                     />
+
                   </div>
                   <div className="md:col-span-3">
                     <button
