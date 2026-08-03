@@ -7,7 +7,6 @@ import {
   ChevronDown,
   LogIn,
   LogOut,
-  Search,
   Settings,
   ShieldAlert,
 } from "lucide-react";
@@ -296,15 +295,28 @@ export default function Header() {
           </button>
         </div>
 
-        <div className="ml-4 hidden md:flex max-w-md flex-1 items-center gap-4">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm Idol, chiến dịch, giao dịch..."
-              className="w-full rounded-xl border border-white/5 bg-slate-900/30 py-2 pl-9 pr-4 text-xs text-white transition-all focus:border-amber-400/50 focus:bg-slate-900/50 focus:outline-none"
-            />
-          </div>
+        <div className="ml-6 hidden md:flex items-center gap-6">
+          {[
+            { label: "Idol", href: "/brand/search" },
+            { label: "Cơ hội việc làm", href: "/talent/jobs" },
+            { label: "Về chúng tôi", href: "/about" },
+          ].map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
+            return (
+              <button
+                key={item.href}
+                type="button"
+                onClick={() => router.push(item.href)}
+                className={`text-[10px] md:text-[11px] font-display font-black uppercase tracking-widest transition-all duration-300 cursor-pointer ${
+                  isActive
+                    ? "text-amber-300 underline decoration-amber-400 decoration-[2px] underline-offset-6"
+                    : "text-slate-400 hover:text-amber-300"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-2 md:gap-6">

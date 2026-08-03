@@ -884,7 +884,7 @@ export default function BrandTalentProfilePage() {
                         title="Xem chi tiết phân hạng"
                       >
                         <IconComponent className="h-3 w-3 shrink-0" />
-                        <span>Tier {tier}</span>
+                        <span>Hạng {tier}</span>
                         <span className="ml-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-[8px] font-black transition-colors">
                           ?
                         </span>

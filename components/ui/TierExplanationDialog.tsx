@@ -59,7 +59,7 @@ export default function TierExplanationDialog({ isOpen, onClose }: TierExplanati
                 </span>
               </div>
               <span className="block text-base font-black text-white tracking-wide">
-                TIER S
+                HẠNG S
               </span>
               <p className="mt-1 text-[10.5px] text-slate-300 leading-normal">
                 Hoa hậu Quốc gia, Ngôi sao hạng S, Nghệ sĩ nổi tiếng có sức ảnh hưởng cực lớn.
@@ -80,7 +80,7 @@ export default function TierExplanationDialog({ isOpen, onClose }: TierExplanati
                 </span>
               </div>
               <span className="block text-base font-black text-white tracking-wide">
-                TIER A
+                HẠNG A
               </span>
               <p className="mt-1 text-[10.5px] text-slate-300 leading-normal">
                 Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP sự kiện tầm cỡ.
@@ -101,7 +101,7 @@ export default function TierExplanationDialog({ isOpen, onClose }: TierExplanati
                 </span>
               </div>
               <span className="block text-base font-black text-white tracking-wide">
-                TIER B
+                HẠNG B
               </span>
               <p className="mt-1 text-[10.5px] text-slate-300 leading-normal">
                 Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp.
@@ -122,7 +122,7 @@ export default function TierExplanationDialog({ isOpen, onClose }: TierExplanati
                 </span>
               </div>
               <span className="block text-base font-black text-white tracking-wide">
-                TIER C
+                HẠNG C
               </span>
               <p className="mt-1 text-[10.5px] text-slate-300 leading-normal">
                 Người mẫu tự do mới vào nghề, diễn viên phụ, PG/PB sự kiện đại trà, tiềm năng phát triển.

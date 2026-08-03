@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookmarkCheck } from "lucide-react";
 import {
@@ -14,6 +14,7 @@ import {
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import TalentCard from "@/components/TalentCard";
+import TalentCardMobile from "@/components/TalentCardMobile";
 
 type ToastItem = {
   id: string;
@@ -200,26 +201,43 @@ export default function BrandShortlistsPage() {
               const isAddingToBrand = addingBrandTalentIds.includes(String(talent.id));
 
               return (
-                <TalentCard
-                  key={talent.id}
-                  talent={talent}
-                  status={talent.availabilityStatus ?? "maybe"}
-                  isSaved={isSaved}
-                  onToggleSaved={(item) => void removeTalent(String(item.id))}
-                  onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/shortlists`)}
-                  onMessage={(item) => void addTalentToBrand(String(item.id))}
-                  onRemoveFromBrand={(item) => void removeTalentFromBrand(String(item.id))}
-                  messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào Brand"}
-                  messageDisabled={isInBrand}
-                  messageLoading={isAddingToBrand}
-                  showMessageIcon
-                />
+                <React.Fragment key={talent.id}>
+                  {/* Desktop Card */}
+                  <TalentCard
+                    talent={talent}
+                    status={talent.availabilityStatus ?? "maybe"}
+                    isSaved={isSaved}
+                    onToggleSaved={(item) => void removeTalent(String(item.id))}
+                    onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/shortlists`)}
+                    onMessage={(item) => void addTalentToBrand(String(item.id))}
+                    onRemoveFromBrand={(item) => void removeTalentFromBrand(String(item.id))}
+                    messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào Brand"}
+                    messageDisabled={isInBrand}
+                    messageLoading={isAddingToBrand}
+                    showMessageIcon
+                    className="hidden md:flex"
+                  />
+                  {/* Mobile Landscape Card */}
+                  <TalentCardMobile
+                    talent={talent}
+                    status={talent.availabilityStatus ?? "maybe"}
+                    isSaved={isSaved}
+                    onToggleSaved={(item) => void removeTalent(String(item.id))}
+                    onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/shortlists`)}
+                    onMessage={(item) => void addTalentToBrand(String(item.id))}
+                    onRemoveFromBrand={(item) => void removeTalentFromBrand(String(item.id))}
+                    messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào Brand"}
+                    messageDisabled={isInBrand}
+                    messageLoading={isAddingToBrand}
+                    showMessageIcon
+                    className="flex md:hidden"
+                  />
+                </React.Fragment>
               );
             })}
           </div>
         )}
       </section>
-
       <div className="pointer-events-none fixed bottom-6 right-6 z-[70] flex w-full max-w-sm flex-col gap-2 px-4 sm:px-0">
         {toasts.map((toast) => (
           <div

@@ -25,7 +25,9 @@ import { getStoredAuthUser } from "@/lib/api-client";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
+import React from "react";
 import TalentCard from "@/components/TalentCard";
+import TalentCardMobile from "@/components/TalentCardMobile";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
 const nextActions = [
@@ -385,21 +387,38 @@ export default function BrandDashboard() {
                 const status = getRecommendedTalentStatus(talent.id);
 
                 return (
-                  <TalentCard
-                    key={talent.id}
-                    talent={talent}
-                    avatar={avatar}
-                    status={status}
-                    isSaved={isSaved}
-                    experienceLabel="short"
-                    onToggleSaved={(item) => toggleSaved(item.id)}
-                    onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
-                    onMessage={(item) => {
-                      if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
-                      router.push(`/brand/messages?talentId=${item.id}`);
-                    }}
-                    messageLabel="Nhắn tin"
-                  />
+                  <React.Fragment key={talent.id}>
+                    <TalentCard
+                      talent={talent}
+                      avatar={avatar}
+                      status={status}
+                      isSaved={isSaved}
+                      experienceLabel="short"
+                      onToggleSaved={(item) => toggleSaved(item.id)}
+                      onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
+                      onMessage={(item) => {
+                        if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
+                        router.push(`/brand/messages?talentId=${item.id}`);
+                      }}
+                      messageLabel="Nhắn tin"
+                      className="hidden md:flex"
+                    />
+                    <TalentCardMobile
+                      talent={talent}
+                      avatar={avatar}
+                      status={status}
+                      isSaved={isSaved}
+                      experienceLabel="short"
+                      onToggleSaved={(item) => toggleSaved(item.id)}
+                      onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
+                      onMessage={(item) => {
+                        if (!requireAuthAction({ actionLabel: "Nhắn tin với talent" })) return;
+                        router.push(`/brand/messages?talentId=${item.id}`);
+                      }}
+                      messageLabel="Nhắn tin"
+                      className="flex md:hidden"
+                    />
+                  </React.Fragment>
                 );
               })}
             </div>

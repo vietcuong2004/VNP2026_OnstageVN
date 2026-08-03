@@ -106,8 +106,10 @@ export type LoadBrandTalentsOptions = {
   perPage?: number;
   sort?: string;
   q?: string;
-  type?: string;
+  type?: string | string[];
   city?: string;
+  nearCity?: string;
+  nearDistrict?: string;
   gender?: string;
   minAge?: number;
   maxAge?: number;
@@ -1106,8 +1108,15 @@ function buildTalentSearchParams(options: LoadBrandTalentsOptions = {}) {
   params.set("sort", options.sort ?? "match");
 
   if (options.q?.trim()) params.set("q", options.q.trim());
-  if (options.type?.trim()) params.set("type", options.type.trim());
+  const talentTypes = Array.isArray(options.type)
+    ? options.type
+    : options.type?.split(",") ?? [];
+  talentTypes.map((type) => type.trim()).filter(Boolean).forEach((type) => {
+    params.append("type[]", type);
+  });
   if (options.city?.trim()) params.set("city", options.city.trim());
+  if (options.nearCity?.trim()) params.set("near_city", options.nearCity.trim());
+  if (options.nearDistrict?.trim()) params.set("near_district", options.nearDistrict.trim());
   if (options.gender?.trim()) params.set("gender", options.gender.trim());
   if (options.minAge) params.set("min_age", String(options.minAge));
   if (options.maxAge) params.set("max_age", String(options.maxAge));

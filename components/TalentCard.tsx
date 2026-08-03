@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
-import { Check, CheckCircle2, Eye, Heart, Loader2, MapPin, Trash2, UserPlus } from "lucide-react";
+import { Check, CheckCircle2, Eye, Heart, Loader2, MapPin, Trash2, UserPlus, Crown, Trophy, Star, Award } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
 export type TalentAvailabilityStatus = "available" | "busy" | "maybe" | string | null | undefined;
 
-type TalentCardProps = {
+export type TalentCardProps = {
   talent: any;
   avatar?: string;
   status?: TalentAvailabilityStatus;
@@ -29,7 +29,7 @@ type TalentCardProps = {
   className?: string;
 };
 
-function getTalentTypes(talent: any): string[] {
+export function getTalentTypes(talent: any): string[] {
   const normalizeType = (type: unknown) => {
     const value = String(type).trim();
     return ["pg", "pb", "pg/pb"].includes(value.toLowerCase()) ? "PG/PB" : value;
@@ -54,7 +54,7 @@ function getTalentTypes(talent: any): string[] {
   return talent?.type ? [String(talent.type)] : [];
 }
 
-function getTalentTypeLabel(type: string) {
+export function getTalentTypeLabel(type: string) {
   const normalized = type.trim().toLowerCase();
   if (normalized === "kols") return "KOL";
   if (normalized === "kocs") return "KOC";
@@ -62,12 +62,12 @@ function getTalentTypeLabel(type: string) {
   return type;
 }
 
-function getStringList(value: unknown): string[] {
+export function getStringList(value: unknown): string[] {
   const list = Array.isArray(value) ? value : value ? [value] : [];
   return Array.from(new Set(list.map((item) => String(item).trim()).filter(Boolean)));
 }
 
-function getStatusLabel(status: TalentAvailabilityStatus) {
+export function getStatusLabel(status: TalentAvailabilityStatus) {
   if (status === "available") return "Rảnh";
   if (status === "busy") return "Bận";
   return "Chưa có lịch";
@@ -154,11 +154,7 @@ export default function TalentCard({
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
-          <div className="absolute left-2 top-2 flex flex-col gap-1.5">
-            <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[9px] font-black uppercase text-slate-950 shadow-md">
-              Hạng {talent?.tier || "-"}
-            </span>
-          </div>
+
 
           {onMessage ? (
             <button
@@ -200,27 +196,29 @@ export default function TalentCard({
             </button>
           ) : null}
 
-          <div className="absolute bottom-2 left-2">
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 rounded border bg-[#0F1115]/80 px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white backdrop-blur-sm",
-                status === "available" && "border-emerald-500/30 text-emerald-400",
-                status === "busy" && "border-red-500/30 text-red-400",
-                status === "maybe" && "border-yellow-500/30 text-yellow-400"
-              )}
-            >
+          {status && status !== "maybe" && (
+            <div className="absolute bottom-2 left-2">
               <span
                 className={cn(
-                  "h-1.5 w-1.5 rounded-full",
-                  status === "available" && "bg-emerald-400",
-                  status === "busy" && "bg-red-400",
-                  status === "maybe" && "bg-yellow-400"
+                  "inline-flex items-center gap-1 rounded border bg-[#0F1115]/80 px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white backdrop-blur-sm",
+                  status === "available" && "border-emerald-500/30 text-emerald-400",
+                  status === "busy" && "border-red-500/30 text-red-400"
                 )}
-              />
-              {getStatusLabel(status)}
-            </span>
-          </div>
+              >
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    status === "available" && "bg-emerald-400",
+                    status === "busy" && "bg-red-400"
+                  )}
+                />
+                {getStatusLabel(status)}
+              </span>
+            </div>
+          )}
         </div>
+
+
 
         <div className="min-w-0 space-y-2">
           <div className="flex min-w-0 items-center gap-1.5">

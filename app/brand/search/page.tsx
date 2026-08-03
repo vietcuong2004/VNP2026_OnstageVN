@@ -1,22 +1,24 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ArrowLeft,
   ArrowUpDown,
-  BookmarkCheck,
   Building2,
   Check,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
   Filter,
+  Heart,
   Loader2,
+  Locate,
   Lock,
   LogOut,
   MapPin,
   Plus,
+  RefreshCw,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -28,6 +30,7 @@ import {
   X,
 } from "lucide-react";
 import TalentCard from "@/components/TalentCard";
+import TalentCardMobile from "@/components/TalentCardMobile";
 import { cn } from "@/lib/utils";
 import {
   CITY_VALUES,
@@ -40,9 +43,11 @@ import {
   addBrandRosterTalent,
   createBrandWishlist,
   loadBrandCampaigns,
+  loadBrandPartnerProfile,
   loadBrandRosterTalents,
   loadBrandTalentsPage,
   loadBrandWishlists,
+  mapBackendPartnerProfile,
   removeBrandRosterTalent,
   removeTalentFromWishlist,
 } from "@/lib/brand-api";
@@ -52,19 +57,65 @@ const TALENTS_PER_PAGE = 24;
 const TALENT_PAGES_PER_RESULT_PAGE = 2;
 const TALENTS_PER_RESULT_PAGE = TALENTS_PER_PAGE * TALENT_PAGES_PER_RESULT_PAGE;
 
-type TalentSortOption = "name_asc" | "name_desc" | "newest" | "oldest";
+type TalentSortOption = "near_me" | "rating" | "newest" | "oldest" | "name_asc" | "name_desc";
 
 const TALENT_SORT_OPTIONS: Array<{ value: TalentSortOption; label: string }> = [
-  { value: "name_asc", label: "Theo tên từ A - Z" },
-  { value: "name_desc", label: "Theo tên từ Z - A" },
+  { value: "near_me", label: "Gần tôi" },
+  { value: "rating", label: "Hạng cao nhất" },
   { value: "newest", label: "Mới nhất" },
   { value: "oldest", label: "Cũ nhất" },
+  { value: "name_asc", label: "Tên A - Z" },
+  { value: "name_desc", label: "Tên Z - A" },
 ];
 
 const allValue = "Tất cả";
 
+const TALENT_TYPE_MAP: Record<string, string> = {
+  "model": "người mẫu",
+  "người mẫu": "người mẫu",
+  "actor": "diễn viên",
+  "diễn viên": "diễn viên",
+  "kol": "kol",
+  "koc": "koc",
+  "livestreamer": "livestreamer",
+  "mc": "mc",
+  "pg": "pg/pb",
+  "pb": "pg/pb",
+  "pg/pb": "pg/pb",
+  "pageant": "hoa hậu",
+  "hoa hậu": "hoa hậu",
+};
+
 function normalizeTalentType(type: string): string {
-  return normalizeTalentTypeKey(type);
+  const normalized = type.toLowerCase().trim();
+  return TALENT_TYPE_MAP[normalized] || normalized;
+}
+
+function tierRank(tier: unknown): number {
+  const normalized = String(tier || "").trim().toLowerCase();
+  if (normalized === "s" || normalized === "tier s" || normalized === "hang s" || normalized === "hạng s") return 0;
+  if (normalized === "a" || normalized === "tier a" || normalized === "hang a" || normalized === "hạng a") return 1;
+  if (normalized === "b" || normalized === "tier b" || normalized === "hang b" || normalized === "hạng b") return 2;
+  if (normalized === "c" || normalized === "tier c" || normalized === "hang c" || normalized === "hạng c") return 3;
+  if (normalized === "potential" || normalized === "tiềm năng" || normalized === "tiem nang") return 4;
+  return 5;
+}
+
+function matchesGenderValue(talentGender: string, filterGender: string): boolean {
+  if (filterGender === allValue) return true;
+
+  const g1 = String(talentGender || "").toLowerCase().trim();
+  const g2 = String(filterGender || "").toLowerCase().trim();
+
+  const isFemale = g1 === "female" || g1 === "nữ" || g1 === "nu";
+  const isMale = g1 === "male" || g1 === "nam";
+  const isOther = g1 === "other" || g1 === "khác" || g1 === "khac";
+
+  if (g2 === "female") return isFemale;
+  if (g2 === "male") return isMale;
+  if (g2 === "other") return isOther;
+
+  return g1 === g2;
 }
 
 function formatActionError(error: unknown, fallback: string): string {
@@ -73,44 +124,64 @@ function formatActionError(error: unknown, fallback: string): string {
 }
 
 const genderOptions = [
-  { label: "Tất cả giới tính", value: allValue },
+  { label: "Tất cả", value: allValue },
   { label: "Nữ", value: "female" },
   { label: "Nam", value: "male" },
   { label: "Khác", value: "other" },
-];
-
-const cityOptions = [
-  { label: "Toàn quốc", value: allValue },
-  ...CITY_VALUES.map((city: string) => ({ label: city, value: city })),
-];
-
-const typeOptions = [
-  { label: "Tất cả loại hình Idol", value: allValue },
-  ...TALENT_TYPE_VALUES.map((type: string) => ({ label: normalizeTalentTypeLabel(type), value: type })),
 ];
 
 function normalizeCityName(cityName: string): string {
   return cityName.toLowerCase().replace(/^(tỉnh|thành phố|tp\.?)\s+/i, "").trim();
 }
 
+const cityOptions = [
+  { label: "Toàn quốc", value: allValue },
+  ...CITY_VALUES.map((city: string) => ({ label: city, value: normalizeCityName(city) })),
+];
+
+const typeOptions = [
+  { label: "Tất cả", value: allValue },
+  ...TALENT_TYPE_VALUES.map((type: string) => ({ label: normalizeTalentTypeLabel(type), value: type })),
+];
+
 function getTalentTypes(talent: any): string[] {
-  if (Array.isArray(talent?.talentTypes) && talent.talentTypes.length) {
-    return Array.from(new Set(talent.talentTypes.map((type: unknown) => normalizeTalentTypeLabel(String(type).trim())).filter(Boolean)));
+  let rawTypes: any = null;
+
+  if (talent?.talentTypes) rawTypes = talent.talentTypes;
+  else if (talent?.talent_types) rawTypes = talent.talent_types;
+  else if (talent?.categories) rawTypes = talent.categories;
+  else if (talent?.categoryNames) rawTypes = talent.categoryNames;
+
+  // If it's a string, try to parse it as JSON
+  if (typeof rawTypes === "string") {
+    try {
+      const parsed = JSON.parse(rawTypes);
+      if (Array.isArray(parsed)) {
+        rawTypes = parsed;
+      } else {
+        rawTypes = [rawTypes];
+      }
+    } catch {
+      // If parsing fails, split by common delimiters
+      rawTypes = rawTypes.split(/[,/;]/).map((s: string) => s.trim()).filter(Boolean);
+    }
   }
 
-  if (Array.isArray(talent?.talent_types) && talent.talent_types.length) {
-    return Array.from(new Set(talent.talent_types.map((type: unknown) => normalizeTalentTypeLabel(String(type).trim())).filter(Boolean)));
+  if (Array.isArray(rawTypes) && rawTypes.length) {
+    return Array.from(
+      new Set(
+        rawTypes
+          .map((type: any) => {
+            if (typeof type === "string") return normalizeTalentTypeLabel(type.trim());
+            return normalizeTalentTypeLabel(String(type?.name || type?.title || type || "").trim());
+          })
+          .filter(Boolean)
+      )
+    );
   }
 
-  if (Array.isArray(talent?.categories) && talent.categories.length) {
-    return talent.categories.map((c: any) => (typeof c === "string" ? c : c.name || c.title || "")).filter(Boolean);
-  }
-
-  if (Array.isArray(talent?.categoryNames) && talent.categoryNames.length) {
-    return talent.categoryNames.map((type: unknown) => String(type).trim()).filter(Boolean);
-  }
-
-  return talent?.type ? [String(talent.type)] : [];
+  const singleType = talent?.type || talent?.talentType;
+  return singleType ? [normalizeTalentTypeLabel(String(singleType).trim())] : [];
 }
 
 function backendGenderValue(gender: string): string | undefined {
@@ -146,6 +217,9 @@ type FilterDropdownProps = {
   searchPlaceholder?: string;
   emptyText?: string;
   className?: string;
+  icon?: React.ComponentType<any>;
+  variant?: "default" | "pill";
+  align?: "left" | "right";
 };
 
 function FilterDropdown({
@@ -157,6 +231,9 @@ function FilterDropdown({
   searchPlaceholder = "Tìm kiếm...",
   emptyText = "Không tìm thấy",
   className,
+  icon: Icon,
+  variant = "default",
+  align = "left",
 }: FilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -180,29 +257,48 @@ function FilterDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const isDefaultValue = value === "Tất cả" || value === allValue || !value;
+  const isPill = variant === "pill";
+  const isActivePill = !isDefaultValue;
+
   return (
-    <div ref={dropdownRef} className={cn("relative w-full", className)}>
+    <div ref={dropdownRef} className={cn(isPill ? "relative flex-1 min-w-0" : "relative w-full", className)}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-9 w-full items-center justify-between gap-2 rounded-xl border border-white/5 bg-slate-950/60 px-3 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
-          isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+          isPill
+            ? cn(
+                "flex h-8 w-full items-center justify-between gap-1 rounded-full border text-[10.5px] px-2.5 transition-all cursor-pointer font-semibold",
+                isActivePill
+                  ? "border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] font-bold"
+                  : "border-white/10 bg-slate-900/60 text-slate-350 hover:text-white"
+              )
+            : cn(
+                "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
+                isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+              )
         )}
       >
-        <span className="truncate text-left font-medium text-slate-200">
-          {selectedOption?.label || placeholder}
+        <span className="flex items-center gap-1.5 truncate text-left">
+          {Icon && <Icon className={cn("h-3.5 w-3.5 shrink-0", isActivePill ? "text-[#C9A86A]" : "text-slate-400")} />}
+          <span className="truncate">{isDefaultValue ? placeholder : (selectedOption?.label || placeholder)}</span>
         </span>
         <ChevronDown
           className={cn(
-            "h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-300",
-            isOpen && "rotate-180 text-[#C9A86A]"
+            "h-3.5 w-3.5 shrink-0 transition-transform duration-300",
+            isActivePill ? "text-[#C9A86A]" : "text-slate-400",
+            isOpen && "rotate-180"
           )}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-60 w-full overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+        <div className={cn(
+          "absolute top-full z-50 mt-1.5 max-h-60 overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150",
+          align === "right" ? "right-0" : "left-0",
+          isPill ? "w-[160px]" : "w-full"
+        )}>
           {searchable && (
             <div className="mb-1.5 px-1">
               <input
@@ -251,6 +347,144 @@ function FilterDropdown({
   );
 }
 
+type MultiFilterDropdownProps = {
+  value: string;
+  onChange: (value: string) => void;
+  options: { label: string; value: string }[];
+  placeholder?: string;
+  className?: string;
+  variant?: "default" | "pill";
+  align?: "left" | "right";
+};
+
+function MultiFilterDropdown({
+  value,
+  onChange,
+  options,
+  placeholder = "Chọn...",
+  className,
+  variant = "default",
+  align = "left",
+}: MultiFilterDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const isDefaultValue = value === allValue || !value;
+
+  const getSelectedLabel = () => {
+    if (isDefaultValue) return placeholder;
+    const vals = value.split(",").filter(Boolean);
+    if (vals.length === 0) return placeholder;
+    const labels = vals.map(v => options.find(opt => opt.value === v)?.label).filter(Boolean);
+    if (labels.length <= 2) return labels.join(", ");
+    return `Đã chọn ${labels.length} loại hình`;
+  };
+
+  const isPill = variant === "pill";
+  const isActivePill = !isDefaultValue;
+
+  return (
+    <div ref={dropdownRef} className={cn(isPill ? "relative flex-1 min-w-0" : "relative w-full", className)}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          isPill
+            ? cn(
+                "flex h-8 w-full items-center justify-between gap-1 rounded-full border text-[10.5px] px-2.5 transition-all cursor-pointer font-semibold",
+                isActivePill
+                  ? "border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] font-bold"
+                  : "border-white/10 bg-slate-900/60 text-slate-355 hover:text-white"
+              )
+            : cn(
+                "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
+                isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+              )
+        )}
+      >
+        <span className="truncate text-left font-medium">
+          {getSelectedLabel()}
+        </span>
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 shrink-0 transition-transform duration-300",
+            isActivePill ? "text-[#C9A86A]" : "text-slate-400",
+            isOpen && "rotate-180"
+          )}
+        />
+      </button>
+
+      {isOpen && (
+        <div className={cn(
+          "absolute top-full z-50 mt-1.5 max-h-60 overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150",
+          align === "right" ? "right-0" : "left-0",
+          isPill ? "w-[180px]" : "w-full"
+        )}>
+          <div className="max-h-52 overflow-y-auto space-y-0.5 pr-0.5 custom-scrollbar">
+            {options.map((opt) => {
+              const isAll = opt.value === allValue;
+              const isSelected = isAll
+                ? value === allValue
+                : value !== allValue && value.split(",").includes(opt.value);
+
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    if (isAll) {
+                      onChange(allValue);
+                    } else {
+                      const currentList = value === allValue ? [] : value.split(",").filter(Boolean);
+                      let newList: string[];
+                      if (currentList.includes(opt.value)) {
+                        newList = currentList.filter(v => v !== opt.value);
+                      } else {
+                        newList = [...currentList, opt.value];
+                      }
+                      if (newList.length === 0) {
+                        onChange(allValue);
+                      } else {
+                        onChange(newList.join(","));
+                      }
+                    }
+                  }}
+                  className={cn(
+                    "flex w-full items-center rounded-lg px-2.5 py-2 text-xs font-medium transition-colors text-left cursor-pointer",
+                    isSelected
+                      ? "bg-[#C9A86A]/10 text-[#C9A86A] font-bold"
+                      : "text-slate-300 hover:bg-white/5 hover:text-white"
+                  )}
+                >
+                  <div className={cn(
+                    "w-3.5 h-3.5 rounded border shrink-0 flex items-center justify-center transition-all mr-2.5",
+                    isSelected
+                      ? "border-[#C9A86A] bg-[#C9A86A] text-slate-950"
+                      : "border-white/20 bg-slate-950/40 text-transparent"
+                  )}>
+                    <Check className="h-2.5 w-2.5 stroke-[3px]" />
+                  </div>
+                  <span className="truncate">{opt.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 type ToastItem = {
   id: string;
   message: string;
@@ -284,6 +518,9 @@ export default function DiscoverTalentsPage() {
   const [maxWeight, setMaxWeight] = useState(90);
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [isMobileCitySelectorOpen, setIsMobileCitySelectorOpen] = useState(false);
+  const [citySearchQuery, setCitySearchQuery] = useState("");
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   // Applied Filters state (ONLY updated when user clicks "ÁP DỤNG" or submits search)
   const [appliedFilters, setAppliedFilters] = useState({
@@ -303,7 +540,8 @@ export default function DiscoverTalentsPage() {
   const [wishlistItemIds, setWishlistItemIds] = useState<Record<string, string>>({});
   const [selectedInviteTalent, setSelectedInviteTalent] = useState<any | null>(null);
   const [selectedCampaignForInvite, setSelectedCampaignForInvite] = useState("");
-  const [sortOption, setSortOption] = useState<TalentSortOption>("newest");
+  const [sortOption, setSortOption] = useState<TalentSortOption>("near_me");
+  const [brandLocation, setBrandLocation] = useState({ city: "", district: "" });
   const talentRequestRef = useRef(0);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -337,12 +575,19 @@ export default function DiscoverTalentsPage() {
 
   const talentQueryOptions = useMemo(() => ({
     q: appliedFilters.query || undefined,
-    type: appliedFilters.type !== allValue ? appliedFilters.type : undefined,
+    type: appliedFilters.type !== allValue
+      ? appliedFilters.type.split(",").map((type) => type.trim()).filter(Boolean)
+      : undefined,
     city: appliedFilters.city !== allValue ? appliedFilters.city : undefined,
     gender: appliedFilters.gender !== allValue ? backendGenderValue(appliedFilters.gender) : undefined,
     minHeight: appliedFilters.showAdvancedFilters ? appliedFilters.minHeight : undefined,
     maxHeight: appliedFilters.showAdvancedFilters ? appliedFilters.maxHeight : undefined,
   }), [appliedFilters]);
+
+  const currentCityLabel = useMemo(() => {
+    if (appliedFilters.city === allValue) return "Toàn quốc";
+    return cityOptions.find((opt) => opt.value === appliedFilters.city)?.label || appliedFilters.city;
+  }, [appliedFilters.city]);
 
   const loadTalentPage = useCallback(async (page: number, mode: "replace" | "append", resultPage: number) => {
     const requestId = ++talentRequestRef.current;
@@ -356,6 +601,8 @@ export default function DiscoverTalentsPage() {
         page,
         perPage: TALENTS_PER_PAGE,
         sort: sortOption,
+        nearCity: sortOption === "near_me" ? brandLocation.city : undefined,
+        nearDistrict: sortOption === "near_me" ? brandLocation.district : undefined,
       });
 
       if (requestId !== talentRequestRef.current) return;
@@ -378,7 +625,7 @@ export default function DiscoverTalentsPage() {
         setIsLoadingMoreTalents(false);
       }
     }
-  }, [sortOption, talentQueryOptions]);
+  }, [brandLocation.city, brandLocation.district, sortOption, talentQueryOptions]);
 
   useEffect(() => {
     void loadTalentPage(1, "replace", 1);
@@ -435,6 +682,15 @@ export default function DiscoverTalentsPage() {
       if (!cancelled) setBrandCampaigns(items);
     });
 
+    loadBrandPartnerProfile(mapBackendPartnerProfile(null)).then((profile) => {
+      if (!cancelled) {
+        setBrandLocation({
+          city: profile.city || "",
+          district: (profile as any).district || "",
+        });
+      }
+    });
+
     return () => {
       cancelled = true;
     };
@@ -478,10 +734,14 @@ export default function DiscoverTalentsPage() {
           talent.skills.some((skill: string) => skill.toLowerCase().includes(keyword)) ||
           talentTypes.some((type) => type.toLowerCase().includes(keyword));
 
-        const matchesGender = appliedFilters.gender === allValue || talent.gender === appliedFilters.gender;
+        const matchesGender = matchesGenderValue(talent.gender || "", appliedFilters.gender);
         const matchesType =
           appliedFilters.type === allValue ||
-          talentTypes.some((type) => normalizeTalentType(type) === normalizeTalentType(appliedFilters.type));
+          talentTypes.some((type) => {
+            const normalizedTalent = normalizeTalentType(type);
+            const activeFilterTypes = appliedFilters.type.split(",").map(t => normalizeTalentType(t));
+            return activeFilterTypes.includes(normalizedTalent);
+          });
         const matchesCity =
           appliedFilters.city === allValue ||
           normalizeCityName(talent.city || "") === normalizeCityName(appliedFilters.city);
@@ -506,6 +766,14 @@ export default function DiscoverTalentsPage() {
 
         if (sortOption === "name_desc") {
           return String(b.name || "").localeCompare(String(a.name || ""), "vi", { sensitivity: "base" });
+        }
+
+        if (sortOption === "rating") {
+          return tierRank(a.tier) - tierRank(b.tier);
+        }
+
+        if (sortOption === "near_me") {
+          return 0;
         }
 
         const aCreatedAt = Date.parse(String(a.createdAt || a.created_at || ""));
@@ -659,46 +927,40 @@ export default function DiscoverTalentsPage() {
         </div>
       )}
 
-      {/* Header Banner */}
-      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-[#0C0F17] via-[#141824] to-[#0A0C13] p-6 md:p-8 shadow-2xl">
-        <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#C9A86A]/5 blur-3xl" />
-        <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <span className="rounded-md border border-[#C9A86A]/30 bg-[#C9A86A]/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
-                OnstageVN Idol
-              </span>
-            </div>
-            <h1 className="font-display text-2xl font-black tracking-tight text-white md:text-3xl">
-              Khám phá &amp; Tìm kiếm{" "}
-              <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
-                Idol Phù Hợp
-              </span>
-            </h1>
-            <p className="mt-2 max-w-xl text-xs leading-relaxed text-slate-400 md:text-sm">
-              Khám phá hàng trăm hồ sơ Talent, tìm kiếm theo tiêu chí phù hợp và lưu lại để sẵn sàng kết nối trong các chiến dịch tiếp theo.
-            </p>
+      {/* Mobile-Only Search Header (Hidden on Desktop) */}
+      <section className="block md:hidden sticky top-0 z-50 bg-[#070913]/95 backdrop-blur-md space-y-3 pt-3.5 pb-2.5 border-b border-white/5 -mx-4 px-4">
+        {/* Row 1: City, Search Input, Search Button */}
+        <div className="flex items-center gap-2.5">
+          {/* Advanced Filter Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setIsMobileFiltersOpen(true)}
+            className={cn(
+              "flex items-center justify-center h-9 w-9 rounded-full border transition-all shrink-0 cursor-pointer",
+              (selectedGender !== allValue || selectedType !== allValue || minHeight !== 150 || maxHeight !== 190 || minWeight !== 40 || maxWeight !== 90)
+                ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
+                : "border-white/10 bg-slate-900/60 text-slate-400"
+            )}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+          </button>
+
+          {/* City Selection Dropdown (Opens full-screen modal on mobile) */}
+          <div
+            onClick={() => setIsMobileCitySelectorOpen(true)}
+            className="relative flex items-center gap-1 cursor-pointer shrink-0"
+          >
+            <span className="font-display text-[15px] font-black tracking-tight text-white whitespace-nowrap">
+              {currentCityLabel}
+            </span>
+            <ChevronDown className="h-4 w-4 text-[#C9A86A] pointer-events-none" />
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <Link
-              href="/brand/shortlists"
-              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/10 hover:text-white cursor-pointer"
-            >
-              <BookmarkCheck className="h-4 w-4 text-[#C9A86A]" />
-              <span>Danh sách đã lưu ({savedIds.length})</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Search Input Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="group relative flex-1">
-          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/30 via-[#C9A86A]/40 to-yellow-600/30 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A] transition-colors group-focus-within:text-amber-300" />
+          {/* Search Input Box */}
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
             <input
+              type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => {
@@ -706,8 +968,8 @@ export default function DiscoverTalentsPage() {
                   applyFilters();
                 }
               }}
-              placeholder="Tìm kiếm idol theo tên, kỹ năng (ví dụ: MC, livestream, catwalk...)"
-              className="w-full rounded-2xl border border-amber-500/10 bg-[#0a0c12]/90 py-4 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500 shadow-2xl"
+              placeholder="Tìm kiếm Idol..."
+              className="w-full h-9 rounded-full border border-white/10 bg-slate-950/60 pl-8.5 pr-8 text-xs text-white outline-none focus:border-[#C9A86A]/60 placeholder:text-slate-500"
             />
             {searchInput && (
               <button
@@ -716,144 +978,291 @@ export default function DiscoverTalentsPage() {
                   setSearchInput("");
                   setAppliedFilters((prev) => ({ ...prev, query: "" }));
                 }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
+
+          {/* Search Action Button "Tìm" */}
+          <button
+            type="button"
+            onClick={applyFilters}
+            className="shrink-0 h-9 px-4 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 hover:brightness-110 active:scale-95 transition-all text-[11px] font-black uppercase tracking-wider text-slate-950 shadow-lg"
+          >
+            Tìm
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={applyFilters}
-          className="flex h-[50px] items-center justify-center rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-8 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(201,168,106,0.3)] shrink-0"
-        >
-          Tìm kiếm
-        </button>
-      </div>
+        {/* Collapsible Advanced Filters (Mobile Version) */}
+        {showAdvancedFilters && (
+          <div className="relative z-10 border-t border-white/5 pt-3 mt-1 space-y-3 animate-in slide-in-from-top-2 duration-300 bg-slate-950/40 p-3 rounded-xl border border-white/5">
+            {/* Height Slider */}
+            <div className="space-y-1.5">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Chiều cao ({minHeight} - {maxHeight}cm)
+              </span>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-slate-500">Từ:</span>
+                  <input
+                    type="number"
+                    min={140}
+                    max={200}
+                    value={minHeight}
+                    onChange={(e) => {
+                      setMinHeight(Number(e.target.value));
+                      setAppliedFilters(prev => ({ ...prev, minHeight: Number(e.target.value) }));
+                    }}
+                    className="w-full h-8 rounded-lg border border-white/10 bg-slate-950 px-2 text-[11px] text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-slate-500">Đến:</span>
+                  <input
+                    type="number"
+                    min={140}
+                    max={200}
+                    value={maxHeight}
+                    onChange={(e) => {
+                      setMaxHeight(Number(e.target.value));
+                      setAppliedFilters(prev => ({ ...prev, maxHeight: Number(e.target.value) }));
+                    }}
+                    className="w-full h-8 rounded-lg border border-white/10 bg-slate-950 px-2 text-[11px] text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                  />
+                </div>
+              </div>
+            </div>
 
-      {/* Horizontal Filter Bar */}
-      <div className="relative z-40 rounded-2xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-5 space-y-4 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md overflow-visible">
+            {/* Weight Slider */}
+            <div className="space-y-1.5">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Cân nặng ({minWeight} - {maxWeight}kg)
+              </span>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-slate-500">Từ:</span>
+                  <input
+                    type="number"
+                    min={35}
+                    max={120}
+                    value={minWeight}
+                    onChange={(e) => {
+                      setMinWeight(Number(e.target.value));
+                      setAppliedFilters(prev => ({ ...prev, minWeight: Number(e.target.value) }));
+                    }}
+                    className="w-full h-8 rounded-lg border border-white/10 bg-slate-950 px-2 text-[11px] text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-slate-500">Đến:</span>
+                  <input
+                    type="number"
+                    min={35}
+                    max={120}
+                    value={maxWeight}
+                    onChange={(e) => {
+                      setMaxWeight(Number(e.target.value));
+                      setAppliedFilters(prev => ({ ...prev, maxWeight: Number(e.target.value) }));
+                    }}
+                    className="w-full h-8 rounded-lg border border-white/10 bg-slate-950 px-2 text-[11px] text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Unified Search Card */}
+      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-5 md:py-5 md:px-6 mb-6 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md">
         {/* Top Highlight line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A86A] to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A86A] to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#C9A86A]/5 blur-3xl opacity-60 pointer-events-none" />
 
-        {/* Main Filters Row */}
-        <div className="flex flex-wrap items-end gap-3.5 relative z-10">
-          {/* Giới tính */}
-          <div className="flex-1 min-w-[120px]">
-            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">Giới tính</span>
-            <FilterDropdown
-              value={selectedGender}
-              onChange={setSelectedGender}
-              options={genderOptions}
-              searchable={false}
+        {/* Header Title block matching image layout */}
+        <div className="relative z-10 mb-4">
+          <h1 className="font-display text-lg font-black tracking-tight text-white md:text-xl">
+            Tìm kiếm Idol - {currentCityLabel}{" "}
+            <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+              ({displayedTalentCount})
+            </span>
+          </h1>
+        </div>
+
+        {/* Main Inputs Row */}
+        <div className="relative z-10 flex flex-col xl:flex-row gap-3 items-stretch">
+          {/* Box 1: Search Input */}
+          <div className="group relative flex-1 min-w-[280px]">
+            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#C9A86A]/30 to-yellow-600/20 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
+            <div className="relative w-full h-full">
+              <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A] transition-colors group-focus-within:text-amber-300" />
+              <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    applyFilters();
+                  }
+                }}
+                placeholder="Tìm kiếm idol theo tên, kỹ năng..."
+                className="w-full h-[50px] rounded-2xl border border-white/10 bg-slate-950/60 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput("");
+                    setAppliedFilters((prev) => ({ ...prev, query: "" }));
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Box 2: Dropdown Loại hình Idol */}
+          <div className="w-full xl:w-auto xl:min-w-[170px]">
+            <MultiFilterDropdown
+              value={selectedType}
+              onChange={setSelectedType}
+              options={typeOptions}
+              placeholder="Loại hình Idol"
             />
           </div>
 
-          {/* Địa điểm */}
-          <div className="flex-1 min-w-[180px]">
-            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">Địa điểm</span>
+          {/* Box 3: Dropdown Địa điểm */}
+          <div className="w-full xl:w-auto xl:min-w-[170px]">
             <FilterDropdown
               value={selectedCity}
               onChange={setSelectedCity}
               options={cityOptions}
               searchPlaceholder="Nhập tỉnh/thành..."
               emptyText="Không tìm thấy địa điểm"
+              placeholder="Địa điểm"
             />
           </div>
 
-          {/* Loại hình Idol */}
-          <div className="flex-1 min-w-[140px]">
-            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">Loại hình Idol</span>
+          {/* Box 4: Dropdown Giới tính */}
+          <div className="w-full xl:w-auto xl:min-w-[150px]">
             <FilterDropdown
-              value={selectedType}
-              onChange={setSelectedType}
-              options={typeOptions}
+              value={selectedGender}
+              onChange={setSelectedGender}
+              options={genderOptions}
               searchable={false}
+              placeholder="Giới tính"
             />
           </div>
 
-          {/* Buttons Group */}
-          <div className="flex items-center gap-2 mt-2 sm:mt-0">
+          {/* Buttons container */}
+          <div className="flex gap-2 shrink-0">
+            {/* Button: Tìm kiếm */}
+            <button
+              type="button"
+              onClick={applyFilters}
+              className="flex-1 xl:flex-none h-[50px] px-8 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(201,168,106,0.3)] flex items-center justify-center gap-1.5"
+            >
+              <Search className="h-4 w-4" />
+              <span>Tìm kiếm</span>
+            </button>
+
+            {/* Button: Bộ lọc */}
             <button
               type="button"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className={cn(
-                "flex h-9 items-center justify-center gap-1.5 rounded-xl border px-4 text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer whitespace-nowrap shadow-md",
+                "flex-1 xl:flex-none h-[50px] px-5 rounded-2xl border text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5",
                 showAdvancedFilters
-                  ? "border-[#C9A86A] bg-gradient-to-r from-amber-400/20 to-yellow-600/20 text-[#C9A86A] shadow-[0_0_12px_rgba(201,168,106,0.15)]"
+                  ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A] shadow-[0_0_12px_rgba(201,168,106,0.15)]"
                   : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:border-[#C9A86A]/40 hover:text-white"
               )}
             >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              <span>Lọc nâng cao</span>
-              {showAdvancedFilters ? <ChevronUp className="h-3.5 w-3.5 shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 shrink-0" />}
-            </button>
-
-            <button
-              type="button"
-              onClick={applyFilters}
-              className="flex h-9 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-110 transition active:scale-95 cursor-pointer shadow-md"
-            >
-              <Filter className="h-3.5 w-3.5" />
-              <span>Áp dụng</span>
+              <SlidersHorizontal className="h-4 w-4" />
+              <span>Bộ lọc</span>
             </button>
           </div>
         </div>
 
         {/* Collapsible Advanced Filters Area */}
         {showAdvancedFilters && (
-          <div className="border-t border-white/5 pt-4 space-y-4 animate-in slide-in-from-top-2 duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
+          <div className="relative z-10 border-t border-white/5 mt-5 pt-5 space-y-4 animate-in slide-in-from-top-2 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Chiều cao */}
-              <div className="space-y-1.5">
-                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Chiều cao ({minHeight} - {maxHeight}cm)</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="number" min={140} max={200} value={minHeight} onChange={(e) => setMinHeight(Number(e.target.value))} className="w-full rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center" />
-                  <input type="number" min={140} max={200} value={maxHeight} onChange={(e) => setMaxHeight(Number(e.target.value))} className="w-full rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center" />
+              <div className="space-y-2">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Chiều cao ({minHeight} - {maxHeight}cm)
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="number"
+                    min={140}
+                    max={200}
+                    value={minHeight}
+                    onChange={(e) => setMinHeight(Number(e.target.value))}
+                    className="w-full h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                  />
+                  <input
+                    type="number"
+                    min={140}
+                    max={200}
+                    value={maxHeight}
+                    onChange={(e) => setMaxHeight(Number(e.target.value))}
+                    className="w-full h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                  />
                 </div>
               </div>
 
               {/* Cân nặng */}
-              <div className="space-y-1.5">
-                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">Cân nặng ({minWeight} - {maxWeight}kg)</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="number" min={35} max={120} value={minWeight} onChange={(e) => setMinWeight(Number(e.target.value))} className="w-full rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center" />
-                  <input type="number" min={35} max={120} value={maxWeight} onChange={(e) => setMaxWeight(Number(e.target.value))} className="w-full rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center" />
+              <div className="space-y-2">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Cân nặng ({minWeight} - {maxWeight}kg)
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="number"
+                    min={35}
+                    max={120}
+                    value={minWeight}
+                    onChange={(e) => setMinWeight(Number(e.target.value))}
+                    className="w-full h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                  />
+                  <input
+                    type="number"
+                    min={35}
+                    max={120}
+                    value={maxWeight}
+                    onChange={(e) => setMaxWeight(Number(e.target.value))}
+                    className="w-full h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                  />
                 </div>
               </div>
-
             </div>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Main Results Container */}
-      <div className="relative z-0 w-full">
+      <div className="relative z-10 w-full">
         {/* Content - Flexible */}
         <main className="w-full space-y-4">
-          <div className="flex flex-row items-center justify-between gap-3 border-b border-[#2B313D] pb-3">
-            <span className="flex min-w-0 flex-1 items-center gap-2 whitespace-nowrap text-[11px] text-slate-400 sm:text-xs">
-              <Filter className="h-4 w-4 text-[#C9A86A]" />
-              <span className="truncate">Tìm thấy <b className="text-white">{displayedTalentCount}</b> kết quả.</span>
+          <div className="hidden md:flex flex-row items-center justify-between gap-3 border-b border-[#2B313D] pb-3">
+            <span className="flex min-w-0 flex-1 items-center gap-2.5 whitespace-nowrap text-sm font-semibold tracking-wide text-slate-400">
+              <SlidersHorizontal className="h-4.5 w-4.5 text-[#C9A86A] shrink-0" />
+              <span className="truncate">Tìm thấy <b className="text-white font-bold">{displayedTalentCount}</b> kết quả</span>
             </span>
-            <label className="relative flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-slate-950/70 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-300 transition-colors focus-within:border-[#C9A86A]/70">
-              <ArrowUpDown className="h-4 w-4 text-[#C9A86A]" />
-              <select
+            <div className="hidden md:block w-[180px]">
+              <FilterDropdown
                 value={sortOption}
-                onChange={(event) => setSortOption(event.target.value as TalentSortOption)}
-                className="w-[112px] cursor-pointer appearance-none bg-transparent pr-5 text-[9px] font-black uppercase tracking-wider text-white outline-none sm:w-[150px] sm:text-[10px]"
-              >
-                {TALENT_SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value} className="bg-[#080414] text-white">
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-slate-500" />
-            </label>
+                onChange={(val) => setSortOption(val as TalentSortOption)}
+                options={TALENT_SORT_OPTIONS}
+                searchable={false}
+                placeholder="Sắp xếp"
+                icon={ArrowUpDown}
+              />
+            </div>
           </div>
 
           {isLoadingTalents ? (
@@ -876,18 +1285,34 @@ export default function DiscoverTalentsPage() {
                 const isAddingToBrand = addingBrandTalentIds.includes(String(talent.id));
 
                 return (
-                  <TalentCard
-                    key={talent.id}
-                    talent={talent}
-                    status={getTalentStatus(String(talent.id))}
-                    isSaved={isSaved}
-                    messageDisabled={isInBrand}
-                    messageLoading={isAddingToBrand}
-                    onToggleSaved={() => toggleSaved(talent.id)}
-                    onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
-                    onMessage={() => addTalentToBrand(talent)}
-                    onRemoveFromBrand={() => removeTalentFromBrand(talent)}
-                  />
+                  <React.Fragment key={talent.id}>
+                    {/* Desktop Card */}
+                    <TalentCard
+                      talent={talent}
+                      status={getTalentStatus(String(talent.id))}
+                      isSaved={isSaved}
+                      messageDisabled={isInBrand}
+                      messageLoading={isAddingToBrand}
+                      onToggleSaved={() => toggleSaved(talent.id)}
+                      onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
+                      onMessage={() => addTalentToBrand(talent)}
+                      onRemoveFromBrand={() => removeTalentFromBrand(talent)}
+                      className="hidden md:flex"
+                    />
+                    {/* Mobile Landscape Card */}
+                    <TalentCardMobile
+                      talent={talent}
+                      status={getTalentStatus(String(talent.id))}
+                      isSaved={isSaved}
+                      messageDisabled={isInBrand}
+                      messageLoading={isAddingToBrand}
+                      onToggleSaved={() => toggleSaved(talent.id)}
+                      onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
+                      onMessage={() => addTalentToBrand(talent)}
+                      onRemoveFromBrand={() => removeTalentFromBrand(talent)}
+                      className="flex md:hidden"
+                    />
+                  </React.Fragment>
                 );
               })}
             </div>
@@ -943,6 +1368,369 @@ export default function DiscoverTalentsPage() {
       </div>
 
       <GuestActionPrompt />
+
+      {/* Full-Screen Mobile City Selector Overlay */}
+      {isMobileCitySelectorOpen && (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-[#050711] text-white animate-in fade-in duration-200">
+          {/* Header Row */}
+          <div className="flex items-center gap-3 border-b border-white/5 bg-[#070913] px-4 py-3">
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileCitySelectorOpen(false);
+                setCitySearchQuery("");
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/5 bg-slate-950/60 text-slate-350 hover:text-white"
+            >
+              <ArrowLeft className="h-4.5 w-4.5" />
+            </button>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
+              <input
+                type="text"
+                value={citySearchQuery}
+                onChange={(e) => setCitySearchQuery(e.target.value)}
+                placeholder="Tìm kiếm tỉnh thành..."
+                className="w-full h-9 rounded-full border border-white/10 bg-slate-950/60 pl-8.5 pr-8 text-xs text-white outline-none focus:border-[#C9A86A]/60 placeholder:text-slate-500"
+              />
+              {citySearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setCitySearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* List Scroll Container */}
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+            {/* Current Location (Vị trí hiện tại) */}
+            <div className="space-y-2">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Vị trí hiện tại
+              </span>
+              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Quick select to Hà Nội as default current location
+                    setSelectedCity("Hà Nội");
+                    setAppliedFilters(prev => ({ ...prev, city: "Hà Nội" }));
+                    setIsMobileCitySelectorOpen(false);
+                    setCitySearchQuery("");
+                  }}
+                  className="flex items-center gap-3 text-left focus:outline-none"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C9A86A]/10 text-[#C9A86A]">
+                    <Locate className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-semibold text-white font-display">Hà Nội</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    pushToast("Đang cập nhật vị trí...");
+                  }}
+                  className="flex items-center gap-1.5 text-xs text-[#C9A86A] font-semibold hover:text-[#C9A86A]/80 transition active:scale-95"
+                >
+                  <RefreshCw className="h-3 w-3 animate-spin duration-3000" />
+                  Cập nhật lại
+                </button>
+              </div>
+            </div>
+
+            {/* Provinces List */}
+            <div className="space-y-1">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                Tất cả tỉnh thành
+              </span>
+              {cityOptions
+                .filter(opt =>
+                  opt.label.toLowerCase().includes(citySearchQuery.toLowerCase())
+                )
+                .map((opt) => {
+                  const isSelected = selectedCity === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCity(opt.value);
+                        setAppliedFilters(prev => ({ ...prev, city: opt.value }));
+                        setIsMobileCitySelectorOpen(false);
+                        setCitySearchQuery("");
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-3 py-3 text-left border-b border-white/5 focus:outline-none transition-colors",
+                        isSelected ? "text-[#C9A86A]" : "text-white hover:text-[#C9A86A]"
+                      )}
+                    >
+                      <MapPin className={cn("h-4.5 w-4.5 shrink-0", isSelected ? "text-[#C9A86A]" : "text-slate-400")} />
+                      <span className="text-sm font-semibold">{opt.label}</span>
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Full-Screen Mobile Filters Drawer Overlay */}
+      {isMobileFiltersOpen && (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-[#050711] text-white animate-in fade-in duration-200">
+          {/* Header Row */}
+          <div className="flex items-center justify-between border-b border-white/5 bg-[#070913] px-5 py-4">
+            <h2 className="font-display text-base font-black tracking-wide text-white uppercase">
+              Bộ lọc nâng cao
+            </h2>
+            <button
+              type="button"
+              onClick={() => setIsMobileFiltersOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/5 bg-slate-950/60 text-slate-400 hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Form Content (Scrollable) */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+            {/* Section 1: Giới tính */}
+            <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+              <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+                Giới tính
+              </span>
+              <div className="grid grid-cols-3 gap-2">
+                {genderOptions.map((opt) => {
+                  const isActive = selectedGender === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setSelectedGender(opt.value)}
+                      className={cn(
+                        "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate",
+                        isActive
+                          ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
+                          : "border-white/10 bg-[#070913]/60 text-slate-350"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section 2: Loại hình */}
+            <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+              <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+                Loại hình
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {typeOptions.map((opt) => {
+                  const isAll = opt.value === allValue;
+                  const isActive = isAll
+                    ? selectedType === allValue
+                    : selectedType !== allValue && selectedType.split(",").includes(opt.value);
+
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        if (isAll) {
+                          setSelectedType(allValue);
+                        } else {
+                          const currentList = selectedType === allValue
+                            ? []
+                            : selectedType.split(",").filter(Boolean);
+                          let newList: string[];
+                          if (currentList.includes(opt.value)) {
+                            newList = currentList.filter(t => t !== opt.value);
+                          } else {
+                            newList = [...currentList, opt.value];
+                          }
+                          if (newList.length === 0) {
+                            setSelectedType(allValue);
+                          } else {
+                            setSelectedType(newList.join(","));
+                          }
+                        }
+                      }}
+                      className={cn(
+                        "py-2 px-3 rounded-full border text-xs font-semibold flex items-center justify-start gap-2.5 transition-all truncate",
+                        isActive
+                          ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
+                          : "border-white/10 bg-[#070913]/60 text-slate-355"
+                      )}
+                    >
+                      {/* Checkbox box indicator */}
+                      <div className={cn(
+                        "w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-all",
+                        isActive
+                          ? "border-[#C9A86A] bg-[#C9A86A] text-slate-950"
+                          : "border-white/20 bg-slate-950/40 text-transparent"
+                      )}>
+                        <Check className="h-3 w-3 stroke-[3px]" />
+                      </div>
+                      <span className="truncate">{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section 3: Sắp xếp */}
+            <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+              <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+                Sắp xếp theo
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                {TALENT_SORT_OPTIONS.map((opt) => {
+                  const isActive = sortOption === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setSortOption(opt.value as TalentSortOption)}
+                      className={cn(
+                        "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate",
+                        isActive
+                          ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
+                          : "border-white/10 bg-[#070913]/60 text-slate-355"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section 4: Chiều cao */}
+            <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+              <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+                Chiều cao ({minHeight} - {maxHeight}cm)
+              </span>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 font-semibold">Từ:</span>
+                  <input
+                    type="number"
+                    min={140}
+                    max={200}
+                    value={minHeight}
+                    onChange={(e) => setMinHeight(Number(e.target.value))}
+                    className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 font-semibold">Đến:</span>
+                  <input
+                    type="number"
+                    min={140}
+                    max={200}
+                    value={maxHeight}
+                    onChange={(e) => setMaxHeight(Number(e.target.value))}
+                    className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 5: Cân nặng */}
+            <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+              <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+                Cân nặng ({minWeight} - {maxWeight}kg)
+              </span>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 font-semibold">Từ:</span>
+                  <input
+                    type="number"
+                    min={35}
+                    max={120}
+                    value={minWeight}
+                    onChange={(e) => setMinWeight(Number(e.target.value))}
+                    className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 font-semibold">Đến:</span>
+                  <input
+                    type="number"
+                    min={35}
+                    max={120}
+                    value={maxWeight}
+                    onChange={(e) => setMaxWeight(Number(e.target.value))}
+                    className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sticky Bottom Actions Bar */}
+          <div className="border-t border-white/5 bg-[#070913] p-4 flex gap-3 z-10">
+            <button
+              type="button"
+              onClick={() => {
+                // Reset draft states
+                setSelectedGender(allValue);
+                setSelectedType(allValue);
+                setMinHeight(150);
+                setMaxHeight(190);
+                setMinWeight(40);
+                setMaxWeight(90);
+                setSortOption("near_me");
+                // Reset applied filters
+                setAppliedFilters(prev => ({
+                  query: searchInput,
+                  gender: allValue,
+                  type: allValue,
+                  city: selectedCity,
+                  minHeight: 150,
+                  maxHeight: 190,
+                  minWeight: 40,
+                  maxWeight: 90,
+                  showAdvancedFilters: prev.showAdvancedFilters,
+                }));
+                setIsMobileFiltersOpen(false);
+                pushToast("Đã đặt lại bộ lọc.");
+              }}
+              className="w-1/2 py-3 rounded-full border border-white/10 bg-slate-900/40 text-slate-350 text-xs font-semibold uppercase tracking-wider transition active:scale-95 flex items-center justify-center gap-1.5"
+            >
+              Đặt lại
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                // Apply all draft states to appliedFilters
+                setAppliedFilters(prev => ({
+                  query: searchInput,
+                  gender: selectedGender,
+                  type: selectedType,
+                  city: selectedCity,
+                  minHeight: minHeight,
+                  maxHeight: maxHeight,
+                  minWeight: minWeight,
+                  maxWeight: maxWeight,
+                  showAdvancedFilters: prev.showAdvancedFilters,
+                }));
+                setIsMobileFiltersOpen(false);
+                pushToast("Đã áp dụng bộ lọc.");
+              }}
+              className="w-1/2 py-3 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5"
+            >
+              Áp dụng
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

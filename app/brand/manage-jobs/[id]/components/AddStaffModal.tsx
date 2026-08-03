@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import TalentCard from "@/components/TalentCard";
+import TalentCardMobile from "@/components/TalentCardMobile";
 import { loadBrandTalentsPage } from "@/lib/brand-api";
 
 interface AddStaffModalProps {
@@ -165,22 +166,38 @@ export default function AddStaffModal({
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filteredTalents.map((talent) => (
-                <TalentCard
-                  key={talent.id}
-                  talent={talent}
-                  status={getTalentStatus(talent.id)}
-                  viewLabel="Xem hồ sơ"
-                  messageLabel="Thêm vào Jobs"
-                  showMessageIcon={false}
-                  showLifestyleServices
-                  onView={(item) => {
-                    onPreviewTalent(item, { talentId: item.id, stage: "new", note: "Được đề xuất thêm từ hệ thống." });
-                  }}
-                  onMessage={(item) => {
-                    onAddDirect(item.id);
-                  }}
-                  className="text-left"
-                />
+                <React.Fragment key={talent.id}>
+                  <TalentCard
+                    talent={talent}
+                    status={getTalentStatus(talent.id)}
+                    viewLabel="Xem hồ sơ"
+                    messageLabel="Thêm vào Jobs"
+                    showMessageIcon={false}
+                    showLifestyleServices
+                    onView={(item) => {
+                      onPreviewTalent(item, { talentId: item.id, stage: "new", note: "Được đề xuất thêm từ hệ thống." });
+                    }}
+                    onMessage={(item) => {
+                      onAddDirect(item.id);
+                    }}
+                    className="text-left hidden md:flex"
+                  />
+                  <TalentCardMobile
+                    talent={talent}
+                    status={getTalentStatus(talent.id)}
+                    viewLabel="Xem hồ sơ"
+                    messageLabel="Thêm vào Jobs"
+                    showMessageIcon={false}
+                    showLifestyleServices
+                    onView={(item) => {
+                      onPreviewTalent(item, { talentId: item.id, stage: "new", note: "Được đề xuất thêm từ hệ thống." });
+                    }}
+                    onMessage={(item) => {
+                      onAddDirect(item.id);
+                    }}
+                    className="text-left flex md:hidden"
+                  />
+                </React.Fragment>
               ))}
             </div>
           )}
