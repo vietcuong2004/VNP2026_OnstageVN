@@ -508,7 +508,7 @@ export default function DashboardPage() {
       </div>
 
       {/* AI Career Diagnostics Component */}
-      <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-b from-[#150f02]/90 to-[#050712]/95 shadow-[0_0_30px_rgba(245,158,11,0.08)] p-6 space-y-6">
+      <div className="hidden rounded-2xl border border-amber-500/30 bg-gradient-to-b from-[#150f02]/90 to-[#050712]/95 shadow-[0_0_30px_rgba(245,158,11,0.08)] p-6 space-y-6">
         <div className="flex items-center gap-2.5 border-b border-amber-400/10 pb-4 justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-400 animate-pulse" />

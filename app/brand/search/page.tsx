@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -237,7 +238,9 @@ function FilterDropdown({
 }: FilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value) || options[0];
 
@@ -249,7 +252,10 @@ function FilterDropdown({
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+        buttonRef.current && !buttonRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -257,13 +263,84 @@ function FilterDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isDefaultValue = value === "Tất cả" || value === allValue || !value;
   const isPill = variant === "pill";
+  const isDefaultValue = value === "Tất cả" || value === allValue || !value;
   const isActivePill = !isDefaultValue;
 
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const panelWidth = isPill ? 160 : rect.width;
+      const style: React.CSSProperties = {
+        position: "fixed",
+        top: rect.bottom + 6,
+        zIndex: 99999,
+      };
+      if (align === "right") {
+        style.right = window.innerWidth - rect.right;
+        style.width = panelWidth;
+      } else {
+        style.left = rect.left;
+        style.width = panelWidth;
+      }
+      setDropdownStyle(style);
+    }
+  }, [isOpen, align, variant]);
+
+  const panelContent = isOpen && (
+    <div
+      ref={dropdownRef}
+      style={dropdownStyle}
+      className="max-h-60 overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+    >
+      {searchable && (
+        <div className="mb-1.5 px-1">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={searchPlaceholder}
+            className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-2.5 py-1.5 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/50"
+            autoFocus
+          />
+        </div>
+      )}
+      <div className="max-h-44 overflow-y-auto space-y-0.5 pr-0.5 custom-scrollbar">
+        {filteredOptions.length === 0 ? (
+          <div className="px-3 py-2 text-center text-xs text-slate-500">{emptyText}</div>
+        ) : (
+          filteredOptions.map((opt) => {
+            const isSelected = opt.value === value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                  setSearch("");
+                }}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors text-left cursor-pointer",
+                  isSelected
+                    ? "bg-[#C9A86A]/20 text-[#C9A86A] font-bold"
+                    : "text-slate-300 hover:bg-white/5 hover:text-white"
+                )}
+              >
+                <span className="truncate">{opt.label}</span>
+                {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />}
+              </button>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div ref={dropdownRef} className={cn(isPill ? "relative flex-1 min-w-0" : "relative w-full", className)}>
+    <div ref={undefined} className={cn(isPill ? "relative flex-1 min-w-0" : "relative w-full", className)}>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
@@ -293,56 +370,7 @@ function FilterDropdown({
         />
       </button>
 
-      {isOpen && (
-        <div className={cn(
-          "absolute top-full z-50 mt-1.5 max-h-60 overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150",
-          align === "right" ? "right-0" : "left-0",
-          isPill ? "w-[160px]" : "w-full"
-        )}>
-          {searchable && (
-            <div className="mb-1.5 px-1">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={searchPlaceholder}
-                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-2.5 py-1.5 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/50"
-                autoFocus
-              />
-            </div>
-          )}
-
-          <div className="max-h-44 overflow-y-auto space-y-0.5 pr-0.5 custom-scrollbar">
-            {filteredOptions.length === 0 ? (
-              <div className="px-3 py-2 text-center text-xs text-slate-500">{emptyText}</div>
-            ) : (
-              filteredOptions.map((opt) => {
-                const isSelected = opt.value === value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => {
-                      onChange(opt.value);
-                      setIsOpen(false);
-                      setSearch("");
-                    }}
-                    className={cn(
-                      "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors text-left cursor-pointer",
-                      isSelected
-                        ? "bg-[#C9A86A]/20 text-[#C9A86A] font-bold"
-                        : "text-slate-300 hover:bg-white/5 hover:text-white"
-                    )}
-                  >
-                    <span className="truncate">{opt.label}</span>
-                    {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
+      {typeof window !== "undefined" && panelContent && createPortal(panelContent, document.body)}
     </div>
   );
 }
@@ -1076,7 +1104,7 @@ export default function DiscoverTalentsPage() {
       </section>
 
       {/* Unified Search Card */}
-      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-5 md:py-5 md:px-6 mb-6 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md">
+      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-6 mb-6 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md">
         {/* Top Highlight line */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A86A] to-transparent pointer-events-none" />
         <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#C9A86A]/5 blur-3xl opacity-60 pointer-events-none" />
@@ -1124,8 +1152,20 @@ export default function DiscoverTalentsPage() {
             </div>
           </div>
 
-          {/* Box 2: Dropdown Loại hình Idol */}
+          {/* Box 2: Dropdown Địa điểm */}
           <div className="w-full xl:w-auto xl:min-w-[170px]">
+            <FilterDropdown
+              value={selectedCity}
+              onChange={setSelectedCity}
+              options={cityOptions}
+              searchPlaceholder="Nhập tỉnh/thành..."
+              emptyText="Không tìm thấy địa điểm"
+              placeholder="Toàn quốc"
+            />
+          </div>
+
+          {/* Box 3: Dropdown Loại hình Idol */}
+          <div className="w-full xl:w-auto xl:min-w-[190px]">
             <MultiFilterDropdown
               value={selectedType}
               onChange={setSelectedType}
@@ -1134,31 +1174,8 @@ export default function DiscoverTalentsPage() {
             />
           </div>
 
-          {/* Box 3: Dropdown Địa điểm */}
-          <div className="w-full xl:w-auto xl:min-w-[170px]">
-            <FilterDropdown
-              value={selectedCity}
-              onChange={setSelectedCity}
-              options={cityOptions}
-              searchPlaceholder="Nhập tỉnh/thành..."
-              emptyText="Không tìm thấy địa điểm"
-              placeholder="Địa điểm"
-            />
-          </div>
-
-          {/* Box 4: Dropdown Giới tính */}
-          <div className="w-full xl:w-auto xl:min-w-[150px]">
-            <FilterDropdown
-              value={selectedGender}
-              onChange={setSelectedGender}
-              options={genderOptions}
-              searchable={false}
-              placeholder="Giới tính"
-            />
-          </div>
-
           {/* Buttons container */}
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 shrink-0 relative z-50">
             {/* Button: Tìm kiếm */}
             <button
               type="button"
@@ -1183,13 +1200,42 @@ export default function DiscoverTalentsPage() {
               <SlidersHorizontal className="h-4 w-4" />
               <span>Bộ lọc</span>
             </button>
+
+            {/* Dropdown: Sắp xếp */}
+            <div className="relative z-50 overflow-visible w-full xl:w-[160px]">
+              <FilterDropdown
+                value={sortOption}
+                onChange={(val) => setSortOption(val as TalentSortOption)}
+                options={TALENT_SORT_OPTIONS}
+                searchable={false}
+                placeholder="Sắp xếp"
+                icon={ArrowUpDown}
+                align="right"
+                className="[&>button]:!bg-white/5 [&>button]:!border-white/10 [&>button]:!text-slate-300 [&>button]:hover:!bg-white/10 [&>button]:hover:!border-[#C9A86A]/40 [&>button]:hover:!text-white"
+              />
+            </div>
           </div>
         </div>
 
         {/* Collapsible Advanced Filters Area */}
         {showAdvancedFilters && (
           <div className="relative z-10 border-t border-white/5 mt-5 pt-5 space-y-4 animate-in slide-in-from-top-2 duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Giới tính */}
+              <div className="space-y-2">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Giới tính
+                </span>
+                <FilterDropdown
+                  value={selectedGender}
+                  onChange={setSelectedGender}
+                  options={genderOptions}
+                  searchable={false}
+                  placeholder="Giới tính"
+                  className="[&>button]:!h-10 [&>button]:!rounded-xl [&>button]:!text-xs"
+                />
+              </div>
+
               {/* Chiều cao */}
               <div className="space-y-2">
                 <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -1248,22 +1294,7 @@ export default function DiscoverTalentsPage() {
       <div className="relative z-10 w-full">
         {/* Content - Flexible */}
         <main className="w-full space-y-4">
-          <div className="hidden md:flex flex-row items-center justify-between gap-3 border-b border-[#2B313D] pb-3">
-            <span className="flex min-w-0 flex-1 items-center gap-2.5 whitespace-nowrap text-sm font-semibold tracking-wide text-slate-400">
-              <SlidersHorizontal className="h-4.5 w-4.5 text-[#C9A86A] shrink-0" />
-              <span className="truncate">Tìm thấy <b className="text-white font-bold">{displayedTalentCount}</b> kết quả</span>
-            </span>
-            <div className="hidden md:block w-[180px]">
-              <FilterDropdown
-                value={sortOption}
-                onChange={(val) => setSortOption(val as TalentSortOption)}
-                options={TALENT_SORT_OPTIONS}
-                searchable={false}
-                placeholder="Sắp xếp"
-                icon={ArrowUpDown}
-              />
-            </div>
-          </div>
+
 
           {isLoadingTalents ? (
             <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-16 text-center">

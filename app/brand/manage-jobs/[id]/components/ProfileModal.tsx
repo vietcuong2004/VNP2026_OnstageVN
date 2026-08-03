@@ -49,10 +49,12 @@ export default function ProfileModal({
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6 text-left scrollbar-thin">
           <div className="grid grid-cols-3 gap-3">
+            {/* Tier profile block hidden per request.
             <div className="bg-[#050711] border border-white/5 rounded-xl p-3 text-center">
               <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Hạng Profile</span>
               <span className="block text-xs font-black text-amber-400 mt-1">Hạng {talent.tier}</span>
             </div>
+            */}
             <div className="bg-[#050711] border border-white/5 rounded-xl p-3 text-center">
               <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Đánh Giá</span>
               <span className="block text-xs font-black text-white mt-1">{talent.rating} ★</span>

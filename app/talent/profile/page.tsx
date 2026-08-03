@@ -563,8 +563,8 @@ export default function PortfolioPage() {
                     </span>
                   ))}
 
-                  {/* Tier Badge inside the same row */}
-                  {profile.isOnboarded && profile.tier && (() => {
+                  {/* Tier badge hidden per request. Remove `false &&` to restore. */}
+                  {false && profile.isOnboarded && profile.tier && (() => {
                     const tier = profile.tier.toUpperCase();
                     let tierColor = "";
                     let IconComponent = HelpCircle;

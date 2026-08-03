@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Footer from "@/components/footer";
+
 import {
   Briefcase,
   Sparkles,
@@ -76,7 +78,7 @@ function AboutContent({
     <div className="relative flex flex-col items-center text-center px-0 md:px-2 py-0 w-full font-sans bg-[#02040a] min-h-screen homepage-container overflow-x-hidden max-w-full">
 
       {/* Immersive Mockup Background Image & Gradient Overlays (z-0 to prevent background-color overlap) */}
-      <div className="absolute top-0 right-0 left-0 z-0 w-full h-[70vh] md:h-[105vh] overflow-hidden pointer-events-none">
+      <div className="absolute top-0 right-0 left-0 z-0 w-full h-[50vh] md:h-[75vh] overflow-hidden pointer-events-none">
         <img
           src="/hero_bg.png"
           alt="OnstageVN Background Graphics"
@@ -87,8 +89,8 @@ function AboutContent({
       </div>
 
       {/* Additional ambient glows for subsequent sections */}
-      <div className="absolute top-[800px] right-10 -z-10 h-[450px] w-[450px] rounded-full bg-purple-650/5 blur-[120px] pointer-events-none" />
-      <div className="absolute top-[1500px] left-10 -z-10 h-[450px] w-[450px] rounded-full bg-blue-650/5 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[600px] right-10 -z-10 h-[450px] w-[450px] rounded-full bg-purple-650/5 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[1100px] left-10 -z-10 h-[450px] w-[450px] rounded-full bg-blue-650/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[200px] left-1/2 -translate-x-1/2 -z-10 h-[500px] w-[500px] rounded-full bg-[#D4A64A]/5 blur-[130px] pointer-events-none" />
 
       {/* Main Content Wrapper (z-10 to stay on top of the background image) */}
@@ -141,10 +143,10 @@ function AboutContent({
         {showLandingHeader && <div className="h-16 md:h-20 w-full shrink-0" />}
 
         {/* HERO SECTION - Left content layout matching mockup */}
-        <section className="flex flex-col md:flex-row items-center justify-between min-h-0 md:min-h-[80vh] w-full mb-6 md:mb-10 px-1 md:px-4 max-w-[1550px] mx-auto relative text-center md:text-left">
+        <section className="flex flex-col md:flex-row items-start justify-between min-h-0 md:min-h-0 w-full pt-8 md:pt-12 mb-4 md:mb-6 px-1 md:px-4 max-w-[1550px] mx-auto relative text-center md:text-left">
 
           {/* Left Column: Copy & Actions */}
-          <div className="w-full md:w-[50%] flex flex-col items-center md:items-start space-y-4 md:space-y-6 z-10 py-4 md:py-10">
+          <div className="w-full md:w-[50%] flex flex-col items-center md:items-start space-y-3 md:space-y-4 z-10 py-4 md:py-6">
 
             {/* Top small pill tag */}
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full border border-[#D4A64A]/30 bg-[#071B42]/45 backdrop-blur-md max-w-full">
@@ -183,11 +185,11 @@ function AboutContent({
           </div>
 
           {/* Right Column: Empty spacer to let the background image skyline and face show cleanly without double emblem rendering */}
-          <div className="hidden md:block md:w-[45%] h-full min-h-[450px]" />
+          <div className="hidden md:block md:w-[45%] h-full min-h-[260px]" />
         </section>
 
         {/* HIGHLIGHTS BAR - Matching bottom of mockup */}
-        <div className="w-full max-w-[1550px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 px-4 md:px-6 py-4 md:py-6 border-y border-white/5 bg-[#02040a]/40 backdrop-blur-md rounded-2xl mb-16 md:mb-24 text-left">
+        <div className="w-full max-w-[1550px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 px-4 md:px-6 py-4 md:py-6 border-y border-white/5 bg-[#02040a]/40 backdrop-blur-md rounded-2xl mb-10 md:mb-14 text-left">
           <div className="flex items-start gap-3 p-1">
             <div className="h-8 w-8 rounded-lg bg-[#D4A64A]/10 border border-[#D4A64A]/20 flex items-center justify-center text-[#F0C56B] shrink-0">
               <ShieldCheck className="h-4 w-4" />
@@ -227,17 +229,17 @@ function AboutContent({
         </div>
 
         {/* INTRODUCTION SECTION */}
-        <section id="intro" className="w-full mb-16 md:mb-24 text-left scroll-mt-24 px-4 max-w-[1550px] mx-auto">
+        <section id="intro" className="w-full mb-10 md:mb-14 text-left scroll-mt-24 px-4 max-w-[1550px] mx-auto">
           <div className="flex items-center gap-2 mb-3">
             <span className="h-px w-8 bg-[#D4A64A]/50" />
             <span className="text-[10px] font-black text-[#F0C56B] uppercase tracking-widest">Câu chuyện thương hiệu</span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white tracking-tight mb-4 md:mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white tracking-tight mb-3 md:mb-5">
             Hệ sinh thái kết nối <span className="text-gradient-gold">Idol & Cơ hội</span>
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 items-start">
             <div className="space-y-4">
               <p className="text-xs sm:text-[13px] md:text-sm text-slate-300 leading-relaxed font-medium text-justify">
                 Onstage VN được xây dựng với niềm tin rằng mọi idol đều xứng đáng có cơ hội tỏa sáng. Trong ngành người mẫu và sắc đẹp, việc tìm kiếm cơ hội thường phụ thuộc nhiều vào các mối quan hệ cá nhân hoặc các đơn vị trung gian thiếu chuẩn hóa.
@@ -272,7 +274,7 @@ function AboutContent({
         </section>
 
         {/* CORE FEATURES SECTION */}
-        <section id="features" className="w-full mb-16 md:mb-24 text-left scroll-mt-24 px-4 max-w-[1550px] mx-auto">
+        <section id="features" className="w-full mb-10 md:mb-14 text-left scroll-mt-24 px-4 max-w-[1550px] mx-auto">
           <div className="flex items-center gap-2 mb-3">
             <span className="h-px w-8 bg-[#D4A64A]/50" />
             <span className="text-[10px] font-black text-[#F0C56B] uppercase tracking-widest">Định vị giá trị cốt lõi</span>
@@ -286,18 +288,7 @@ function AboutContent({
             Onstage ứng dụng công nghệ để đơn giản hóa quá trình xây dựng hồ sơ, quản lý chiến dịch và kết nối hợp tác giữa Idol, Brand và Agency. Mọi thông tin được tập trung trên một nền tảng hiện đại, giúp nâng cao hiệu quả làm việc và mở rộng cơ hội phát triển.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-            {/* Feature 1 */}
-            <div className="group relative p-5 md:p-6 rounded-2xl bg-[#071B42]/30 border border-white/5 hover:border-[#D4A64A]/20 transition-all duration-300 hover:bg-[#0B245C]/40">
-              <div className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-xl bg-[#D4A64A]/10 text-[#F0C56B] border border-[#D4A64A]/20 mb-4 group-hover:scale-105 transition-transform duration-300">
-                <Sparkles className="h-4.5 w-4.5 md:h-5 md:w-5" />
-              </div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2">Định hướng phát triển bằng AI</h3>
-              <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
-                Ứng dụng AI hỗ trợ phân tích thông tin hồ sơ, đánh giá điểm mạnh và gợi ý định hướng phát triển phù hợp, giúp Idol xây dựng lộ trình phát triển sự nghiệp hiệu quả hơn.
-              </p>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {/* Feature 2 */}
             <div className="group relative p-5 md:p-6 rounded-2xl bg-[#071B42]/30 border border-white/5 hover:border-[#D4A64A]/20 transition-all duration-300 hover:bg-[#0B245C]/40">
               <div className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-xl bg-[#D4A64A]/10 text-[#F0C56B] border border-[#D4A64A]/20 mb-4 group-hover:scale-105 transition-transform duration-300">
@@ -334,7 +325,7 @@ function AboutContent({
         </section>
 
         {/* HOW IT WORKS */}
-        <section id="process" className="w-full mb-16 md:mb-24 text-left scroll-mt-24 px-4 max-w-[1550px] mx-auto">
+        <section id="process" className="w-full mb-10 md:mb-14 text-left scroll-mt-24 px-4 max-w-[1550px] mx-auto">
           <div className="flex items-center gap-2 mb-3">
             <span className="h-px w-8 bg-[#D4A64A]/50" />
             <span className="text-[10px] font-black text-[#F0C56B] uppercase tracking-widest">Quy trình vận hành</span>
@@ -343,7 +334,7 @@ function AboutContent({
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white tracking-tight mb-3">
             Đơn giản hóa quy trình <span className="text-gradient-gold">kết nối Idol & Brand</span>
           </h2>
-          <p className="text-xs sm:text-[13px] md:text-sm text-slate-355 max-w-2xl mb-8 md:mb-12 leading-relaxed font-medium">
+          <p className="text-xs sm:text-[13px] md:text-sm text-slate-355 max-w-2xl mb-4 md:mb-6 leading-relaxed font-medium">
             Chỉ với ba bước, Idol và Brand có thể nhanh chóng kết nối, tạo cơ hội hợp tác và quản lý toàn bộ quá trình trên cùng một nền tảng.
           </p>
 
@@ -404,7 +395,7 @@ function AboutContent({
 
         {/* PORTALS SECTION (Scroll target) */}
         {showPortals && (
-          <section id="portals" className="w-full mb-20 scroll-mt-24 px-4 text-center max-w-[1550px] mx-auto">
+          <section id="portals" className="w-full mb-12 scroll-mt-24 px-4 text-center max-w-[1550px] mx-auto">
             <div className="flex flex-col items-center space-y-4 mb-10 w-full">
               <span className="text-[10px] font-black uppercase tracking-widest text-[#F0C56B] bg-[#D4A64A]/10 px-4 py-1.5 rounded-full border border-[#D4A64A]/20">
                 Hệ sinh thái sản phẩm
@@ -721,7 +712,7 @@ function AboutContent({
         )}
 
         {showFeaturesExplanation && (
-          <section className="w-full mb-16 md:mb-24 text-left scroll-mt-24 px-4 max-w-[1550px] mx-auto">
+          <section className="w-full mb-10 md:mb-14 text-left scroll-mt-24 px-4 max-w-[1550px] mx-auto">
             {/* Section Tag & Heading */}
             <div className="flex items-center gap-2 mb-3">
               <span className="h-px w-8 bg-[#D4A64A]/50" />
@@ -731,11 +722,11 @@ function AboutContent({
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white tracking-tight mb-3">
               Giải pháp toàn diện dành cho <span className="text-gradient-gold">Idol & Brand</span>
             </h2>
-            <p className="text-xs sm:text-[13px] md:text-sm text-slate-300 max-w-4xl mb-12 leading-relaxed font-medium">
+            <p className="text-xs sm:text-[13px] md:text-sm text-slate-300 max-w-4xl mb-6 leading-relaxed font-medium">
               Khám phá các giải pháp công nghệ vượt trội được thiết kế riêng biệt để đáp ứng nhu cầu phát triển của từng nhóm đối tượng thành viên trong hệ sinh thái Onstage.
             </p>
 
-            <div className="space-y-14">
+            <div className="space-y-8">
               {/* ─── 1. KÊNH DÀNH CHO IDOL ─── */}
               <div className="space-y-6">
                 {/* Đối tượng Idol là những ai */}
@@ -872,136 +863,7 @@ function AboutContent({
           </section>
         )}
 
-        {/* FOOTER */}
-        <footer className="w-full border-t border-white/5 bg-[#02040a]/80 backdrop-blur-md pt-16 pb-12 px-4 md:px-8 mt-16 max-w-[1550px] mx-auto text-center">
-
-          {/* Top Brand Info - Centered like TLU Document */}
-          <div className="flex flex-col items-center mb-12 animate-in fade-in duration-300">
-            <div className="flex items-center gap-2 mb-3 justify-center">
-              <img
-                src="/logo_icon.png"
-                alt="OnstageVN Logo Icon"
-                className="h-12 w-12 object-contain shrink-0"
-              />
-              <img
-                src="/logo_text.png"
-                alt="OnstageVN Logo Text"
-                className="h-10 object-contain shrink-0"
-              />
-            </div>
-          </div>
-
-          {/* 4 Cards Grid - Matches layout style from the image but dark gold theme */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 text-left">
-
-            {/* Card 1: LIÊN HỆ */}
-            <div className="p-6 rounded-2xl bg-[#090b16]/60 border border-white/5 shadow-xl hover:border-[#D4A64A]/25 transition-colors duration-300 flex flex-col justify-between">
-              <div>
-                <h4 className="text-[11px] font-black text-[#F0C56B] uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Liên hệ</h4>
-                <ul className="space-y-3.5 text-[11px] font-medium text-slate-400">
-                  <li className="flex items-start gap-3">
-                    <Mail className="h-4.5 w-4.5 text-[#F0C56B] shrink-0 mt-0.5" />
-                    <span className="break-all">contact@onstage.vn</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <Phone className="h-4.5 w-4.5 text-[#F0C56B] shrink-0 mt-0.5" />
-                    <span>+84 (0) 90 123 4567</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <MapPin className="h-4.5 w-4.5 text-[#F0C56B] shrink-0 mt-0.5" />
-                    <span className="leading-relaxed">102 Thái Thịnh, Q.Đống Đa, TP.Hà Nội, Việt Nam</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Card 2: HỆ SINH THÁI */}
-            <div className="p-6 rounded-2xl bg-[#090b16]/60 border border-white/5 shadow-xl hover:border-[#D4A64A]/25 transition-colors duration-300 flex flex-col justify-between">
-              <div>
-                <h4 className="text-[11px] font-black text-[#F0C56B] uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Hệ sinh thái</h4>
-                <ul className="space-y-3 text-[11px] font-semibold text-slate-400">
-                  {showPortals && (
-                    <>
-                      <li>
-                        <Link href="/intro/talent" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Idol</Link>
-                      </li>
-                      <li>
-                        <Link href="/intro/brand" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Brand</Link>
-                      </li>
-                    </>
-                  )}
-                  <li>
-                    <button onClick={() => scrollToId('features')} className="hover:text-white transition-colors cursor-pointer text-left block">Định hướng AI</button>
-                  </li>
-                  <li>
-                    <button onClick={() => scrollToId('process')} className="hover:text-white transition-colors cursor-pointer text-left block">Quy trình vận hành</button>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Card 3: GIỚI THIỆU */}
-            <div className="p-6 rounded-2xl bg-[#090b16]/60 border border-white/5 shadow-xl hover:border-[#D4A64A]/25 transition-colors duration-300 flex flex-col justify-between">
-              <div>
-                <h4 className="text-[11px] font-black text-[#F0C56B] uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Giới thiệu</h4>
-                <ul className="space-y-3 text-[11px] font-semibold text-slate-400">
-                  <li>
-                    <button onClick={() => scrollToId('intro')} className="hover:text-white transition-colors cursor-pointer text-left block">Về chúng tôi</button>
-                  </li>
-                  <li>
-                    <span className="cursor-not-allowed opacity-50 block">Liên hệ hợp tác</span>
-                  </li>
-                  <li>
-                    <span className="cursor-not-allowed opacity-50 block">Điều khoản dịch vụ</span>
-                  </li>
-                  <li>
-                    <span className="cursor-not-allowed opacity-50 block">Chính sách bảo mật</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Card 4: KẾT NỐI */}
-            <div className="p-6 rounded-2xl bg-[#090b16]/60 border border-white/5 shadow-xl hover:border-[#D4A64A]/25 transition-colors duration-300 flex flex-col justify-between gap-4">
-              <div>
-                <h4 className="text-[11px] font-black text-[#F0C56B] uppercase tracking-wider mb-4 border-b border-white/5 pb-2">Kết nối</h4>
-                <div className="flex items-center gap-3">
-                  <a href="#" className="h-8 w-8 rounded-full border border-white/10 hover:border-[#F0C56B] flex items-center justify-center text-slate-400 hover:text-[#F0C56B] hover:bg-[#F0C56B]/5 transition-all">
-                    <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
-                    </svg>
-                  </a>
-                  <a href="#" className="h-8 w-8 rounded-full border border-white/10 hover:border-[#F0C56B] flex items-center justify-center text-slate-400 hover:text-[#F0C56B] hover:bg-[#F0C56B]/5 transition-all">
-                    <svg className="h-4 w-4 stroke-current fill-none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                    </svg>
-                  </a>
-                  <a href="#" className="h-8 w-8 rounded-full border border-white/10 hover:border-[#F0C56B] flex items-center justify-center text-slate-400 hover:text-[#F0C56B] hover:bg-[#F0C56B]/5 transition-all">
-                    <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M23.498 6.163c-.272-1.023-1.078-1.83-2.101-2.102C19.516 3.5 12 3.5 12 3.5s-7.516 0-9.397.561C1.58 4.333.773 5.14.502 6.163.003 8.043 0 12 0 12s.003 3.957.502 5.837c.271 1.023 1.077 1.83 2.101 2.102 1.881.562 9.397.562 9.397.562s7.516 0 9.397-.562c1.023-.272 1.829-1.079 2.101-2.102.5-1.88.502-5.837.502-5.837s-.002-3.957-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
-
-              <button
-                onClick={() => alert("Cảm ơn ý kiến đóng góp của bạn!")}
-                className="w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-gradient-gold text-slate-950 hover:shadow-[0_0_15px_rgba(240,197,107,0.3)] transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                <Send className="h-3.5 w-3.5" /> Gửi phản hồi
-              </button>
-            </div>
-
-          </div>
-
-          {/* Bottom Copyright centered */}
-          <div className="border-t border-white/5 pt-8 flex flex-col items-center gap-3 text-[10px] font-semibold text-slate-500">
-            <p>© {new Date().getFullYear()} ONSTAGE VN. All rights reserved.</p>
-            <p>Designed with excellence for beauty and brand matching.</p>
-          </div>
-        </footer>
+        <Footer />
 
       </div>
     </div>

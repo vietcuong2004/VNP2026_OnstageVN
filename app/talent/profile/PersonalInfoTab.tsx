@@ -1618,7 +1618,7 @@ export default function PersonalInfoTab({
         </div>
 
         {/* SECTION E: AI SURVEY & RADAR CHART & 20 CAREER ALIGNMENTS */}
-        <div className="order-[50] lg:col-span-3 rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
+        <div className="hidden order-[50] lg:col-span-3 rounded-2xl border border-purple-500/20 bg-[#08090f] shadow-[0_0_20px_rgba(168,85,247,0.03)] p-6 space-y-6">
           <div className="flex items-center gap-2.5 border-b border-[#151b2d] pb-4 justify-between flex-wrap">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />

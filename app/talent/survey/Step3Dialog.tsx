@@ -94,21 +94,27 @@ export default function Step3Dialog({
         <div className="border-y border-white/5 px-6 py-7 md:px-8">
           <div className="mb-6 flex items-center gap-3 rounded-full border border-amber-400/30 bg-amber-400/5 px-5 py-3 text-sm font-black text-amber-300">
             <Sparkles className="h-4 w-4" />
-            Hồ sơ khảo sát đã được lưu
+            Hồ sơ đã được lưu
           </div>
 
           <p className="max-w-xl text-justify text-sm font-semibold leading-relaxed text-slate-300">
-            Bạn đã hoàn thiện các thông tin cơ bản của hồ sơ, chúng tôi đã lưu thông tin và tạo tài khoản OnstageVN cho bạn, bạn có thể dùng tài khoản phía dưới để đăng nhập vào hệ thống, hoặc "Làm tiếp bài khảo sát" để chúng tôi đánh giá và phân hạng bạn theo{" "}
-            <span className="font-black text-amber-300">"Hệ thống xếp hạng OnstageVN"</span>
-            <button
-              type="button"
-              onClick={() => setIsTierDialogOpen(true)}
-              className="ml-2 inline-flex h-5 w-5 translate-y-[-1px] items-center justify-center rounded-full border border-amber-400/70 bg-amber-400/10 align-middle text-[11px] font-black leading-none text-amber-300 transition-all hover:bg-amber-400/20 hover:text-amber-200"
-              aria-label="Xem giải thích hệ thống xếp hạng OnstageVN"
-            >
-              ?
-            </button>
-            .
+            {showContinueSurvey ? (
+              <>
+                Bạn đã hoàn thiện các thông tin cơ bản của hồ sơ, chúng tôi đã lưu thông tin và tạo tài khoản OnstageVN cho bạn, bạn có thể dùng tài khoản phía dưới để đăng nhập vào hệ thống, hoặc "Làm tiếp bài khảo sát" để chúng tôi đánh giá và phân hạng bạn theo{" "}
+                <span className="font-black text-amber-300">"Hệ thống xếp hạng OnstageVN"</span>
+                <button
+                  type="button"
+                  onClick={() => setIsTierDialogOpen(true)}
+                  className="ml-2 inline-flex h-5 w-5 translate-y-[-1px] items-center justify-center rounded-full border border-amber-400/70 bg-amber-400/10 align-middle text-[11px] font-black leading-none text-amber-300 transition-all hover:bg-amber-400/20 hover:text-amber-200"
+                  aria-label="Xem giải thích hệ thống xếp hạng OnstageVN"
+                >
+                  ?
+                </button>
+                .
+              </>
+            ) : (
+              "Bạn đã hoàn thiện các thông tin cơ bản của hồ sơ, chúng tôi đã lưu thông tin và tạo tài khoản OnstageVN cho bạn. Bạn có thể dùng tài khoản phía dưới để đăng nhập vào hệ thống và tiếp tục cập nhật hồ sơ cá nhân."
+            )}
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">

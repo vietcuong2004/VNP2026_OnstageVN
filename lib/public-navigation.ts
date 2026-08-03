@@ -5,9 +5,9 @@ export type PublicNavigationItem = {
 };
 
 const guestPrimaryNavigation: PublicNavigationItem[] = [
+  { key: "about", label: "Về chúng tôi", href: "/about" },
   { key: "talent", label: "Idol", href: "/brand/search" },
   { key: "jobs", label: "Việc làm", href: "/talent/jobs" },
-  { key: "about", label: "Về chúng tôi", href: "/about" },
 ];
 
 const guestMoreNavigation: PublicNavigationItem[] = [

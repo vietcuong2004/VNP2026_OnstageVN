@@ -68,8 +68,12 @@ const TiktokIcon = (props: React.SVGProps<SVGSVGElement>) => (
 function clampSurveyStep(value: unknown) {
   const step = Number(value);
   if (!Number.isFinite(step)) return 1;
-  return Math.min(4, Math.max(1, Math.trunc(step)));
+  return Math.min(SURVEY_STEP_COUNT, Math.max(1, Math.trunc(step)));
 }
+
+const ORIENTATION_SURVEY_ENABLED = false;
+const SURVEY_STEP_COUNT = ORIENTATION_SURVEY_ENABLED ? 4 : 3;
+const SURVEY_STEPS = ORIENTATION_SURVEY_ENABLED ? [1, 2, 3, 4] : [1, 2, 3];
 
 const talentTypeOptions = TALENT_TYPE_VALUES;
 const contentSkillSuggestions = CONTENT_SKILL_VALUES;
@@ -742,8 +746,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       if (socialHighlights.length) count++;
       if (portfolioLinks.length) count++;
       if (socialAccounts.length) count++;
-      basePct += Math.round((count / 3) * 25); // max 75%
-    } else if (step === 4) {
+      basePct += Math.round((count / 3) * (ORIENTATION_SURVEY_ENABLED ? 25 : 50));
+    } else if (ORIENTATION_SURVEY_ENABLED && step === 4) {
       basePct = 75;
       // Survey answered count ratio
       const answeredCount = Object.keys(surveyAnswers).length;
@@ -764,7 +768,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       // return mediaUploads.portfolio !== null;
       return true;
     }
-    if (step === 4) {
+    if (ORIENTATION_SURVEY_ENABLED && step === 4) {
       // Valid if all 20 questions are answered
       return SURVEY_QUESTIONS.every((q) => surveyAnswers[q.id] !== undefined);
     }
@@ -773,7 +777,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   const goToStep = (nextStep: number, status: "draft" | "completed" | "analyzed" = "draft") => {
     const savedStep = clampSurveyStep(nextStep);
-    if (!isAuthenticated && savedStep === 4 && !guestSurveyUnlocked) {
+    if (!ORIENTATION_SURVEY_ENABLED && savedStep > SURVEY_STEP_COUNT) {
+      return;
+    }
+    if (ORIENTATION_SURVEY_ENABLED && !isAuthenticated && savedStep === 4 && !guestSurveyUnlocked) {
       return;
     }
     setStep(savedStep);
@@ -822,6 +829,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   };
 
   const handleContinueGuestSurvey = () => {
+    if (!ORIENTATION_SURVEY_ENABLED) {
+      setShowGuestAccountDialog(false);
+      return;
+    }
     setGuestSurveyUnlocked(true);
     setShowGuestAccountDialog(false);
     setStep(4);
@@ -836,12 +847,24 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   };
 
   const nextStep = async () => {
-    if (step < 4 && isStepValid()) {
+    if (!isStepValid()) return;
+
+    if (step < SURVEY_STEP_COUNT) {
       if (!isAuthenticated && step === 3 && !guestSurveyUnlocked) {
         openGuestAccountDialog();
         return;
       }
       goToStep(step + 1);
+      return;
+    }
+
+    if (step === SURVEY_STEP_COUNT) {
+      if (!isAuthenticated) {
+        openGuestAccountDialog();
+        return;
+      }
+
+      await handleSubmit(new Event("submit") as unknown as React.FormEvent);
     }
   };
 
@@ -1138,11 +1161,15 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         { question_code: "P6", answer_value: currentPortfolioLinks },
         { question_code: "P7", answer_value: socialAccounts },
       ]);
-      const sectionSAnswers = compactSurveyAnswers(surveyQuestionAnswers);
+      const sectionSAnswers = ORIENTATION_SURVEY_ENABLED
+        ? compactSurveyAnswers(surveyQuestionAnswers)
+        : [];
 
       if (hasAuth) {
         await submitTalentSurvey("A", sectionAAnswers);
-        await submitTalentSurvey("S", sectionSAnswers);
+        if (ORIENTATION_SURVEY_ENABLED) {
+          await submitTalentSurvey("S", sectionSAnswers);
+        }
       } else {
         setPendingGuestSurveySyncPayload({
           profile: userProfile,
@@ -1151,7 +1178,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         });
       }
 
-      const aiResult = hasAuth
+      const aiResult = hasAuth && ORIENTATION_SURVEY_ENABLED
         ? await analyzeTalentSurvey().catch((error) => {
           console.warn(error);
           return null;
@@ -1181,7 +1208,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
       persistTalentProfile({ ...savedProfile, ...userProfile });
 
-      void saveTalentSurveyProgress(5, "analyzed");
+      void saveTalentSurveyProgress(SURVEY_STEP_COUNT + 1, ORIENTATION_SURVEY_ENABLED ? "analyzed" : "completed");
+      if (!ORIENTATION_SURVEY_ENABLED && hasAuth) {
+        router.push("/talent/profile");
+        return;
+      }
+
       setIsSubmitted(true);
       if (!hasAuth) {
         setGuestAccountReady(false);
@@ -1298,6 +1330,293 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
     openGuestAccountDialog();
   };
+
+  if (isSubmitted) {
+    const selectedSkills = splitSkillValues(formData.skills);
+    const currentPortfolioLinks = getCurrentPortfolioLinks();
+    const bodyMeasurements = [formData.bust, formData.waist, formData.hips].filter(Boolean).join(" - ");
+    const hasAvatar = Boolean(avatarPreviewUrl || avatarFile || mediaUploads.avatar);
+    const missingBasicFields = [
+      !formData.name && "Họ và tên",
+      !formData.email && "Email liên hệ",
+      !hasAvatar && "Ảnh đại diện",
+      !formData.gender && "Giới tính",
+      !formData.location && "Khu vực sinh sống",
+      !formData.height && "Chiều cao",
+      !formData.weight && "Cân nặng",
+      !formData.bust && "Số đo vòng 1",
+      !formData.waist && "Số đo vòng 2",
+      !formData.hips && "Số đo vòng 3",
+    ].filter(Boolean) as string[];
+    const missingCareerFields = [
+      !formData.price && "Phí booking",
+      !formData.talentTypes.length && "Loại hình Idol",
+      !selectedSkills.length && "Lĩnh vực nội dung / kỹ năng",
+      !formData.experience && "Số năm kinh nghiệm",
+      !formData.professionalExperience && "Kinh nghiệm làm việc",
+    ].filter(Boolean) as string[];
+    const missingSocialFields = [
+      !currentPortfolioLinks.length && "Portfolio",
+      !socialHighlights.length && "Chỉ số nổi bật",
+      !socialAccounts.length && "Liên kết mạng xã hội",
+    ].filter(Boolean) as string[];
+    const summaryRows = [
+      { label: "Họ và tên", value: formData.name },
+      { label: "Email liên hệ", value: formData.email },
+      { label: "Giới tính", value: formData.gender },
+      { label: "Khu vực sinh sống", value: formData.location },
+      { label: "Chiều cao", value: formData.height ? `${formData.height} cm` : "" },
+      { label: "Cân nặng", value: formData.weight ? `${formData.weight} kg` : "" },
+      { label: "Số đo 3 vòng", value: bodyMeasurements ? `${bodyMeasurements} cm` : "" },
+      { label: "Phí booking", value: formData.price },
+      { label: "Số năm kinh nghiệm", value: formData.experience },
+    ].filter((row) => row.value);
+
+    const summaryGroups = [
+      {
+        title: "Thông tin cơ bản",
+        icon: User,
+        missing: missingBasicFields,
+        content: (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {summaryRows.slice(0, 7).map((row) => (
+              <div key={row.label} className="rounded-xl border border-white/5 bg-[#03050c]/70 p-3.5">
+                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">{row.label}</span>
+                <span className="mt-1 block text-sm font-bold text-slate-100">{row.value}</span>
+              </div>
+            ))}
+          </div>
+        ),
+      },
+      {
+        title: "Nghề nghiệp",
+        icon: Award,
+        missing: missingCareerFields,
+        content: (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {summaryRows.slice(7).map((row) => (
+                <div key={row.label} className="rounded-xl border border-white/5 bg-[#03050c]/70 p-3.5">
+                  <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">{row.label}</span>
+                  <span className="mt-1 block text-sm font-bold text-slate-100">{row.value}</span>
+                </div>
+              ))}
+            </div>
+            <div>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Loại hình Idol</span>
+              {formData.talentTypes.length ? (
+                <div className="flex flex-wrap gap-2">
+                  {formData.talentTypes.map((type) => (
+                    <span key={type} className="rounded-full border border-[#D4A64A]/25 bg-[#D4A64A]/10 px-3 py-1 text-xs font-black uppercase text-[#F0C56B]">
+                      {type}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm italic text-slate-500">Chưa chọn loại hình nào</p>
+              )}
+            </div>
+            <div>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Lĩnh vực nội dung / kỹ năng</span>
+              {selectedSkills.length ? (
+                <div className="flex flex-wrap gap-2">
+                  {selectedSkills.map((skill) => (
+                    <span key={skill} className="rounded-full border border-white/10 bg-[#071B42]/55 px-3 py-1 text-xs font-bold text-slate-100">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm italic text-slate-500">Chưa thêm lĩnh vực nào</p>
+              )}
+            </div>
+            <div className="rounded-xl border border-white/5 bg-[#03050c]/70 p-3.5">
+              <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Kinh nghiệm làm việc</span>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">
+                {formData.professionalExperience || "Chưa nhập kinh nghiệm làm việc"}
+              </p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        title: "Portfolio & mạng xã hội",
+        icon: Globe,
+        missing: missingSocialFields,
+        content: (
+          <div className="space-y-4">
+            <div>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Portfolio</span>
+              {currentPortfolioLinks.length ? (
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  {currentPortfolioLinks.map((link, index) => (
+                    <a
+                      key={`${link}-${index}`}
+                      href={portfolioHref(link)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate rounded-xl border border-white/5 bg-[#03050c]/70 p-3 text-sm font-bold text-[#F0C56B] transition-colors hover:border-[#D4A64A]/30 hover:text-white"
+                    >
+                      Portfolio {index + 1}
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm italic text-slate-500">Chưa có portfolio nào được thêm</p>
+              )}
+            </div>
+            <div>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Chỉ số nổi bật</span>
+              {socialHighlights.length ? (
+                <div className="flex flex-wrap gap-2">
+                  {socialHighlights.map((highlight) => (
+                    <span key={highlight} className="rounded-full border border-[#D4A64A]/25 bg-[#D4A64A]/10 px-3 py-1 text-xs font-black uppercase text-[#F0C56B]">
+                      {highlight}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm italic text-slate-500">Chưa thêm chỉ số nổi bật nào</p>
+              )}
+            </div>
+            <div>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Liên kết mạng xã hội</span>
+              {socialAccounts.length ? (
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  {socialAccounts.map((account, index) => (
+                    <a
+                      key={`${account.platform}-${account.url}-${index}`}
+                      href={portfolioHref(account.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-xl border border-white/5 bg-[#03050c]/70 p-3 transition-colors hover:border-[#D4A64A]/30"
+                    >
+                      <span className="block text-[10px] font-black uppercase tracking-widest text-[#F0C56B]">{account.platform}</span>
+                      <span className="mt-1 block truncate text-sm font-semibold text-slate-200">{account.url}</span>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm italic text-slate-500">Chưa có liên kết mạng xã hội nào được thêm</p>
+              )}
+            </div>
+          </div>
+        ),
+      },
+    ];
+
+    return (
+      <div className="relative w-full animate-in rounded-3xl border border-[#D4A64A]/20 bg-[#02040a]/95 p-5 shadow-[0_0_30px_rgba(212,166,74,0.08)] fade-in slide-in-from-bottom-8 duration-700 md:p-8">
+        <div className="pointer-events-none absolute right-0 top-0 -z-10 h-56 w-56 rounded-full bg-[#D4A64A]/5 blur-[90px]" />
+        <div className="pointer-events-none absolute bottom-0 left-0 -z-10 h-56 w-56 rounded-full bg-[#071B42]/50 blur-[90px]" />
+
+        <div className="mb-6 flex flex-col gap-4 border-b border-white/5 pb-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#D4A64A]/25 bg-[#D4A64A]/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#F0C56B]">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Hồ sơ đã được cập nhật
+            </div>
+            <h2 className="mt-3 font-display text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+              Tóm tắt hồ sơ Idol
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-slate-400">
+              Thời gian: <span className="font-bold text-slate-200">{results.date || "Vừa thực hiện"}</span>
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => {
+                if (onBackToDashboard) {
+                  onBackToDashboard();
+                  return;
+                }
+                router.back();
+              }}
+              className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-[#D4A64A]/30 bg-gradient-gold px-5 text-[11px] font-black uppercase tracking-wider text-slate-950 shadow-[0_0_15px_rgba(240,197,107,0.18)] transition-all hover:brightness-105 active:scale-98 md:text-xs"
+            >
+              <X className="h-3.5 w-3.5 stroke-[3]" /> Hủy
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAiAnalysis(null);
+                setIsSubmitted(false);
+                goToStep(1);
+                setMaxStep(1);
+                setActiveSurveyQIdx(0);
+                setSurveyAnswers({});
+              }}
+              className="flex h-11 items-center justify-center rounded-xl border border-white/10 bg-transparent px-5 font-display text-[11px] font-bold text-slate-300 transition-all hover:bg-white/5 hover:text-white md:text-xs"
+            >
+              Làm lại bài khảo sát
+            </button>
+            <button
+              type="button"
+              onClick={handleResultPrimaryAction}
+              className="flex h-11 items-center justify-center rounded-xl bg-gradient-gold px-5 font-display text-[11px] font-bold text-slate-950 shadow-lg transition-all hover:brightness-105 active:scale-98 md:text-xs"
+            >
+              {isAuthenticated ? "Chuyển đến hồ sơ cá nhân" : "Đăng nhập ngay"} <ArrowRight className="ml-1.5 h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-white/5 bg-[#03050c]/70 p-4 text-center">
+            <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Độ hoàn thiện</span>
+            <span className="mt-1 block font-display text-3xl font-black text-[#F0C56B]">{results.profileScore}/100</span>
+          </div>
+          <div className="rounded-2xl border border-white/5 bg-[#03050c]/70 p-4 text-center">
+            <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Số bước đã hoàn thành</span>
+            <span className="mt-1 block font-display text-3xl font-black text-white">{SURVEY_STEP_COUNT}/3</span>
+          </div>
+          <div className="rounded-2xl border border-white/5 bg-[#03050c]/70 p-4 text-center">
+            <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Trạng thái</span>
+            <span className="mt-2 inline-flex rounded-full border border-[#D4A64A]/25 bg-[#D4A64A]/10 px-3 py-1 text-xs font-black uppercase text-[#F0C56B]">
+              Sẵn sàng hiển thị
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+          {summaryGroups.map((group) => {
+            const Icon = group.icon;
+            return (
+              <section key={group.title} className="rounded-2xl border border-white/5 bg-[#071B42]/25 p-5">
+                <h3 className="mb-4 flex items-center gap-2 font-display text-sm font-black uppercase tracking-wider text-white">
+                  <Icon className="h-4.5 w-4.5 text-[#F0C56B]" />
+                  {group.title}
+                </h3>
+                {group.content}
+                <div className="mt-5 border-t border-white/5 pt-4">
+                  <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Còn thiếu</span>
+                  {group.missing.length ? (
+                    <div className="flex flex-wrap gap-2">
+                      {group.missing.map((field) => (
+                        <span
+                          key={field}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-[#D4A64A]/25 bg-[#D4A64A]/10 px-3 py-1 text-[11px] font-bold text-[#F0C56B]"
+                        >
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                          {field}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold text-emerald-300">
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                      Đã đủ thông tin
+                    </span>
+                  )}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   if (isSubmitted) {
     const fallbackJobs = JOBS_LIST.map((job) => {
@@ -1588,13 +1907,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="shrink-0 text-[11px] md:text-xs font-black text-amber-300 uppercase tracking-widest bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 whitespace-nowrap">
-                Bước {step} / 4
+                Bước {step} / {SURVEY_STEP_COUNT}
               </span>
               <span className="min-w-0 text-xs font-black leading-snug text-white">
                 {step === 1 && "Thông tin cơ bản"}
                 {step === 2 && "Nghề nghiệp"}
                 {step === 3 && "Social & Portfolio"}
-                {step === 4 && "Khảo sát định hướng"}
+                {ORIENTATION_SURVEY_ENABLED && step === 4 && "Khảo sát định hướng"}
               </span>
             </div>
             {/* Micro feedback text */}
@@ -1620,15 +1939,15 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           <div className="absolute top-7 left-7 right-7 h-[2px] bg-white/10 -translate-y-1/2 rounded-full overflow-hidden md:top-8 md:left-8 md:right-8">
             <div
               className="h-full bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 transition-all duration-500"
-              style={{ width: `${((step - 1) / 3) * 100}%` }}
+              style={{ width: `${((step - 1) / Math.max(1, SURVEY_STEP_COUNT - 1)) * 100}%` }}
             />
           </div>
 
           <div className="flex items-center justify-between w-full relative z-10">
-            {[1, 2, 3, 4].map((s) => {
+            {SURVEY_STEPS.map((s) => {
               const isCurrent = s === step;
               const isPast = s < step;
-              const isLockedGuestSurveyStep = !isAuthenticated && !guestSurveyUnlocked && s === 4;
+              const isLockedGuestSurveyStep = ORIENTATION_SURVEY_ENABLED && !isAuthenticated && !guestSurveyUnlocked && s === 4;
               const isClickable = !isLockedGuestSurveyStep;
 
               const stepNames = [
@@ -1648,7 +1967,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     "flex flex-col items-center transition-all duration-300 relative group focus:outline-none",
                     isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-60"
                   )}
-                  style={{ width: "22%" }}
+                  style={{ width: `${100 / SURVEY_STEP_COUNT}%` }}
                 >
                   {/* Step Bubble */}
                   <div className={cn(
@@ -2374,7 +2693,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         )}
 
         {/* STEP 4: ORIENTATION SURVEY (Single Question Card UI, zero scroll) */}
-        {step === 4 && (
+        {ORIENTATION_SURVEY_ENABLED && step === 4 && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-5xl mx-auto py-2 animate-in fade-in duration-300">
             {/* Left Column: The Question Block */}
             <div className="lg:col-span-8 space-y-6 w-full">
@@ -2565,7 +2884,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         )}
 
         {/* Global Navigation Action Bar (Except Step 4 which has its own) */}
-        {step < 4 && (
+        {step <= SURVEY_STEP_COUNT && (
           <div className="fixed inset-x-0 bottom-0 z-40 flex gap-3 border-t border-white/10 bg-[#070913]/98 px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-4 shadow-[0_-14px_30px_rgba(0,0,0,0.55)] backdrop-blur-xl md:static md:border-t md:bg-transparent md:px-0 md:pb-0 md:pt-5 md:shadow-none md:backdrop-blur-none">
             {step > 1 && (
               <button
@@ -2594,14 +2913,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 </>
               ) : (
                 <>
-                  Tiếp Tục <ArrowRight className="h-3.5 w-3.5" />
+                  {step === SURVEY_STEP_COUNT ? "Hoàn tất" : "Tiếp tục"} <ArrowRight className="h-3.5 w-3.5" />
                 </>
               )}
             </button>
           </div>
         )}
 
-        {/* Final Submit action button – hidden at step 4, handled inline in survey nav */}
+        {/* Step 4 orientation survey is currently disabled by ORIENTATION_SURVEY_ENABLED. */}
 
       </form>
 
@@ -2610,7 +2929,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           email={formData.email}
           error={guestAccountError}
           isLoginLoading={isCreatingGuestAccount}
-          showContinueSurvey={!isSubmitted}
+          showContinueSurvey={ORIENTATION_SURVEY_ENABLED && !isSubmitted}
           onClose={() => setShowGuestAccountDialog(false)}
           onContinueSurvey={handleContinueGuestSurvey}
           onLoginNow={handleGuestDialogLogin}
