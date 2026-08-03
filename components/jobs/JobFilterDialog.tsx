@@ -218,7 +218,7 @@ export default function JobFilterDialog({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-32 space-y-4 custom-scrollbar">
-        <div className="rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
+        <div className="relative z-0 rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Sắp xếp theo
           </span>
@@ -244,7 +244,7 @@ export default function JobFilterDialog({
           </div>
         </div>
 
-        <div className="rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
+        <div className="relative z-40 rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Địa điểm
           </span>
@@ -255,7 +255,7 @@ export default function JobFilterDialog({
           />
         </div>
 
-        <div className="rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
+        <div className="relative z-0 rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Loại hình job
           </span>

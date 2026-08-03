@@ -28,6 +28,7 @@ import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import React from "react";
 import TalentCard from "@/components/talents/TalentCard";
 import TalentCardMobile from "@/components/talents/TalentCardMobile";
+import { notifySavedTalentsUpdated } from "@/lib/guest-saved-talents";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
 const nextActions = [
@@ -311,9 +312,9 @@ export default function BrandDashboard() {
 
   const toggleSaved = (id: string) => {
     if (!requireAuthAction({ actionLabel: "Lưu talent vào shortlist" })) return;
-    setSavedIds((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-    );
+    const nextSavedIds = savedIds.includes(id) ? savedIds.filter((item) => item !== id) : [...savedIds, id];
+    setSavedIds(nextSavedIds);
+    notifySavedTalentsUpdated(nextSavedIds.length);
   };
 
   return (

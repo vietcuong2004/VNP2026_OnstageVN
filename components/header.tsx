@@ -4,11 +4,14 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
+  Building2,
   ChevronDown,
+  Heart,
   LogIn,
   LogOut,
   Settings,
   ShieldAlert,
+  User,
 } from "lucide-react";
 import { resolveUnifiedSettingsHref } from "@/components/sidebar";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
@@ -17,6 +20,8 @@ import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { loadNotifications, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/messaging-api";
 import { ensureBrowserNotificationPermission, showBrowserNotification } from "@/lib/browser-notifications";
 import { getRealtimeClient } from "@/lib/realtime";
+import { loadBrandWishlists } from "@/lib/brand-api";
+import { SAVED_TALENTS_UPDATED_EVENT } from "@/lib/guest-saved-talents";
 
 type AuthUser = {
   id: number;
@@ -119,6 +124,7 @@ export default function Header() {
   const [talentAvatar, setTalentAvatar] = useState<string | null>(null);
   const [talentName, setTalentName] = useState<string | null>(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [savedTalentCount, setSavedTalentCount] = useState(0);
 
   useEffect(() => {
     function syncTalentProfileHeader() {
@@ -241,6 +247,44 @@ export default function Header() {
     };
   }, [pathname, user?.id]);
 
+  useEffect(() => {
+    if (!user?.id || !user.capabilities?.includes("brand")) {
+      setSavedTalentCount(0);
+      return;
+    }
+
+    let cancelled = false;
+
+    function refreshSavedTalentCount() {
+      loadBrandWishlists([])
+        .then((wishlists) => {
+          if (cancelled) return;
+          setSavedTalentCount(wishlists[0]?.savedIds?.length || 0);
+        })
+        .catch(() => {
+          if (!cancelled) setSavedTalentCount(0);
+        });
+    }
+
+    function handleSavedTalentsUpdated(event: Event) {
+      const count = (event as CustomEvent<{ count?: number }>).detail?.count;
+      if (typeof count === "number") {
+        setSavedTalentCount(count);
+        return;
+      }
+
+      refreshSavedTalentCount();
+    }
+
+    window.addEventListener(SAVED_TALENTS_UPDATED_EVENT, handleSavedTalentsUpdated);
+    refreshSavedTalentCount();
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(SAVED_TALENTS_UPDATED_EVENT, handleSavedTalentsUpdated);
+    };
+  }, [pathname, user?.capabilities, user?.id]);
+
   async function handleLogout() {
     await logoutCurrentSession();
     router.replace("/auth/login");
@@ -253,6 +297,12 @@ export default function Header() {
 
   const dropdownItems = user
     ? [
+        ...(user.capabilities?.includes("talent")
+          ? [{ label: "Hồ sơ idol", href: "/talent/profile", icon: User }]
+          : []),
+        ...(user.capabilities?.includes("brand")
+          ? [{ label: "Thông tin Brand", href: "/brand/informations", icon: Building2 }]
+          : []),
         { label: "Cài đặt", href: resolveUnifiedSettingsHref(), icon: Settings },
       ]
     : [];
@@ -320,6 +370,23 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-6">
+          {user?.capabilities?.includes("brand") && (
+            <button
+              type="button"
+              onClick={() => router.push("/brand/shortlists")}
+              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95 md:flex"
+              aria-label="Idol đã lưu"
+              title="Idol đã lưu"
+            >
+              <Heart className="h-4.5 w-4.5 fill-current" />
+              {savedTalentCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-[#070913] bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-1 text-[9px] font-black text-slate-950">
+                  {savedTalentCount > 99 ? "99+" : savedTalentCount}
+                </span>
+              )}
+            </button>
+          )}
+
           {user && (
             <button
               type="button"

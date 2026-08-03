@@ -5,11 +5,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Award,
-  BookmarkCheck,
   Briefcase,
   Building2,
   CircleHelp,
   HelpCircle,
+  Heart,
   Info,
   LogIn,
   LogOut,
@@ -27,7 +27,7 @@ import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplana
 
 export const unifiedBrandNavigation = [
   { label: "Tìm kiếm Idol", icon: Search, href: "/brand/search" },
-  { label: "Danh sách đã lưu", icon: BookmarkCheck, href: "/brand/shortlists" },
+  { label: "Idol đã lưu", icon: Heart, href: "/brand/shortlists" },
   { label: "Quản lý việc làm", icon: Briefcase, href: "/brand/manage-jobs" },
   // { label: "Quản lý cuộc thi", icon: Trophy, href: "/brand/manage-competitions" },
   { label: "Quản lý Idol", icon: Users2, href: "/brand/my-talents" },
@@ -76,6 +76,7 @@ export default function Sidebar() {
     jobs: Briefcase,
     about: Info,
     talent_survey: Sparkles,
+    saved_idols: Heart,
     login: LogIn,
   };
   const guestMenuItems = getGuestDesktopNavigation()

@@ -1,5 +1,13 @@
 export type PublicNavigationItem = {
-  key: "talent" | "jobs" | "about" | "talent_profile" | "talent_survey" | "brand_settings" | "login";
+  key:
+    | "talent"
+    | "jobs"
+    | "about"
+    | "talent_profile"
+    | "talent_survey"
+    | "saved_idols"
+    | "brand_settings"
+    | "login";
   label: string;
   href: string;
 };
@@ -12,6 +20,7 @@ const guestPrimaryNavigation: PublicNavigationItem[] = [
 
 const guestMoreNavigation: PublicNavigationItem[] = [
   { key: "talent_survey", label: "Khảo sát", href: "/talent/survey" },
+  { key: "saved_idols", label: "Idol đã lưu", href: "/brand/shortlists" },
   { key: "login", label: "Đăng nhập", href: "/auth/login" },
 ];
 

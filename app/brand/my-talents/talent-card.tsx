@@ -87,13 +87,11 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
-          {/* Tier badge hidden per request.
           <div className="absolute left-2 top-2 flex flex-col gap-1.5">
             <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-md">
               Hạng {talent.tier || "-"}
             </span>
           </div>
-          */}
 
           {/* 3-dot menu */}
           <div className="absolute right-2 top-2 z-25" ref={menuRef}>

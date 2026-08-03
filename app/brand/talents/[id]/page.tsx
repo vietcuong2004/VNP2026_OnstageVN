@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -35,9 +35,6 @@ import {
   Globe,
   FileText,
   Video,
-  Crown,
-  Trophy,
-  HelpCircle,
   Eye,
   MoreVertical,
   BookmarkCheck,
@@ -47,10 +44,12 @@ import { findTalentById } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
+import BadgeTier from "@/components/ui/BadgeTier";
 import { addBrandRosterTalent, loadBrandRosterTalents, loadBrandTalent, loadBrandWishlists, addTalentToWishlist, removeTalentFromWishlist, createBrandWishlist } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import { getAuthToken } from "@/lib/api-client";
+import { notifySavedTalentsUpdated } from "@/lib/guest-saved-talents";
 
 const convertToDisplayDate = (dateStr: string) => {
   if (!dateStr) return "Chưa cập nhật";
@@ -540,7 +539,7 @@ export default function BrandTalentProfilePage() {
       socialAccounts: talent.socialAccounts || [],
       reviews: [
         { brand: "L'Oréal Paris Vietnam", rating: 5, date: "15/05/2026", comment: `${talent.name} làm việc vô cùng chuyên nghiệp, đúng giờ và hoàn thành tốt KPI chiến dịch truyền thông của nhãn hàng. Rất mong tiếp tục hợp tác.` },
-        { brand: "Gucci Beauty Event", rating: 5, date: "29/04/2026", comment: "Thần thái xuất sắc, hình ảnh high-fashion phù hợp tiêu chuẩn quốc tế. Cảm ơn vì sự h�— trợ nhiệt tình." },
+        { brand: "Gucci Beauty Event", rating: 5, date: "29/04/2026", comment: "Thần thái xuất sắc, hình ảnh high-fashion phù hợp tiêu chuẩn quốc tế. Cảm ơn vì sự hỗ trợ nhiệt tình." },
         { brand: "Vogue Vietnam Editorial", rating: 5, date: "12/04/2026", comment: "Thái độ làm việc nghiêm túc, tạo dáng xuất sắc và có kiến thức chuyên môn cao. Rất khuyên dùng." }
       ] as any[]
     };
@@ -697,9 +696,10 @@ export default function BrandTalentProfilePage() {
         await removeTalentFromWishlist(wishlists[0].id, wishlistItemId);
         setIsInWishlist(false);
         setWishlistItemId(null);
+        notifySavedTalentsUpdated(Math.max(0, (wishlists[0]?.savedIds?.length || 1) - 1));
         pushToast("Đã xóa khỏi danh sách yêu thích.", "success");
       } catch (err) {
-        pushToast("L�—i khi xóa khỏi danh sách yêu thích.", "error");
+        pushToast("Lỗi khi xóa khỏi danh sách yêu thích.", "error");
       }
       return;
     }
@@ -715,9 +715,10 @@ export default function BrandTalentProfilePage() {
       const item = await addTalentToWishlist(wishlistId, String(params.id));
       setIsInWishlist(true);
       setWishlistItemId(String(item.id));
+      notifySavedTalentsUpdated((wishlists[0]?.savedIds?.length || 0) + 1);
       pushToast("Đã thêm vào danh sách yêu thích.", "success");
     } catch (err) {
-      pushToast("L�—i khi thêm vào danh sách yêu thích.", "error");
+      pushToast("Lỗi khi thêm vào danh sách yêu thích.", "error");
     }
   }
 
@@ -771,7 +772,7 @@ export default function BrandTalentProfilePage() {
                   {isInWishlist ? (
                     <>
                       <BookmarkCheck className="h-4 w-4 text-amber-400" />
-                      <span>Xóa khỏi danh sách đã lưu</span>
+                      <span>Xóa khỏi "Idol đã lưu"</span>
                     </>
                   ) : (
                     <>
@@ -790,13 +791,13 @@ export default function BrandTalentProfilePage() {
       <section className="relative rounded-[32px] border border-white/5 bg-[#08090f] p-4 md:p-6 shadow-xl overflow-hidden">
         <div className="h-56 sm:h-64 md:h-72 w-full rounded-2xl relative overflow-hidden border border-white/5 bg-[#05070e] group shadow-inner">
           <img
-            src={talent.cover || undefined}
+            src={talent.cover || "/brand_cover_default.png"}
             alt={`${talent.name} cover`}
             onError={(event) => {
-              event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+              event.currentTarget.src = "/brand_cover_default.png";
             }}
             onClick={() => {
-              if (talent.cover) setPreviewImage(talent.cover);
+              setPreviewImage(talent.cover || "/brand_cover_default.png");
             }}
             className="h-full w-full object-cover cursor-pointer transition-transform duration-500 group-hover:scale-[1.01]"
           />
@@ -853,44 +854,19 @@ export default function BrandTalentProfilePage() {
                     </span>
                   ))}
 
-                  {/* Tier badge hidden per request. Remove `false &&` to restore. */}
-                  {false && profile?.tier && (() => {
-                    const tier = profile!.tier.toUpperCase();
-                    let tierColor = "";
-                    let IconComponent = HelpCircle;
-
-                    if (tier === "S") {
-                      IconComponent = Crown;
-                      tierColor = "border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)]";
-                    } else if (tier === "A") {
-                      IconComponent = Trophy;
-                      tierColor = "border-slate-400/30 bg-slate-400/10 text-slate-300 shadow-[0_0_15px_rgba(203,213,225,0.08)]";
-                    } else if (tier === "B") {
-                      IconComponent = Star;
-                      tierColor = "border-purple-500/30 bg-purple-500/10 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.08)]";
-                    } else if (tier === "C") {
-                      IconComponent = Award;
-                      tierColor = "border-teal-500/30 bg-teal-500/10 text-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.08)]";
-                    }
-
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => setIsTierDialogOpen(true)}
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-black tracking-wider uppercase transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-98 cursor-pointer shadow-md select-none",
-                          tierColor
-                        )}
-                        title="Xem chi tiết phân hạng"
-                      >
-                        <IconComponent className="h-3 w-3 shrink-0" />
-                        <span>Hạng {tier}</span>
-                        <span className="ml-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-[8px] font-black transition-colors">
-                          ?
-                        </span>
-                      </button>
-                    );
-                  })()}
+                  {profile?.tier && (
+                    <button
+                      type="button"
+                      onClick={() => setIsTierDialogOpen(true)}
+                      className="inline-flex items-center gap-1.5 rounded-full transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-98 cursor-pointer select-none"
+                      title="Xem chi tiết phân hạng"
+                    >
+                      <BadgeTier tier={profile.tier} variant="gradient" />
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[8px] font-black text-white transition-colors hover:bg-white/25">
+                        ?
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Location & Measurements Row */}
@@ -1431,13 +1407,13 @@ export default function BrandTalentProfilePage() {
                   let icon = "💼";
                   if (service.id === "golf") icon = "⛳";
                   else if (service.id === "pickleball") icon = "🎾";
-                  else if (service.id === "dining") icon = "🍷";
+                  else if (service.id === "dining") icon = "ðŸ·";
                   else if (service.id === "cafe") icon = "☕";
                   else if (service.id === "travel") icon = "💼";
                   else if (service.id === "redcarpet") icon = "✨";
-                  else if (service.id === "shopping") icon = "🛍️";
+                  else if (service.id === "shopping") icon = "ðŸ›ï¸";
                   else if (service.id === "art") icon = "🎨";
-                  else if (service.id === "escort") icon = "🛥️";
+                  else if (service.id === "escort") icon = "ðŸ›¥ï¸";
                   else if (service.id === "content") icon = "📱";
 
                   return (
@@ -1467,7 +1443,7 @@ export default function BrandTalentProfilePage() {
                     <span className="block text-[10px] text-slate-500 mt-0.5 font-medium leading-none">Ký số lịch trình</span>
                   </div>
                   <div className="rounded-lg bg-slate-950/80 p-2 text-center border border-white/2">
-                    <span className="block text-[14px] mb-1">📍</span>
+                    <span className="block text-[14px] mb-1">ðŸ“</span>
                     <span className="block text-[10px] font-black text-slate-300 uppercase tracking-wide">Real-time GPS</span>
                     <span className="block text-[10px] text-slate-500 mt-0.5 font-medium leading-none">Check-in điểm hẹn</span>
                   </div>

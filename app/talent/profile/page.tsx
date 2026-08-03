@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
   MapPin, User, Edit3, Sparkles,
   CheckCircle, Camera, X,
-  Crown, Trophy, Star, Award, HelpCircle, Eye,
+  Eye,
   Ruler, Scale, FileText, Upload, Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
 import ProgressBar from "@/components/ui/ProgressBar";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
+import BadgeTier from "@/components/ui/BadgeTier";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { getAuthToken } from "@/lib/api-client";
 import { deleteTalentPhotoCategory, ensureTalentProfile, loadTalentProfile, persistTalentProfile, TALENT_PROFILE_UPDATED_EVENT, uploadTalentPhoto } from "@/lib/talent-api";
@@ -563,44 +564,19 @@ export default function PortfolioPage() {
                     </span>
                   ))}
 
-                  {/* Tier badge hidden per request. Remove `false &&` to restore. */}
-                  {false && profile.isOnboarded && profile.tier && (() => {
-                    const tier = profile.tier.toUpperCase();
-                    let tierColor = "";
-                    let IconComponent = HelpCircle;
-
-                    if (tier === "S") {
-                      IconComponent = Crown;
-                      tierColor = "border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)]";
-                    } else if (tier === "A") {
-                      IconComponent = Trophy;
-                      tierColor = "border-slate-400/30 bg-slate-400/10 text-slate-300 shadow-[0_0_15px_rgba(203,213,225,0.08)]";
-                    } else if (tier === "B") {
-                      IconComponent = Star;
-                      tierColor = "border-purple-500/30 bg-purple-500/10 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.08)]";
-                    } else if (tier === "C") {
-                      IconComponent = Award;
-                      tierColor = "border-teal-500/30 bg-teal-500/10 text-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.08)]";
-                    }
-
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => setIsTierDialogOpen(true)}
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-black tracking-wider uppercase transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-98 cursor-pointer shadow-md select-none",
-                          tierColor
-                        )}
-                        title="Xem chi tiết phân hạng"
-                      >
-                        <IconComponent className="h-3 w-3 shrink-0" />
-                        <span>Hạng {tier}</span>
-                        <span className="ml-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-[8px] font-black transition-colors">
-                          ?
-                        </span>
-                      </button>
-                    );
-                  })()}
+                  {profile.isOnboarded && profile.tier && (
+                    <button
+                      type="button"
+                      onClick={() => setIsTierDialogOpen(true)}
+                      className="inline-flex items-center gap-1.5 rounded-full transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-98 cursor-pointer select-none"
+                      title="Xem chi tiết phân hạng"
+                    >
+                      <BadgeTier tier={profile.tier} variant="gradient" />
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[8px] font-black text-white transition-colors hover:bg-white/25">
+                        ?
+                      </span>
+                    </button>
+                  )}
                 </div>
                 
                 {/* Location & Measurements Row */}

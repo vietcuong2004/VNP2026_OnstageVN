@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
-import { Check, CheckCircle2, Eye, Heart, Loader2, MapPin, Trash2, UserPlus, Crown, Trophy, Star, Award } from "lucide-react";
+import { Check, CheckCircle2, Eye, Heart, Loader2, MapPin, Trash2, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
+import BadgeTier from "@/components/ui/BadgeTier";
 
 export type TalentAvailabilityStatus = "available" | "busy" | "maybe" | string | null | undefined;
 
@@ -154,7 +155,9 @@ export default function TalentCard({
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
-
+          <div className="absolute left-2 top-2">
+            <BadgeTier tier={talent?.tier} variant="gradient" />
+          </div>
 
           {onMessage ? (
             <button

@@ -1,4 +1,10 @@
 const GUEST_SAVED_TALENTS_KEY = "onstagevn_guest_saved_talent_ids";
+export const SAVED_TALENTS_UPDATED_EVENT = "onstagevn_saved_talents_updated";
+
+export function notifySavedTalentsUpdated(count?: number) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(SAVED_TALENTS_UPDATED_EVENT, { detail: { count } }));
+}
 
 export function loadGuestSavedTalentIds(): string[] {
   if (typeof window === "undefined") return [];
@@ -17,6 +23,7 @@ export function saveGuestSavedTalentIds(ids: string[]) {
   if (typeof window === "undefined") return;
   const uniqueIds = Array.from(new Set(ids.map((id) => String(id)).filter(Boolean)));
   window.localStorage.setItem(GUEST_SAVED_TALENTS_KEY, JSON.stringify(uniqueIds));
+  notifySavedTalentsUpdated(uniqueIds.length);
 }
 
 export function toggleGuestSavedTalentId(talentId: string) {

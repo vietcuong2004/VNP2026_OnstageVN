@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
-import { Check, CheckCircle2, Eye, Heart, Loader2, MapPin, Trash2, UserPlus, Crown, Trophy, Star, Award } from "lucide-react";
+import { Check, CheckCircle2, Eye, Heart, Loader2, MapPin, Trash2, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
+import BadgeTier, { getTierBadgeConfig } from "@/components/ui/BadgeTier";
 import {
   type TalentCardProps,
   getTalentTypes,
@@ -48,6 +49,7 @@ export default function TalentCardMobile({
   const profilePills = [...socialHighlights, ...talentSkills];
   const bioText = talent?.experience || talent?.bio || talent?.summary || talent?.description || talent?.introduction || "";
   const hasActions = Boolean(onView || onToggleSaved || onMessage);
+  const tierBadge = getTierBadgeConfig(talent?.tier);
 
   const stopCardClick = (event: MouseEvent) => {
     event.stopPropagation();
@@ -82,41 +84,47 @@ export default function TalentCardMobile({
     >
       {/* Row 1: Avatar & Information */}
       <div className="flex flex-row gap-3.5 items-center">
-        {/* Left Column: Avatar Image Container */}
-        <div className="relative aspect-square w-[110px] h-[110px] shrink-0 overflow-hidden rounded-xl border border-white/5 bg-slate-900">
-          <img
-            src={talentAvatar}
-            alt={talent?.name || "Idol"}
-            loading="lazy"
-            decoding="async"
-            onError={(event) => {
-              event.currentTarget.onerror = null;
-              event.currentTarget.src = createInitialAvatarDataUrl(talent?.name || "Idol", "");
-            }}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+        {/* Left Column: Tier badge & avatar image */}
+        <div className="flex w-[110px] shrink-0 flex-col items-center gap-1.5">
+          {tierBadge && (
+            <BadgeTier tier={talent?.tier} variant="gradient" size="xs" />
+          )}
 
-          {/* Availability status badge inside image (Hide if "Chưa có lịch" / "maybe") */}
-          {status && status !== "maybe" && (
-            <div className="absolute bottom-1.5 left-1.5">
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1 rounded border bg-[#0F1115]/80 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white backdrop-blur-sm",
-                  status === "available" && "border-emerald-500/30 text-emerald-400",
-                  status === "busy" && "border-red-500/30 text-red-400"
-                )}
-              >
+          <div className="relative aspect-square h-[110px] w-[110px] overflow-hidden rounded-xl border border-white/5 bg-slate-900">
+            <img
+              src={talentAvatar}
+              alt={talent?.name || "Idol"}
+              loading="lazy"
+              decoding="async"
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = createInitialAvatarDataUrl(talent?.name || "Idol", "");
+              }}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+
+            {/* Availability status badge inside image (Hide if "Chưa có lịch" / "maybe") */}
+            {status && status !== "maybe" && (
+              <div className="absolute bottom-1.5 left-1.5">
                 <span
                   className={cn(
-                    "h-1.5 w-1.5 rounded-full",
-                    status === "available" && "bg-emerald-400",
-                    status === "busy" && "bg-red-400"
+                    "inline-flex items-center gap-1 rounded border bg-[#0F1115]/80 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white backdrop-blur-sm",
+                    status === "available" && "border-emerald-500/30 text-emerald-400",
+                    status === "busy" && "border-red-500/30 text-red-400"
                   )}
-                />
-                {getStatusLabel(status)}
-              </span>
-            </div>
-          )}
+                >
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      status === "available" && "bg-emerald-400",
+                      status === "busy" && "bg-red-400"
+                    )}
+                  />
+                  {getStatusLabel(status)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Column: Information Content */}

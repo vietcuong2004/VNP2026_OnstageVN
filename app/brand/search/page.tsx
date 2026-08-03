@@ -52,7 +52,8 @@ import {
   removeTalentFromWishlist,
 } from "@/lib/brand-api";
 import { getAuthToken } from "@/lib/api-client";
-import { loadGuestSavedTalentIds, toggleGuestSavedTalentId } from "@/lib/guest-saved-talents";
+import { loadGuestSavedTalentIds, notifySavedTalentsUpdated, toggleGuestSavedTalentId } from "@/lib/guest-saved-talents";
+import { addViewedTalentId } from "@/lib/talent-view-history";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 const TALENTS_PER_PAGE = 24;
@@ -869,7 +870,9 @@ export default function DiscoverTalentsPage() {
           await removeTalentFromWishlist(wishlistId, itemId);
         }
 
-        setSavedIds((current) => current.filter((item) => item !== id));
+        const nextSavedIds = savedIds.filter((item) => item !== id);
+        setSavedIds(nextSavedIds);
+        notifySavedTalentsUpdated(nextSavedIds.length);
         setWishlistItemIds((current) => {
           const next = { ...current };
           delete next[id];
@@ -881,7 +884,9 @@ export default function DiscoverTalentsPage() {
 
       const nextWishlistId = await ensureWishlist();
       const created = await addTalentToWishlist(nextWishlistId, id);
-      setSavedIds((current) => current.includes(id) ? current : [...current, id]);
+      const nextSavedIds = savedIds.includes(id) ? savedIds : [...savedIds, id];
+      setSavedIds(nextSavedIds);
+      notifySavedTalentsUpdated(nextSavedIds.length);
       setWishlistItemIds((current) => ({ ...current, [id]: String(created.id) }));
       pushToast("Đã thêm vào danh sách đã lưu.");
     } catch (error) {
@@ -1033,10 +1038,15 @@ export default function DiscoverTalentsPage() {
           <button
             type="button"
             onClick={() => router.push("/brand/shortlists")}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-slate-900/60 text-slate-300 transition-all hover:border-[#C9A86A]/50 hover:text-[#C9A86A] active:scale-95"
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] transition-all hover:bg-[#C9A86A]/20 active:scale-95"
             aria-label="Mở danh sách đã lưu"
           >
-            <Heart className="h-4 w-4" />
+            <Heart className="h-4 w-4 fill-current" />
+            {savedIds.length > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full border border-[#070913] bg-gradient-to-br from-amber-100 via-[#C9A86A] to-yellow-600 px-1 text-[9px] font-black leading-none text-slate-950 shadow-[0_0_8px_rgba(201,168,106,0.45)]">
+                {savedIds.length > 99 ? "99+" : savedIds.length}
+              </span>
+            )}
           </button>
         </div>
 
@@ -1342,7 +1352,10 @@ export default function DiscoverTalentsPage() {
                       messageDisabled={isInBrand}
                       messageLoading={isAddingToBrand}
                       onToggleSaved={() => toggleSaved(talent.id)}
-                      onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
+                      onView={(item) => {
+                        addViewedTalentId(item.id);
+                        router.push(`/brand/talents/${item.id}?from=/brand/search`);
+                      }}
                       onMessage={() => addTalentToBrand(talent)}
                       onRemoveFromBrand={() => removeTalentFromBrand(talent)}
                       className="hidden md:flex"
@@ -1355,7 +1368,10 @@ export default function DiscoverTalentsPage() {
                       messageDisabled={isInBrand}
                       messageLoading={isAddingToBrand}
                       onToggleSaved={() => toggleSaved(talent.id)}
-                      onView={(item) => router.push(`/brand/talents/${item.id}?from=/brand/search`)}
+                      onView={(item) => {
+                        addViewedTalentId(item.id);
+                        router.push(`/brand/talents/${item.id}?from=/brand/search`);
+                      }}
                       onMessage={() => addTalentToBrand(talent)}
                       onRemoveFromBrand={() => removeTalentFromBrand(talent)}
                       className="flex md:hidden"
@@ -1480,7 +1496,6 @@ export default function DiscoverTalentsPage() {
             maxWeight: 90,
             showAdvancedFilters: prev.showAdvancedFilters,
           }));
-          setIsMobileFiltersOpen(false);
           pushToast("Đã đặt lại bộ lọc.");
         }}
         onApply={() => {

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Briefcase, HelpCircle, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
+import { Briefcase, Heart, HelpCircle, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
 import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/components/sidebar";
@@ -92,6 +92,7 @@ export default function BottomNavigation() {
     about: Info,
     talent_profile: User,
     talent_survey: Sparkles,
+    saved_idols: Heart,
     brand_settings: Settings,
     login: LogIn,
   };
@@ -130,7 +131,7 @@ export default function BottomNavigation() {
             className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm transition-opacity duration-300 md:hidden animate-in fade-in"
           />
 
-          <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[2rem] border-t border-white/10 bg-[#070913]/98 p-6 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl md:hidden animate-in slide-in-from-bottom duration-300">
+          <div className="fixed bottom-0 left-0 right-0 top-[74px] z-50 flex min-h-0 flex-col rounded-t-[2rem] border-t border-white/10 bg-[#070913]/98 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-[0_-10px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl md:hidden animate-in slide-in-from-bottom duration-300">
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" />
 
             <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
@@ -146,7 +147,7 @@ export default function BottomNavigation() {
             </div>
 
             {!isLoggedIn ? (
-              <div className="grid grid-cols-4 gap-y-5 gap-x-2.5 max-h-[60vh] overflow-y-auto pr-1">
+              <div className="grid min-h-0 flex-1 grid-cols-4 content-start gap-x-2.5 gap-y-5 overflow-y-auto pr-1">
                 {allItems.map((item) => {
                   const Icon = item.icon;
                   const isLogin = item.label === "Đăng nhập";
@@ -186,7 +187,7 @@ export default function BottomNavigation() {
                 })}
               </div>
             ) : (
-              <div className="max-h-[60vh] space-y-6 overflow-y-auto pr-1">
+              <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
                 {unifiedLoggedInNavigationSections.map((section) => (
                   <div key={section.title} className="space-y-3">
                     {section.href ? (
@@ -356,7 +357,7 @@ export default function BottomNavigation() {
                 showMoreMenu ? "text-amber-400 font-black" : "text-slate-500",
               )}
             >
-              Thêm
+              Menu
             </span>
           </button>
         </nav>

@@ -1196,7 +1196,6 @@ function JobsPageContent() {
           setAppliedShowAdvancedFilters(false);
           setAppliedMinBudget(0);
           setAppliedMaxBudget(0);
-          setIsMobileFiltersOpen(false);
         }}
         onApply={() => {
           setShowAdvancedFilters(minBudget > 0 || maxBudget > 0);

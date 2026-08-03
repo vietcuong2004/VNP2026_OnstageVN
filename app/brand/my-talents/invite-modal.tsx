@@ -85,13 +85,11 @@ export default function InviteModal({
                         <img src={talent.avatar} alt={talent.name} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = createInitialAvatarDataUrl(talent.name, ""); }} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
 
                         {/* Overlay top badges */}
-                        {/* Tier badge hidden per request.
                         <div className="absolute top-2 left-2 flex flex-col gap-1.5">
                           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-md">
                             Hạng {talent.tier}
                           </span>
                         </div>
-                        */}
 
                         {/* Floating status badge */}
                         <div className="absolute bottom-2 left-2">

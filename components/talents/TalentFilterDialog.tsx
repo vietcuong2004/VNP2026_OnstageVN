@@ -206,7 +206,7 @@ export default function TalentFilterDialog({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+        <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Sắp xếp theo
           </span>
@@ -232,7 +232,7 @@ export default function TalentFilterDialog({
           </div>
         </div>
 
-        <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+        <div className="relative z-40 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Địa điểm
           </span>
@@ -243,7 +243,7 @@ export default function TalentFilterDialog({
           />
         </div>
 
-        <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+        <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Giới tính
           </span>
