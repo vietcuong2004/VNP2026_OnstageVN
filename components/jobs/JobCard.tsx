@@ -2,7 +2,7 @@
 
 import type { MouseEvent } from "react";
 import { Calendar, CircleDollarSign, MapPin, UserPlus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 export type TalentJobStage = "pending" | "approved" | string | null | undefined;
 

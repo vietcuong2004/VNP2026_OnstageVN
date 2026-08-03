@@ -465,7 +465,6 @@ function fallbackTalentExperience(profile: BackendProfile, fallback?: TalentProf
   }
 
   const talentType = String(repairMojibake(profile.talent_types?.[0] || fallback?.type || "Talent")).trim();
-  const city = String(repairMojibake(profile.city || fallback?.city || "")).trim();
   const skills = (profile.skills?.length ? profile.skills : fallback?.skills || [])
     .map((item) => String(repairMojibake(item)).trim())
     .filter(Boolean)
@@ -473,11 +472,11 @@ function fallbackTalentExperience(profile: BackendProfile, fallback?: TalentProf
 
   const parts = [
     talentType ? `${talentType} chuyên nghiệp` : "Talent chuyên nghiệp",
-    city ? `hoạt động tại ${city}` : "",
     skills.length ? `Kỹ năng nổi bật: ${skills.join(", ")}` : "",
+    "Rất mong được hợp tác",
   ].filter(Boolean);
 
-  return parts.join(". ") || "Talent chuyên nghiệp đang cập nhật mô tả hồ sơ.";
+  return parts.join(". ");
 }
 
 function profileAge(birthDate?: string | null) {

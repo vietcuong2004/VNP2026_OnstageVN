@@ -293,7 +293,7 @@ export default function TalentCard({
         )}
 
         <p className="mt-2 whitespace-pre-line text-[11px] leading-relaxed text-slate-300 font-semibold">
-          {bioText || "Chưa có thông tin giới thiệu"}
+          {bioText || "Talent chuyên nghiệp. Rất mong được hợp tác"}
         </p>
       </div>
 

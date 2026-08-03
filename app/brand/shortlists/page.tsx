@@ -13,8 +13,8 @@ import {
 } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
-import TalentCard from "@/components/TalentCard";
-import TalentCardMobile from "@/components/TalentCardMobile";
+import TalentCard from "@/components/talents/TalentCard";
+import TalentCardMobile from "@/components/talents/TalentCardMobile";
 
 type ToastItem = {
   id: string;

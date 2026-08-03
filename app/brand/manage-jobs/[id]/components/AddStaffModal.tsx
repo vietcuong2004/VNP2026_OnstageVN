@@ -2,8 +2,8 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
-import TalentCard from "@/components/TalentCard";
-import TalentCardMobile from "@/components/TalentCardMobile";
+import TalentCard from "@/components/talents/TalentCard";
+import TalentCardMobile from "@/components/talents/TalentCardMobile";
 import { loadBrandTalentsPage } from "@/lib/brand-api";
 
 interface AddStaffModalProps {

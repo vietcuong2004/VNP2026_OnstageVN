@@ -195,7 +195,7 @@ export default function TalentCardMobile({
 
           {/* Short Bio text */}
           <p className="line-clamp-3 text-[10px] leading-relaxed text-slate-355 font-medium">
-            {bioText || "Chưa có thông tin giới thiệu"}
+            {bioText || "Talent chuyên nghiệp. Rất mong được hợp tác"}
           </p>
         </div>
       </div>

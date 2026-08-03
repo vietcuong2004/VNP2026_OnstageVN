@@ -19,7 +19,7 @@ import {
   updateTalentCampaignApplicationStatus,
 } from "@/lib/talent-api";
 import { getStoredAuthUser } from "@/lib/api-client";
-import JobCard from "@/components/JobCard";
+import JobCard from "@/components/jobs/JobCard";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";

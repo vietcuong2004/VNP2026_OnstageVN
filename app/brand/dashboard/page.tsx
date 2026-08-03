@@ -26,8 +26,8 @@ import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl
 import { cn } from "@/lib/utils";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import React from "react";
-import TalentCard from "@/components/TalentCard";
-import TalentCardMobile from "@/components/TalentCardMobile";
+import TalentCard from "@/components/talents/TalentCard";
+import TalentCardMobile from "@/components/talents/TalentCardMobile";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
 const nextActions = [

@@ -52,7 +52,7 @@ export default function Step3Dialog({
     try {
       await onLoginNow?.();
       rememberSurveyGuestLogin(normalizedEmail);
-      router.push("/auth/login?redirect=/talent/survey");
+      router.push("/auth/login?redirect=/talent/profile");
     } catch {
       // Parent displays the error and keeps the dialog open.
     }

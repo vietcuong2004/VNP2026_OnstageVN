@@ -3,9 +3,9 @@
 import React, { Suspense, useCallback, useMemo, useState, useEffect, useRef } from "react";
 import {
   Sparkles, CheckCircle,
-  X, Check, Filter,
-  ArrowUpRight, Copy, Users, Briefcase, Calendar,
-  Search, SlidersHorizontal, ChevronDown, ChevronUp
+  X, Check,
+  ArrowUpDown, Copy, Users, Briefcase,
+  Search, SlidersHorizontal, ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
@@ -14,17 +14,16 @@ import {
   getCampaignReferralLink,
   loadTalentCampaignsPage,
   mapCampaignToTalentJob,
-  parseCampaignReferralUrl,
-  resolveCampaignReferralLink,
-  resolveCampaignReferralLinkBySlug,
   updateTalentCampaignApplicationStatus,
 } from "@/lib/talent-api";
-import { AUTH_USER_UPDATED_EVENT, getAuthToken, getStoredAuthUser } from "@/lib/api-client";
+import { getStoredAuthUser } from "@/lib/api-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import QRCodeContainer from "@/components/QR_Code";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import { CITY_VALUES } from "@/components/ui/ComboboxOptionValues";
-import JobCard from "../../../components/JobCard";
+import JobCard from "@/components/jobs/JobCard";
+import JobFilterDialog from "@/components/jobs/JobFilterDialog";
+import JobFilterCityDialog from "@/components/jobs/JobFilterCityDialog";
 
 type StageFilter = "apply" | "pending" | "approved" | "all";
 type SortOrder = "newest" | "oldest";
@@ -112,11 +111,6 @@ function formatVNDNumber(num: number): string {
   return num.toLocaleString("vi-VN");
 }
 
-function formatVNDHint(num: number): string {
-  if (!num || num <= 0) return "";
-  return `${num.toLocaleString("vi-VN")} VND / ngày`;
-}
-
 type FilterDropdownOption = {
   value: string;
   label: string;
@@ -170,7 +164,7 @@ function FilterDropdown({
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         className={cn(
-          "flex h-9 w-full items-center justify-between gap-2 rounded-xl border border-white/5 bg-slate-950/60 px-3 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
+          "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/5 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
           isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
         )}
       >
@@ -317,6 +311,8 @@ function JobsPageContent() {
   const [selectedJobType, setSelectedJobType] = useState(() => initialJobsState?.selectedJobType || allValue);
   const [appliedJobType, setAppliedJobType] = useState(() => initialJobsState?.appliedJobType || allValue);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(() => initialJobsState?.showAdvancedFilters || false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [isMobileCityDialogOpen, setIsMobileCityDialogOpen] = useState(false);
   const [appliedShowAdvancedFilters, setAppliedShowAdvancedFilters] = useState(() => initialJobsState?.appliedShowAdvancedFilters || false);
   const [minBudget, setMinBudget] = useState(() => initialJobsState?.minBudget || 0);
   const [appliedMinBudget, setAppliedMinBudget] = useState(() => initialJobsState?.appliedMinBudget || 0);
@@ -331,13 +327,11 @@ function JobsPageContent() {
   const [showAllBenefits, setShowAllBenefits] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "info" }[]>([]);
   const [displayJobs, setDisplayJobs] = useState<any[]>([]);
-  const [pastedUrl, setPastedUrl] = useState("");
   const [activeReferralLink, setActiveReferralLink] = useState<{ [campId: string]: any }>({});
   const [loadingReferral, setLoadingReferral] = useState<string | null>(null);
   const [showInviteModal, setShowInviteModal] = useState<any>(null);
   const jobRequestRef = useRef(0);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [jobBackendPage, setJobBackendPage] = useState(() => initialJobsState?.jobBackendPage || 1);
   const [jobTotal, setJobTotal] = useState(0);
   const [jobStageCounts, setJobStageCounts] = useState<Record<StageFilter, number>>({
@@ -351,18 +345,23 @@ function JobsPageContent() {
   const [hasMoreJobs, setHasMoreJobs] = useState(false);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [isLoadingMoreJobs, setIsLoadingMoreJobs] = useState(false);
+  const isMobileOverlayOpen = isMobileFiltersOpen || isMobileCityDialogOpen;
 
   useEffect(() => {
-    const syncAuth = () => setIsLoggedIn(!!getAuthToken());
-    syncAuth();
-    window.addEventListener(AUTH_USER_UPDATED_EVENT, syncAuth);
-    window.addEventListener("storage", syncAuth);
+    if (typeof window === "undefined") return;
+
+    window.dispatchEvent(new CustomEvent("onstage:mobile-overlay", { detail: { open: isMobileOverlayOpen } }));
+
+    if (!isMobileOverlayOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     return () => {
-      window.removeEventListener(AUTH_USER_UPDATED_EVENT, syncAuth);
-      window.removeEventListener("storage", syncAuth);
+      document.body.style.overflow = originalOverflow;
+      window.dispatchEvent(new CustomEvent("onstage:mobile-overlay", { detail: { open: false } }));
     };
-  }, []);
+  }, [isMobileOverlayOpen]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && !isLoadingJobs && !isLoadingMoreJobs && displayJobs.length > 0) {
@@ -723,119 +722,6 @@ function JobsPageContent() {
     }
   };
 
-  const handleJoinCampaign = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!pastedUrl) return;
-    if (!requireAuthAction({ actionLabel: "Đăng ký campaign qua link giới thiệu" })) return;
-
-    try {
-      const parsedLink = parseCampaignReferralUrl(pastedUrl);
-      let campaignId = parsedLink.mode === "legacy" ? parsedLink.campaignId : "";
-
-      if (parsedLink.mode === "slug") {
-        const resolved = await resolveCampaignReferralLinkBySlug(
-          parsedLink.campaignSlug,
-          parsedLink.referrerSlug,
-        );
-        const resolvedCampaignId = String(resolved?.campaign?.id || resolved?.campaign_id || "");
-        const referralCode = String(resolved?.code || resolved?.referral_code || parsedLink.referralCode || "");
-
-        if (!resolvedCampaignId || !referralCode) {
-          addToast("Không đọc được link affiliate chiến dịch. Vui lòng kiểm tra lại.", "info");
-          return;
-        }
-
-        await applyTalentCampaign(
-          resolvedCampaignId,
-          "Đăng ký tham gia qua link giới thiệu Affiliate.",
-          referralCode,
-        );
-
-        await loadJobsPage(((jobResultPage - 1) * JOB_PAGES_PER_RESULT_PAGE) + 1, "replace", jobResultPage);
-
-        setPastedUrl("");
-        const referrerName = resolved?.referrer?.name || resolved?.owner?.name || parsedLink.referrerSlug.replace(/-/g, " ");
-        addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
-        return;
-      }
-
-      const refId = parsedLink.referralCode;
-
-      if (refId) {
-        try {
-          const resolved = await resolveCampaignReferralLink(refId);
-          const resolvedCampaignId = resolved?.campaign?.id || resolved?.campaign_id || campaignId;
-
-          if (resolvedCampaignId) {
-            await applyTalentCampaign(resolvedCampaignId, "Đăng ký tham gia qua link giới thiệu Affiliate.", refId);
-
-            await loadJobsPage(((jobResultPage - 1) * JOB_PAGES_PER_RESULT_PAGE) + 1, "replace", jobResultPage);
-
-            setPastedUrl("");
-            const referrerName = resolved?.referrer?.name || resolved?.owner?.name || "KOL đối tác";
-            addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
-            return;
-          }
-        } catch (error) {
-          console.warn("Cannot apply campaign referral via backend", error);
-          if (/^\d+$/.test(String(campaignId))) {
-            addToast(error instanceof Error ? error.message : "Không thể đăng ký campaign qua link backend.", "info");
-            return;
-          }
-        }
-      }
-
-      const allCampaigns = displayJobs;
-      const targetCamp = allCampaigns.find(c => c.id === campaignId);
-      if (!targetCamp) {
-        addToast("Không tìm thấy chiến dịch trong dữ liệu hệ thống.", "info");
-        return;
-      }
-
-      if (hasTalentApplication(targetCamp)) {
-        addToast("Bạn đã ứng tuyển hoặc đang tham gia chiến dịch này rồi.", "info");
-        return;
-      }
-
-      if (!currentTalentId) {
-        addToast("Không xác định được tài khoản Idol hiện tại. Vui lòng đăng nhập lại.", "info");
-        return;
-      }
-
-      const updatedCampaigns = allCampaigns.map(c => {
-        const matchesCurrentId = c.id === campaignId;
-
-        if (matchesCurrentId) {
-          if (!currentTalentId) return c;
-          const apps = c.applicants || [];
-          return {
-            ...c,
-            hasApplied: true,
-            application: { ...(c.application || {}), status: "approved" },
-            applicants: [
-              ...apps,
-              {
-                talentId: currentTalentId,
-                stage: "approved" as const,
-                note: "Đăng ký tham gia qua link giới thiệu Affiliate của đối tác.",
-                referredByTalentId: refId || undefined
-              }
-            ]
-          };
-        }
-        return c;
-      });
-      setDisplayJobs(updatedCampaigns);
-      setAppliedJobs((prev) => [...prev, campaignId]);
-      setPastedUrl("");
-
-      const referrerName = "KOL đối tác";
-      addToast(`Đăng ký tham gia thành công qua giới thiệu của ${referrerName}!`, "success");
-    } catch (err) {
-      addToast(err instanceof Error ? err.message : "Đường dẫn không hợp lệ. Vui lòng kiểm tra lại.", "info");
-    }
-  };
-
   const filteredCampaigns = displayJobs.filter((camp) => {
     const selectedCityText = normalizeFilterText(appliedCity);
     const selectedTypeText = normalizeFilterText(appliedJobType);
@@ -902,75 +788,60 @@ function JobsPageContent() {
   const stageFilterOptions: StageFilter[] = ["all", "apply", "pending", "approved"];
   const stageCounts = jobStageCounts;
   const activeResultTotal = stageCounts[selectedStageFilter] ?? jobTotal;
+  const currentCityLabel = useMemo(() => {
+    if (appliedCity === allValue) return "Toàn quốc";
+    return cityDropdownOptions.find((option) => option.value === appliedCity)?.label || appliedCity;
+  }, [appliedCity]);
+  const isMobileFiltersActive =
+    selectedCity !== allValue ||
+    selectedJobType !== allValue ||
+    selectedStageFilter !== "all" ||
+    minBudget > 0 ||
+    maxBudget > 0 ||
+    sortOrder !== "newest";
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300">
 
-      {/* Title block */}
-      <div>
-        <h1 className="font-display text-3xl font-black text-white tracking-tight uppercase leading-none">Cơ hội việc làm</h1>
-        <p className="text-xs text-slate-400 mt-2 font-medium">Danh sách cơ hội việc làm hấp dẫn dành cho bạn.</p>
-      </div>
+      {/* Mobile Search Toolbar */}
+      <section className="block md:hidden sticky top-0 z-50 -mx-4 border-b border-white/5 bg-[#070913]/95 px-4 py-3.5 backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setIsMobileFiltersOpen(true)}
+            className={cn(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all cursor-pointer",
+              isMobileFiltersActive
+                ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
+                : "border-white/10 bg-slate-900/60 text-slate-400"
+            )}
+            aria-label="Mở bộ lọc"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+          </button>
 
-      {isLoggedIn && (
-        <div className="rounded-3xl border border-amber-500/15 bg-gradient-to-br from-[#0c0f1d] to-[#07080e] p-6 shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
-          <div className="flex flex-col gap-4 relative z-10 w-full text-left">
-            <div className="space-y-1">
-              <h2 className="text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-amber-400 animate-pulse" />
-                Tham gia qua link giới thiệu
-              </h2>
-              <p className="text-[11px] text-slate-400 font-medium leading-relaxed max-w-2xl">
-                Dán đường dẫn giới thiệu nhận từ đối tác để tham gia trực tiếp chiến dịch và ghi nhận người giới thiệu.
-              </p>
-            </div>
+          <button
+            type="button"
+            onClick={() => setIsMobileCityDialogOpen(true)}
+            className="relative flex shrink-0 items-center gap-1 cursor-pointer"
+          >
+            <span className="font-display text-[15px] font-black tracking-tight text-white whitespace-nowrap">
+              {currentCityLabel}
+            </span>
+            <ChevronDown className="h-4 w-4 text-[#C9A86A] pointer-events-none" />
+          </button>
 
-            <form onSubmit={handleJoinCampaign} className="flex flex-col sm:flex-row gap-3 w-full max-w-xl">
-              <div className="relative flex-1 min-w-0">
-                <input
-                  type="text"
-                  value={pastedUrl}
-                  onChange={(e) => setPastedUrl(e.target.value)}
-                  placeholder="Dán link chiến dịch tại đây..."
-                  className="w-full bg-slate-950/80 border border-amber-500/35 hover:border-amber-500/60 focus:border-amber-400 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none pr-10 min-w-0 transition-all"
-                />
-                {pastedUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setPastedUrl("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-[10px] uppercase font-bold"
-                  >
-                    Xóa
-                  </button>
-                )}
-              </div>
-              <button
-                type="submit"
-                disabled={!pastedUrl.trim()}
-                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-slate-950 px-6 text-xs font-black uppercase tracking-wider transition-all hover:from-amber-300 hover:to-yellow-400 active:scale-[0.98] cursor-pointer whitespace-nowrap"
-              >
-                Tham gia ngay <ArrowUpRight className="h-4 w-4 text-slate-950" />
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Search & filters */}
-      <div className="flex flex-col sm:flex-row gap-3 w-full">
-        <div className="group relative flex-1">
-          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/30 via-[#C9A86A]/40 to-yellow-600/30 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A] transition-colors group-focus-within:text-amber-300" />
+          <div className="relative min-w-0 flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
             <input
+              type="text"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") applyFilters();
               }}
-              placeholder="Tìm kiếm job theo tên, brand, loại chiến dịch, địa điểm..."
-              className="w-full rounded-2xl border border-amber-500/10 bg-[#0a0c12]/90 py-4 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500 shadow-2xl"
+              placeholder="Tên job..."
+              className="h-9 w-full rounded-full border border-white/10 bg-slate-950/60 pl-8.5 pr-8 text-xs text-white outline-none focus:border-[#C9A86A]/60 placeholder:text-slate-500"
             />
             {searchInput && (
               <button
@@ -979,33 +850,66 @@ function JobsPageContent() {
                   setSearchInput("");
                   setSearchQuery("");
                 }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
+
+          <button
+            type="button"
+            onClick={applyFilters}
+            className="h-9 shrink-0 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-4 text-[11px] font-black uppercase tracking-wider text-slate-950 shadow-lg transition-all hover:brightness-110 active:scale-95"
+          >
+            Tìm
+          </button>
+        </div>
+      </section>
+
+      {/* Desktop Search Card */}
+      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-6 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md">
+        <div className="absolute left-0 right-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A86A] to-transparent pointer-events-none" />
+
+        <div className="relative z-10 mb-4">
+          <h1 className="font-display text-lg font-black tracking-tight text-white md:text-xl">
+            Tìm kiếm Job - {currentCityLabel}{" "}
+            <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+              ({activeResultTotal || filteredCampaigns.length})
+            </span>
+          </h1>
         </div>
 
-        <button
-          type="button"
-          onClick={applyFilters}
-          className="flex h-[50px] items-center justify-center rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-8 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(201,168,106,0.3)] shrink-0"
-        >
-          Tìm kiếm
-        </button>
-      </div>
+        <div className="relative z-10 flex flex-col items-stretch gap-3 xl:flex-row">
+          <div className="group relative min-w-[280px] flex-1">
+            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#C9A86A]/30 to-yellow-600/20 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
+            <div className="relative h-full w-full">
+              <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A]" />
+              <input
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") applyFilters();
+                }}
+                placeholder="Tìm job theo tên, brand, loại chiến dịch..."
+                className="h-[50px] w-full rounded-2xl border border-white/10 bg-slate-950/60 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearchQuery("");
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
 
-      <div className="relative z-40 rounded-2xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-5 space-y-4 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md overflow-visible">
-        {/* Top Highlight line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A86A] to-transparent" />
-
-        {/* Main Filters Row */}
-        <div className="flex flex-wrap items-end gap-3.5 relative z-10">
-          <div className="flex-1 min-w-[180px]">
-            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">
-              Địa điểm
-            </span>
+          <div className="w-full xl:w-auto xl:min-w-[170px]">
             <FilterDropdown
               value={selectedCity}
               onChange={setSelectedCity}
@@ -1015,10 +919,7 @@ function JobsPageContent() {
             />
           </div>
 
-          <div className="flex-1 min-w-[180px]">
-            <span className="block text-[9px] font-black uppercase tracking-widest text-[#C9A86A]/90 mb-1.5 font-display">
-              Loại hình job
-            </span>
+          <div className="w-full xl:w-auto xl:min-w-[190px]">
             <FilterDropdown
               value={selectedJobType}
               onChange={setSelectedJobType}
@@ -1027,47 +928,45 @@ function JobsPageContent() {
             />
           </div>
 
-          {/* Buttons Group */}
-          <div className="flex items-center gap-2 mt-2 sm:mt-0">
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={applyFilters}
+              className="flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-8 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg xl:flex-none"
+            >
+              <Search className="h-4 w-4" />
+              Tìm kiếm
+            </button>
             <button
               type="button"
               onClick={() => setShowAdvancedFilters((current: boolean) => !current)}
               className={cn(
-                "flex h-9 items-center justify-center gap-1.5 rounded-xl border px-4 text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer whitespace-nowrap shadow-md",
+                "flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl border px-5 text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer xl:flex-none",
                 showAdvancedFilters
-                  ? "border-[#C9A86A] bg-gradient-to-r from-amber-400/20 to-yellow-600/20 text-[#C9A86A] shadow-[0_0_12px_rgba(201,168,106,0.15)]"
+                  ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
                   : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:border-[#C9A86A]/40 hover:text-white"
               )}
             >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              <span>Lọc nâng cao</span>
-              {showAdvancedFilters ? <ChevronUp className="h-3.5 w-3.5 shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 shrink-0" />}
+              <SlidersHorizontal className="h-4 w-4" />
+              Bộ lọc
             </button>
-
             <button
               type="button"
-              onClick={applyFilters}
-              className="flex h-9 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-110 transition active:scale-95 cursor-pointer shadow-md"
+              onClick={() => setSortOrder((current) => current === "newest" ? "oldest" : "newest")}
+              className="flex h-[50px] w-[160px] items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 px-4 text-xs font-black uppercase tracking-wider text-slate-300 transition-all hover:border-[#C9A86A]/40 hover:text-white"
             >
-              <Filter className="h-3.5 w-3.5" />
-              <span>Áp dụng</span>
+              <ArrowUpDown className="h-4 w-4 text-[#C9A86A]" />
+              {sortOrder === "newest" ? "Mới nhất" : "Cũ nhất"}
             </button>
           </div>
         </div>
 
         {showAdvancedFilters && (
-          <div className="relative z-10 grid grid-cols-1 gap-4 border-t border-white/5 pt-4 sm:grid-cols-2">
+          <div className="relative z-10 mt-5 grid grid-cols-1 gap-4 border-t border-white/5 pt-5 sm:grid-cols-2">
             <label className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  Thù lao tối thiểu
-                </span>
-                {minBudget > 0 && (
-                  <span className="text-[11px] font-mono font-bold text-amber-400">
-                    {formatVNDHint(minBudget)}
-                  </span>
-                )}
-              </div>
+              <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Thù lao tối thiểu
+              </span>
               <div className="relative">
                 <input
                   type="text"
@@ -1075,7 +974,7 @@ function JobsPageContent() {
                   value={minBudget ? formatVNDNumber(minBudget) : ""}
                   onChange={(event) => setMinBudget(parseVNDNumber(event.target.value))}
                   placeholder="VD: 700.000"
-                  className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 text-sm font-semibold text-white outline-none placeholder:text-slate-600 focus:border-[#f5c518]/60 pr-24"
+                  className="h-10 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 pr-24 text-xs font-semibold text-white outline-none placeholder:text-slate-600 focus:border-[#f5c518]/60"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 pointer-events-none">
                   VND / ngày
@@ -1084,16 +983,9 @@ function JobsPageContent() {
             </label>
 
             <label className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  Thù lao tối đa
-                </span>
-                {maxBudget > 0 && (
-                  <span className="text-[11px] font-mono font-bold text-amber-400">
-                    {formatVNDHint(maxBudget)}
-                  </span>
-                )}
-              </div>
+              <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Thù lao tối đa
+              </span>
               <div className="relative">
                 <input
                   type="text"
@@ -1101,7 +993,7 @@ function JobsPageContent() {
                   value={maxBudget ? formatVNDNumber(maxBudget) : ""}
                   onChange={(event) => setMaxBudget(parseVNDNumber(event.target.value))}
                   placeholder="VD: 1.000.000"
-                  className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 text-sm font-semibold text-white outline-none placeholder:text-slate-600 focus:border-[#f5c518]/60 pr-24"
+                  className="h-10 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 pr-24 text-xs font-semibold text-white outline-none placeholder:text-slate-600 focus:border-[#f5c518]/60"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 pointer-events-none">
                   VND / ngày
@@ -1110,10 +1002,10 @@ function JobsPageContent() {
             </label>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Filter Tabs - same amber style as brand campaigns page */}
-      <div className="flex items-center gap-2 pb-1.5 overflow-x-auto scrollbar-none">
+      <div className="hidden md:flex items-center gap-2 pb-1.5 overflow-x-auto scrollbar-none">
         {stageFilterOptions.map((sf) => {
           const count = stageCounts[sf];
           return (
@@ -1139,23 +1031,6 @@ function JobsPageContent() {
             </button>
           );
         })}
-      </div>
-
-      {/* Row 1: Result count on left, Sort button on right */}
-      <div className="flex flex-row items-center justify-between gap-3 border-b border-[#151b2d] pb-3">
-        <span className="flex items-center gap-2 text-xs font-semibold text-slate-400 shrink-0">
-          <Briefcase className="h-4 w-4 text-[#f5c518]" />
-          Tìm thấy <b className="text-white">{activeResultTotal || filteredCampaigns.length}</b> job phù hợp
-        </span>
-
-        <button
-          type="button"
-          onClick={() => setSortOrder((current) => current === "newest" ? "oldest" : "newest")}
-          className="flex items-center gap-2 rounded-xl border border-[#151b2d] bg-[#08090f] px-3.5 py-2 text-xs font-bold text-slate-300 transition-all hover:border-[#f5c518]/40 hover:text-white cursor-pointer shrink-0"
-        >
-          <Calendar className="h-4 w-4 text-[#f5c518]" />
-          <span>Ngày đăng: {sortOrder === "newest" ? "Mới nhất" : "Cũ nhất"}</span>
-        </button>
       </div>
 
       {/* Row 2: Top Pagination centered in its own row */}
@@ -1287,6 +1162,61 @@ function JobsPageContent() {
           </button>
         </div>
       )}
+
+      <JobFilterDialog
+        open={isMobileFiltersOpen}
+        onClose={() => setIsMobileFiltersOpen(false)}
+        cityOptions={cityDropdownOptions}
+        jobTypeOptions={jobTypeDropdownOptions}
+        stageFilterOptions={stageFilterOptions}
+        stageFilterLabels={stageFilterLabels}
+        stageCounts={stageCounts}
+        selectedCity={selectedCity}
+        setSelectedCity={setSelectedCity}
+        selectedJobType={selectedJobType}
+        setSelectedJobType={setSelectedJobType}
+        selectedStageFilter={selectedStageFilter}
+        setSelectedStageFilter={setSelectedStageFilter}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        minBudget={minBudget}
+        setMinBudget={setMinBudget}
+        maxBudget={maxBudget}
+        setMaxBudget={setMaxBudget}
+        onReset={() => {
+          setSelectedCity(allValue);
+          setSelectedJobType(allValue);
+          setSelectedStageFilter("all");
+          setSortOrder("newest");
+          setShowAdvancedFilters(false);
+          setMinBudget(0);
+          setMaxBudget(0);
+          setAppliedCity(allValue);
+          setAppliedJobType(allValue);
+          setAppliedShowAdvancedFilters(false);
+          setAppliedMinBudget(0);
+          setAppliedMaxBudget(0);
+          setIsMobileFiltersOpen(false);
+        }}
+        onApply={() => {
+          setShowAdvancedFilters(minBudget > 0 || maxBudget > 0);
+          applyFilters();
+          setIsMobileFiltersOpen(false);
+        }}
+      />
+      <JobFilterCityDialog
+        open={isMobileCityDialogOpen}
+        options={cityDropdownOptions}
+        selectedCity={appliedCity}
+        onClose={() => setIsMobileCityDialogOpen(false)}
+        onSelectCity={(city) => {
+          setSelectedCity(city);
+          setAppliedCity(city);
+          setIsMobileCityDialogOpen(false);
+        }}
+        currentLocationValue="Hà Nội"
+        currentLocationLabel="Hà Nội"
+      />
 
       {/* INVITATION AFFILIATE MODAL */}
       {showInviteModal && (

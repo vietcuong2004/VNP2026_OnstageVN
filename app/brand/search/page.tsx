@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   ArrowUpDown,
   Building2,
   Check,
@@ -14,12 +13,10 @@ import {
   Filter,
   Heart,
   Loader2,
-  Locate,
   Lock,
   LogOut,
   MapPin,
   Plus,
-  RefreshCw,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -30,8 +27,10 @@ import {
   Users2,
   X,
 } from "lucide-react";
-import TalentCard from "@/components/TalentCard";
-import TalentCardMobile from "@/components/TalentCardMobile";
+import TalentCard from "@/components/talents/TalentCard";
+import TalentCardMobile from "@/components/talents/TalentCardMobile";
+import TalentFilterCityDialog from "@/components/talents/TalentFilterCityDialog";
+import TalentFilterDialog from "@/components/talents/TalentFilterDialog";
 import { cn } from "@/lib/utils";
 import {
   CITY_VALUES,
@@ -346,15 +345,15 @@ function FilterDropdown({
         className={cn(
           isPill
             ? cn(
-                "flex h-8 w-full items-center justify-between gap-1 rounded-full border text-[10.5px] px-2.5 transition-all cursor-pointer font-semibold",
-                isActivePill
-                  ? "border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] font-bold"
-                  : "border-white/10 bg-slate-900/60 text-slate-350 hover:text-white"
-              )
+              "flex h-8 w-full items-center justify-between gap-1 rounded-full border text-[10.5px] px-2.5 transition-all cursor-pointer font-semibold",
+              isActivePill
+                ? "border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] font-bold"
+                : "border-white/10 bg-slate-900/60 text-slate-350 hover:text-white"
+            )
             : cn(
-                "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
-                isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
-              )
+              "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
+              isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+            )
         )}
       >
         <span className="flex items-center gap-1.5 truncate text-left">
@@ -429,15 +428,15 @@ function MultiFilterDropdown({
         className={cn(
           isPill
             ? cn(
-                "flex h-8 w-full items-center justify-between gap-1 rounded-full border text-[10.5px] px-2.5 transition-all cursor-pointer font-semibold",
-                isActivePill
-                  ? "border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] font-bold"
-                  : "border-white/10 bg-slate-900/60 text-slate-355 hover:text-white"
-              )
+              "flex h-8 w-full items-center justify-between gap-1 rounded-full border text-[10.5px] px-2.5 transition-all cursor-pointer font-semibold",
+              isActivePill
+                ? "border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] font-bold"
+                : "border-white/10 bg-slate-900/60 text-slate-355 hover:text-white"
+            )
             : cn(
-                "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
-                isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
-              )
+              "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
+              isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+            )
         )}
       >
         <span className="truncate text-left font-medium">
@@ -996,7 +995,7 @@ export default function DiscoverTalentsPage() {
                   applyFilters();
                 }
               }}
-              placeholder="Tìm kiếm Idol..."
+              placeholder="Tên idol..."
               className="w-full h-9 rounded-full border border-white/10 bg-slate-950/60 pl-8.5 pr-8 text-xs text-white outline-none focus:border-[#C9A86A]/60 placeholder:text-slate-500"
             />
             {searchInput && (
@@ -1134,7 +1133,7 @@ export default function DiscoverTalentsPage() {
                     applyFilters();
                   }
                 }}
-                placeholder="Tìm kiếm idol theo tên, kỹ năng..."
+                placeholder="Nhập tên Idol..."
                 className="w-full h-[50px] rounded-2xl border border-white/10 bg-slate-950/60 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500"
               />
               {searchInput && (
@@ -1400,368 +1399,88 @@ export default function DiscoverTalentsPage() {
 
       <GuestActionPrompt />
 
-      {/* Full-Screen Mobile City Selector Overlay */}
-      {isMobileCitySelectorOpen && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-[#050711] text-white animate-in fade-in duration-200">
-          {/* Header Row */}
-          <div className="flex items-center gap-3 border-b border-white/5 bg-[#070913] px-4 py-3">
-            <button
-              type="button"
-              onClick={() => {
-                setIsMobileCitySelectorOpen(false);
-                setCitySearchQuery("");
-              }}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/5 bg-slate-950/60 text-slate-350 hover:text-white"
-            >
-              <ArrowLeft className="h-4.5 w-4.5" />
-            </button>
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
-              <input
-                type="text"
-                value={citySearchQuery}
-                onChange={(e) => setCitySearchQuery(e.target.value)}
-                placeholder="Tìm kiếm tỉnh thành..."
-                className="w-full h-9 rounded-full border border-white/10 bg-slate-950/60 pl-8.5 pr-8 text-xs text-white outline-none focus:border-[#C9A86A]/60 placeholder:text-slate-500"
-              />
-              {citySearchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setCitySearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* List Scroll Container */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-            {/* Current Location (Vị trí hiện tại) */}
-            <div className="space-y-2">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Vị trí hiện tại
-              </span>
-              <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Quick select to Hà Nội as default current location
-                    setSelectedCity("Hà Nội");
-                    setAppliedFilters(prev => ({ ...prev, city: "Hà Nội" }));
-                    setIsMobileCitySelectorOpen(false);
-                    setCitySearchQuery("");
-                  }}
-                  className="flex items-center gap-3 text-left focus:outline-none"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C9A86A]/10 text-[#C9A86A]">
-                    <Locate className="h-4.5 w-4.5" />
-                  </div>
-                  <div>
-                    <span className="block text-sm font-semibold text-white font-display">Hà Nội</span>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    pushToast("Đang cập nhật vị trí...");
-                  }}
-                  className="flex items-center gap-1.5 text-xs text-[#C9A86A] font-semibold hover:text-[#C9A86A]/80 transition active:scale-95"
-                >
-                  <RefreshCw className="h-3 w-3 animate-spin duration-3000" />
-                  Cập nhật lại
-                </button>
-              </div>
-            </div>
-
-            {/* Provinces List */}
-            <div className="space-y-1">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
-                Tất cả tỉnh thành
-              </span>
-              {cityOptions
-                .filter(opt =>
-                  opt.label.toLowerCase().includes(citySearchQuery.toLowerCase())
-                )
-                .map((opt) => {
-                  const isSelected = selectedCity === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        setSelectedCity(opt.value);
-                        setAppliedFilters(prev => ({ ...prev, city: opt.value }));
-                        setIsMobileCitySelectorOpen(false);
-                        setCitySearchQuery("");
-                      }}
-                      className={cn(
-                        "flex w-full items-center gap-3 py-3 text-left border-b border-white/5 focus:outline-none transition-colors",
-                        isSelected ? "text-[#C9A86A]" : "text-white hover:text-[#C9A86A]"
-                      )}
-                    >
-                      <MapPin className={cn("h-4.5 w-4.5 shrink-0", isSelected ? "text-[#C9A86A]" : "text-slate-400")} />
-                      <span className="text-sm font-semibold">{opt.label}</span>
-                    </button>
-                  );
-                })}
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Full-Screen Mobile Filters Drawer Overlay */}
-      {isMobileFiltersOpen && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-[#050711] text-white animate-in fade-in duration-200">
-          {/* Header Row */}
-          <div className="flex items-center justify-between border-b border-white/5 bg-[#070913] px-5 py-4">
-            <h2 className="font-display text-base font-black tracking-wide text-white uppercase">
-              Bộ lọc nâng cao
-            </h2>
-            <button
-              type="button"
-              onClick={() => setIsMobileFiltersOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/5 bg-slate-950/60 text-slate-400 hover:text-white"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Form Content (Scrollable) */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-            {/* Section 1: Giới tính */}
-            <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-              <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-                Giới tính
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                {genderOptions.map((opt) => {
-                  const isActive = selectedGender === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setSelectedGender(opt.value)}
-                      className={cn(
-                        "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate",
-                        isActive
-                          ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                          : "border-white/10 bg-[#070913]/60 text-slate-350"
-                      )}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Section 2: Loại hình */}
-            <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-              <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-                Loại hình
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {typeOptions.map((opt) => {
-                  const isAll = opt.value === allValue;
-                  const isActive = isAll
-                    ? selectedType === allValue
-                    : selectedType !== allValue && selectedType.split(",").includes(opt.value);
-
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        if (isAll) {
-                          setSelectedType(allValue);
-                        } else {
-                          const currentList = selectedType === allValue
-                            ? []
-                            : selectedType.split(",").filter(Boolean);
-                          let newList: string[];
-                          if (currentList.includes(opt.value)) {
-                            newList = currentList.filter(t => t !== opt.value);
-                          } else {
-                            newList = [...currentList, opt.value];
-                          }
-                          if (newList.length === 0) {
-                            setSelectedType(allValue);
-                          } else {
-                            setSelectedType(newList.join(","));
-                          }
-                        }
-                      }}
-                      className={cn(
-                        "py-2 px-3 rounded-full border text-xs font-semibold flex items-center justify-start gap-2.5 transition-all truncate",
-                        isActive
-                          ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                          : "border-white/10 bg-[#070913]/60 text-slate-355"
-                      )}
-                    >
-                      {/* Checkbox box indicator */}
-                      <div className={cn(
-                        "w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-all",
-                        isActive
-                          ? "border-[#C9A86A] bg-[#C9A86A] text-slate-950"
-                          : "border-white/20 bg-slate-950/40 text-transparent"
-                      )}>
-                        <Check className="h-3 w-3 stroke-[3px]" />
-                      </div>
-                      <span className="truncate">{opt.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Section 3: Sắp xếp */}
-            <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-              <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-                Sắp xếp theo
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                {TALENT_SORT_OPTIONS.map((opt) => {
-                  const isActive = sortOption === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setSortOption(opt.value as TalentSortOption)}
-                      className={cn(
-                        "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate",
-                        isActive
-                          ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                          : "border-white/10 bg-[#070913]/60 text-slate-355"
-                      )}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Section 4: Chiều cao */}
-            <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-              <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-                Chiều cao ({minHeight} - {maxHeight}cm)
-              </span>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 font-semibold">Từ:</span>
-                  <input
-                    type="number"
-                    min={140}
-                    max={200}
-                    value={minHeight}
-                    onChange={(e) => setMinHeight(Number(e.target.value))}
-                    className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 font-semibold">Đến:</span>
-                  <input
-                    type="number"
-                    min={140}
-                    max={200}
-                    value={maxHeight}
-                    onChange={(e) => setMaxHeight(Number(e.target.value))}
-                    className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Section 5: Cân nặng */}
-            <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-              <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-                Cân nặng ({minWeight} - {maxWeight}kg)
-              </span>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 font-semibold">Từ:</span>
-                  <input
-                    type="number"
-                    min={35}
-                    max={120}
-                    value={minWeight}
-                    onChange={(e) => setMinWeight(Number(e.target.value))}
-                    className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 font-semibold">Đến:</span>
-                  <input
-                    type="number"
-                    min={35}
-                    max={120}
-                    value={maxWeight}
-                    onChange={(e) => setMaxWeight(Number(e.target.value))}
-                    className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Sticky Bottom Actions Bar */}
-          <div className="border-t border-white/5 bg-[#070913] p-4 flex gap-3 z-10">
-            <button
-              type="button"
-              onClick={() => {
-                // Reset draft states
-                setSelectedGender(allValue);
-                setSelectedType(allValue);
-                setMinHeight(150);
-                setMaxHeight(190);
-                setMinWeight(40);
-                setMaxWeight(90);
-                setSortOption("near_me");
-                // Reset applied filters
-                setAppliedFilters(prev => ({
-                  query: searchInput,
-                  gender: allValue,
-                  type: allValue,
-                  city: selectedCity,
-                  minHeight: 150,
-                  maxHeight: 190,
-                  minWeight: 40,
-                  maxWeight: 90,
-                  showAdvancedFilters: prev.showAdvancedFilters,
-                }));
-                setIsMobileFiltersOpen(false);
-                pushToast("Đã đặt lại bộ lọc.");
-              }}
-              className="w-1/2 py-3 rounded-full border border-white/10 bg-slate-900/40 text-slate-350 text-xs font-semibold uppercase tracking-wider transition active:scale-95 flex items-center justify-center gap-1.5"
-            >
-              Đặt lại
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                // Apply all draft states to appliedFilters
-                setAppliedFilters(prev => ({
-                  query: searchInput,
-                  gender: selectedGender,
-                  type: selectedType,
-                  city: selectedCity,
-                  minHeight: minHeight,
-                  maxHeight: maxHeight,
-                  minWeight: minWeight,
-                  maxWeight: maxWeight,
-                  showAdvancedFilters: prev.showAdvancedFilters,
-                }));
-                setIsMobileFiltersOpen(false);
-                pushToast("Đã áp dụng bộ lọc.");
-              }}
-              className="w-1/2 py-3 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5"
-            >
-              Áp dụng
-            </button>
-          </div>
-        </div>
-      )}
+      <TalentFilterCityDialog
+        open={isMobileCitySelectorOpen}
+        cityOptions={cityOptions}
+        selectedCity={selectedCity}
+        citySearchQuery={citySearchQuery}
+        setCitySearchQuery={setCitySearchQuery}
+        onClose={() => {
+          setIsMobileCitySelectorOpen(false);
+          setCitySearchQuery("");
+        }}
+        onSelectCity={(city) => {
+          setSelectedCity(city);
+          setAppliedFilters(prev => ({ ...prev, city }));
+          setIsMobileCitySelectorOpen(false);
+          setCitySearchQuery("");
+        }}
+        onRefreshLocation={() => {
+          pushToast("Đang cập nhật vị trí...");
+        }}
+      />
+      <TalentFilterDialog
+        open={isMobileFiltersOpen}
+        onClose={() => setIsMobileFiltersOpen(false)}
+        genderOptions={genderOptions}
+        cityOptions={cityOptions}
+        typeOptions={typeOptions}
+        sortOptions={TALENT_SORT_OPTIONS}
+        allValue={allValue}
+        selectedGender={selectedGender}
+        setSelectedGender={setSelectedGender}
+        selectedCity={selectedCity}
+        setSelectedCity={setSelectedCity}
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+        minHeight={minHeight}
+        setMinHeight={setMinHeight}
+        maxHeight={maxHeight}
+        setMaxHeight={setMaxHeight}
+        minWeight={minWeight}
+        setMinWeight={setMinWeight}
+        maxWeight={maxWeight}
+        setMaxWeight={setMaxWeight}
+        onReset={() => {
+          setSelectedGender(allValue);
+          setSelectedType(allValue);
+          setMinHeight(150);
+          setMaxHeight(190);
+          setMinWeight(40);
+          setMaxWeight(90);
+          setSortOption("near_me");
+          setAppliedFilters(prev => ({
+            query: searchInput,
+            gender: allValue,
+            type: allValue,
+            city: selectedCity,
+            minHeight: 150,
+            maxHeight: 190,
+            minWeight: 40,
+            maxWeight: 90,
+            showAdvancedFilters: prev.showAdvancedFilters,
+          }));
+          setIsMobileFiltersOpen(false);
+          pushToast("Đã đặt lại bộ lọc.");
+        }}
+        onApply={() => {
+          setAppliedFilters(prev => ({
+            query: searchInput,
+            gender: selectedGender,
+            type: selectedType,
+            city: selectedCity,
+            minHeight,
+            maxHeight,
+            minWeight,
+            maxWeight,
+            showAdvancedFilters: prev.showAdvancedFilters,
+          }));
+          setIsMobileFiltersOpen(false);
+          pushToast("Đã áp dụng bộ lọc.");
+        }}
+      />
     </div>
   );
 }

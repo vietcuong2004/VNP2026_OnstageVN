@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isTalentSurveyForm, setIsTalentSurveyForm] = useState(false);
+  const [isMobileOverlayOpen, setIsMobileOverlayOpen] = useState(false);
   const isStandalonePublic = isStandalonePublicPath(pathname || "/");
   const isMessages = pathname?.endsWith("/messages") ?? false;
   const isAbout = pathname === "/about";
@@ -21,8 +22,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isTalentJobDetail = pathname ? /^\/talent\/jobs\/[^/]+$/.test(pathname) : false;
   const isTalentSurvey = pathname === "/talent/survey";
   const isBrandSearch = pathname === "/brand/search";
+  const isTalentJobs = pathname === "/talent/jobs";
   const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
-  const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch;
+  const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isTalentJobs;
 
   useEffect(() => {
     const syncSurveyFormMode = () => {
@@ -40,6 +42,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("onstage:survey-form-mode", syncSurveyFormMode);
     };
   }, [pathname]);
+
+  useEffect(() => {
+    const syncMobileOverlay = (event: Event) => {
+      const detail = (event as CustomEvent<{ open?: boolean }>).detail;
+      setIsMobileOverlayOpen(Boolean(detail?.open));
+    };
+
+    window.addEventListener("onstage:mobile-overlay", syncMobileOverlay);
+    return () => window.removeEventListener("onstage:mobile-overlay", syncMobileOverlay);
+  }, []);
 
   return (
     <ThemeProvider>
@@ -70,7 +82,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     ? "p-0"
                     : cn(
                         "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",
-                        isBrandSearch && "pt-0 md:pt-7"
+                        (isBrandSearch || isTalentJobs) && "pt-0 md:pt-7"
                       ),
                   isTalentSurvey && "md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 md:pb-8"
                 )}
@@ -83,7 +95,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {!isStandalonePublic && (
-            <div className={cn((isTalentJobDetail || isTalentSurveyForm) ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
+            <div className={cn((isTalentJobDetail || isTalentSurveyForm || isMobileOverlayOpen) ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
               <BottomNavigation />
             </div>
           )}
