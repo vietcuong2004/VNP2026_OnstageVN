@@ -7,16 +7,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAuthToken } from "@/lib/api-client";
-import { persistTalentProfile, ensureTalentProfile, saveTalentProfile, uploadTalentPhoto } from "@/lib/talent-api";
+import { persistTalentProfile, ensureTalentProfile, saveTalentProfile, submitTalentSurvey, uploadTalentPhoto } from "@/lib/talent-api";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import ProgressBar from "@/components/ui/ProgressBar";
 import {
   CITY_VALUES,
-  CONTENT_SKILL_VALUES,
   TALENT_TYPE_VALUES,
   normalizeTalentTypeLabel,
   normalizeTalentTypeList,
 } from "@/components/ui/ComboboxOptionValues";
+import { SPECIALTY_PRESET_GROUPS, SOCIAL_HIGHLIGHT_PRESET_GROUPS, flattenTalentPresetOptions } from "@/lib/talent-profile-presets";
 
 const convertToInputDate = (dateStr: string) => {
   if (!dateStr) return "";
@@ -58,14 +58,7 @@ const availableLanguages = [
   "Tiếng Tây Ban Nha"
 ];
 
-const socialHighlightSuggestions = [
-  "50K+ Followers",
-  "10K+ Viewers",
-  "1000+ Followers",
-  "4000+ Likes"
-];
 
-const contentSkillSuggestions = CONTENT_SKILL_VALUES;
 
 function normalizePortfolioLinks(rawLinks: unknown): string[] {
   const links = Array.isArray(rawLinks)
@@ -629,6 +622,21 @@ export default function EditInfoTab({
         socialAccounts: socialAccounts
       };
       const syncedProfile = await saveTalentProfile(updated);
+      const surveySectionAnswers = [
+        Number(editForm.height) > 0 ? { question_code: "A1", answer_value: Number(editForm.height) } : null,
+        Number(editForm.experience) >= 0 && String(editForm.experience).trim() !== "" ? { question_code: "B1", answer_value: Number(editForm.experience) } : null,
+        editForm.price ? { question_code: "P1", answer_value: editForm.price } : null,
+        normalizeTalentTypeList(editForm.talentTypes).length ? { question_code: "P2", answer_value: normalizeTalentTypeList(editForm.talentTypes) } : null,
+        editForm.experienceText ? { question_code: "P3", answer_value: editForm.experienceText } : null,
+        editForm.specialSkills.length ? { question_code: "P4", answer_value: editForm.specialSkills } : null,
+        editForm.socialHighlights.length ? { question_code: "P5", answer_value: editForm.socialHighlights } : null,
+        portfolioLinks.length ? { question_code: "P6", answer_value: portfolioLinks } : null,
+        socialAccounts.length ? { question_code: "P7", answer_value: socialAccounts } : null,
+      ].filter(Boolean) as { question_code: string; answer_value: unknown }[];
+
+      if (surveySectionAnswers.length) {
+        await submitTalentSurvey("A", surveySectionAnswers);
+      }
       setProfile(syncedProfile);
       addToast(
         getAuthToken()
@@ -878,20 +886,29 @@ export default function EditInfoTab({
                     ))
                   )}
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {contentSkillSuggestions
+                <select
+                  value=""
+                  onChange={(e) => {
+                    handleAddContentSkill(e.target.value);
+                    e.target.value = "";
+                  }}
+                  className="w-full bg-[#060918] border border-white/20 rounded-xl px-3 py-2.5 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none shadow-inner"
+                  style={{
+                    backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 0.75rem center",
+                    backgroundSize: "0.85em",
+                    paddingRight: "2rem"
+                  }}
+                >
+                  <option value="" disabled hidden>Thêm lĩnh vực / kỹ năng...</option>
+                  {flattenTalentPresetOptions(SPECIALTY_PRESET_GROUPS, editForm.talentTypes)
                     .filter((item) => !editForm.specialSkills.includes(item))
                     .map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => handleAddContentSkill(item)}
-                        className="px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer bg-white/5 hover:bg-amber-400/20 border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300"
-                      >
-                        <Plus className="h-3 w-3" /> {item}
-                      </button>
-                    ))}
-                </div>
+                      <option key={item} value={item} className="bg-[#0e142e] text-white py-1">{item}</option>
+                    ))
+                  }
+                </select>
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                   <input
                     type="text"
@@ -1100,20 +1117,29 @@ export default function EditInfoTab({
                   ))
                 )}
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {socialHighlightSuggestions
+              <select
+                value=""
+                onChange={(e) => {
+                  handleAddSocialHighlight(e.target.value);
+                  e.target.value = "";
+                }}
+                className="w-full bg-[#060918] border border-white/20 rounded-xl px-3 py-2.5 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-400 cursor-pointer appearance-none shadow-inner"
+                style={{
+                  backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23F0C56B%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 0.75rem center",
+                  backgroundSize: "0.85em",
+                  paddingRight: "2rem"
+                }}
+              >
+                <option value="" disabled hidden>Thêm chỉ số / thành tựu nổi bật...</option>
+                {flattenTalentPresetOptions(SOCIAL_HIGHLIGHT_PRESET_GROUPS, editForm.talentTypes)
                   .filter((item) => !editForm.socialHighlights.includes(item))
                   .map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => handleAddSocialHighlight(item)}
-                      className="px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer bg-white/5 hover:bg-amber-400/20 border-white/10 hover:border-amber-400/40 text-slate-300 hover:text-amber-300"
-                    >
-                      <Plus className="h-3 w-3" /> {item}
-                    </button>
-                  ))}
-              </div>
+                    <option key={item} value={item} className="bg-[#0e142e] text-white py-1">{item}</option>
+                  ))
+                }
+              </select>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                 <input
                   type="text"

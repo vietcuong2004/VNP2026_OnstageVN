@@ -1022,6 +1022,7 @@ export default function PersonalInfoTab({
   const canAddVideo = portfolioVideos.length < 4;
   const reviews: ProfileReview[] = Array.isArray(profile.reviews) ? profile.reviews : [];
   const profileSkills = getStringList(profile.skills ?? profile.specialSkills);
+  const profileSocialHighlights = getStringList(profile.socialHighlights ?? profile.social_highlights);
 
   // State for Month-switching Calendar
   const [currentYear, setCurrentYear] = useState(2026);
@@ -1298,6 +1299,11 @@ export default function PersonalInfoTab({
             <span className="font-medium text-slate-400">Lĩnh vực chuyên sâu</span>
             <span className="font-bold text-white text-left break-words leading-normal">
               {profileSkills.length > 0 ? profileSkills.join(", ") : "Chưa cập nhật"}
+            </span>
+
+            <span className="font-medium text-slate-400">Chỉ số nổi bật</span>
+            <span className="font-bold text-white text-left break-words leading-normal">
+              {profileSocialHighlights.length > 0 ? profileSocialHighlights.join(", ") : "Chưa cập nhật"}
             </span>
 
             {/* Ngôn ngữ */}
