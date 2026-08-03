@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState, type MouseEvent } from "react";
+import React, { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
-import { Check, CheckCircle2, Eye, Heart, Loader2, MapPin, Trash2, UserPlus } from "lucide-react";
+import { CalendarCheck, Check, CheckCircle2, Heart, Loader2, MapPin, Star, Trash2, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import BadgeTier, { getTierBadgeConfig } from "@/components/ui/BadgeTier";
@@ -13,6 +13,20 @@ import {
   getStringList,
   getStatusLabel,
 } from "./TalentCard";
+
+function getMockTalentStats(talent: any) {
+  const key = String(talent?.id || talent?.slug || talent?.email || talent?.name || "idol");
+  let hash = 0;
+
+  for (let index = 0; index < key.length; index += 1) {
+    hash = (hash * 31 + key.charCodeAt(index)) >>> 0;
+  }
+
+  return {
+    bookings: 72 + (hash % 164),
+    goodReviews: 820 + ((hash >> 3) % 1380),
+  };
+}
 
 export default function TalentCardMobile({
   talent,
@@ -50,6 +64,7 @@ export default function TalentCardMobile({
   const bioText = talent?.experience || talent?.bio || talent?.summary || talent?.description || talent?.introduction || "";
   const hasActions = Boolean(onView || onToggleSaved || onMessage);
   const tierBadge = getTierBadgeConfig(talent?.tier);
+  const mockStats = useMemo(() => getMockTalentStats(talent), [talent]);
 
   const stopCardClick = (event: MouseEvent) => {
     event.stopPropagation();
@@ -211,45 +226,20 @@ export default function TalentCardMobile({
       {/* Row 2: 3 Action Buttons spanning full card width - compact sizes */}
       {hasActions && (
         <div className="mt-3 flex items-center gap-2 border-t border-white/5 pt-3">
-          {/* 1. Xem */}
-          {onView && (
-            <button
-              type="button"
-              onClick={(event) => {
-                stopCardClick(event);
-                onView(talent);
-              }}
-              className="flex h-[32px] flex-none items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 text-[8.5px] font-black uppercase tracking-wider text-white transition hover:bg-white/10 active:scale-90 cursor-pointer"
-              title="Xem hồ sơ chi tiết"
-            >
-              <Eye className="h-3 w-3" />
-              <span>{viewLabel}</span>
-            </button>
-          )}
-
-          {/* 2. Thêm vào brand */}
-          {onMessage && (
-            <button
-              type="button"
-              disabled={messageLoading}
-              onClick={handleBrandButtonClick}
-              className={cn(
-                "flex h-[32px] flex-1 items-center justify-center gap-1 rounded-lg text-[8.5px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer border",
-                messageDisabled
-                  ? "border-[#C9A86A]/40 bg-[#C9A86A]/10 text-[#C9A86A]"
-                  : "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
-              )}
-            >
-              {messageLoading ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : messageDisabled ? (
-                <Check className="h-3 w-3 text-[#C9A86A]" />
-              ) : (
-                showMessageIcon && <UserPlus className="h-3 w-3" />
-              )}
-              <span className="truncate">{messageLabel}</span>
-            </button>
-          )}
+          <div className="grid min-w-0 flex-[1.55] grid-cols-2 gap-1.5">
+            <div className="flex min-h-[38px] min-w-0 items-center justify-center gap-1 rounded-lg border border-[#C9A86A]/25 bg-gradient-to-r from-[#C9A86A]/18 via-white/[0.04] to-transparent px-1.5 text-center text-[#F4D77C] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <CalendarCheck className="h-3 w-3 shrink-0" />
+              <span className="text-[7.5px] font-black leading-[1.05] tracking-tight">
+                {mockStats.bookings} lượt booking
+              </span>
+            </div>
+            <div className="flex min-h-[38px] min-w-0 items-center justify-center gap-1 rounded-lg border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-400/16 via-rose-300/[0.06] to-transparent px-1.5 text-center text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <Star className="h-3 w-3 shrink-0 fill-current" />
+              <span className="text-[7.5px] font-black leading-[1.05] tracking-tight">
+                {mockStats.goodReviews} đánh giá tốt
+              </span>
+            </div>
+          </div>
 
           {/* 3. Lưu thông tin */}
           {onToggleSaved && (
@@ -260,7 +250,7 @@ export default function TalentCardMobile({
                 onToggleSaved(talent);
               }}
               className={cn(
-                "flex h-[32px] flex-1 items-center justify-center gap-1 rounded-lg text-[8.5px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer",
+                "flex min-h-[38px] flex-1 items-center justify-center gap-1 rounded-lg text-[8.5px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer",
                 isSaved
                   ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
                   : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110"
