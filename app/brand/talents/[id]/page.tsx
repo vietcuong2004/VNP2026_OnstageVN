@@ -347,6 +347,12 @@ const formatNumber = (num: number) => {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
+function formatDisplayName(name: string) {
+  return name
+    .toLocaleLowerCase("vi-VN")
+    .replace(/(^|[\s'-])([^\s'-])/g, (match, prefix, char) => `${prefix}${char.toLocaleUpperCase("vi-VN")}`);
+}
+
 function getTalentTypes(talent: unknown) {
   const record = talent && typeof talent === "object" ? talent as Record<string, unknown> : {};
   const normalizeType = (type: unknown) => {
@@ -788,8 +794,8 @@ export default function BrandTalentProfilePage() {
       </div>
 
       {/* Cover Header */}
-      <section className="relative rounded-[32px] border border-white/5 bg-[#08090f] p-4 md:p-6 shadow-xl overflow-hidden">
-        <div className="h-56 sm:h-64 md:h-72 w-full rounded-2xl relative overflow-hidden border border-white/5 bg-[#05070e] group shadow-inner">
+      <section className="relative overflow-hidden rounded-[24px] border border-white/5 bg-[#08090f] p-0 shadow-xl md:rounded-[32px] md:p-6">
+        <div className="group relative h-44 w-full overflow-hidden rounded-t-[24px] border-b border-white/5 bg-[#05070e] shadow-inner sm:h-56 md:h-72 md:rounded-2xl md:border">
           <img
             src={talent.cover || "/brand_cover_default.png"}
             alt={`${talent.name} cover`}
@@ -803,7 +809,147 @@ export default function BrandTalentProfilePage() {
           />
         </div>
 
-        <div className="relative flex flex-col lg:flex-row justify-between items-start lg:items-start px-3 sm:px-6 gap-6 mt-6 z-20 w-full text-left">
+        <div className="relative z-20 px-4 pb-4 md:hidden">
+          <div className="-mt-6 flex items-start gap-3">
+            <div className="shrink-0 rounded-full bg-[#08090f] p-1 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+              <div className="h-24 w-24 rounded-full bg-gradient-gold p-[3px] shadow-[0_0_20px_rgba(240,197,107,0.35)]">
+                <img
+                  src={talent.avatar}
+                  alt={talent.name}
+                  onError={(event) => {
+                    event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                  }}
+                  className="h-full w-full rounded-full border border-black/10 object-cover"
+                  onClick={() => {
+                    const url = normalizeBackendAssetUrl(talent.avatar);
+                    if (url) setPreviewImage(url);
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="min-w-0 flex-1 pt-7">
+              <h2 className="font-display text-lg font-black leading-tight tracking-wide text-white">
+                <span>{formatDisplayName(talent.name)}</span>
+                {talent.verified && (
+                  <span className="ml-2 inline-flex h-4 w-4 select-none items-center justify-center rounded-full bg-amber-400 align-middle text-[9px] font-extrabold text-slate-950 shadow-md" title="Đã xác minh">
+                    ✓
+                  </span>
+                )}
+              </h2>
+
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-extrabold leading-snug text-slate-200">
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-4 w-4 text-[#F0C56B]" />
+                  {profile?.location || "Chưa cập nhật"}
+                </span>
+                {profile?.tier && (
+                  <button
+                    type="button"
+                    onClick={() => setIsTierDialogOpen(true)}
+                    className="inline-flex items-center gap-1 rounded-full transition active:scale-95"
+                    title="Xem chi tiết phân hạng"
+                  >
+                    <BadgeTier tier={profile.tier} variant="gradient" size="xs" />
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[10px] font-black text-white">
+                      ?
+                    </span>
+                  </button>
+                )}
+              </div>
+
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-1.5 text-[10px] font-black leading-snug text-[#F0C56B]">
+            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1">
+              <Ruler className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{profile?.height ? formatHeight(profile.height) : "Chưa cập nhật"}</span>
+            </span>
+            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1">
+              <Scale className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{profile?.weight ? `${profile.weight} kg` : "Chưa cập nhật"}</span>
+            </span>
+            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1 font-mono">
+              <User className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{formatMeasurements(profile)}</span>
+            </span>
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {talentTypes.length ? (
+              talentTypes.map((type) => (
+                <span key={type} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                  {type}
+                </span>
+              ))
+            ) : (
+              <span className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                Chưa cập nhật
+              </span>
+            )}
+
+            {profileSocialHighlights.map((highlight) => (
+              <span key={highlight} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                {highlight}
+              </span>
+            ))}
+
+            {profileSkills.map((skill) => (
+              <span
+                key={skill}
+                className="inline-flex rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-slate-300"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-3 border-t border-white/5 pt-3 text-left text-xs font-medium leading-relaxed text-slate-400">
+            {talent.experience || "Chưa cập nhật giới thiệu bản thân."}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              aria-disabled={portfolioLinks.length === 0}
+              onClick={handleViewPortfolio}
+              className={cn(
+                "flex h-10 items-center justify-center rounded-xl border px-3 text-[10px] font-black uppercase tracking-wider transition active:scale-95",
+                portfolioLinks.length > 0
+                  ? "cursor-pointer border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                  : "cursor-not-allowed border-white/10 bg-white/[0.03] text-slate-500"
+              )}
+            >
+              <Eye className="mr-1.5 h-3.5 w-3.5 shrink-0 text-current" />
+              Xem Portfolio
+            </button>
+            <button
+              type="button"
+              onClick={handleAddToWishlist}
+              className={cn(
+                "flex h-10 items-center justify-center rounded-xl px-3 text-[10px] font-black uppercase tracking-wider shadow-md transition-all duration-300 active:scale-95",
+                isInWishlist
+                  ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                  : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 shadow-[0_0_15px_rgba(201,168,106,0.2)]"
+              )}
+            >
+              {isInWishlist ? (
+                <>
+                  <CheckCircle2 className="mr-1.5 h-4 w-4 shrink-0 text-emerald-400" />
+                  <span>Đã lưu</span>
+                </>
+              ) : (
+                <>
+                  <Heart className="mr-1.5 h-4 w-4 shrink-0 fill-slate-950 text-slate-950" />
+                  <span>Lưu thông tin</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="relative z-20 hidden w-full flex-col items-start gap-6 px-3 pt-6 text-left md:flex sm:px-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex-1 w-full">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left w-full">
               {/* Avatar block */}
@@ -826,8 +972,8 @@ export default function BrandTalentProfilePage() {
 
               {/* Details stack next to Avatar */}
               <div className="space-y-2.5 flex-1 min-w-0">
-                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight text-center sm:text-left">
-                  <span>{talent.name}</span>
+                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide leading-tight text-center sm:text-left">
+                  <span>{formatDisplayName(talent.name)}</span>
                   {talent.verified && (
                     <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold shadow-md select-none ml-2 align-middle" title="Đã xác minh">
                       ✓
@@ -917,7 +1063,7 @@ export default function BrandTalentProfilePage() {
         </div>
 
         {/* Centered Action Buttons Row */}
-        <div className="flex flex-wrap items-center justify-center gap-3 px-6 pb-6 pt-4 w-full">
+        <div className="hidden flex-wrap items-center justify-center gap-3 px-6 pb-6 pt-4 w-full md:flex">
           <button
             type="button"
             aria-disabled={portfolioLinks.length === 0}

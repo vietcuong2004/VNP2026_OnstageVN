@@ -3,6 +3,12 @@ export type ComboboxOption = {
   value: string;
 };
 
+export type ComboboxPresetGroup = {
+  title: string;
+  keywords?: readonly string[];
+  options: readonly string[];
+};
+
 export const CITY_VALUES = [
   "Tỉnh An Giang",
   "Tỉnh Bắc Ninh",
@@ -60,6 +66,21 @@ export const CONTENT_SKILL_VALUES = [
   "Cafe",
   "Lifestyle",
 ] as const;
+
+export const SOCIAL_HIGHLIGHT_PRESET_GROUPS: ComboboxPresetGroup[] = [
+  {
+    title: "KOL / KOC",
+    keywords: ["kol", "koc"],
+    options: [
+      "1K+ Followers",
+      "5K+ Followers",
+      "10K+ Followers",
+      "50K+ Followers",
+      "100K+ Views",
+      "1000+ Likes",
+    ],
+  },
+];
 
 export const CITY_OPTIONS: ComboboxOption[] = CITY_VALUES.map((value) => ({ label: value, value }));
 export const TALENT_TYPE_OPTIONS: ComboboxOption[] = TALENT_TYPE_VALUES.map((value) => ({ label: value, value }));

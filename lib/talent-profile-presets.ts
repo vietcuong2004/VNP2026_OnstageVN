@@ -1,10 +1,7 @@
-import { CONTENT_SKILL_VALUES } from "@/components/ui/ComboboxOptionValues";
+import { CONTENT_SKILL_VALUES, SOCIAL_HIGHLIGHT_PRESET_GROUPS as SHARED_SOCIAL_HIGHLIGHT_PRESET_GROUPS } from "@/components/ui/ComboboxOptionValues";
+import type { ComboboxPresetGroup } from "@/components/ui/ComboboxOptionValues";
 
-export type TalentPresetGroup = {
-  title: string;
-  keywords?: readonly string[];
-  options: readonly string[];
-};
+export type TalentPresetGroup = ComboboxPresetGroup;
 
 export const SPECIALTY_PRESET_GROUPS: TalentPresetGroup[] = [
   {
@@ -129,97 +126,7 @@ export const SPECIALTY_PRESET_GROUPS: TalentPresetGroup[] = [
   },
 ];
 
-export const SOCIAL_HIGHLIGHT_PRESET_GROUPS: TalentPresetGroup[] = [
-  {
-    title: "KOL / KOC",
-    keywords: ["kol", "koc"],
-    options: [
-      "1K+ Followers",
-      "5K+ Followers",
-      "10K+ Followers",
-      "50K+ Followers",
-      "100K+ Views",
-      "1000+ Likes",
-      "Từng review sản phẩm",
-      "Từng làm affiliate",
-      "Tỷ lệ tương tác tốt",
-    ],
-  },
-  {
-    title: "Livestreamer",
-    keywords: ["livestreamer"],
-    options: [
-      "Livestream 20+ người xem",
-      "Livestream 50+ người xem",
-      "Từng live 2+ giờ",
-      "Từng chốt 20+ đơn/live",
-      "10+ phiên livestream",
-      "Tương tác chat tốt",
-    ],
-  },
-  {
-    title: "Diễn viên",
-    keywords: ["diễn viên", "dien vien", "actor"],
-    options: [
-      "Từng tham gia phim ngắn",
-      "Từng tham gia TVC",
-      "Từng tham gia web drama",
-      "3+ vai diễn",
-      "Từng qua casting",
-      "Có showreel diễn xuất",
-    ],
-  },
-  {
-    title: "MC / sự kiện",
-    keywords: ["mc"],
-    options: [
-      "5+ sự kiện",
-      "10+ sự kiện",
-      "Từng dẫn sân khấu 100+ khách",
-      "MC song ngữ",
-      "Có video demo MC",
-      "Có giải thưởng liên quan",
-    ],
-  },
-  {
-    title: "PG / PB",
-    keywords: ["pg", "pb", "pg/pb"],
-    options: [
-      "5+ ca activation",
-      "10+ ca activation",
-      "Từng làm sampling",
-      "Từng làm roadshow",
-      "Từng trực booth",
-      "Feedback khách hàng tốt",
-    ],
-  },
-  {
-    title: "Người mẫu / Hoa hậu",
-    keywords: ["người mẫu", "nguoi mau", "model", "hoa hậu", "hoa hau"],
-    options: [
-      "Từng chụp lookbook",
-      "Từng chụp beauty shot",
-      "Từng trình diễn thời trang",
-      "Có kinh nghiệm catwalk",
-      "Có ảnh profile chuyên nghiệp",
-      "Từng tham gia cuộc thi nhan sắc",
-      "Từng hoạt động cộng đồng",
-    ],
-  },
-  {
-    title: "Newbie / mới bắt đầu",
-    options: [
-      "Sẵn sàng nhận job đầu tiên",
-      "Đang xây kênh cá nhân",
-      "Có portfolio cá nhân",
-      "Sẵn sàng đi casting",
-      "Từng tham gia CLB/đội nhóm",
-      "Đã hoàn thành khóa học kỹ năng",
-      "Có thiết bị quay/chụp cơ bản",
-      "Có lịch rảnh linh hoạt",
-    ],
-  },
-];
+export const SOCIAL_HIGHLIGHT_PRESET_GROUPS = SHARED_SOCIAL_HIGHLIGHT_PRESET_GROUPS;
 
 function normalizePresetLookup(value: unknown) {
   return String(value || "")

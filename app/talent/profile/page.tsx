@@ -54,6 +54,12 @@ const formatMeasurements = (profile: any) => {
   return "Chưa cập nhật";
 };
 
+function formatDisplayName(name: string) {
+  return name
+    .toLocaleLowerCase("vi-VN")
+    .replace(/(^|[\s'-])([^\s'-])/g, (match, prefix, char) => `${prefix}${char.toLocaleUpperCase("vi-VN")}`);
+}
+
 function portfolioLinksFromProfile(profile: any): string[] {
   const rawLinks = profile?.portfolioLinks ?? profile?.portfolio_links ?? profile?.portfolio_url ?? "";
   const links = Array.isArray(rawLinks)
@@ -403,10 +409,10 @@ export default function PortfolioPage() {
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-300">
 
       {/* Cover Banner Header - Dynamic & Responsive */}
-      <div className="relative rounded-[32px] border border-white/5 bg-[#05070e]/85 backdrop-blur-md p-4 md:p-6 shadow-soft overflow-hidden">
+      <div className="relative overflow-hidden rounded-[24px] border border-white/5 bg-[#05070e]/85 p-0 shadow-soft backdrop-blur-md md:rounded-[32px] md:p-6">
 
         {/* Cover Background */}
-        <div className="h-56 sm:h-64 md:h-72 w-full rounded-2xl relative overflow-hidden border border-white/5 bg-[#05070e] group shadow-inner">
+        <div className="group relative h-44 w-full overflow-hidden rounded-t-[24px] border-b border-white/5 bg-[#05070e] shadow-inner sm:h-56 md:h-72 md:rounded-2xl md:border">
           {/* Cover image */}
           {normalizeBackendAssetUrl(profile.cover) ? (
             <img
@@ -469,8 +475,166 @@ export default function PortfolioPage() {
           )}
         </div>
 
+        <div className="relative z-20 px-4 pb-4 md:hidden">
+          <div className="-mt-6 flex items-start gap-3">
+            <div className="relative shrink-0 rounded-full bg-[#08090f] p-1 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+              <div className="h-24 w-24 rounded-full bg-gradient-gold p-[3px] shadow-[0_0_20px_rgba(240,197,107,0.35)]">
+                <img
+                  src={normalizeBackendAssetUrl(profile.avatar) || createInitialAvatarDataUrl(profile.name || "Khách truy cập", profile.email)}
+                  alt={profile.name || "Khách truy cập"}
+                  onError={(event) => {
+                    event.currentTarget.src = createInitialAvatarDataUrl(profile.name || "Khách truy cập", profile.email);
+                  }}
+                  className="h-full w-full rounded-full border border-black/10 object-cover"
+                  onClick={() => normalizeBackendAssetUrl(profile.avatar) && setPreviewImage(normalizeBackendAssetUrl(profile.avatar))}
+                />
+              </div>
+
+              <div className="absolute bottom-1 right-1 z-30" data-image-action-menu>
+                <button
+                  type="button"
+                  onClick={() => setOpenImageActionMenu(openImageActionMenu === "avatar" ? null : "avatar")}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#05070e] bg-[#F0C56B] text-slate-950 shadow-lg transition-all active:scale-95"
+                >
+                  <Camera className="h-4 w-4" />
+                </button>
+                {openImageActionMenu === "avatar" && (
+                  <div className="absolute left-0 bottom-full z-50 mb-2 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#08090f] shadow-2xl">
+                    <label className="flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/10 hover:text-[#F0C56B]">
+                      <Upload className="h-4 w-4 shrink-0" />
+                      Chọn ảnh mới
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={!!uploadingState["avatar"]}
+                        onChange={(e) => {
+                          setOpenImageActionMenu(null);
+                          handleImageUpload(e, "avatar");
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveProfileImage("avatar")}
+                      className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-xs font-bold text-rose-300 transition hover:bg-rose-500/10 hover:text-rose-200"
+                    >
+                      <Trash2 className="h-4 w-4 shrink-0" />
+                      Xóa ảnh
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {uploadingState["avatar"] && (
+                <ProgressBar
+                  progress={uploadingState["avatar"].progress}
+                  message="Tải ảnh..."
+                  className="absolute inset-1 rounded-full"
+                />
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1 pt-7">
+              <h2 className="font-display text-lg font-black leading-tight tracking-wide text-white">
+                <span>{formatDisplayName(profile.name || "Chưa cập nhật")}</span>
+                <span className="ml-2 inline-flex h-4 w-4 select-none items-center justify-center rounded-full bg-amber-400 align-middle text-[9px] font-extrabold text-slate-950 shadow-md" title="Đã xác minh">
+                  ✓
+                </span>
+              </h2>
+
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-extrabold leading-snug text-slate-200">
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-4 w-4 text-[#F0C56B]" />
+                  {profile.location || "Chưa cập nhật"}
+                </span>
+                {profile.isOnboarded && profile.tier && (
+                  <button
+                    type="button"
+                    onClick={() => setIsTierDialogOpen(true)}
+                    className="inline-flex items-center gap-1 rounded-full transition active:scale-95"
+                    title="Xem chi tiết phân hạng"
+                  >
+                    <BadgeTier tier={profile.tier} variant="gradient" size="xs" />
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[10px] font-black text-white">
+                      ?
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-1.5 text-[10px] font-black leading-snug text-[#F0C56B]">
+            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1">
+              <Ruler className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{profile.height ? formatHeight(profile.height) : "Chưa cập nhật"}</span>
+            </span>
+            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1">
+              <Scale className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{profile.weight ? `${profile.weight} kg` : "Chưa cập nhật"}</span>
+            </span>
+            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1 font-mono">
+              <User className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{formatMeasurements(profile)}</span>
+            </span>
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {profileTalentTypes.length ? (
+              profileTalentTypes.map((type) => (
+                <span key={type} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                  {type}
+                </span>
+              ))
+            ) : (
+              <span className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                Idol mới
+              </span>
+            )}
+
+            {profileSocialHighlights.map((highlight) => (
+              <span key={highlight} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                {highlight}
+              </span>
+            ))}
+
+            {profileSkills.map((skill) => (
+              <span
+                key={skill}
+                className="inline-flex rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-slate-300"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+
+          {headerBio ? (
+            <div className="mt-3 border-t border-white/5 pt-3 text-left text-xs font-medium leading-relaxed text-slate-400">
+              {headerBio}
+            </div>
+          ) : null}
+
+          <div className="mt-4">
+            <button
+              type="button"
+              aria-disabled={portfolioLinks.length === 0}
+              onClick={handleViewPortfolio}
+              className={cn(
+                "flex h-12 w-full items-center justify-center rounded-2xl border px-4 text-xs font-black uppercase tracking-wider transition active:scale-95",
+                portfolioLinks.length > 0
+                  ? "cursor-pointer border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                  : "cursor-not-allowed border-white/10 bg-white/[0.03] text-slate-500"
+              )}
+            >
+              <Eye className="mr-2 h-4 w-4 shrink-0 text-current" />
+              Xem Portfolio
+            </button>
+          </div>
+        </div>
+
         {/* Profile Info & Centered Details */}
-        <div className="relative flex flex-col lg:flex-row justify-between items-start lg:items-start px-3 sm:px-6 gap-6 mt-6 z-20 w-full text-left">
+        <div className="relative z-20 hidden w-full flex-col items-start justify-between gap-6 px-3 text-left sm:px-6 md:mt-6 md:flex lg:flex-row lg:items-start">
           
           {/* Left Column: Avatar + Details (Name, Category, Location, Contacts) */}
           <div className="flex-1 w-full">
@@ -538,8 +702,8 @@ export default function PortfolioPage() {
 
               {/* Details stack next to Avatar */}
               <div className="space-y-2.5 flex-1 min-w-0 w-full">
-                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide uppercase leading-tight text-center sm:text-left">
-                  <span>{profile.name || "Chưa cập nhật"}</span>
+                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide leading-tight text-center sm:text-left">
+                  <span>{formatDisplayName(profile.name || "Chưa cập nhật")}</span>
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold shadow-md select-none ml-2 align-middle" title="Đã xác minh">
                     ✓
                   </span>

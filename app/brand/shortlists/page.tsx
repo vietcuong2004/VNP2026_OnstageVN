@@ -714,7 +714,7 @@ export default function BrandShortlistsPage() {
         <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#C9A86A]/5 blur-3xl opacity-60 pointer-events-none" />
         <div className="relative z-10 mb-4">
           <h1 className="font-display text-lg font-black tracking-tight text-white md:text-xl">
-            {activeTab === "saved" ? "Idol đã lưu" : "Idol đã xem"} - {currentCityLabel}{" "}
+            {activeTab === "saved" ? "Idol đã lưu" : "Idol đã xem"}{" "}
             <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
               ({filteredSavedTalents.length})
             </span>
