@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
+  Bookmark,
   Building2,
   ChevronDown,
   Heart,
@@ -21,7 +22,8 @@ import { loadNotifications, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/messaging-
 import { ensureBrowserNotificationPermission, showBrowserNotification } from "@/lib/browser-notifications";
 import { getRealtimeClient } from "@/lib/realtime";
 import { loadBrandWishlists } from "@/lib/brand-api";
-import { SAVED_TALENTS_UPDATED_EVENT } from "@/lib/guest-saved-talents";
+import { loadGuestSavedTalentIds, SAVED_TALENTS_UPDATED_EVENT } from "@/lib/guest-saved-talents";
+import { loadSavedJobs, SAVED_JOBS_UPDATED_EVENT } from "@/lib/saved-jobs";
 
 type AuthUser = {
   id: number;
@@ -125,6 +127,7 @@ export default function Header() {
   const [talentName, setTalentName] = useState<string | null>(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [savedTalentCount, setSavedTalentCount] = useState(0);
+  const [savedJobCount, setSavedJobCount] = useState(0);
 
   useEffect(() => {
     function syncTalentProfileHeader() {
@@ -248,7 +251,32 @@ export default function Header() {
   }, [pathname, user?.id]);
 
   useEffect(() => {
-    if (!user?.id || !user.capabilities?.includes("brand")) {
+    if (!user) {
+      function refreshGuestSavedTalentCount() {
+        setSavedTalentCount(loadGuestSavedTalentIds().length);
+      }
+
+      function handleGuestSavedTalentsUpdated(event: Event) {
+        const count = (event as CustomEvent<{ count?: number }>).detail?.count;
+        if (typeof count === "number") {
+          setSavedTalentCount(count);
+          return;
+        }
+
+        refreshGuestSavedTalentCount();
+      }
+
+      window.addEventListener(SAVED_TALENTS_UPDATED_EVENT, handleGuestSavedTalentsUpdated);
+      window.addEventListener("storage", refreshGuestSavedTalentCount);
+      refreshGuestSavedTalentCount();
+
+      return () => {
+        window.removeEventListener(SAVED_TALENTS_UPDATED_EVENT, handleGuestSavedTalentsUpdated);
+        window.removeEventListener("storage", refreshGuestSavedTalentCount);
+      };
+    }
+
+    if (!user.id || !user.capabilities?.includes("brand")) {
       setSavedTalentCount(0);
       return;
     }
@@ -284,6 +312,36 @@ export default function Header() {
       window.removeEventListener(SAVED_TALENTS_UPDATED_EVENT, handleSavedTalentsUpdated);
     };
   }, [pathname, user?.capabilities, user?.id]);
+
+  useEffect(() => {
+    if (user && !user.capabilities?.includes("talent")) {
+      setSavedJobCount(0);
+      return;
+    }
+
+    function refreshSavedJobCount() {
+      setSavedJobCount(loadSavedJobs().length);
+    }
+
+    function handleSavedJobsUpdated(event: Event) {
+      const count = (event as CustomEvent<{ count?: number }>).detail?.count;
+      if (typeof count === "number") {
+        setSavedJobCount(count);
+        return;
+      }
+
+      refreshSavedJobCount();
+    }
+
+    window.addEventListener(SAVED_JOBS_UPDATED_EVENT, handleSavedJobsUpdated);
+    window.addEventListener("storage", refreshSavedJobCount);
+    refreshSavedJobCount();
+
+    return () => {
+      window.removeEventListener(SAVED_JOBS_UPDATED_EVENT, handleSavedJobsUpdated);
+      window.removeEventListener("storage", refreshSavedJobCount);
+    };
+  }, [user?.capabilities]);
 
   async function handleLogout() {
     await logoutCurrentSession();
@@ -370,11 +428,11 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-6">
-          {user?.capabilities?.includes("brand") && (
+          {(!user || user.capabilities?.includes("brand")) && (
             <button
               type="button"
               onClick={() => router.push("/brand/shortlists")}
-              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95 md:flex"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95"
               aria-label="Idol đã lưu"
               title="Idol đã lưu"
             >
@@ -382,6 +440,23 @@ export default function Header() {
               {savedTalentCount > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-[#070913] bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-1 text-[9px] font-black text-slate-950">
                   {savedTalentCount > 99 ? "99+" : savedTalentCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          {(!user || user.capabilities?.includes("talent")) && (
+            <button
+              type="button"
+              onClick={() => router.push("/talent/jobs/saved-jobs")}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95"
+              aria-label="Việc làm đã lưu"
+              title="Việc làm đã lưu"
+            >
+              <Bookmark className="h-4.5 w-4.5 fill-current" />
+              {savedJobCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-[#070913] bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-1 text-[9px] font-black text-slate-950">
+                  {savedJobCount > 99 ? "99+" : savedJobCount}
                 </span>
               )}
             </button>
@@ -421,7 +496,7 @@ export default function Header() {
                 <span className="block text-xs font-bold text-white">{label.name}</span>
                 {label.subtitle && <span className="block max-w-32 truncate text-[10px] text-slate-500">{label.subtitle}</span>}
               </div>
-              <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
+              <ChevronDown className={`hidden h-4 w-4 text-slate-500 transition-transform sm:block ${open ? "rotate-180" : ""}`} />
             </button>
 
             {open && (

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Award,
+  Bookmark,
   Briefcase,
   Building2,
   CircleHelp,
@@ -77,6 +78,7 @@ export default function Sidebar() {
     about: Info,
     talent_survey: Sparkles,
     saved_idols: Heart,
+    saved_jobs: Bookmark,
     login: LogIn,
   };
   const guestMenuItems = getGuestDesktopNavigation()
@@ -127,10 +129,14 @@ export default function Sidebar() {
     const isGuestTalentActive = !isLoggedIn && href === "/brand/search" && (
       activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/")
     );
-    const isGuestJobsActive = !isLoggedIn && href === "/talent/jobs" && activePathname.startsWith("/talent/jobs");
+    const isGuestJobsActive = !isLoggedIn && href === "/talent/jobs" && (
+      activePathname === "/talent/jobs" || activePathname.startsWith("/talent/jobs/")
+    ) && activePathname !== "/talent/jobs/saved-jobs";
+    const isGuestSavedJobsActive = !isLoggedIn && href === "/talent/jobs/saved-jobs" && activePathname === "/talent/jobs/saved-jobs";
 
     return isGuestTalentActive
       || isGuestJobsActive
+      || isGuestSavedJobsActive
       || activePathname === href
       || (href.split("/").length > 3 && activePathname.startsWith(href));
   };
@@ -172,9 +178,9 @@ export default function Sidebar() {
 
               <Link
                 href="/auth/login"
-                className="flex w-full items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold tracking-wide transition-all duration-300 group relative bg-gradient-to-r from-amber-400/10 to-yellow-600/5 text-amber-300 border border-amber-500/20 shadow-[0_4px_12px_rgba(245,158,11,0.05)] hover:from-amber-400/20 hover:to-yellow-600/10 hover:border-amber-500/40 hover:text-amber-200"
+                className="mt-4 flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-sm font-black tracking-wide text-slate-950 shadow-[0_10px_26px_rgba(201,168,106,0.18)] transition-all duration-300 hover:brightness-110 active:scale-95"
               >
-                <LogIn className="h-4.5 w-4.5 text-amber-400 transition-transform duration-300 group-hover:scale-110" />
+                <LogIn className="h-4.5 w-4.5" />
                 <span>Đăng nhập</span>
               </Link>
             </div>

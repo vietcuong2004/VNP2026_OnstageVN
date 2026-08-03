@@ -340,7 +340,7 @@ const formatMeasurements = (profile: any) => {
     return `${profile.bust}-${profile.waist}-${profile.hips}`;
   }
 
-  return "Chưa cập nhật";
+  return "Chưa biết";
 };
 
 const formatNumber = (num: number) => {
@@ -864,11 +864,11 @@ export default function BrandTalentProfilePage() {
           <div className="mt-4 grid grid-cols-3 gap-1.5 text-[10px] font-black leading-snug text-[#F0C56B]">
             <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1">
               <Ruler className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{profile?.height ? formatHeight(profile.height) : "Chưa cập nhật"}</span>
+              <span className="truncate">{profile?.height ? formatHeight(profile.height) : "Chưa biết"}</span>
             </span>
             <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1">
               <Scale className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{profile?.weight ? `${profile.weight} kg` : "Chưa cập nhật"}</span>
+              <span className="truncate">{profile?.weight ? `${profile.weight} kg` : "Chưa biết"}</span>
             </span>
             <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1 font-mono">
               <User className="h-3.5 w-3.5 shrink-0" />

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Briefcase, Heart, HelpCircle, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
+import { Bookmark, Briefcase, Heart, HelpCircle, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
 import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/components/sidebar";
@@ -36,6 +36,11 @@ export default function BottomNavigation() {
   }
 
   useEffect(() => {
+    if (pathname === "/talent/jobs/saved-jobs") {
+      setVisible(true);
+      return;
+    }
+
     let prevScrollY = 0;
 
     const handleScroll = (event: Event) => {
@@ -74,7 +79,7 @@ export default function BottomNavigation() {
 
     window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
     return () => window.removeEventListener("scroll", handleScroll, { capture: true });
-  }, [showMoreMenu]);
+  }, [pathname, showMoreMenu]);
 
   if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/about" && pathname !== "/settings") {
     return null;
@@ -82,7 +87,9 @@ export default function BottomNavigation() {
 
   const activePathname = pathname.startsWith("/brand/talents/")
     ? "/brand/search"
-    : pathname.startsWith("/talent/jobs/")
+    : pathname === "/talent/jobs/saved-jobs"
+      ? "/talent/jobs/saved-jobs"
+      : pathname.startsWith("/talent/jobs/")
       ? "/talent/jobs"
       : pathname;
 
@@ -93,6 +100,7 @@ export default function BottomNavigation() {
     talent_profile: User,
     talent_survey: Sparkles,
     saved_idols: Heart,
+    saved_jobs: Bookmark,
     brand_settings: Settings,
     login: LogIn,
   };
@@ -114,10 +122,14 @@ export default function BottomNavigation() {
     const isGuestTalentActive = !isLoggedIn && href === "/brand/search" && (
       activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/")
     );
-    const isGuestJobsActive = !isLoggedIn && href === "/talent/jobs" && activePathname.startsWith("/talent/jobs");
+    const isGuestJobsActive = !isLoggedIn && href === "/talent/jobs" && (
+      activePathname === "/talent/jobs" || activePathname.startsWith("/talent/jobs/")
+    ) && activePathname !== "/talent/jobs/saved-jobs";
+    const isGuestSavedJobsActive = !isLoggedIn && href === "/talent/jobs/saved-jobs" && activePathname === "/talent/jobs/saved-jobs";
 
     return isGuestTalentActive
       || isGuestJobsActive
+      || isGuestSavedJobsActive
       || activePathname === href
       || activePathname.startsWith(href);
   };

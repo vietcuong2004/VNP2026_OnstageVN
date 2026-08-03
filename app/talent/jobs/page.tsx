@@ -5,7 +5,7 @@ import {
   Sparkles, CheckCircle,
   X, Check,
   ArrowUpDown, Copy, Users, Briefcase,
-  Search, SlidersHorizontal, ChevronDown
+  Search, SlidersHorizontal, ChevronDown, Bookmark
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
@@ -22,8 +22,10 @@ import QRCodeContainer from "@/components/QR_Code";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import { CITY_VALUES } from "@/components/ui/ComboboxOptionValues";
 import JobCard from "@/components/jobs/JobCard";
+import JobCardMobile from "@/components/jobs/JobCardMobile";
 import JobFilterDialog from "@/components/jobs/JobFilterDialog";
 import JobFilterCityDialog from "@/components/jobs/JobFilterCityDialog";
+import { loadSavedJobs, SAVED_JOBS_UPDATED_EVENT } from "@/lib/saved-jobs";
 
 type StageFilter = "apply" | "pending" | "approved" | "all";
 type SortOrder = "newest" | "oldest";
@@ -327,6 +329,7 @@ function JobsPageContent() {
   const [showAllBenefits, setShowAllBenefits] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "info" }[]>([]);
   const [displayJobs, setDisplayJobs] = useState<any[]>([]);
+  const [savedJobCount, setSavedJobCount] = useState(0);
   const [activeReferralLink, setActiveReferralLink] = useState<{ [campId: string]: any }>({});
   const [loadingReferral, setLoadingReferral] = useState<string | null>(null);
   const [showInviteModal, setShowInviteModal] = useState<any>(null);
@@ -346,6 +349,21 @@ function JobsPageContent() {
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [isLoadingMoreJobs, setIsLoadingMoreJobs] = useState(false);
   const isMobileOverlayOpen = isMobileFiltersOpen || isMobileCityDialogOpen;
+
+  useEffect(() => {
+    function syncSavedJobCount() {
+      setSavedJobCount(loadSavedJobs().length);
+    }
+
+    syncSavedJobCount();
+    window.addEventListener(SAVED_JOBS_UPDATED_EVENT, syncSavedJobCount);
+    window.addEventListener("storage", syncSavedJobCount);
+
+    return () => {
+      window.removeEventListener(SAVED_JOBS_UPDATED_EVENT, syncSavedJobCount);
+      window.removeEventListener("storage", syncSavedJobCount);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -859,10 +877,17 @@ function JobsPageContent() {
 
           <button
             type="button"
-            onClick={applyFilters}
-            className="h-9 shrink-0 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-4 text-[11px] font-black uppercase tracking-wider text-slate-950 shadow-lg transition-all hover:brightness-110 active:scale-95"
+            onClick={() => router.push("/talent/jobs/saved-jobs")}
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95"
+            aria-label="Việc làm đã lưu"
+            title="Việc làm đã lưu"
           >
-            Tìm
+            <Bookmark className="h-4 w-4 fill-current" />
+            {savedJobCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-[#070913] bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-1 text-[9px] font-black text-slate-950">
+                {savedJobCount > 99 ? "99+" : savedJobCount}
+              </span>
+            )}
           </button>
         </div>
       </section>
@@ -1074,7 +1099,7 @@ function JobsPageContent() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
         {filteredCampaigns.length === 0 ? (
           <div className="lg:col-span-4 sm:col-span-2 rounded-3xl border border-dashed border-white/10 bg-[#08090f]/60 px-6 py-16 text-center">
             <Briefcase className="mx-auto mb-4 h-12 w-12 text-slate-700" />
@@ -1089,21 +1114,28 @@ function JobsPageContent() {
           visibleCampaigns.map((camp) => {
             const isApplied = appliedJobs.includes(camp.id) || hasTalentApplication(camp);
             const stage = getTalentJobStage(camp);
+            const commonJobCardProps = {
+              job: camp,
+              isApplied,
+              stage,
+              isLoadingReferral: loadingReferral === camp.id,
+              formatDate: displayCampaignDate,
+              onView: handleViewJob,
+              onApply: (job: any) => handleApply(job.id, job.title),
+              onUpdateStage: (job: any, nextStage: "executing" | "completed") => handleUpdateStage(job.id, nextStage),
+              onInvite: handleInviteClick,
+              onInviteBlocked: () => addToast("Vui lòng ứng tuyển chiến dịch trước khi mời thành viên khác.", "info"),
+            };
 
             return (
-              <JobCard
-                key={camp.id}
-                job={camp}
-                isApplied={isApplied}
-                stage={stage}
-                isLoadingReferral={loadingReferral === camp.id}
-                formatDate={displayCampaignDate}
-                onView={handleViewJob}
-                onApply={(job) => handleApply(job.id, job.title)}
-                onUpdateStage={(job, nextStage) => handleUpdateStage(job.id, nextStage)}
-                onInvite={handleInviteClick}
-                onInviteBlocked={() => addToast("Vui lòng ứng tuyển chiến dịch trước khi mời thành viên khác.", "info")}
-              />
+              <React.Fragment key={camp.id}>
+                <div className="md:hidden">
+                  <JobCardMobile {...commonJobCardProps} />
+                </div>
+                <div className="hidden md:block">
+                  <JobCard {...commonJobCardProps} />
+                </div>
+              </React.Fragment>
             );
           })
         )}

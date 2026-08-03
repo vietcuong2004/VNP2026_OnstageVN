@@ -19,13 +19,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isMessages = pathname?.endsWith("/messages") ?? false;
   const isAbout = pathname === "/about";
   const isBrandTalentDetail = pathname ? /^\/brand\/talents\/[^/]+$/.test(pathname) : false;
-  const isTalentJobDetail = pathname ? /^\/talent\/jobs\/[^/]+$/.test(pathname) : false;
+  const isTalentJobDetail = pathname ? /^\/talent\/jobs\/[^/]+$/.test(pathname) && pathname !== "/talent/jobs/saved-jobs" : false;
   const isTalentSurvey = pathname === "/talent/survey";
   const isBrandSearch = pathname === "/brand/search";
   const isBrandShortlists = pathname === "/brand/shortlists";
   const isTalentJobs = pathname === "/talent/jobs";
+  const isTalentSavedJobs = pathname === "/talent/jobs/saved-jobs";
   const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
-  const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isTalentJobs;
+  const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isTalentJobs || isTalentSavedJobs;
 
   useEffect(() => {
     const syncSurveyFormMode = () => {
@@ -83,7 +84,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     ? "p-0"
                     : cn(
                         "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",
-                        (isBrandSearch || isBrandShortlists || isTalentJobs) && "pt-0 md:pt-7"
+                        (isBrandSearch || isBrandShortlists || isTalentJobs || isTalentSavedJobs) && "pt-0 md:pt-7"
                       ),
                   isTalentSurvey && "md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 md:pb-8"
                 )}

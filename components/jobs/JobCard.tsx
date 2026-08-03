@@ -1,12 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
-import { Calendar, CircleDollarSign, MapPin, UserPlus } from "lucide-react";
+import { Bookmark, Calendar, CircleDollarSign, MapPin } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { loadSavedJobIds, SAVED_JOBS_UPDATED_EVENT, toggleSavedJob } from "@/lib/saved-jobs";
 
 export type TalentJobStage = "pending" | "approved" | string | null | undefined;
 
-type JobCardProps = {
+export type JobCardProps = {
   job: any;
   isApplied: boolean;
   stage?: TalentJobStage;
@@ -51,18 +53,36 @@ export default function JobCard({
   job,
   isApplied,
   stage,
-  isLoadingReferral = false,
   onView,
   onApply,
-  onUpdateStage,
-  onInvite,
-  onInviteBlocked,
   formatDate,
 }: JobCardProps) {
   const badge = getStatusBadge(stage, isApplied);
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    function syncSavedState() {
+      setIsSaved(loadSavedJobIds().includes(String(job?.id || "")));
+    }
+
+    syncSavedState();
+    window.addEventListener(SAVED_JOBS_UPDATED_EVENT, syncSavedState);
+    window.addEventListener("storage", syncSavedState);
+
+    return () => {
+      window.removeEventListener(SAVED_JOBS_UPDATED_EVENT, syncSavedState);
+      window.removeEventListener("storage", syncSavedState);
+    };
+  }, [job?.id]);
 
   const stopCardClick = (event: MouseEvent) => {
     event.stopPropagation();
+  };
+
+  const handleSaveClick = (event: MouseEvent) => {
+    stopCardClick(event);
+    const result = toggleSavedJob(job);
+    setIsSaved(result.isSaved);
   };
 
   const renderPrimaryAction = () => {
@@ -73,7 +93,7 @@ export default function JobCard({
             stopCardClick(event);
             onApply(job);
           }}
-          className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-[#f5c518] via-[#e6b600] to-[#d49e00] text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_4px_20px_rgba(245,197,24,0.3)] transition-all hover:brightness-110 active:scale-[0.98]"
+          className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_4px_20px_rgba(245,197,24,0.3)] transition-all hover:brightness-110 active:scale-[0.98]"
         >
           ỨNG TUYỂN
         </button>
@@ -104,9 +124,9 @@ export default function JobCard({
   return (
     <div
       onClick={() => onView(job)}
-      className="relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[#1a1c2e] bg-[#0a0b12] shadow-xl transition-all duration-300 hover:border-[#f5c518]/30"
+      className="relative flex h-full min-h-[525px] cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[#1a1c2e] bg-[#0a0b12] shadow-xl transition-all duration-300 hover:border-[#f5c518]/30"
     >
-      <div className="relative h-44 sm:h-48 w-full shrink-0 overflow-hidden bg-slate-900">
+      <div className="relative h-48 w-full shrink-0 overflow-hidden bg-slate-900">
         <img
           src={job.coverUrl || "/brand_cover_default.png"}
           alt={job.title}
@@ -142,14 +162,14 @@ export default function JobCard({
       </div>
 
       <div className="flex flex-1 flex-col justify-between space-y-3 p-4 sm:p-5">
-        <div>
+        <div className="flex flex-1 flex-col">
           <h3
-            className="line-clamp-2 font-display text-sm sm:text-base font-extrabold leading-snug tracking-tight text-white transition-colors hover:text-[#f5c518]"
+            className="line-clamp-2 min-h-[44px] font-display text-sm sm:text-base font-extrabold leading-snug tracking-tight text-white transition-colors hover:text-[#f5c518]"
           >
             {job.title}
           </h3>
 
-            <div className="mt-3.5 flex flex-col gap-2 text-xs font-medium text-slate-300">
+            <div className="mt-3.5 flex min-h-[50px] flex-col gap-2 text-xs font-medium text-slate-300">
               <div className="flex items-center gap-2">
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[#f5c518]/60 bg-[#f5c518]/10">
                   <Calendar className="h-3.5 w-3.5 text-[#f5c518]" />
@@ -179,7 +199,7 @@ export default function JobCard({
             <>
               <div className="my-3 border-t border-[#1a1d30]" />
 
-              <div className="min-w-0">
+              <div className="min-h-[22px] min-w-0">
                 <span className="flex w-full items-center gap-1 font-mono text-[11px] xs:text-xs sm:text-xs md:text-sm font-black leading-tight tracking-tight text-[#f5c518] whitespace-nowrap overflow-hidden">
                   <CircleDollarSign className="h-4 w-4 shrink-0 text-[#f5c518]" />
                   <span className="truncate">{formatDisplayBudget(job.budget)}</span>
@@ -192,38 +212,22 @@ export default function JobCard({
         <div className="space-y-2 pt-1">
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={(event) => {
-                stopCardClick(event);
-                onView(job);
-              }}
-              className="flex h-9 sm:h-10 cursor-pointer items-center justify-center rounded-full border border-slate-700/60 bg-[#0d0e19] text-xs font-black uppercase tracking-wider text-white transition-all hover:bg-[#161828]"
+              onClick={handleSaveClick}
+              className={cn(
+                "flex h-9 sm:h-10 cursor-pointer items-center justify-center gap-1.5 rounded-full text-xs font-black transition-all active:scale-[0.98]",
+                isSaved
+                  ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400"
+                  : "border border-white/10 bg-white/8 text-slate-200 hover:bg-white/10 hover:text-white"
+              )}
+              aria-label={isSaved ? "Bỏ lưu job" : "Lưu job"}
+              title={isSaved ? "Bỏ lưu job" : "Lưu job"}
             >
-              XEM
+              <Bookmark className={cn("h-4 w-4", isSaved && "fill-current")} />
+              {isSaved ? "Đã lưu" : "Lưu job"}
             </button>
 
             {renderPrimaryAction()}
           </div>
-
-          <button
-            onClick={(event) => {
-              stopCardClick(event);
-              if (isApplied) {
-                onInvite(job);
-              } else {
-                onInviteBlocked();
-              }
-            }}
-            disabled={isLoadingReferral}
-            className={cn(
-              "flex h-10 w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border text-xs font-bold uppercase tracking-wider transition-all duration-300",
-              isApplied
-                ? "border-[#f5c518]/30 bg-[#f5c518]/10 text-[#f5c518] hover:bg-[#f5c518]/20"
-                : "border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
-            )}
-          >
-            <UserPlus className="h-4 w-4 text-[#f5c518]" />
-            {isLoadingReferral ? "Đang lấy link..." : "Mời tham gia"}
-          </button>
         </div>
       </div>
     </div>
