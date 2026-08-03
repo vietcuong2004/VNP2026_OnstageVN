@@ -335,56 +335,30 @@ export default function BottomNavigation() {
             );
           })}
 
-          {!isLoggedIn ? (
-            <Link
-              href="/talent/survey"
-              className="group flex flex-col items-center justify-center gap-1 py-1 cursor-pointer"
+          <button
+            type="button"
+            onClick={() => setShowMoreMenu(true)}
+            className="group flex flex-col items-center justify-center gap-1 py-1 focus:outline-none cursor-pointer"
+          >
+            <div
+              className={cn(
+                "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
+                showMoreMenu
+                  ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white",
+              )}
             >
-              <div
-                className={cn(
-                  "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
-                  isActiveHref("/talent/survey")
-                    ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
-                    : "text-slate-400 hover:bg-white/5 hover:text-white",
-                )}
-              >
-                <Sparkles className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-              </div>
-              <span
-                className={cn(
-                  "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
-                  isActiveHref("/talent/survey") ? "text-amber-400 font-black" : "text-slate-500",
-                )}
-              >
-                Khảo sát
-              </span>
-            </Link>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowMoreMenu(true)}
-              className="group flex flex-col items-center justify-center gap-1 py-1 focus:outline-none cursor-pointer"
+              <Menu className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+            </div>
+            <span
+              className={cn(
+                "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
+                showMoreMenu ? "text-amber-400 font-black" : "text-slate-500",
+              )}
             >
-              <div
-                className={cn(
-                  "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
-                  showMoreMenu
-                    ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
-                    : "text-slate-400 hover:bg-white/5 hover:text-white",
-                )}
-              >
-                <Menu className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-              </div>
-              <span
-                className={cn(
-                  "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
-                  showMoreMenu ? "text-amber-400 font-black" : "text-slate-500",
-                )}
-              >
-                Thêm
-              </span>
-            </button>
-          )}
+              Thêm
+            </span>
+          </button>
         </nav>
       </div>
 

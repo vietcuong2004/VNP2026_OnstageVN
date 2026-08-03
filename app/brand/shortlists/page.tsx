@@ -11,6 +11,8 @@ import {
   removeTalentFromWishlist,
   removeBrandRosterTalent,
 } from "@/lib/brand-api";
+import { getAuthToken } from "@/lib/api-client";
+import { loadGuestSavedTalentIds, saveGuestSavedTalentIds } from "@/lib/guest-saved-talents";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import TalentCard from "@/components/talents/TalentCard";
@@ -34,6 +36,19 @@ export default function BrandShortlistsPage() {
   const [addingBrandTalentIds, setAddingBrandTalentIds] = useState<string[]>([]);
 
   useEffect(() => {
+    if (!getAuthToken()) {
+      loadBrandTalents([]).then((backendTalents) => {
+        const guestSavedIds = loadGuestSavedTalentIds();
+        setSavedIds(guestSavedIds);
+        setTalentList((backendTalents || []).filter((talent: any) => guestSavedIds.includes(String(talent.id))));
+        setWishlistId(null);
+        setWishlistItemIds({});
+        setBrandTalentIds([]);
+        setBrandRosterMap({});
+      });
+      return;
+    }
+
     Promise.all([
       loadBrandTalents([]),
       loadBrandWishlists([]),
@@ -93,6 +108,14 @@ export default function BrandShortlistsPage() {
   }
 
   async function removeTalent(talentId: string) {
+    if (!getAuthToken()) {
+      const nextIds = savedIds.filter((id) => id !== talentId);
+      saveGuestSavedTalentIds(nextIds);
+      setSavedIds(nextIds);
+      pushToast("Đã xoá khỏi danh sách đã lưu.");
+      return;
+    }
+
     const itemId = wishlistItemIds[talentId];
     if (!wishlistId || !itemId) return;
 

@@ -51,6 +51,8 @@ import {
   removeBrandRosterTalent,
   removeTalentFromWishlist,
 } from "@/lib/brand-api";
+import { getAuthToken } from "@/lib/api-client";
+import { loadGuestSavedTalentIds, toggleGuestSavedTalentId } from "@/lib/guest-saved-talents";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 const TALENTS_PER_PAGE = 24;
@@ -683,7 +685,12 @@ export default function DiscoverTalentsPage() {
   useEffect(() => {
     let cancelled = false;
 
-    loadBrandWishlists([]).then((wishlists) => {
+    if (!getAuthToken()) {
+      setSavedIds(loadGuestSavedTalentIds());
+      setWishlistId(null);
+      setWishlistItemIds({});
+    } else {
+      loadBrandWishlists([]).then((wishlists) => {
       if (cancelled) return;
 
       const primaryWishlist = wishlists[0];
@@ -703,7 +710,8 @@ export default function DiscoverTalentsPage() {
           return acc;
         }, {})
       );
-    });
+      });
+    }
 
     loadBrandCampaigns([]).then((items) => {
       if (!cancelled) setBrandCampaigns(items);
@@ -846,7 +854,13 @@ export default function DiscoverTalentsPage() {
   // Toggle Saved Talent
   async function toggleSaved(talentId: string | number) {
     const id = String(talentId);
-    if (!requireAuthAction({ actionLabel: "Thêm talent vào danh sách đã lưu" })) return;
+
+    if (!getAuthToken()) {
+      const result = toggleGuestSavedTalentId(id);
+      setSavedIds(result.ids);
+      pushToast(result.isSaved ? "Đã thêm vào danh sách đã lưu." : "Đã xóa khỏi danh sách đã lưu.");
+      return;
+    }
 
     try {
       if (savedIds.includes(id)) {
@@ -989,7 +1003,11 @@ export default function DiscoverTalentsPage() {
             <input
               type="text"
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={(e) => {
+                const nextQuery = e.target.value;
+                setSearchInput(nextQuery);
+                setAppliedFilters((prev) => ({ ...prev, query: nextQuery }));
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   applyFilters();
@@ -1012,13 +1030,13 @@ export default function DiscoverTalentsPage() {
             )}
           </div>
 
-          {/* Search Action Button "Tìm" */}
           <button
             type="button"
-            onClick={applyFilters}
-            className="shrink-0 h-9 px-4 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 hover:brightness-110 active:scale-95 transition-all text-[11px] font-black uppercase tracking-wider text-slate-950 shadow-lg"
+            onClick={() => router.push("/brand/shortlists")}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-slate-900/60 text-slate-300 transition-all hover:border-[#C9A86A]/50 hover:text-[#C9A86A] active:scale-95"
+            aria-label="Mở danh sách đã lưu"
           >
-            Tìm
+            <Heart className="h-4 w-4" />
           </button>
         </div>
 
