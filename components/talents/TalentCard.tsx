@@ -318,8 +318,9 @@ export default function TalentCard({
         <div className="mt-4 flex items-center gap-2 border-t border-white/5 pt-3.5">
           <div className="grid min-w-0 flex-[1.55] grid-cols-2 gap-1.5">
             <div className="flex min-h-[40px] min-w-0 items-center justify-center rounded-lg border border-[#C9A86A]/25 bg-gradient-to-r from-[#C9A86A]/18 via-white/[0.04] to-transparent px-2 text-center text-[#F4D77C] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-              <span className="text-[10px] font-black leading-[1.08] tracking-tight">
-                {mockStats.bookings} lượt booking
+              <span className="flex flex-col items-center leading-[1.05]">
+                <span className="whitespace-nowrap text-[10px] font-black tracking-tight">{mockStats.bookings} lượt</span>
+                <span className="text-[9px] font-black tracking-tight">booking</span>
               </span>
             </div>
             <div className="flex min-h-[40px] min-w-0 items-center justify-center rounded-lg border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-400/16 via-rose-300/[0.06] to-transparent px-2 text-center text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
