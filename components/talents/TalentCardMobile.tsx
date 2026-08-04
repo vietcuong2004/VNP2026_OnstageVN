@@ -237,7 +237,7 @@ export default function TalentCardMobile({
             <div className="flex min-h-[38px] min-w-0 items-center justify-center rounded-lg border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-400/16 via-rose-300/[0.06] to-transparent px-1.5 text-center text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               <span className="inline-flex items-center justify-center gap-1 leading-none">
                 <Star className="h-3 w-3 shrink-0 translate-y-[-0.5px] fill-current" />
-                <span className="text-[8.5px] font-black leading-none tracking-tight">
+                <span className="whitespace-nowrap text-[8.5px] font-black leading-none tracking-tight">
                 {mockStats.goodReviews} đánh giá
                 </span>
               </span>
@@ -253,7 +253,7 @@ export default function TalentCardMobile({
                 onToggleSaved(talent);
               }}
               className={cn(
-                "flex min-h-[38px] flex-1 items-center justify-center gap-1 rounded-lg text-[8.5px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer",
+                "flex min-h-[38px] flex-[0.72] min-w-[58px] items-center justify-center gap-1 rounded-lg px-2 text-[8.5px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer",
                 isSaved
                   ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
                   : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110"
@@ -261,7 +261,7 @@ export default function TalentCardMobile({
               title={isSaved ? "Bỏ lưu" : "Lưu thông tin"}
             >
               <Heart className={cn("h-3 w-3", isSaved && "fill-current")} />
-              <span className="truncate">{saveLabel || (isSaved ? "Đã lưu" : "Lưu thông tin")}</span>
+              <span className="whitespace-nowrap">{saveLabel === "Lưu thông tin" ? "Lưu" : saveLabel || (isSaved ? "Đã lưu" : "Lưu")}</span>
             </button>
           )}
         </div>

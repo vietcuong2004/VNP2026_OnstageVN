@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
-import { Check, CheckCircle2, Heart, Loader2, MapPin, Trash2, UserPlus } from "lucide-react";
+import { Briefcase, Check, CheckCircle2, Heart, Loader2, MapPin, Star, Trash2, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import BadgeTier from "@/components/ui/BadgeTier";
@@ -316,17 +316,19 @@ export default function TalentCard({
 
       {hasActions && (
         <div className="mt-4 flex items-center gap-2 border-t border-white/5 pt-3.5">
-          <div className="grid min-w-0 flex-[1.55] grid-cols-2 gap-1.5">
-            <div className="flex min-h-[40px] min-w-0 items-center justify-center rounded-lg border border-[#C9A86A]/25 bg-gradient-to-r from-[#C9A86A]/18 via-white/[0.04] to-transparent px-2 text-center text-[#F4D77C] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+          <div className="grid min-w-0 flex-[1.75] grid-cols-2 gap-2">
+            <div className="flex min-h-[44px] min-w-0 items-center justify-center gap-1.5 rounded-lg border border-[#C9A86A]/25 bg-gradient-to-r from-[#C9A86A]/18 via-white/[0.04] to-transparent px-2.5 text-center text-[#F4D77C] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <Briefcase className="h-3.5 w-3.5 shrink-0" />
               <span className="flex flex-col items-center leading-[1.05]">
-                <span className="whitespace-nowrap text-[10px] font-black tracking-tight">{mockStats.bookings} lượt</span>
-                <span className="text-[9px] font-black tracking-tight">booking</span>
+                <span className="whitespace-nowrap text-[10.5px] font-black tracking-tight">{mockStats.bookings} lượt</span>
+                <span className="text-[9.5px] font-black tracking-tight">booking</span>
               </span>
             </div>
-            <div className="flex min-h-[40px] min-w-0 items-center justify-center rounded-lg border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-400/16 via-rose-300/[0.06] to-transparent px-2 text-center text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <div className="flex min-h-[44px] min-w-0 items-center justify-center gap-1.5 rounded-lg border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-400/16 via-rose-300/[0.06] to-transparent px-2.5 text-center text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <Star className="h-3.5 w-3.5 shrink-0 fill-current" />
               <span className="flex flex-col items-center leading-[1.05]">
-                <span className="text-[10px] font-black tracking-tight">{mockStats.goodReviews}</span>
-                <span className="text-[9px] font-black tracking-tight">đánh giá</span>
+                <span className="text-[10.5px] font-black tracking-tight">{mockStats.goodReviews}</span>
+                <span className="whitespace-nowrap text-[9.5px] font-black tracking-tight">đánh giá</span>
               </span>
             </div>
           </div>
@@ -339,7 +341,7 @@ export default function TalentCard({
                 onToggleSaved(talent);
               }}
               className={cn(
-                "flex min-h-[40px] flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg pl-2 pr-3 text-[9px] font-black uppercase tracking-wider transition active:scale-95",
+                "flex min-h-[40px] flex-[0.85] min-w-[70px] cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 text-[9px] font-black uppercase tracking-wider transition active:scale-95",
                 isSaved
                   ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
                   : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110"
@@ -347,7 +349,7 @@ export default function TalentCard({
               title={isSaved ? "Bỏ lưu khỏi danh sách đã lưu" : "Lưu vào danh sách đã lưu"}
             >
               <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} />
-              <span className="truncate">{saveLabel || (isSaved ? "Đã lưu" : "Lưu thông tin")}</span>
+              <span className="truncate">{saveLabel === "Lưu thông tin" ? "Lưu" : saveLabel || (isSaved ? "Đã lưu" : "Lưu")}</span>
             </button>
           ) : onMessage ? (
             <button
