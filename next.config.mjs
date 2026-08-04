@@ -52,8 +52,6 @@ const nextConfig = {
         ...config.optimization.splitChunks,
         minSize: 30000,
         maxSize: 250000,
-        maxAsyncRequests: 5,
-        maxInitialRequests: 3,
       };
     }
     return config;
