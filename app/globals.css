@@ -406,3 +406,45 @@ input[type="date"].text-white::-webkit-date-and-time-value {
   }
 }
 
+/* Mobile Safari keeps blur and heavy shadows on the main thread more often.
+   Keep the same layout, but use lighter effects only on iOS/WebKit mobile. */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 768px) {
+    .backdrop-blur,
+    .backdrop-blur-sm,
+    .backdrop-blur-md,
+    .backdrop-blur-lg,
+    .backdrop-blur-xl,
+    .backdrop-blur-2xl,
+    .backdrop-blur-3xl {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
+    .blur-xl,
+    .blur-2xl,
+    .blur-3xl,
+    [class*="blur-["] {
+      filter: none !important;
+    }
+
+    .shadow-lg,
+    .shadow-xl,
+    .shadow-2xl,
+    [class*="shadow-[0_"],
+    [class*="shadow-[inset_"] {
+      box-shadow: 0 6px 18px rgb(0 0 0 / 28%) !important;
+    }
+
+    .animate-in,
+    .fade-in,
+    .zoom-in-95,
+    .slide-in-from-bottom,
+    .slide-in-from-bottom-4,
+    .slide-in-from-top-2 {
+      animation-duration: 1ms !important;
+      transition-duration: 120ms !important;
+    }
+  }
+}
+
