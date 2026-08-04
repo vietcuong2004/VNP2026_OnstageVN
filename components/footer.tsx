@@ -23,7 +23,7 @@ export default function Footer() {
         <div className="md:col-span-4 flex flex-col items-start gap-4">
           <div className="flex items-center gap-2">
             <img
-              src="/logo_icon.png"
+              src="/logo_new.png"
               alt="OnstageVN Logo Icon"
               className="h-9 w-9 object-contain shrink-0"
             />

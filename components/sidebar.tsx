@@ -262,9 +262,9 @@ export default function Sidebar() {
 
               <button
                 onClick={handleLogout}
-                className="flex w-full items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold tracking-wide transition-all duration-300 group relative bg-gradient-to-r from-amber-400/10 to-yellow-600/5 text-amber-300 border border-amber-500/20 shadow-[0_4px_12px_rgba(245,158,11,0.05)] hover:from-amber-400/20 hover:to-yellow-600/10 hover:border-amber-500/40 hover:text-amber-200 cursor-pointer"
+                className="mt-4 flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-sm font-black tracking-wide text-slate-950 shadow-[0_10px_26px_rgba(201,168,106,0.18)] transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer"
               >
-                <LogOut className="h-4.5 w-4.5 text-amber-400 transition-transform duration-300 group-hover:scale-110" />
+                <LogOut className="h-4.5 w-4.5" />
                 <span>Đăng xuất</span>
               </button>
             </>

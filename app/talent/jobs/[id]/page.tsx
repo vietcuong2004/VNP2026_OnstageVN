@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Award,
+  Bookmark,
   Briefcase,
   Calendar,
   CheckCircle2,
@@ -34,6 +35,7 @@ import {
   loadTalentCampaignDetail,
   loadTalentCampaignsPage,
 } from "@/lib/talent-api";
+import { loadSavedJobIdsForSession, toggleSavedJobForSession } from "@/lib/saved-jobs";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 const JOBS_PAGE_STATE_KEY = "vnp_jobs_page_state";
@@ -80,6 +82,7 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isApplied, setIsApplied] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [stage, setStage] = useState<string>("new");
   const [showAllBenefits, setShowAllBenefits] = useState(false);
   const [previewImageIndex, setPreviewImageIndex] = useState<number | null>(null);
@@ -193,6 +196,12 @@ export default function JobDetailPage() {
 
     fetchJobDetail();
 
+    loadSavedJobIdsForSession()
+      .then((ids) => {
+        if (isMounted) setIsSaved(ids.includes(String(jobId)));
+      })
+      .catch(() => undefined);
+
     return () => {
       isMounted = false;
     };
@@ -258,6 +267,18 @@ export default function JobDetailPage() {
       router.back();
     } else {
       router.push("/talent/jobs");
+    }
+  };
+
+  const handleToggleBookmark = async () => {
+    if (!job) return;
+    try {
+      const res = await toggleSavedJobForSession(job);
+      setIsSaved(res.isSaved);
+      addToast(res.isSaved ? "Đã lưu công việc thành công!" : "Đã bỏ lưu công việc thành công!", res.isSaved ? "success" : "error");
+    } catch (err) {
+      console.error(err);
+      addToast("Chưa thể lưu công việc này.", "error");
     }
   };
 
@@ -386,6 +407,21 @@ export default function JobDetailPage() {
           title="Quay lại"
         >
           <ArrowLeft className="h-5 w-5 shrink-0" />
+        </button>
+
+        <button
+          type="button"
+          onClick={handleToggleBookmark}
+          className={cn(
+            "pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border bg-[#0c1120]/85 backdrop-blur-md shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer",
+            isSaved
+              ? "border-amber-400 bg-amber-400/20 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+              : "border-amber-500/30 text-amber-400 hover:text-amber-300 hover:bg-[#0c1120] hover:border-amber-500/50"
+          )}
+          aria-label={isSaved ? "Bỏ lưu công việc" : "Lưu công việc"}
+          title={isSaved ? "Bỏ lưu công việc" : "Lưu công việc"}
+        >
+          <Bookmark className={cn("h-5 w-5 shrink-0", isSaved && "fill-amber-400")} />
         </button>
       </div>
 
