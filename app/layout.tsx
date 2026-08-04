@@ -61,6 +61,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning className="h-full dark antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body suppressHydrationWarning className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
         <AppShell>{children}</AppShell>
       </body>

@@ -14,16 +14,19 @@ export function getRealtimeClient() {
   const key = process.env.NEXT_PUBLIC_REVERB_APP_KEY;
   if (!token || !key) return null;
 
-  const scheme = process.env.NEXT_PUBLIC_REVERB_SCHEME ?? "http";
+  const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+  const defaultScheme = isHttps ? "https" : "http";
+  const scheme = process.env.NEXT_PUBLIC_REVERB_SCHEME ?? defaultScheme;
   const forceTLS = scheme === "https";
   const port = Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? (forceTLS ? 443 : 8081));
   const wsPath = process.env.NEXT_PUBLIC_REVERB_PATH;
+  const wsHost = process.env.NEXT_PUBLIC_REVERB_HOST ?? (typeof window !== "undefined" ? window.location.hostname : "127.0.0.1");
 
   window.Pusher = Pusher;
   echo = new Echo({
     broadcaster: "reverb",
     key,
-    wsHost: process.env.NEXT_PUBLIC_REVERB_HOST ?? "127.0.0.1",
+    wsHost,
     wsPort: port,
     wssPort: port,
     wsPath,
