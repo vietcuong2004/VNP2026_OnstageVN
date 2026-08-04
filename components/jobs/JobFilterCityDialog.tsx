@@ -20,6 +20,14 @@ type JobFilterCityDialogProps = {
   onRefreshLocation?: () => void;
 };
 
+const HOT_JOB_LOCATIONS = [
+  { value: "TP. Hà Nội", label: "Hà Nội", count: 103 },
+  { value: "Thái Hà", label: "Thái Hà", count: 50 },
+  { value: "Hồ Tây", label: "Hồ Tây", count: 30 },
+  { value: "TP. Hồ Chí Minh", label: "Hồ Chí Minh", count: 100 },
+  { value: "TP. Đà Nẵng", label: "Đà Nẵng", count: 42 },
+];
+
 function normalizeSearchText(value: string) {
   return value
     .normalize("NFD")
@@ -134,6 +142,36 @@ export default function JobFilterCityDialog({
             </button>
           </div>
         </div>
+
+        {!searchQuery.trim() && (
+          <div className="mt-4 space-y-2">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Đang nhiều công việc
+            </span>
+            <div className="grid gap-2">
+              {HOT_JOB_LOCATIONS.map((location) => {
+                const isSelected = selectedCity === location.value;
+                return (
+                  <button
+                    key={location.label}
+                    type="button"
+                    onClick={() => handleSelect(location.value)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-2xl border px-3 py-3 text-left transition active:scale-[0.99]",
+                      isSelected
+                        ? "border-[#C9A86A]/70 bg-[#C9A86A]/12 text-[#C9A86A]"
+                        : "border-white/8 bg-white/[0.03] text-white"
+                    )}
+                  >
+                    <MapPin className={cn("h-4.5 w-4.5 shrink-0", isSelected ? "text-[#C9A86A]" : "text-slate-400")} />
+                    <span className="min-w-0 flex-1 truncate text-sm font-bold">{location.label}</span>
+                    <span className="shrink-0 text-xs font-semibold text-slate-400">{location.count} công việc</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="mt-4 space-y-1">
           <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-500">

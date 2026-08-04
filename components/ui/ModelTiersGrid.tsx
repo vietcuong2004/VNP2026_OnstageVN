@@ -6,8 +6,8 @@ const tiers = [
     icon: Crown,
     eyebrow: "Celeb / Super VIP",
     score: "90 - 100 điểm",
-    title: "Hạng S",
-    description: "Hoa hậu Quốc gia, Ngôi sao hạng S.",
+    title: "Top 50 KOL",
+    description: "Hồ sơ Kim cương nổi bật trong tháng.",
     cardClass: "border-amber-400/80 bg-gradient-to-br from-amber-500/20 via-[#221a0a]/95 to-[#070913]/98 shadow-[0_0_20px_rgba(245,158,11,0.2)]",
     iconClass: "text-amber-400 fill-amber-400/10",
     textClass: "text-amber-400",
@@ -18,7 +18,7 @@ const tiers = [
     icon: Trophy,
     eyebrow: "High-end Pro",
     score: "70 - 89 điểm",
-    title: "Hạng A",
+    title: "Nổi bật tháng",
     description: "Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP.",
     cardClass: "border-slate-300/60 bg-gradient-to-br from-slate-400/10 via-[#171922]/90 to-[#070913]/95 shadow-[0_0_20px_rgba(203,213,225,0.08)]",
     iconClass: "text-slate-300",
@@ -30,7 +30,7 @@ const tiers = [
     icon: Star,
     eyebrow: "Mid Freelance",
     score: "45 - 69 điểm",
-    title: "Hạng B",
+    title: "Đánh giá tốt",
     description: "Người mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp.",
     cardClass: "border-purple-500/40 bg-gradient-to-br from-purple-500/10 via-[#1a1128]/90 to-[#070913]/95 shadow-[0_0_20px_rgba(168,85,247,0.08)]",
     iconClass: "text-purple-400",
@@ -42,7 +42,7 @@ const tiers = [
     icon: Award,
     eyebrow: "Entry / Newbie",
     score: "20 - 44 điểm",
-    title: "Hạng C",
+    title: "Gương mặt mới",
     description: "Người mẫu tự do mới vào nghề, diễn viên phụ, PG sự kiện đại trà.",
     cardClass: "border-teal-500/30 bg-gradient-to-br from-teal-500/10 via-[#0e1f1e]/90 to-[#070913]/95 shadow-[0_0_20px_rgba(20,184,166,0.08)]",
     iconClass: "text-teal-400",
@@ -60,7 +60,7 @@ export default function ModelTiersGrid() {
 
       <div className="space-y-4">
         <span className="block max-w-full text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.18em] text-slate-500 sm:tracking-widest">
-          Hệ thống phân hạng người mẫu (Onstage Model Tiers)
+          Hệ thống danh hiệu Idol OnstageVN
         </span>
 
         <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -100,7 +100,7 @@ export default function ModelTiersGrid() {
           <div className="text-left text-[10.5px] leading-relaxed text-slate-400">
             <strong className="font-bold text-rose-300">Lưu ý:</strong> Các hồ sơ có tổng điểm chẩn đoán{" "}
             <strong className="font-bold text-rose-400">dưới 20 điểm</strong> sẽ tự động được phân loại ở trạng thái{" "}
-            <strong className="font-bold text-rose-400">"Chưa xếp hạng / Chờ cập nhật" (Potential Profile)</strong>. Đây là mức điểm cho thấy hồ sơ cần bổ sung thêm hình ảnh, số đo chuẩn hóa hoặc liên kết mạng xã hội để kích hoạt hệ thống chẩn đoán phân hạng.
+            <strong className="font-bold text-rose-400">"Chưa có danh hiệu / Chờ cập nhật"</strong>. Đây là mức điểm cho thấy hồ sơ cần bổ sung thêm hình ảnh, số đo chuẩn hóa hoặc liên kết mạng xã hội để kích hoạt hệ thống gợi ý danh hiệu.
           </div>
         </div>
       </div>

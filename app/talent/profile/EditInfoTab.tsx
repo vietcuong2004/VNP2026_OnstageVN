@@ -12,11 +12,12 @@ import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import ProgressBar from "@/components/ui/ProgressBar";
 import {
   CITY_VALUES,
+  SOCIAL_HIGHLIGHT_PRESET_GROUPS,
   TALENT_TYPE_VALUES,
   normalizeTalentTypeLabel,
   normalizeTalentTypeList,
 } from "@/components/ui/ComboboxOptionValues";
-import { SPECIALTY_PRESET_GROUPS, SOCIAL_HIGHLIGHT_PRESET_GROUPS, flattenTalentPresetOptions } from "@/lib/talent-profile-presets";
+import { SPECIALTY_PRESET_GROUPS, flattenTalentPresetOptions } from "@/lib/talent-profile-presets";
 
 const convertToInputDate = (dateStr: string) => {
   if (!dateStr) return "";

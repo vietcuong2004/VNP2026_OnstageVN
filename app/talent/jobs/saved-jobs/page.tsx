@@ -10,7 +10,7 @@ import JobFilterCityDialog from "@/components/jobs/JobFilterCityDialog";
 import JobFilterDialog from "@/components/jobs/JobFilterDialog";
 import { CITY_VALUES } from "@/components/ui/ComboboxOptionValues";
 import { cn } from "@/lib/utils";
-import { loadSavedJobs, SAVED_JOBS_UPDATED_EVENT, type SavedJobRecord } from "@/lib/saved-jobs";
+import { loadSavedJobsForSession, SAVED_JOBS_UPDATED_EVENT, type SavedJobRecord } from "@/lib/saved-jobs";
 
 const allValue = "Tất cả";
 
@@ -258,15 +258,21 @@ export default function SavedJobsPage() {
   const [isMobileCityDialogOpen, setIsMobileCityDialogOpen] = useState(false);
 
   useEffect(() => {
-    function syncSavedJobs() {
-      setSavedJobs(loadSavedJobs());
+    let active = true;
+
+    async function syncSavedJobs() {
+      const jobs = await loadSavedJobsForSession();
+      if (active) {
+        setSavedJobs(jobs);
+      }
     }
 
-    syncSavedJobs();
+    void syncSavedJobs();
     window.addEventListener(SAVED_JOBS_UPDATED_EVENT, syncSavedJobs);
     window.addEventListener("storage", syncSavedJobs);
 
     return () => {
+      active = false;
       window.removeEventListener(SAVED_JOBS_UPDATED_EVENT, syncSavedJobs);
       window.removeEventListener("storage", syncSavedJobs);
     };

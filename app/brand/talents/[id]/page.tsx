@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -50,6 +50,7 @@ import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avat
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import { getAuthToken } from "@/lib/api-client";
 import { notifySavedTalentsUpdated } from "@/lib/guest-saved-talents";
+import { addViewedTalentId } from "@/lib/talent-view-history";
 
 const convertToDisplayDate = (dateStr: string) => {
   if (!dateStr) return "Chưa cập nhật";
@@ -425,6 +426,10 @@ export default function BrandTalentProfilePage() {
       setToasts((current) => current.filter((toast) => toast.id !== id));
     }, 3200);
   }
+
+  useEffect(() => {
+    addViewedTalentId(params.id);
+  }, [params.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -848,9 +853,9 @@ export default function BrandTalentProfilePage() {
                     type="button"
                     onClick={() => setIsTierDialogOpen(true)}
                     className="inline-flex items-center gap-1 rounded-full transition active:scale-95"
-                    title="Xem chi tiết phân hạng"
+                    title="Xem chi tiết danh hiệu"
                   >
-                    <BadgeTier tier={profile.tier} variant="gradient" size="xs" />
+                    <BadgeTier tier={profile.tier} seed={profile.email || profile.name} variant="gradient" size="xs" />
                     <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[10px] font-black text-white">
                       ?
                     </span>
@@ -1005,9 +1010,9 @@ export default function BrandTalentProfilePage() {
                       type="button"
                       onClick={() => setIsTierDialogOpen(true)}
                       className="inline-flex items-center gap-1.5 rounded-full transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-98 cursor-pointer select-none"
-                      title="Xem chi tiết phân hạng"
+                      title="Xem chi tiết danh hiệu"
                     >
-                      <BadgeTier tier={profile.tier} variant="gradient" />
+                      <BadgeTier tier={profile.tier} seed={profile.email || profile.name} variant="gradient" />
                       <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[8px] font-black text-white transition-colors hover:bg-white/25">
                         ?
                       </span>
@@ -1358,7 +1363,7 @@ export default function BrandTalentProfilePage() {
                 <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
                 <div>
                   <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
-                    BẢN ĐỒ NĂNG LỰC AI & XẾP HẠNG VIỆC LÀM (RADAR CHART)
+                    BẢN ĐỒ NĂNG LỰC AI & DANH HIỆU PHÙ HỢP (RADAR CHART)
                   </h3>
                   <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
                     ĐỊNH HƯỚNG 3 TRỤC THEO NHÂN TRẮC HỌC & KỸ NĂNG

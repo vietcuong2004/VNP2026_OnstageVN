@@ -326,11 +326,11 @@ export default function DashboardPage() {
               {(() => {
                 const t = profile.tier || "A";
                 const tierConfig: Record<string, any> = {
-                  S: { border: "border-amber-400/80", bg: "bg-gradient-to-br from-amber-500/20 via-[#221a0a]/95 to-[#070913]/98", shadow: "shadow-[0_0_25px_rgba(245,158,11,0.3)]", hoverShadow: "hover:shadow-[0_0_35px_rgba(245,158,11,0.45)]", glow: "bg-amber-500/30", icon: <Crown className="h-5 w-5 text-amber-400 fill-amber-400/25 animate-bounce" />, label: "CELEB / SUPER VIP", labelColor: "text-amber-400", badge: "bg-amber-400/25 text-amber-300 border-amber-400/30", badgeText: "90 - 100 ĐIỂM", titleGradient: "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500", titleText: "HẠNG S", subtitleColor: "text-amber-300", desc: "Hoa hậu Quốc gia, Ngôi sao hạng S." },
-                  A: { border: "border-slate-300/60", bg: "bg-gradient-to-br from-slate-400/10 via-[#171922]/90 to-[#070913]/95", shadow: "shadow-[0_0_20px_rgba(203,213,225,0.08)]", hoverShadow: "hover:shadow-[0_0_25px_rgba(203,213,225,0.18)]", glow: "bg-slate-400/20", icon: <Award className="h-5 w-5 text-slate-300" />, label: "HIGH-END PRO", labelColor: "text-slate-300", badge: "bg-slate-400/20 text-slate-200 border-slate-400/30", badgeText: "70 - 89 ĐIỂM", titleGradient: "bg-gradient-to-r from-slate-100 via-slate-300 to-slate-400", titleText: "HẠNG A", subtitleColor: "text-slate-300", desc: "Á hậu, Hoa khôi lớn, Siêu mẫu Runway chuyên nghiệp, MC VIP." },
-                  B: { border: "border-purple-500/40", bg: "bg-gradient-to-br from-purple-500/10 via-[#1a1128]/90 to-[#070913]/95", shadow: "shadow-[0_0_20px_rgba(168,85,247,0.08)]", hoverShadow: "hover:shadow-[0_0_25px_rgba(168,85,247,0.18)]", glow: "bg-purple-500/20", icon: <Star className="h-5 w-5 text-purple-400" />, label: "MID FREELANCE", labelColor: "text-purple-400", badge: "bg-purple-500/20 text-purple-300 border-purple-500/30", badgeText: "45 - 69 ĐIỂM", titleGradient: "bg-gradient-to-r from-purple-200 to-pink-500", titleText: "HẠNG B", subtitleColor: "text-purple-300", desc: "Mẫu ảnh Lookbook, Micro/Mid-tier KOLs, PG VIP sự kiện cao cấp." },
-                  C: { border: "border-teal-500/30", bg: "bg-gradient-to-br from-teal-500/10 via-[#0e1f1e]/90 to-[#070913]/95", shadow: "shadow-[0_0_20px_rgba(20,184,166,0.08)]", hoverShadow: "hover:shadow-[0_0_25px_rgba(20,184,166,0.18)]", glow: "bg-teal-500/20", icon: <Award className="h-5 w-5 text-teal-400" />, label: "ENTRY / NEWBIE", labelColor: "text-teal-400", badge: "bg-teal-500/20 text-teal-300 border-teal-500/30", badgeText: "20 - 44 ĐIỂM", titleGradient: "bg-gradient-to-r from-teal-200 to-emerald-400", titleText: "HẠNG C", subtitleColor: "text-teal-300", desc: "Người mẫu tự do mới vào nghề, diễn viên phụ, PG sự kiện đại trà." },
-                  Potential: { border: "border-rose-500/40", bg: "bg-gradient-to-br from-rose-500/20 via-[#260f12]/95 to-[#070913]/98", shadow: "shadow-[0_0_20px_rgba(244,63,94,0.15)]", hoverShadow: "hover:shadow-[0_0_30px_rgba(244,63,94,0.3)]", glow: "bg-rose-500/30", icon: <ShieldAlert className="h-5 w-5 text-rose-400 animate-pulse" />, label: "POTENTIAL PROFILE", labelColor: "text-rose-400", badge: "bg-rose-500/20 text-rose-300 border-rose-500/30", badgeText: "< 20 ĐIỂM", titleGradient: "bg-gradient-to-r from-rose-200 via-rose-300 to-red-500", titleText: "CHƯA XẾP HẠNG", subtitleColor: "text-rose-300", desc: "Chưa xếp hạng / Chờ cập nhật hồ sơ." }
+                  S: { border: "border-amber-400/80", bg: "bg-gradient-to-br from-amber-500/20 via-[#221a0a]/95 to-[#070913]/98", shadow: "shadow-[0_0_25px_rgba(245,158,11,0.3)]", hoverShadow: "hover:shadow-[0_0_35px_rgba(245,158,11,0.45)]", glow: "bg-amber-500/30", icon: <Crown className="h-5 w-5 text-amber-400 fill-amber-400/25 animate-bounce" />, label: "KIM CƯƠNG", labelColor: "text-amber-400", badge: "bg-amber-400/25 text-amber-300 border-amber-400/30", badgeText: "90 - 100 ĐIỂM", titleGradient: "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500", titleText: "TOP 50 KOL", subtitleColor: "text-amber-300", desc: "Hồ sơ nổi bật trong nhóm Top 50 KOL tháng này." },
+                  A: { border: "border-slate-300/60", bg: "bg-gradient-to-br from-slate-400/10 via-[#171922]/90 to-[#070913]/95", shadow: "shadow-[0_0_20px_rgba(203,213,225,0.08)]", hoverShadow: "hover:shadow-[0_0_25px_rgba(203,213,225,0.18)]", glow: "bg-slate-400/20", icon: <Award className="h-5 w-5 text-slate-300" />, label: "VÀNG", labelColor: "text-slate-300", badge: "bg-slate-400/20 text-slate-200 border-slate-400/30", badgeText: "70 - 89 ĐIỂM", titleGradient: "bg-gradient-to-r from-slate-100 via-slate-300 to-slate-400", titleText: "NỔI BẬT T7", subtitleColor: "text-slate-300", desc: "Hồ sơ có hoạt động nổi bật và dữ liệu hợp tác tốt." },
+                  B: { border: "border-purple-500/40", bg: "bg-gradient-to-br from-purple-500/10 via-[#1a1128]/90 to-[#070913]/95", shadow: "shadow-[0_0_20px_rgba(168,85,247,0.08)]", hoverShadow: "hover:shadow-[0_0_25px_rgba(168,85,247,0.18)]", glow: "bg-purple-500/20", icon: <Star className="h-5 w-5 text-purple-400" />, label: "BẠC", labelColor: "text-purple-400", badge: "bg-purple-500/20 text-purple-300 border-purple-500/30", badgeText: "45 - 69 ĐIỂM", titleGradient: "bg-gradient-to-r from-purple-200 to-pink-500", titleText: "ĐÁNH GIÁ TỐT", subtitleColor: "text-purple-300", desc: "Hồ sơ có nhiều đánh giá tích cực từ hoạt động thực tế." },
+                  C: { border: "border-teal-500/30", bg: "bg-gradient-to-br from-teal-500/10 via-[#0e1f1e]/90 to-[#070913]/95", shadow: "shadow-[0_0_20px_rgba(20,184,166,0.08)]", hoverShadow: "hover:shadow-[0_0_25px_rgba(20,184,166,0.18)]", glow: "bg-teal-500/20", icon: <Award className="h-5 w-5 text-teal-400" />, label: "ĐỒNG", labelColor: "text-teal-400", badge: "bg-teal-500/20 text-teal-300 border-teal-500/30", badgeText: "20 - 44 ĐIỂM", titleGradient: "bg-gradient-to-r from-teal-200 to-emerald-400", titleText: "GƯƠNG MẶT MỚI", subtitleColor: "text-teal-300", desc: "Gương mặt mới có tiềm năng phát triển trên hệ thống." },
+                  Potential: { border: "border-rose-500/40", bg: "bg-gradient-to-br from-rose-500/20 via-[#260f12]/95 to-[#070913]/98", shadow: "shadow-[0_0_20px_rgba(244,63,94,0.15)]", hoverShadow: "hover:shadow-[0_0_30px_rgba(244,63,94,0.3)]", glow: "bg-rose-500/30", icon: <ShieldAlert className="h-5 w-5 text-rose-400 animate-pulse" />, label: "HỒ SƠ MỚI", labelColor: "text-rose-400", badge: "bg-rose-500/20 text-rose-300 border-rose-500/30", badgeText: "< 20 ĐIỂM", titleGradient: "bg-gradient-to-r from-rose-200 via-rose-300 to-red-500", titleText: "CHƯA CÓ DANH HIỆU", subtitleColor: "text-rose-300", desc: "Hồ sơ đang chờ thêm dữ liệu để gắn danh hiệu tháng." }
                 };
                 const cfg = tierConfig[t] || tierConfig["A"];
                 return (
@@ -348,7 +348,7 @@ export default function DashboardPage() {
                         setShowTierDialog(true);
                       }}
                       className="absolute top-3.5 right-3.5 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/35 text-amber-300 text-[11px] font-black shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-110 hover:shadow-[0_0_18px_rgba(245,158,11,0.45)] transition-all duration-300 cursor-pointer z-10"
-                      title="Xem giải thích phân hạng"
+                      title="Xem giải thích danh hiệu"
                     >
                       ?
                     </button>
@@ -377,9 +377,9 @@ export default function DashboardPage() {
               <AlertTriangle className="h-5 w-5 animate-pulse" />
             </div>
             <div>
-              <h4 className="text-xs font-black text-white uppercase tracking-wider">Hồ sơ của bạn đang ở trạng thái Chưa xếp hạng</h4>
+              <h4 className="text-xs font-black text-white uppercase tracking-wider">Hồ sơ của bạn đang chờ danh hiệu tháng</h4>
               <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
-                Bạn chưa thực hiện bài khảo sát định hướng hoặc tổng điểm khảo sát dưới 20. Vui lòng làm khảo sát để tự động xếp hạng Tier (S/A/B/C) và kích hoạt đề xuất việc làm chuẩn xác nhất.
+                Bạn chưa thực hiện bài khảo sát định hướng hoặc tổng điểm khảo sát dưới 20. Vui lòng làm khảo sát để hệ thống có thêm dữ liệu đánh giá và kích hoạt đề xuất việc làm chuẩn xác nhất.
               </p>
             </div>
           </div>
@@ -731,7 +731,7 @@ export default function DashboardPage() {
             <div className="rounded-xl border p-3 border-amber-400/25 bg-amber-400/8 text-xs">
               <div className="flex items-start gap-3">
                 <Sparkles className="mt-0.5 h-4 w-4 text-amber-300 shrink-0" />
-                <p className="font-bold leading-5 text-slate-200">Liên kết tài khoản mạng xã hội (TikTok, Instagram) để nâng thứ hạng lên <b className="text-amber-300">Tier S</b> và tăng tỷ lệ được duyệt job.</p>
+                <p className="font-bold leading-5 text-slate-200">Liên kết tài khoản mạng xã hội (TikTok, Instagram) để tăng độ nổi bật của hồ sơ và tăng tỷ lệ được duyệt job.</p>
               </div>
             </div>
 

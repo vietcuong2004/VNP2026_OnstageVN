@@ -48,7 +48,7 @@ export default function LendingPage() {
             Đánh giá uy tín tín dụng cá nhân
           </h3>
           <p className="text-xs text-slate-400 max-w-xl leading-relaxed font-medium">
-            Hạn mức cho vay được tính toán tự động dựa trên phân hạng Tier (Hạng B), uy tín thực tế hoàn thành job trên app và tỷ lệ tăng trưởng social của bạn.
+            Hạn mức cho vay được tính toán tự động dựa trên danh hiệu hồ sơ, uy tín thực tế hoàn thành job trên app và tỷ lệ tăng trưởng social của bạn.
           </p>
         </div>
 

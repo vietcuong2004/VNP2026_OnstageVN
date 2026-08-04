@@ -769,9 +769,9 @@ function AboutContent({
                         <div className="flex h-9 w-9 md:h-10 md:w-10 items-center justify-center rounded-xl bg-[#D4A64A]/10 text-[#F0C56B] border border-[#D4A64A]/20 mb-4 group-hover:scale-105 transition-transform duration-300">
                           <Zap className="h-4.5 w-4.5 md:h-5 md:w-5" />
                         </div>
-                        <h5 className="text-xs font-black text-white uppercase tracking-widest mb-2">AI chẩn đoán & xếp hạng</h5>
+                        <h5 className="text-xs font-black text-white uppercase tracking-widest mb-2">AI chẩn đoán & danh hiệu</h5>
                         <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
-                          Tự động tính toán điểm chuyên môn dựa trên khảo sát và hồ sơ, phân hạng Tier (S/A/B/C) để tăng độ uy tín với nhà tuyển dụng.
+                          Tự động tính toán điểm chuyên môn dựa trên khảo sát và hồ sơ, sau đó gợi ý danh hiệu hiển thị theo từng giai đoạn.
                         </p>
                       </div>
                     </div>
@@ -839,7 +839,7 @@ function AboutContent({
                         </div>
                         <h5 className="text-xs font-black text-white uppercase tracking-widest mb-2">Tìm kiếm Idol</h5>
                         <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed text-justify font-medium">
-                          Lọc thông minh qua hàng ngàn hồ sơ Idol theo chiều cao, cân nặng, số đo, lượt follow mạng xã hội hoặc phân hạng Tier (S/A/B/C) chuẩn hóa.
+                          Lọc thông minh qua hàng ngàn hồ sơ Idol theo chiều cao, cân nặng, số đo, lượt follow mạng xã hội hoặc danh hiệu nổi bật.
                         </p>
                       </div>
                     </div>

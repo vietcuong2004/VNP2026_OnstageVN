@@ -3,6 +3,7 @@
 import React from "react";
 import { X, Search, Users2, MapPin, CheckCircle, Check, Send } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
+import BadgeTier from "@/components/ui/BadgeTier";
 import { cn } from "@/lib/utils";
 
 interface InviteModalProps {
@@ -86,9 +87,7 @@ export default function InviteModal({
 
                         {/* Overlay top badges */}
                         <div className="absolute top-2 left-2 flex flex-col gap-1.5">
-                          <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-md">
-                            Hạng {talent.tier}
-                          </span>
+                          <BadgeTier tier={talent.tier} seed={talent.id || talent.email || talent.name} variant="gradient" size="xs" />
                         </div>
 
                         {/* Floating status badge */}

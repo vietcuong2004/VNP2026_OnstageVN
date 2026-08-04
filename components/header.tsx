@@ -23,7 +23,7 @@ import { ensureBrowserNotificationPermission, showBrowserNotification } from "@/
 import { getRealtimeClient } from "@/lib/realtime";
 import { loadBrandWishlists } from "@/lib/brand-api";
 import { loadGuestSavedTalentIds, SAVED_TALENTS_UPDATED_EVENT } from "@/lib/guest-saved-talents";
-import { loadSavedJobs, SAVED_JOBS_UPDATED_EVENT } from "@/lib/saved-jobs";
+import { loadSavedJobsForSession, SAVED_JOBS_UPDATED_EVENT } from "@/lib/saved-jobs";
 
 type AuthUser = {
   id: number;
@@ -319,8 +319,9 @@ export default function Header() {
       return;
     }
 
-    function refreshSavedJobCount() {
-      setSavedJobCount(loadSavedJobs().length);
+    async function refreshSavedJobCount() {
+      const jobs = await loadSavedJobsForSession();
+      setSavedJobCount(jobs.length);
     }
 
     function handleSavedJobsUpdated(event: Event) {
@@ -330,12 +331,12 @@ export default function Header() {
         return;
       }
 
-      refreshSavedJobCount();
+      void refreshSavedJobCount();
     }
 
     window.addEventListener(SAVED_JOBS_UPDATED_EVENT, handleSavedJobsUpdated);
     window.addEventListener("storage", refreshSavedJobCount);
-    refreshSavedJobCount();
+    void refreshSavedJobCount();
 
     return () => {
       window.removeEventListener(SAVED_JOBS_UPDATED_EVENT, handleSavedJobsUpdated);

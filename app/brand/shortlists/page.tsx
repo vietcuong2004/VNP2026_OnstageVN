@@ -41,7 +41,7 @@ const allValue = "Tất cả";
 
 const TALENT_SORT_OPTIONS: Array<{ value: TalentSortOption; label: string }> = [
   { value: "near_me", label: "Gần tôi" },
-  { value: "rating", label: "Hạng cao nhất" },
+  { value: "rating", label: "Nổi bật" },
   { value: "newest", label: "Mới nhất" },
   { value: "oldest", label: "Cũ nhất" },
   { value: "name_asc", label: "Tên A - Z" },

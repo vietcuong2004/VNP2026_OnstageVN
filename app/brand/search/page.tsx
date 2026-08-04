@@ -31,6 +31,7 @@ import TalentCard from "@/components/talents/TalentCard";
 import TalentCardMobile from "@/components/talents/TalentCardMobile";
 import TalentFilterCityDialog from "@/components/talents/TalentFilterCityDialog";
 import TalentFilterDialog from "@/components/talents/TalentFilterDialog";
+import KeywordSuggestionsDropdown from "@/components/search/KeywordSuggestionsDropdown";
 import { cn } from "@/lib/utils";
 import {
   CITY_VALUES,
@@ -55,6 +56,7 @@ import { getAuthToken } from "@/lib/api-client";
 import { loadGuestSavedTalentIds, notifySavedTalentsUpdated, toggleGuestSavedTalentId } from "@/lib/guest-saved-talents";
 import { addViewedTalentId } from "@/lib/talent-view-history";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
+import { buildTalentSearchSuggestions } from "@/lib/search-suggestions.mjs";
 
 const TALENTS_PER_PAGE = 24;
 const TALENT_PAGES_PER_RESULT_PAGE = 2;
@@ -64,7 +66,7 @@ type TalentSortOption = "near_me" | "rating" | "newest" | "oldest" | "name_asc" 
 
 const TALENT_SORT_OPTIONS: Array<{ value: TalentSortOption; label: string }> = [
   { value: "near_me", label: "Gần tôi" },
-  { value: "rating", label: "Hạng cao nhất" },
+  { value: "rating", label: "Nổi bật" },
   { value: "newest", label: "Mới nhất" },
   { value: "oldest", label: "Cũ nhất" },
   { value: "name_asc", label: "Tên A - Z" },
@@ -548,6 +550,7 @@ export default function DiscoverTalentsPage() {
   const [maxWeight, setMaxWeight] = useState(90);
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [isTalentSuggestOpen, setIsTalentSuggestOpen] = useState(false);
   const [isMobileCitySelectorOpen, setIsMobileCitySelectorOpen] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState("");
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -618,6 +621,39 @@ export default function DiscoverTalentsPage() {
     if (appliedFilters.city === allValue) return "Toàn quốc";
     return cityOptions.find((opt) => opt.value === appliedFilters.city)?.label || appliedFilters.city;
   }, [appliedFilters.city]);
+
+  const talentSearchSuggestions = useMemo(
+    () => buildTalentSearchSuggestions({
+      talents: displayTalents,
+      query: searchInput,
+      limit: 7,
+      isPartial: talentTotal > displayTalents.length,
+    }),
+    [displayTalents, searchInput, talentTotal],
+  );
+
+  const handleTalentSuggestionPick = useCallback((suggestion: any) => {
+    const nextInput = String(suggestion.query || suggestion.label || "").trim();
+    const nextSearchQuery = String(suggestion.searchQuery ?? nextInput).trim();
+    const nextType = suggestion.type || selectedType;
+    const nextCity = suggestion.city || selectedCity;
+
+    setSearchInput(nextInput);
+    setSelectedType(nextType);
+    setSelectedCity(nextCity);
+    setAppliedFilters({
+      query: nextSearchQuery,
+      gender: selectedGender,
+      type: nextType,
+      city: nextCity,
+      minHeight,
+      maxHeight,
+      minWeight,
+      maxWeight,
+      showAdvancedFilters,
+    });
+    setIsTalentSuggestOpen(false);
+  }, [maxHeight, maxWeight, minHeight, minWeight, selectedCity, selectedGender, selectedType, showAdvancedFilters]);
 
   const loadTalentPage = useCallback(async (page: number, mode: "replace" | "append", resultPage: number) => {
     const requestId = ++talentRequestRef.current;
@@ -1008,14 +1044,18 @@ export default function DiscoverTalentsPage() {
             <input
               type="text"
               value={searchInput}
+              onFocus={() => setIsTalentSuggestOpen(true)}
+              onBlur={() => setIsTalentSuggestOpen(false)}
               onChange={(e) => {
                 const nextQuery = e.target.value;
                 setSearchInput(nextQuery);
                 setAppliedFilters((prev) => ({ ...prev, query: nextQuery }));
+                setIsTalentSuggestOpen(true);
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   applyFilters();
+                  setIsTalentSuggestOpen(false);
                 }
               }}
               placeholder="Tên idol..."
@@ -1027,12 +1067,18 @@ export default function DiscoverTalentsPage() {
                 onClick={() => {
                   setSearchInput("");
                   setAppliedFilters((prev) => ({ ...prev, query: "" }));
+                  setIsTalentSuggestOpen(false);
                 }}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
+            <KeywordSuggestionsDropdown
+              open={isTalentSuggestOpen}
+              suggestions={talentSearchSuggestions}
+              onPick={handleTalentSuggestionPick}
+            />
           </div>
 
           <button
@@ -1155,10 +1201,16 @@ export default function DiscoverTalentsPage() {
               <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A] transition-colors group-focus-within:text-amber-300" />
               <input
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                onFocus={() => setIsTalentSuggestOpen(true)}
+                onBlur={() => setIsTalentSuggestOpen(false)}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  setIsTalentSuggestOpen(true);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     applyFilters();
+                    setIsTalentSuggestOpen(false);
                   }
                 }}
                 placeholder="Nhập tên Idol..."
@@ -1170,12 +1222,18 @@ export default function DiscoverTalentsPage() {
                   onClick={() => {
                     setSearchInput("");
                     setAppliedFilters((prev) => ({ ...prev, query: "" }));
+                    setIsTalentSuggestOpen(false);
                   }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
               )}
+              <KeywordSuggestionsDropdown
+                open={isTalentSuggestOpen}
+                suggestions={talentSearchSuggestions}
+                onPick={handleTalentSuggestionPick}
+              />
             </div>
           </div>
 

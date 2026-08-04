@@ -1099,7 +1099,7 @@ export default function PersonalInfoTab({
             Hồ Sơ Chưa Được Kích Hoạt
           </h3>
           <p className="text-xs text-slate-450 leading-relaxed">
-            Bạn chưa thực hiện bài khảo sát định hướng và cập nhật thông tin cá nhân. Hãy hoàn thành khảo sát để mở khóa chỉ số ngoại hình, học vấn, hạng người mẫu, các dịch vụ đồng hành và báo cáo hiệu quả.
+            Bạn chưa thực hiện bài khảo sát định hướng và cập nhật thông tin cá nhân. Hãy hoàn thành khảo sát để mở khóa chỉ số ngoại hình, học vấn, danh hiệu hồ sơ, các dịch vụ đồng hành và báo cáo hiệu quả.
           </p>
         </div>
 

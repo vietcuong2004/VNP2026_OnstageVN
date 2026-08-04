@@ -124,10 +124,10 @@ export default function ControlCenterExplanationDialog({
                         <Zap className="h-4.5 w-4.5" />
                       </div>
                       <h5 className="text-xs md:text-sm font-black text-white uppercase tracking-wide min-h-[36px] flex items-center mb-1">
-                        AI chẩn đoán & xếp hạng
+                        AI chẩn đoán & danh hiệu
                       </h5>
                       <p className="text-xs text-slate-300 leading-relaxed flex-1 text-justify">
-                        Tự động tính toán điểm chuyên môn dựa trên khảo sát và hồ sơ, phân hạng Tier (S/A/B/C) để tăng độ uy tín với nhà tuyển dụng.
+                        Tự động tính toán điểm chuyên môn dựa trên khảo sát và hồ sơ, sau đó gợi ý danh hiệu hiển thị theo từng giai đoạn.
                       </p>
                     </div>
 
@@ -191,7 +191,7 @@ export default function ControlCenterExplanationDialog({
                         Tìm kiếm Idol
                       </h5>
                       <p className="text-xs text-slate-300 leading-relaxed flex-1 text-justify">
-                        Lọc thông minh qua hàng ngàn hồ sơ Idol theo chiều cao, cân nặng, số đo, lượt follow mạng xã hội hoặc phân hạng Tier (S/A/B/C) chuẩn hóa.
+                        Lọc thông minh qua hàng ngàn hồ sơ Idol theo chiều cao, cân nặng, số đo, lượt follow mạng xã hội hoặc danh hiệu nổi bật.
                       </p>
                     </div>
 

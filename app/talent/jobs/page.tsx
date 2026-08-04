@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Suspense, useCallback, useMemo, useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Sparkles, CheckCircle,
   X, Check,
@@ -25,7 +26,9 @@ import JobCard from "@/components/jobs/JobCard";
 import JobCardMobile from "@/components/jobs/JobCardMobile";
 import JobFilterDialog from "@/components/jobs/JobFilterDialog";
 import JobFilterCityDialog from "@/components/jobs/JobFilterCityDialog";
-import { loadSavedJobs, SAVED_JOBS_UPDATED_EVENT } from "@/lib/saved-jobs";
+import KeywordSuggestionsDropdown from "@/components/search/KeywordSuggestionsDropdown";
+import { loadSavedJobsForSession, SAVED_JOBS_UPDATED_EVENT } from "@/lib/saved-jobs";
+import { buildJobSearchSuggestions } from "@/lib/search-suggestions.mjs";
 
 type StageFilter = "apply" | "pending" | "approved" | "all";
 type SortOrder = "newest" | "oldest";
@@ -70,6 +73,14 @@ function normalizeCityName(value: string) {
 const cityDropdownOptions = [
   { value: allValue, label: "Toàn quốc" },
   ...cityOptions.map((city) => ({ value: normalizeCityName(city), label: city })),
+];
+
+const hotJobLocations = [
+  { value: "Hà Nội", label: "Hà Nội", count: 103 },
+  { value: "Hồ Chí Minh", label: "Hồ Chí Minh", count: 100 },
+  { value: "Thái Hà", label: "Thái Hà", count: 50 },
+  { value: "Đà Nẵng", label: "Đà Nẵng", count: 42 },
+  { value: "Hồ Tây", label: "Hồ Tây", count: 30 },
 ];
 
 const jobTypeDropdownOptions = [
@@ -134,8 +145,11 @@ function FilterDropdown({
   searchable?: boolean;
 }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const selectedOption = options.find((option) => option.value === value) || options[0];
   const filteredOptions = useMemo(() => {
@@ -150,8 +164,16 @@ function FilterDropdown({
   }, [options, searchInput]);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (!dropdownRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        !dropdownRef.current?.contains(target)
+        && !menuRef.current?.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
@@ -159,6 +181,23 @@ function FilterDropdown({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function updateMenuRect() {
+      setMenuRect(dropdownRef.current?.getBoundingClientRect() ?? null);
+    }
+
+    updateMenuRect();
+    window.addEventListener("resize", updateMenuRect);
+    window.addEventListener("scroll", updateMenuRect, true);
+
+    return () => {
+      window.removeEventListener("resize", updateMenuRect);
+      window.removeEventListener("scroll", updateMenuRect, true);
+    };
+  }, [isOpen]);
 
   return (
     <div ref={dropdownRef} className="relative w-full">
@@ -174,8 +213,16 @@ function FilterDropdown({
         <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-300", isOpen && "rotate-180 text-[#C9A86A]")} />
       </button>
 
-      {isOpen && (
-        <div className="absolute left-0 top-full z-[100] mt-1.5 max-h-60 w-full overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+      {mounted && isOpen && menuRect && createPortal(
+        <div
+          ref={menuRef}
+          className="fixed z-[9999] max-h-60 overflow-hidden rounded-xl border border-[#C9A86A]/25 bg-[#070913] p-1.5 shadow-[0_24px_60px_rgba(0,0,0,0.75)] animate-in fade-in zoom-in-95 duration-150"
+          style={{
+            left: menuRect.left,
+            top: menuRect.bottom + 6,
+            width: menuRect.width,
+          }}
+        >
           {searchable && (
             <div className="mb-1.5 px-1">
               <div className="relative">
@@ -217,7 +264,8 @@ function FilterDropdown({
               <div className="px-3 py-2 text-center text-xs text-slate-500">{emptyText}</div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -313,6 +361,7 @@ function JobsPageContent() {
   const [selectedJobType, setSelectedJobType] = useState(() => initialJobsState?.selectedJobType || allValue);
   const [appliedJobType, setAppliedJobType] = useState(() => initialJobsState?.appliedJobType || allValue);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(() => initialJobsState?.showAdvancedFilters || false);
+  const [isJobSuggestOpen, setIsJobSuggestOpen] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isMobileCityDialogOpen, setIsMobileCityDialogOpen] = useState(false);
   const [appliedShowAdvancedFilters, setAppliedShowAdvancedFilters] = useState(() => initialJobsState?.appliedShowAdvancedFilters || false);
@@ -351,11 +400,12 @@ function JobsPageContent() {
   const isMobileOverlayOpen = isMobileFiltersOpen || isMobileCityDialogOpen;
 
   useEffect(() => {
-    function syncSavedJobCount() {
-      setSavedJobCount(loadSavedJobs().length);
+    async function syncSavedJobCount() {
+      const jobs = await loadSavedJobsForSession();
+      setSavedJobCount(jobs.length);
     }
 
-    syncSavedJobCount();
+    void syncSavedJobCount();
     window.addEventListener(SAVED_JOBS_UPDATED_EVENT, syncSavedJobCount);
     window.addEventListener("storage", syncSavedJobCount);
 
@@ -803,6 +853,34 @@ function JobsPageContent() {
     setAppliedMaxBudget(maxBudget);
   }
 
+  const jobSearchSuggestions = useMemo(
+    () => buildJobSearchSuggestions({
+      jobs: displayJobs,
+      query: searchInput,
+      limit: 7,
+      isPartial: jobTotal > displayJobs.length,
+    }),
+    [displayJobs, jobTotal, searchInput],
+  );
+
+  const handleJobSuggestionPick = useCallback((suggestion: any) => {
+    const nextInput = String(suggestion.query || suggestion.label || "").trim();
+    const nextSearchQuery = String(suggestion.searchQuery ?? nextInput).trim();
+    const nextCity = suggestion.city || selectedCity;
+    const nextType = suggestion.type || selectedJobType;
+
+    setSearchInput(nextInput);
+    setSearchQuery(nextSearchQuery);
+    setSelectedCity(nextCity);
+    setAppliedCity(nextCity);
+    setSelectedJobType(nextType);
+    setAppliedJobType(nextType);
+    setAppliedShowAdvancedFilters(showAdvancedFilters);
+    setAppliedMinBudget(minBudget);
+    setAppliedMaxBudget(maxBudget);
+    setIsJobSuggestOpen(false);
+  }, [maxBudget, minBudget, selectedCity, selectedJobType, showAdvancedFilters]);
+
   const stageFilterOptions: StageFilter[] = ["all", "apply", "pending", "approved"];
   const stageCounts = jobStageCounts;
   const activeResultTotal = stageCounts[selectedStageFilter] ?? jobTotal;
@@ -854,9 +932,17 @@ function JobsPageContent() {
             <input
               type="text"
               value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
+              onFocus={() => setIsJobSuggestOpen(true)}
+              onBlur={() => setIsJobSuggestOpen(false)}
+              onChange={(event) => {
+                setSearchInput(event.target.value);
+                setIsJobSuggestOpen(true);
+              }}
               onKeyDown={(event) => {
-                if (event.key === "Enter") applyFilters();
+                if (event.key === "Enter") {
+                  applyFilters();
+                  setIsJobSuggestOpen(false);
+                }
               }}
               placeholder="Tên job..."
               className="h-9 w-full rounded-full border border-white/10 bg-slate-950/60 pl-8.5 pr-8 text-xs text-white outline-none focus:border-[#C9A86A]/60 placeholder:text-slate-500"
@@ -867,12 +953,18 @@ function JobsPageContent() {
                 onClick={() => {
                   setSearchInput("");
                   setSearchQuery("");
+                  setIsJobSuggestOpen(false);
                 }}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
+            <KeywordSuggestionsDropdown
+              open={isJobSuggestOpen}
+              suggestions={jobSearchSuggestions}
+              onPick={handleJobSuggestionPick}
+            />
           </div>
 
           <button
@@ -912,9 +1004,17 @@ function JobsPageContent() {
               <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A]" />
               <input
                 value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
+                onFocus={() => setIsJobSuggestOpen(true)}
+                onBlur={() => setIsJobSuggestOpen(false)}
+                onChange={(event) => {
+                  setSearchInput(event.target.value);
+                  setIsJobSuggestOpen(true);
+                }}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter") applyFilters();
+                  if (event.key === "Enter") {
+                    applyFilters();
+                    setIsJobSuggestOpen(false);
+                  }
                 }}
                 placeholder="Tìm job theo tên, brand, loại chiến dịch..."
                 className="h-[50px] w-full rounded-2xl border border-white/10 bg-slate-950/60 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500"
@@ -925,12 +1025,18 @@ function JobsPageContent() {
                   onClick={() => {
                     setSearchInput("");
                     setSearchQuery("");
+                    setIsJobSuggestOpen(false);
                   }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
               )}
+              <KeywordSuggestionsDropdown
+                open={isJobSuggestOpen}
+                suggestions={jobSearchSuggestions}
+                onPick={handleJobSuggestionPick}
+              />
             </div>
           </div>
 
@@ -988,6 +1094,38 @@ function JobsPageContent() {
 
         {showAdvancedFilters && (
           <div className="relative z-10 mt-5 grid grid-cols-1 gap-4 border-t border-white/5 pt-5 sm:grid-cols-2">
+            <div className="sm:col-span-2 rounded-2xl border border-white/8 bg-slate-950/35 p-3">
+              <div className="mb-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#C9A86A]">
+                Đang nhiều công việc
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {hotJobLocations.map((location) => {
+                  const isSelected = selectedCity === location.value || appliedCity === location.value;
+                  return (
+                    <button
+                      key={location.label}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCity(location.value);
+                        setAppliedCity(location.value);
+                      }}
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-[11px] font-bold transition active:scale-95",
+                        isSelected
+                          ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F4D77C]"
+                          : "border-white/10 bg-white/5 text-slate-300 hover:border-[#C9A86A]/40 hover:text-white"
+                      )}
+                    >
+                      <span>{location.label}</span>
+                      <span className={cn("font-mono text-[10px]", isSelected ? "text-amber-200" : "text-slate-500")}>
+                        {location.count} việc
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <label className="space-y-2">
               <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">
                 Thù lao tối thiểu

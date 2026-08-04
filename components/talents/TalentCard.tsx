@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
-import { Check, CheckCircle2, Eye, Heart, Loader2, MapPin, Trash2, UserPlus } from "lucide-react";
+import { Check, CheckCircle2, Heart, Loader2, MapPin, Trash2, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import BadgeTier from "@/components/ui/BadgeTier";
@@ -74,6 +74,20 @@ export function getStatusLabel(status: TalentAvailabilityStatus) {
   return "Chưa có lịch";
 }
 
+function getMockTalentStats(talent: any) {
+  const key = String(talent?.id || talent?.slug || talent?.email || talent?.name || "idol");
+  let hash = 0;
+
+  for (let index = 0; index < key.length; index += 1) {
+    hash = (hash * 31 + key.charCodeAt(index)) >>> 0;
+  }
+
+  return {
+    bookings: 72 + (hash % 164),
+    goodReviews: 820 + ((hash >> 3) % 1380),
+  };
+}
+
 export default function TalentCard({
   talent,
   avatar,
@@ -83,7 +97,6 @@ export default function TalentCard({
   onView,
   onMessage,
   onRemoveFromBrand,
-  viewLabel = "Xem",
   saveLabel,
   messageLabel = "Thêm vào Brand",
   showMessageIcon = true,
@@ -108,6 +121,7 @@ export default function TalentCard({
   const talentSkills = getStringList(talent?.skills ?? talent?.specialSkills);
   const profilePills = [...socialHighlights, ...talentSkills];
   const bioText = talent?.experience || talent?.bio || talent?.summary || talent?.description || talent?.introduction || "";
+  const mockStats = getMockTalentStats(talent);
   const hasActions = Boolean(onView || onToggleSaved || onMessage);
 
   const stopCardClick = (event: MouseEvent) => {
@@ -156,7 +170,7 @@ export default function TalentCard({
           />
 
           <div className="absolute left-2 top-2">
-            <BadgeTier tier={talent?.tier} variant="gradient" />
+            <BadgeTier tier={talent?.tier} seed={talent?.id || talent?.slug || talent?.email || talent?.name} variant="gradient" />
           </div>
 
           {onMessage ? (
@@ -301,21 +315,21 @@ export default function TalentCard({
       </div>
 
       {hasActions && (
-        <div className="mt-4 flex gap-2 border-t border-white/5 pt-3.5">
-          {onView && (
-            <button
-              type="button"
-              onClick={(event) => {
-                stopCardClick(event);
-                onView(talent);
-              }}
-              className="flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-white/10 active:scale-90"
-              title="Xem hồ sơ chi tiết"
-            >
-              <Eye className="h-4 w-4" />
-              <span>{viewLabel}</span>
-            </button>
-          )}
+        <div className="mt-4 flex items-center gap-2 border-t border-white/5 pt-3.5">
+          <div className="grid min-w-0 flex-[1.55] grid-cols-2 gap-1.5">
+            <div className="flex min-h-[40px] min-w-0 items-center justify-center rounded-lg border border-[#C9A86A]/25 bg-gradient-to-r from-[#C9A86A]/18 via-white/[0.04] to-transparent px-2 text-center text-[#F4D77C] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <span className="text-[10px] font-black leading-[1.08] tracking-tight">
+                {mockStats.bookings} lượt booking
+              </span>
+            </div>
+            <div className="flex min-h-[40px] min-w-0 items-center justify-center rounded-lg border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-400/16 via-rose-300/[0.06] to-transparent px-2 text-center text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <span className="flex flex-col items-center leading-[1.05]">
+                <span className="text-[10px] font-black tracking-tight">{mockStats.goodReviews}</span>
+                <span className="text-[9px] font-black tracking-tight">đánh giá</span>
+              </span>
+            </div>
+          </div>
+
           {onToggleSaved ? (
             <button
               type="button"
@@ -324,15 +338,15 @@ export default function TalentCard({
                 onToggleSaved(talent);
               }}
               className={cn(
-                "flex h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition active:scale-95",
+                "flex min-h-[40px] flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg pl-2 pr-3 text-[9px] font-black uppercase tracking-wider transition active:scale-95",
                 isSaved
                   ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
                   : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110"
               )}
               title={isSaved ? "Bỏ lưu khỏi danh sách đã lưu" : "Lưu vào danh sách đã lưu"}
             >
-              <Heart className={cn("h-4 w-4", isSaved && "fill-current")} />
-              <span>{saveLabel || (isSaved ? "Đã lưu" : "Lưu thông tin")}</span>
+              <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} />
+              <span className="truncate">{saveLabel || (isSaved ? "Đã lưu" : "Lưu thông tin")}</span>
             </button>
           ) : onMessage ? (
             <button
@@ -340,20 +354,20 @@ export default function TalentCard({
               disabled={messageLoading}
               onClick={handleBrandButtonClick}
               className={cn(
-                "flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer",
+                "flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg pl-2 pr-3 text-[9px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer",
                 messageDisabled
                   ? "border border-[#C9A86A]/30 bg-[#C9A86A]/10 text-[#C9A86A] hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-400"
                   : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950"
               )}
             >
               {messageLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : messageDisabled ? (
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#C9A86A]" />
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
               ) : (
-                showMessageIcon && <UserPlus className="h-4 w-4" />
+                showMessageIcon && <UserPlus className="h-3.5 w-3.5" />
               )}
-              {messageLabel}
+              <span className="truncate">{messageLabel}</span>
             </button>
           ) : null}
         </div>

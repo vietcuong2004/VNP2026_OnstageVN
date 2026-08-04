@@ -63,7 +63,8 @@ export default function TalentCardMobile({
   const profilePills = [...socialHighlights, ...talentSkills];
   const bioText = talent?.experience || talent?.bio || talent?.summary || talent?.description || talent?.introduction || "";
   const hasActions = Boolean(onView || onToggleSaved || onMessage);
-  const tierBadge = getTierBadgeConfig(talent?.tier);
+  const talentBadgeSeed = talent?.id || talent?.slug || talent?.email || talent?.name;
+  const tierBadge = getTierBadgeConfig(talent?.tier, talentBadgeSeed);
   const mockStats = useMemo(() => getMockTalentStats(talent), [talent]);
 
   const stopCardClick = (event: MouseEvent) => {
@@ -102,7 +103,7 @@ export default function TalentCardMobile({
         {/* Left Column: Tier badge & avatar image */}
         <div className="flex w-[110px] shrink-0 flex-col items-center gap-1.5">
           {tierBadge && (
-            <BadgeTier tier={talent?.tier} variant="gradient" size="xs" />
+            <BadgeTier tier={talent?.tier} seed={talentBadgeSeed} variant="gradient" size="xs" />
           )}
 
           <div className="relative aspect-square h-[110px] w-[110px] overflow-hidden rounded-xl border border-white/5 bg-slate-900">
@@ -236,7 +237,7 @@ export default function TalentCardMobile({
             <div className="flex min-h-[38px] min-w-0 items-center justify-center gap-1 rounded-lg border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-400/16 via-rose-300/[0.06] to-transparent px-1.5 text-center text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               <Star className="h-3 w-3 shrink-0 fill-current" />
               <span className="text-[7.5px] font-black leading-[1.05] tracking-tight">
-                {mockStats.goodReviews} đánh giá tốt
+                {mockStats.goodReviews} đánh giá
               </span>
             </div>
           </div>

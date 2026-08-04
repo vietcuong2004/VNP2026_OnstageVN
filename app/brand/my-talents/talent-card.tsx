@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
+import BadgeTier from "@/components/ui/BadgeTier";
 import type { BrandTalentCard, RosterTalent } from "./page";
 
 interface TalentCardProps {
@@ -88,9 +89,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
           />
 
           <div className="absolute left-2 top-2 flex flex-col gap-1.5">
-            <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-slate-950 shadow-md">
-              Hạng {talent.tier || "-"}
-            </span>
+            <BadgeTier tier={talent.tier} seed={talent.id || talent.email || talent.name} variant="gradient" size="xs" />
           </div>
 
           {/* 3-dot menu */}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { Bookmark, Calendar, CircleDollarSign, MapPin } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { loadSavedJobIds, SAVED_JOBS_UPDATED_EVENT, toggleSavedJob } from "@/lib/saved-jobs";
+import { loadSavedJobIdsForSession, SAVED_JOBS_UPDATED_EVENT, toggleSavedJobForSession } from "@/lib/saved-jobs";
 
 export type TalentJobStage = "pending" | "approved" | string | null | undefined;
 
@@ -59,17 +59,24 @@ export default function JobCard({
 }: JobCardProps) {
   const badge = getStatusBadge(stage, isApplied);
   const [isSaved, setIsSaved] = useState(false);
+  const [isSavingSavedJob, setIsSavingSavedJob] = useState(false);
 
   useEffect(() => {
-    function syncSavedState() {
-      setIsSaved(loadSavedJobIds().includes(String(job?.id || "")));
+    let active = true;
+
+    async function syncSavedState() {
+      const ids = await loadSavedJobIdsForSession();
+      if (active) {
+        setIsSaved(ids.includes(String(job?.id || "")));
+      }
     }
 
-    syncSavedState();
+    void syncSavedState();
     window.addEventListener(SAVED_JOBS_UPDATED_EVENT, syncSavedState);
     window.addEventListener("storage", syncSavedState);
 
     return () => {
+      active = false;
       window.removeEventListener(SAVED_JOBS_UPDATED_EVENT, syncSavedState);
       window.removeEventListener("storage", syncSavedState);
     };
@@ -79,10 +86,17 @@ export default function JobCard({
     event.stopPropagation();
   };
 
-  const handleSaveClick = (event: MouseEvent) => {
+  const handleSaveClick = async (event: MouseEvent) => {
     stopCardClick(event);
-    const result = toggleSavedJob(job);
-    setIsSaved(result.isSaved);
+    if (isSavingSavedJob) return;
+
+    setIsSavingSavedJob(true);
+    try {
+      const result = await toggleSavedJobForSession(job);
+      setIsSaved(result.isSaved);
+    } finally {
+      setIsSavingSavedJob(false);
+    }
   };
 
   const renderPrimaryAction = () => {

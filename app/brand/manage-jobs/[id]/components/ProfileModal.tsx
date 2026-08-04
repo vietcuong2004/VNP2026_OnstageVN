@@ -51,8 +51,8 @@ export default function ProfileModal({
           <div className="grid grid-cols-3 gap-3">
             {/* Tier profile block hidden per request.
             <div className="bg-[#050711] border border-white/5 rounded-xl p-3 text-center">
-              <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Hạng Profile</span>
-              <span className="block text-xs font-black text-amber-400 mt-1">Hạng {talent.tier}</span>
+              <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Danh hiệu</span>
+              <div className="mt-1"><BadgeTier tier={talent.tier} seed={talent.id || talent.email || talent.name} variant="gradient" size="xs" /></div>
             </div>
             */}
             <div className="bg-[#050711] border border-white/5 rounded-xl p-3 text-center">
