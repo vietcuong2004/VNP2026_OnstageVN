@@ -108,7 +108,7 @@ const nextConfig = {
         ...config.optimization.splitChunks,
         // Yêu cầu Webpack: Không tách riêng các file nhỏ hơn 20kB
         // Gom chúng lại để giảm số lượng request
-        minSize: 20000, 
+        minSize: 20000,
       };
     }
     return config;
@@ -260,9 +260,9 @@ vậy rốt cuộc vấn đề đó là gì, sếp tôi bảo tôi tối ưu fil
 ---
 
 ### 1. Bản chất vấn đề là gì? (Bệnh của dự án)
-Khi sếp của bạn kiểm tra tab Network trên trình duyệt, sếp thấy hệ thống tải về **quá nhiều file JavaScript (.js) nhỏ lẻ** (có những file chỉ nặng $1 - 2\text{ KB}$ hoặc vài trăm Bytes). 
+Khi sếp của bạn kiểm tra tab Network trên trình duyệt, sếp thấy hệ thống tải về **quá nhiều file JavaScript (.js) nhỏ lẻ** (có những file chỉ nặng $1 - 2\text{ KB}$ hoặc vài trăm Bytes).
 
-* **Tại sao lại có nhiều file như vậy?** 
+* **Tại sao lại có nhiều file như vậy?**
   Mặc định Next.js/React sử dụng cơ chế gọi là *Code Splitting (Chia tách code)*. Nó tự động chẻ giao diện và các thư viện của bạn ra thành hàng chục, hàng trăm file nhỏ để trang nào cần dùng file nào thì tải file đó.
 * **Tại sao điều này không tốt?**
   Mặc dù bạn đã chạy qua Cloudflare (sử dụng giao thức HTTP/3 giúp tải song song nhanh), việc trình duyệt (đặc biệt là điện thoại cấu hình yếu) phải gửi hàng chục request, sau đó phải giải nén và biên dịch (parse/compile) hàng trăm file JS vụn vặt sẽ khiến **CPU bị quá tải**, làm trang web bị giật/lag hoặc mất nhiều thời gian hơn để người dùng có thể tương tác được (chậm chỉ số TTI - Time to Interactive).
@@ -319,7 +319,7 @@ Lazy loading (tải chậm) rất tốt, nhưng chỉ tốt khi dùng đúng ch�
 
 ### 2. Import thư viện bên thứ ba đúng cách (Tránh mang rác vào dự án)
 Khi sử dụng các thư viện như `lodash`, `date-fns`, hay các thư viện icon, hãy import chính xác thành phần bạn cần dùng thay vì import cả thư viện.
-* **Tránh viết:** 
+* **Tránh viết:**
   ```javascript
   import _ from 'lodash'; // Tải toàn bộ thư viện lodash cực kỳ nặng
   _.debounce(...);
@@ -338,7 +338,7 @@ Trước khi quyết định cài một thư viện (package) mới vào dự á
 ---
 
 ### Mẹo nhỏ cho bạn:
-Nếu sau này dự án phình to và sếp lại yêu cầu tối ưu sâu hơn, bạn chỉ cần báo với sếp: *"Em sẽ cài thêm `@next/bundle-analyzer` để phân tích trực quan xem module nào đang chiếm dung lượng lớn nhất"*. 
+Nếu sau này dự án phình to và sếp lại yêu cầu tối ưu sâu hơn, bạn chỉ cần báo với sếp: *"Em sẽ cài thêm `@next/bundle-analyzer` để phân tích trực quan xem module nào đang chiếm dung lượng lớn nhất"*.
 
 Đây là công cụ hiển thị biểu đồ nhiệt (treemap) cực kỳ trực quan giúp bạn và sếp nhìn thấy ngay lập tức thư viện nào đang làm nặng trang để có hướng xử lý tận gốc.
 
@@ -385,7 +385,7 @@ Sếp của bạn đã nhận xét rất chính xác! Trong file [package.json](
 
 * **Chuyển `"shadcn"` sang `devDependencies`:**
   Gói `"shadcn"` ban đầu được khai báo ở mục `dependencies`. Tuy nhiên, đây thực chất là một công cụ dòng lệnh (CLI tool) dùng để tải các component UI về máy trong quá trình lập trình (ví dụ: chạy lệnh `npx shadcn add button`). Nó hoàn toàn **không bao giờ được import hay chạy trực tiếp trong code của website**.
-  
+
   Do đó, tôi đã chuyển `"shadcn"` từ `dependencies` sang `devDependencies`. Khi môi trường Production chạy cài đặt thư viện để host, nó sẽ loại bỏ gói này để giảm thiểu dung lượng tải về của server.
 
 ---
