@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import {
   Sparkles, CheckCircle,
   X, Check,
-  ArrowUpDown, Copy, Users, Briefcase,
+  ArrowLeft, ArrowUpDown, Copy, Users, Briefcase,
   Search, SlidersHorizontal, ChevronDown, Bookmark
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -362,6 +362,7 @@ function JobsPageContent() {
   const [appliedJobType, setAppliedJobType] = useState(() => initialJobsState?.appliedJobType || allValue);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(() => initialJobsState?.showAdvancedFilters || false);
   const [isJobSuggestOpen, setIsJobSuggestOpen] = useState(false);
+  const [isMobileJobSearchExpanded, setIsMobileJobSearchExpanded] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isMobileCityDialogOpen, setIsMobileCityDialogOpen] = useState(false);
   const [appliedShowAdvancedFilters, setAppliedShowAdvancedFilters] = useState(() => initialJobsState?.appliedShowAdvancedFilters || false);
@@ -384,6 +385,7 @@ function JobsPageContent() {
   const [showInviteModal, setShowInviteModal] = useState<any>(null);
   const jobRequestRef = useRef(0);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const mobileJobSearchInputRef = useRef<HTMLInputElement | null>(null);
   const [jobBackendPage, setJobBackendPage] = useState(() => initialJobsState?.jobBackendPage || 1);
   const [jobTotal, setJobTotal] = useState(0);
   const [jobStageCounts, setJobStageCounts] = useState<Record<StageFilter, number>>({
@@ -397,7 +399,7 @@ function JobsPageContent() {
   const [hasMoreJobs, setHasMoreJobs] = useState(false);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [isLoadingMoreJobs, setIsLoadingMoreJobs] = useState(false);
-  const isMobileOverlayOpen = isMobileFiltersOpen || isMobileCityDialogOpen;
+  const isMobileOverlayOpen = isMobileFiltersOpen || isMobileCityDialogOpen || isMobileJobSearchExpanded;
 
   useEffect(() => {
     async function syncSavedJobCount() {
@@ -853,6 +855,20 @@ function JobsPageContent() {
     setAppliedMaxBudget(maxBudget);
   }
 
+  useEffect(() => {
+    if (!isMobileJobSearchExpanded) return;
+
+    setIsJobSuggestOpen(true);
+    window.setTimeout(() => {
+      mobileJobSearchInputRef.current?.focus();
+    }, 0);
+  }, [isMobileJobSearchExpanded]);
+
+  const closeMobileJobSearch = useCallback(() => {
+    setIsMobileJobSearchExpanded(false);
+    setIsJobSuggestOpen(false);
+  }, []);
+
   const jobSearchSuggestions = useMemo(
     () => buildJobSearchSuggestions({
       jobs: displayJobs,
@@ -879,6 +895,7 @@ function JobsPageContent() {
     setAppliedMinBudget(minBudget);
     setAppliedMaxBudget(maxBudget);
     setIsJobSuggestOpen(false);
+    setIsMobileJobSearchExpanded(false);
   }, [maxBudget, minBudget, selectedCity, selectedJobType, showAdvancedFilters]);
 
   const stageFilterOptions: StageFilter[] = ["all", "apply", "pending", "approved"];
@@ -932,8 +949,10 @@ function JobsPageContent() {
             <input
               type="text"
               value={searchInput}
-              onFocus={() => setIsJobSuggestOpen(true)}
-              onBlur={() => setIsJobSuggestOpen(false)}
+              onFocus={() => {
+                setIsMobileJobSearchExpanded(true);
+                setIsJobSuggestOpen(true);
+              }}
               onChange={(event) => {
                 setSearchInput(event.target.value);
                 setIsJobSuggestOpen(true);
@@ -941,7 +960,7 @@ function JobsPageContent() {
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
                   applyFilters();
-                  setIsJobSuggestOpen(false);
+                  closeMobileJobSearch();
                 }
               }}
               placeholder="Tên job..."
@@ -960,11 +979,6 @@ function JobsPageContent() {
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
-            <KeywordSuggestionsDropdown
-              open={isJobSuggestOpen}
-              suggestions={jobSearchSuggestions}
-              onPick={handleJobSuggestionPick}
-            />
           </div>
 
           <button
@@ -983,6 +997,91 @@ function JobsPageContent() {
           </button>
         </div>
       </section>
+
+      {isMobileJobSearchExpanded && typeof window !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-[#050711] text-white animate-in fade-in duration-150 md:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 top-[68px] z-0 cursor-default"
+            onClick={closeMobileJobSearch}
+            aria-label="Thu nhỏ tìm kiếm"
+          />
+          <div className="relative z-10 flex items-center gap-3 border-b border-white/5 bg-[#070913]/95 px-4 py-3">
+            <button
+              type="button"
+              onClick={closeMobileJobSearch}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-slate-950/70 text-slate-300 transition active:scale-95"
+              aria-label="Đóng tìm kiếm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <div className="relative min-w-0 flex-1">
+              <input
+                ref={mobileJobSearchInputRef}
+                type="text"
+                value={searchInput}
+                onChange={(event) => {
+                  setSearchInput(event.target.value);
+                  setIsJobSuggestOpen(true);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    applyFilters();
+                    closeMobileJobSearch();
+                  }
+                  if (event.key === "Escape") {
+                    closeMobileJobSearch();
+                  }
+                }}
+                placeholder="Tìm kiếm việc làm..."
+                className="h-11 w-full rounded-full border border-[#C9A86A]/40 bg-slate-950/80 px-4 pr-10 text-base font-semibold text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearchQuery("");
+                    setIsJobSuggestOpen(true);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-white"
+                  aria-label="Xóa từ khóa"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {jobSearchSuggestions.length > 0 && (
+            <div className="relative z-10 px-4 py-4">
+              <div className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#C9A86A]">
+                Gợi ý tìm kiếm
+              </div>
+              <div className="space-y-1.5">
+                {jobSearchSuggestions.map((suggestion) => (
+                  <button
+                    key={`${suggestion.label}-${suggestion.meta || "suggest"}`}
+                    type="button"
+                    onClick={() => handleJobSuggestionPick(suggestion)}
+                    className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-left transition active:scale-[0.99]"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-black text-white">{suggestion.label}</span>
+                      {suggestion.meta && (
+                        <span className="mt-0.5 block truncate text-xs font-semibold text-slate-400">
+                          {suggestion.meta}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>,
+        document.body
+      )}
 
       {/* Desktop Search Card */}
       <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-6 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md">

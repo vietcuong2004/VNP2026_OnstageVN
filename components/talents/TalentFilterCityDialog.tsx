@@ -3,6 +3,14 @@
 import { ArrowLeft, Locate, MapPin, RefreshCw, Search, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 
+const HOT_TALENT_LOCATIONS = [
+  { label: "Hà Nội", value: "hà nội", count: "100+ idol" },
+  { label: "Hồ Chí Minh", value: "hồ chí minh", count: "100+ idol" },
+  { label: "Đà Nẵng", value: "đà nẵng", count: "40+ idol" },
+  { label: "Hải Phòng", value: "hải phòng", count: "30+ idol" },
+  { label: "Cần Thơ", value: "cần thơ", count: "20+ idol" },
+];
+
 type CityOption = {
   label: string;
   value: string;
@@ -98,6 +106,36 @@ export default function TalentFilterCityDialog({
             </button>
           </div>
         </div>
+
+        {!citySearchQuery.trim() && (
+          <div className="space-y-2">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Nổi bật
+            </span>
+            <div className="grid gap-2">
+              {HOT_TALENT_LOCATIONS.map((location) => {
+                const isSelected = selectedCity === location.value;
+                return (
+                  <button
+                    key={location.label}
+                    type="button"
+                    onClick={() => onSelectCity(location.value)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-2xl border px-3 py-3 text-left transition active:scale-[0.99]",
+                      isSelected
+                        ? "border-[#C9A86A]/70 bg-[#C9A86A]/12 text-[#C9A86A]"
+                        : "border-white/8 bg-white/[0.03] text-white"
+                    )}
+                  >
+                    <MapPin className={cn("h-4.5 w-4.5 shrink-0", isSelected ? "text-[#C9A86A]" : "text-slate-400")} />
+                    <span className="min-w-0 flex-1 truncate text-sm font-bold">{location.label}</span>
+                    <span className="shrink-0 text-xs font-semibold text-slate-400">{location.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-1">
           <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">

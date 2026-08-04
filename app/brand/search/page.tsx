@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
+  ArrowLeft,
   ArrowUpDown,
   Building2,
   Check,
@@ -142,6 +143,14 @@ function normalizeCityName(cityName: string): string {
 const cityOptions = [
   { label: "Toàn quốc", value: allValue },
   ...CITY_VALUES.map((city: string) => ({ label: city, value: normalizeCityName(city) })),
+];
+
+const HOT_TALENT_LOCATIONS = [
+  { label: "Hà Nội", value: normalizeCityName("Hà Nội"), count: "100+ idol" },
+  { label: "Hồ Chí Minh", value: normalizeCityName("TP. Hồ Chí Minh"), count: "100+ idol" },
+  { label: "Đà Nẵng", value: normalizeCityName("Đà Nẵng"), count: "40+ idol" },
+  { label: "Hải Phòng", value: normalizeCityName("Hải Phòng"), count: "30+ idol" },
+  { label: "Cần Thơ", value: normalizeCityName("Cần Thơ"), count: "20+ idol" },
 ];
 
 const typeOptions = [
@@ -551,6 +560,7 @@ export default function DiscoverTalentsPage() {
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [isTalentSuggestOpen, setIsTalentSuggestOpen] = useState(false);
+  const [isMobileSearchExpanded, setIsMobileSearchExpanded] = useState(false);
   const [isMobileCitySelectorOpen, setIsMobileCitySelectorOpen] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState("");
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -577,6 +587,7 @@ export default function DiscoverTalentsPage() {
   const [brandLocation, setBrandLocation] = useState({ city: "", district: "" });
   const talentRequestRef = useRef(0);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const mobileSearchInputRef = useRef<HTMLInputElement | null>(null);
 
   const [displayTalents, setDisplayTalents] = useState<any[]>([]);
   const [talentPage, setTalentPage] = useState(1);
@@ -605,6 +616,25 @@ export default function DiscoverTalentsPage() {
       showAdvancedFilters,
     });
   }, [searchInput, selectedGender, selectedType, selectedCity, minHeight, maxHeight, minWeight, maxWeight, showAdvancedFilters]);
+
+  useEffect(() => {
+    if (!isMobileSearchExpanded) return;
+
+    setIsTalentSuggestOpen(true);
+    window.setTimeout(() => {
+      mobileSearchInputRef.current?.focus();
+    }, 0);
+  }, [isMobileSearchExpanded]);
+
+  const closeMobileSearch = useCallback(() => {
+    setIsMobileSearchExpanded(false);
+    setIsTalentSuggestOpen(false);
+  }, []);
+
+  const applyHotTalentLocation = useCallback((city: string) => {
+    setSelectedCity(city);
+    setAppliedFilters((prev) => ({ ...prev, city }));
+  }, []);
 
   const talentQueryOptions = useMemo(() => ({
     q: appliedFilters.query || undefined,
@@ -653,6 +683,7 @@ export default function DiscoverTalentsPage() {
       showAdvancedFilters,
     });
     setIsTalentSuggestOpen(false);
+    setIsMobileSearchExpanded(false);
   }, [maxHeight, maxWeight, minHeight, minWeight, selectedCity, selectedGender, selectedType, showAdvancedFilters]);
 
   const loadTalentPage = useCallback(async (page: number, mode: "replace" | "append", resultPage: number) => {
@@ -1044,8 +1075,10 @@ export default function DiscoverTalentsPage() {
             <input
               type="text"
               value={searchInput}
-              onFocus={() => setIsTalentSuggestOpen(true)}
-              onBlur={() => setIsTalentSuggestOpen(false)}
+              onFocus={() => {
+                setIsMobileSearchExpanded(true);
+                setIsTalentSuggestOpen(true);
+              }}
               onChange={(e) => {
                 const nextQuery = e.target.value;
                 setSearchInput(nextQuery);
@@ -1055,7 +1088,7 @@ export default function DiscoverTalentsPage() {
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   applyFilters();
-                  setIsTalentSuggestOpen(false);
+                  closeMobileSearch();
                 }
               }}
               placeholder="Tên idol..."
@@ -1074,11 +1107,6 @@ export default function DiscoverTalentsPage() {
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
-            <KeywordSuggestionsDropdown
-              open={isTalentSuggestOpen}
-              suggestions={talentSearchSuggestions}
-              onPick={handleTalentSuggestionPick}
-            />
           </div>
 
           <button
@@ -1175,6 +1203,93 @@ export default function DiscoverTalentsPage() {
           </div>
         )}
       </section>
+
+      {isMobileSearchExpanded && typeof window !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-[#050711] text-white animate-in fade-in duration-150 md:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 top-[68px] z-0 cursor-default"
+            onClick={closeMobileSearch}
+            aria-label="Thu nhỏ tìm kiếm"
+          />
+          <div className="relative z-10 flex items-center gap-3 border-b border-white/5 bg-[#070913]/95 px-4 py-3">
+            <button
+              type="button"
+              onClick={closeMobileSearch}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-slate-950/70 text-slate-300 transition active:scale-95"
+              aria-label="Đóng tìm kiếm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <div className="relative min-w-0 flex-1">
+              <input
+                ref={mobileSearchInputRef}
+                type="text"
+                value={searchInput}
+                onChange={(e) => {
+                  const nextQuery = e.target.value;
+                  setSearchInput(nextQuery);
+                  setAppliedFilters((prev) => ({ ...prev, query: nextQuery }));
+                  setIsTalentSuggestOpen(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    applyFilters();
+                    closeMobileSearch();
+                  }
+                  if (e.key === "Escape") {
+                    closeMobileSearch();
+                  }
+                }}
+                placeholder="Tìm kiếm Idol..."
+                className="h-11 w-full rounded-full border border-[#C9A86A]/40 bg-slate-950/80 px-4 pr-10 text-base font-semibold text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput("");
+                    setAppliedFilters((prev) => ({ ...prev, query: "" }));
+                    setIsTalentSuggestOpen(true);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-white"
+                  aria-label="Xóa từ khóa"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {talentSearchSuggestions.length > 0 && (
+            <div className="relative z-10 px-4 py-4">
+              <div className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#C9A86A]">
+                Gợi ý tìm kiếm
+              </div>
+              <div className="space-y-1.5">
+                {talentSearchSuggestions.map((suggestion) => (
+                  <button
+                    key={`${suggestion.label}-${suggestion.meta || "suggest"}`}
+                    type="button"
+                    onClick={() => handleTalentSuggestionPick(suggestion)}
+                    className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-left transition active:scale-[0.99]"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-black text-white">{suggestion.label}</span>
+                      {suggestion.meta && (
+                        <span className="mt-0.5 block truncate text-xs font-semibold text-slate-400">
+                          {suggestion.meta}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>,
+        document.body
+      )}
 
       {/* Unified Search Card */}
       <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-6 mb-6 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md">
@@ -1305,6 +1420,33 @@ export default function DiscoverTalentsPage() {
         {/* Collapsible Advanced Filters Area */}
         {showAdvancedFilters && (
           <div className="relative z-10 border-t border-white/5 mt-5 pt-5 space-y-4 animate-in slide-in-from-top-2 duration-300">
+            <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-4">
+              <span className="mb-3 block text-[10px] font-black uppercase tracking-[0.18em] text-[#C9A86A]">
+                Nổi bật
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {HOT_TALENT_LOCATIONS.map((location) => {
+                  const isSelected = selectedCity === location.value || appliedFilters.city === location.value;
+                  return (
+                    <button
+                      key={location.label}
+                      type="button"
+                      onClick={() => applyHotTalentLocation(location.value)}
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition active:scale-[0.98]",
+                        isSelected
+                          ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#C9A86A]"
+                          : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/40 hover:text-white"
+                      )}
+                    >
+                      <span>{location.label}</span>
+                      <span className="text-[10px] font-semibold text-slate-400">{location.count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {/* Giới tính */}
               <div className="space-y-2">

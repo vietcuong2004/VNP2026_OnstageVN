@@ -230,14 +230,16 @@ export default function TalentCardMobile({
           <div className="grid min-w-0 flex-[1.55] grid-cols-2 gap-1.5">
             <div className="flex min-h-[38px] min-w-0 items-center justify-center gap-1 rounded-lg border border-[#C9A86A]/25 bg-gradient-to-r from-[#C9A86A]/18 via-white/[0.04] to-transparent px-1.5 text-center text-[#F4D77C] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               <CalendarCheck className="h-3 w-3 shrink-0" />
-              <span className="text-[7.5px] font-black leading-[1.05] tracking-tight">
+              <span className="text-[8.5px] font-black leading-[1.05] tracking-tight">
                 {mockStats.bookings} lượt booking
               </span>
             </div>
-            <div className="flex min-h-[38px] min-w-0 items-center justify-center gap-1 rounded-lg border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-400/16 via-rose-300/[0.06] to-transparent px-1.5 text-center text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-              <Star className="h-3 w-3 shrink-0 fill-current" />
-              <span className="text-[7.5px] font-black leading-[1.05] tracking-tight">
+            <div className="flex min-h-[38px] min-w-0 items-center justify-center rounded-lg border border-fuchsia-300/20 bg-gradient-to-r from-fuchsia-400/16 via-rose-300/[0.06] to-transparent px-1.5 text-center text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <span className="inline-flex items-center justify-center gap-1 leading-none">
+                <Star className="h-3 w-3 shrink-0 translate-y-[-0.5px] fill-current" />
+                <span className="text-[8.5px] font-black leading-none tracking-tight">
                 {mockStats.goodReviews} đánh giá
+                </span>
               </span>
             </div>
           </div>
