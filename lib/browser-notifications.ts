@@ -1,6 +1,6 @@
 "use client";
 
-const DEFAULT_ICON = "/logo_new.png";
+const DEFAULT_ICON = "/logo_icon.png";
 
 type BrowserNotificationInput = {
   body?: string;

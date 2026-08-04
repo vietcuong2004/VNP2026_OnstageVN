@@ -106,7 +106,7 @@ function authUserSnapshot() {
 }
 
 function subscribeAuthUser(onStoreChange: () => void) {
-  if (typeof window === "undefined") return () => {};
+  if (typeof window === "undefined") return () => { };
 
   window.addEventListener("storage", onStoreChange);
   window.addEventListener(AUTH_USER_UPDATED_EVENT, onStoreChange);
@@ -356,14 +356,14 @@ export default function Header() {
 
   const dropdownItems = user
     ? [
-        ...(user.capabilities?.includes("talent")
-          ? [{ label: "Hồ sơ idol", href: "/talent/profile", icon: User }]
-          : []),
-        ...(user.capabilities?.includes("brand")
-          ? [{ label: "Thông tin Brand", href: "/brand/informations", icon: Building2 }]
-          : []),
-        { label: "Cài đặt", href: resolveUnifiedSettingsHref(), icon: Settings },
-      ]
+      ...(user.capabilities?.includes("talent")
+        ? [{ label: "Hồ sơ idol", href: "/talent/profile", icon: User }]
+        : []),
+      ...(user.capabilities?.includes("brand")
+        ? [{ label: "Thông tin Brand", href: "/brand/informations", icon: Building2 }]
+        : []),
+      { label: "Cài đặt", href: resolveUnifiedSettingsHref(), icon: Settings },
+    ]
     : [];
   return (
     <>
@@ -392,7 +392,7 @@ export default function Header() {
             className="flex items-center gap-1.5 hover:opacity-95 transition-opacity focus:outline-none cursor-pointer"
           >
             <img
-              src="/logo_new.png"
+              src="/logo_icon.png"
               alt="OnstageVN Logo Icon"
               className="h-9 w-auto sm:h-10 object-contain shrink-0"
             />
@@ -416,11 +416,10 @@ export default function Header() {
                 key={item.href}
                 type="button"
                 onClick={() => router.push(item.href)}
-                className={`text-[10px] md:text-[11px] font-display font-black uppercase tracking-widest transition-all duration-300 cursor-pointer ${
-                  isActive
+                className={`text-[10px] md:text-[11px] font-display font-black uppercase tracking-widest transition-all duration-300 cursor-pointer ${isActive
                     ? "text-amber-300 underline decoration-amber-400 decoration-[2px] underline-offset-6"
                     : "text-slate-400 hover:text-amber-300"
-                }`}
+                  }`}
               >
                 {item.label}
               </button>

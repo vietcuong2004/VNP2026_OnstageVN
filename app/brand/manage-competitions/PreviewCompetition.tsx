@@ -157,7 +157,7 @@ export default function PreviewCompetition({
               <div className="flex items-center gap-2 min-w-0">
                 <div className="shrink-0" style={{ background: 'linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #b8860b 100%)', padding: '1.5px', borderRadius: '50%' }}>
                   <div className="h-7 w-7 rounded-full bg-[#0a0d1a] overflow-hidden flex items-center justify-center">
-                    <img src={generalInfo.logoUrl || "/logo_new.png"} alt="Logo" className="h-full w-full object-contain" />
+                    <img src={generalInfo.logoUrl || "/logo_icon.png"} alt="Logo" className="h-full w-full object-contain" />
                   </div>
                 </div>
                 <span className="text-xs font-bold text-white truncate">{generalInfo.name}</span>
@@ -341,7 +341,7 @@ export default function PreviewCompetition({
                     <div key={j.id} className="p-3 rounded-xl border border-white/5 bg-slate-900/60 flex flex-col items-center text-center space-y-2 shadow-sm">
                       <div className="h-14 w-14 shrink-0" style={{ background: 'linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #b8860b 100%)', padding: '2px', borderRadius: '50%' }}>
                         <div className="w-full h-full rounded-full bg-[#0a0d1a] overflow-hidden flex items-center justify-center">
-                          <img src={j.avatar || "/logo_new.png"} alt={j.name} className="h-full w-full object-cover" />
+                          <img src={j.avatar || "/logo_icon.png"} alt={j.name} className="h-full w-full object-cover" />
                         </div>
                       </div>
                       <div className="space-y-0.5">
@@ -412,7 +412,7 @@ export default function PreviewCompetition({
                 <div className="p-3.5 rounded-xl bg-slate-900/60 border border-white/5 flex gap-3 items-center">
                   <div className="shrink-0" style={{ background: 'linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #b8860b 100%)', padding: '2px', borderRadius: '50%' }}>
                     <div className="h-10 w-10 rounded-full bg-[#0a0d1a] overflow-hidden flex items-center justify-center p-0.5">
-                      <img src={sponsorsData.organizer.logo || "/logo_new.png"} alt="Organizer" className="h-full w-full object-contain" />
+                      <img src={sponsorsData.organizer.logo || "/logo_icon.png"} alt="Organizer" className="h-full w-full object-contain" />
                     </div>
                   </div>
                   <div className="min-w-0">
@@ -443,7 +443,7 @@ export default function PreviewCompetition({
                       <div key={s.id} className="py-1.5 px-3 rounded-xl bg-white/5 border border-white/10 flex items-center gap-2 shadow-sm">
                         <div className="shrink-0" style={{ background: 'linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #b8860b 100%)', padding: '1.5px', borderRadius: '50%' }}>
                           <div className="h-8 w-8 rounded-full bg-[#0a0d1a] overflow-hidden flex items-center justify-center p-0.5">
-                            <img src={s.logo || "/logo_new.png"} alt={s.name} className="h-full w-full object-contain" />
+                            <img src={s.logo || "/logo_icon.png"} alt={s.name} className="h-full w-full object-contain" />
                           </div>
                         </div>
                         <div className="text-left">
