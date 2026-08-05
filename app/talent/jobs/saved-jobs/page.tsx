@@ -26,7 +26,7 @@ const stageFilterOptions: StageFilter[] = ["all", "apply", "pending", "approved"
 
 const stageFilterLabels: Record<StageFilter, string> = {
   all: "Tất cả",
-  apply: "Ứng tuyển",
+  apply: "Đang tuyển",
   pending: "Chờ duyệt",
   approved: "Đã duyệt",
 };
@@ -611,7 +611,7 @@ export default function SavedJobsPage() {
         selectedStageFilter={selectedStageFilter}
         setSelectedStageFilter={setSelectedStageFilter}
         sortOrder={sortOption}
-        setSortOrder={setSortOption}
+        setSortOrder={setSortOption as any}
         minBudget={minBudget}
         setMinBudget={setMinBudget}
         maxBudget={maxBudget}

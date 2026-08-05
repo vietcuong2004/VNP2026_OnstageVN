@@ -143,7 +143,7 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     await logoutCurrentSession();
-    router.replace("/auth/login");
+    router.replace("/about");
   };
 
   return (

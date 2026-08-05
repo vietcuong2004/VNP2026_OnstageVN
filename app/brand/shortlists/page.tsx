@@ -71,8 +71,14 @@ function parseDistrictLocationValue(value: string) {
   };
 }
 
+function isAllLocation(val?: string): boolean {
+  if (!val) return true;
+  const n = val.toLowerCase().trim();
+  return n === "all" || n === "toàn quốc" || n === "toan quoc" || n === "tất cả" || n === "tat ca";
+}
+
 function matchesTalentLocation(talent: any, filterValue: string) {
-  if (filterValue === allValue) return true;
+  if (isAllLocation(filterValue)) return true;
 
   const districtFilter = parseDistrictLocationValue(filterValue);
   if (districtFilter) {
@@ -86,7 +92,7 @@ function matchesTalentLocation(talent: any, filterValue: string) {
 }
 
 function formatLocationFilterLabel(value: string, options: { label: string; value: string }[]) {
-  if (value === allValue) return "Toàn quốc";
+  if (isAllLocation(value)) return "Toàn quốc";
 
   const districtFilter = parseDistrictLocationValue(value);
   if (districtFilter) {

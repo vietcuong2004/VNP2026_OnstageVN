@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, MapPin, Search, X } from "lucide-react";
 import { cn } from "../../lib/utils";
-import TopIdolCity from "../search/TopIdolCity";
+import TopIdolCity, { TOP_34_CITIES_LOCATIONS } from "../search/all-idols-in-city";
 
 type TalentSortOption = "near_me" | "rating" | "newest" | "oldest" | "name_asc" | "name_desc";
 
@@ -275,8 +275,6 @@ export default function TalentFilterDialog({
   onReset,
   onApply,
 }: TalentFilterDialogProps) {
-  const [expandedHotLocation, setExpandedHotLocation] = useState<string | null>(null);
-  const [isTopIdolCityOpen, setIsTopIdolCityOpen] = useState(false);
   const dialogSortOptions = sortOptions.map((option) => {
     if (option.value === "oldest") return { ...option, label: "Top đánh giá" };
     if (option.value === "name_asc") return { ...option, label: "Top tháng" };
@@ -284,7 +282,7 @@ export default function TalentFilterDialog({
     if (option.value === "newest") return { ...option, label: "Gương mặt mới" };
     return option;
   });
-  const selectedDistrictLocation = parseDistrictLocationValue(selectedCity);
+
   if (!open) return null;
 
   return (
@@ -303,102 +301,6 @@ export default function TalentFilterDialog({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        <div className="relative z-40 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-          <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-            Địa điểm
-          </span>
-          <CityCombobox
-            value={selectedCity}
-            onChange={setSelectedCity}
-            options={cityOptions}
-          />
-          <div className="space-y-2 pt-1">
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
-              Nổi bật
-            </span>
-            <div className="grid gap-2">
-              {HOT_TALENT_LOCATIONS.map((location) => {
-                const isExpanded = expandedHotLocation === location.value;
-                const isSelected =
-                  selectedCity === location.value ||
-                  selectedDistrictLocation?.city === location.value;
-                return (
-                  <div
-                    key={location.label}
-                    className={cn(
-                      "overflow-hidden rounded-2xl border transition",
-                      isSelected
-                        ? "border-[#C9A86A]/70 bg-[#C9A86A]/10"
-                        : "border-white/8 bg-white/[0.03]"
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setExpandedHotLocation(isExpanded ? null : location.value)}
-                      className={cn(
-                        "flex w-full items-center gap-3 px-3 py-3 text-left transition active:scale-[0.99]",
-                        isSelected ? "text-[#C9A86A]" : "text-white"
-                      )}
-                    >
-                      <MapPin className={cn("h-4 w-4 shrink-0", isSelected ? "text-[#C9A86A]" : "text-slate-400")} />
-                      <span className="min-w-0 flex-1 truncate text-sm font-bold">{location.label}</span>
-                      <span className="shrink-0 text-xs font-semibold text-slate-400">{location.count}</span>
-                      <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-500 transition-transform", isExpanded && "rotate-180 text-[#C9A86A]")} />
-                    </button>
-
-                    {isExpanded && (
-                      <div className="space-y-1.5 border-t border-white/5 px-3 pb-3 pt-2">
-                        {location.districts.map((district) => {
-                          const districtValue = makeDistrictLocationValue(location.value, district.value);
-                          const isDistrictSelected = selectedCity === districtValue;
-
-                          return (
-                            <button
-                              key={district.label}
-                              type="button"
-                              onClick={() => setSelectedCity(districtValue)}
-                              className={cn(
-                                "flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-bold transition active:scale-[0.99]",
-                                isDistrictSelected
-                                  ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#C9A86A]"
-                                  : "border-white/8 bg-[#070913]/55 text-slate-200"
-                              )}
-                            >
-                              <span>{district.label}</span>
-                              <span className="text-[10px] font-semibold text-slate-500">{district.count}</span>
-                            </button>
-                          );
-                        })}
-
-                        <button
-                          type="button"
-                          onClick={() => setSelectedCity(location.value)}
-                          className={cn(
-                            "flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-bold transition active:scale-[0.99]",
-                            selectedCity === location.value
-                              ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#C9A86A]"
-                              : "border-white/8 bg-[#070913]/55 text-slate-200"
-                          )}
-                        >
-                          <span>Tất cả {location.label}</span>
-                          <span className="text-[10px] font-semibold text-slate-500">{location.count}</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => setIsTopIdolCityOpen(true)}
-                className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/10 py-2.5 px-4 text-xs font-bold text-slate-200 transition hover:border-white/25 hover:bg-white/20 hover:text-white active:scale-[0.98]"
-              >
-                <span>Xem tất cả</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
         <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Lọc theo
@@ -582,13 +484,6 @@ export default function TalentFilterDialog({
           Áp dụng
         </button>
       </div>
-
-      <TopIdolCity
-        open={isTopIdolCityOpen}
-        onClose={() => setIsTopIdolCityOpen(false)}
-        onSelectCity={(cityValue) => setSelectedCity(cityValue)}
-        selectedCity={selectedCity}
-      />
     </div>
   );
 }

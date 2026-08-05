@@ -730,7 +730,7 @@ export default function CampaignDetailPage() {
             className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-b from-emerald-950/30 via-slate-900/50 to-slate-950/80 p-5 hover:border-emerald-500/50 transition-all duration-300 flex flex-col justify-between space-y-5 shadow-[0_4px_20px_rgba(16,185,129,0.06)] hover:shadow-[0_4px_30px_rgba(16,185,129,0.12)] group animate-in fade-in duration-300"
           >
             <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
-            
+
             {/* Top info */}
             <div className="flex gap-4 items-start text-left relative z-10">
               <div className="relative shrink-0">
@@ -925,7 +925,7 @@ export default function CampaignDetailPage() {
             </div>
             <div className="space-y-1">
               <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-400/25 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-                AFFILIATE LINK
+                LINK ỨNG TUYỂN JOB
               </span>
               <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
                 Ứng tuyển Job

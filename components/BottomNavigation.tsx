@@ -32,7 +32,7 @@ export default function BottomNavigation() {
   async function handleLogout() {
     setShowMoreMenu(false);
     await logoutCurrentSession();
-    router.replace("/auth/login");
+    router.replace("/about");
   }
 
   useEffect(() => {
