@@ -44,7 +44,7 @@ import { findTalentById } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
-import BadgeTier from "@/components/ui/BadgeTier";
+import BadgeTier, { getPrimaryAchievementBadge } from "@/components/ui/BadgeTier";
 import { addBrandRosterTalent, loadBrandRosterTalents, loadBrandTalent, loadBrandWishlists, addTalentToWishlist, removeTalentFromWishlist, createBrandWishlist } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
@@ -539,6 +539,8 @@ export default function BrandTalentProfilePage() {
       languages: talent.languages || [],
       lifestyleServices: talent.lifestyleServices || [],
       tier: talent.tier,
+      badges: talent.badges,
+      active_badges: talent.active_badges,
       score: talent.matchScore,
       aiScore: (talent as any).aiScore || talent.matchScore,
       bio: talent.experience || "",
@@ -658,6 +660,7 @@ export default function BrandTalentProfilePage() {
   const profileSocialHighlights = getStringList(profile.socialHighlights);
   const portfolioLinks = portfolioLinksFromProfile(profile);
   const portfolioOwnerName = String(profile?.name || "Idol").trim().replace(/\s+/g, "_");
+  const primaryBadge = getPrimaryAchievementBadge(profile);
 
   function openPortfolioLink(link: string) {
     window.open(portfolioHref(link), "_blank", "noopener,noreferrer");
@@ -848,14 +851,14 @@ export default function BrandTalentProfilePage() {
                   <MapPin className="h-4 w-4 text-[#F0C56B]" />
                   {profile?.location || "Chưa cập nhật"}
                 </span>
-                {profile?.tier && (
+                {primaryBadge && (
                   <button
                     type="button"
                     onClick={() => setIsTierDialogOpen(true)}
                     className="inline-flex items-center gap-1 rounded-full transition active:scale-95"
                     title="Xem chi tiết danh hiệu"
                   >
-                    <BadgeTier tier={profile.tier} seed={profile.email || profile.name} variant="gradient" size="xs" />
+                    <BadgeTier badge={primaryBadge} tier={profile.tier} seed={profile.email || profile.name} variant="gradient" size="xs" />
                     <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[10px] font-black text-white">
                       ?
                     </span>
@@ -1005,14 +1008,14 @@ export default function BrandTalentProfilePage() {
                     </span>
                   ))}
 
-                  {profile?.tier && (
+                  {primaryBadge && (
                     <button
                       type="button"
                       onClick={() => setIsTierDialogOpen(true)}
                       className="inline-flex items-center gap-1.5 rounded-full transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-98 cursor-pointer select-none"
                       title="Xem chi tiết danh hiệu"
                     >
-                      <BadgeTier tier={profile.tier} seed={profile.email || profile.name} variant="gradient" />
+                      <BadgeTier badge={primaryBadge} tier={profile.tier} seed={profile.email || profile.name} variant="gradient" />
                       <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[8px] font-black text-white transition-colors hover:bg-white/25">
                         ?
                       </span>

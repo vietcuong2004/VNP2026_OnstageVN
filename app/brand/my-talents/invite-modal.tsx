@@ -3,7 +3,7 @@
 import React from "react";
 import { X, Search, Users2, MapPin, CheckCircle, Check, Send } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
-import BadgeTier from "@/components/ui/BadgeTier";
+import BadgeTier, { getPrimaryAchievementBadge } from "@/components/ui/BadgeTier";
 import { cn } from "@/lib/utils";
 
 interface InviteModalProps {
@@ -78,6 +78,7 @@ export default function InviteModal({
               {availableToInvite.map((talent) => {
                 const alreadyInvited = inviteSent.includes(talent.id);
                 const status = getTalentStatus(talent.id);
+                const primaryBadge = getPrimaryAchievementBadge(talent);
                 return (
                   <article key={talent.id} className="rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg hover:border-[#C9A86A]/30 transition-all duration-300 group flex flex-col justify-between min-w-0 text-left">
                     <div>
@@ -87,7 +88,7 @@ export default function InviteModal({
 
                         {/* Overlay top badges */}
                         <div className="absolute top-2 left-2 flex flex-col gap-1.5">
-                          <BadgeTier tier={talent.tier} seed={talent.id || talent.email || talent.name} variant="gradient" size="xs" />
+                          <BadgeTier badge={primaryBadge} tier={talent.tier} seed={talent.id || talent.email || talent.name} variant="gradient" size="xs" />
                         </div>
 
                         {/* Floating status badge */}

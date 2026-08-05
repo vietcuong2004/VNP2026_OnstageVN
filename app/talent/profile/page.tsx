@@ -13,7 +13,7 @@ import EditInfoTab from "./EditInfoTab";
 import AddonServicesTab from "./AddonServicesTab";
 import ProgressBar from "@/components/ui/ProgressBar";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
-import BadgeTier from "@/components/ui/BadgeTier";
+import BadgeTier, { getPrimaryAchievementBadge } from "@/components/ui/BadgeTier";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { getAuthToken } from "@/lib/api-client";
 import { deleteTalentPhotoCategory, ensureTalentProfile, loadTalentProfile, persistTalentProfile, TALENT_PROFILE_UPDATED_EVENT, uploadTalentPhoto } from "@/lib/talent-api";
@@ -241,6 +241,7 @@ export default function PortfolioPage() {
   const portfolioLinks = portfolioLinksFromProfile(profile);
   const portfolioOwnerName = String(profile?.name || "Idol").trim().replace(/\s+/g, "_");
   const headerBio = profile.bio && profile.bio !== profile.education ? profile.bio : "";
+  const primaryBadge = getPrimaryAchievementBadge(profile);
 
   function openPortfolioLink(link: string) {
     window.open(portfolioHref(link), "_blank", "noopener,noreferrer");
@@ -548,14 +549,14 @@ export default function PortfolioPage() {
                   <MapPin className="h-4 w-4 text-[#F0C56B]" />
                   {profile.location || "Chưa cập nhật"}
                 </span>
-                {profile.isOnboarded && profile.tier && (
+                {profile.isOnboarded && primaryBadge && (
                   <button
                     type="button"
                     onClick={() => setIsTierDialogOpen(true)}
                     className="inline-flex items-center gap-1 rounded-full transition active:scale-95"
                     title="Xem chi tiết danh hiệu"
                   >
-                    <BadgeTier tier={profile.tier} seed={profile.email || profile.name} variant="gradient" size="xs" />
+                    <BadgeTier badge={primaryBadge} tier={profile.tier} seed={profile.email || profile.name} variant="gradient" size="xs" />
                     <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[10px] font-black text-white">
                       ?
                     </span>
@@ -728,14 +729,14 @@ export default function PortfolioPage() {
                     </span>
                   ))}
 
-                  {profile.isOnboarded && profile.tier && (
+                  {profile.isOnboarded && primaryBadge && (
                     <button
                       type="button"
                       onClick={() => setIsTierDialogOpen(true)}
                       className="inline-flex items-center gap-1.5 rounded-full transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-98 cursor-pointer select-none"
                       title="Xem chi tiết danh hiệu"
                     >
-                      <BadgeTier tier={profile.tier} seed={profile.email || profile.name} variant="gradient" />
+                      <BadgeTier badge={primaryBadge} tier={profile.tier} seed={profile.email || profile.name} variant="gradient" />
                       <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[8px] font-black text-white transition-colors hover:bg-white/25">
                         ?
                       </span>

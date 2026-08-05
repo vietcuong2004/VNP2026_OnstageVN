@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
-import BadgeTier from "@/components/ui/BadgeTier";
+import BadgeTier, { getPrimaryAchievementBadge } from "@/components/ui/BadgeTier";
 import type { BrandTalentCard, RosterTalent } from "./page";
 
 interface TalentCardProps {
@@ -66,6 +66,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
   const locationText = [talent.district, talent.city].filter(Boolean).join(", ") || talent.city;
   const experienceYears = Number(talent.yearsOfExperience ?? talent.experience_years ?? 0);
   const talentTypes = getTalentTypes(talent);
+  const primaryBadge = getPrimaryAchievementBadge(talent);
 
   return (
     <article
@@ -89,7 +90,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
           />
 
           <div className="absolute left-2 top-2 flex flex-col gap-1.5">
-            <BadgeTier tier={talent.tier} seed={talent.id || talent.email || talent.name} variant="gradient" size="xs" />
+            <BadgeTier badge={primaryBadge} tier={talent.tier} seed={talent.id || talent.email || talent.name} variant="gradient" size="xs" />
           </div>
 
           {/* 3-dot menu */}
