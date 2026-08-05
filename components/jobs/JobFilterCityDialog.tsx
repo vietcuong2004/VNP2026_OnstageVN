@@ -151,7 +151,6 @@ export default function JobFilterCityDialog({
               }}
               placeholder="Nhập địa điểm..."
               className="h-10 w-full rounded-full border border-white/10 bg-slate-950/55 pl-9 pr-9 text-sm font-medium text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/60"
-              autoFocus
             />
             {searchQuery && (
               <button
@@ -197,8 +196,11 @@ export default function JobFilterCityDialog({
                   type="button"
                   onClick={() => {
                     setDraftCity("all");
-                    setSearchQuery("Toàn quốc");
+                    setSearchQuery("");
                     setUserTypedQuery("");
+                    if (typeof document !== "undefined") {
+                      (document.activeElement as HTMLElement)?.blur();
+                    }
                   }}
                   className="flex w-full items-center gap-3 px-3 py-3 text-left transition active:scale-[0.99] cursor-pointer"
                 >

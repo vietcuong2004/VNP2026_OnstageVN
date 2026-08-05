@@ -61,250 +61,45 @@ export const TOP_34_CITIES_LOCATIONS: CityLocationItem[] = [
     value: "hà nội",
     count: "100+ idol",
     districts: [
-      {
-        label: "Cầu Giấy",
-        value: "cầu giấy",
-        count: "50 idol",
-        wards: [
-          { label: "Dịch Vọng", value: "dịch vọng" },
-          { label: "Dịch Vọng Hậu", value: "dịch vọng hậu" },
-          { label: "Mai Dịch", value: "mai dịch" },
-          { label: "Nghĩa Đô", value: "nghĩa đô" },
-          { label: "Nghĩa Tân", value: "nghĩa tân" },
-          { label: "Quan Hoa", value: "quan hoa" },
-          { label: "Trung Hòa", value: "trung hòa" },
-          { label: "Yên Hòa", value: "yên hòa" },
-        ],
-      },
-      {
-        label: "Tây Hồ",
-        value: "tây hồ",
-        count: "40 idol",
-        wards: [
-          { label: "Bưởi", value: "bưởi" },
-          { label: "Thụy Khuê", value: "thụy khuê" },
-          { label: "Yên Phụ", value: "yên phụ" },
-          { label: "Tứ Liên", value: "tứ liên" },
-          { label: "Nhật Tân", value: "nhật tân" },
-          { label: "Quảng An", value: "quảng an" },
-          { label: "Xuân La", value: "xuân la" },
-          { label: "Phú Thượng", value: "phú thượng" },
-        ],
-      },
-      {
-        label: "Đống Đa",
-        value: "đống đa",
-        count: "36 idol",
-        wards: [
-          { label: "Văn Miếu", value: "văn miếu" },
-          { label: "Quốc Tử Giám", value: "quốc tử giám" },
-          { label: "Hàng Bột", value: "hàng bột" },
-          { label: "Nam Đồng", value: "nam đồng" },
-          { label: "Trung Liệt", value: "trung liệt" },
-          { label: "Khâm Thiên", value: "khâm thiên" },
-          { label: "Phương Liên", value: "phương liên" },
-          { label: "Phương Mai", value: "phương mai" },
-          { label: "Thổ Quan", value: "thổ quan" },
-          { label: "Khương Thượng", value: "khương thượng" },
-          { label: "Ngã Tư Sở", value: "ngã tư sở" },
-          { label: "Láng Thượng", value: "láng thượng" },
-          { label: "Láng Hạ", value: "láng hạ" },
-          { label: "Ô Chợ Dừa", value: "ô chợ dừa" },
-          { label: "Thịnh Quang", value: "thịnh quang" },
-          { label: "Trung Phụng", value: "trung phụng" },
-          { label: "Trung Tự", value: "trung tự" },
-          { label: "Kim Liên", value: "kim liên" },
-          { label: "Cát Linh", value: "cát linh" },
-        ],
-      },
-      {
-        label: "Ba Đình",
-        value: "ba đình",
-        count: "32 idol",
-        wards: [
-          { label: "Phúc Xá", value: "phúc xá" },
-          { label: "Trúc Bạch", value: "trúc bạch" },
-          { label: "Vĩnh Phúc", value: "vĩnh phúc" },
-          { label: "Cống Vị", value: "cống vị" },
-          { label: "Liễu Giai", value: "liễu giai" },
-          { label: "Nguyễn Trung Trực", value: "nguyễn trung trực" },
-          { label: "Quán Thánh", value: "quán thánh" },
-          { label: "Ngọc Hà", value: "ngọc hà" },
-          { label: "Điện Biên", value: "điện biên" },
-          { label: "Đội Cấn", value: "đội cấn" },
-          { label: "Ngọc Khánh", value: "ngọc khánh" },
-          { label: "Kim Mã", value: "kim mã" },
-          { label: "Giảng Võ", value: "giảng võ" },
-          { label: "Thành Công", value: "thành công" },
-        ],
-      },
-      {
-        label: "Hoàn Kiếm",
-        value: "hoàn kiếm",
-        count: "30 idol",
-        wards: [
-          { label: "Đồng Xuân", value: "đồng xuân" },
-          { label: "Hàng Ma", value: "hàng ma" },
-          { label: "Hàng Buồm", value: "hàng buồm" },
-          { label: "Hàng Đào", value: "hàng đào" },
-          { label: "Hàng Bồ", value: "hàng bồ" },
-          { label: "Cửa Đông", value: "cửa đông" },
-          { label: "Lý Thái Tổ", value: "lý thái tổ" },
-          { label: "Hàng Bạc", value: "hàng bạc" },
-          { label: "Hàng Gai", value: "hàng gai" },
-          { label: "Chương Dương", value: "chương dương" },
-          { label: "Tràng Tiền", value: "tràng tiền" },
-          { label: "Cửa Nam", value: "cửa nam" },
-          { label: "Hàng Bông", value: "hàng bông" },
-          { label: "Tràng Thi", value: "tràng thi" },
-          { label: "Phan Chu Trinh", value: "phan chu trinh" },
-          { label: "Trần Hưng Đạo", value: "trần hưng đạo" },
-          { label: "Phạm Đình Hổ", value: "phạm đình hổ" },
-        ],
-      },
-      {
-        label: "Thanh Xuân",
-        value: "thanh xuân",
-        count: "28 idol",
-        wards: [
-          { label: "Hạ Đình", value: "hạ đình" },
-          { label: "Kim Giang", value: "kim giang" },
-          { label: "Khương Đình", value: "khương đình" },
-          { label: "Khương Mai", value: "khương mai" },
-          { label: "Khương Trung", value: "khương trung" },
-          { label: "Nhân Chính", value: "nhân chính" },
-          { label: "Phương Liệt", value: "phương liệt" },
-          { label: "Thanh Xuân Bắc", value: "thanh xuân bắc" },
-          { label: "Thanh Xuân Nam", value: "thanh xuân nam" },
-          { label: "Thanh Xuân Trung", value: "thanh xuân trung" },
-          { label: "Thượng Đình", value: "thượng đình" },
-        ],
-      },
-      {
-        label: "Hai Bà Trưng",
-        value: "hai bà trưng",
-        count: "25 idol",
-        wards: [
-          { label: "Bạch Đằng", value: "bạch đằng" },
-          { label: "Bách Khoa", value: "bách khoa" },
-          { label: "Bạch Mai", value: "bạch mai" },
-          { label: "Cầu Dền", value: "cầu dền" },
-          { label: "Đống Mác", value: "đống mác" },
-          { label: "Đồng Nhân", value: "đồng nhân" },
-          { label: "Đồng Tâm", value: "đồng tâm" },
-          { label: "Lê Đại Hành", value: "lê đại hành" },
-          { label: "Minh Khai", value: "minh khai" },
-          { label: "Ngô Thì Nhậm", value: "ngô thì nhậm" },
-          { label: "Nguyễn Du", value: "nguyễn du" },
-          { label: "Phạm Đình Hổ", value: "phạm đình hổ" },
-          { label: "Phố Huế", value: "phố huế" },
-          { label: "Quỳnh Lôi", value: "quỳnh lôi" },
-          { label: "Quỳnh Mai", value: "quỳnh mai" },
-          { label: "Thanh Lương", value: "thanh lương" },
-          { label: "Thanh Nhàn", value: "thanh nhàn" },
-          { label: "Trương Định", value: "trương định" },
-          { label: "Vĩnh Tuy", value: "vĩnh tuy" },
-        ],
-      },
-      {
-        label: "Nam Từ Liêm",
-        value: "nam từ liêm",
-        count: "24 idol",
-        wards: [
-          { label: "Cầu Diễn", value: "cầu diễn" },
-          { label: "Mỹ Đình 1", value: "mỹ đình 1" },
-          { label: "Mỹ Đình 2", value: "mỹ đình 2" },
-          { label: "Phú Đô", value: "phú đô" },
-          { label: "Mễ Trì", value: "mễ trì" },
-          { label: "Trung Văn", value: "trung văn" },
-          { label: "Đại Mỗ", value: "đại mỗ" },
-          { label: "Tây Mỗ", value: "tây mỗ" },
-          { label: "Phương Canh", value: "phương canh" },
-          { label: "Xuân Phương", value: "xuân phương" },
-        ],
-      },
-      {
-        label: "Bắc Từ Liêm",
-        value: "bắc từ liêm",
-        count: "22 idol",
-        wards: [
-          { label: "Thụy Phương", value: "thụy phương" },
-          { label: "Minh Khai", value: "minh khai" },
-          { label: "Đông Ngạc", value: "đông ngạc" },
-          { label: "Đức Thắng", value: "đức thắng" },
-          { label: "Cổ Nhuế 1", value: "cổ nhuế 1" },
-          { label: "Cổ Nhuế 2", value: "cổ nhuế 2" },
-          { label: "Liên Mạc", value: "liên mạc" },
-          { label: "Thượng Cát", value: "thượng cát" },
-          { label: "Tây Tựu", value: "tây tựu" },
-          { label: "Phú Diễn", value: "phú diễn" },
-          { label: "Phúc Diễn", value: "phúc diễn" },
-        ],
-      },
-      {
-        label: "Hoàng Mai",
-        value: "hoàng mai",
-        count: "20 idol",
-        wards: [
-          { label: "Hoàng Liệt", value: "hoàng liệt" },
-          { label: "Yên Sở", value: "yên sở" },
-          { label: "Vĩnh Hưng", value: "vĩnh hưng" },
-          { label: "Định Công", value: "định công" },
-          { label: "Đại Kim", value: "đại kim" },
-          { label: "Thịnh Liệt", value: "thịnh liệt" },
-          { label: "Thanh Trì", value: "thanh trì" },
-          { label: "Lĩnh Nam", value: "lĩnh nam" },
-          { label: "Trần Phú", value: "trần phú" },
-          { label: "Mai Động", value: "mai động" },
-          { label: "Tương Mai", value: "tương mai" },
-          { label: "Tân Mai", value: "tân mai" },
-          { label: "Giáp Bát", value: "giáp bát" },
-          { label: "Hoàng Văn Thụ", value: "hoàng văn thụ" },
-        ],
-      },
-      {
-        label: "Hà Đông",
-        value: "hà đông",
-        count: "20 idol",
-        wards: [
-          { label: "Quang Trung", value: "quang trung" },
-          { label: "Nguyễn Trãi", value: "nguyễn trãi" },
-          { label: "Hà Cầu", value: "hà cầu" },
-          { label: "Vạn Phúc", value: "vạn phúc" },
-          { label: "Phúc La", value: "phúc la" },
-          { label: "Yết Kiêu", value: "yết kiêu" },
-          { label: "Mộ Lao", value: "mộ lao" },
-          { label: "Văn Quán", value: "văn quán" },
-          { label: "La Khê", value: "la khê" },
-          { label: "Phú La", value: "phú la" },
-          { label: "Kiến Hưng", value: "kiến hưng" },
-          { label: "Yên Nghĩa", value: "yên nghĩa" },
-          { label: "Dương Nội", value: "dương nội" },
-          { label: "Phú Lãm", value: "phú lãm" },
-          { label: "Phú Lương", value: "phú lương" },
-        ],
-      },
-      {
-        label: "Long Biên",
-        value: "long biên",
-        count: "18 idol",
-        wards: [
-          { label: "Bồ Đề", value: "bồ đề" },
-          { label: "Gia Thụy", value: "gia thụy" },
-          { label: "Cự Khối", value: "cự khối" },
-          { label: "Đức Giang", value: "đức giang" },
-          { label: "Giang Biên", value: "giang biên" },
-          { label: "Long Biên", value: "long biên" },
-          { label: "Ngọc Lâm", value: "ngọc lâm" },
-          { label: "Ngọc Thụy", value: "ngọc thụy" },
-          { label: "Phúc Đồng", value: "phúc đồng" },
-          { label: "Phúc Lợi", value: "phúc lợi" },
-          { label: "Sài Đồng", value: "sài đồng" },
-          { label: "Thạch Bàn", value: "thạch bàn" },
-          { label: "Thượng Thanh", value: "thượng thanh" },
-          { label: "Việt Hưng", value: "việt hưng" },
-        ],
-      },
+      { label: "Ba Đình", value: "ba đình", count: "32 idol" },
+      { label: "Bạch Mai", value: "bạch mai", count: "25 idol" },
+      { label: "Cầu Giấy", value: "cầu giấy", count: "50 idol" },
+      { label: "Cửa Nam", value: "cửa nam", count: "20 idol" },
+      { label: "Đại Mỗ", value: "đại mỗ", count: "18 idol" },
+      { label: "Đống Đa", value: "đống đa", count: "36 idol" },
+      { label: "Dương Nội", value: "dương nội", count: "15 idol" },
+      { label: "Giảng Võ", value: "giảng võ", count: "22 idol" },
+      { label: "Hai Bà Trưng", value: "hai bà trưng", count: "25 idol" },
+      { label: "Hoàn Kiếm", value: "hoàn kiếm", count: "30 idol" },
+      { label: "Hoàng Liệt", value: "hoàng liệt", count: "20 idol" },
+      { label: "Hồng Hà", value: "hồng hà", count: "16 idol" },
+      { label: "Khương Đình", value: "khương đình", count: "18 idol" },
+      { label: "Kim Liên", value: "kim liên", count: "22 idol" },
+      { label: "Láng", value: "láng", count: "24 idol" },
+      { label: "Long Biên", value: "long biên", count: "18 idol" },
+      { label: "Minh Khai", value: "minh khai", count: "20 idol" },
+      { label: "Mỹ Đình", value: "mỹ đình", count: "35 idol" },
+      { label: "Nghĩa Đô", value: "nghĩa đô", count: "20 idol" },
+      { label: "Ngọc Hà", value: "ngọc hà", count: "18 idol" },
+      { label: "Ô Chợ Dừa", value: "ô chợ dừa", count: "26 idol" },
+      { label: "Phú Diễn", value: "phú diễn", count: "16 idol" },
+      { label: "Phú Thượng", value: "phú thượng", count: "18 idol" },
+      { label: "Phú Xuyên", value: "phú xuyên", count: "12 idol" },
+      { label: "Phúc Diễn", value: "phúc diễn", count: "15 idol" },
+      { label: "Phúc La", value: "phúc la", count: "14 idol" },
+      { label: "Phương Liệt", value: "phương liệt", count: "18 idol" },
+      { label: "Tây Hồ", value: "tây hồ", count: "40 idol" },
+      { label: "Thanh Liệt", value: "thanh liệt", count: "16 idol" },
+      { label: "Thanh Xuân", value: "thanh xuân", count: "28 idol" },
+      { label: "Thượng Cát", value: "thượng cát", count: "14 idol" },
+      { label: "Từ Liêm", value: "từ liêm", count: "30 idol" },
+      { label: "Văn Miếu - Quốc Tử Giám", value: "văn miếu - quốc tử giám", count: "20 idol" },
+      { label: "Việt Hưng", value: "việt hưng", count: "16 idol" },
+      { label: "Vĩnh Hưng", value: "vĩnh hưng", count: "15 idol" },
+      { label: "Vĩnh Tuy", value: "vĩnh tuy", count: "18 idol" },
+      { label: "Xuân Đỉnh", value: "xuân đỉnh", count: "22 idol" },
+      { label: "Xuân Phương", value: "xuân phương", count: "16 idol" },
+      { label: "Yên Hòa", value: "yên hòa", count: "24 idol" },
     ],
   },
   {
@@ -728,7 +523,6 @@ export default function TopIdolCity({
               }}
               placeholder="Nhập địa điểm..."
               className="h-10 w-full rounded-full border border-white/10 bg-slate-950/55 pl-9 pr-9 text-sm font-medium text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/60"
-              autoFocus
             />
             {searchQuery && (
               <button
@@ -771,65 +565,27 @@ export default function TopIdolCity({
               {filteredDistricts.map((district) => {
                 const districtValue = makeDistrictLocationValue(targetCityObj.value, district.value);
                 const isDistrictSelected = draftCity === districtValue;
-                const isExpanded = expandedDistrict === district.value || userTypedQuery.trim() !== "";
 
                 return (
-                  <div
+                  <button
                     key={district.value}
-                    className="rounded-2xl border border-white/10 bg-[#0b0e1a]/85 p-3.5 space-y-2 transition hover:border-white/20 hover:bg-[#0e1222]"
+                    type="button"
+                    onClick={() => {
+                      setDraftCity(districtValue);
+                      setSearchQuery(`${targetCityObj.label}, ${district.label}`);
+                      setUserTypedQuery("");
+                    }}
+                    className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[#0b0e1a]/85 px-4 py-3.5 text-left text-xs font-bold text-slate-200 transition active:scale-[0.99] cursor-pointer hover:border-white/20 hover:bg-[#0e1222]"
                   >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDraftCity(districtValue);
-                        setSearchQuery(`${targetCityObj.label}, ${district.label}`);
-                        if (district.wards && district.wards.length > 0) {
-                          setExpandedDistrict((prev) => (prev === district.value ? null : district.value));
-                        }
-                      }}
-                      className="flex w-full items-center justify-between text-left cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <MapPin className="h-4 w-4 shrink-0 text-[#C9A86A]" />
-                        <span className="truncate text-sm font-bold text-white">{district.label}</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs font-semibold text-slate-400">{district.count}</span>
-                        {isDistrictSelected && <Check className="h-4 w-4 text-emerald-400 shrink-0" />}
-                        {district.wards && district.wards.length > 0 && (
-                          <ChevronDown className={cn("h-4 w-4 text-slate-400 transition-transform", isExpanded && "rotate-180 text-[#C9A86A]")} />
-                        )}
-                      </div>
-                    </button>
-
-                    {district.wards && district.wards.length > 0 && isExpanded && (
-                      <div className="pt-2 border-t border-white/5 flex flex-wrap gap-1.5">
-                        {district.wards.map((ward) => {
-                          const wardValue = `${districtValue}:${encodeURIComponent(ward.value)}`;
-                          const isWardSelected = draftCity === wardValue;
-                          return (
-                            <button
-                              key={ward.label}
-                              type="button"
-                              onClick={() => {
-                                setDraftCity(wardValue);
-                                setSearchQuery(`${targetCityObj.label}, ${district.label}, Phường ${ward.label}`);
-                              }}
-                              className={cn(
-                                "rounded-lg px-2.5 py-1 text-xs font-semibold border transition active:scale-95 cursor-pointer flex items-center gap-1",
-                                isWardSelected
-                                  ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-300"
-                                  : "border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:text-white"
-                              )}
-                            >
-                              <span>Phường {ward.label}</span>
-                              {isWardSelected && <Check className="h-3 w-3 text-emerald-400 shrink-0" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <MapPin className="h-4 w-4 shrink-0 text-[#C9A86A]" />
+                      <span className="truncate text-sm font-bold text-white">{district.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs font-semibold text-slate-400">{district.count}</span>
+                      {isDistrictSelected && <Check className="h-4 w-4 text-emerald-400 shrink-0" />}
+                    </div>
+                  </button>
                 );
               })}
 
