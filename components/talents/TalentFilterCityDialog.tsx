@@ -1,15 +1,88 @@
 "use client";
 
-import { ArrowLeft, Locate, MapPin, RefreshCw, Search, X } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowLeft, ChevronDown, Locate, MapPin, RefreshCw, Search, X } from "lucide-react";
 import { cn } from "../../lib/utils";
+import TopIdolCity from "../search/TopIdolCity";
 
 const HOT_TALENT_LOCATIONS = [
-  { label: "Hà Nội", value: "hà nội", count: "100+ idol" },
-  { label: "Hồ Chí Minh", value: "hồ chí minh", count: "100+ idol" },
-  { label: "Đà Nẵng", value: "đà nẵng", count: "40+ idol" },
-  { label: "Hải Phòng", value: "hải phòng", count: "30+ idol" },
-  { label: "Cần Thơ", value: "cần thơ", count: "20+ idol" },
+  {
+    label: "Hà Nội",
+    value: "hà nội",
+    count: "100+ idol",
+    districts: [
+      { label: "Tây Hồ", value: "tây hồ", count: "40 idol" },
+      { label: "Thái Hà", value: "thái hà", count: "32 idol" },
+      { label: "Hoàng Cầu", value: "hoàng cầu", count: "28 idol" },
+      { label: "Cầu Giấy", value: "cầu giấy", count: "50 idol" },
+      { label: "Đống Đa", value: "đống đa", count: "36 idol" },
+    ],
+  },
+  {
+    label: "Hồ Chí Minh",
+    value: "hồ chí minh",
+    count: "100+ idol",
+    districts: [
+      { label: "Quận 1", value: "quận 1", count: "45 idol" },
+      { label: "Thảo Điền", value: "thảo điền", count: "38 idol" },
+      { label: "Bình Thạnh", value: "bình thạnh", count: "34 idol" },
+      { label: "Phú Nhuận", value: "phú nhuận", count: "31 idol" },
+      { label: "Quận 7", value: "quận 7", count: "29 idol" },
+    ],
+  },
+  {
+    label: "Đà Nẵng",
+    value: "đà nẵng",
+    count: "40+ idol",
+    districts: [
+      { label: "Hải Châu", value: "hải châu", count: "18 idol" },
+      { label: "Sơn Trà", value: "sơn trà", count: "16 idol" },
+      { label: "Phú Mỹ An", value: "phú mỹ an", count: "14 idol" },
+      { label: "Thanh Khê", value: "thanh khê", count: "12 idol" },
+      { label: "Liên Chiểu", value: "liên chiểu", count: "10 idol" },
+    ],
+  },
+  {
+    label: "Hải Phòng",
+    value: "hải phòng",
+    count: "30+ idol",
+    districts: [
+      { label: "Lê Chân", value: "lê chân", count: "14 idol" },
+      { label: "Ngô Quyền", value: "ngô quyền", count: "12 idol" },
+      { label: "Hồng Bàng", value: "hồng bàng", count: "10 idol" },
+      { label: "Hải An", value: "hải an", count: "9 idol" },
+      { label: "Đồ Sơn", value: "đồ sơn", count: "8 idol" },
+    ],
+  },
+  {
+    label: "Cần Thơ",
+    value: "cần thơ",
+    count: "20+ idol",
+    districts: [
+      { label: "Ninh Kiều", value: "ninh kiều", count: "12 idol" },
+      { label: "Cái Răng", value: "cái răng", count: "9 idol" },
+      { label: "Bình Thủy", value: "bình thủy", count: "8 idol" },
+      { label: "Ô Môn", value: "ô môn", count: "6 idol" },
+      { label: "Thốt Nốt", value: "thốt nốt", count: "5 idol" },
+    ],
+  },
 ];
+
+const DISTRICT_FILTER_PREFIX = "district:";
+
+function makeDistrictLocationValue(city: string, district: string) {
+  return `${DISTRICT_FILTER_PREFIX}${encodeURIComponent(city)}:${encodeURIComponent(district)}`;
+}
+
+function parseDistrictLocationValue(value: string) {
+  if (!value.startsWith(DISTRICT_FILTER_PREFIX)) return null;
+  const [city = "", district = ""] = value.slice(DISTRICT_FILTER_PREFIX.length).split(":");
+  if (!city || !district) return null;
+  return {
+    city: decodeURIComponent(city),
+    district: decodeURIComponent(district),
+  };
+}
 
 type CityOption = {
   label: string;
@@ -41,6 +114,11 @@ export default function TalentFilterCityDialog({
   currentLocationLabel = "Hà Nội",
   currentLocationValue = "Hà Nội",
 }: TalentFilterCityDialogProps) {
+  const [expandedHotLocation, setExpandedHotLocation] = useState<string | null>(null);
+  const [isTopIdolCityOpen, setIsTopIdolCityOpen] = useState(false);
+
+  const selectedDistrictLocation = parseDistrictLocationValue(selectedCity);
+
   if (!open) return null;
 
   const filteredCityOptions = cityOptions.filter((option) =>
@@ -114,25 +192,84 @@ export default function TalentFilterCityDialog({
             </span>
             <div className="grid gap-2">
               {HOT_TALENT_LOCATIONS.map((location) => {
-                const isSelected = selectedCity === location.value;
+                const isExpanded = expandedHotLocation === location.value;
+                const isSelected =
+                  selectedCity === location.value ||
+                  selectedDistrictLocation?.city === location.value;
                 return (
-                  <button
+                  <div
                     key={location.label}
-                    type="button"
-                    onClick={() => onSelectCity(location.value)}
                     className={cn(
-                      "flex items-center gap-3 rounded-2xl border px-3 py-3 text-left transition active:scale-[0.99]",
+                      "overflow-hidden rounded-2xl border transition",
                       isSelected
-                        ? "border-[#C9A86A]/70 bg-[#C9A86A]/12 text-[#C9A86A]"
-                        : "border-white/8 bg-white/[0.03] text-white"
+                        ? "border-[#C9A86A]/70 bg-[#C9A86A]/10"
+                        : "border-white/8 bg-white/[0.03]"
                     )}
                   >
-                    <MapPin className={cn("h-4.5 w-4.5 shrink-0", isSelected ? "text-[#C9A86A]" : "text-slate-400")} />
-                    <span className="min-w-0 flex-1 truncate text-sm font-bold">{location.label}</span>
-                    <span className="shrink-0 text-xs font-semibold text-slate-400">{location.count}</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedHotLocation(isExpanded ? null : location.value)}
+                      className={cn(
+                        "flex w-full items-center gap-3 px-3 py-3 text-left transition active:scale-[0.99]",
+                        isSelected ? "text-[#C9A86A]" : "text-white"
+                      )}
+                    >
+                      <MapPin className={cn("h-4 w-4 shrink-0", isSelected ? "text-[#C9A86A]" : "text-slate-400")} />
+                      <span className="min-w-0 flex-1 truncate text-sm font-bold">{location.label}</span>
+                      <span className="shrink-0 text-xs font-semibold text-slate-400">{location.count}</span>
+                      <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-500 transition-transform", isExpanded && "rotate-180 text-[#C9A86A]")} />
+                    </button>
+
+                    {isExpanded && (
+                      <div className="space-y-1.5 border-t border-white/5 px-3 pb-3 pt-2">
+                        {location.districts.map((district) => {
+                          const districtValue = makeDistrictLocationValue(location.value, district.value);
+                          const isDistrictSelected = selectedCity === districtValue;
+
+                          return (
+                            <button
+                              key={district.label}
+                              type="button"
+                              onClick={() => onSelectCity(districtValue)}
+                              className={cn(
+                                "flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-bold transition active:scale-[0.99]",
+                                isDistrictSelected
+                                  ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#C9A86A]"
+                                  : "border-white/8 bg-[#070913]/55 text-slate-200"
+                              )}
+                            >
+                              <span>{district.label}</span>
+                              <span className="text-[10px] font-semibold text-slate-500">{district.count}</span>
+                            </button>
+                          );
+                        })}
+
+                        <button
+                          type="button"
+                          onClick={() => onSelectCity(location.value)}
+                          className={cn(
+                            "flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-bold transition active:scale-[0.99]",
+                            selectedCity === location.value
+                              ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#C9A86A]"
+                              : "border-white/8 bg-[#070913]/55 text-slate-200"
+                          )}
+                        >
+                          <span>Tất cả {location.label}</span>
+                          <span className="text-[10px] font-semibold text-slate-500">{location.count}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
+
+              <button
+                type="button"
+                onClick={() => setIsTopIdolCityOpen(true)}
+                className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/10 py-2.5 px-4 text-xs font-bold text-slate-200 transition hover:border-white/25 hover:bg-white/20 hover:text-white active:scale-[0.98]"
+              >
+                <span>Xem tất cả</span>
+              </button>
             </div>
           </div>
         )}
@@ -160,6 +297,16 @@ export default function TalentFilterCityDialog({
           })}
         </div>
       </div>
+
+      <TopIdolCity
+        open={isTopIdolCityOpen}
+        onClose={() => setIsTopIdolCityOpen(false)}
+        onSelectCity={(cityValue) => {
+          onSelectCity(cityValue);
+          setIsTopIdolCityOpen(false);
+        }}
+        selectedCity={selectedCity}
+      />
     </div>
   );
 }

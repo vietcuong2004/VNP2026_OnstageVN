@@ -77,6 +77,30 @@ function normalizeCityName(value: string) {
   return value.replace(/^(TP\.|Tỉnh)\s*/i, "").trim();
 }
 
+const DISTRICT_FILTER_PREFIX = "district:";
+
+function parseDistrictLocationValue(value?: string) {
+  if (!value || !value.startsWith(DISTRICT_FILTER_PREFIX)) return null;
+  const [city = "", district = ""] = value.slice(DISTRICT_FILTER_PREFIX.length).split(":");
+  if (!city || !district) return null;
+  return {
+    city: decodeURIComponent(city),
+    district: decodeURIComponent(district),
+  };
+}
+
+function formatLocationFilterLabel(value: string, options: { label: string; value: string }[]) {
+  if (value === allValue) return "Toàn quốc";
+
+  const districtFilter = parseDistrictLocationValue(value);
+  if (districtFilter) {
+    const cityLabel = options.find((option) => option.value === normalizeCityName(districtFilter.city) || option.value === districtFilter.city)?.label || districtFilter.city;
+    return `${cityLabel}, ${districtFilter.district}`;
+  }
+
+  return options.find((opt) => opt.value === value)?.label || value;
+}
+
 const cityOptions = [
   { value: allValue, label: "Toàn quốc" },
   ...CITY_VALUES.map((city) => ({ value: normalizeCityName(city), label: city })),
@@ -287,8 +311,7 @@ export default function SavedJobsPage() {
   }, [savedJobs]);
 
   const currentCityLabel = useMemo(() => {
-    if (selectedCity === allValue) return "Toàn quốc";
-    return cityOptions.find((option) => option.value === selectedCity)?.label || selectedCity;
+    return formatLocationFilterLabel(selectedCity, cityOptions);
   }, [selectedCity]);
 
   const filteredJobs = useMemo(() => {
@@ -309,7 +332,13 @@ export default function SavedJobsPage() {
         const haystack = normalizeSearchText(rawHaystack);
 
         const matchesSearch = !rawKeyword || (keywordRegex ? keywordRegex.test(rawHaystack) : haystack.includes(keyword));
-        const matchesCity = selectedCity === allValue || normalizeCityName(job?.city || "") === normalizeCityName(selectedCity);
+        const districtFilter = parseDistrictLocationValue(selectedCity);
+        const matchesCity = selectedCity === allValue || (
+          districtFilter
+            ? normalizeCityName(job?.city || "") === normalizeCityName(districtFilter.city) &&
+              normalizeSearchText(job?.district || job?.location || job?.address || "").includes(normalizeSearchText(districtFilter.district))
+            : normalizeCityName(job?.city || "") === normalizeCityName(selectedCity)
+        );
         const matchesType = selectedJobType === allValue || String(job?.type || "") === selectedJobType;
         const matchesStage = selectedStageFilter === "all" || getJobStage(job) === selectedStageFilter;
         const budgetValue = getBudgetValue(job);

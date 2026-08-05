@@ -64,13 +64,13 @@ const TALENT_PAGES_PER_RESULT_PAGE = 2;
 const TALENTS_PER_RESULT_PAGE = TALENTS_PER_PAGE * TALENT_PAGES_PER_RESULT_PAGE;
 
 type TalentSortOption = "near_me" | "rating" | "newest" | "oldest" | "name_asc" | "name_desc";
-type MobileTalentQuickTab = "all" | "top_month" | "newest" | "reviewed";
+type MobileTalentQuickTab = "all" | "top_month" | "newest" | "top_reviewed";
 
 const MOBILE_TALENT_QUICK_TABS: Array<{ value: MobileTalentQuickTab | "more"; label: string }> = [
   { value: "all", label: "Tất cả" },
   { value: "top_month", label: "Top tháng" },
+  { value: "top_reviewed", label: "Top đánh giá" },
   { value: "newest", label: "Mới" },
-  { value: "reviewed", label: "Đánh giá tốt" },
   { value: "more", label: "Thêm" },
 ];
 
@@ -147,6 +147,44 @@ const genderOptions = [
 
 function normalizeCityName(cityName: string): string {
   return cityName.toLowerCase().replace(/^(tỉnh|thành phố|tp\.?)\s+/i, "").trim();
+}
+
+const DISTRICT_FILTER_PREFIX = "district:";
+
+function parseDistrictLocationValue(value: string) {
+  if (!value.startsWith(DISTRICT_FILTER_PREFIX)) return null;
+  const [city = "", district = ""] = value.slice(DISTRICT_FILTER_PREFIX.length).split(":");
+  if (!city || !district) return null;
+  return {
+    city: decodeURIComponent(city),
+    district: decodeURIComponent(district),
+  };
+}
+
+function matchesTalentLocation(talent: any, filterValue: string) {
+  if (filterValue === allValue) return true;
+
+  const districtFilter = parseDistrictLocationValue(filterValue);
+  if (districtFilter) {
+    return (
+      normalizeCityName(talent.city || "") === normalizeCityName(districtFilter.city) &&
+      normalizeCityName(talent.district || talent.location || "") === normalizeCityName(districtFilter.district)
+    );
+  }
+
+  return normalizeCityName(talent.city || "") === normalizeCityName(filterValue);
+}
+
+function formatLocationFilterLabel(value: string, options: { label: string; value: string }[]) {
+  if (value === allValue) return "Toàn quốc";
+
+  const districtFilter = parseDistrictLocationValue(value);
+  if (districtFilter) {
+    const cityLabel = options.find((option) => option.value === districtFilter.city)?.label || districtFilter.city;
+    return `${cityLabel}, ${districtFilter.district}`;
+  }
+
+  return options.find((opt) => opt.value === value)?.label || value;
 }
 
 const cityOptions = [
@@ -698,15 +736,16 @@ export default function DiscoverTalentsPage() {
     type: appliedFilters.type !== allValue
       ? appliedFilters.type.split(",").map((type) => type.trim()).filter(Boolean)
       : undefined,
-    city: appliedFilters.city !== allValue ? appliedFilters.city : undefined,
+    city: appliedFilters.city !== allValue
+      ? parseDistrictLocationValue(appliedFilters.city)?.city || appliedFilters.city
+      : undefined,
     gender: appliedFilters.gender !== allValue ? backendGenderValue(appliedFilters.gender) : undefined,
     minHeight: appliedFilters.showAdvancedFilters ? appliedFilters.minHeight : undefined,
     maxHeight: appliedFilters.showAdvancedFilters ? appliedFilters.maxHeight : undefined,
   }), [appliedFilters]);
 
   const currentCityLabel = useMemo(() => {
-    if (appliedFilters.city === allValue) return "Toàn quốc";
-    return cityOptions.find((opt) => opt.value === appliedFilters.city)?.label || appliedFilters.city;
+    return formatLocationFilterLabel(appliedFilters.city, cityOptions);
   }, [appliedFilters.city]);
 
   const talentSearchSuggestions = useMemo(
@@ -816,25 +855,25 @@ export default function DiscoverTalentsPage() {
       setWishlistItemIds({});
     } else {
       loadBrandWishlists([]).then((wishlists) => {
-      if (cancelled) return;
+        if (cancelled) return;
 
-      const primaryWishlist = wishlists[0];
-      if (!primaryWishlist) {
-        setSavedIds([]);
-        setWishlistId(null);
-        setWishlistItemIds({});
-        return;
-      }
+        const primaryWishlist = wishlists[0];
+        if (!primaryWishlist) {
+          setSavedIds([]);
+          setWishlistId(null);
+          setWishlistItemIds({});
+          return;
+        }
 
-      setWishlistId(primaryWishlist.id);
-      setSavedIds(primaryWishlist.savedIds);
-      setWishlistItemIds(
-        primaryWishlist.items.reduce((acc: Record<string, string>, item: any) => {
-          const profileId = String(item.profile_id || item.profile?.id || "");
-          if (profileId) acc[profileId] = String(item.id);
-          return acc;
-        }, {})
-      );
+        setWishlistId(primaryWishlist.id);
+        setSavedIds(primaryWishlist.savedIds);
+        setWishlistItemIds(
+          primaryWishlist.items.reduce((acc: Record<string, string>, item: any) => {
+            const profileId = String(item.profile_id || item.profile?.id || "");
+            if (profileId) acc[profileId] = String(item.id);
+            return acc;
+          }, {})
+        );
       });
     }
 
@@ -902,9 +941,7 @@ export default function DiscoverTalentsPage() {
             const activeFilterTypes = appliedFilters.type.split(",").map(t => normalizeTalentType(t));
             return activeFilterTypes.includes(normalizedTalent);
           });
-        const matchesCity =
-          appliedFilters.city === allValue ||
-          normalizeCityName(talent.city || "") === normalizeCityName(appliedFilters.city);
+        const matchesCity = matchesTalentLocation(talent, appliedFilters.city);
 
         const usesAdvancedFilters = appliedFilters.showAdvancedFilters;
         const matchesHeight = !usesAdvancedFilters || !talent.height || (talent.height >= appliedFilters.minHeight && talent.height <= appliedFilters.maxHeight);

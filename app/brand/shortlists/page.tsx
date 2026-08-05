@@ -59,6 +59,44 @@ function normalizeCityName(cityName: string): string {
   return cityName.toLowerCase().replace(/^(tỉnh|thành phố|tp\.?)\s+/i, "").trim();
 }
 
+const DISTRICT_FILTER_PREFIX = "district:";
+
+function parseDistrictLocationValue(value: string) {
+  if (!value.startsWith(DISTRICT_FILTER_PREFIX)) return null;
+  const [city = "", district = ""] = value.slice(DISTRICT_FILTER_PREFIX.length).split(":");
+  if (!city || !district) return null;
+  return {
+    city: decodeURIComponent(city),
+    district: decodeURIComponent(district),
+  };
+}
+
+function matchesTalentLocation(talent: any, filterValue: string) {
+  if (filterValue === allValue) return true;
+
+  const districtFilter = parseDistrictLocationValue(filterValue);
+  if (districtFilter) {
+    return (
+      normalizeCityName(talent.city || "") === normalizeCityName(districtFilter.city) &&
+      normalizeCityName(talent.district || talent.location || "") === normalizeCityName(districtFilter.district)
+    );
+  }
+
+  return normalizeCityName(talent.city || "") === normalizeCityName(filterValue);
+}
+
+function formatLocationFilterLabel(value: string, options: { label: string; value: string }[]) {
+  if (value === allValue) return "Toàn quốc";
+
+  const districtFilter = parseDistrictLocationValue(value);
+  if (districtFilter) {
+    const cityLabel = options.find((option) => option.value === districtFilter.city)?.label || districtFilter.city;
+    return `${cityLabel}, ${districtFilter.district}`;
+  }
+
+  return options.find((option) => option.value === value)?.label || value;
+}
+
 const cityOptions = [
   { label: "Toàn quốc", value: allValue },
   ...CITY_VALUES.map((city: string) => ({ label: city, value: normalizeCityName(city) })),
@@ -453,8 +491,7 @@ export default function BrandShortlistsPage() {
   const activeTalents = activeTab === "saved" ? savedTalents : viewedTalents;
 
   const currentCityLabel = useMemo(() => {
-    if (selectedCity === allValue) return "Toàn quốc";
-    return cityOptions.find((option) => option.value === selectedCity)?.label || selectedCity;
+    return formatLocationFilterLabel(selectedCity, cityOptions);
   }, [selectedCity]);
 
   const filteredSavedTalents = useMemo(() => {
@@ -476,9 +513,7 @@ export default function BrandShortlistsPage() {
             const activeFilterTypes = selectedType.split(",").map((item) => normalizeTalentType(item));
             return activeFilterTypes.includes(normalizedTalent);
           });
-        const matchesCity =
-          selectedCity === allValue ||
-          normalizeCityName(talent.city || "") === normalizeCityName(selectedCity);
+        const matchesCity = matchesTalentLocation(talent, selectedCity);
         const matchesHeight = !talent.height || (talent.height >= minHeight && talent.height <= maxHeight);
         const matchesWeight = !talent.weight || (talent.weight >= minWeight && talent.weight <= maxWeight);
 

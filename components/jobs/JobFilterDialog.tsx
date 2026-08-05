@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, Search, X } from "lucide-react";
+import { Check, ChevronDown, MapPin, Search, X } from "lucide-react";
 import { cn } from "../../lib/utils";
+import TopJobCity from "../search/TopJobCity";
 
 type StageFilter = "apply" | "pending" | "approved" | "all";
 type SortOrder = "newest" | "oldest";
@@ -36,6 +37,85 @@ type JobFilterDialogProps = {
   onApply: () => void;
 };
 
+const HOT_JOB_LOCATIONS = [
+  {
+    label: "Hà Nội",
+    value: "hà nội",
+    count: "100+ công việc",
+    districts: [
+      { label: "Tây Hồ", value: "tây hồ", count: "40 công việc" },
+      { label: "Thái Hà", value: "thái hà", count: "32 công việc" },
+      { label: "Hoàng Cầu", value: "hoàng cầu", count: "28 công việc" },
+      { label: "Cầu Giấy", value: "cầu giấy", count: "50 công việc" },
+      { label: "Đống Đa", value: "đống đa", count: "36 công việc" },
+    ],
+  },
+  {
+    label: "Hồ Chí Minh",
+    value: "hồ chí minh",
+    count: "100+ công việc",
+    districts: [
+      { label: "Quận 1", value: "quận 1", count: "45 công việc" },
+      { label: "Thảo Điền", value: "thảo điền", count: "38 công việc" },
+      { label: "Bình Thạnh", value: "bình thạnh", count: "34 công việc" },
+      { label: "Phú Nhuận", value: "phú nhuận", count: "31 công việc" },
+      { label: "Quận 7", value: "quận 7", count: "29 công việc" },
+    ],
+  },
+  {
+    label: "Đà Nẵng",
+    value: "đà nẵng",
+    count: "40+ công việc",
+    districts: [
+      { label: "Hải Châu", value: "hải châu", count: "18 công việc" },
+      { label: "Sơn Trà", value: "sơn trà", count: "16 công việc" },
+      { label: "Phú Mỹ An", value: "phú mỹ an", count: "14 công việc" },
+      { label: "Thanh Khê", value: "thanh khê", count: "12 công việc" },
+      { label: "Liên Chiểu", value: "liên chiểu", count: "10 công việc" },
+    ],
+  },
+  {
+    label: "Hải Phòng",
+    value: "hải phòng",
+    count: "30+ công việc",
+    districts: [
+      { label: "Lê Chân", value: "lê chân", count: "14 công việc" },
+      { label: "Ngô Quyền", value: "ngô quyền", count: "12 công việc" },
+      { label: "Hồng Bàng", value: "hồng bàng", count: "10 công việc" },
+      { label: "Hải An", value: "hải an", count: "9 công việc" },
+      { label: "Đồ Sơn", value: "đồ sơn", count: "8 công việc" },
+    ],
+  },
+  {
+    label: "Cần Thơ",
+    value: "cần thơ",
+    count: "20+ công việc",
+    districts: [
+      { label: "Ninh Kiều", value: "ninh kiều", count: "12 công việc" },
+      { label: "Cái Răng", value: "cái răng", count: "9 công việc" },
+      { label: "Bình Thủy", value: "bình thủy", count: "8 công việc" },
+      { label: "Ô Môn", value: "ô môn", count: "6 công việc" },
+      { label: "Thốt Nốt", value: "thốt nốt", count: "5 công việc" },
+    ],
+  },
+];
+
+const DISTRICT_FILTER_PREFIX = "district:";
+
+function makeDistrictLocationValue(city: string, district: string) {
+  return `${DISTRICT_FILTER_PREFIX}${encodeURIComponent(city)}:${encodeURIComponent(district)}`;
+}
+
+function parseDistrictLocationValue(value?: string) {
+  if (!value || !value.startsWith(DISTRICT_FILTER_PREFIX)) return null;
+  const [city = "", district = ""] = value.slice(DISTRICT_FILTER_PREFIX.length).split(":");
+  if (!city || !district) return null;
+  return {
+    city: decodeURIComponent(city),
+    district: decodeURIComponent(district),
+  };
+}
+
 function parseVNDNumber(value: string): number {
   const digits = value.replace(/\D/g, "");
   return digits ? parseInt(digits, 10) : 0;
@@ -68,7 +148,14 @@ function CityCombobox({
   const comboboxRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
-  const selectedOption = options.find((option) => option.value === value) || options[0];
+  const selectedDistrict = parseDistrictLocationValue(value);
+  const selectedOption = options.find((option) => option.value === value) ||
+    (selectedDistrict
+      ? {
+          value,
+          label: `${options.find((option) => option.value === selectedDistrict.city)?.label || selectedDistrict.city}, ${selectedDistrict.district}`,
+        }
+      : options[0]);
 
   const filteredOptions = useMemo(() => {
     const keyword = normalizeSearchText(searchInput);
@@ -191,6 +278,10 @@ export default function JobFilterDialog({
   onReset,
   onApply,
 }: JobFilterDialogProps) {
+  const [expandedHotLocation, setExpandedHotLocation] = useState<string | null>(null);
+  const [isTopJobCityOpen, setIsTopJobCityOpen] = useState(false);
+  const selectedDistrictLocation = parseDistrictLocationValue(selectedCity);
+
   if (!open) return null;
 
   return (
@@ -198,9 +289,9 @@ export default function JobFilterDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="job-filter-dialog-title"
-      className="fixed inset-0 z-[999] flex h-dvh w-screen flex-col overflow-hidden bg-[#050711] text-white animate-in fade-in duration-200 md:hidden"
+      className="fixed inset-0 z-[1000] flex h-dvh w-screen flex-col overflow-hidden bg-[#050711] text-white animate-in fade-in duration-200"
     >
-      <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-white/5 bg-[#070913] px-5">
+      <div className="flex shrink-0 items-center justify-between border-b border-white/5 bg-[#070913] px-5 py-4">
         <h2
           id="job-filter-dialog-title"
           className="font-display text-base font-black tracking-wide text-white uppercase"
@@ -210,15 +301,114 @@ export default function JobFilterDialog({
         <button
           type="button"
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-white/5 bg-slate-950/60 text-slate-400 transition hover:border-[#C9A86A]/40 hover:text-white"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-white/5 bg-slate-950/60 text-slate-400 hover:text-white"
           aria-label="Đóng bộ lọc"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-32 space-y-4 custom-scrollbar">
-        <div className="relative z-0 rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {/* Địa điểm Card (Matching TalentFilterDialog) */}
+        <div className="relative z-40 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+          <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+            Địa điểm
+          </span>
+          <CityCombobox
+            value={selectedCity}
+            onChange={setSelectedCity}
+            options={cityOptions}
+          />
+          <div className="space-y-2 pt-1">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Nổi bật
+            </span>
+            <div className="grid gap-2">
+              {HOT_JOB_LOCATIONS.map((location) => {
+                const isExpanded = expandedHotLocation === location.value;
+                const isSelected =
+                  selectedCity === location.value ||
+                  selectedDistrictLocation?.city === location.value;
+                return (
+                  <div
+                    key={location.label}
+                    className={cn(
+                      "overflow-hidden rounded-2xl border transition",
+                      isSelected
+                        ? "border-[#C9A86A]/70 bg-[#C9A86A]/10"
+                        : "border-white/8 bg-white/[0.03]"
+                    )}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setExpandedHotLocation(isExpanded ? null : location.value)}
+                      className={cn(
+                        "flex w-full items-center gap-3 px-3 py-3 text-left transition active:scale-[0.99]",
+                        isSelected ? "text-[#C9A86A]" : "text-white"
+                      )}
+                    >
+                      <MapPin className={cn("h-4 w-4 shrink-0", isSelected ? "text-[#C9A86A]" : "text-slate-400")} />
+                      <span className="min-w-0 flex-1 truncate text-sm font-bold">{location.label}</span>
+                      <span className="shrink-0 text-xs font-semibold text-slate-400">{location.count}</span>
+                      <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-500 transition-transform", isExpanded && "rotate-180 text-[#C9A86A]")} />
+                    </button>
+
+                    {isExpanded && (
+                      <div className="space-y-1.5 border-t border-white/5 px-3 pb-3 pt-2">
+                        {location.districts.map((district) => {
+                          const districtValue = makeDistrictLocationValue(location.value, district.value);
+                          const isDistrictSelected = selectedCity === districtValue;
+
+                          return (
+                            <button
+                              key={district.label}
+                              type="button"
+                              onClick={() => setSelectedCity(districtValue)}
+                              className={cn(
+                                "flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-bold transition active:scale-[0.99]",
+                                isDistrictSelected
+                                  ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#C9A86A]"
+                                  : "border-white/8 bg-[#070913]/55 text-slate-200"
+                              )}
+                            >
+                              <span>{district.label}</span>
+                              <span className="text-[10px] font-semibold text-slate-500">{district.count}</span>
+                            </button>
+                          );
+                        })}
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCity(location.value)}
+                          className={cn(
+                            "flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-bold transition active:scale-[0.99]",
+                            selectedCity === location.value
+                              ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#C9A86A]"
+                              : "border-white/8 bg-[#070913]/55 text-slate-200"
+                          )}
+                        >
+                          <span>Tất cả {location.label}</span>
+                          <span className="text-[10px] font-semibold text-slate-500">{location.count}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() => setIsTopJobCityOpen(true)}
+                className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/10 py-2.5 px-4 text-xs font-bold text-slate-200 transition hover:border-white/25 hover:bg-white/20 hover:text-white active:scale-[0.98]"
+              >
+                <span>Xem tất cả</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Sắp xếp theo Card */}
+        <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Sắp xếp theo
           </span>
@@ -231,9 +421,9 @@ export default function JobFilterDialog({
                   type="button"
                   onClick={() => setSortOrder(option)}
                   className={cn(
-                    "min-h-10 rounded-full border px-3 text-xs font-semibold transition-all",
+                    "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate",
                     isActive
-                      ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold"
+                      ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
                       : "border-white/10 bg-[#070913]/60 text-slate-350"
                   )}
                 >
@@ -244,18 +434,8 @@ export default function JobFilterDialog({
           </div>
         </div>
 
-        <div className="relative z-40 rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
-          <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-            Địa điểm
-          </span>
-          <CityCombobox
-            value={selectedCity}
-            onChange={setSelectedCity}
-            options={cityOptions}
-          />
-        </div>
-
-        <div className="relative z-0 rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
+        {/* Loại hình job Card */}
+        <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Loại hình job
           </span>
@@ -268,30 +448,31 @@ export default function JobFilterDialog({
                   type="button"
                   onClick={() => setSelectedJobType(option.value)}
                   className={cn(
-                    "flex min-h-10 items-center justify-start gap-2.5 rounded-full border px-3 text-xs font-semibold transition-all",
+                    "py-2.5 px-3 rounded-full border text-xs font-semibold flex items-center justify-start gap-2.5 transition-all truncate",
                     isActive
-                      ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold"
+                      ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
                       : "border-white/10 bg-[#070913]/60 text-slate-350"
                   )}
                 >
-                  <span
+                  <div
                     className={cn(
-                      "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all",
+                      "w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-all",
                       isActive
                         ? "border-[#C9A86A] bg-[#C9A86A] text-slate-950"
                         : "border-white/20 bg-slate-950/40 text-transparent"
                     )}
                   >
                     <Check className="h-3 w-3 stroke-[3px]" />
-                  </span>
-                  <span className="line-clamp-1">{option.label}</span>
+                  </div>
+                  <span className="truncate">{option.label}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        <div className="rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
+        {/* Trạng thái Card */}
+        <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Trạng thái
           </span>
@@ -305,17 +486,17 @@ export default function JobFilterDialog({
                   type="button"
                   onClick={() => setSelectedStageFilter(option)}
                   className={cn(
-                    "flex min-h-10 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-all",
+                    "py-2.5 px-3 rounded-full border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all truncate",
                     isActive
-                      ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold"
+                      ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
                       : "border-white/10 bg-[#070913]/60 text-slate-350"
                   )}
                 >
-                  <span className="line-clamp-1">{stageFilterLabels[option]}</span>
+                  <span className="truncate">{stageFilterLabels[option]}</span>
                   {count > 0 && (
                     <span
                       className={cn(
-                        "rounded-full px-1.5 py-0.5 text-[9px] font-black",
+                        "rounded-full px-1.5 py-0.5 text-[9px] font-black shrink-0",
                         isActive ? "bg-[#C9A86A]/20" : "bg-white/5 text-slate-500"
                       )}
                     >
@@ -328,7 +509,8 @@ export default function JobFilterDialog({
           </div>
         </div>
 
-        <div className="rounded-[1.4rem] border border-white/5 bg-[#0b0e1a]/85 p-4 shadow-md shadow-black/10 space-y-3.5">
+        {/* Thù lao Card */}
+        <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
             Thù lao
           </span>
@@ -344,7 +526,7 @@ export default function JobFilterDialog({
                   value={minBudget ? formatVNDNumber(minBudget) : ""}
                   onChange={(event) => setMinBudget(parseVNDNumber(event.target.value))}
                   placeholder="VD: 700.000"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#070913]/60 px-3 pr-24 text-xs font-semibold text-white outline-none focus:border-[#C9A86A]/60"
+                  className="h-9 w-full rounded-full border border-white/10 bg-[#070913]/60 px-3 pr-24 text-xs font-semibold text-white outline-none focus:border-[#C9A86A]/60"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-500">
                   VND / ngày
@@ -363,7 +545,7 @@ export default function JobFilterDialog({
                   value={maxBudget ? formatVNDNumber(maxBudget) : ""}
                   onChange={(event) => setMaxBudget(parseVNDNumber(event.target.value))}
                   placeholder="VD: 1.000.000"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#070913]/60 px-3 pr-24 text-xs font-semibold text-white outline-none focus:border-[#C9A86A]/60"
+                  className="h-9 w-full rounded-full border border-white/10 bg-[#070913]/60 px-3 pr-24 text-xs font-semibold text-white outline-none focus:border-[#C9A86A]/60"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-500">
                   VND / ngày
@@ -374,22 +556,29 @@ export default function JobFilterDialog({
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-[1000] border-t border-white/5 bg-[#070913] p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] flex gap-3">
+      <div className="shrink-0 border-t border-white/5 bg-[#070913] p-4 flex gap-3 z-10 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
         <button
           type="button"
           onClick={onReset}
-          className="flex w-1/2 items-center justify-center rounded-full border border-white/10 bg-slate-900/40 py-3 text-xs font-semibold uppercase tracking-wider text-slate-350 transition active:scale-95"
+          className="w-1/2 py-3 rounded-full border border-white/10 bg-slate-900/40 text-slate-350 text-xs font-semibold uppercase tracking-wider transition active:scale-95 flex items-center justify-center gap-1.5"
         >
           Đặt lại
         </button>
         <button
           type="button"
           onClick={onApply}
-          className="flex w-1/2 items-center justify-center rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-lg transition active:scale-95"
+          className="w-1/2 py-3 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5"
         >
           Áp dụng
         </button>
       </div>
+
+      <TopJobCity
+        open={isTopJobCityOpen}
+        onClose={() => setIsTopJobCityOpen(false)}
+        onSelectCity={(cityValue) => setSelectedCity(cityValue)}
+        selectedCity={selectedCity}
+      />
     </div>
   );
 }

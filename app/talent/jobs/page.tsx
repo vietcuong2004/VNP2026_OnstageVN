@@ -70,6 +70,30 @@ function normalizeCityName(value: string) {
   return value.replace(/^(TP\.|Tỉnh)\s*/i, "").trim();
 }
 
+const DISTRICT_FILTER_PREFIX = "district:";
+
+function parseDistrictLocationValue(value?: string) {
+  if (!value || !value.startsWith(DISTRICT_FILTER_PREFIX)) return null;
+  const [city = "", district = ""] = value.slice(DISTRICT_FILTER_PREFIX.length).split(":");
+  if (!city || !district) return null;
+  return {
+    city: decodeURIComponent(city),
+    district: decodeURIComponent(district),
+  };
+}
+
+function formatLocationFilterLabel(value: string, options: { label: string; value: string }[]) {
+  if (value === allValue) return "Toàn quốc";
+
+  const districtFilter = parseDistrictLocationValue(value);
+  if (districtFilter) {
+    const cityLabel = options.find((option) => option.value === normalizeCityName(districtFilter.city) || option.value === districtFilter.city)?.label || districtFilter.city;
+    return `${cityLabel}, ${districtFilter.district}`;
+  }
+
+  return options.find((opt) => opt.value === value)?.label || value;
+}
+
 const cityDropdownOptions = [
   { value: allValue, label: "Toàn quốc" },
   ...cityOptions.map((city) => ({ value: normalizeCityName(city), label: city })),
@@ -793,11 +817,16 @@ function JobsPageContent() {
   };
 
   const filteredCampaigns = displayJobs.filter((camp) => {
-    const selectedCityText = normalizeFilterText(appliedCity);
+    const districtFilter = parseDistrictLocationValue(appliedCity);
+    const selectedCityText = normalizeFilterText(districtFilter ? districtFilter.city : appliedCity);
     const selectedTypeText = normalizeFilterText(appliedJobType);
 
-    const matchesCity = appliedCity === allValue
-      || normalizeFilterText(camp.city).includes(selectedCityText);
+    const matchesCity = appliedCity === allValue || (
+      districtFilter
+        ? normalizeFilterText(camp.city || "").includes(normalizeFilterText(districtFilter.city)) &&
+          normalizeFilterText(camp.district || camp.location || camp.address || camp.title || "").includes(normalizeFilterText(districtFilter.district))
+        : normalizeFilterText(camp.city || "").includes(selectedCityText)
+    );
 
     const matchesType = appliedJobType === allValue
       || [
@@ -902,8 +931,7 @@ function JobsPageContent() {
   const stageCounts = jobStageCounts;
   const activeResultTotal = stageCounts[selectedStageFilter] ?? jobTotal;
   const currentCityLabel = useMemo(() => {
-    if (appliedCity === allValue) return "Toàn quốc";
-    return cityDropdownOptions.find((option) => option.value === appliedCity)?.label || appliedCity;
+    return formatLocationFilterLabel(appliedCity, cityDropdownOptions);
   }, [appliedCity]);
   const isMobileFiltersActive =
     selectedCity !== allValue ||
