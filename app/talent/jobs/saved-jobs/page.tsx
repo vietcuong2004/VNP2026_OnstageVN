@@ -8,9 +8,9 @@ import JobCard from "@/components/jobs/JobCard";
 import JobCardMobile from "@/components/jobs/JobCardMobile";
 import JobFilterCityDialog from "@/components/jobs/JobFilterCityDialog";
 import JobFilterDialog from "@/components/jobs/JobFilterDialog";
-import { CITY_VALUES } from "@/components/ui/ComboboxOptionValues";
 import { cn } from "@/lib/utils";
 import { loadSavedJobsForSession, SAVED_JOBS_UPDATED_EVENT, type SavedJobRecord } from "@/lib/saved-jobs";
+import { normalizeLocationName, useCityFilterOptions } from "@/hooks/use-location-options";
 
 const allValue = "Tất cả";
 
@@ -74,7 +74,7 @@ function getBudgetValue(job: any) {
   return Math.max(...numbers) * multiplier;
 }
 function normalizeCityName(value: string) {
-  return value.replace(/^(TP\.|Tỉnh)\s*/i, "").trim();
+  return normalizeLocationName(value);
 }
 
 const DISTRICT_FILTER_PREFIX = "district:";
@@ -101,10 +101,6 @@ function formatLocationFilterLabel(value: string, options: { label: string; valu
   return options.find((opt) => opt.value === value)?.label || value;
 }
 
-const cityOptions = [
-  { value: allValue, label: "Toàn quốc" },
-  ...CITY_VALUES.map((city) => ({ value: normalizeCityName(city), label: city })),
-];
 
 function formatDate(value?: string | null) {
   if (!value) return "";
@@ -269,6 +265,7 @@ function FilterDropdown({
 }
 
 export default function SavedJobsPage() {
+  const cityOptions = useCityFilterOptions("Toàn quốc", allValue);
   const router = useRouter();
   const [savedJobs, setSavedJobs] = useState<SavedJobRecord[]>([]);
   const [searchInput, setSearchInput] = useState("");

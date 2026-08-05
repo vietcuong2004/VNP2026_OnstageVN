@@ -1206,6 +1206,7 @@ export interface CreateManagedTalentPayload {
   name: string;
   phone?: string;
   city: string;
+  city_id?: number;
   talent_types: string[];
   notes?: string;
   avatar?: File | null;
@@ -1218,6 +1219,7 @@ export async function createBrandManagedTalent(payload: CreateManagedTalentPaylo
   formData.append("display_name", payload.name);
   if (payload.phone) formData.append("phone", payload.phone);
   if (payload.city) formData.append("city", payload.city);
+  if (payload.city_id) formData.append("city_id", String(payload.city_id));
   payload.talent_types.forEach((type) => formData.append("talent_types[]", type));
   if (payload.notes) formData.append("notes", payload.notes);
   if (payload.avatar) formData.append("avatar", payload.avatar);
@@ -1245,6 +1247,7 @@ export interface UpdateManagedTalentPayload {
   name?: string;
   phone?: string;
   city?: string;
+  city_id?: number;
   talent_types?: string[];
   notes?: string | null;
 }
@@ -1261,6 +1264,7 @@ export async function updateBrandManagedTalent(
       display_name: payload.name,
       phone: payload.phone || null,
       city: payload.city || null,
+      city_id: payload.city_id || null,
       talent_types: payload.talent_types,
       notes: payload.notes ?? null,
     }),

@@ -11,13 +11,13 @@ import { persistTalentProfile, ensureTalentProfile, saveTalentProfile, submitTal
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
 import ProgressBar from "@/components/ui/ProgressBar";
 import {
-  CITY_VALUES,
   SOCIAL_HIGHLIGHT_PRESET_GROUPS,
   TALENT_TYPE_VALUES,
   normalizeTalentTypeLabel,
   normalizeTalentTypeList,
 } from "@/components/ui/ComboboxOptionValues";
 import { SPECIALTY_PRESET_GROUPS, flattenTalentPresetOptions } from "@/lib/talent-profile-presets";
+import { CityOption, useCityOptions } from "@/hooks/use-location-options";
 
 const convertToInputDate = (dateStr: string) => {
   if (!dateStr) return "";
@@ -77,24 +77,24 @@ function portfolioHref(link: string): string {
   return /^https?:\/\//i.test(link) ? link : `https://${link}`;
 }
 
-const cityOptions = CITY_VALUES;
 
 interface CitySelectProps {
   label: string;
   value: string;
+  options: CityOption[];
   onChange: (value: string) => void;
 }
 
-function CitySelect({ label, value, onChange }: CitySelectProps) {
+function CitySelect({ label, value, options, onChange }: CitySelectProps) {
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
 
   const filteredOptions = React.useMemo(() => {
     const keyword = searchInput.trim().toLowerCase();
-    if (!keyword) return cityOptions;
-    return cityOptions.filter(city => city.toLowerCase().includes(keyword));
-  }, [searchInput]);
+    if (!keyword) return options;
+    return options.filter((city) => city.label.toLowerCase().includes(keyword));
+  }, [options, searchInput]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -115,7 +115,7 @@ function CitySelect({ label, value, onChange }: CitySelectProps) {
           onClick={() => setIsOpen(!isOpen)}
           className="flex w-full items-center justify-between gap-2 rounded-xl border border-white/20 bg-[#060918] px-3.5 py-2.5 text-left text-xs font-semibold text-white outline-none transition-all hover:border-amber-400 focus:border-amber-400 shadow-inner"
         >
-          <span className="truncate">{value || `Chọn ${label.toLowerCase()}...`}</span>
+          <span className="truncate">{options.find((city) => city.value === value || city.label === value)?.label || value || `Chọn ${label.toLowerCase()}...`}</span>
           <ChevronDown className={cn("h-4 w-4 shrink-0 text-amber-400 transition-transform", isOpen && "rotate-180")} />
         </button>
 
@@ -134,13 +134,13 @@ function CitySelect({ label, value, onChange }: CitySelectProps) {
                 <div className="px-3 py-2 text-xs text-slate-400 italic">Không tìm thấy kết quả</div>
               ) : (
                 filteredOptions.map((city) => {
-                  const isSelected = city === value;
+                  const isSelected = city.value === value || city.label === value;
                   return (
                     <button
-                      key={city}
+                      key={city.id ?? city.value}
                       type="button"
                       onClick={() => {
-                        onChange(city);
+                        onChange(city.value);
                         setSearchInput("");
                         setIsOpen(false);
                       }}
@@ -149,7 +149,7 @@ function CitySelect({ label, value, onChange }: CitySelectProps) {
                         isSelected ? "bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30" : "text-slate-200"
                       )}
                     >
-                      {city}
+                      {city.label}
                     </button>
                   );
                 })
@@ -175,6 +175,7 @@ export default function EditInfoTab({
   addToast,
   setActiveTab
 }: EditInfoTabProps) {
+  const cityOptions = useCityOptions();
 
   // Identity card (CCCD) upload states
   const [cccdFront, setCccdFront] = useState<string | null>(null);
@@ -584,6 +585,7 @@ export default function EditInfoTab({
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     try {
+      const selectedCityOption = cityOptions.find((option) => option.value === editForm.location || option.label === editForm.location);
       const updated = {
         ...profile,
         name: editForm.name,
@@ -594,7 +596,9 @@ export default function EditInfoTab({
         bust: Number(editForm.bust),
         waist: Number(editForm.waist),
         hips: Number(editForm.hips),
-        location: editForm.location,
+        location: selectedCityOption?.label || editForm.location,
+        city_id: selectedCityOption?.id,
+        cityId: selectedCityOption?.id,
         hometown: editForm.hometown,
         education: editForm.education,
         bio: editForm.experienceText,
@@ -744,6 +748,7 @@ export default function EditInfoTab({
               </div>
 
               <CitySelect
+                options={cityOptions}
                 label="Thành phố"
                 value={editForm.location}
                 onChange={(val) => setEditForm((prev: any) => ({ ...prev, location: val }))}

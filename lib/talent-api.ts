@@ -39,7 +39,9 @@ type BackendProfile = {
   display_name?: string | null;
   talent_types?: string[] | null;
   city?: string | null;
+  city_id?: number | null;
   district?: string | null;
+  district_id?: number | null;
   gender?: string | null;
   birth_date?: string | null;
   height_cm?: number | null;
@@ -466,7 +468,11 @@ export function mapBackendProfile(profile: BackendProfile | null) {
     cccdBack: cccdBackUrl || local.cccdBack || "",
     cccdSelfie: cccdSelfieUrl || local.cccdSelfie || "",
     location: profile.city || "",
+    city_id: profile.city_id ?? undefined,
+    cityId: profile.city_id ?? undefined,
     hometown: profile.district || "",
+    district_id: profile.district_id ?? undefined,
+    districtId: profile.district_id ?? undefined,
     gender: displayGender(profile.gender) || "",
     dob: displayDate(profile.birth_date) || "",
     height: profile.height_cm ?? "",
@@ -534,6 +540,7 @@ export function buildBackendProfilePayload(profile: any) {
     phone: profile.phone || undefined,
     talent_types: talentTypes.length ? talentTypes : ["KOL"],
     city: profile.location || undefined,
+    city_id: Number(profile.city_id ?? profile.cityId ?? 0) || undefined,
     district: profile.hometown || undefined,
     gender: normalizeGender(profile.gender),
     birth_date: inputDate(profile.dob),

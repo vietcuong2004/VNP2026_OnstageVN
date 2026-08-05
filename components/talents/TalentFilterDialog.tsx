@@ -281,6 +281,7 @@ export default function TalentFilterDialog({
     if (option.value === "oldest") return { ...option, label: "Top đánh giá" };
     if (option.value === "name_asc") return { ...option, label: "Top tháng" };
     if (option.value === "name_desc") return { ...option, label: "Top booking" };
+    if (option.value === "newest") return { ...option, label: "Gương mặt mới" };
     return option;
   });
   const selectedDistrictLocation = parseDistrictLocationValue(selectedCity);
@@ -400,7 +401,7 @@ export default function TalentFilterDialog({
 
         <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
           <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-            Sắp xếp theo
+            Lọc theo
           </span>
           <div className="grid grid-cols-2 gap-2">
             {dialogSortOptions.map((option) => {

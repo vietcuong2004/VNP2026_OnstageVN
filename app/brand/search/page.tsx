@@ -10,6 +10,7 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   Filter,
   Heart,
@@ -35,7 +36,6 @@ import TalentFilterDialog from "@/components/talents/TalentFilterDialog";
 import KeywordSuggestionsDropdown from "@/components/search/KeywordSuggestionsDropdown";
 import { cn } from "@/lib/utils";
 import {
-  CITY_VALUES,
   TALENT_TYPE_VALUES,
   normalizeTalentTypeKey,
   normalizeTalentTypeLabel,
@@ -58,26 +58,27 @@ import { loadGuestSavedTalentIds, notifySavedTalentsUpdated, toggleGuestSavedTal
 import { addViewedTalentId } from "@/lib/talent-view-history";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import { buildTalentSearchSuggestions } from "@/lib/search-suggestions.mjs";
+import { normalizeLocationName, useCityFilterOptions } from "@/hooks/use-location-options";
 
 const TALENTS_PER_PAGE = 24;
 const TALENT_PAGES_PER_RESULT_PAGE = 2;
 const TALENTS_PER_RESULT_PAGE = TALENTS_PER_PAGE * TALENT_PAGES_PER_RESULT_PAGE;
 
 type TalentSortOption = "near_me" | "rating" | "newest" | "oldest" | "name_asc" | "name_desc";
-type MobileTalentQuickTab = "all" | "top_month" | "newest" | "top_reviewed";
+type MobileTalentQuickTab = "all" | "top_month" | "featured" | "top_reviewed";
 
 const MOBILE_TALENT_QUICK_TABS: Array<{ value: MobileTalentQuickTab | "more"; label: string }> = [
   { value: "all", label: "Tất cả" },
   { value: "top_month", label: "Top tháng" },
   { value: "top_reviewed", label: "Top đánh giá" },
-  { value: "newest", label: "Mới" },
+  { value: "featured", label: "Nổi bật" },
   { value: "more", label: "Thêm" },
 ];
 
 const TALENT_SORT_OPTIONS: Array<{ value: TalentSortOption; label: string }> = [
   { value: "near_me", label: "Gần tôi" },
   { value: "rating", label: "Nổi bật" },
-  { value: "newest", label: "Mới nhất" },
+  { value: "newest", label: "Gương mặt mới" },
   { value: "oldest", label: "Cũ nhất" },
   { value: "name_asc", label: "Tên A - Z" },
   { value: "name_desc", label: "Tên Z - A" },
@@ -146,7 +147,7 @@ const genderOptions = [
 ];
 
 function normalizeCityName(cityName: string): string {
-  return cityName.toLowerCase().replace(/^(tỉnh|thành phố|tp\.?)\s+/i, "").trim();
+  return normalizeLocationName(cityName);
 }
 
 const DISTRICT_FILTER_PREFIX = "district:";
@@ -187,10 +188,6 @@ function formatLocationFilterLabel(value: string, options: { label: string; valu
   return options.find((opt) => opt.value === value)?.label || value;
 }
 
-const cityOptions = [
-  { label: "Toàn quốc", value: allValue },
-  ...CITY_VALUES.map((city: string) => ({ label: city, value: normalizeCityName(city) })),
-];
 
 const HOT_TALENT_LOCATIONS = [
   { label: "Hà Nội", value: normalizeCityName("Hà Nội"), count: "100+ idol" },
@@ -580,6 +577,7 @@ type ToastItem = {
 };
 
 export default function DiscoverTalentsPage() {
+  const cityOptions = useCityFilterOptions("Toàn quốc", allValue);
   const router = useRouter();
   const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
 
@@ -726,7 +724,7 @@ export default function DiscoverTalentsPage() {
       return;
     }
 
-    const nextSort: TalentSortOption = tab === "newest" ? "newest" : "rating";
+    const nextSort: TalentSortOption = tab === "featured" || tab === "top_reviewed" ? "rating" : tab === "top_month" ? "rating" : "near_me";
     setSortOption(nextSort);
     setAppliedFilters((prev) => ({ ...prev, query: searchInput }));
   }, [searchInput]);
@@ -1218,27 +1216,33 @@ export default function DiscoverTalentsPage() {
           </button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {MOBILE_TALENT_QUICK_TABS.map((tab) => {
-            const isMore = tab.value === "more";
-            const isActive = isMore ? hasMobileFilterBadge : mobileQuickTab === tab.value;
+        {/* Scrollable Quick Tabs with visual scroll indicator */}
+        <div className="relative flex-1 min-w-0">
+          <div className="flex gap-2 overflow-x-auto pb-0.5 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {MOBILE_TALENT_QUICK_TABS.map((tab) => {
+              const isMore = tab.value === "more";
+              const isActive = isMore ? hasMobileFilterBadge : mobileQuickTab === tab.value;
 
-            return (
-              <button
-                key={tab.value}
-                type="button"
-                onClick={() => applyMobileQuickTab(tab.value)}
-                className={cn(
-                  "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95",
-                  isActive
-                    ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F9D66D] shadow-[0_0_14px_rgba(201,168,106,0.14)]"
-                    : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/35 hover:text-white"
-                )}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => applyMobileQuickTab(tab.value)}
+                  className={cn(
+                    "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95 cursor-pointer",
+                    isActive
+                      ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F9D66D] shadow-[0_0_14px_rgba(201,168,106,0.14)]"
+                      : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/35 hover:text-white"
+                  )}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-[#050711] via-[#050711]/90 to-transparent pl-4 pr-0">
+            <ChevronRight className="h-4 w-4 animate-pulse text-[#C9A86A]/80" />
+          </div>
         </div>
 
         {/* Collapsible Advanced Filters (Mobile Version) */}
