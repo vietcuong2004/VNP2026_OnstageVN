@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { Briefcase, Check, CheckCircle2, Heart, Loader2, MapPin, Star, Trash2, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
-import BadgeTier from "@/components/ui/BadgeTier";
+import BadgeTier, { type TalentAchievementBadge } from "@/components/ui/BadgeTier";
 
 export type TalentAvailabilityStatus = "available" | "busy" | "maybe" | string | null | undefined;
 
@@ -74,6 +74,16 @@ export function getStatusLabel(status: TalentAvailabilityStatus) {
   return "Chưa có lịch";
 }
 
+export function getTalentPrimaryBadge(talent: any): TalentAchievementBadge | null {
+  const badges = Array.isArray(talent?.badges)
+    ? talent.badges
+    : Array.isArray(talent?.active_badges)
+      ? talent.active_badges
+      : [];
+
+  return badges.find((badge: TalentAchievementBadge) => badge?.title) || null;
+}
+
 function getMockTalentStats(talent: any) {
   const key = String(talent?.id || talent?.slug || talent?.email || talent?.name || "idol");
   let hash = 0;
@@ -122,6 +132,7 @@ export default function TalentCard({
   const profilePills = [...socialHighlights, ...talentSkills];
   const bioText = talent?.experience || talent?.bio || talent?.summary || talent?.description || talent?.introduction || "";
   const mockStats = getMockTalentStats(talent);
+  const primaryBadge = getTalentPrimaryBadge(talent);
   const hasActions = Boolean(onView || onToggleSaved || onMessage);
 
   const stopCardClick = (event: MouseEvent) => {
@@ -170,7 +181,7 @@ export default function TalentCard({
           />
 
           <div className="absolute left-2 top-2">
-            <BadgeTier tier={talent?.tier} seed={talent?.id || talent?.slug || talent?.email || talent?.name} variant="gradient" />
+            <BadgeTier badge={primaryBadge} tier={talent?.tier} seed={talent?.id || talent?.slug || talent?.email || talent?.name} variant="gradient" />
           </div>
 
           {onMessage ? (
