@@ -1,14 +1,28 @@
 "use client";
 
-import { Award, Crown, Gem, Medal } from "lucide-react";
+import { Award, Crown, Gem, Medal, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAchievementBadgeConfig } from "@/lib/achievement-badges.mjs";
 
 type BadgeTierVariant = "subtle" | "gradient";
 type BadgeTierSize = "sm" | "xs";
 
+export type TalentAchievementBadge = {
+  id?: string | number;
+  code?: string | null;
+  title?: string | null;
+  description?: string | null;
+  tier?: string | null;
+  color_scheme?: string | null;
+  icon?: string | null;
+  period_type?: string | null;
+  period_value?: string | null;
+  score?: number | null;
+};
+
 type BadgeTierProps = {
   tier?: string | null;
+  badge?: TalentAchievementBadge | null;
   seed?: string | number | null;
   variant?: BadgeTierVariant;
   size?: BadgeTierSize;
@@ -22,21 +36,56 @@ const ACHIEVEMENT_ICONS = {
   "Đồng": Award,
 } as const;
 
+const BACKEND_BADGE_ICONS: Record<string, typeof Award> = {
+  award: Award,
+  medal: Medal,
+  crown: Crown,
+  gem: Gem,
+  star: Star,
+};
+
+function normalizeBadgeKey(value: unknown) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replaceAll("đ", "d")
+    .replaceAll("Đ", "D")
+    .toLowerCase()
+    .trim();
+}
+
 export function getTierBadgeConfig(tierValue: unknown, seed?: unknown) {
   return getAchievementBadgeConfig(tierValue, seed == null ? "" : String(seed));
 }
 
+export function getBackendBadgeConfig(badge: TalentAchievementBadge | null | undefined, fallbackTier?: unknown, seed?: unknown) {
+  if (!badge?.title) return getTierBadgeConfig(fallbackTier, seed);
+
+  const tone = badge.color_scheme || badge.tier || fallbackTier;
+  const base = getAchievementBadgeConfig(tone, seed == null ? "" : String(seed));
+  if (!base) return null;
+
+  return {
+    ...base,
+    displayText: badge.title,
+    title: badge.description ? `${badge.title} · ${badge.description}` : badge.title,
+    iconKey: normalizeBadgeKey(badge.icon),
+  };
+}
+
 export default function BadgeTier({
   tier,
+  badge,
   seed,
   variant = "subtle",
   size = "sm",
   className,
 }: BadgeTierProps) {
-  const config = getTierBadgeConfig(tier, seed);
+  const config = getBackendBadgeConfig(badge, tier, seed);
   if (!config) return null;
 
-  const Icon = ACHIEVEMENT_ICONS[config.level as keyof typeof ACHIEVEMENT_ICONS] || Award;
+  const iconFromBadge = "iconKey" in config ? BACKEND_BADGE_ICONS[String(config.iconKey)] : null;
+  const Icon = iconFromBadge || ACHIEVEMENT_ICONS[config.level as keyof typeof ACHIEVEMENT_ICONS] || Award;
   const toneClass = variant === "gradient" ? config.gradientClass : config.subtleClass;
 
   return (

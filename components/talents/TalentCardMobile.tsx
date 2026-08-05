@@ -5,13 +5,14 @@ import { createPortal } from "react-dom";
 import { CalendarCheck, Check, CheckCircle2, Heart, Loader2, MapPin, Star, Trash2, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
-import BadgeTier, { getTierBadgeConfig } from "@/components/ui/BadgeTier";
+import BadgeTier, { getBackendBadgeConfig } from "@/components/ui/BadgeTier";
 import {
   type TalentCardProps,
   getTalentTypes,
   getTalentTypeLabel,
   getStringList,
   getStatusLabel,
+  getTalentPrimaryBadge,
 } from "./TalentCard";
 
 function getMockTalentStats(talent: any) {
@@ -64,7 +65,8 @@ export default function TalentCardMobile({
   const bioText = talent?.experience || talent?.bio || talent?.summary || talent?.description || talent?.introduction || "";
   const hasActions = Boolean(onView || onToggleSaved || onMessage);
   const talentBadgeSeed = talent?.id || talent?.slug || talent?.email || talent?.name;
-  const tierBadge = getTierBadgeConfig(talent?.tier, talentBadgeSeed);
+  const primaryBadge = getTalentPrimaryBadge(talent);
+  const tierBadge = getBackendBadgeConfig(primaryBadge, talent?.tier, talentBadgeSeed);
   const mockStats = useMemo(() => getMockTalentStats(talent), [talent]);
 
   const stopCardClick = (event: MouseEvent) => {
@@ -103,7 +105,7 @@ export default function TalentCardMobile({
         {/* Left Column: Tier badge & avatar image */}
         <div className="flex w-[110px] shrink-0 flex-col items-center gap-1.5">
           {tierBadge && (
-            <BadgeTier tier={talent?.tier} seed={talentBadgeSeed} variant="gradient" size="xs" />
+            <BadgeTier badge={primaryBadge} tier={talent?.tier} seed={talentBadgeSeed} variant="gradient" size="xs" />
           )}
 
           <div className="relative aspect-square h-[110px] w-[110px] overflow-hidden rounded-xl border border-white/5 bg-slate-900">

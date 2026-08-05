@@ -12,7 +12,7 @@ const achievementCards = [
     tier: "S",
     Icon: Gem,
     eyebrow: "Kim cương",
-    point: "Top 50 KOL tháng 7",
+    point: "Top 50 KOL",
     className: "border-cyan-200/40 bg-gradient-to-br from-cyan-100/12 via-sky-400/10 to-blue-500/8",
     iconClass: "text-cyan-100",
     description:
@@ -22,7 +22,7 @@ const achievementCards = [
     tier: "A",
     Icon: Crown,
     eyebrow: "Vàng",
-    point: "Nổi bật tháng 7",
+    point: "Nổi bật tháng",
     className: "border-amber-300/40 bg-gradient-to-br from-amber-100/12 via-amber-500/10 to-yellow-500/8",
     iconClass: "text-amber-300",
     description:
