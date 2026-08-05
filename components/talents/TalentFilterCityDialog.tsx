@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, ChevronDown, ChevronRight, Crown, Flame, Gem, MapPin, Search, Star, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, ChevronRight, Crown, Flame, Gem, Heart, MapPin, Search, Sparkles, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 import TopIdolCity, { TOP_34_CITIES_LOCATIONS } from "../search/all-idols-in-city";
 
@@ -55,72 +55,10 @@ function isAllLocation(val?: string): boolean {
   return n === "all" || n === "toàn quốc" || n === "toan quoc" || n === "tất cả" || n === "tat ca";
 }
 
-type CityCategoryTab = "all" | "capital" | "hot" | "top_quality" | "vip";
-
-const CITY_CATEGORY_TABS: Array<{
-  id: CityCategoryTab;
-  label: string;
-  activeClass: string;
-  inactiveClass: string;
-}> = [
-  {
-    id: "all",
-    label: "Tất cả",
-    activeClass: "bg-gradient-to-r from-slate-100 via-amber-200 to-amber-400 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.4)] border-amber-200",
-    inactiveClass: "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/20 hover:text-white",
-  },
-  {
-    id: "capital",
-    label: "👑 Thủ phủ Idol",
-    activeClass: "bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.5)] border-amber-100",
-    inactiveClass: "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/20 hover:text-white",
-  },
-  {
-    id: "hot",
-    label: "🔥 Thành phố Hot",
-    activeClass: "bg-gradient-to-r from-amber-200 via-orange-400 to-rose-500 text-slate-950 shadow-[0_0_14px_rgba(249,115,22,0.5)] border-orange-100",
-    inactiveClass: "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/20 hover:text-white",
-  },
-  {
-    id: "top_quality",
-    label: "⭐ Chất lượng hàng đầu",
-    activeClass: "bg-gradient-to-r from-fuchsia-200 via-pink-400 to-purple-600 text-slate-950 shadow-[0_0_14px_rgba(217,70,239,0.5)] border-fuchsia-100",
-    inactiveClass: "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/20 hover:text-white",
-  },
-  {
-    id: "vip",
-    label: "💎 Idol Cao cấp nhất",
-    activeClass: "bg-gradient-to-r from-teal-100 via-cyan-300 to-blue-500 text-slate-950 shadow-[0_0_14px_rgba(6,182,212,0.5)] border-cyan-100",
-    inactiveClass: "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/20 hover:text-white",
-  },
-];
-
-const CATEGORY_ICONS: Record<CityCategoryTab, React.ComponentType<any>> = {
-  all: MapPin,
-  capital: Crown,
-  hot: Flame,
-  top_quality: Star,
-  vip: Gem,
-};
-
-function getCategoryTabCities(locations: typeof TOP_34_CITIES_LOCATIONS, tab: CityCategoryTab) {
-  if (tab === "all") return locations;
-
-  let cityKeys: string[] = [];
-
-  if (tab === "capital") {
-    cityKeys = ["hà nội", "hồ chí minh", "khánh hòa"];
-  } else if (tab === "hot") {
-    cityKeys = ["hà nội", "hồ chí minh", "đà nẵng"];
-  } else if (tab === "top_quality") {
-    cityKeys = ["hà nội", "hồ chí minh", "quảng ninh"];
-  } else if (tab === "vip") {
-    cityKeys = ["hà nội", "hồ chí minh", "lâm đồng"];
-  }
-
-  return locations
-    .filter((loc) => cityKeys.some((k) => loc.label.toLowerCase().includes(k) || loc.value.toLowerCase().includes(k)))
-    .slice(0, 3);
+function isMajorExpandableCity(val?: string): boolean {
+  if (!val) return false;
+  const n = val.toLowerCase().trim();
+  return n === "hà nội" || n === "ha noi" || n === "hồ chí minh" || n === "ho chi minh" || n === "hcm";
 }
 
 export default function TalentFilterCityDialog({
@@ -138,8 +76,6 @@ export default function TalentFilterCityDialog({
   const [searchQuery, setSearchQuery] = useState("");
   const [userTypedQuery, setUserTypedQuery] = useState("");
   const [draftCity, setDraftCity] = useState<string>(selectedCity || "all");
-  const [activeCategoryTab, setActiveCategoryTab] = useState<CityCategoryTab>("all");
-  const [expandedHotLocation, setExpandedHotLocation] = useState<string | null>(null);
   const [collapsedCities, setCollapsedCities] = useState<Record<string, boolean>>({});
   const [isTopIdolCityOpen, setIsTopIdolCityOpen] = useState(false);
   const [topIdolCityInitialCity, setTopIdolCityInitialCity] = useState<string | undefined>(undefined);
@@ -148,24 +84,14 @@ export default function TalentFilterCityDialog({
     if (open) {
       setDraftCity(selectedCity || "all");
       setUserTypedQuery("");
-      setActiveCategoryTab("all");
       setCollapsedCities({});
     }
   }, [open, selectedCity]);
 
-  useEffect(() => {
-    setCollapsedCities({});
-  }, [activeCategoryTab]);
-
   const selectedDistrictLocation = parseDistrictLocationValue(draftCity);
-  const ActiveLocationIcon = CATEGORY_ICONS[activeCategoryTab] || MapPin;
 
   const filteredHotLocations = useMemo(() => {
     let list = TOP_34_CITIES_LOCATIONS;
-
-    if (activeCategoryTab !== "all") {
-      list = getCategoryTabCities(list, activeCategoryTab);
-    }
 
     const keyword = normalizeSearchText(userTypedQuery);
     if (!keyword || keyword === "toan quoc") return list;
@@ -186,7 +112,7 @@ export default function TalentFilterCityDialog({
       });
       return matchesLoc || matchesDistrict;
     });
-  }, [userTypedQuery, activeCategoryTab]);
+  }, [userTypedQuery]);
 
   if (!open) return null;
 
@@ -262,34 +188,9 @@ export default function TalentFilterCityDialog({
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] custom-scrollbar space-y-4">
         {/* Danh sách toàn bộ tỉnh thành & quận huyện trực tiếp */}
         <div className="space-y-2">
-          <div className="relative group">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5 custom-scrollbar no-scrollbar scroll-smooth pr-10">
-              {CITY_CATEGORY_TABS.map((tab) => {
-                const isActive = activeCategoryTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveCategoryTab(tab.id)}
-                    className={cn(
-                      "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-black uppercase tracking-wider border transition-all duration-200 active:scale-95 cursor-pointer whitespace-nowrap",
-                      isActive ? tab.activeClass : tab.inactiveClass
-                    )}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Lớp phủ mờ dần (Gradient Mask) & Mũi tên chỉ hướng cuộn (Animated Chevron Icon) */}
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 flex items-center justify-end pr-1 bg-gradient-to-l from-[#050711] via-[#050711]/85 to-transparent z-10">
-              <ChevronRight className="h-4 w-4 text-[#C9A86A] animate-pulse drop-shadow-[0_0_8px_rgba(201,168,106,0.6)]" />
-            </div>
-          </div>
           <div className="grid gap-2">
-            {/* Option "Toàn quốc" ở đầu tiên - Chỉ hiển thị khi ở Tab Tất cả */}
-            {activeCategoryTab === "all" && (!userTypedQuery.trim() || normalizeSearchText(userTypedQuery).includes("toan quoc")) && (
+            {/* Option "Toàn quốc" ở đầu tiên */}
+            {(!userTypedQuery.trim() || normalizeSearchText(userTypedQuery).includes("toan quoc")) && (
               <div
                 className={cn(
                   "overflow-hidden rounded-2xl border transition",
@@ -307,7 +208,7 @@ export default function TalentFilterCityDialog({
                   }}
                   className="flex w-full items-center gap-3 px-3 py-3 text-left transition active:scale-[0.99] cursor-pointer"
                 >
-                  <ActiveLocationIcon className={cn("h-4 w-4 shrink-0 transition-transform duration-300", (draftCity === "toàn quốc" || draftCity === "all" || !draftCity) ? "text-[#C9A86A]" : "text-slate-400")} />
+                  <MapPin className={cn("h-4 w-4 shrink-0 transition-transform duration-300", (draftCity === "toàn quốc" || draftCity === "all" || !draftCity) ? "text-[#C9A86A]" : "text-slate-400")} />
                   <span className="min-w-0 flex-1 truncate text-sm font-bold">Toàn quốc</span>
                   <span className="shrink-0 text-xs font-semibold text-slate-400">Tất cả vị trí</span>
                 </button>
@@ -315,13 +216,11 @@ export default function TalentFilterCityDialog({
             )}
 
             {filteredHotLocations.map((location) => {
+              const isMajorCity = isMajorExpandableCity(location.value) || isMajorExpandableCity(location.label);
               const isSelected =
                 draftCity === location.value ||
                 selectedDistrictLocation?.city === location.value;
-              const isExpanded =
-                activeCategoryTab !== "all"
-                  ? !collapsedCities[location.value]
-                  : expandedHotLocation === location.value || (userTypedQuery.trim() !== "" && filteredHotLocations.length <= 3);
+              const isExpanded = isMajorCity && !collapsedCities[location.value];
               const isActive = isSelected || isExpanded;
 
               return (
@@ -340,31 +239,56 @@ export default function TalentFilterCityDialog({
                       setDraftCity(location.value);
                       setSearchQuery(location.label);
                       setUserTypedQuery("");
-                      if (activeCategoryTab !== "all") {
+                      if (isMajorCity) {
                         setCollapsedCities((prev) => ({
                           ...prev,
                           [location.value]: !prev[location.value],
                         }));
-                      } else {
-                        setExpandedHotLocation((current) => (current === location.value ? null : location.value));
                       }
                     }}
                     className={cn(
-                      "flex w-full items-center gap-3 px-3 py-3 text-left transition active:scale-[0.99] cursor-pointer",
+                      "flex w-full items-center gap-2.5 px-3 py-3 text-left transition active:scale-[0.99] cursor-pointer",
                       isActive ? "text-[#C9A86A]" : "text-white"
                     )}
                   >
-                    <ActiveLocationIcon className={cn("h-4 w-4 shrink-0 transition-transform duration-300", isActive ? "text-[#C9A86A]" : "text-slate-400")} />
-                    <span className="min-w-0 flex-1 truncate text-sm font-bold">{location.label}</span>
-                    <span className="shrink-0 text-xs font-semibold text-slate-400">{location.count}</span>
-                    <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-500 transition-transform", isExpanded && "rotate-180 text-[#C9A86A]")} />
+                    <MapPin className={cn("h-4 w-4 shrink-0 transition-transform duration-300", isActive ? "text-[#C9A86A]" : "text-slate-400")} />
+                    <span className="truncate text-sm font-bold">{location.label}</span>
+                    {isMajorCity && <span className="shrink-0 text-xs font-semibold text-slate-400 ml-auto">{location.count}</span>}
+                    {isMajorCity && (
+                      <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-500 transition-transform", isExpanded && "rotate-180 text-[#C9A86A]")} />
+                    )}
                   </button>
 
                   {isExpanded && (
                     <div className="space-y-1.5 border-t border-white/5 px-3 pb-3 pt-2">
-                      {location.districts.slice(0, 3).map((district) => {
+                      {location.districts.slice(0, 3).map((district, idx) => {
                         const districtValue = makeDistrictLocationValue(location.value, district.value);
                         const isDistrictSelected = draftCity === districtValue;
+                        const isHanoi = location.value.includes("hà nội") || location.label.includes("Hà Nội");
+
+                        let BadgeIcon = Crown;
+                        let badgeStyle = "bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-slate-950 shadow-[0_0_8px_rgba(251,191,36,0.4)] border-amber-300/40";
+
+                        if (idx === 0) {
+                          BadgeIcon = Crown;
+                          badgeStyle = "bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-slate-950 shadow-[0_0_8px_rgba(251,191,36,0.4)] border-amber-300/40";
+                        } else if (idx === 1) {
+                          if (isHanoi) {
+                            BadgeIcon = Flame;
+                            badgeStyle = "bg-gradient-to-br from-rose-500 via-orange-500 to-amber-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] border-rose-400/40";
+                          } else {
+                            BadgeIcon = Heart;
+                            badgeStyle = "bg-gradient-to-br from-pink-500 via-rose-500 to-red-500 text-white shadow-[0_0_8px_rgba(236,72,153,0.4)] border-pink-400/40";
+                          }
+                        } else {
+                          if (isHanoi) {
+                            BadgeIcon = Sparkles;
+                            badgeStyle = "bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-400 text-slate-950 shadow-[0_0_8px_rgba(234,179,8,0.4)] border-yellow-200/40";
+                          } else {
+                            BadgeIcon = Gem;
+                            badgeStyle = "bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600 text-white shadow-[0_0_8px_rgba(56,189,248,0.4)] border-cyan-300/40";
+                          }
+                        }
 
                         return (
                           <button
@@ -377,7 +301,12 @@ export default function TalentFilterCityDialog({
                             }}
                             className="flex w-full items-center justify-between rounded-xl border border-white/8 bg-[#070913]/55 px-3 py-2 text-left text-xs font-bold text-slate-200 transition active:scale-[0.99] cursor-pointer hover:border-white/15 hover:text-white"
                           >
-                            <span className="truncate">{district.label}</span>
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs shadow-sm", badgeStyle)}>
+                                <BadgeIcon className="h-3 w-3 fill-current" />
+                              </span>
+                              <span className="truncate">{district.label}</span>
+                            </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="text-[10px] font-semibold text-slate-500">{district.count}</span>
                               {isDistrictSelected && <Check className="h-4 w-4 text-emerald-400 shrink-0" />}
@@ -392,13 +321,10 @@ export default function TalentFilterCityDialog({
                           setTopIdolCityInitialCity(location.value);
                           setIsTopIdolCityOpen(true);
                         }}
-                        className="flex w-full items-center justify-between rounded-xl border border-white/8 bg-[#070913]/55 px-3 py-2 text-left text-xs font-bold text-slate-200 transition active:scale-[0.99] cursor-pointer hover:border-white/15 hover:text-white"
+                        className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 py-2.5 text-center text-xs font-bold text-[#C9A86A] transition active:scale-[0.98] hover:bg-[#C9A86A]/20 hover:border-[#C9A86A]/50 cursor-pointer"
                       >
-                        <span className="truncate">Tất cả {location.label}</span>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[10px] font-semibold text-slate-500">{location.count}</span>
-                          {draftCity === location.value && <Check className="h-4 w-4 text-emerald-400 shrink-0" />}
-                        </div>
+                        <span>Xem thêm</span>
+                        <ChevronRight className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   )}

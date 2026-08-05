@@ -404,28 +404,7 @@ export default function Header() {
           </button>
         </div>
 
-        <div className="ml-6 hidden md:flex items-center gap-6">
-          {[
-            { label: "Idol", href: "/brand/search" },
-            { label: "Cơ hội việc làm", href: "/talent/jobs" },
-            { label: "Về chúng tôi", href: "/about" },
-          ].map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
-            return (
-              <button
-                key={item.href}
-                type="button"
-                onClick={() => router.push(item.href)}
-                className={`text-[10px] md:text-[11px] font-display font-black uppercase tracking-widest transition-all duration-300 cursor-pointer ${isActive
-                    ? "text-amber-300 underline decoration-amber-400 decoration-[2px] underline-offset-6"
-                    : "text-slate-400 hover:text-amber-300"
-                  }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
+
 
         <div className="flex items-center gap-2 md:gap-6">
           {(!user || user.capabilities?.includes("brand")) && (
