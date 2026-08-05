@@ -46,7 +46,7 @@ function getStatusBadge(stage: TalentJobStage, isApplied: boolean) {
     return { label: "CHỜ DUYỆT", className: "bg-amber-500" };
   }
 
-  return { label: "ỨNG TUYỂN", className: "bg-[#00c875]" };
+  return { label: "Đang tuyển", className: "bg-[#00c875]" };
 }
 
 export default function JobCard({

@@ -70,7 +70,6 @@ const MOBILE_TALENT_QUICK_TABS: Array<{ value: MobileTalentQuickTab | "more"; la
   { value: "all", label: "Tất cả" },
   { value: "top_month", label: "Top tháng" },
   { value: "top_reviewed", label: "Top đánh giá" },
-  { value: "newest", label: "Mới" },
   { value: "more", label: "Thêm" },
 ];
 

@@ -7,7 +7,7 @@ import {
   Sparkles, CheckCircle,
   X, Check,
   ArrowLeft, ArrowUpDown, Copy, Users, Briefcase,
-  Search, SlidersHorizontal, ChevronDown, Bookmark, QrCode, Upload, Image as ImageIcon, AlertCircle
+  Search, SlidersHorizontal, ChevronDown, ChevronRight, Bookmark, QrCode, Upload, Image as ImageIcon, AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
@@ -35,10 +35,10 @@ import { loadSavedJobsForSession, SAVED_JOBS_UPDATED_EVENT } from "@/lib/saved-j
 import { buildJobSearchSuggestions } from "@/lib/search-suggestions.mjs";
 
 type StageFilter = "apply" | "pending" | "approved" | "all";
-type SortOrder = "newest" | "oldest";
+type SortOrder = "newest" | "oldest" | "deadline_asc" | "near_me" | "selected_city" | string;
 
 const stageFilterLabels: Record<StageFilter, string> = {
-  apply: "Ứng tuyển",
+  apply: "Đang tuyển",
   pending: "Chờ duyệt",
   approved: "Đã duyệt",
   all: "Tất cả",
@@ -57,6 +57,12 @@ const MOBILE_JOB_QUICK_TABS: Array<{ value: MobileJobQuickTab; label: string }> 
   { value: "recruiting", label: "Đang tuyển" },
   { value: "near_me", label: "Gần tôi" },
   { value: "more", label: "Thêm" },
+];
+
+const SORT_DROPDOWN_OPTIONS: FilterDropdownOption[] = [
+  { value: "deadline_asc", label: "Hạn tuyển gần nhất" },
+  { value: "near_me", label: "Gần vị trí hiện tại" },
+  { value: "selected_city", label: "Gần thành phố đã chọn" },
 ];
 
 function readCurrentTalentLocation() {
@@ -109,8 +115,14 @@ function parseDistrictLocationValue(value?: string) {
   };
 }
 
+function isAllLocation(val?: string): boolean {
+  if (!val) return true;
+  const n = val.toLowerCase().trim();
+  return n === "all" || n === "toàn quốc" || n === "toan quoc" || n === "tất cả" || n === "tat ca";
+}
+
 function formatLocationFilterLabel(value: string, options: { label: string; value: string }[]) {
-  if (value === allValue) return "Toàn quốc";
+  if (isAllLocation(value)) return "Toàn quốc";
 
   const districtFilter = parseDistrictLocationValue(value);
   if (districtFilter) {
@@ -187,6 +199,7 @@ function FilterDropdown({
   searchPlaceholder = "Tìm kiếm...",
   emptyText = "Không tìm thấy lựa chọn",
   searchable = true,
+  icon,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -194,6 +207,7 @@ function FilterDropdown({
   searchPlaceholder?: string;
   emptyText?: string;
   searchable?: boolean;
+  icon?: React.ReactNode;
 }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -260,7 +274,10 @@ function FilterDropdown({
           isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
         )}
       >
-        <span className="truncate text-left font-medium text-slate-200">{selectedOption?.label}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          {icon}
+          <span className="truncate text-left font-medium text-slate-200">{selectedOption?.label}</span>
+        </div>
         <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-300", isOpen && "rotate-180 text-[#C9A86A]")} />
       </button>
 
@@ -760,10 +777,10 @@ function JobsPageContent() {
   const jobQueryOptions = useMemo(() => ({
     q: searchQuery || undefined,
     type: appliedJobType !== allValue ? appliedJobType : undefined,
-    city: appliedCity !== allValue ? appliedCity : undefined,
+    city: (appliedCity !== allValue && appliedCity !== "toàn quốc" && appliedCity !== "toan quoc") ? appliedCity : undefined,
     minBudget: appliedShowAdvancedFilters && appliedMinBudget > 0 ? appliedMinBudget : undefined,
     maxBudget: appliedShowAdvancedFilters && appliedMaxBudget > 0 ? appliedMaxBudget : undefined,
-    sortOrder,
+    sortOrder: (sortOrder === "oldest" ? "oldest" : "newest") as "newest" | "oldest",
     stage: backendStageFilter,
   }), [searchQuery, appliedJobType, appliedCity, appliedShowAdvancedFilters, appliedMinBudget, appliedMaxBudget, sortOrder, backendStageFilter]);
 
@@ -961,7 +978,8 @@ function JobsPageContent() {
     const selectedCityText = normalizeFilterText(districtFilter ? districtFilter.city : appliedCity);
     const selectedTypeText = normalizeFilterText(appliedJobType);
 
-    const matchesCity = appliedCity === allValue || (
+    const isAllCity = isAllLocation(appliedCity);
+    const matchesCity = isAllCity || (
       districtFilter
         ? normalizeFilterText(camp.city || "").includes(normalizeFilterText(districtFilter.city)) &&
         normalizeFilterText(camp.district || camp.location || camp.address || camp.title || "").includes(normalizeFilterText(districtFilter.district))
@@ -997,9 +1015,27 @@ function JobsPageContent() {
   });
 
   const visibleCampaigns = [...filteredCampaigns].sort((a, b) => {
+    if (sortOrder === "deadline_asc") {
+      const aDeadline = new Date(a.deadline || a.end_date || a.expires_at || "2099-12-31").getTime();
+      const bDeadline = new Date(b.deadline || b.end_date || b.expires_at || "2099-12-31").getTime();
+      if (aDeadline !== bDeadline) return aDeadline - bDeadline;
+    } else if (sortOrder === "near_me") {
+      const myCity = normalizeFilterText(readCurrentTalentLocation());
+      const aMatch = normalizeFilterText(a.city || "").includes(myCity) ? 1 : 0;
+      const bMatch = normalizeFilterText(b.city || "").includes(myCity) ? 1 : 0;
+      if (aMatch !== bMatch) return bMatch - aMatch;
+    } else if (sortOrder === "selected_city") {
+      const targetCity = normalizeFilterText(appliedCity === allValue ? "" : appliedCity);
+      if (targetCity) {
+        const aMatch = normalizeFilterText(a.city || "").includes(targetCity) ? 1 : 0;
+        const bMatch = normalizeFilterText(b.city || "").includes(targetCity) ? 1 : 0;
+        if (aMatch !== bMatch) return bMatch - aMatch;
+      }
+    }
+
     const aTime = jobPublishTimestamp(a);
     const bTime = jobPublishTimestamp(b);
-    return sortOrder === "newest" ? bTime - aTime : aTime - bTime;
+    return sortOrder === "oldest" ? aTime - bTime : bTime - aTime;
   });
   const jobPageNumbers = getVisiblePageNumbers(jobResultPage, jobResultPageCount);
 
@@ -1166,44 +1202,52 @@ function JobsPageContent() {
         </div>
 
         <div className="mt-2.5 flex items-center justify-between gap-2">
-          <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-1">
-            {MOBILE_JOB_QUICK_TABS.map((tab) => {
-              const isMore = tab.value === "more";
-              const isActive = isMore ? isMobileFiltersActive : mobileQuickTab === tab.value;
+          {/* Scrollable Quick Tabs with visual scroll indicator */}
+          <div className="relative flex-1 min-w-0">
+            <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pr-5">
+              {MOBILE_JOB_QUICK_TABS.map((tab) => {
+                const isMore = tab.value === "more";
+                const isActive = isMore ? isMobileFiltersActive : mobileQuickTab === tab.value;
 
-              return (
-                <button
-                  key={tab.value}
-                  type="button"
-                  onClick={() => {
-                    if (isMore) {
-                      setIsMobileFiltersOpen(true);
-                      return;
-                    }
-                    setMobileQuickTab(tab.value);
-                    if (tab.value === "all") {
-                      setSelectedStageFilter("all");
-                      setSelectedCity(allValue);
-                      setAppliedCity(allValue);
-                    } else if (tab.value === "recruiting") {
-                      setSelectedStageFilter("apply");
-                    } else if (tab.value === "near_me") {
-                      const myCity = readCurrentTalentLocation();
-                      setSelectedCity(myCity);
-                      setAppliedCity(myCity);
-                    }
-                  }}
-                  className={cn(
-                    "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95 cursor-pointer",
-                    isActive
-                      ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F9D66D] shadow-[0_0_14px_rgba(201,168,106,0.14)]"
-                      : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/35 hover:text-white"
-                  )}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={tab.value}
+                    type="button"
+                    onClick={() => {
+                      if (isMore) {
+                        setIsMobileFiltersOpen(true);
+                        return;
+                      }
+                      setMobileQuickTab(tab.value);
+                      if (tab.value === "all") {
+                        setSelectedStageFilter("all");
+                        setSelectedCity(allValue);
+                        setAppliedCity(allValue);
+                      } else if (tab.value === "recruiting") {
+                        setSelectedStageFilter("apply");
+                      } else if (tab.value === "near_me") {
+                        const myCity = readCurrentTalentLocation();
+                        setSelectedCity(myCity);
+                        setAppliedCity(myCity);
+                      }
+                    }}
+                    className={cn(
+                      "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95 cursor-pointer",
+                      isActive
+                        ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F9D66D] shadow-[0_0_14px_rgba(201,168,106,0.14)]"
+                        : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/35 hover:text-white"
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Visual gradient mask + swipe arrow indicator */}
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 flex items-center justify-end pl-5 pr-0.5 bg-gradient-to-l from-[#0f121d] via-[#0f121d]/85 to-transparent">
+              <ChevronRight className="h-3.5 w-3.5 text-[#C9A86A] animate-pulse drop-shadow" />
+            </div>
           </div>
 
           <button
@@ -1327,8 +1371,8 @@ function JobsPageContent() {
           </button>
         </div>
 
-        <div className="relative z-10 flex flex-col items-stretch gap-3 xl:flex-row">
-          <div className="group relative min-w-[280px] flex-1">
+        <div className="relative z-10 flex flex-col items-stretch gap-2.5 xl:flex-row xl:items-center">
+          <div className="group relative min-w-[200px] flex-1">
             <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#C9A86A]/30 to-yellow-600/20 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
             <div className="relative h-full w-full">
               <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A]" />
@@ -1370,7 +1414,7 @@ function JobsPageContent() {
             </div>
           </div>
 
-          <div className="w-full xl:w-auto xl:min-w-[170px]">
+          <div className="w-full xl:w-[145px] shrink-0">
             <FilterDropdown
               value={selectedCity}
               onChange={setSelectedCity}
@@ -1380,7 +1424,7 @@ function JobsPageContent() {
             />
           </div>
 
-          <div className="w-full xl:w-auto xl:min-w-[190px]">
+          <div className="w-full xl:w-[150px] shrink-0">
             <FilterDropdown
               value={selectedJobType}
               onChange={setSelectedJobType}
@@ -1389,11 +1433,25 @@ function JobsPageContent() {
             />
           </div>
 
+          <div className="w-full xl:w-[180px] shrink-0">
+            <FilterDropdown
+              icon={<ArrowUpDown className="h-3.5 w-3.5 text-[#C9A86A] shrink-0" />}
+              value={
+                sortOrder === "newest" || sortOrder === "oldest"
+                  ? "deadline_asc"
+                  : sortOrder
+              }
+              onChange={(val) => setSortOrder(val as SortOrder)}
+              options={SORT_DROPDOWN_OPTIONS}
+              searchable={false}
+            />
+          </div>
+
           <div className="flex shrink-0 gap-2">
             <button
               type="button"
               onClick={applyFilters}
-              className="flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-8 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg xl:flex-none"
+              className="flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg xl:flex-none"
             >
               <Search className="h-4 w-4" />
               Tìm kiếm
@@ -1402,7 +1460,7 @@ function JobsPageContent() {
               type="button"
               onClick={() => setShowAdvancedFilters((current: boolean) => !current)}
               className={cn(
-                "flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl border px-5 text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer xl:flex-none",
+                "flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl border px-4 text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer xl:flex-none",
                 showAdvancedFilters
                   ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
                   : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:border-[#C9A86A]/40 hover:text-white"
@@ -1410,14 +1468,6 @@ function JobsPageContent() {
             >
               <SlidersHorizontal className="h-4 w-4" />
               Bộ lọc
-            </button>
-            <button
-              type="button"
-              onClick={() => setSortOrder((current) => current === "newest" ? "oldest" : "newest")}
-              className="flex h-[50px] w-[160px] items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 px-4 text-xs font-black uppercase tracking-wider text-slate-300 transition-all hover:border-[#C9A86A]/40 hover:text-white"
-            >
-              <ArrowUpDown className="h-4 w-4 text-[#C9A86A]" />
-              {sortOrder === "newest" ? "Mới nhất" : "Cũ nhất"}
             </button>
           </div>
         </div>
@@ -1524,6 +1574,23 @@ function JobsPageContent() {
             </button>
           );
         })}
+
+        <button
+          type="button"
+          onClick={() => {
+            const myCity = readCurrentTalentLocation();
+            setSelectedCity(myCity);
+            setAppliedCity(myCity);
+          }}
+          className={cn(
+            "rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer border flex items-center gap-1.5 shrink-0",
+            appliedCity !== allValue && appliedCity === readCurrentTalentLocation()
+              ? "bg-[#f4c430] border-amber-400/30 text-slate-950 shadow-[0_4px_12px_rgba(244,196,48,0.2)]"
+              : "bg-[#08090f] border-[#151b2d] text-slate-400 hover:text-white hover:bg-white/2"
+          )}
+        >
+          Gần tôi
+        </button>
       </div>
 
       {/* Row 2: Top Pagination centered in its own row */}

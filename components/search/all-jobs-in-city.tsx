@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Check, ChevronDown, MapPin, Search, Sparkles, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -394,228 +394,192 @@ export type TopJobCityProps = {
   onClose: () => void;
   onSelectCity: (cityValue: string) => void;
   selectedCity?: string;
+  initialExpandedCity?: string;
 };
+
+function isAllLocation(val?: string): boolean {
+  if (!val) return true;
+  const n = val.toLowerCase().trim();
+  return n === "all" || n === "toàn quốc" || n === "toan quoc" || n === "tất cả" || n === "tat ca";
+}
 
 export default function TopJobCity({
   open,
   onClose,
   onSelectCity,
   selectedCity,
+  initialExpandedCity,
 }: TopJobCityProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedCity, setExpandedCity] = useState<string | null>(null);
+  const [userTypedQuery, setUserTypedQuery] = useState("");
+  const [draftCity, setDraftCity] = useState<string>(selectedCity || initialExpandedCity || "all");
 
-  const selectedDistrictInfo = parseDistrictLocationValue(selectedCity);
-
-  const filteredCities = useMemo(() => {
-    const q = normalizeText(searchQuery);
-    let list = TOP_34_JOB_CITIES_LOCATIONS;
-
-    if (q) {
-      list = TOP_34_JOB_CITIES_LOCATIONS.filter((city) => {
-        const matchCity = normalizeText(city.label).includes(q) || normalizeText(city.value).includes(q);
-        const matchDistrict = city.districts.some(
-          (d) => normalizeText(d.label).includes(q) || normalizeText(d.value).includes(q)
-        );
-        return matchCity || matchDistrict;
-      });
+  useEffect(() => {
+    if (open) {
+      setDraftCity(selectedCity || initialExpandedCity || "all");
+      setUserTypedQuery("");
     }
+  }, [open, selectedCity, initialExpandedCity]);
 
-    return [...list].sort((a, b) => parseCountNumber(b.count) - parseCountNumber(a.count));
-  }, [searchQuery]);
+  const targetCityValue = initialExpandedCity || selectedCity || draftCity;
+  const targetCityObj = useMemo(() => {
+    if (!targetCityValue || targetCityValue === "all" || targetCityValue === "toàn quốc") {
+      return TOP_34_JOB_CITIES_LOCATIONS[0];
+    }
+    const parsed = parseDistrictLocationValue(targetCityValue);
+    const cityKey = parsed ? parsed.city : targetCityValue;
+    const normKey = normalizeText(cityKey);
+    return TOP_34_JOB_CITIES_LOCATIONS.find(
+      (c) => normalizeText(c.value) === normKey || normalizeText(c.label) === normKey
+    ) || TOP_34_JOB_CITIES_LOCATIONS[0];
+  }, [targetCityValue]);
+
+  const filteredDistricts = useMemo(() => {
+    const q = normalizeText(userTypedQuery);
+    if (!targetCityObj) return [];
+    if (!q) return targetCityObj.districts;
+
+    return targetCityObj.districts.filter(
+      (d) => normalizeText(d.label).includes(q) || normalizeText(d.value).includes(q)
+    );
+  }, [targetCityObj, userTypedQuery]);
 
   if (!open) return null;
+
+  const handleApplyFilter = () => {
+    if (isAllLocation(draftCity) || isAllLocation(searchQuery)) {
+      onSelectCity("all");
+    } else {
+      onSelectCity(draftCity);
+    }
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-[1100] flex h-dvh w-screen flex-col overflow-hidden bg-[#050711] text-white animate-in fade-in duration-200">
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-white/10 bg-[#070913] px-4 py-3 sm:px-6">
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-slate-950/60 text-slate-350 hover:bg-white/10 hover:text-white transition"
-          aria-label="Quay lại"
-        >
-          <ArrowLeft className="h-4.5 w-4.5" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h2 className="font-display text-base sm:text-lg font-black uppercase tracking-wide text-white truncate">
-              Nhiều Công Việc Nhất
-            </h2>
-            <Sparkles className="h-4 w-4 text-[#C9A86A] shrink-0" />
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-slate-400 hover:text-white"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+      <div className="shrink-0 border-b border-white/5 bg-[#070913] px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/5 bg-slate-950/40 text-white transition active:scale-95 cursor-pointer"
+            aria-label="Quay lại"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
 
-      {/* Search Bar */}
-      <div className="border-b border-white/5 bg-[#0b0e1a] px-4 py-3 sm:px-6">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm tỉnh thành hoặc quận/huyện..."
-            className="w-full h-10 rounded-full border border-white/10 bg-[#070913]/80 pl-10 pr-9 text-xs sm:text-sm text-white outline-none focus:border-[#C9A86A]/60 placeholder:text-slate-500"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+          <div className="relative min-w-0 flex-1">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setUserTypedQuery(e.target.value);
+              }}
+              placeholder="Nhập địa điểm..."
+              className="h-10 w-full rounded-full border border-white/10 bg-slate-950/55 pl-9 pr-9 text-sm font-medium text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/60"
+              autoFocus
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setUserTypedQuery("");
+                  setDraftCity("all");
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 transition active:scale-95 cursor-pointer"
+                aria-label="Xóa tìm kiếm"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleApplyFilter}
+            className="shrink-0 px-4 py-2 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-md hover:brightness-110 cursor-pointer"
+          >
+            Áp dụng
+          </button>
         </div>
       </div>
 
       {/* Content list */}
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 space-y-3 custom-scrollbar">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#C9A86A]">
-            Tất cả {filteredCities.length} tỉnh thành
-          </span>
-        </div>
+        {targetCityObj && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#C9A86A]">
+                Tất cả việc làm tại {targetCityObj.label} ({filteredDistricts.length})
+              </span>
+            </div>
 
-        <div className="grid gap-2.5 sm:grid-cols-2">
-          {filteredCities.map((city) => {
-            const isExpanded = expandedCity === city.value || Boolean(searchQuery.trim());
-            const isCitySelected =
-              selectedCity === city.value || selectedDistrictInfo?.city === city.value;
-
-            return (
-              <div
-                key={city.value}
-                className={cn(
-                  "overflow-hidden rounded-2xl border transition-all duration-200",
-                  isCitySelected
-                    ? "border-[#C9A86A]/70 bg-[#C9A86A]/10 shadow-[0_0_15px_rgba(201,168,106,0.1)]"
-                    : "border-white/10 bg-[#0b0e1a]/85 hover:border-white/20 hover:bg-[#0e1222]"
-                )}
-              >
-                {/* Header item */}
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {/* Option "Tất cả [City.label]" */}
+              {!userTypedQuery.trim() && (
                 <button
                   type="button"
-                  onClick={() =>
-                    setExpandedCity((prev) => (prev === city.value ? null : city.value))
-                  }
-                  className={cn(
-                    "flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:scale-[0.99]",
-                    isCitySelected ? "text-[#C9A86A]" : "text-white"
-                  )}
+                  onClick={() => {
+                    setDraftCity(targetCityObj.value);
+                    setSearchQuery(targetCityObj.label);
+                    setUserTypedQuery("");
+                  }}
+                  className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[#0b0e1a]/85 px-4 py-3.5 text-left text-xs font-bold text-slate-200 transition active:scale-[0.99] cursor-pointer hover:border-white/20 hover:bg-[#0e1222]"
                 >
-                  <div
-                    className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border",
-                      isCitySelected
-                        ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
-                        : "border-white/10 bg-white/5 text-slate-400"
-                    )}
-                  >
-                    <MapPin className="h-4 w-4" />
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-4 w-4 text-slate-400" />
+                    <span className="text-sm font-bold">Tất cả {targetCityObj.label}</span>
                   </div>
-
-                  <div className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold">{city.label}</span>
-                    <span className="block text-[11px] text-slate-400 font-medium">
-                      {city.districts.length} khu vực hot
-                    </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-bold text-slate-400">{targetCityObj.count}</span>
+                    {draftCity === targetCityObj.value && <Check className="h-4 w-4 text-emerald-400 shrink-0" />}
                   </div>
-
-                  <span className="shrink-0 rounded-full bg-slate-900/60 border border-white/5 px-2.5 py-1 text-xs font-bold text-amber-400">
-                    {city.count}
-                  </span>
-
-                  <ChevronDown
-                    className={cn(
-                      "h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200",
-                      isExpanded && "rotate-180 text-[#C9A86A]"
-                    )}
-                  />
                 </button>
+              )}
 
-                {/* Expanded District / Location options */}
-                {isExpanded && (
-                  <div className="space-y-1.5 border-t border-white/5 bg-[#070913]/60 px-3 pb-3 pt-2.5">
-                    {/* Option: All City */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onSelectCity(city.value);
-                        onClose();
-                      }}
-                      className={cn(
-                        "flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-bold transition active:scale-[0.99]",
-                        selectedCity === city.value
-                          ? "border-[#C9A86A]/70 bg-[#C9A86A]/20 text-[#C9A86A]"
-                          : "border-white/10 bg-white/[0.04] text-slate-200 hover:bg-white/[0.08]"
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>Tất cả {city.label}</span>
-                        {selectedCity === city.value && <Check className="h-3.5 w-3.5 text-[#C9A86A]" />}
-                      </div>
-                      <span className="text-[10px] font-semibold text-slate-400">{city.count}</span>
-                    </button>
+              {/* Districts list */}
+              {filteredDistricts.map((district) => {
+                const districtValue = makeDistrictLocationValue(targetCityObj.value, district.value);
+                const isDistrictSelected = draftCity === districtValue;
 
-                    {/* Specific District / Hot location options */}
-                    {city.districts
-                      .slice()
-                      .sort((a, b) => parseCountNumber(b.count) - parseCountNumber(a.count))
-                      .map((district) => {
-                        const districtValue = makeDistrictLocationValue(city.value, district.value);
-                        const isDistrictSelected = selectedCity === districtValue;
+                return (
+                  <button
+                    key={district.value}
+                    type="button"
+                    onClick={() => {
+                      setDraftCity(districtValue);
+                      setSearchQuery(`${targetCityObj.label}, ${district.label}`);
+                      setUserTypedQuery("");
+                    }}
+                    className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[#0b0e1a]/85 px-4 py-3.5 text-left text-xs font-bold text-slate-200 transition active:scale-[0.99] cursor-pointer hover:border-white/20 hover:bg-[#0e1222]"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
+                      <span className="truncate text-sm font-semibold">{district.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs font-semibold text-slate-400">{district.count}</span>
+                      {isDistrictSelected && <Check className="h-4 w-4 text-emerald-400 shrink-0" />}
+                    </div>
+                  </button>
+                );
+              })}
 
-                        return (
-                          <button
-                            key={district.value}
-                            type="button"
-                            onClick={() => {
-                              onSelectCity(districtValue);
-                              onClose();
-                            }}
-                            className={cn(
-                              "flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-semibold transition active:scale-[0.99]",
-                              isDistrictSelected
-                                ? "border-[#C9A86A]/70 bg-[#C9A86A]/20 text-[#C9A86A] font-bold"
-                                : "border-white/5 bg-[#080b16] text-slate-300 hover:bg-white/[0.06] hover:text-white"
-                            )}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span>{district.label}</span>
-                              {isDistrictSelected && <Check className="h-3.5 w-3.5 text-[#C9A86A]" />}
-                            </div>
-                            <span className="text-[10px] font-medium text-slate-400">{district.count}</span>
-                          </button>
-                        );
-                      })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {filteredCities.length === 0 && (
-            <div className="col-span-full py-12 text-center space-y-2">
-              <MapPin className="mx-auto h-8 w-8 text-slate-600" />
-              <p className="text-sm font-semibold text-slate-400">
-                Không tìm thấy tỉnh thành hoặc khu vực phù hợp
-              </p>
-              <p className="text-xs text-slate-500">
-                Thử tìm kiếm với từ khóa khác như "Hà Nội", "Quận 1", "Tây Hồ", v.v.
-              </p>
+              {filteredDistricts.length === 0 && (
+                <div className="col-span-full py-12 text-center space-y-2">
+                  <MapPin className="mx-auto h-8 w-8 text-slate-600" />
+                  <p className="text-sm font-semibold text-slate-400">
+                    Không tìm thấy quận/huyện phù hợp tại {targetCityObj.label}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

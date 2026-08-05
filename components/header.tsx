@@ -346,7 +346,7 @@ export default function Header() {
 
   async function handleLogout() {
     await logoutCurrentSession();
-    router.replace("/auth/login");
+    router.replace("/about");
   }
 
   async function handleStopImpersonation() {
