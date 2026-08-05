@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { Briefcase, Check, CheckCircle2, Heart, Loader2, MapPin, Star, Trash2, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
-import BadgeTier, { type TalentAchievementBadge } from "@/components/ui/BadgeTier";
+import BadgeTier, { getPrimaryAchievementBadge, type TalentAchievementBadge } from "@/components/ui/BadgeTier";
 
 export type TalentAvailabilityStatus = "available" | "busy" | "maybe" | string | null | undefined;
 
@@ -75,13 +75,7 @@ export function getStatusLabel(status: TalentAvailabilityStatus) {
 }
 
 export function getTalentPrimaryBadge(talent: any): TalentAchievementBadge | null {
-  const badges = Array.isArray(talent?.badges)
-    ? talent.badges
-    : Array.isArray(talent?.active_badges)
-      ? talent.active_badges
-      : [];
-
-  return badges.find((badge: TalentAchievementBadge) => badge?.title) || null;
+  return getPrimaryAchievementBadge(talent);
 }
 
 function getMockTalentStats(talent: any) {

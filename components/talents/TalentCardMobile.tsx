@@ -66,7 +66,7 @@ export default function TalentCardMobile({
   const hasActions = Boolean(onView || onToggleSaved || onMessage);
   const talentBadgeSeed = talent?.id || talent?.slug || talent?.email || talent?.name;
   const primaryBadge = getTalentPrimaryBadge(talent);
-  const tierBadge = getBackendBadgeConfig(primaryBadge, talent?.tier, talentBadgeSeed);
+  const tierBadge = getBackendBadgeConfig(primaryBadge, talent?.tier);
   const mockStats = useMemo(() => getMockTalentStats(talent), [talent]);
 
   const stopCardClick = (event: MouseEvent) => {

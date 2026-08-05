@@ -58,11 +58,22 @@ export function getTierBadgeConfig(tierValue: unknown, seed?: unknown) {
   return getAchievementBadgeConfig(tierValue, seed == null ? "" : String(seed));
 }
 
-export function getBackendBadgeConfig(badge: TalentAchievementBadge | null | undefined, fallbackTier?: unknown, seed?: unknown) {
-  if (!badge?.title) return getTierBadgeConfig(fallbackTier, seed);
+export function getPrimaryAchievementBadge(source: unknown): TalentAchievementBadge | null {
+  const candidate = source as { badges?: unknown; active_badges?: unknown } | null | undefined;
+  const badges = Array.isArray(candidate?.badges)
+    ? candidate.badges
+    : Array.isArray(candidate?.active_badges)
+      ? candidate.active_badges
+      : [];
+
+  return (badges as TalentAchievementBadge[]).find((badge) => Boolean(badge?.title)) || null;
+}
+
+export function getBackendBadgeConfig(badge: TalentAchievementBadge | null | undefined, fallbackTier?: unknown) {
+  if (!badge?.title) return null;
 
   const tone = badge.color_scheme || badge.tier || fallbackTier;
-  const base = getAchievementBadgeConfig(tone, seed == null ? "" : String(seed));
+  const base = getAchievementBadgeConfig(tone, "");
   if (!base) return null;
 
   return {
@@ -76,12 +87,11 @@ export function getBackendBadgeConfig(badge: TalentAchievementBadge | null | und
 export default function BadgeTier({
   tier,
   badge,
-  seed,
   variant = "subtle",
   size = "sm",
   className,
 }: BadgeTierProps) {
-  const config = getBackendBadgeConfig(badge, tier, seed);
+  const config = getBackendBadgeConfig(badge, tier);
   if (!config) return null;
 
   const iconFromBadge = "iconKey" in config ? BACKEND_BADGE_ICONS[String(config.iconKey)] : null;

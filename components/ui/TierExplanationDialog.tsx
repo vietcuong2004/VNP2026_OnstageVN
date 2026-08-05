@@ -95,7 +95,7 @@ export default function TierExplanationDialog({ isOpen, onClose }: TierExplanati
                     Danh hiệu tháng
                   </span>
                 </div>
-                <BadgeTier tier={tier} variant="gradient" className="mt-1" />
+                <BadgeTier badge={{ title: point, description, tier }} tier={tier} variant="gradient" className="mt-1" />
                 <p className="mt-2 text-xs font-bold leading-relaxed text-amber-100">
                   {point}
                 </p>

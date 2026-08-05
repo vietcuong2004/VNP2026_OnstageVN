@@ -6,6 +6,19 @@ import type { Campaign, CampaignMedia, CampaignStage, TalentProfile } from "@/li
 
 const BRAND_PROFILE_DRAFT_KEY = "onstagevn_guest_brand_profile";
 
+type BackendBadge = {
+  id?: number | string;
+  code?: string | null;
+  title?: string | null;
+  description?: string | null;
+  tier?: string | null;
+  color_scheme?: string | null;
+  icon?: string | null;
+  period_type?: string | null;
+  period_value?: string | null;
+  score?: number | null;
+};
+
 type BackendUser = {
   id?: number | string;
   name?: string | null;
@@ -44,6 +57,8 @@ type BackendProfile = {
   hair_color?: string | null;
   experience_years?: number | string | null;
   tier?: string | null;
+  badges?: BackendBadge[] | null;
+  active_badges?: BackendBadge[] | null;
   rating?: number | string | null;
   profile_completion?: number | string | null;
   verification_status?: string | null;
@@ -589,6 +604,8 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     hairColor: String(repairMojibake(profile.hair_color || fallback?.hairColor || "")),
     yearsOfExperience: Number(profile.experience_years) || fallback?.yearsOfExperience || 0,
     tier: mapTier(profile.latest_survey?.tier || profile.tier) || fallback?.tier || "C",
+    badges: profile.badges || (fallback as { badges?: BackendBadge[] } | undefined)?.badges,
+    active_badges: profile.active_badges || (fallback as { active_badges?: BackendBadge[] } | undefined)?.active_badges,
     verified: profile.verification_status === "verified" || Boolean(profile.user?.is_verified) || fallback?.verified || false,
     rating: Number(profile.rating) || fallback?.rating || 0,
     completedJobs: fallback?.completedJobs || 0,

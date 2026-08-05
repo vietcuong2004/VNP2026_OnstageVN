@@ -54,6 +54,8 @@ export interface BrandTalentCard {
   waist?: number;
   hips?: number;
   tier?: string;
+  badges?: unknown[];
+  active_badges?: unknown[];
   verified?: boolean;
   rating?: number | string;
   followers?: string;
@@ -181,6 +183,8 @@ function profileToTalent(
     height: Number(profile.height_cm) || fallback?.height || 0,
     weight: Number(profile.weight_kg) || fallback?.weight || 0,
     tier: profile.tier || fallback?.tier || "C",
+    badges: profile.badges || fallback?.badges,
+    active_badges: profile.active_badges || fallback?.active_badges,
     verified: profile.verification_status === "verified" || Boolean(profile.user?.is_verified) || fallback?.verified || false,
     rating: Number(profile.rating) || fallback?.rating || 0,
     followersCount,
