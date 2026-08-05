@@ -64,6 +64,15 @@ const TALENT_PAGES_PER_RESULT_PAGE = 2;
 const TALENTS_PER_RESULT_PAGE = TALENTS_PER_PAGE * TALENT_PAGES_PER_RESULT_PAGE;
 
 type TalentSortOption = "near_me" | "rating" | "newest" | "oldest" | "name_asc" | "name_desc";
+type MobileTalentQuickTab = "all" | "top_month" | "newest" | "reviewed";
+
+const MOBILE_TALENT_QUICK_TABS: Array<{ value: MobileTalentQuickTab | "more"; label: string }> = [
+  { value: "all", label: "Tất cả" },
+  { value: "top_month", label: "Top tháng" },
+  { value: "newest", label: "Mới" },
+  { value: "reviewed", label: "Đánh giá tốt" },
+  { value: "more", label: "Thêm" },
+];
 
 const TALENT_SORT_OPTIONS: Array<{ value: TalentSortOption; label: string }> = [
   { value: "near_me", label: "Gần tôi" },
@@ -584,6 +593,7 @@ export default function DiscoverTalentsPage() {
   const [selectedInviteTalent, setSelectedInviteTalent] = useState<any | null>(null);
   const [selectedCampaignForInvite, setSelectedCampaignForInvite] = useState("");
   const [sortOption, setSortOption] = useState<TalentSortOption>("near_me");
+  const [mobileQuickTab, setMobileQuickTab] = useState<MobileTalentQuickTab>("all");
   const [brandLocation, setBrandLocation] = useState({ city: "", district: "" });
   const talentRequestRef = useRef(0);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -635,6 +645,53 @@ export default function DiscoverTalentsPage() {
     setSelectedCity(city);
     setAppliedFilters((prev) => ({ ...prev, city }));
   }, []);
+
+  const hasMobileFilterBadge =
+    selectedGender !== allValue ||
+    selectedType !== allValue ||
+    selectedCity !== allValue ||
+    minHeight !== 150 ||
+    maxHeight !== 190 ||
+    minWeight !== 40 ||
+    maxWeight !== 90;
+
+  const applyMobileQuickTab = useCallback((tab: MobileTalentQuickTab | "more") => {
+    if (tab === "more") {
+      setIsMobileFiltersOpen(true);
+      return;
+    }
+
+    setMobileQuickTab(tab);
+
+    if (tab === "all") {
+      setSearchInput("");
+      setSelectedGender(allValue);
+      setSelectedType(allValue);
+      setSelectedCity(allValue);
+      setMinHeight(150);
+      setMaxHeight(190);
+      setMinWeight(40);
+      setMaxWeight(90);
+      setShowAdvancedFilters(false);
+      setSortOption("near_me");
+      setAppliedFilters({
+        query: "",
+        gender: allValue,
+        type: allValue,
+        city: allValue,
+        minHeight: 150,
+        maxHeight: 190,
+        minWeight: 40,
+        maxWeight: 90,
+        showAdvancedFilters: false,
+      });
+      return;
+    }
+
+    const nextSort: TalentSortOption = tab === "newest" ? "newest" : "rating";
+    setSortOption(nextSort);
+    setAppliedFilters((prev) => ({ ...prev, query: searchInput }));
+  }, [searchInput]);
 
   const talentQueryOptions = useMemo(() => ({
     q: appliedFilters.query || undefined,
@@ -1050,7 +1107,7 @@ export default function DiscoverTalentsPage() {
             onClick={() => setIsMobileFiltersOpen(true)}
             className={cn(
               "flex items-center justify-center h-9 w-9 rounded-full border transition-all shrink-0 cursor-pointer",
-              (selectedGender !== allValue || selectedType !== allValue || minHeight !== 150 || maxHeight !== 190 || minWeight !== 40 || maxWeight !== 90)
+              hasMobileFilterBadge
                 ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
                 : "border-white/10 bg-slate-900/60 text-slate-400"
             )}
@@ -1122,6 +1179,29 @@ export default function DiscoverTalentsPage() {
               </span>
             )}
           </button>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {MOBILE_TALENT_QUICK_TABS.map((tab) => {
+            const isMore = tab.value === "more";
+            const isActive = isMore ? hasMobileFilterBadge : mobileQuickTab === tab.value;
+
+            return (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => applyMobileQuickTab(tab.value)}
+                className={cn(
+                  "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95",
+                  isActive
+                    ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F9D66D] shadow-[0_0_14px_rgba(201,168,106,0.14)]"
+                    : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/35 hover:text-white"
+                )}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Collapsible Advanced Filters (Mobile Version) */}
@@ -1696,6 +1776,7 @@ export default function DiscoverTalentsPage() {
             maxWeight: 90,
             showAdvancedFilters: prev.showAdvancedFilters,
           }));
+          setMobileQuickTab("all");
           pushToast("Đã đặt lại bộ lọc.");
         }}
         onApply={() => {
@@ -1710,6 +1791,7 @@ export default function DiscoverTalentsPage() {
             maxWeight,
             showAdvancedFilters: prev.showAdvancedFilters,
           }));
+          setMobileQuickTab("all");
           setIsMobileFiltersOpen(false);
           pushToast("Đã áp dụng bộ lọc.");
         }}
