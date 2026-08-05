@@ -124,7 +124,7 @@ export default function ManageCompetitionsPage() {
     season: new Date().getFullYear().toString(),
     slogan: "Tỏa sáng vẻ đẹp Di sản & Văn hóa Việt",
     category: "Hoa hậu",
-    logoUrl: "/logo_new.png",
+    logoUrl: "/logo_icon.png",
     coverDesktop: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&auto=format&fit=crop&q=80",
     coverMobile: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&auto=format&fit=crop&q=80",
     images: [
@@ -250,7 +250,7 @@ export default function ManageCompetitionsPage() {
     enabledSections: { announcements: true, judges: true, candidates: true, results: true, news: true, gallery: true },
     announcements: [],
     judges: [
-      { id: "j1", name: "ThS. Trịnh Mỹ Linh", role: "Trưởng Ban Giám Khảo", title: "Hoa hậu / NTK", avatar: "/logo_new.png" }
+      { id: "j1", name: "ThS. Trịnh Mỹ Linh", role: "Trưởng Ban Giám Khảo", title: "Hoa hậu / NTK", avatar: "/logo_icon.png" }
     ],
     candidates: [],
     news: [],
@@ -259,8 +259,8 @@ export default function ManageCompetitionsPage() {
 
   // STEP 5: Sponsors & Contact
   const [sponsorsData, setSponsorsData] = useState<SponsorsDataState>({
-    organizer: { name: "VNP Onstage Media Group", englishName: "VNP ONSTAGE MEDIA JOINT STOCK COMPANY", logo: "/logo_new.png", role: "Đơn vị Tổ chức & Bản quyền", website: "https://onstage.vn" },
-    sponsors: [{ id: "s1", name: "Tập đoàn Du lịch VinPearl", logo: "/logo_new.png", tier: "Kim cương" }],
+    organizer: { name: "VNP Onstage Media Group", englishName: "VNP ONSTAGE MEDIA JOINT STOCK COMPANY", logo: "/logo_icon.png", role: "Đơn vị Tổ chức & Bản quyền", website: "https://onstage.vn" },
+    sponsors: [{ id: "s1", name: "Tập đoàn Du lịch VinPearl", logo: "/logo_icon.png", tier: "Kim cương" }],
     partners: [],
     contact: { hotline: "0909 123 456", email: "contact@hhdlyvn.vn", address: "Số 88 Nguyễn Chí Thanh, Đống Đa, Hà Nội", supportHours: "8:00 - 18:00" }
   });

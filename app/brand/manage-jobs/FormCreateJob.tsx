@@ -7,6 +7,7 @@ import { type Campaign } from "@/lib/brand-mvp-data";
 import { createBrandCampaign, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 import { TALENT_TYPE_VALUES } from "@/components/ui/ComboboxOptionValues";
+import { networkInterfaces } from "os";
 
 const ROLE_OPTIONS = [
   "CTV Take Care nghệ sĩ",

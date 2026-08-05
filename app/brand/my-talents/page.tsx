@@ -985,7 +985,7 @@ export default function MyTalentsPage() {
                   />
                   <div className="absolute h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-[#02040a] border-2 border-white flex items-center justify-center shadow-lg overflow-hidden">
                     <img
-                      src="/logo_new.png"
+                      src="/logo_icon.png"
                       alt="ONSTAGE"
                       className="h-full w-full object-contain p-1"
                       onError={(e) => { e.currentTarget.style.display = "none"; }}

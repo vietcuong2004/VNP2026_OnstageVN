@@ -384,7 +384,7 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
       <header className="fixed top-0 left-0 w-full z-50 bg-[#02040a]/80 backdrop-blur-md border-b border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
         <div className="w-full max-w-[1550px] mx-auto flex items-center justify-between py-3 md:py-4 px-4 md:px-8">
           <div className="flex items-center hover:opacity-95 transition-opacity cursor-pointer" onClick={() => router.push("/")}>
-            <img src="/logo_new.png" alt="OnstageVN Logo Icon" className="h-8 w-8 md:h-11 md:w-11 object-contain shrink-0" />
+            <img src="/logo_icon.png" alt="OnstageVN Logo Icon" className="h-8 w-8 md:h-11 md:w-11 object-contain shrink-0" />
             <img src="/logo_text.png" alt="OnstageVN Logo Text" className="h-6 md:h-9 object-contain shrink-0 ml-2" />
             <span className="ml-2.5 rounded bg-amber-400/10 border border-amber-400/25 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-amber-300 hidden sm:inline-block">
               INVITE
@@ -640,7 +640,7 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
       <footer className="relative z-10 w-full border-t border-white/5 bg-[#02040a]/80 backdrop-blur-md pt-16 pb-24 md:pb-12 px-4 md:px-8 mt-16 max-w-[1550px] mx-auto text-center">
         <div className="flex flex-col items-center mb-12">
           <div className="flex items-center gap-2 mb-3 justify-center">
-            <img src="/logo_new.png" alt="OnstageVN Logo Icon" className="h-12 w-12 object-contain shrink-0" />
+            <img src="/logo_icon.png" alt="OnstageVN Logo Icon" className="h-12 w-12 object-contain shrink-0" />
             <img src="/logo_text.png" alt="OnstageVN Logo Text" className="h-10 object-contain shrink-0" />
           </div>
           <p className="text-xs text-slate-400 max-w-2xl leading-relaxed text-center px-4 font-medium">

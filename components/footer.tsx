@@ -18,26 +18,26 @@ export default function Footer() {
 
   return (
     <footer className="w-full border-t border-white/5 bg-[#02040a]/60 backdrop-blur-md pt-10 pb-8 px-4 md:px-8 mt-12 max-w-[1440px] mx-auto rounded-[24px] text-left">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-12 gap-3 sm:gap-4 md:gap-8 mb-8">
         {/* Left Column: Logo & Tagline */}
-        <div className="md:col-span-4 flex flex-col items-start gap-4">
-          <div className="flex items-center gap-2">
+        <div className="col-span-2 md:col-span-4 flex flex-col items-center md:items-start gap-4">
+          <div className="flex items-center justify-center md:justify-start w-full gap-0">
             <img
-              src="/logo_new.png"
+              src="/logo_icon.png"
               alt="OnstageVN Logo Icon"
-              className="h-9 w-9 object-contain shrink-0"
+              className="h-12 w-12 sm:h-14 sm:w-14 object-contain shrink-0 p-0 m-0"
             />
             <img
               src="/logo_text.png"
               alt="OnstageVN Logo Text"
-              className="h-7 object-contain shrink-0"
+              className="h-9 sm:h-10 object-contain shrink-0 p-0 m-0"
             />
           </div>
-          <p className="text-xs sm:text-[13px] leading-relaxed text-slate-400 max-w-sm font-medium">
+          <p className="text-xs sm:text-[13px] leading-relaxed text-slate-400 max-w-sm font-medium text-justify w-full">
             Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ idol cùng nhãn hàng.
           </p>
           {/* Social Icons Inline */}
-          <div className="flex items-center gap-3 mt-1">
+          <div className="flex items-center justify-center md:justify-start w-full gap-3 mt-1">
             <a href="#" className="h-7 w-7 rounded-full border border-white/5 hover:border-[#F0C56B] flex items-center justify-center text-slate-400 hover:text-[#F0C56B] hover:bg-[#F0C56B]/5 transition-all">
               <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
                 <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
@@ -58,26 +58,10 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Center-Left Column: Ecosystem */}
-        <div className="md:col-span-2 flex flex-col items-start gap-3">
-          <h4 className="text-xs sm:text-sm font-black text-[#F0C56B] uppercase tracking-wider">Hệ sinh thái</h4>
-          <ul className="space-y-2.5 text-xs sm:text-[13px] font-semibold text-slate-400">
-            <li>
-              <Link href="/intro/talent" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Idol</Link>
-            </li>
-            <li>
-              <Link href="/intro/brand" className="hover:text-[#F0C56B] transition-colors block">Kênh Onstage Brand</Link>
-            </li>
-            <li>
-              <button onClick={() => scrollToId('process')} className="hover:text-white transition-colors cursor-pointer text-left block">Quy trình vận hành</button>
-            </li>
-          </ul>
-        </div>
-
         {/* Center-Right Column: Giới thiệu */}
-        <div className="md:col-span-2 flex flex-col items-start gap-3">
-          <h4 className="text-xs sm:text-sm font-black text-[#F0C56B] uppercase tracking-wider">Giới thiệu</h4>
-          <ul className="space-y-2.5 text-xs sm:text-[13px] font-semibold text-slate-400">
+        <div className="col-span-1 md:col-span-3 border border-white/10 bg-white/[0.02] p-3 sm:p-4 rounded-xl flex flex-col items-start gap-2.5 sm:gap-3 h-full w-full">
+          <h4 className="text-[11px] sm:text-sm font-black text-[#F0C56B] uppercase tracking-wider">Giới thiệu</h4>
+          <ul className="space-y-2 text-[11px] sm:text-[13px] font-semibold text-slate-400">
             <li>
               <button onClick={() => scrollToId('intro')} className="hover:text-white transition-colors cursor-pointer text-left block">Về chúng tôi</button>
             </li>
@@ -94,20 +78,20 @@ export default function Footer() {
         </div>
 
         {/* Right Column: Contact Info */}
-        <div className="md:col-span-4 flex flex-col items-start gap-3">
-          <h4 className="text-xs sm:text-sm font-black text-[#F0C56B] uppercase tracking-wider">Liên hệ</h4>
-          <ul className="space-y-2.5 text-xs sm:text-[13px] font-medium text-slate-400">
-            <li className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-[#F0C56B] shrink-0" />
+        <div className="col-span-1 md:col-span-5 border border-white/10 bg-white/[0.02] p-3 sm:p-4 rounded-xl flex flex-col items-start gap-2.5 sm:gap-3 h-full w-full">
+          <h4 className="text-[11px] sm:text-sm font-black text-[#F0C56B] uppercase tracking-wider">Liên hệ</h4>
+          <ul className="space-y-2 text-[11px] sm:text-[13px] font-medium text-slate-400">
+            <li className="flex items-center gap-1.5 sm:gap-2">
+              <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#F0C56B] shrink-0" />
               <span className="break-all">contact@onstage.vn</span>
             </li>
-            <li className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-[#F0C56B] shrink-0" />
+            <li className="flex items-center gap-1.5 sm:gap-2">
+              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#F0C56B] shrink-0" />
               <span>+84 (0) 90 123 4567</span>
             </li>
-            <li className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 text-[#F0C56B] shrink-0 mt-0.5" />
-              <span className="leading-relaxed">102 Thái Thịnh, Q.Đống Đa, Hà Nội</span>
+            <li className="flex items-start gap-1.5 sm:gap-2">
+              <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#F0C56B] shrink-0 mt-0.5" />
+              <span className="leading-tight sm:leading-relaxed">102 Thái Thịnh, Q.Đống Đa, Hà Nội</span>
             </li>
           </ul>
         </div>

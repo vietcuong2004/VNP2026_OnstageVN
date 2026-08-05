@@ -855,7 +855,7 @@ export default function FormCreateCompetition({
                     {/* Circle Avatar Uploader - gold ring style */}
                     <label className="group relative h-16 w-16 rounded-full shrink-0 cursor-pointer block" style={{ background: 'linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #b8860b 100%)', padding: '2px' }}>
                       <div className="w-full h-full rounded-full bg-[#0a0d1a] overflow-hidden flex items-center justify-center">
-                        <img src={j.avatar || "/logo_new.png"} alt="Judge Avatar" className="h-full w-full object-cover" />
+                        <img src={j.avatar || "/logo_icon.png"} alt="Judge Avatar" className="h-full w-full object-cover" />
                       </div>
                       <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/60">
                         <Upload className="h-3.5 w-3.5 text-amber-400" />
@@ -927,7 +927,7 @@ export default function FormCreateCompetition({
                     name: "",
                     role: "",
                     title: "",
-                    avatar: "/logo_new.png"
+                    avatar: "/logo_icon.png"
                   };
                   setPublicContent({ ...publicContent, judges: [...publicContent.judges, newJ] });
                 }}
@@ -950,7 +950,7 @@ export default function FormCreateCompetition({
                     {/* Circular Logo Uploader - gold ring style */}
                     <label className="group relative h-16 w-16 rounded-full shrink-0 cursor-pointer block" style={{ background: 'linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #b8860b 100%)', padding: '2px' }}>
                       <div className="w-full h-full rounded-full bg-[#0a0d1a] overflow-hidden flex items-center justify-center p-1">
-                        <img src={s.logo || "/logo_new.png"} alt="Sponsor Logo" className="h-full w-full object-contain" />
+                        <img src={s.logo || "/logo_icon.png"} alt="Sponsor Logo" className="h-full w-full object-contain" />
                       </div>
                       <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/60">
                         <Upload className="h-3.5 w-3.5 text-amber-400" />
@@ -994,7 +994,7 @@ export default function FormCreateCompetition({
                   const newS: Sponsor = {
                     id: `s_${Date.now()}`,
                     name: "",
-                    logo: "/logo_new.png",
+                    logo: "/logo_icon.png",
                     tier: ""
                   };
                   setSponsorsData({ ...sponsorsData, sponsors: [...sponsorsData.sponsors, newS] });

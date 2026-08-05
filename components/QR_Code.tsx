@@ -151,7 +151,7 @@ export default function QRCodeContainer({
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
     const color = colors[Math.abs(hash) % colors.length];
-    
+
     // Server-friendly inline SVG generator
     return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="${encodeURIComponent(color)}"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="36" font-weight="bold" fill="white">${encodeURIComponent(initials)}</text></svg>`;
   };
@@ -212,7 +212,7 @@ export default function QRCodeContainer({
           )}
           <div className="absolute h-9 w-9 rounded-full bg-slate-950 border-2 border-white flex items-center justify-center shadow-lg overflow-hidden">
             <img
-              src="/logo_new.png"
+              src="/logo_icon.png"
               alt="OSN"
               className="h-full w-full object-cover"
               onError={(event) => {
