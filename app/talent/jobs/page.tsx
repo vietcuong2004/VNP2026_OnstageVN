@@ -25,7 +25,6 @@ import { getStoredAuthUser } from "@/lib/api-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import QRCodeContainer from "@/components/QR_Code";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
-import { CITY_VALUES } from "@/components/ui/ComboboxOptionValues";
 import JobCard from "@/components/jobs/JobCard";
 import JobCardMobile from "@/components/jobs/JobCardMobile";
 import JobFilterDialog from "@/components/jobs/JobFilterDialog";
@@ -33,6 +32,7 @@ import JobFilterCityDialog from "@/components/jobs/JobFilterCityDialog";
 import KeywordSuggestionsDropdown from "@/components/search/KeywordSuggestionsDropdown";
 import { loadSavedJobsForSession, SAVED_JOBS_UPDATED_EVENT } from "@/lib/saved-jobs";
 import { buildJobSearchSuggestions } from "@/lib/search-suggestions.mjs";
+import { normalizeLocationName, useCityFilterOptions } from "@/hooks/use-location-options";
 
 type StageFilter = "apply" | "pending" | "approved" | "all";
 type SortOrder = "newest" | "oldest" | "deadline_asc" | "near_me" | "selected_city" | string;
@@ -86,8 +86,6 @@ function normalizeStageFilter(value?: string | null): StageFilter {
   return "all";
 }
 
-const cityOptions = CITY_VALUES;
-
 const jobTypeOptions = [
   "Tuyển cộng tác viên",
   "Tuyển đại sứ",
@@ -100,7 +98,7 @@ const jobTypeOptions = [
 ];
 
 function normalizeCityName(value: string) {
-  return value.replace(/^(TP\.|Tỉnh)\s*/i, "").trim();
+  return normalizeLocationName(value);
 }
 
 const DISTRICT_FILTER_PREFIX = "district:";
@@ -133,10 +131,6 @@ function formatLocationFilterLabel(value: string, options: { label: string; valu
   return options.find((opt) => opt.value === value)?.label || value;
 }
 
-const cityDropdownOptions = [
-  { value: allValue, label: "Toàn quốc" },
-  ...cityOptions.map((city) => ({ value: normalizeCityName(city), label: city })),
-];
 
 const hotJobLocations = [
   { value: "Hà Nội", label: "Hà Nội", count: 103 },
@@ -399,6 +393,7 @@ function readCurrentTalentIdentity() {
 }
 
 function JobsPageContent() {
+  const cityDropdownOptions = useCityFilterOptions("Toàn quốc", allValue);
   const router = useRouter();
   const currentTalent = readCurrentTalentIdentity();
   const currentTalentId = currentTalent.profileId || currentTalent.userId;

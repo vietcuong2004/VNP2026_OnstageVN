@@ -17,13 +17,13 @@ import { loadGuestSavedTalentIds, notifySavedTalentsUpdated, saveGuestSavedTalen
 import { addViewedTalentId, loadViewedTalentIds } from "@/lib/talent-view-history";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
+import { normalizeLocationName, useCityFilterOptions } from "@/hooks/use-location-options";
 import { getTalentTypes } from "@/components/talents/TalentCard";
 import TalentFilterCityDialog from "@/components/talents/TalentFilterCityDialog";
 import TalentFilterDialog from "@/components/talents/TalentFilterDialog";
 import SavedIdols from "./saved-idols";
 import ViewedIdol from "./viewed-idol";
 import {
-  CITY_VALUES,
   TALENT_TYPE_VALUES,
   normalizeTalentTypeLabel,
 } from "@/components/ui/ComboboxOptionValues";
@@ -56,7 +56,7 @@ const genderOptions = [
 ];
 
 function normalizeCityName(cityName: string): string {
-  return cityName.toLowerCase().replace(/^(tỉnh|thành phố|tp\.?)\s+/i, "").trim();
+  return normalizeLocationName(cityName);
 }
 
 const DISTRICT_FILTER_PREFIX = "district:";
@@ -103,10 +103,6 @@ function formatLocationFilterLabel(value: string, options: { label: string; valu
   return options.find((option) => option.value === value)?.label || value;
 }
 
-const cityOptions = [
-  { label: "Toàn quốc", value: allValue },
-  ...CITY_VALUES.map((city: string) => ({ label: city, value: normalizeCityName(city) })),
-];
 
 const typeOptions = [
   { label: "Tất cả", value: allValue },
@@ -397,6 +393,7 @@ function matchesGenderValue(talentGender: string, filterGender: string): boolean
 }
 
 export default function BrandShortlistsPage() {
+  const cityOptions = useCityFilterOptions("Toàn quốc", allValue);
   const router = useRouter();
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [viewedIds, setViewedIds] = useState<string[]>([]);

@@ -31,11 +31,11 @@ import {
 import { getAuthToken } from "@/lib/api-client";
 import { SPECIALTY_PRESET_GROUPS, SOCIAL_HIGHLIGHT_PRESET_GROUPS, flattenTalentPresetOptions } from "@/lib/talent-profile-presets";
 import {
-  CITY_OPTIONS,
   TALENT_TYPE_VALUES,
   normalizeTalentTypeLabel,
   normalizeTalentTypeList,
 } from "@/components/ui/ComboboxOptionValues";
+import { CityOption, useCityOptions } from "@/hooks/use-location-options";
 
 // Custom SVG Icons to avoid import errors from old lucide version
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -117,18 +117,18 @@ function normalizeComboboxLookup(value: unknown) {
     .toLowerCase();
 }
 
-function resolveCityValue(value: unknown) {
+function resolveCityValue(value: unknown, cityOptions: CityOption[]) {
   const rawValue = String(value || "").trim();
   if (!rawValue) return "";
 
-  const exactMatch = CITY_OPTIONS.find((option) => option.value === rawValue || option.label === rawValue);
+  const exactMatch = cityOptions.find((option) => option.value === rawValue || option.label === rawValue);
   if (exactMatch) return exactMatch.value;
 
   const normalizedValue = normalizeComboboxLookup(rawValue);
-  const softMatch = CITY_OPTIONS.find((option) => normalizeComboboxLookup(option.value) === normalizedValue);
+  const softMatch = cityOptions.find((option) => normalizeComboboxLookup(option.value) === normalizedValue);
   if (softMatch) return softMatch.value;
 
-  const includedMatch = CITY_OPTIONS.find((option) => {
+  const includedMatch = cityOptions.find((option) => {
     const normalizedOption = normalizeComboboxLookup(option.value);
     return normalizedOption.includes(normalizedValue) || normalizedValue.includes(normalizedOption);
   });
@@ -188,20 +188,21 @@ type GuestSurveySyncPayload = {
 
 type SurveyCityComboboxProps = {
   value: string;
+  options: CityOption[];
   onChange: (value: string) => void;
 };
 
-function SurveyCityCombobox({ value, onChange }: SurveyCityComboboxProps) {
+function SurveyCityCombobox({ value, options, onChange }: SurveyCityComboboxProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedOption = CITY_OPTIONS.find((option) => option.value === value);
+  const selectedOption = options.find((option) => option.value === value || option.label === value);
   const filteredOptions = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return CITY_OPTIONS;
-    return CITY_OPTIONS.filter((option) => option.label.toLowerCase().includes(keyword));
-  }, [search]);
+    if (!keyword) return options;
+    return options.filter((option) => option.label.toLowerCase().includes(keyword));
+  }, [options, search]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -374,6 +375,7 @@ interface SurveyFormProps {
 
 export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: SurveyFormProps = {}) {
   const router = useRouter();
+  const cityOptions = useCityOptions();
   const [step, setStep] = useState(1);
   const [maxStep, setMaxStep] = useState(1);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -394,7 +396,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     setIsAuthenticated(!!getAuthToken());
     loadTalentProfile().then((profile) => {
       if (active && profile) {
-        const location = resolveCityValue(profile.location || profile.city);
+        const location = resolveCityValue(profile.location || profile.city, cityOptions);
         const talentTypes = normalizeTalentTypeList(profile.talentTypes || profile.talent_types || []);
         const skills = listFromProfileValue(profile.skills, profile.specialSkills);
         const nextSocialHighlights = listFromProfileValue(profile.socialHighlights, profile.social_highlights);
@@ -446,7 +448,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     return () => {
       active = false;
     };
-  }, []);
+  }, [cityOptions]);
 
   // Outer Step 4 (Orientation survey) inner question tracker (0 to 19)
   const [activeSurveyQIdx, setActiveSurveyQIdx] = useState(0);
@@ -1078,8 +1080,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       const selectedAvatar = avatarFile
         ? avatarDataUrl || await fileToDataUrl(avatarFile).catch(() => "")
         : avatarPreviewUrl || "";
+      const selectedCityOption = cityOptions.find((option) => option.value === formData.location || option.label === formData.location);
       const userProfile: Record<string, unknown> = {
         ...formData,
+        location: selectedCityOption?.label || formData.location,
+        city_id: selectedCityOption?.id,
+        cityId: selectedCityOption?.id,
         followersCount: getTotalFollowers().toString(),
         surveyScores: {
           pageant: pageantPct,
@@ -2095,6 +2101,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Khu vực sinh sống</label>
                   <SurveyCityCombobox
                     value={formData.location}
+                    options={cityOptions}
                     onChange={(location) => setFormData((prev) => ({ ...prev, location }))}
                   />
                 </div>

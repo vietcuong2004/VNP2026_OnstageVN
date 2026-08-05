@@ -4,12 +4,12 @@ import React, { useState, useEffect } from "react";
 import { X, Edit, MapPin, Phone, Briefcase, FileText, Check } from "lucide-react";
 import { updateBrandManagedTalent } from "@/lib/brand-api";
 import {
-  CITY_VALUES,
   DEFAULT_CITY_VALUE,
   DEFAULT_TALENT_TYPE_VALUE,
   TALENT_TYPE_OPTIONS,
   normalizeTalentTypeLabel,
 } from "@/components/ui/ComboboxOptionValues";
+import { useCityOptions } from "@/hooks/use-location-options";
 import type { BrandTalentCard, RosterTalent } from "./page";
 
 interface EditTalentModalProps {
@@ -21,7 +21,6 @@ interface EditTalentModalProps {
   entry: RosterTalent | null;
 }
 
-const CITIES = CITY_VALUES;
 const TALENT_TYPES = TALENT_TYPE_OPTIONS;
 
 export default function EditTalentModal({
@@ -32,6 +31,7 @@ export default function EditTalentModal({
   talent,
   entry,
 }: EditTalentModalProps) {
+  const cityOptions = useCityOptions();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState(DEFAULT_CITY_VALUE);
@@ -70,10 +70,12 @@ export default function EditTalentModal({
       const rosterId = entry.rosterId;
       if (!rosterId) throw new Error("Không tìm thấy roster ID.");
 
+      const selectedCityOption = cityOptions.find((option) => option.value === city || option.label === city);
       const updated = await updateBrandManagedTalent(rosterId, {
         name: name.trim(),
         phone: phone.trim() || undefined,
-        city,
+        city: selectedCityOption?.label || city,
+        city_id: selectedCityOption?.id,
         talent_types: [normalizeTalentTypeLabel(talentType)],
         notes: notes.trim() || null,
       });
@@ -86,7 +88,7 @@ export default function EditTalentModal({
       const updatedTalent: Partial<BrandTalentCard> = {
         name: name.trim(),
         phone: phone.trim(),
-        city,
+        city: selectedCityOption?.label || city,
         type: normalizeTalentTypeLabel(talentType),
       };
 
@@ -208,8 +210,8 @@ export default function EditTalentModal({
                   onChange={(e) => setCity(e.target.value)}
                   className="w-full rounded-xl bg-[#050711] border border-[#151b2d] focus:border-yellow-500/40 outline-none px-3 py-2.5 text-xs text-white appearance-none cursor-pointer font-medium"
                 >
-                  {CITIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                  {cityOptions.map((c) => (
+                    <option key={c.id ?? c.value} value={c.value}>{c.label}</option>
                   ))}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 text-xs">▼</div>

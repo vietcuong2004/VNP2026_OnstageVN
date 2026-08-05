@@ -4,12 +4,12 @@ import React, { useEffect, useState } from "react";
 import { X, UserPlus, MapPin, Phone, Briefcase, FileText, Check, ImagePlus } from "lucide-react";
 import { createBrandManagedTalent, type BrandRosterTalent } from "@/lib/brand-api";
 import {
-  CITY_VALUES,
   DEFAULT_CITY_VALUE,
   DEFAULT_TALENT_TYPE_VALUE,
   TALENT_TYPE_OPTIONS,
   normalizeTalentTypeLabel,
 } from "@/components/ui/ComboboxOptionValues";
+import { useCityOptions } from "@/hooks/use-location-options";
 
 interface CreateModalProps {
   isOpen: boolean;
@@ -18,7 +18,6 @@ interface CreateModalProps {
   addToast: (msg: string) => void;
 }
 
-const CITIES = CITY_VALUES;
 const TALENT_TYPES = TALENT_TYPE_OPTIONS;
 
 export default function CreateTalentModal({
@@ -27,6 +26,7 @@ export default function CreateTalentModal({
   onSuccess,
   addToast,
 }: CreateModalProps) {
+  const cityOptions = useCityOptions();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState(DEFAULT_CITY_VALUE);
@@ -81,10 +81,12 @@ export default function CreateTalentModal({
     setErrorMsg("");
 
     try {
+      const selectedCityOption = cityOptions.find((option) => option.value === city || option.label === city);
       const createdRosterItem = await createBrandManagedTalent({
         name: name.trim(),
         phone: phone.trim() || undefined,
-        city,
+        city: selectedCityOption?.label || city,
+        city_id: selectedCityOption?.id,
         talent_types: [normalizeTalentTypeLabel(talentType)],
         notes: notes.trim() || undefined,
         avatar: avatarFile,
@@ -257,9 +259,9 @@ export default function CreateTalentModal({
                   onChange={(e) => setCity(e.target.value)}
                   className="w-full rounded-xl bg-[#050711] border border-[#151b2d] focus:border-amber-500/40 outline-none px-3 py-2.5 text-xs text-white appearance-none cursor-pointer font-medium"
                 >
-                  {CITIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                  {cityOptions.map((c) => (
+                    <option key={c.id ?? c.value} value={c.value}>
+                      {c.label}
                     </option>
                   ))}
                 </select>
