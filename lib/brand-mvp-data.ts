@@ -25,6 +25,8 @@ export type TalentProfile = {
   hairColor: string;
   yearsOfExperience: number;
   tier: "S" | "A" | "B" | "C" | "Potential";
+  badges?: any[];
+  active_badges?: any[];
   verified: boolean;
   rating: number;
   completedJobs: number;

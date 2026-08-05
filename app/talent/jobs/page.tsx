@@ -6,7 +6,7 @@ import {
   Sparkles, CheckCircle,
   X, Check,
   ArrowLeft, ArrowUpDown, Copy, Users, Briefcase,
-  Search, SlidersHorizontal, ChevronDown, Bookmark
+  Search, SlidersHorizontal, ChevronDown, Bookmark, QrCode
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPONSORSHIP_CATEGORIES } from "@/lib/brand-mvp-data";
@@ -45,6 +45,29 @@ const JOB_PAGES_PER_RESULT_PAGE = 5;
 const JOBS_PER_RESULT_PAGE = JOBS_PER_PAGE * JOB_PAGES_PER_RESULT_PAGE;
 const JOBS_PAGE_STATE_KEY = "vnp_jobs_page_state";
 const allValue = "all";
+
+type MobileJobQuickTab = "all" | "recruiting" | "near_me" | "more";
+
+const MOBILE_JOB_QUICK_TABS: Array<{ value: MobileJobQuickTab; label: string }> = [
+  { value: "all", label: "Tất cả" },
+  { value: "recruiting", label: "Đang tuyển" },
+  { value: "near_me", label: "Gần tôi" },
+  { value: "more", label: "Thêm" },
+];
+
+function readCurrentTalentLocation() {
+  if (typeof window === "undefined") return "Hà Nội";
+  try {
+    const storedProfile = window.localStorage.getItem("vnp_talent_profile");
+    if (storedProfile) {
+      const parsed = JSON.parse(storedProfile);
+      return parsed.city || parsed.hometown || "Hà Nội";
+    }
+  } catch {
+    // ignore
+  }
+  return "Hà Nội";
+}
 
 function normalizeStageFilter(value?: string | null): StageFilter {
   if (value === "executing" || value === "completed" || value === "approved") return "approved";
@@ -389,6 +412,9 @@ function JobsPageContent() {
   const [isMobileJobSearchExpanded, setIsMobileJobSearchExpanded] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isMobileCityDialogOpen, setIsMobileCityDialogOpen] = useState(false);
+  const [mobileQuickTab, setMobileQuickTab] = useState<MobileJobQuickTab>("all");
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [qrInputValue, setQrInputValue] = useState("");
   const [appliedShowAdvancedFilters, setAppliedShowAdvancedFilters] = useState(() => initialJobsState?.appliedShowAdvancedFilters || false);
   const [minBudget, setMinBudget] = useState(() => initialJobsState?.minBudget || 0);
   const [appliedMinBudget, setAppliedMinBudget] = useState(() => initialJobsState?.appliedMinBudget || 0);
@@ -507,7 +533,7 @@ function JobsPageContent() {
   };
 
   const handleInviteClick = async (camp: any) => {
-    if (!requireAuthAction({ actionLabel: "Tạo link giới thiệu campaign" })) return;
+    if (!requireAuthAction({ actionLabel: "Tạo link giới thiệu job" })) return;
     setLoadingReferral(camp.id);
     try {
       const res = await getCampaignReferralLink(camp.id);
@@ -517,7 +543,7 @@ function JobsPageContent() {
       console.warn("Error getting referral link:", err);
       setActiveReferralLink(prev => ({ ...prev, [camp.id]: null }));
       setShowInviteModal(camp);
-      addToast("Chưa tạo được link giới thiệu campaign. Vui lòng thử lại sau.", "info");
+      addToast("Chưa tạo được link giới thiệu job. Vui lòng thử lại sau.", "info");
     } finally {
       setLoadingReferral(null);
     }
@@ -530,6 +556,36 @@ function JobsPageContent() {
     }
     navigator.clipboard.writeText(url);
     addToast("Đã sao chép link giới thiệu vào bộ nhớ tạm!", "success");
+  };
+
+  const handleApplyByQrCode = () => {
+    const value = qrInputValue.trim();
+    if (!value) {
+      addToast("Vui lòng nhập mã QR hoặc link job!", "info");
+      return;
+    }
+
+    let targetId = value;
+    if (value.includes("campaignId=")) {
+      const match = value.match(/campaignId=([^&]+)/);
+      if (match) targetId = match[1];
+    } else if (value.includes("/jobs/")) {
+      const match = value.match(/\/jobs\/([^/?]+)/);
+      if (match) targetId = match[1];
+    }
+
+    const matchedJob = displayJobs.find(
+      (job) => String(job.id) === String(targetId) || String(job.campaignId || "") === String(targetId) || String(job.code || "") === String(targetId)
+    ) || displayJobs[0];
+
+    if (matchedJob) {
+      addToast(`Đã xác thực mã QR job: ${matchedJob.title || "Job"}`, "success");
+      setIsQrModalOpen(false);
+      setQrInputValue("");
+      handleViewJob(matchedJob);
+    } else {
+      addToast("Mã QR job không hợp lệ hoặc đã hết hạn!", "info");
+    }
   };
 
   const getSplitBudgetLabel = (budgetStr: string) => {
@@ -735,7 +791,7 @@ function JobsPageContent() {
   }, [campaignIdParam, displayJobs]);
 
   const handleApply = async (id: string, title: string) => {
-    if (!requireAuthAction({ actionLabel: "Ứng tuyển campaign" })) return;
+    if (!requireAuthAction({ actionLabel: "Ứng tuyển job" })) return;
     if (appliedJobs.includes(id)) return;
 
     if (/^\d+$/.test(String(id))) {
@@ -824,7 +880,7 @@ function JobsPageContent() {
     const matchesCity = appliedCity === allValue || (
       districtFilter
         ? normalizeFilterText(camp.city || "").includes(normalizeFilterText(districtFilter.city)) &&
-          normalizeFilterText(camp.district || camp.location || camp.address || camp.title || "").includes(normalizeFilterText(districtFilter.district))
+        normalizeFilterText(camp.district || camp.location || camp.address || camp.title || "").includes(normalizeFilterText(districtFilter.district))
         : normalizeFilterText(camp.city || "").includes(selectedCityText)
     );
 
@@ -1024,6 +1080,58 @@ function JobsPageContent() {
             )}
           </button>
         </div>
+
+        <div className="mt-2.5 flex items-center justify-between gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-1">
+            {MOBILE_JOB_QUICK_TABS.map((tab) => {
+              const isMore = tab.value === "more";
+              const isActive = isMore ? isMobileFiltersActive : mobileQuickTab === tab.value;
+
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => {
+                    if (isMore) {
+                      setIsMobileFiltersOpen(true);
+                      return;
+                    }
+                    setMobileQuickTab(tab.value);
+                    if (tab.value === "all") {
+                      setSelectedStageFilter("all");
+                      setSelectedCity(allValue);
+                      setAppliedCity(allValue);
+                    } else if (tab.value === "recruiting") {
+                      setSelectedStageFilter("apply");
+                    } else if (tab.value === "near_me") {
+                      const myCity = readCurrentTalentLocation();
+                      setSelectedCity(myCity);
+                      setAppliedCity(myCity);
+                    }
+                  }}
+                  className={cn(
+                    "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95 cursor-pointer",
+                    isActive
+                      ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F9D66D] shadow-[0_0_14px_rgba(201,168,106,0.14)]"
+                      : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/35 hover:text-white"
+                  )}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsQrModalOpen(true)}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/20 hover:text-amber-200 active:scale-95 cursor-pointer"
+            title="Nhập mã QR Job ứng tuyển"
+            aria-label="Nhập mã QR Job ứng tuyển"
+          >
+            <QrCode className="h-4 w-4 stroke-[2.5]" />
+          </button>
+        </div>
       </section>
 
       {isMobileJobSearchExpanded && typeof window !== "undefined" && createPortal(
@@ -1143,7 +1251,7 @@ function JobsPageContent() {
                     setIsJobSuggestOpen(false);
                   }
                 }}
-                placeholder="Tìm job theo tên, brand, loại chiến dịch..."
+                placeholder="Tìm job theo tên, brand, loại công việc..."
                 className="h-[50px] w-full rounded-2xl border border-white/10 bg-slate-950/60 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500"
               />
               {searchInput && (
@@ -1215,6 +1323,58 @@ function JobsPageContent() {
             >
               <ArrowUpDown className="h-4 w-4 text-[#C9A86A]" />
               {sortOrder === "newest" ? "Mới nhất" : "Cũ nhất"}
+            </button>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-1">
+              {MOBILE_JOB_QUICK_TABS.map((tab) => {
+                const isMore = tab.value === "more";
+                const isActive = isMore ? isMobileFiltersActive : mobileQuickTab === tab.value;
+
+                return (
+                  <button
+                    key={tab.value}
+                    type="button"
+                    onClick={() => {
+                      if (isMore) {
+                        setIsMobileFiltersOpen(true);
+                        return;
+                      }
+                      setMobileQuickTab(tab.value);
+                      if (tab.value === "all") {
+                        setSelectedStageFilter("all");
+                        setSelectedCity(allValue);
+                        setAppliedCity(allValue);
+                      } else if (tab.value === "recruiting") {
+                        setSelectedStageFilter("apply");
+                      } else if (tab.value === "near_me") {
+                        const myCity = readCurrentTalentLocation();
+                        setSelectedCity(myCity);
+                        setAppliedCity(myCity);
+                      }
+                    }}
+                    className={cn(
+                      "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95 cursor-pointer",
+                      isActive
+                        ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F9D66D] shadow-[0_0_14px_rgba(201,168,106,0.14)]"
+                        : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/35 hover:text-white"
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsQrModalOpen(true)}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/20 hover:text-amber-200 active:scale-95 cursor-pointer"
+              title="Nhập mã QR Job ứng tuyển"
+              aria-label="Nhập mã QR Job ứng tuyển"
+            >
+              <QrCode className="h-4 w-4 stroke-[2.5]" />
             </button>
           </div>
         </div>
@@ -1562,7 +1722,7 @@ function JobsPageContent() {
                       {/* Affiliate Link Container */}
                       <div className="space-y-2">
                         <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                          LINK AFFILIATE GIỚI THIỆU (CAMPAIGN)
+                          LINK AFFILIATE GIỚI THIỆU (JOB)
                         </p>
                         <div className="flex items-center gap-3 bg-[#03050c] border border-[#151b2d] rounded-xl p-2.5 min-w-0">
                           <span className="text-xs text-[#F0C56B] font-mono select-all truncate flex-1 pl-1 min-w-0">
@@ -1591,7 +1751,7 @@ function JobsPageContent() {
 
                         {referrals.length === 0 ? (
                           <div className="py-6 text-center text-slate-500 text-xs font-medium">
-                            Bạn chưa mời ai tham gia chiến dịch này. Hãy chia sẻ link trên để nhận 5% hoa hồng!
+                            Bạn chưa mời ai tham gia job này. Hãy chia sẻ link trên để nhận 5% hoa hồng!
                           </div>
                         ) : (
                           <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
@@ -1695,6 +1855,73 @@ function JobsPageContent() {
             <X className="h-5 w-5" />
           </button>
           <img src={previewImageUrl} alt="Campaign preview" className="max-h-full max-w-full object-contain" />
+        </div>
+      )}
+
+      {/* QR Campaign Apply Modal */}
+      {isQrModalOpen && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="relative w-full max-w-md rounded-3xl border border-[#C9A86A]/40 bg-[#070913] p-6 text-white shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#C9A86A]/20 text-[#C9A86A]">
+                  <QrCode className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-display text-sm font-black uppercase text-white">Ứng tuyển bằng Link / QR Code</h3>
+                  <p className="text-[11px] text-slate-400">Nhập mã QR hoặc Link Job từ Brand</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQrModalOpen(false);
+                  setQrInputValue("");
+                }}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-slate-400 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <label className="block space-y-1.5">
+                <span className="text-xs font-bold text-slate-300">Mã QR / Link Job ứng tuyển:</span>
+                <input
+                  type="text"
+                  value={qrInputValue}
+                  onChange={(e) => setQrInputValue(e.target.value)}
+                  placeholder="Dán mã QR hoặc link ví dụ: https://... hoặc JOB-101"
+                  className="h-11 w-full rounded-2xl border border-white/15 bg-slate-950/80 px-4 text-xs text-white outline-none focus:border-[#C9A86A] placeholder:text-slate-500 font-mono"
+                />
+              </label>
+
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-[11px] text-amber-200/90 leading-relaxed">
+                💡 <b>Mẹo:</b> Bạn có thể dán mã QR / Link job được cấp từ Brand/Tuyến trên để mở trực tiếp trang ứng tuyển!
+              </div>
+            </div>
+
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQrModalOpen(false);
+                  setQrInputValue("");
+                }}
+                className="flex-1 py-3 rounded-full border border-white/10 bg-slate-900/60 text-xs font-semibold text-slate-300 transition hover:bg-white/5 cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleApplyByQrCode}
+                className="flex-1 py-3 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles className="h-4 w-4" />
+                Ứng tuyển ngay
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
