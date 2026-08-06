@@ -105,7 +105,7 @@ export default function BottomNavigation() {
   async function handleLogout() {
     setShowMoreMenu(false);
     await logoutCurrentSession();
-    router.replace("/about");
+    router.replace("/brand/search");
   }
 
   useEffect(() => {

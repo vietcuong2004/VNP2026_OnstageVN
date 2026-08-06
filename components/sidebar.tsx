@@ -144,7 +144,7 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     await logoutCurrentSession();
-    router.replace("/about");
+    router.replace("/brand/search");
   };
 
   return (
