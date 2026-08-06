@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown, MapPin, Search, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 import TopIdolCity, { TOP_34_CITIES_LOCATIONS } from "../search/all-idols-in-city";
@@ -275,6 +276,79 @@ export default function TalentFilterDialog({
   onReset,
   onApply,
 }: TalentFilterDialogProps) {
+  const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const touchStartYRef = useRef(0);
+  const isMouseDownRef = useRef(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setDragY(0);
+      setIsDragging(false);
+    }
+  }, [open]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartYRef.current = e.touches[0].clientY;
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - touchStartYRef.current;
+    const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+
+    if (deltaY > 0 && scrollTop <= 0) {
+      setDragY(deltaY);
+    } else if (deltaY < 0 && dragY > 0) {
+      setDragY(Math.max(0, deltaY));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (dragY > 80) {
+      onClose();
+    }
+    setDragY(0);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isMouseDownRef.current = true;
+    touchStartYRef.current = e.clientY;
+    setIsDragging(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isMouseDownRef.current) return;
+      const deltaY = e.clientY - touchStartYRef.current;
+      if (deltaY > 0) {
+        setDragY(deltaY);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (!isMouseDownRef.current) return;
+      isMouseDownRef.current = false;
+      setIsDragging(false);
+      setDragY((current) => {
+        if (current > 80) {
+          onClose();
+        }
+        return 0;
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [onClose]);
+
   const dialogSortOptions = sortOptions.map((option) => {
     if (option.value === "oldest") return { ...option, label: "Top đánh giá" };
     if (option.value === "name_asc") return { ...option, label: "Top tháng" };
@@ -283,207 +357,240 @@ export default function TalentFilterDialog({
     return option;
   });
 
-  if (!open) return null;
+  if (!open || typeof window === "undefined") return null;
 
-  return (
-    <div className="fixed inset-0 z-[1000] flex h-dvh w-screen flex-col overflow-hidden bg-[#050711] text-white animate-in fade-in duration-200">
-      <div className="flex shrink-0 items-center justify-between border-b border-white/5 bg-[#070913] px-5 py-4">
-        <h2 className="font-display text-base font-black tracking-wide text-white uppercase">
-          Bộ lọc Idol
-        </h2>
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-white/5 bg-slate-950/60 text-slate-400 hover:text-white"
+  return createPortal(
+    <>
+      {/* Backdrop overlay */}
+      <div
+        onClick={onClose}
+        className="fixed inset-x-0 bottom-0 top-[62px] z-[1050] bg-black/75 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+      />
+
+      {/* Bottom Sheet Dialog */}
+      <div
+        style={{
+          transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
+          transition: isDragging ? "none" : "transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)",
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="fixed inset-x-0 bottom-0 top-[62px] h-[calc(100dvh-62px)] z-[1051] flex flex-col rounded-t-[2rem] border-t border-white/10 bg-[#070913] p-6 pb-0 shadow-[0_-10px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl animate-in slide-in-from-bottom duration-300 text-white overflow-hidden"
+      >
+        {/* Top Drag Handle Indicator */}
+        <div
+          onMouseDown={handleMouseDown}
+          className="mx-auto mb-3 -mt-2 flex w-full max-w-[200px] flex-col items-center py-2 cursor-grab active:cursor-grabbing touch-none select-none"
         >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-          <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-            Lọc theo
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {dialogSortOptions.map((option) => {
-              const isActive = sortOption === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setSortOption(option.value as TalentSortOption)}
-                  className={cn(
-                    "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate",
-                    isActive
-                      ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                      : "border-white/10 bg-[#070913]/60 text-slate-350"
-                  )}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
+          <div className="h-1.5 w-12 rounded-full bg-white/30 hover:bg-amber-400 transition-colors" />
         </div>
 
-        <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-          <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-            Giới tính
-          </span>
-          <div className="grid grid-cols-3 gap-2">
-            {genderOptions.map((option) => {
-              const isActive = selectedGender === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setSelectedGender(option.value)}
-                  className={cn(
-                    "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate",
-                    isActive
-                      ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                      : "border-white/10 bg-[#070913]/60 text-slate-350"
-                  )}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Dialog Header */}
+        <div className="flex shrink-0 items-center justify-between pb-3 border-b border-white/5 mb-4">
+          <h2 className="font-display text-base font-black tracking-wide text-white uppercase">
+            Bộ lọc Idol
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/5 bg-slate-950/60 text-slate-400 hover:text-white cursor-pointer"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
-        <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-          <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-            Loại hình
-          </span>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {typeOptions.map((option) => {
-              const isAll = option.value === allValue;
-              const isActive = isAll
-                ? selectedType === allValue
-                : selectedType !== allValue && selectedType.split(",").includes(option.value);
-
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    if (isAll) {
-                      setSelectedType(allValue);
-                      return;
-                    }
-
-                    const currentList = selectedType === allValue
-                      ? []
-                      : selectedType.split(",").filter(Boolean);
-                    const newList = currentList.includes(option.value)
-                      ? currentList.filter((type) => type !== option.value)
-                      : [...currentList, option.value];
-
-                    setSelectedType(newList.length === 0 ? allValue : newList.join(","));
-                  }}
-                  className={cn(
-                    "py-2 px-3 rounded-full border text-xs font-semibold flex items-center justify-start gap-2.5 transition-all truncate",
-                    isActive
-                      ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                      : "border-white/10 bg-[#070913]/60 text-slate-355"
-                  )}
-                >
-                  <div
+        {/* Scrollable Content Container */}
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-1 py-1 pb-4 space-y-4 custom-scrollbar">
+          <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+              Lọc theo
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              {dialogSortOptions.map((option) => {
+                const isActive = sortOption === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setSortOption(option.value as TalentSortOption)}
                     className={cn(
-                      "w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-all",
+                      "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate cursor-pointer",
                       isActive
-                        ? "border-[#C9A86A] bg-[#C9A86A] text-slate-950"
-                        : "border-white/20 bg-slate-950/40 text-transparent"
+                        ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
+                        : "border-white/10 bg-[#070913]/60 text-slate-350"
                     )}
                   >
-                    <Check className="h-3 w-3 stroke-[3px]" />
-                  </div>
-                  <span className="truncate">{option.label}</span>
-                </button>
-              );
-            })}
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+              Giới tính
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              {genderOptions.map((option) => {
+                const isActive = selectedGender === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setSelectedGender(option.value)}
+                    className={cn(
+                      "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate cursor-pointer",
+                      isActive
+                        ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
+                        : "border-white/10 bg-[#070913]/60 text-slate-350"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+              Loại hình
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {typeOptions.map((option) => {
+                const isAll = option.value === allValue;
+                const isActive = isAll
+                  ? selectedType === allValue
+                  : selectedType !== allValue && selectedType.split(",").includes(option.value);
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      if (isAll) {
+                        setSelectedType(allValue);
+                        return;
+                      }
+
+                      const currentList = selectedType === allValue
+                        ? []
+                        : selectedType.split(",").filter(Boolean);
+                      const newList = currentList.includes(option.value)
+                        ? currentList.filter((type) => type !== option.value)
+                        : [...currentList, option.value];
+
+                      setSelectedType(newList.length === 0 ? allValue : newList.join(","));
+                    }}
+                    className={cn(
+                      "py-2 px-3 rounded-full border text-xs font-semibold flex items-center justify-start gap-2.5 transition-all truncate cursor-pointer",
+                      isActive
+                        ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
+                        : "border-white/10 bg-[#070913]/60 text-slate-355"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-all",
+                        isActive
+                          ? "border-[#C9A86A] bg-[#C9A86A] text-slate-950"
+                          : "border-white/20 bg-slate-950/40 text-transparent"
+                      )}
+                    >
+                      <Check className="h-3 w-3 stroke-[3px]" />
+                    </div>
+                    <span className="truncate">{option.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+              Chiều cao ({minHeight} - {maxHeight}cm)
+            </span>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 font-semibold">Từ:</span>
+                <input
+                  type="number"
+                  min={140}
+                  max={200}
+                  value={minHeight}
+                  onChange={(event) => setMinHeight(Number(event.target.value))}
+                  className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 font-semibold">Đến:</span>
+                <input
+                  type="number"
+                  min={140}
+                  max={200}
+                  value={maxHeight}
+                  onChange={(event) => setMaxHeight(Number(event.target.value))}
+                  className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+              Cân nặng ({minWeight} - {maxWeight}kg)
+            </span>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 font-semibold">Từ:</span>
+                <input
+                  type="number"
+                  min={35}
+                  max={120}
+                  value={minWeight}
+                  onChange={(event) => setMinWeight(Number(event.target.value))}
+                  className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 font-semibold">Đến:</span>
+                <input
+                  type="number"
+                  min={35}
+                  max={120}
+                  value={maxWeight}
+                  onChange={(event) => setMaxWeight(Number(event.target.value))}
+                  className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-          <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-            Chiều cao ({minHeight} - {maxHeight}cm)
-          </span>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-semibold">Từ:</span>
-              <input
-                type="number"
-                min={140}
-                max={200}
-                value={minHeight}
-                onChange={(event) => setMinHeight(Number(event.target.value))}
-                className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-semibold">Đến:</span>
-              <input
-                type="number"
-                min={140}
-                max={200}
-                value={maxHeight}
-                onChange={(event) => setMaxHeight(Number(event.target.value))}
-                className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-          <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
-            Cân nặng ({minWeight} - {maxWeight}kg)
-          </span>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-semibold">Từ:</span>
-              <input
-                type="number"
-                min={35}
-                max={120}
-                value={minWeight}
-                onChange={(event) => setMinWeight(Number(event.target.value))}
-                className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-semibold">Đến:</span>
-              <input
-                type="number"
-                min={35}
-                max={120}
-                value={maxWeight}
-                onChange={(event) => setMaxWeight(Number(event.target.value))}
-                className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
-              />
-            </div>
-          </div>
+        {/* Footer Actions */}
+        <div className="shrink-0 border-t border-white/10 bg-[#070913] -mx-6 px-6 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] flex gap-3 z-10">
+          <button
+            type="button"
+            onClick={onReset}
+            className="w-1/2 py-3 rounded-full border border-white/10 bg-slate-900/60 text-slate-300 text-xs font-semibold uppercase tracking-wider transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            Đặt lại
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onApply();
+              onClose();
+            }}
+            className="w-1/2 py-3 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            Áp dụng
+          </button>
         </div>
       </div>
-
-      <div className="shrink-0 border-t border-white/5 bg-[#070913] p-4 flex gap-3 z-10 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
-        <button
-          type="button"
-          onClick={onReset}
-          className="w-1/2 py-3 rounded-full border border-white/10 bg-slate-900/40 text-slate-350 text-xs font-semibold uppercase tracking-wider transition active:scale-95 flex items-center justify-center gap-1.5"
-        >
-          Đặt lại
-        </button>
-        <button
-          type="button"
-          onClick={onApply}
-          className="w-1/2 py-3 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5"
-        >
-          Áp dụng
-        </button>
-      </div>
-    </div>
+    </>,
+    document.body
   );
 }

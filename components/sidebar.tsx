@@ -42,14 +42,15 @@ export const unifiedTalentNavigation = [
   { label: "Hợp tác Brand", icon: Users2, href: "/talent/brands" },
 ];
 
-export const unifiedSettingsNavigation = [
+export const unifiedSystemNavigation = [
+  { label: "Về chúng tôi", icon: Info, href: "/about" },
   { label: "Cài đặt", icon: Settings, href: "/settings" },
 ];
 
 export const unifiedLoggedInNavigationSections = [
   { title: "Dành cho Brand", icon: Briefcase, helpIcon: CircleHelp, items: unifiedBrandNavigation, href: undefined },
   { title: "Dành cho Idol", icon: Sparkles, helpIcon: CircleHelp, items: unifiedTalentNavigation, href: undefined },
-  { title: "Cài đặt", icon: Settings, helpIcon: CircleHelp, items: undefined, href: "/settings" },
+  { title: "Hệ thống", icon: Settings, helpIcon: CircleHelp, items: unifiedSystemNavigation, href: undefined },
 ];
 
 export const unifiedLoggedInMobilePrimaryNavigation = [

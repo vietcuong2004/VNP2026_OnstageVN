@@ -1116,7 +1116,7 @@ function JobsPageContent() {
     <div className="space-y-6 animate-in fade-in duration-300">
 
       {/* Mobile Search Toolbar */}
-      <section className="block md:hidden sticky top-0 z-50 -mx-4 border-b border-white/5 bg-[#070913]/95 px-4 py-3.5 backdrop-blur-md">
+      <section className="block md:hidden sticky top-0 z-40 -mx-4 border-b border-white/5 bg-[#070913]/95 px-4 py-3.5 backdrop-blur-md">
         <div className="flex items-center gap-2.5">
           <button
             type="button"
@@ -1546,13 +1546,22 @@ function JobsPageContent() {
       <div className="hidden md:flex items-center gap-2 pb-1.5 overflow-x-auto scrollbar-none">
         {stageFilterOptions.map((sf) => {
           const count = stageCounts[sf];
+          const isNearMeActive = appliedCity !== allValue && appliedCity === readCurrentTalentLocation();
+          const isStageActive = selectedStageFilter === sf && (!isNearMeActive || sf !== "all");
+
           return (
             <button
               key={sf}
-              onClick={() => setSelectedStageFilter(sf)}
+              onClick={() => {
+                setSelectedStageFilter(sf);
+                if (sf === "all") {
+                  setSelectedCity(allValue);
+                  setAppliedCity(allValue);
+                }
+              }}
               className={cn(
                 "rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer border flex items-center gap-1.5 shrink-0",
-                selectedStageFilter === sf
+                isStageActive
                   ? "bg-[#f4c430] border-amber-400/30 text-slate-950 shadow-[0_4px_12px_rgba(244,196,48,0.2)]"
                   : "bg-[#08090f] border-[#151b2d] text-slate-400 hover:text-white hover:bg-white/2"
               )}
@@ -1561,7 +1570,7 @@ function JobsPageContent() {
               {count > 0 && (
                 <span className={cn(
                   "rounded-full px-1.5 py-0.5 text-[9px] font-black min-w-[18px] text-center",
-                  selectedStageFilter === sf ? "bg-black/20" : "bg-white/5 text-slate-500"
+                  isStageActive ? "bg-black/20" : "bg-white/5 text-slate-500"
                 )}>
                   {count}
                 </span>
@@ -1570,22 +1579,32 @@ function JobsPageContent() {
           );
         })}
 
-        <button
-          type="button"
-          onClick={() => {
-            const myCity = readCurrentTalentLocation();
-            setSelectedCity(myCity);
-            setAppliedCity(myCity);
-          }}
-          className={cn(
-            "rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer border flex items-center gap-1.5 shrink-0",
-            appliedCity !== allValue && appliedCity === readCurrentTalentLocation()
-              ? "bg-[#f4c430] border-amber-400/30 text-slate-950 shadow-[0_4px_12px_rgba(244,196,48,0.2)]"
-              : "bg-[#08090f] border-[#151b2d] text-slate-400 hover:text-white hover:bg-white/2"
-          )}
-        >
-          Gần tôi
-        </button>
+        {(() => {
+          const isNearMeActive = appliedCity !== allValue && appliedCity === readCurrentTalentLocation();
+          return (
+            <button
+              type="button"
+              onClick={() => {
+                if (isNearMeActive) {
+                  setSelectedCity(allValue);
+                  setAppliedCity(allValue);
+                } else {
+                  const myCity = readCurrentTalentLocation();
+                  setSelectedCity(myCity);
+                  setAppliedCity(myCity);
+                }
+              }}
+              className={cn(
+                "rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer border flex items-center gap-1.5 shrink-0",
+                isNearMeActive
+                  ? "bg-[#f4c430] border-amber-400/30 text-slate-950 shadow-[0_4px_12px_rgba(244,196,48,0.2)]"
+                  : "bg-[#08090f] border-[#151b2d] text-slate-400 hover:text-white hover:bg-white/2"
+              )}
+            >
+              Gần tôi
+            </button>
+          );
+        })()}
       </div>
 
       {/* Row 2: Top Pagination centered in its own row */}

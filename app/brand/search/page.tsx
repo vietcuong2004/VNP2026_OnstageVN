@@ -327,7 +327,7 @@ function FilterDropdown({
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      const panelWidth = isPill ? 160 : rect.width;
+      const panelWidth = isPill ? 160 : Math.max(rect.width, 150);
       const style: React.CSSProperties = {
         position: "fixed",
         top: rect.bottom + 6,
@@ -1133,7 +1133,7 @@ export default function DiscoverTalentsPage() {
       )}
 
       {/* Mobile-Only Search Header (Hidden on Desktop) */}
-      <section className="block md:hidden sticky top-0 z-50 bg-[#070913]/95 backdrop-blur-md space-y-3 pt-3.5 pb-2.5 border-b border-white/5 -mx-4 px-4">
+      <section className="block md:hidden sticky top-0 z-40 bg-[#070913]/95 backdrop-blur-md space-y-3 pt-3.5 pb-2.5 border-b border-white/5 -mx-4 px-4">
         {/* Row 1: City, Search Input, Search Button */}
         <div className="flex items-center gap-2.5">
           {/* Advanced Filter Toggle Button */}
@@ -1431,7 +1431,7 @@ export default function DiscoverTalentsPage() {
         {/* Main Inputs Row */}
         <div className="relative z-10 flex flex-col xl:flex-row gap-3 items-stretch">
           {/* Box 1: Search Input */}
-          <div className="group relative flex-1 min-w-[280px]">
+          <div className="group relative flex-1 min-w-0 xl:min-w-[200px]">
             <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#C9A86A]/30 to-yellow-600/20 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
             <div className="relative w-full h-full">
               <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A] transition-colors group-focus-within:text-amber-300" />
@@ -1474,7 +1474,7 @@ export default function DiscoverTalentsPage() {
           </div>
 
           {/* Box 2: Dropdown Địa điểm */}
-          <div className="w-full xl:w-auto xl:min-w-[170px]">
+          <div className="w-full xl:w-[160px] xl:shrink-0">
             <FilterDropdown
               value={selectedCity}
               onChange={setSelectedCity}
@@ -1486,7 +1486,7 @@ export default function DiscoverTalentsPage() {
           </div>
 
           {/* Box 3: Dropdown Loại hình Idol */}
-          <div className="w-full xl:w-auto xl:min-w-[190px]">
+          <div className="w-full xl:w-[170px] xl:shrink-0">
             <MultiFilterDropdown
               value={selectedType}
               onChange={setSelectedType}
@@ -1496,12 +1496,12 @@ export default function DiscoverTalentsPage() {
           </div>
 
           {/* Buttons container */}
-          <div className="flex gap-2 shrink-0 relative z-50">
+          <div className="flex gap-2 w-full xl:w-auto xl:shrink-0 relative z-50">
             {/* Button: Tìm kiếm */}
             <button
               type="button"
               onClick={applyFilters}
-              className="flex-1 xl:flex-none h-[50px] px-8 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(201,168,106,0.3)] flex items-center justify-center gap-1.5"
+              className="flex-1 xl:flex-none h-[50px] px-6 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(201,168,106,0.3)] flex items-center justify-center gap-1.5 whitespace-nowrap"
             >
               <Search className="h-4 w-4" />
               <span>Tìm kiếm</span>
@@ -1512,7 +1512,7 @@ export default function DiscoverTalentsPage() {
               type="button"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className={cn(
-                "flex-1 xl:flex-none h-[50px] px-5 rounded-2xl border text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5",
+                "flex-1 xl:flex-none h-[50px] px-4 rounded-2xl border text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap",
                 showAdvancedFilters
                   ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A] shadow-[0_0_12px_rgba(201,168,106,0.15)]"
                   : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:border-[#C9A86A]/40 hover:text-white"
@@ -1523,7 +1523,7 @@ export default function DiscoverTalentsPage() {
             </button>
 
             {/* Dropdown: Sắp xếp */}
-            <div className="relative z-50 overflow-visible w-full xl:w-[160px]">
+            <div className="flex-1 xl:flex-none xl:w-[150px] min-w-0 relative z-50 overflow-visible">
               <FilterDropdown
                 value={sortOption}
                 onChange={(val) => setSortOption(val as TalentSortOption)}

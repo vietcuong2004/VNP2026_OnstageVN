@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bookmark, Briefcase, Heart, HelpCircle, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
@@ -17,6 +17,79 @@ export default function BottomNavigation() {
   const [visible, setVisible] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [explanationTab, setExplanationTab] = useState<"talent" | "brand" | null>(null);
+
+  const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const touchStartYRef = useRef(0);
+  const isMouseDownRef = useRef(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showMoreMenu) {
+      setDragY(0);
+      setIsDragging(false);
+    }
+  }, [showMoreMenu]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartYRef.current = e.touches[0].clientY;
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - touchStartYRef.current;
+    const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+
+    if (deltaY > 0 && scrollTop <= 0) {
+      setDragY(deltaY);
+    } else if (deltaY < 0 && dragY > 0) {
+      setDragY(Math.max(0, deltaY));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (dragY > 80) {
+      setShowMoreMenu(false);
+    }
+    setDragY(0);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isMouseDownRef.current = true;
+    touchStartYRef.current = e.clientY;
+    setIsDragging(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isMouseDownRef.current) return;
+      const deltaY = e.clientY - touchStartYRef.current;
+      if (deltaY > 0) {
+        setDragY(deltaY);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (!isMouseDownRef.current) return;
+      isMouseDownRef.current = false;
+      setIsDragging(false);
+      setDragY((current) => {
+        if (current > 80) {
+          setShowMoreMenu(false);
+        }
+        return 0;
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
 
   useEffect(() => {
     const syncToken = () => setIsLoggedIn(!!getAuthToken());
@@ -143,8 +216,22 @@ export default function BottomNavigation() {
             className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm transition-opacity duration-300 md:hidden animate-in fade-in"
           />
 
-          <div className="fixed bottom-0 left-0 right-0 top-[74px] z-50 flex min-h-0 flex-col rounded-t-[2rem] border-t border-white/10 bg-[#070913]/98 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-[0_-10px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl md:hidden animate-in slide-in-from-bottom duration-300">
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" />
+          <div
+            style={{
+              transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
+              transition: isDragging ? "none" : "transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)",
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className="fixed bottom-0 left-0 right-0 top-[74px] z-50 flex min-h-0 flex-col rounded-t-[2rem] border-t border-white/10 bg-[#070913]/98 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-[0_-10px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl md:hidden animate-in slide-in-from-bottom duration-300"
+          >
+            <div
+              onMouseDown={handleMouseDown}
+              className="mx-auto mb-3 -mt-2 flex w-full max-w-[200px] flex-col items-center py-2 cursor-grab active:cursor-grabbing touch-none select-none"
+            >
+              <div className="h-1.5 w-12 rounded-full bg-white/30 hover:bg-amber-400 transition-colors" />
+            </div>
 
             <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
               <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -159,7 +246,7 @@ export default function BottomNavigation() {
             </div>
 
             {!isLoggedIn ? (
-              <div className="grid min-h-0 flex-1 grid-cols-4 content-start gap-x-2.5 gap-y-5 overflow-y-auto pr-1">
+              <div ref={scrollContainerRef} className="grid min-h-0 flex-1 grid-cols-4 content-start gap-x-2.5 gap-y-5 overflow-y-auto pr-1">
                 {allItems.map((item) => {
                   const Icon = item.icon;
                   const isLogin = item.label === "Đăng nhập";
@@ -199,7 +286,7 @@ export default function BottomNavigation() {
                 })}
               </div>
             ) : (
-              <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
+              <div ref={scrollContainerRef} className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
                 {unifiedLoggedInNavigationSections.map((section) => (
                   <div key={section.title} className="space-y-3">
                     {section.href ? (

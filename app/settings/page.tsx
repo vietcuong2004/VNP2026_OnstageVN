@@ -320,7 +320,7 @@ export default function SettingsPage() {
           </button>
         </div>
 
-        {(["google", "facebook"] as const).map((provider) => {
+        {(["google"] as const).map((provider) => {
           const linked = isLinked(provider);
           const label = provider === "google" ? "Google" : "Facebook";
 

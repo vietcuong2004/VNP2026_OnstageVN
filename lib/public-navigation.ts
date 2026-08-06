@@ -14,8 +14,7 @@ export type PublicNavigationItem = {
 };
 
 const guestPrimaryNavigation: PublicNavigationItem[] = [
-  { key: "about", label: "Về chúng tôi", href: "/about" },
-  { key: "talent", label: "Tìm kiếm idol", href: "/brand/search" },
+  { key: "talent", label: "Tìm kiếm Idol", href: "/brand/search" },
   { key: "jobs", label: "Cơ hội việc làm", href: "/talent/jobs" },
 ];
 
@@ -23,16 +22,17 @@ const guestMoreNavigation: PublicNavigationItem[] = [
   { key: "saved_idols", label: "Idol đã lưu", href: "/brand/shortlists" },
   { key: "saved_jobs", label: "Việc làm đã lưu", href: "/talent/jobs/saved-jobs" },
   { key: "talent_survey", label: "Khảo sát", href: "/talent/survey" },
+  { key: "about", label: "Về chúng tôi", href: "/about" },
   { key: "login", label: "Đăng nhập", href: "/auth/login" },
 ];
 
 const guestDesktopNavigation: PublicNavigationItem[] = [
-  { key: "about", label: "Về chúng tôi", href: "/about" },
-  { key: "talent", label: "Tìm kiếm idol", href: "/brand/search" },
-  { key: "saved_idols", label: "Idol đã lưu", href: "/brand/shortlists" },
+  { key: "talent", label: "Tìm kiếm Idol", href: "/brand/search" },
   { key: "jobs", label: "Cơ hội việc làm", href: "/talent/jobs" },
+  { key: "saved_idols", label: "Idol đã lưu", href: "/brand/shortlists" },
   { key: "saved_jobs", label: "Việc làm đã lưu", href: "/talent/jobs/saved-jobs" },
   { key: "talent_survey", label: "Khảo sát", href: "/talent/survey" },
+  { key: "about", label: "Về chúng tôi", href: "/about" },
   { key: "login", label: "Đăng nhập", href: "/auth/login" },
 ];
 

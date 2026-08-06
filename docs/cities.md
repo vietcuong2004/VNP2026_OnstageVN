@@ -1,0 +1,34 @@
+Tỉnh An Giang
+Tỉnh Bắc Ninh
+Tỉnh Cao Bằng
+TP. Cần Thơ
+Tỉnh Cà Mau
+TP. Đà Nẵng
+Tỉnh Điện Biên
+Tỉnh Đồng Nai
+Tỉnh Đắk Lắk
+Tỉnh Gia Lai
+TP. Hà Nội
+Tỉnh Hà Tĩnh
+TP. Hải Phòng
+Tỉnh Hưng Yên
+TP. Hồ Chí Minh
+TP. Huế
+Tỉnh Khánh Hòa
+Tỉnh Lai Châu
+Tỉnh Lạng Sơn
+Tỉnh Lào Cai
+Tỉnh Lâm Đồng
+Tỉnh Nghệ An
+Tỉnh Ninh Bình
+Tỉnh Phú Thọ
+Tỉnh Quảng Ngãi
+Tỉnh Quảng Ninh
+Tỉnh Quảng Trị
+Tỉnh Sơn La
+Tỉnh Tây Ninh
+Tỉnh Thái Nguyên
+Tỉnh Thanh Hóa
+Tỉnh Tuyên Quang
+Tỉnh Vĩnh Long
+Tỉnh Đồng Tháp
