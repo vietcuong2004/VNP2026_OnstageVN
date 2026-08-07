@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -1249,6 +1249,8 @@ export function mapCampaignToTalentJob(campaign: any) {
   const website = campaign.website_url || partnerProfile.website_url || partnerProfile.website || campaign.website || "";
   const requirements = splitBackendText(campaign.requirements);
   const benefits = splitBackendText(campaign.benefits);
+  const events = Array.isArray(campaign.events) ? campaign.events : [];
+  const positions = Array.isArray(campaign.positions) ? campaign.positions : [];
 
   return {
     id: String(campaign.id),
@@ -1258,6 +1260,10 @@ export function mapCampaignToTalentJob(campaign: any) {
     type: campaign.campaign_type || campaign.job_type || "",
     startDate: campaign.start_date || "",
     endDate: campaign.end_date || "",
+    startTime: campaign.start_time || campaign.startTime || "",
+    endTime: campaign.end_time || campaign.endTime || "",
+    onstageTime: campaign.onstage_time || campaign.event_time || campaign.onstageTime || campaign.eventTime || "",
+    eventTime: campaign.event_time || campaign.onstage_time || campaign.eventTime || campaign.onstageTime || "",
     publishedAt: campaign.published_at || "",
     createdAt: campaign.created_at || "",
     created_at: campaign.created_at || "",
@@ -1267,10 +1273,13 @@ export function mapCampaignToTalentJob(campaign: any) {
     applicationDeadline: campaign.application_deadline || "",
     city: campaign.city || "",
     roles: campaign.roles || [],
+    events,
+    positions,
     responsibilities: campaign.responsibilities || [],
     industries: campaign.industries || [],
     targetProfiles: campaign.target_profiles || [],
-    contactNote: campaign.contact_note || "",
+    contactNote: campaign.contact_note || campaign.event_note || "",
+    eventNote: campaign.event_note || campaign.contact_note || "",
     budget,
     budgetMin: campaign.budget_min ?? null,
     budgetMax: campaign.budget_max ?? null,
@@ -1290,6 +1299,9 @@ export function mapCampaignToTalentJob(campaign: any) {
     detail: {
       requirements,
       benefits,
+      events,
+      positions,
+      recruitmentPositions: positions,
       address: campaign.location || "",
       phone,
       email,

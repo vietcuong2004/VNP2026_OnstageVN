@@ -4,30 +4,15 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  ArrowRight,
-  Award,
   Bookmark,
-  Briefcase,
-  Calendar,
   CheckCircle2,
   Clock,
   DollarSign,
-  FileText,
   Gift,
-  Globe,
-  Image as ImageIcon,
   Info,
-  Layers,
-  Mail,
   MapPin,
-  Phone,
   Sparkles,
-  Tag,
-  Users,
   X,
-  ChevronDown,
-  ChevronUp,
-  Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -37,6 +22,10 @@ import {
 } from "@/lib/talent-api";
 import { loadSavedJobIdsForSession, toggleSavedJobForSession } from "@/lib/saved-jobs";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
+import EventInformationSection from "./EventInformationSection";
+import JobImagesSection from "./JobImagesSection";
+import JobInfoSection from "./JobInfoSection";
+import RecruitmentPositionsSection from "./RecruitmentPositionsSection";
 
 const JOBS_PAGE_STATE_KEY = "vnp_jobs_page_state";
 
@@ -59,18 +48,83 @@ function normalizeApplicationStage(value?: string | null) {
   return "pending";
 }
 
-function formatDate(isoDate?: string | null) {
+function formatDate(isoDate?: string | null, timeStr?: string | null) {
   if (!isoDate) return "";
-  const dateOnly = isoDate.split(/[T ]/)[0];
+  const raw = String(isoDate).trim();
+  if (!raw) return "";
+
+  let extractedTime = "";
+
+  if (raw.includes("T") || raw.includes(" ")) {
+    const timeMatch = raw.match(/[T ](\d{2}:\d{2})(:\d{2})?/);
+    if (timeMatch && timeMatch[1] && timeMatch[1] !== "00:00") {
+      extractedTime = timeMatch[1];
+    }
+  }
+
+  const finalTime = timeStr && timeStr.trim() ? timeStr.trim() : extractedTime;
+
+  const dateOnly = raw.split(/[T ]/)[0];
   const [year, month, day] = dateOnly.split("-");
-  if (!year || !month || !day) return isoDate;
-  return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+  if (!year || !month || !day) return raw;
+
+  const formattedDate = `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+  return finalTime ? `${formattedDate} ${finalTime}` : formattedDate;
+}
+
+function getTimeText(dateValue?: string | null, timeValue?: string | null) {
+  if (timeValue && timeValue.trim()) return timeValue.trim();
+  const raw = String(dateValue || "").trim();
+  const timeMatch = raw.match(/[T ](\d{2}:\d{2})(:\d{2})?/);
+  return timeMatch?.[1] && timeMatch[1] !== "00:00" ? timeMatch[1] : "Có thể cập nhật sau";
+}
+
+function formatDateTimeRangePoint(dateValue?: string | null, timeValue?: string | null) {
+  const raw = String(dateValue || "").trim();
+  const dateOnly = raw.split(/[T ]/)[0];
+  const [year, month, day] = dateOnly.split("-");
+  const dateText = year && month && day ? `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}` : raw;
+  const timeText = getTimeText(dateValue, timeValue);
+
+  if (!dateText && !timeText) return "Có thể cập nhật sau";
+  if (!dateText) return timeText;
+  if (!timeText || timeText === "Có thể cập nhật sau") return dateText;
+
+  return `${timeText} ${dateText}`;
+}
+
+function formatDateTimeRangeLabel(startValue: string, endValue: string) {
+  if (!startValue || startValue === "Có thể cập nhật sau") return endValue || "Có thể cập nhật sau";
+  if (!endValue || endValue === "Có thể cập nhật sau") return startValue;
+  return `${startValue} - ${endValue}`;
 }
 
 function sentenceCase(text: string) {
   if (!text) return "";
   const trimmed = text.trim();
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
+type RecruitmentPosition = {
+  id: string;
+  title: string;
+  count: number;
+  requirements: string[];
+};
+
+function toRequirementList(value: any): string[] {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item || "").trim()).filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(/\r?\n|[;•]/)
+      .map((item) => item.replace(/^[-\s]+/, "").trim())
+      .filter(Boolean);
+  }
+
+  return [];
 }
 
 export default function JobDetailPage() {
@@ -336,9 +390,76 @@ export default function JobDetailPage() {
 
   const status = statusMeta(stage, isApplied);
   const detail = job.detail || {};
-  const requirements = detail.requirements || [];
+  const requirements = toRequirementList(detail.requirements);
   const benefits = detail.benefits || [];
+  const industryPills = Array.isArray(job.industries)
+    ? job.industries.map((item: unknown) => String(item || "").trim()).filter(Boolean)
+    : [];
   const deadline = job.applicationDeadline || job.deadline;
+  const rawRecruitmentPositions =
+    (Array.isArray(detail.recruitmentPositions) && detail.recruitmentPositions) ||
+    (Array.isArray(detail.positions) && detail.positions) ||
+    (Array.isArray(detail.jobPositions) && detail.jobPositions) ||
+    (Array.isArray((job as any).recruitmentPositions) && (job as any).recruitmentPositions) ||
+    (Array.isArray((job as any).positions) && (job as any).positions) ||
+    [];
+  const recruitmentPositions: RecruitmentPosition[] =
+    rawRecruitmentPositions.length > 0
+      ? rawRecruitmentPositions.map((position: any, index: number) => {
+        const positionRequirements =
+          toRequirementList(position.requirements).length > 0
+            ? toRequirementList(position.requirements)
+            : toRequirementList(position.requirement);
+
+        return {
+          id: String(position.id || position.slug || `position-${index}`),
+          title: position.talent_type_name || position.talent_type || position.title || position.name || position.role || position.type || `Vị trí ${index + 1}`,
+          count: Number(position.count || position.quantity || position.headcount || position.slots || position.needed || 1),
+          requirements: positionRequirements.length > 0 ? positionRequirements : ["Không có yêu cầu đặc biệt"],
+        };
+      })
+      : [];
+  const recruitmentTotal = recruitmentPositions.reduce((sum, position) => sum + position.count, 0);
+  const startText = job.startDate ? formatDate(job.startDate, job.startTime || null) : "Không có";
+  const endText = job.endDate ? formatDate(job.endDate, job.endTime || null) : "Không có";
+  const rawEventSchedules = Array.isArray((job as any).events)
+    ? (job as any).events
+    : Array.isArray((job as any).eventSchedules)
+      ? (job as any).eventSchedules
+      : [];
+  const eventSchedules: Array<{
+    id: string;
+    title: string;
+    timeText: string;
+    startText: string;
+    endText: string;
+    location: string;
+    note: string;
+  }> = rawEventSchedules.length > 0
+    ? rawEventSchedules.map((event: any, index: number) => {
+      const eventDate = event.event_date || event.eventDate || event.date || event.start_at || event.starts_at || event.startsAt || "";
+      const eventStartDate = event.start_at || event.start_date || event.startDate || event.starts_at || event.startsAt || eventDate;
+      const eventEndDate = event.end_at || event.end_date || event.endDate || event.ends_at || event.endsAt || eventDate;
+      const eventStartTime = event.start_time || event.startTime || "";
+      const eventEndTime = event.end_time || event.endTime || "";
+      const contentList = toRequirementList(event.content);
+      const eventNote = contentList.length > 0
+        ? contentList.join("\n")
+        : String(event.note || event.event_note || event.eventNote || event.description || "").trim();
+      return {
+        id: String(event.id || `${eventDate}-${index}`),
+        title: event.event_name || event.eventName || event.name || event.title || `Sự kiện ${index + 1}`,
+        startText: formatDateTimeRangePoint(eventStartDate, eventStartTime),
+        endText: formatDateTimeRangePoint(eventEndDate, eventEndTime),
+        timeText: formatDateTimeRangeLabel(
+          formatDateTimeRangePoint(eventStartDate, eventStartTime),
+          formatDateTimeRangePoint(eventEndDate, eventEndTime)
+        ),
+        location: event.location || event.address || job.location || "",
+        note: eventNote,
+      };
+    })
+    : [];
 
   const renderFooterAction = () => {
     if (!isApplied) {
@@ -366,6 +487,22 @@ export default function JobDetailPage() {
       </button>
     );
   };
+
+  const renderDesktopSaveAction = () => (
+    <button
+      type="button"
+      onClick={handleToggleBookmark}
+      className={cn(
+        "inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-black border shadow-[0_0_18px_rgba(0,0,0,0.25)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-wider",
+        isSaved
+          ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-300"
+          : "border-white/10 bg-white/[0.06] text-slate-100 hover:border-amber-400/35 hover:text-amber-200"
+      )}
+    >
+      <Bookmark className={cn("h-4 w-4", isSaved && "fill-emerald-300")} />
+      {isSaved ? "Đã lưu công việc" : "Lưu công việc"}
+    </button>
+  );
 
   const renderMobileFooterAction = () => {
     if (!isApplied) {
@@ -397,7 +534,6 @@ export default function JobDetailPage() {
   return (
     <div className="min-h-screen bg-[#080a12] text-slate-100 flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
 
-      {/* Sticky Header */}
       <div className="sticky top-0 z-30 -mt-5 md:-mt-7 lg:-mt-8 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 pt-3 bg-transparent pointer-events-none flex items-center justify-between h-0 overflow-visible">
         <button
           type="button"
@@ -425,68 +561,22 @@ export default function JobDetailPage() {
         </button>
       </div>
 
-      {/* Top Hero Image Banner */}
-      <div className="relative w-full h-64 sm:h-80 bg-[#050711] shrink-0 overflow-hidden border-b border-[#151b2d]">
-        {allMediaImages.length > 0 ? (
-          <div
-            ref={bannerCarouselRef}
-            onScroll={handleBannerScroll}
-            className="flex h-full w-full overflow-x-auto snap-x snap-mandatory scrollbar-none"
-          >
-            {allMediaImages.map((img, idx) => (
-              <div
-                key={`${img.url}-${idx}`}
-                onClick={() => setPreviewImageIndex(idx)}
-                className="w-full h-full shrink-0 snap-center relative cursor-pointer group"
-              >
-                <img
-                  src={img.url}
-                  alt={img.caption || job.title}
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = "/brand_cover_default.png";
-                  }}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0e1322] to-[#080a12] text-slate-500 p-4">
-            <ImageIcon className="h-10 w-10 text-slate-600 mb-2" />
-            <span className="text-xs font-semibold">Chưa có hình ảnh chiến dịch</span>
-          </div>
-        )}
-
-        {/* Floating Top Right Status Badge */}
-        <div className="absolute top-4 right-4 z-20">
-          <span className={cn("inline-flex items-center rounded-full px-3.5 py-1.5 text-xs font-black uppercase tracking-wider shadow-xl", status.className)}>
-            {status.label}
-          </span>
-        </div>
-
-        {/* Floating Centered Dimmed Image Control Pill Badge */}
-        {allMediaImages.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 rounded-full bg-black/40 backdrop-blur-md p-1 border border-white/10 shadow-lg opacity-70 hover:opacity-100 transition-opacity">
-            <button
-              type="button"
-              onClick={handleScrollBannerPrev}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white/80 hover:text-white transition-all cursor-pointer"
-              title="Hình trước"
-            >
-              <ArrowLeft className="h-3 w-3" />
-            </button>
-            <button
-              type="button"
-              onClick={handleScrollBannerNext}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white/80 hover:text-white transition-all cursor-pointer"
-              title="Hình tiếp theo"
-            >
-              <ArrowRight className="h-3 w-3" />
-            </button>
-          </div>
-        )}
-      </div>
+      <JobImagesSection
+        images={allMediaImages}
+        jobTitle={job.title}
+        previewImageIndex={previewImageIndex}
+        bannerCarouselRef={bannerCarouselRef}
+        onBannerScroll={handleBannerScroll}
+        onOpenPreview={setPreviewImageIndex}
+        onClosePreview={() => setPreviewImageIndex(null)}
+        onBannerPrev={handleScrollBannerPrev}
+        onBannerNext={handleScrollBannerNext}
+        onPreviewPrev={handlePrevImage}
+        onPreviewNext={handleNextImage}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      />
 
       {/* Content Body Container */}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 md:px-10 py-6 space-y-6 flex-1">
@@ -494,9 +584,20 @@ export default function JobDetailPage() {
         {/* Title & Brand Header */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] sm:text-xs font-extrabold text-cyan-300 uppercase">
-              {job.type || "Chưa phân loại"}
-            </span>
+            {industryPills.length > 0 ? (
+              industryPills.map((industry: string) => (
+                <span
+                  key={industry}
+                  className="rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] sm:text-xs font-extrabold text-cyan-300 uppercase"
+                >
+                  {industry}
+                </span>
+              ))
+            ) : (
+              <span className="rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] sm:text-xs font-extrabold text-cyan-300 uppercase">
+                Chưa phân loại
+              </span>
+            )}
             {job.matchScore && (
               <span className="flex items-center gap-1 rounded-md border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[10px] sm:text-xs font-bold text-amber-300">
                 <Sparkles className="h-3.5 w-3.5 text-amber-400" /> AI Phù hợp {job.matchScore}%
@@ -546,8 +647,9 @@ export default function JobDetailPage() {
             </div>
           </div>
           {/* Desktop Only Action Button */}
-          <div className="hidden md:flex justify-center pt-3">
+          <div className="hidden md:flex justify-center gap-3 pt-3">
             {renderFooterAction()}
+            {renderDesktopSaveAction()}
           </div>
         </div>
 
@@ -561,126 +663,21 @@ export default function JobDetailPage() {
           </p>
         </div>
 
-        {/* Campaign Details */}
-        <div className="rounded-2xl border border-[#1b233a] bg-[#0c101d] p-5 space-y-4">
-          <h4 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white uppercase tracking-wider border-b border-[#151b2d] pb-2.5">
-            <Layers className="h-4 w-4 text-amber-400" /> Thông tin công việc
-          </h4>
+        <JobInfoSection
+          job={job}
+          benefits={benefits}
+          startText={startText}
+          endText={endText}
+          showAllBenefits={showAllBenefits}
+          onToggleBenefits={() => setShowAllBenefits((cur) => !cur)}
+        />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-            <div className="flex items-center gap-2 text-slate-300">
-              <Tag className="h-4 w-4 text-slate-400 shrink-0" />
-              <span className="text-slate-400 font-medium">Loại công việc:</span>
-              <span className="font-semibold text-slate-100">{job.type || "Không có"}</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-300">
-              <Briefcase className="h-4 w-4 text-slate-400 shrink-0" />
-              <span className="text-slate-400 font-medium">Sự kiện:</span>
-              <span className="font-semibold text-slate-100">{job.eventName || "Không có"}</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-300">
-              <Calendar className="h-4 w-4 text-slate-400 shrink-0" />
-              <span className="text-slate-400 font-medium">Bắt đầu:</span>
-              <span className="font-semibold text-slate-100">{job.startDate ? formatDate(job.startDate) : "Không có"}</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-300">
-              <Calendar className="h-4 w-4 text-slate-400 shrink-0" />
-              <span className="text-slate-400 font-medium">Kết thúc:</span>
-              <span className="font-semibold text-slate-100">{job.endDate ? formatDate(job.endDate) : "Không có"}</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-300">
-              <Calendar className="h-4 w-4 text-slate-400 shrink-0" />
-              <span className="text-slate-400 font-medium">Sự kiện chính:</span>
-              <span className="font-semibold text-slate-100">{(job.eventDate || job.startDate) ? formatDate(job.eventDate || job.startDate) : "Không có"}</span>
-            </div>
-          </div>
-
-          <PillSection
-            title="Vị trí tuyển"
-            items={job.roles?.length > 0 ? job.roles : ["Không có"]}
-            className="border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
+        {recruitmentPositions.length > 0 && (
+          <RecruitmentPositionsSection
+            positions={recruitmentPositions}
+            total={recruitmentTotal}
           />
-          <PillSection
-            title="Nhóm idol phù hợp"
-            items={job.targetProfiles?.length > 0 ? job.targetProfiles : ["Không có"]}
-            className="border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
-          />
-          <PillSection
-            title="Lĩnh vực công việc"
-            items={job.industries?.length > 0 ? job.industries : ["Không có"]}
-            className="border-amber-400/20 bg-amber-400/10 text-amber-300"
-          />
-
-          <div className="space-y-2 pt-2 border-t border-[#151b2d]">
-            <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Đầu việc chính</p>
-            {job.responsibilities?.length > 0 ? (
-              <ul className="space-y-1.5 text-xs sm:text-sm text-slate-200">
-                {job.responsibilities.slice(0, 5).map((item: string, idx: number) => (
-                  <li key={`${item}-${idx}`} className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                    <span>{sentenceCase(item)}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-xs sm:text-sm text-slate-400 font-normal">Không có</p>
-            )}
-          </div>
-        </div>
-
-        {/* Requirements & Benefits */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-[#1b233a] bg-[#0c101d] p-5 space-y-3">
-            <h4 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white uppercase tracking-wider border-b border-[#151b2d] pb-2.5">
-              <FileText className="h-4 w-4 text-amber-400" /> Yêu cầu tuyển dụng
-            </h4>
-            {requirements.length > 0 ? (
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-200">
-                {requirements.map((item: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />
-                    <span>{sentenceCase(item)}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-xs sm:text-sm text-slate-400 font-normal">Không có</p>
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-[#1b233a] bg-[#0c101d] p-5 space-y-3">
-            <h4 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white uppercase tracking-wider border-b border-[#151b2d] pb-2.5">
-              <Award className="h-4 w-4 text-emerald-400" /> Quyền lợi & Đãi ngộ
-            </h4>
-            {benefits.length > 0 ? (
-              <>
-                <ul className="space-y-2 text-xs sm:text-sm text-slate-200">
-                  {(showAllBenefits ? benefits : benefits.slice(0, 5)).map((benefit: string, idx: number) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0 mt-1.5" />
-                      <span>{sentenceCase(benefit)}</span>
-                    </li>
-                  ))}
-                </ul>
-                {benefits.length > 5 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowAllBenefits((cur) => !cur)}
-                    className="flex items-center gap-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-amber-300 hover:text-amber-200 transition-colors pt-1 cursor-pointer"
-                  >
-                    {showAllBenefits ? (
-                      <>Thu gọn <ChevronUp className="h-3.5 w-3.5" /></>
-                    ) : (
-                      <>Xem thêm {benefits.length - 5} phúc lợi <ChevronDown className="h-3.5 w-3.5" /></>
-                    )}
-                  </button>
-                )}
-              </>
-            ) : (
-              <p className="text-xs sm:text-sm text-slate-400 font-normal">Không có</p>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* Brand Sponsorships */}
         {job.sponsorships && job.sponsorships.length > 0 && (
@@ -706,110 +703,14 @@ export default function JobDetailPage() {
           </div>
         )}
 
-        {/* Brand Contact Info */}
-        <div className="rounded-2xl border border-[#1b233a] bg-[#0c101d] p-5 space-y-3">
-          <h4 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white uppercase tracking-wider border-b border-[#151b2d] pb-2.5">
-            <Users className="h-4 w-4 text-amber-400" /> Thông tin liên hệ Doanh nghiệp
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs sm:text-sm text-slate-200">
-            <div className="flex items-start gap-2.5">
-              <Phone className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-              <div>
-                <span className="text-[11px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider block">Hotline Brand</span>
-                <span className="font-mono text-slate-100 font-semibold">{detail.phone || "Không có"}</span>
-              </div>
-            </div>
-            <div className="flex items-start gap-2.5">
-              <Mail className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-              <div>
-                <span className="text-[11px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider block">Email liên hệ</span>
-                <span className="font-mono text-slate-100 font-semibold">{detail.email || "Không có"}</span>
-              </div>
-            </div>
-            <div className="flex items-start gap-2.5">
-              <Globe className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <span className="text-[11px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider block">Website</span>
-                {detail.website ? (
-                  <a
-                    href={detail.website.startsWith("http") ? detail.website : `https://${detail.website}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-amber-300 hover:underline font-mono font-semibold truncate block max-w-[200px]"
-                  >
-                    {detail.website}
-                  </a>
-                ) : (
-                  <span className="font-mono text-slate-400">Không có</span>
-                )}
-              </div>
-            </div>
-          </div>
+        {eventSchedules.length > 0 && <EventInformationSection events={eventSchedules} />}
+
+        <div className="hidden md:flex items-center justify-center gap-3 pt-2 pb-4">
+          {renderFooterAction()}
+          {renderDesktopSaveAction()}
         </div>
-
-
 
       </div>
-
-      {/* Image Preview Modal with Swipe / Carousel support */}
-      {previewImageIndex !== null && allMediaImages[previewImageIndex] && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-3 animate-in fade-in duration-200"
-          onClick={() => setPreviewImageIndex(null)}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          {/* Close Button */}
-          <button
-            type="button"
-            onClick={() => setPreviewImageIndex(null)}
-            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all cursor-pointer animate-in fade-in duration-200"
-          >
-            <X className="h-5 w-5" />
-          </button>
-
-          {/* Image Container */}
-          <div className="relative max-h-[70vh] max-w-full flex items-center justify-center">
-            <img
-              src={allMediaImages[previewImageIndex].url}
-              alt={allMediaImages[previewImageIndex].caption || "Preview"}
-              className="max-h-[70vh] max-w-full object-contain rounded-lg select-none transition-all duration-300 animate-in zoom-in-95"
-              onClick={(e) => e.stopPropagation()}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "/brand_cover_default.png";
-              }}
-            />
-          </div>
-
-          {/* Under-Image Navigation Buttons */}
-          {allMediaImages.length > 1 && (
-            <div
-              className="flex items-center gap-1.5 mt-4 shrink-0 bg-black/40 border border-white/10 rounded-full p-1 backdrop-blur-md opacity-70 hover:opacity-100 transition-opacity"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                onClick={handlePrevImage}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white/80 hover:text-white active:scale-95 transition-all cursor-pointer"
-                title="Ảnh trước"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleNextImage}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white/80 hover:text-white active:scale-95 transition-all cursor-pointer"
-                title="Ảnh sau"
-              >
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Mobile Fixed Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#0c101d] border-t border-white/5 px-6 py-4 flex items-center shadow-[0_-10px_30px_rgba(0,0,0,0.55)]">
@@ -843,21 +744,6 @@ export default function JobDetailPage() {
       </div>
 
       <GuestActionPrompt />
-    </div>
-  );
-}
-
-function PillSection({ title, items, className }: { title: string; items: string[]; className: string }) {
-  return (
-    <div className="space-y-1.5">
-      <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">{title}</p>
-      <div className="flex flex-wrap gap-1.5">
-        {items.map((item, idx) => (
-          <span key={`${item}-${idx}`} className={cn("rounded-lg border px-2.5 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider", className)}>
-            {item}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }

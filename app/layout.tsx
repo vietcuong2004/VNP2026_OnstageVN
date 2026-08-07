@@ -11,7 +11,10 @@ const SHARE_IMAGE_URL = `${SITE_URL}${SHARE_IMAGE}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Onstage VN",
+  title: {
+    default: "Onstage VN",
+    template: "Onstage VN - %s",
+  },
   description: "OnstageVN - Model Management System",
   alternates: {
     canonical: "/",

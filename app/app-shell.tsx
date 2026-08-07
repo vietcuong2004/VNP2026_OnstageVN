@@ -11,6 +11,48 @@ import Sidebar from "@/components/sidebar";
 import { isStandalonePublicPath } from "@/lib/auth-routes";
 import { cn } from "@/lib/utils";
 
+function getPageTitle(pathname?: string | null) {
+  const path = pathname || "/";
+
+  if (/^\/talent\/jobs\/[^/]+$/.test(path) && path !== "/talent/jobs/saved-jobs") {
+    return "Chi tiết công việc";
+  }
+
+  if (/^\/brand\/talents\/[^/]+$/.test(path)) {
+    return "Chi tiết Idol";
+  }
+
+  const titles: Record<string, string> = {
+    "/": "Tìm kiếm Idol",
+    "/about": "Về chúng tôi",
+    "/auth/login": "Đăng nhập",
+    "/auth/register": "Đăng ký",
+    "/brand": "Brand",
+    "/brand/dashboard": "Bảng điều khiển Brand",
+    "/brand/search": "Tìm kiếm Idol",
+    "/brand/shortlists": "Idol đã lưu",
+    "/brand/manage-jobs": "Quản lý việc làm",
+    "/brand/my-talents": "Quản lý Idol",
+    "/brand/informations": "Thông tin Brand",
+    "/brand/notifications": "Thông báo",
+    "/brand/messages": "Tin nhắn",
+    "/talent": "Idol",
+    "/talent/dashboard": "Bảng điều khiển Idol",
+    "/talent/jobs": "Cơ hội việc làm",
+    "/talent/jobs/saved-jobs": "Việc làm đã lưu",
+    "/talent/profile": "Hồ sơ Idol",
+    "/talent/survey": "Khảo sát",
+    "/talent/brands": "Hợp tác Brand",
+    "/talent/notifications": "Thông báo",
+    "/talent/messages": "Tin nhắn",
+    "/talent/wallet": "Ví",
+    "/talent/calendar": "Lịch làm việc",
+    "/settings": "Cài đặt",
+  };
+
+  return titles[path] || "Onstage VN";
+}
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isTalentSurveyForm, setIsTalentSurveyForm] = useState(false);
@@ -27,6 +69,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isTalentSavedJobs = pathname === "/talent/jobs/saved-jobs";
   const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
   const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isTalentJobs || isTalentSavedJobs;
+
+  useEffect(() => {
+    const pageTitle = getPageTitle(pathname);
+    document.title = pageTitle === "Onstage VN" ? "Onstage VN" : `Onstage VN - ${pageTitle}`;
+  }, [pathname]);
 
   useEffect(() => {
     const syncSurveyFormMode = () => {
