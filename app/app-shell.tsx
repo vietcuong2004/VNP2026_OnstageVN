@@ -17,6 +17,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [isMobileOverlayOpen, setIsMobileOverlayOpen] = useState(false);
   const isStandalonePublic = isStandalonePublicPath(pathname || "/");
   const isMessages = pathname?.endsWith("/messages") ?? false;
+  const isDiscoverHome = pathname === "/";
   const isAbout = pathname === "/about";
   const isBrandTalentDetail = pathname ? /^\/brand\/talents\/[^/]+$/.test(pathname) : false;
   const isTalentJobDetail = pathname ? /^\/talent\/jobs\/[^/]+$/.test(pathname) && pathname !== "/talent/jobs/saved-jobs" : false;
@@ -80,7 +81,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex-1",
                   isMessages ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden",
-                  isStandalonePublic || isMessages || isAbout || isTalentSurvey
+                  isStandalonePublic || isMessages || isDiscoverHome || isAbout || isTalentSurvey
                     ? "p-0"
                     : cn(
                         "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",

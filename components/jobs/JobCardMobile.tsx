@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { Bookmark, CalendarClock, Check, CircleDollarSign, MapPin, Send, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isApplicationDeadlineExpired } from "@/lib/job-deadline";
 import { loadSavedJobIdsForSession, SAVED_JOBS_UPDATED_EVENT, toggleSavedJobForSession } from "@/lib/saved-jobs";
 import type { JobCardProps, TalentJobStage } from "./JobCard";
 
@@ -53,7 +54,11 @@ export default function JobCardMobile({
   onApply,
   formatDate,
 }: JobCardProps) {
-  const badge = getStatusBadge(stage, isApplied);
+  const baseBadge = getStatusBadge(stage, isApplied);
+  const badge =
+    !isApplied && stage !== "approved" && stage !== "pending" && isApplicationDeadlineExpired(job.applicationDeadline)
+      ? { label: "Đã hết hạn", className: "bg-slate-200 text-slate-600" }
+      : baseBadge;
   const deadlineLabel = getDeadlineLabel(job.applicationDeadline, formatDate);
   const applicantText = getApplicantText(job);
   const budgetText = formatDisplayBudget(job.budget);

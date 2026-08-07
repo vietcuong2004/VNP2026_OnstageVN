@@ -1,5 +1,6 @@
 export type PublicNavigationItem = {
   key:
+    | "discover"
     | "talent"
     | "jobs"
     | "about"
@@ -14,6 +15,7 @@ export type PublicNavigationItem = {
 };
 
 const guestPrimaryNavigation: PublicNavigationItem[] = [
+  { key: "discover", label: "Khám phá", href: "/" },
   { key: "talent", label: "Tìm kiếm Idol", href: "/brand/search" },
   { key: "jobs", label: "Cơ hội việc làm", href: "/talent/jobs" },
 ];

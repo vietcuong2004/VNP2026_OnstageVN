@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bookmark, Briefcase, Heart, HelpCircle, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
+import { Bookmark, Briefcase, Heart, HelpCircle, Home, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
 import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/components/sidebar";
@@ -154,7 +154,7 @@ export default function BottomNavigation() {
     return () => window.removeEventListener("scroll", handleScroll, { capture: true });
   }, [pathname, showMoreMenu]);
 
-  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/about" && pathname !== "/settings") {
+  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/" && pathname !== "/about" && pathname !== "/settings") {
     return null;
   }
 
@@ -167,6 +167,7 @@ export default function BottomNavigation() {
       : pathname;
 
   const guestIconMap = {
+    discover: Home,
     talent: Search,
     jobs: Briefcase,
     about: Info,
@@ -192,6 +193,8 @@ export default function BottomNavigation() {
   const allItems = !isLoggedIn ? guestMoreItems : [];
 
   const isActiveHref = (href: string) => {
+    if (href === "/") return activePathname === "/";
+
     const isGuestTalentActive = !isLoggedIn && href === "/brand/search" && (
       activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/")
     );

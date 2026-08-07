@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { Bookmark, Calendar, CircleDollarSign, MapPin } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { isApplicationDeadlineExpired } from "@/lib/job-deadline";
 import { loadSavedJobIdsForSession, SAVED_JOBS_UPDATED_EVENT, toggleSavedJobForSession } from "@/lib/saved-jobs";
 
 export type TalentJobStage = "pending" | "approved" | string | null | undefined;
@@ -57,7 +58,11 @@ export default function JobCard({
   onApply,
   formatDate,
 }: JobCardProps) {
-  const badge = getStatusBadge(stage, isApplied);
+  const baseBadge = getStatusBadge(stage, isApplied);
+  const badge =
+    !isApplied && stage !== "approved" && stage !== "pending" && isApplicationDeadlineExpired(job.applicationDeadline)
+      ? { label: "ĐÃ HẾT HẠN", className: "bg-slate-500" }
+      : baseBadge;
   const [isSaved, setIsSaved] = useState(false);
   const [isSavingSavedJob, setIsSavingSavedJob] = useState(false);
 
