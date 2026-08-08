@@ -58,9 +58,10 @@ export default function JobCard({
   onApply,
   formatDate,
 }: JobCardProps) {
+  const isExpired = isApplicationDeadlineExpired(job.applicationDeadline);
   const baseBadge = getStatusBadge(stage, isApplied);
   const badge =
-    !isApplied && stage !== "approved" && stage !== "pending" && isApplicationDeadlineExpired(job.applicationDeadline)
+    !isApplied && stage !== "approved" && stage !== "pending" && isExpired
       ? { label: "ĐÃ HẾT HẠN", className: "bg-slate-500" }
       : baseBadge;
   const [isSaved, setIsSaved] = useState(false);
@@ -105,6 +106,17 @@ export default function JobCard({
   };
 
   const renderPrimaryAction = () => {
+    if (!isApplied && isExpired) {
+      return (
+        <button
+          disabled
+          className="flex h-11 cursor-not-allowed items-center justify-center rounded-full border border-slate-500/20 bg-slate-500/15 text-xs font-black uppercase tracking-wider text-slate-400"
+        >
+          ĐÃ HẾT HẠN
+        </button>
+      );
+    }
+
     if (!isApplied) {
       return (
         <button

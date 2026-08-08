@@ -390,6 +390,13 @@ type CampaignForm = {
   industries?: string;
   targetProfiles?: string;
   contactNote?: string;
+  events?: Array<{
+    name: string;
+    start_at: string;
+    end_at: string;
+    content?: string[];
+    sort_order?: number;
+  }>;
 };
 
 type CampaignTalentWithProfile = Campaign["applicants"][number] & {
@@ -1001,6 +1008,7 @@ function buildCampaignPayload(form: CampaignForm) {
     industries: listFromText(form.industries),
     target_profiles: listFromText(form.targetProfiles),
     contact_note: form.contactNote || null,
+    events: form.events || [],
   };
 }
 

@@ -2,6 +2,12 @@ export function getApplicationDeadlineEnd(value?: string | null): Date | null {
   const text = String(value || "").trim();
   if (!text) return null;
 
+  if (/^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}/.test(text)) {
+    const normalized = text.includes("T") ? text : text.replace(" ", "T");
+    const parsedDateTime = new Date(normalized);
+    return Number.isNaN(parsedDateTime.getTime()) ? null : parsedDateTime;
+  }
+
   const isoDate = /^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s])/.exec(text);
   if (isoDate) {
     return new Date(

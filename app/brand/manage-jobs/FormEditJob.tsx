@@ -902,7 +902,7 @@ export default function FormEditJob({
               />
               <MultiChoiceField
                 id="industries"
-                label="Lĩnh vực liên quan"
+                label="Lĩnh vực công việc"
                 value={form.industries}
                 options={INDUSTRY_OPTIONS}
                 placeholder={"Nhập thêm lĩnh vực khác, mỗi dòng một mục"}
@@ -1107,7 +1107,7 @@ export default function FormEditJob({
                     <SummaryGrid>
                       <SummaryList label="Vị trí tuyển" items={splitOptionText(form.roles)} />
                       <SummaryList label="Quyền lợi / đãi ngộ" items={splitOptionText(form.benefits)} />
-                      <SummaryList label="Lĩnh vực liên quan" items={splitOptionText(form.industries)} />
+                      <SummaryList label="Lĩnh vực công việc" items={splitOptionText(form.industries)} />
                       <SummaryList label="Nhóm Talent phù hợp" items={splitOptionText(form.targetProfiles)} />
                       <SummaryField label="Chiều cao tối thiểu" value={form.heightMin ? `${form.heightMin} cm` : ""} />
                       <SummaryField label="Cân nặng tối đa" value={form.weightMax ? `${form.weightMax} kg` : ""} />

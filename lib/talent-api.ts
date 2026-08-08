@@ -1251,6 +1251,11 @@ export function mapCampaignToTalentJob(campaign: any) {
   const benefits = splitBackendText(campaign.benefits);
   const events = Array.isArray(campaign.events) ? campaign.events : [];
   const positions = Array.isArray(campaign.positions) ? campaign.positions : [];
+  const rawLocation = String(campaign.location || "").trim();
+  const rawCity = String(campaign.city || "").trim();
+  const fullLocation = rawLocation && rawCity && !rawLocation.toLowerCase().includes(rawCity.toLowerCase())
+    ? `${rawLocation}, ${rawCity}`
+    : rawLocation || rawCity;
 
   return {
     id: String(campaign.id),
@@ -1284,7 +1289,7 @@ export function mapCampaignToTalentJob(campaign: any) {
     budgetMin: campaign.budget_min ?? null,
     budgetMax: campaign.budget_max ?? null,
     hasBudget,
-    location: campaign.location || "",
+    location: fullLocation,
     brief: campaign.description || "",
     coverUrl,
     media,
@@ -1302,7 +1307,7 @@ export function mapCampaignToTalentJob(campaign: any) {
       events,
       positions,
       recruitmentPositions: positions,
-      address: campaign.location || "",
+      address: fullLocation,
       phone,
       email,
       website,

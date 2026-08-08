@@ -8,6 +8,7 @@ import { createBrandCampaign, publishBrandCampaign, uploadBrandCampaignMedia } f
 import { cn } from "@/lib/utils";
 import { TALENT_TYPE_VALUES } from "@/components/ui/ComboboxOptionValues";
 import { networkInterfaces } from "os";
+import BudgetPaymentSection from "./BudgetPaymentSection";
 
 const ROLE_OPTIONS = [
   "CTV Take Care nghệ sĩ",
@@ -113,7 +114,7 @@ function formatBudgetInputValue(value: string) {
 
 function formatBudgetDigits(digits: string) {
   const normalizedDigits = String(digits || "").replace(/[^\d]/g, "");
-  return normalizedDigits ? `${Number(normalizedDigits).toLocaleString("vi-VN")} VND/ngày` : "";
+  return normalizedDigits ? Number(normalizedDigits).toLocaleString("vi-VN") : "";
 }
 
 const emptyForm = {
@@ -530,10 +531,10 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-0 sm:p-4 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-0 backdrop-blur-md animate-in fade-in duration-200 md:relative md:inset-auto md:z-auto md:block md:bg-transparent md:p-0 md:backdrop-blur-0">
       <form
         onSubmit={handleFormSubmit}
-        className="relative w-full h-full sm:h-auto max-w-2xl sm:rounded-3xl border-0 sm:border border-amber-500/30 bg-[#0c1021] shadow-[0_0_50px_rgba(245,158,11,0.15),0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-full sm:max-h-[90vh]"
+        className="relative mx-auto flex h-full w-full max-w-2xl flex-col overflow-hidden border-0 border-amber-500/30 bg-[#0c1021] shadow-[0_0_50px_rgba(245,158,11,0.15),0_25px_60px_rgba(0,0,0,0.9)] sm:rounded-3xl sm:border md:mx-0 md:h-auto md:min-h-[calc(100dvh-9rem)] md:max-w-none md:max-h-none"
       >
         {/* Top accent glow line */}
         <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-amber-300 to-yellow-500 shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.6)]" />
@@ -613,58 +614,24 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
               <div className="sm:col-span-2">
                 <FormInput label="Tiêu đề job *" value={form.title} onChange={(value) => setForm((c) => ({ ...c, title: value }))} required />
               </div>
-              <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Loại hình job *</span>
-                <select
-                  value={form.jobType}
-                  onChange={(e) => setForm((c) => ({ ...c, jobType: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 hover:border-slate-600 transition-all shadow-inner"
-                >
-                  <option className="bg-slate-900 text-slate-100">Tuyển cộng tác viên</option>
-                  <option className="bg-slate-900 text-slate-100">Tuyển đại sứ</option>
-                  <option className="bg-slate-900 text-slate-100">Beauty KOL/KOC</option>
-                  <option className="bg-slate-900 text-slate-100">KOL livestream</option>
-                  <option className="bg-slate-900 text-slate-100">Model lookbook</option>
-                  <option className="bg-slate-900 text-slate-100">PG event</option>
-                  <option className="bg-slate-900 text-slate-100">MC sự kiện</option>
-                  <option className="bg-slate-900 text-slate-100">Dancer performance</option>
-                </select>
-              </label>
-              <FormInput label="Số lượng cần tuyển *" type="number" value={form.talentQuantity} onChange={(value) => setForm((c) => ({ ...c, talentQuantity: value }))} />
-              <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-700/80 bg-slate-900/90 p-3.5 sm:col-span-2 cursor-pointer hover:border-amber-400/50 transition-all shadow-sm">
-                <div>
-                  <span className="block text-xs font-extrabold uppercase tracking-wider text-amber-300">Thù lao thỏa thuận</span>
-                  <span className="mt-0.5 block text-[11px] font-medium text-slate-400">Chọn nếu brand sẽ trao đổi mức thù lao trực tiếp với talent.</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={budgetNegotiable}
-                  onChange={(e) => handleBudgetNegotiableChange(e.target.checked)}
-                  className="h-4.5 w-4.5 shrink-0 cursor-pointer accent-amber-400 rounded"
-                />
-              </label>
-              <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Thù lao tối thiểu</span>
-                <input
-                  type="text"
-                  value={budgetFrom}
-                  onChange={(e) => handleBudgetChange(e.target.value, budgetFrom, setBudgetFrom, true)}
-                  disabled={budgetNegotiable}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-45 hover:border-slate-600 transition-all shadow-inner placeholder:text-slate-500"
-                  placeholder="700.000 VND/ngày"
-                />
-              </label>
-              <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Thù lao tối đa</span>
-                <input
-                  type="text"
-                  value={budgetTo}
-                  onChange={(e) => handleBudgetChange(e.target.value, budgetTo, setBudgetTo, false)}
-                  disabled={budgetNegotiable}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-45 hover:border-slate-600 transition-all shadow-inner placeholder:text-slate-500"
-                  placeholder="1.000.000 VND/ngày"
-                />
-              </label>
+              <MultiChoiceField
+                id="industries"
+                label="Lĩnh vực công việc"
+                value={form.industries}
+                options={INDUSTRY_OPTIONS}
+                placeholder={"Nhập thêm lĩnh vực khác, mỗi dòng một mục"}
+                onChange={(value) => setForm((c) => ({ ...c, industries: value }))}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+              />
+              <BudgetPaymentSection
+                budgetFrom={budgetFrom}
+                budgetTo={budgetTo}
+                budgetNegotiable={budgetNegotiable}
+                onNegotiableChange={handleBudgetNegotiableChange}
+                onBudgetFromChange={(value) => handleBudgetChange(value, budgetFrom, setBudgetFrom, true)}
+                onBudgetToChange={(value) => handleBudgetChange(value, budgetTo, setBudgetTo, false)}
+              />
             </div>
           )}
 
@@ -817,16 +784,6 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 options={BENEFIT_OPTIONS}
                 placeholder={"Nhập thêm quyền lợi khác, mỗi dòng một mục"}
                 onChange={(value) => setForm((c) => ({ ...c, benefits: value }))}
-                openDropdown={openDropdown}
-                setOpenDropdown={setOpenDropdown}
-              />
-              <MultiChoiceField
-                id="industries"
-                label="Lĩnh vực liên quan"
-                value={form.industries}
-                options={INDUSTRY_OPTIONS}
-                placeholder={"Nhập thêm lĩnh vực khác, mỗi dòng một mục"}
-                onChange={(value) => setForm((c) => ({ ...c, industries: value }))}
                 openDropdown={openDropdown}
                 setOpenDropdown={setOpenDropdown}
               />
@@ -999,8 +956,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                   <SummarySection title="Thông tin cơ bản">
                     <SummaryGrid>
                       <SummaryField label="Tiêu đề job" value={form.title} wide />
-                      <SummaryField label="Loại hình job" value={form.jobType} />
-                      <SummaryField label="Số lượng cần tuyển" value={form.talentQuantity} />
+                      <SummaryList label="Lĩnh vực công việc" items={splitOptionText(form.industries)} />
                       <SummaryField label="Thù lao" value={form.budgetNegotiable ? "Thỏa thuận" : form.budget} wide />
                     </SummaryGrid>
                   </SummarySection>
@@ -1027,7 +983,6 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                     <SummaryGrid>
                       <SummaryList label="Vị trí tuyển" items={splitOptionText(form.roles)} />
                       <SummaryList label="Quyền lợi / đãi ngộ" items={splitOptionText(form.benefits)} />
-                      <SummaryList label="Lĩnh vực liên quan" items={splitOptionText(form.industries)} />
                       <SummaryList label="Nhóm Talent phù hợp" items={splitOptionText(form.targetProfiles)} />
                       <SummaryField label="Chiều cao tối thiểu" value={form.heightMin ? `${form.heightMin} cm` : ""} />
                       <SummaryField label="Cân nặng tối đa" value={form.weightMax ? `${form.weightMax} kg` : ""} />

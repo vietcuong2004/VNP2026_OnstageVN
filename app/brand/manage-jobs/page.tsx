@@ -17,7 +17,6 @@ import {
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { loadBrandCampaigns, deleteBrandCampaign, publishBrandCampaign, closeBrandCampaign } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
-import FormCreateJob from "./FormCreateJob";
 import FormEditJob from "./FormEditJob";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
@@ -88,7 +87,6 @@ export default function CampaignsPage() {
     });
   }, []);
   const [activeTab, setActiveTab] = useState<CampaignStatusTab>("all");
-  const [isCreating, setIsCreating] = useState(false);
   const filteredCampaigns = useMemo(() => {
     if (activeTab === "all") return campaigns;
     return campaigns.filter((campaign) => campaign.status === activeTab);
@@ -120,13 +118,13 @@ export default function CampaignsPage() {
             </p>
           </div>
 
-          <button
-            onClick={() => {
-              if (!requireAuthAction({ actionLabel: "Tạo job mới" })) return;
-              setIsCreating(true);
-            }}
-            className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-6 text-xs font-black uppercase tracking-wider text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all cursor-pointer shrink-0"
-          >
+              <button
+                onClick={() => {
+                  if (!requireAuthAction({ actionLabel: "Tạo job mới" })) return;
+                  router.push("/brand/manage-jobs/create-job");
+                }}
+                className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-6 text-xs font-black uppercase tracking-wider text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all cursor-pointer shrink-0"
+              >
             <Plus className="mr-2 h-4 w-4 stroke-[3]" />
             Tạo job mới
           </button>
@@ -178,7 +176,7 @@ export default function CampaignsPage() {
               key={campaign.id}
               onClick={() => router.push(`/brand/manage-jobs/${campaign.id}`)}
               className={cn(
-                "flex flex-col justify-between rounded-3xl border p-5 transition-all duration-300 hover:-translate-y-0.5 flex-1 w-full text-left relative group h-[320px] cursor-pointer",
+                "flex flex-col justify-between rounded-3xl border p-5 transition-all duration-300 hover:-translate-y-0.5 flex-1 w-full text-left relative group min-h-[340px] cursor-pointer",
                 isClosed
                   ? "border-white/5 bg-[#0b0c10]/40 hover:border-white/15 hover:shadow-[0_8px_30px_rgba(255,255,255,0.01)]"
                   : "border-[#151b2d] bg-gradient-to-b from-[#111421]/80 to-[#070913]/95 hover:border-amber-400/30 hover:shadow-[0_12px_40px_rgba(245,158,11,0.08)]"
@@ -246,8 +244,8 @@ export default function CampaignsPage() {
                 </div>
               </div>
 
-              <div className="mt-4 border-t border-white/5 pt-3 relative z-10">
-                <div className="mb-4 grid grid-cols-2 gap-2 text-center text-xs">
+              <div className="mt-3 border-t border-white/5 pt-3 relative z-10">
+                <div className="mb-3 grid grid-cols-2 gap-2 text-center text-xs">
                   <div>
                     <span className="block text-[7.5px] font-black uppercase text-slate-500 tracking-widest">Views</span>
                     <span className="font-mono font-black text-amber-300 mt-0.5 block">{campaign.views}</span>
@@ -260,7 +258,10 @@ export default function CampaignsPage() {
 
                 <div className="flex gap-2 items-center">
                   <button
-                    onClick={() => router.push(`/brand/manage-jobs/${campaign.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/brand/manage-jobs/${campaign.id}`);
+                    }}
                     className="flex-1 flex h-10 items-center justify-center rounded-xl bg-white/5 border border-white/5 hover:border-white/10 text-[9.5px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 cursor-pointer"
                   >
                     Xem thông tin <ChevronRight className="ml-1 h-3.5 w-3.5" />
@@ -331,12 +332,6 @@ export default function CampaignsPage() {
       </section>
 
       <GuestActionPrompt />
-
-      <FormCreateJob
-        isOpen={isCreating}
-        onClose={() => setIsCreating(false)}
-        onCampaignCreated={(newCampaign) => setCampaigns((prev) => [newCampaign, ...prev])}
-      />
 
       <FormEditJob
         isOpen={!!editingCampaign}

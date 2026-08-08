@@ -21,6 +21,7 @@ import {
   loadTalentCampaignsPage,
 } from "@/lib/talent-api";
 import { loadSavedJobIdsForSession, toggleSavedJobForSession } from "@/lib/saved-jobs";
+import { isApplicationDeadlineExpired } from "@/lib/job-deadline";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import EventInformationSection from "./EventInformationSection";
 import JobImagesSection from "./JobImagesSection";
@@ -338,6 +339,10 @@ export default function JobDetailPage() {
 
   const handleApply = async () => {
     if (!job) return;
+    if (isApplicationDeadlineExpired(job.applicationDeadline || job.deadline)) {
+      addToast("Công việc đã hết hạn ứng tuyển.", "error");
+      return;
+    }
     if (!requireAuthAction({
       actionLabel: `Ứng tuyển chiến dịch "${job.title}"`,
       description: "Bạn cần đăng nhập tài khoản Idol để ứng tuyển chiến dịch này và kết nối với Brand.",
@@ -396,6 +401,7 @@ export default function JobDetailPage() {
     ? job.industries.map((item: unknown) => String(item || "").trim()).filter(Boolean)
     : [];
   const deadline = job.applicationDeadline || job.deadline;
+  const isExpired = isApplicationDeadlineExpired(deadline);
   const rawRecruitmentPositions =
     (Array.isArray(detail.recruitmentPositions) && detail.recruitmentPositions) ||
     (Array.isArray(detail.positions) && detail.positions) ||
@@ -462,6 +468,14 @@ export default function JobDetailPage() {
     : [];
 
   const renderFooterAction = () => {
+    if (!isApplied && isExpired) {
+      return (
+        <button disabled className="px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-bold bg-slate-500/15 border border-slate-500/25 text-slate-400 cursor-not-allowed uppercase tracking-wider">
+          Đã hết hạn
+        </button>
+      );
+    }
+
     if (!isApplied) {
       return (
         <button
@@ -505,6 +519,14 @@ export default function JobDetailPage() {
   );
 
   const renderMobileFooterAction = () => {
+    if (!isApplied && isExpired) {
+      return (
+        <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-slate-500/15 border border-slate-500/25 text-slate-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
+          Đã hết hạn
+        </button>
+      );
+    }
+
     if (!isApplied) {
       return (
         <button
@@ -615,7 +637,7 @@ export default function JobDetailPage() {
           </p>
 
           {/* Key Metrics Highlight Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)]">
             <div className="relative overflow-hidden rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-[#0e1322] to-[#080a12] p-4 flex flex-col justify-between space-y-1.5">
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-amber-400">
                 <DollarSign className="h-4 w-4 text-amber-400 shrink-0" />
@@ -626,7 +648,7 @@ export default function JobDetailPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#1b233a] bg-[#0c101d] p-4 flex flex-col justify-between space-y-1.5">
+            <div className="rounded-2xl border border-[#1b233a] bg-[#0c101d] p-4 flex flex-col justify-between space-y-1.5 sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
                 <Clock className="h-4 w-4 text-amber-400 shrink-0" />
                 Hạn ứng tuyển
@@ -641,7 +663,7 @@ export default function JobDetailPage() {
                 <MapPin className="h-4 w-4 text-cyan-400 shrink-0" />
                 Địa điểm làm việc
               </div>
-              <div className="font-semibold text-xs sm:text-sm text-slate-100 break-words" title={job.location || "Không có"}>
+              <div className="min-w-0 font-semibold text-xs sm:text-sm text-slate-100 break-words [overflow-wrap:anywhere]" title={job.location || "Không có"}>
                 {job.location || "Không có"}
               </div>
             </div>

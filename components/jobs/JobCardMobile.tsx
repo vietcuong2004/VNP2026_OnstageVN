@@ -54,9 +54,10 @@ export default function JobCardMobile({
   onApply,
   formatDate,
 }: JobCardProps) {
+  const isExpired = isApplicationDeadlineExpired(job.applicationDeadline);
   const baseBadge = getStatusBadge(stage, isApplied);
   const badge =
-    !isApplied && stage !== "approved" && stage !== "pending" && isApplicationDeadlineExpired(job.applicationDeadline)
+    !isApplied && stage !== "approved" && stage !== "pending" && isExpired
       ? { label: "Đã hết hạn", className: "bg-slate-200 text-slate-600" }
       : baseBadge;
   const deadlineLabel = getDeadlineLabel(job.applicationDeadline, formatDate);
@@ -92,6 +93,7 @@ export default function JobCardMobile({
 
   const handlePrimaryAction = (event: MouseEvent) => {
     stopCardClick(event);
+    if (!isApplied && isExpired) return;
     if (!isApplied) {
       onApply(job);
       return;
@@ -199,10 +201,12 @@ export default function JobCardMobile({
           <button
             type="button"
             onClick={handlePrimaryAction}
-            disabled={isApplied && stage !== "approved"}
+            disabled={(!isApplied && isExpired) || (isApplied && stage !== "approved")}
             className={cn(
               "flex h-8 min-w-0 items-center justify-center gap-1 rounded-lg px-1.5 text-[8.5px] font-black tracking-normal transition active:scale-95 disabled:cursor-not-allowed",
-              !isApplied
+              !isApplied && isExpired
+                ? "border border-slate-500/25 bg-slate-500/15 text-slate-400"
+                : !isApplied
                 ? "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950"
                 : stage === "approved"
                   ? "border border-emerald-500/35 bg-emerald-500/15 text-emerald-300"
@@ -210,7 +214,7 @@ export default function JobCardMobile({
             )}
           >
             {!isApplied ? <Send className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
-            <span className="truncate">{!isApplied ? "Ứng tuyển" : stage === "approved" ? "Duyệt" : "Chờ"}</span>
+            <span className="truncate">{!isApplied ? (isExpired ? "Hết hạn" : "Ứng tuyển") : stage === "approved" ? "Duyệt" : "Chờ"}</span>
           </button>
         </div>
       </div>
