@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { X, ImagePlus, Briefcase, ChevronDown, Pencil, Calendar } from "lucide-react";
+import { X, ImagePlus, Briefcase, ChevronDown, Pencil, Calendar, Eye } from "lucide-react";
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { createBrandCampaign, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 import { TALENT_TYPE_VALUES } from "@/components/ui/ComboboxOptionValues";
 import { networkInterfaces } from "os";
 import BudgetPaymentSection from "./BudgetPaymentSection";
+import PreviewJob from "./PreviewJob";
 
 const ROLE_OPTIONS = [
   "CTV Take Care nghệ sĩ",
@@ -275,7 +276,9 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   const [campaignImages, setCampaignImages] = useState<File[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [formStep, setFormStep] = useState(1);
+  const [activeTab, setActiveTab] = useState<"form" | "preview">("form");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [activePreviewImageIndex, setActivePreviewImageIndex] = useState(0);
   const finalStepSubmitReadyAt = useRef(0);
   const imagePreviews = useMemo(
     () => campaignImages.map((file) => URL.createObjectURL(file)),
@@ -545,12 +548,50 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
 
         {/* ── HEADER with step indicator ── */}
         <div className="relative z-10 px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-slate-800/80 bg-slate-900/40 shrink-0">
-          <div className="flex items-start justify-between mb-3.5">
-            <div>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
+          <div className="mb-2 grid grid-cols-[minmax(0,1fr)_2.5rem] items-center gap-2">
+            <div className="grid grid-cols-2 gap-1 rounded-2xl border border-slate-800 bg-slate-950/60 p-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab("form")}
+                className={cn(
+                  "flex h-10 items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                  activeTab === "form"
+                    ? "bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.35)]"
+                    : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"
+                )}
+              >
+                <Briefcase className="h-4 w-4" />
+                Tạo job
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("preview")}
+                className={cn(
+                  "flex h-10 items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                  activeTab === "preview"
+                    ? "bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.35)]"
+                    : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"
+                )}
+              >
+                <Eye className="h-4 w-4" />
+                Xem trước
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/60 bg-slate-800/60 text-slate-400 transition-all hover:bg-slate-700/80 hover:text-white"
+              aria-label="Đóng"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          {activeTab === "form" && <div className="mb-0 flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-400">
                 Bước {formStep}/{TOTAL_STEPS}
               </span>
-              <h2 className="mt-2 text-xl font-black text-white tracking-tight drop-shadow-sm">
+              <h2 className="min-w-0 truncate text-sm font-black text-white tracking-tight drop-shadow-sm">
                 {formStep === 1 && "Thông tin cơ bản"}
                 {formStep === 2 && "Địa điểm & Thời gian"}
                 {formStep === 3 && "Mô tả công việc"}
@@ -561,14 +602,14 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
             <button
               type="button"
               onClick={handleClose}
-              className="text-slate-400 hover:text-white cursor-pointer transition-all p-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/60"
+              className="hidden text-slate-400 hover:text-white cursor-pointer transition-all p-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/60"
             >
               <X className="h-5 w-5" />
             </button>
-          </div>
+          </div>}
 
           {/* Step dots */}
-          <div className="flex items-center gap-2">
+          {false && activeTab === "form" && <div className="flex items-center gap-2">
             {STEP_LABELS.map((label, idx) => {
               const stepNum = idx + 1;
               const isDone = stepNum < formStep;
@@ -602,14 +643,28 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 </div>
               );
             })}
-          </div>
+          </div>}
         </div>
 
         {/* ── STEP CONTENT (scrollable) ── */}
         <div className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4 custom-scrollbar">
+          {activeTab === "preview" && (
+            <div className="-mx-1 h-full min-h-[calc(100dvh-12rem)] animate-in fade-in slide-in-from-right-4 duration-300">
+              <PreviewJob
+                form={{
+                  ...form,
+                  campaignEvents: [],
+                  campaignPositions: [],
+                }}
+                imageUrls={imagePreviews}
+                activeImageIndex={activePreviewImageIndex}
+                onActiveImageIndexChange={setActivePreviewImageIndex}
+              />
+            </div>
+          )}
 
           {/* STEP 1: Thông tin cơ bản */}
-          {formStep === 1 && (
+          {activeTab === "form" && formStep === 1 && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="sm:col-span-2">
                 <FormInput label="Tiêu đề job *" value={form.title} onChange={(value) => setForm((c) => ({ ...c, title: value }))} required />
@@ -636,7 +691,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           )}
 
           {/* STEP 2: Địa điểm & Thời gian */}
-          {formStep === 2 && (
+          {activeTab === "form" && formStep === 2 && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 animate-in fade-in slide-in-from-right-4 duration-300">
               <FormInput label="Thành phố *" value={form.city} onChange={(value) => setForm((c) => ({ ...c, city: value }))} />
               <FormInput label="Địa điểm *" value={form.address} onChange={(value) => setForm((c) => ({ ...c, address: value }))} />
@@ -712,7 +767,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           )}
 
           {/* STEP 3: Mô tả công việc */}
-          {formStep === 3 && (
+          {activeTab === "form" && formStep === 3 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <label className="space-y-1.5 block">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Mô tả công việc *</span>
@@ -765,7 +820,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           )}
 
           {/* STEP 4: Phân loại & Quyền lợi */}
-          {formStep === 4 && (
+          {activeTab === "form" && formStep === 4 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <MultiChoiceField
                 id="roles"
@@ -856,7 +911,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           )}
 
           {/* STEP 5: Hoàn tất */}
-          {formStep === 5 && (
+          {activeTab === "form" && formStep === 5 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="rounded-2xl border border-slate-700/80 bg-slate-900/90 p-5 text-left space-y-4 shadow-md">
                 {/* Header */}
@@ -1003,7 +1058,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
         </div>
 
         {/* ── FOOTER navigation ── */}
-        {!openDropdown && (
+        {!openDropdown && activeTab === "form" && (
           <div className="relative z-10 flex items-center justify-between gap-3 border-t border-slate-800/80 bg-slate-900/40 px-4 sm:px-6 py-3 sm:py-4 shrink-0">
             <button
               type="button"
@@ -1011,7 +1066,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
               className="flex h-10 items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/80 px-4 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:border-slate-600 hover:text-white cursor-pointer transition-all shadow-sm"
               disabled={isSubmitting}
             >
-              {formStep > 1 ? "← Quay lại" : "Hủy"}
+              {formStep > 1 ? "← Bước trước" : "Hủy"}
             </button>
 
             <div className="flex items-center gap-3">

@@ -17,7 +17,7 @@ import {
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { loadBrandCampaigns, deleteBrandCampaign, publishBrandCampaign, closeBrandCampaign } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
-import FormEditJob from "./FormEditJob";
+import FormEditJob from "./[id]/edit-job/FormEditJobDesktop";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 type CampaignStatusTab = "all" | Campaign["status"];
@@ -118,13 +118,13 @@ export default function CampaignsPage() {
             </p>
           </div>
 
-              <button
-                onClick={() => {
-                  if (!requireAuthAction({ actionLabel: "Tạo job mới" })) return;
-                  router.push("/brand/manage-jobs/create-job");
-                }}
-                className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-6 text-xs font-black uppercase tracking-wider text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all cursor-pointer shrink-0"
-              >
+          <button
+            onClick={() => {
+              if (!requireAuthAction({ actionLabel: "Tạo job mới" })) return;
+              router.push("/brand/manage-jobs/create-job");
+            }}
+            className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-6 text-xs font-black uppercase tracking-wider text-slate-950 hover:shadow-[0_0_20px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all cursor-pointer shrink-0"
+          >
             <Plus className="mr-2 h-4 w-4 stroke-[3]" />
             Tạo job mới
           </button>
