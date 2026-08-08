@@ -141,7 +141,14 @@ type CampaignEventDraft = {
   name: string;
   startAt: string;
   endAt: string;
+  location: string;
   content: string;
+};
+
+type CampaignPositionDraft = {
+  talentType: string;
+  quantity: string;
+  requirements: string;
 };
 
 function formatDateTimeInputValue(date: Date) {
@@ -165,6 +172,17 @@ function normalizeDateTimeLocalToISO(value: string) {
 
 function dateFromDateTimeLocal(value: string) {
   return value ? value.slice(0, 10) : "";
+}
+
+function buildFullLocation(address: string, city: string) {
+  const normalizedAddress = String(address || "").trim();
+  const normalizedCity = String(city || "").trim();
+
+  if (normalizedAddress && normalizedCity && !normalizedAddress.toLowerCase().includes(normalizedCity.toLowerCase())) {
+    return `${normalizedAddress}, ${normalizedCity}`;
+  }
+
+  return normalizedAddress || normalizedCity;
 }
 
 const emptyForm = {
@@ -200,6 +218,7 @@ const emptyForm = {
   experienceMin: "",
   experienceMax: "",
   campaignEvents: [] as CampaignEventDraft[],
+  campaignPositions: [] as CampaignPositionDraft[],
 };
 
 function currentDateInputValue() {
@@ -313,12 +332,12 @@ function createDefaultForm() {
     deadline: today,
     applicationDeadline: dateFromDateTimeLocal(jobStart),
     eventDate: today,
-    campaignEvents: [
+    campaignEvents: [] as CampaignEventDraft[],
+    campaignPositions: [
       {
-        name: "Sự kiện chính",
-        startAt: jobStart,
-        endAt: jobEnd,
-        content: "Chụp ảnh sản phẩm, ảnh nhóm và nội dung truyền thông theo concept của thương hiệu.",
+        talentType: "KOL",
+        quantity: "3",
+        requirements: "",
       },
     ],
   };
@@ -398,6 +417,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           name: `Sự kiện ${nextIndex}`,
           startAt: currentDateTimeInputValue(),
           endAt: currentDateTimeInputValue(60),
+          location: buildFullLocation(current.address, current.city),
           content: "",
         },
       ],
@@ -407,13 +427,69 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   function removeCampaignEvent(index: number) {
     setForm((current) => ({
       ...current,
-      campaignEvents: current.campaignEvents.length > 1
-        ? current.campaignEvents.filter((_, eventIndex) => eventIndex !== index)
-        : current.campaignEvents,
+      campaignEvents: current.campaignEvents.filter((_, eventIndex) => eventIndex !== index),
     }));
   }
 
-  function syncEventDatesBeforeNext() {
+  function updateCampaignPosition(index: number, patch: Partial<CampaignPositionDraft>) {
+    setForm((current) => ({
+      ...current,
+      campaignPositions: current.campaignPositions.map((position, positionIndex) =>
+        positionIndex === index ? { ...position, ...patch } : position
+      ),
+    }));
+  }
+
+  function addCampaignPosition() {
+    setForm((current) => ({
+      ...current,
+      campaignPositions: [
+        ...current.campaignPositions,
+        {
+          talentType: "",
+          quantity: "1",
+          requirements: "",
+        },
+      ],
+    }));
+  }
+
+  function removeCampaignPosition(index: number) {
+    setForm((current) => ({
+      ...current,
+      campaignPositions: current.campaignPositions.length > 1
+        ? current.campaignPositions.filter((_, positionIndex) => positionIndex !== index)
+        : current.campaignPositions,
+    }));
+  }
+
+  function syncPositionsBeforeNext() {
+    const normalizedPositions = form.campaignPositions
+      .map((position) => ({
+        ...position,
+        talentType: position.talentType.trim(),
+        quantity: String(Math.max(Number(position.quantity) || 1, 1)),
+        requirements: splitOptionText(position.requirements).join("\n"),
+      }))
+      .filter((position) => position.talentType);
+
+    if (normalizedPositions.length === 0) {
+      window.alert("Vui lòng thêm ít nhất 1 vị trí tuyển dụng.");
+      return false;
+    }
+
+    setForm((current) => ({
+      ...current,
+      campaignPositions: normalizedPositions,
+      talentQuantity: String(normalizedPositions.reduce((sum, position) => sum + (Number(position.quantity) || 1), 0)),
+      roles: normalizedPositions.map((position) => position.talentType).join("\n"),
+      targetProfiles: normalizedPositions.map((position) => position.talentType).join("\n"),
+    }));
+
+    return true;
+  }
+
+  function syncJobTimelineBeforeNext() {
     if (!form.startDate || !form.endDate) {
       window.alert("Vui lòng chọn thời gian bắt đầu và kết thúc job.");
       return false;
@@ -429,16 +505,22 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
       return false;
     }
 
+    setForm((current) => ({
+      ...current,
+      deadline: dateFromDateTimeLocal(current.applicationDeadline),
+    }));
+    setDateErrors({});
+
+    return true;
+  }
+
+  function syncEventDatesBeforeNext() {
     const normalizedEvents = form.campaignEvents.map((event) => ({
       ...event,
       name: event.name.trim(),
+      location: event.location?.trim() || "",
       content: event.content.trim(),
     }));
-
-    if (normalizedEvents.length === 0) {
-      window.alert("Vui lòng thêm ít nhất 1 sự kiện.");
-      return false;
-    }
 
     for (const [index, event] of normalizedEvents.entries()) {
       if (!event.name || !event.startAt || !event.endAt) {
@@ -456,7 +538,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
       ...current,
       campaignEvents: normalizedEvents,
       deadline: dateFromDateTimeLocal(current.applicationDeadline),
-      eventDate: dateFromDateTimeLocal(normalizedEvents[0].startAt),
+      eventDate: normalizedEvents[0]?.startAt ? dateFromDateTimeLocal(normalizedEvents[0].startAt) : current.eventDate,
     }));
     setDateErrors({});
 
@@ -464,6 +546,16 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   }
 
   function moveToStep(nextStep: number) {
+    if (formStep === 1 && nextStep > 1) {
+      if (!syncJobTimelineBeforeNext()) {
+        return;
+      }
+    }
+    if (formStep === 3 && nextStep > 3) {
+      if (!syncPositionsBeforeNext()) {
+        return;
+      }
+    }
     if (formStep === 4 && nextStep > 4) {
       if (!syncEventDatesBeforeNext()) {
         return;
@@ -478,7 +570,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
     formStep === 1 ? "Tổng quan"
       : formStep === 2 ? "Thông tin"
         : formStep === 3 ? "Yêu cầu tuyển dụng"
-          : "Sự kiện trong campaign";
+          : "Danh sách các sự kiện";
 
   const [budgetFrom, setBudgetFrom] = useState("");
   const [budgetTo, setBudgetTo] = useState("");
@@ -574,7 +666,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
       return;
     }
 
-    if (!syncEventDatesBeforeNext()) {
+    if (!syncJobTimelineBeforeNext() || !syncEventDatesBeforeNext()) {
       return;
     }
 
@@ -605,11 +697,25 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
       name: event.name,
       start_at: event.startAt,
       end_at: event.endAt,
+      location: event.location || "",
       content: splitOptionText(event.content),
       sort_order: index,
     }));
+    const campaignPositionsForPayload = form.campaignPositions
+      .map((position, index) => ({
+        talent_type: position.talentType.trim(),
+        talent_type_name: position.talentType.trim(),
+        quantity: Math.max(Number(position.quantity) || 1, 1),
+        requirements: splitOptionText(position.requirements),
+        sort_order: index,
+      }))
+      .filter((position) => position.talent_type);
+    const positionNames = campaignPositionsForPayload.map((position) => position.talent_type);
     const updatedForm = {
       ...form,
+      roles: positionNames.join("\n") || form.roles || form.targetProfiles,
+      targetProfiles: positionNames.join("\n") || form.targetProfiles,
+      talentQuantity: String(campaignPositionsForPayload.reduce((sum, position) => sum + position.quantity, 0) || Number(form.talentQuantity) || 1),
       requirements: finalRequirements,
       startDate: normalizeDateTimeLocalToISO(form.startDate),
       endDate: normalizeDateTimeLocalToISO(form.endDate),
@@ -617,6 +723,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
       applicationDeadline: normalizeDateTimeLocalToISO(form.applicationDeadline),
       eventDate: parseVietnameseDateToYYYYMMDD(form.eventDate),
       events: campaignEventsForPayload,
+      positions: campaignPositionsForPayload,
     };
 
     try {
@@ -724,7 +831,8 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
             <button
               type="button"
               onClick={handleClose}
-              className="text-slate-400 hover:text-white cursor-pointer transition-all p-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/60"
+              disabled={isSubmitting}
+              className="text-slate-400 hover:text-white cursor-pointer transition-all p-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/60 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <X className="h-5 w-5" />
             </button>
@@ -795,11 +903,23 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
             {/* STEP 1: Thông tin cơ bản */}
             {formStep === 1 && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="grid grid-cols-1 gap-4 sm:col-span-2 xl:grid-cols-[minmax(0,1fr)_15rem]">
+                <div className="sm:col-span-2">
                   <JobTitleInput
                     label="Tiêu đề job *"
                     value={form.title}
                     onChange={(value) => setForm((c) => ({ ...c, title: value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:col-span-2 xl:grid-cols-3">
+                  <DateTimeSplitInput
+                    label="Thời gian bắt đầu"
+                    value={form.startDate}
+                    onChange={(value) => setForm((c) => ({ ...c, startDate: value }))}
+                  />
+                  <DateTimeSplitInput
+                    label="Thời gian kết thúc"
+                    value={form.endDate}
+                    onChange={(value) => setForm((c) => ({ ...c, endDate: value }))}
                   />
                   <DateOnlyInput
                     label="Hạn ứng tuyển"
@@ -878,27 +998,6 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
             {/* STEP 3: Yêu cầu tuyển dụng */}
             {formStep === 3 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <MultiChoiceField
-                  id="roles"
-                  label="Vị trí tuyển dụng"
-                  value={form.roles}
-                  options={ROLE_OPTIONS}
-                  placeholder={"Nhập thêm vị trí khác, ngăn cách bằng dấu phẩy"}
-                  onChange={(value) => setForm((c) => ({ ...c, roles: value }))}
-                  openDropdown={openDropdown}
-                  setOpenDropdown={setOpenDropdown}
-                />
-                <MultiChoiceField
-                  id="targetProfiles"
-                  label="Nhóm Talent phù hợp"
-                  value={form.targetProfiles}
-                  options={TARGET_PROFILE_OPTIONS}
-                  placeholder={"Nhập thêm nhóm Talent khác, ngăn cách bằng dấu phẩy"}
-                  onChange={(value) => setForm((c) => ({ ...c, targetProfiles: value }))}
-                  openDropdown={openDropdown}
-                  setOpenDropdown={setOpenDropdown}
-                />
-
                 <GeneralRequirementsSection
                   heightMin={form.heightMin}
                   weightMax={form.weightMax}
@@ -909,84 +1008,25 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                   onExperienceMinChange={(value) => setForm((c) => ({ ...c, experienceMin: value }))}
                   onRequirementsChange={(value) => setForm((c) => ({ ...c, requirements: value }))}
                 />
+                <CampaignPositionsSection
+                  positions={form.campaignPositions}
+                  onAdd={addCampaignPosition}
+                  onRemove={removeCampaignPosition}
+                  onChange={updateCampaignPosition}
+                />
               </div>
             )}
 
-            {/* STEP 4: Sự kiện trong campaign */}
+            {/* STEP 4: Danh sách các sự kiện */}
             {formStep === 4 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="space-y-4 rounded-3xl border border-amber-400/20 bg-slate-950/45 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs font-black uppercase tracking-wider text-amber-300">
-                      Danh sách sự kiện ({form.campaignEvents.length})
-                    </span>
-                    <button
-                      type="button"
-                      onClick={addCampaignEvent}
-                      className="inline-flex h-9 items-center gap-2 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 text-xs font-black uppercase tracking-wider text-amber-200 transition-all hover:bg-amber-400/20"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Thêm sự kiện
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-                    {form.campaignEvents.map((event, index) => (
-                      <div
-                        key={index}
-                        className="rounded-2xl border border-slate-700/80 bg-slate-900/70 p-4 text-left shadow-md"
-                      >
-                        <div className="mb-3 flex items-center justify-between gap-3">
-                          <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">
-                            Sự kiện {String(index + 1).padStart(2, "0")}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => removeCampaignEvent(index)}
-                            disabled={form.campaignEvents.length <= 1}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-950/70 text-slate-400 transition-all hover:border-red-400/50 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
-                            title="Xóa sự kiện"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3">
-                          <FormInput
-                            label="Tên sự kiện"
-                            value={event.name}
-                            onChange={(value) => updateCampaignEvent(index, { name: value })}
-                            placeholder="Ví dụ: Photoshoot truyền thông"
-                          />
-                          <div className="grid grid-cols-1 gap-3 2xl:grid-cols-2">
-                            <DateTimeSplitInput
-                              label="Thời gian bắt đầu"
-                              value={event.startAt}
-                              onChange={(value) => updateCampaignEvent(index, { startAt: value })}
-                            />
-                            <DateTimeSplitInput
-                              label="Thời gian kết thúc"
-                              value={event.endAt}
-                              onChange={(value) => updateCampaignEvent(index, { endAt: value })}
-                            />
-                          </div>
-                          <label className="space-y-1.5 block">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
-                              Nội dung sự kiện
-                            </span>
-                            <textarea
-                              value={event.content}
-                              onChange={(e) => updateCampaignEvent(index, { content: e.target.value })}
-                              rows={3}
-                              placeholder="Ví dụ: Chụp ảnh sản phẩm, ảnh nhóm và nội dung truyền thông theo concept của thương hiệu."
-                              className="w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 shadow-inner"
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <CampaignEventsSection
+                  events={form.campaignEvents}
+                  defaultLocation={buildFullLocation(form.address, form.city)}
+                  onAdd={addCampaignEvent}
+                  onRemove={removeCampaignEvent}
+                  onChange={updateCampaignEvent}
+                />
               </div>
             )}
 
@@ -1053,6 +1093,8 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           </div>
         )}
 
+        {isSubmitting && <CreateJobLoadingOverlay />}
+
       </form>
       <PreviewJob
         form={form}
@@ -1060,6 +1102,22 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
         activeImageIndex={activePreviewImageIndex}
         onActiveImageIndexChange={setActivePreviewImageIndex}
       />
+    </div>
+  );
+}
+
+function CreateJobLoadingOverlay() {
+  return (
+    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-[#020408]/90 px-6 text-center backdrop-blur-md">
+      <div className="w-full max-w-sm rounded-3xl border border-amber-400/25 bg-[#0c1021] p-7 shadow-[0_0_60px_rgba(245,158,11,0.2)]">
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-amber-400 border-t-transparent" />
+        <h3 className="mt-5 text-base font-black uppercase tracking-wide text-white">
+          Đang tạo job
+        </h3>
+        <p className="mt-2 text-sm font-semibold text-slate-300">
+          Vui lòng chờ, hệ thống đang lưu thông tin và tải ảnh lên.
+        </p>
+      </div>
     </div>
   );
 }
@@ -1110,8 +1168,7 @@ function InlineCustomChoiceField({
   const selectedSet = new Set(selectedItems);
   const optionSet = new Set(options);
   const customItems = selectedItems.filter((item) => !optionSet.has(item));
-  const customTextValue = customItems.join(", ");
-  const [customDraft, setCustomDraft] = useState(customTextValue);
+  const textValue = selectedItems.join(", ");
   const allSelected = options.length > 0 && options.every((option) => selectedSet.has(option));
   const someSelected = options.some((option) => selectedSet.has(option)) && !allSelected;
 
@@ -1133,16 +1190,13 @@ function InlineCustomChoiceField({
   }
 
   function handleTextChange(newVal: string) {
-    setCustomDraft(newVal);
-    const selectedOptions = options.filter((option) => selectedSet.has(option));
-    const selectedString = selectedOptions.join("\n");
-    const customString = newVal
+    const nextItems = newVal
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean)
       .join("\n");
 
-    onChange(selectedString && customString ? `${selectedString}\n${customString}` : selectedString || customString);
+    onChange(nextItems);
   }
 
   return (
@@ -1157,7 +1211,7 @@ function InlineCustomChoiceField({
       </div>
 
       <textarea
-        value={customDraft}
+        value={textValue}
         onChange={(event) => handleTextChange(event.target.value)}
         rows={4}
         placeholder={placeholder}
@@ -1411,6 +1465,227 @@ function GeneralRequirementsSection({
         placeholder={"Ví dụ:\nCó hình ảnh cá nhân chuyên nghiệp\nCó khả năng làm việc theo brief\nĐúng giờ và phối hợp tốt với ekip"}
         onChange={onRequirementsChange}
       />
+    </section>
+  );
+}
+
+function CampaignPositionsSection({
+  positions,
+  onAdd,
+  onRemove,
+  onChange,
+}: {
+  positions: CampaignPositionDraft[];
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  onChange: (index: number, patch: Partial<CampaignPositionDraft>) => void;
+}) {
+  return (
+    <section className="space-y-4 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 text-left shadow-md">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div className="space-y-1">
+          <span className="block text-xs font-black uppercase tracking-wider text-amber-300">
+            Vị trí tuyển dụng
+          </span>
+          <span className="block text-[10px] font-semibold text-slate-400">
+            Mỗi vị trí có số lượng và yêu cầu riêng
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onAdd}
+          className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 text-xs font-black uppercase tracking-wider text-amber-200 transition-all hover:bg-amber-400/20 shadow-sm"
+        >
+          <Plus className="h-4 w-4" />
+          Thêm vị trí
+        </button>
+      </div>
+
+      <datalist id="campaign-position-options">
+        {TARGET_PROFILE_OPTIONS.map((option) => (
+          <option key={option} value={option} />
+        ))}
+      </datalist>
+
+      <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+        {positions.map((position, index) => (
+          <article key={index} className="flex flex-col justify-between rounded-2xl border border-slate-700/80 bg-slate-950/45 p-4">
+            <div>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">
+                  Vị trí {String(index + 1).padStart(2, "0")}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemove(index)}
+                  disabled={positions.length <= 1}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-950/70 text-slate-400 transition hover:border-red-400/50 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                  title="Xóa vị trí"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_6.5rem]">
+                <label className="space-y-1.5 block">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                    Chọn vị trí
+                  </span>
+                  <input
+                    list="campaign-position-options"
+                    value={position.talentType}
+                    onChange={(event) => onChange(index, { talentType: event.target.value })}
+                    placeholder="Ví dụ: KOL, Model, Livestreamer"
+                    className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 shadow-inner outline-none transition-all placeholder:text-slate-500 hover:border-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                  />
+                </label>
+                <NumberRequirementInput
+                  label="Số lượng"
+                  value={position.quantity}
+                  placeholder="1"
+                  onChange={(value) => onChange(index, { quantity: value })}
+                />
+              </div>
+
+              <div className="mt-4">
+                <InlineBulletTextarea
+                  label="Yêu cầu riêng"
+                  description="Mỗi dòng là một yêu cầu cho vị trí này"
+                  value={position.requirements}
+                  placeholder={"Ví dụ:\nCó tối thiểu 50.000 follower\nNội dung phù hợp lĩnh vực làm đẹp\nTỷ lệ tương tác tốt"}
+                  onChange={(value) => onChange(index, { requirements: value })}
+                />
+              </div>
+            </div>
+          </article>
+        ))}
+
+        {/* Card bấm để thêm vị trí tuyển dụng mới */}
+        <button
+          type="button"
+          onClick={onAdd}
+          className="group flex min-h-[260px] h-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-amber-500/35 bg-amber-500/5 p-6 text-center transition-all hover:border-amber-400 hover:bg-amber-500/10 hover:shadow-[0_0_30px_rgba(245,158,11,0.15)] active:scale-[0.99] cursor-pointer"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 transition-all duration-300 group-hover:scale-110 group-hover:bg-amber-400 group-hover:text-slate-950 group-hover:shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+            <Plus className="h-6 w-6 stroke-[2.5]" />
+          </div>
+          <div className="space-y-1">
+            <span className="block text-sm font-black uppercase tracking-wider text-amber-300 group-hover:text-amber-200">
+              Thêm vị trí
+            </span>
+            <span className="block text-xs font-medium text-slate-400 group-hover:text-slate-300">
+              Tạo vị trí tuyển dụng tiếp theo
+            </span>
+          </div>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function CampaignEventsSection({
+  events,
+  defaultLocation,
+  onAdd,
+  onRemove,
+  onChange,
+}: {
+  events: CampaignEventDraft[];
+  defaultLocation: string;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  onChange: (index: number, patch: Partial<CampaignEventDraft>) => void;
+}) {
+  return (
+    <section className="space-y-4 text-left">
+      <div className="space-y-1">
+        <div className="space-y-1">
+          <span className="block text-xs font-black uppercase tracking-wider text-amber-300">
+            Danh sách các sự kiện
+          </span>
+          <span className="block text-[10px] font-semibold text-slate-400">
+            Nhập thông tin các sự kiện diễn ra trong job/chiến dịch này. Bạn có thể bỏ qua bước này nếu job không có sự kiện chính nào
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+        {events.map((event, index) => (
+          <article key={index} className="rounded-2xl border border-slate-700/80 bg-slate-950/45 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">
+                Sự kiện {String(index + 1).padStart(2, "0")}
+              </span>
+              <button
+                type="button"
+                onClick={() => onRemove(index)}
+                disabled={false}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-950/70 text-slate-400 transition hover:border-red-400/50 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                title="Xóa sự kiện"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <FormInput
+                label="Tên sự kiện"
+                value={event.name}
+                onChange={(value) => onChange(index, { name: value })}
+                placeholder="Ví dụ: Photoshoot truyền thông"
+              />
+              <div className="grid grid-cols-1 gap-4">
+                <DateTimeSplitInput
+                  label="Thời gian bắt đầu"
+                  value={event.startAt}
+                  onChange={(value) => onChange(index, { startAt: value })}
+                />
+                <DateTimeSplitInput
+                  label="Thời gian kết thúc"
+                  value={event.endAt}
+                  onChange={(value) => onChange(index, { endAt: value })}
+                />
+              </div>
+              <FormInput
+                label="Địa điểm tổ chức"
+                value={event.location}
+                onChange={(value) => onChange(index, { location: value })}
+                placeholder={defaultLocation || "Ví dụ: Studio 102 Nguyễn Huệ, Quận 1, Hồ Chí Minh"}
+              />
+              <label className="space-y-1.5 block">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                  Nội dung sự kiện
+                </span>
+                <textarea
+                  value={event.content}
+                  onChange={(eventChange) => onChange(index, { content: eventChange.target.value })}
+                  rows={4}
+                  placeholder="Ví dụ: Chụp ảnh sản phẩm, ảnh nhóm và nội dung truyền thông theo concept của thương hiệu."
+                  className="w-full resize-y rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-sm leading-relaxed text-slate-100 outline-none shadow-inner placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                />
+              </label>
+            </div>
+          </article>
+        ))}
+
+        <button
+          type="button"
+          onClick={onAdd}
+          className="group flex min-h-[320px] h-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-amber-500/35 bg-amber-500/5 p-6 text-center transition-all hover:border-amber-400 hover:bg-amber-500/10 hover:shadow-[0_0_30px_rgba(245,158,11,0.15)] active:scale-[0.99] cursor-pointer"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 transition-all duration-300 group-hover:scale-110 group-hover:bg-amber-400 group-hover:text-slate-950 group-hover:shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+            <Plus className="h-6 w-6 stroke-[2.5]" />
+          </div>
+          <div className="space-y-1">
+            <span className="block text-sm font-black uppercase tracking-wider text-amber-300 group-hover:text-amber-200">
+              Thêm sự kiện
+            </span>
+            <span className="block text-xs font-medium text-slate-400 group-hover:text-slate-300">
+              Tạo mốc sự kiện tiếp theo
+            </span>
+          </div>
+        </button>
+      </div>
     </section>
   );
 }

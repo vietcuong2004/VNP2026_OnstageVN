@@ -1221,7 +1221,7 @@ function campaignTheme(color: string) {
 
 function splitBackendText(value: unknown) {
   return String(value || "")
-    .split(/\r?\n|;|\./)
+    .split(/\r?\n|;|[•●]/)
     .map((item) => item.trim())
     .filter(Boolean);
 }

@@ -1,6 +1,6 @@
 # Thiết kế 2 bảng mở rộng cho Campaign
 
-Tài liệu này mô tả đúng trạng thái CSDL và API backend hiện tại sau khi bổ sung 2 bảng:
+Tài liệu này mô tả trạng thái CSDL và API backend hiện tại sau khi bổ sung 2 bảng:
 
 - `campaign_events`
 - `campaign_positions`
@@ -9,11 +9,12 @@ Migration đang dùng:
 
 ```text
 backend/database/migrations/2026_08_07_000001_create_campaign_events_and_positions_tables.php
+backend/database/migrations/2026_08_08_000001_add_location_to_campaign_events_table.php
 ```
 
 ## 1. Mục tiêu
 
-Bảng `campaigns` cũ vẫn đang giữ một số field legacy như:
+Bảng `campaigns` cũ vẫn giữ một số field legacy:
 
 - `event_name`
 - `event_date`
@@ -21,9 +22,10 @@ Bảng `campaigns` cũ vẫn đang giữ một số field legacy như:
 - `requirements`
 - `roles`
 
-Các field này vẫn được giữ để tương thích ngược. Tuy nhiên nghiệp vụ mới cần:
+Các field này được giữ để tương thích ngược. Nghiệp vụ mới dùng:
 
 - Một campaign có nhiều sự kiện.
+- Mỗi sự kiện có thời gian bắt đầu, thời gian kết thúc, địa điểm tổ chức và nội dung riêng.
 - Một campaign có nhiều vị trí tuyển dụng.
 - Mỗi vị trí có loại talent, số lượng cần tuyển và yêu cầu riêng.
 - Nội dung dạng danh sách được lưu bằng JSON để frontend dễ render/chỉnh sửa.
@@ -44,6 +46,8 @@ campaigns
 
 Lưu danh sách sự kiện thuộc một campaign. Một sự kiện có thể diễn ra qua nhiều ngày, ví dụ từ `08:00 07/08/2026` đến `22:00 09/08/2026`.
 
+`location` là địa điểm tổ chức riêng của từng sự kiện. Field này tách biệt với `campaigns.location`, vì một campaign có thể có nhiều sự kiện ở các địa điểm khác nhau.
+
 ### Schema hiện tại
 
 | Trường | Kiểu dữ liệu | Null | Mặc định | Mô tả |
@@ -53,6 +57,7 @@ Lưu danh sách sự kiện thuộc một campaign. Một sự kiện có thể 
 | `name` | `VARCHAR(255)` | No | - | Tên sự kiện |
 | `start_at` | `DATETIME` | No | - | Ngày giờ bắt đầu |
 | `end_at` | `DATETIME` | No | - | Ngày giờ kết thúc |
+| `location` | `VARCHAR(255)` | Yes | `NULL` | Địa điểm tổ chức sự kiện |
 | `content` | `JSON` | Yes | `NULL` | Danh sách nội dung sự kiện |
 | `sort_order` | `SMALLINT UNSIGNED` | No | `0` | Thứ tự hiển thị |
 | `created_at` | `TIMESTAMP` | Yes | `NULL` | Thời điểm tạo |
@@ -67,6 +72,7 @@ CREATE TABLE campaign_events (
     name VARCHAR(255) NOT NULL,
     start_at DATETIME NOT NULL,
     end_at DATETIME NOT NULL,
+    location VARCHAR(255) NULL,
     content JSON NULL,
     sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
     created_at TIMESTAMP NULL DEFAULT NULL,
@@ -76,6 +82,16 @@ CREATE TABLE campaign_events (
     INDEX idx_campaign_events_campaign_id (campaign_id),
     INDEX idx_campaign_events_start_at (start_at)
 );
+```
+
+Với database đã có bảng `campaign_events`, cột `location` được thêm bằng migration riêng:
+
+```php
+Schema::table('campaign_events', function (Blueprint $table): void {
+    if (! Schema::hasColumn('campaign_events', 'location')) {
+        $table->string('location')->nullable()->after('end_at');
+    }
+});
 ```
 
 ### `content`
@@ -113,7 +129,7 @@ Campaign #58
 `-- Livestreamer: 1 người
 ```
 
-### Lưu ý quan trọng về CSDL hiện tại
+### Lưu ý về CSDL hiện tại
 
 Backend hiện tại chưa có bảng danh mục `talent_types`, vì vậy `campaign_positions` đang lưu loại talent bằng field:
 
@@ -122,8 +138,6 @@ talent_type VARCHAR(100)
 ```
 
 Không dùng `talent_type_id` ở phiên bản hiện tại.
-
-Sau này nếu tạo thêm bảng `talent_types`, có thể migrate dần sang khóa ngoại `talent_type_id`. Nhưng tài liệu này ưu tiên mô tả đúng schema đang chạy.
 
 ### Schema hiện tại
 
@@ -191,6 +205,7 @@ backend/app/Models/CampaignPosition.php
 `CampaignEvent`:
 
 - `belongsTo(Campaign::class)`
+- Fillable: `campaign_id`, `name`, `start_at`, `end_at`, `location`, `content`, `sort_order`
 - Cast `start_at`, `end_at` sang `datetime`
 - Cast `content` sang `array`
 
@@ -217,7 +232,7 @@ Giá trị này được tính bằng tổng `campaign_positions.quantity`. Nế
 
 ## 5. API request
 
-Khi tạo/cập nhật campaign, backend hiện chấp nhận thêm `events` và `positions`.
+Khi tạo/cập nhật campaign, backend chấp nhận thêm `events` và `positions`.
 
 ### `events`
 
@@ -228,6 +243,7 @@ Khi tạo/cập nhật campaign, backend hiện chấp nhận thêm `events` và
       "name": "Ra mắt dòng son Lancôme Absolu Velvet",
       "start_at": "2026-08-07 08:00:00",
       "end_at": "2026-08-09 22:00:00",
+      "location": "Studio 102 Nguyễn Huệ, Quận 1, Hồ Chí Minh",
       "content": [
         "Đón khách và check-in",
         "Chụp ảnh cùng khách mời"
@@ -244,6 +260,7 @@ Validation hiện tại:
 - `events.*.name` bắt buộc khi có `events`.
 - `events.*.start_at` bắt buộc khi có `events`, kiểu date.
 - `events.*.end_at` bắt buộc khi có `events`, kiểu date.
+- `events.*.location` nullable, string, tối đa 255 ký tự.
 - `end_at` phải lớn hơn `start_at`.
 - `content` là array, mỗi phần tử là string tối đa 1000 ký tự.
 - `sort_order` là số nguyên từ 0 đến 65535.
@@ -322,6 +339,9 @@ Ví dụ `events`:
     "ends_at": "2026-08-09T15:00:00.000000Z",
     "end_date": "2026-08-09",
     "end_time": "22:00",
+    "location": "Studio 102 Nguyễn Huệ, Quận 1, Hồ Chí Minh",
+    "address": "Studio 102 Nguyễn Huệ, Quận 1, Hồ Chí Minh",
+    "venue": "Studio 102 Nguyễn Huệ, Quận 1, Hồ Chí Minh",
     "content": [
       "Đón khách và check-in"
     ],
@@ -366,9 +386,11 @@ roles
 Quy ước sử dụng:
 
 - `campaign_events` là nguồn dữ liệu chính cho thông tin sự kiện mới.
+- `campaign_events.location` là nguồn dữ liệu chính cho địa điểm từng sự kiện.
 - `campaign_positions` là nguồn dữ liệu chính cho vị trí tuyển dụng mới.
+- `campaigns.location` là địa điểm làm việc/campaign tổng quát, không thay thế địa điểm từng sự kiện.
 - `campaigns.talent_quantity` chỉ dùng fallback khi campaign chưa có positions.
-- `campaigns.requirements` hiện vẫn giữ theo schema cũ để lưu yêu cầu chung, chưa migrate sang JSON trong task này.
+- `campaigns.requirements` hiện vẫn giữ theo schema cũ để lưu yêu cầu chung.
 - `campaigns.event_name`, `campaigns.event_date`, `campaigns.roles` chỉ nên dùng cho tương thích ngược.
 
 ## 8. Backfill dữ liệu cũ
@@ -376,6 +398,7 @@ Quy ước sử dụng:
 Nếu cần backfill từ campaign cũ:
 
 - `event_name` và `event_date` có thể tạo một record `campaign_events`.
+- `campaigns.location` có thể copy sang `campaign_events.location` cho record backfill đầu tiên nếu chưa có địa điểm sự kiện riêng.
 - Vì dữ liệu cũ không có đủ giờ bắt đầu/kết thúc, cần admin bổ sung lại `start_at` và `end_at`.
 - `roles` và `talent_quantity` không đủ để suy ra số lượng riêng cho từng vị trí, vì vậy không nên tự chia số lượng. Nên để admin nhập lại `campaign_positions`.
 
@@ -399,7 +422,7 @@ campaign_positions.talent_type -> campaign_positions.talent_type_id
 
 Schema hiện tại đã tách đúng 2 quan hệ 1:N chính của campaign:
 
-- `campaign_events`: một campaign có nhiều sự kiện.
+- `campaign_events`: một campaign có nhiều sự kiện, mỗi sự kiện có thời gian, địa điểm và nội dung riêng.
 - `campaign_positions`: một campaign có nhiều vị trí tuyển dụng.
 
 Thiết kế hiện tại ưu tiên tương thích với CSDL đang có, tránh tạo khóa ngoại tới bảng chưa tồn tại, đồng thời vẫn giữ đường nâng cấp rõ ràng nếu sau này cần chuẩn hóa `talent_type` thành bảng danh mục riêng.

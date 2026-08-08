@@ -9,7 +9,14 @@ type CampaignEventDraft = {
   name: string;
   startAt: string;
   endAt: string;
+  location: string;
   content: string;
+};
+
+type CampaignPositionDraft = {
+  talentType: string;
+  quantity: string;
+  requirements: string;
 };
 
 type JobPreviewForm = {
@@ -33,6 +40,7 @@ type JobPreviewForm = {
   experienceMin: string;
   talentQuantity: string;
   campaignEvents: CampaignEventDraft[];
+  campaignPositions: CampaignPositionDraft[];
 };
 
 type PreviewJobProps = {
@@ -131,7 +139,13 @@ export default function PreviewJob({
   const setCurrentActiveImageIndex = onActiveImageIndexChange ?? setInternalActiveImageIndex;
   const location = [form.address, form.city].filter(Boolean).join(", ") || "Chưa có";
   const budget = formatBudgetPreview(form.budget, form.budgetNegotiable);
-  const positions = roles.length > 0 ? roles : targetProfiles;
+  const positionCards = form.campaignPositions.length > 0
+    ? form.campaignPositions
+    : (roles.length > 0 ? roles : targetProfiles).map((position) => ({
+        talentType: position,
+        quantity: form.talentQuantity || "1",
+        requirements: "",
+      }));
   const requirements = buildRequirementList(form);
   const activeImage = images[currentActiveImageIndex] || images[0];
 
@@ -263,42 +277,45 @@ export default function PreviewJob({
 
           <PreviewSection icon={FileText} title="Vị trí & Yêu cầu tuyển dụng" flush>
             <div className="space-y-3">
-              {(positions.length > 0 ? positions : ["Vị trí tuyển dụng"]).map((position, index) => (
-                <article key={`${position}-${index}`} className="rounded-2xl border border-[#232a42] bg-[#090c17] p-4">
+              <GeneralRequirementsPreview items={requirements} />
+              {(positionCards.length > 0 ? positionCards : [{ talentType: "Vị trí tuyển dụng", quantity: form.talentQuantity || "1", requirements: "" }]).map((position, index) => (
+                <article key={`${position.talentType}-${index}`} className="rounded-2xl border border-[#232a42] bg-[#090c17] p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <h4 className="text-base font-black leading-snug text-white">{position}</h4>
+                    <h4 className="text-base font-black leading-snug text-white">{position.talentType || `Vị trí ${index + 1}`}</h4>
                     <span className="shrink-0 rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-[11px] font-black text-amber-300">
-                      Cần tuyển {index === 0 ? Number(form.talentQuantity) || 1 : 1} người
+                      Cần tuyển {Number(position.quantity) || 1} người
                     </span>
                   </div>
-                  <ListBlock title="Yêu cầu" items={requirements} marker="check" compact />
+                  <ListBlock title="" items={splitLines(position.requirements).length > 0 ? splitLines(position.requirements) : ["Chưa có"]} marker="check" compact />
                 </article>
               ))}
             </div>
           </PreviewSection>
 
-          <PreviewSection icon={Sparkles} title="Thông tin sự kiện" badge={`${form.campaignEvents.length} sự kiện`} flush>
-            <div className="space-y-3">
-              {form.campaignEvents.map((event, index) => (
-                <article key={`${event.name}-${index}`} className="rounded-2xl border border-[#232a42] bg-[#090c17] p-4">
-                  <div className="flex flex-col gap-2">
-                    <h4 className="text-base font-black leading-snug text-amber-300">
-                      {event.name || `Sự kiện ${index + 1}`}
-                    </h4>
-                    <span className="inline-flex w-fit max-w-full items-center gap-1.5 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-1 text-[11px] font-black text-cyan-200">
-                      <Clock className="h-3.5 w-3.5 text-cyan-300" />
-                      {formatRange(event.startAt, event.endAt)}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-start gap-2 text-sm font-semibold text-slate-300">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
-                    <span className="leading-relaxed">{location}</span>
-                  </div>
-                  <ListBlock title="" items={splitLines(event.content).length > 0 ? splitLines(event.content) : ["Chưa có"]} marker="plain" compact />
-                </article>
-              ))}
-            </div>
-          </PreviewSection>
+          {form.campaignEvents.length > 0 && (
+            <PreviewSection icon={Sparkles} title="Thông tin sự kiện" badge={`${form.campaignEvents.length} sự kiện`} flush>
+              <div className="space-y-3">
+                {form.campaignEvents.map((event, index) => (
+                  <article key={`${event.name}-${index}`} className="rounded-2xl border border-[#232a42] bg-[#090c17] p-4">
+                    <div className="flex flex-col gap-2">
+                      <h4 className="text-base font-black leading-snug text-amber-300">
+                        {event.name || `Sự kiện ${index + 1}`}
+                      </h4>
+                      <span className="inline-flex w-fit max-w-full items-center gap-1.5 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-1 text-[11px] font-black text-cyan-200">
+                        <Clock className="h-3.5 w-3.5 text-cyan-300" />
+                        {formatRange(event.startAt, event.endAt)}
+                      </span>
+                    </div>
+                    <div className="mt-3 flex items-start gap-2 text-sm font-semibold text-slate-300">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                      <span className="leading-relaxed">{event.location || location}</span>
+                    </div>
+                    <ListBlock title="" items={splitLines(event.content).length > 0 ? splitLines(event.content) : ["Chưa có"]} marker="plain" compact />
+                  </article>
+                ))}
+              </div>
+            </PreviewSection>
+          )}
         </div>
       </div>
     </aside>
@@ -424,6 +441,15 @@ function InfoLine({ icon: Icon, label, value }: { icon: ElementType; label: stri
       <span className="font-medium text-slate-400">{label}:</span>
       <span className="font-semibold text-slate-100">{value}</span>
     </div>
+  );
+}
+
+function GeneralRequirementsPreview({ items }: { items: string[] }) {
+  return (
+    <article className="rounded-2xl border border-amber-400/20 bg-amber-400/[0.04] p-4">
+      <h4 className="text-base font-black leading-snug text-amber-300">Yêu cầu chung</h4>
+      <ListBlock title="" items={items.length > 0 ? items : ["Chưa có"]} marker="check" compact />
+    </article>
   );
 }
 

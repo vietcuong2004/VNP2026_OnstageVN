@@ -394,7 +394,15 @@ type CampaignForm = {
     name: string;
     start_at: string;
     end_at: string;
+    location?: string;
     content?: string[];
+    sort_order?: number;
+  }>;
+  positions?: Array<{
+    talent_type: string;
+    talent_type_name?: string;
+    quantity: number;
+    requirements?: string[];
     sort_order?: number;
   }>;
 };
@@ -1009,6 +1017,7 @@ function buildCampaignPayload(form: CampaignForm) {
     target_profiles: listFromText(form.targetProfiles),
     contact_note: form.contactNote || null,
     events: form.events || [],
+    positions: form.positions || [],
   };
 }
 

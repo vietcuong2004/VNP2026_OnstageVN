@@ -20,6 +20,10 @@ function noteItems(note: string) {
 }
 
 export default function EventInformationSection({ events }: EventInformationSectionProps) {
+  if (events.length === 0) {
+    return null;
+  }
+
   return (
     <div className="overflow-hidden rounded-2xl border border-[#1b233a] bg-[#0c101d]">
       <div className="flex flex-col gap-2 border-b border-[#151b2d] bg-gradient-to-r from-amber-400/[0.08] via-[#0c101d] to-cyan-400/[0.05] p-5 sm:flex-row sm:items-start sm:justify-between">

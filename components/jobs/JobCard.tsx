@@ -180,12 +180,7 @@ export default function JobCard({
             ) : null}
           </div>
           <div className="min-w-0 flex-1">
-            {job.type && (
-              <span className="mb-0.5 block truncate text-[10px] sm:text-[11px] font-black uppercase leading-normal tracking-widest text-[#f5c518] pt-0.5">
-                {job.type}
-              </span>
-            )}
-            <h4 className="truncate text-xs sm:text-sm font-black leading-normal tracking-tight text-white drop-shadow">
+            <h4 className="truncate text-xs sm:text-sm font-black leading-normal tracking-tight text-[#f5c518] drop-shadow">
               {job.brand}
             </h4>
           </div>

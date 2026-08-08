@@ -1071,7 +1071,25 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           </div>
         )}
 
+        {isSubmitting && <CreateJobLoadingOverlay />}
+
       </form>
+    </div>
+  );
+}
+
+function CreateJobLoadingOverlay() {
+  return (
+    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-[#020408]/90 px-6 text-center backdrop-blur-md">
+      <div className="w-full max-w-sm rounded-3xl border border-amber-400/25 bg-[#0c1021] p-7 shadow-[0_0_60px_rgba(245,158,11,0.2)]">
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-amber-400 border-t-transparent" />
+        <h3 className="mt-5 text-base font-black uppercase tracking-wide text-white">
+          Đang tạo job
+        </h3>
+        <p className="mt-2 text-sm font-semibold text-slate-300">
+          Vui lòng chờ, hệ thống đang lưu thông tin và tải ảnh lên.
+        </p>
+      </div>
     </div>
   );
 }

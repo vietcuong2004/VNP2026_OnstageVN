@@ -15,10 +15,15 @@ function sentenceCase(text: string) {
 
 type RecruitmentPositionsSectionProps = {
   positions: RecruitmentPosition[];
+  generalRequirements: string[];
   total: number;
 };
 
-export default function RecruitmentPositionsSection({ positions, total }: RecruitmentPositionsSectionProps) {
+export default function RecruitmentPositionsSection({ positions, generalRequirements, total }: RecruitmentPositionsSectionProps) {
+  if (positions.length === 0 && generalRequirements.length === 0) {
+    return null;
+  }
+
   return (
     <div className="overflow-hidden rounded-2xl border border-[#1b233a] bg-[#0c101d]">
       <div className="flex flex-col gap-2 border-b border-[#151b2d] bg-gradient-to-r from-amber-400/[0.08] via-[#0c101d] to-cyan-400/[0.05] p-5 sm:flex-row sm:items-start sm:justify-between">
@@ -28,6 +33,22 @@ export default function RecruitmentPositionsSection({ positions, total }: Recrui
       </div>
 
       <div className="space-y-4 p-5">
+        {generalRequirements.length > 0 && (
+          <article className="rounded-2xl border border-amber-400/25 bg-amber-400/[0.04] p-4 transition-colors hover:border-amber-400/35">
+            <h5 className="text-base sm:text-lg font-black text-amber-300 leading-snug">
+              Yêu cầu chung
+            </h5>
+            <ul className="mt-4 space-y-2 text-xs sm:text-sm text-slate-200">
+              {generalRequirements.map((item, idx) => (
+                <li key={`general-requirement-${idx}`} className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                  <span className="leading-relaxed">{sentenceCase(item)}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        )}
+
         {positions.map((position) => (
           <article
             key={position.id}
@@ -42,10 +63,7 @@ export default function RecruitmentPositionsSection({ positions, total }: Recrui
               </span>
             </div>
 
-            <div className="mt-4 space-y-2">
-              <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
-                Yêu cầu
-              </p>
+            <div className="mt-4">
               <ul className="space-y-2 text-xs sm:text-sm text-slate-200">
                 {position.requirements.map((item, idx) => (
                   <li key={`${position.id}-${idx}`} className="flex items-start gap-2">

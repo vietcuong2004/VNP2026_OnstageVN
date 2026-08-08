@@ -153,12 +153,6 @@ export default function JobCardMobile({
           </div>
         </div>
 
-        {job.type && (
-          <p className="mt-1.5 truncate text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
-            {job.type}
-          </p>
-        )}
-
         <div className="mt-1.5 flex items-center justify-between gap-2">
           <div className="min-w-0 flex-1">
             {job.hasBudget && budgetText ? (

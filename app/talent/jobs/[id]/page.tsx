@@ -694,9 +694,10 @@ export default function JobDetailPage() {
           onToggleBenefits={() => setShowAllBenefits((cur) => !cur)}
         />
 
-        {recruitmentPositions.length > 0 && (
+        {(recruitmentPositions.length > 0 || requirements.length > 0) && (
           <RecruitmentPositionsSection
             positions={recruitmentPositions}
+            generalRequirements={requirements}
             total={recruitmentTotal}
           />
         )}
