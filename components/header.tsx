@@ -411,7 +411,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => router.push("/brand/shortlists")}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95"
+              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95 md:flex"
               aria-label="Idol đã lưu"
               title="Idol đã lưu"
             >
@@ -428,7 +428,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => router.push("/talent/jobs/saved-jobs")}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95"
+              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95 md:flex"
               aria-label="Việc làm đã lưu"
               title="Việc làm đã lưu"
             >

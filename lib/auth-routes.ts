@@ -19,7 +19,7 @@ export function isPublicPath(path: string) {
 export function usesAppShell(path: string) {
   const normalizedPath = normalizePath(path);
 
-  return APP_SHELL_PREFIXES.some((prefix) => matchesPrefix(normalizedPath, prefix));
+  return normalizedPath === "/" || APP_SHELL_PREFIXES.some((prefix) => matchesPrefix(normalizedPath, prefix));
 }
 
 export function isStandalonePublicPath(path: string) {

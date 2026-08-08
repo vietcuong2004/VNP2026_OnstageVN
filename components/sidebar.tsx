@@ -74,6 +74,7 @@ export default function Sidebar() {
   const isGateway = pathname === "/";
   const isAppPath = pathname.startsWith("/talent") || pathname.startsWith("/brand") || pathname === "/about" || pathname === "/settings";
   const guestIconMap = {
+    discover: Sparkles,
     talent: Search,
     jobs: Briefcase,
     about: Info,
