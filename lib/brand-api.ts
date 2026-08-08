@@ -187,6 +187,26 @@ type BackendCampaign = {
   media?: BackendCampaignMedia[] | null;
   cover_media?: BackendCampaignMedia | null;
   coverMedia?: BackendCampaignMedia | null;
+  events?: BackendCampaignEvent[] | null;
+  positions?: BackendCampaignPosition[] | null;
+};
+
+type BackendCampaignEvent = {
+  id?: number | string;
+  name?: string | null;
+  start_at?: string | null;
+  end_at?: string | null;
+  location?: string | null;
+  content?: string[] | null;
+  sort_order?: number | string | null;
+};
+
+type BackendCampaignPosition = {
+  id?: number | string;
+  talent_type?: string | null;
+  quantity?: number | string | null;
+  requirements?: string[] | null;
+  sort_order?: number | string | null;
 };
 
 type BackendCampaignMedia = {
@@ -636,7 +656,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     cover,
     fullBodyImage: firstPhoto(profile, "full_body") || firstPhoto(profile, "lookbook") || firstPhoto(profile, "portfolio") || firstPhoto(profile) || avatar || null,
     skills: (profile.skills?.length ? profile.skills : fallback?.skills || []).map((item) => String(repairMojibake(item))),
-    socialHighlights: (profile.social_highlights?.length ? profile.social_highlights : (fallback as any)?.socialHighlights || []).map((item: string) => String(repairMojibake(item))),
+    socialHighlights: (profile.social_highlights?.length ? profile.social_highlights : fallback?.socialHighlights || []).map((item: string) => String(repairMojibake(item))),
     experience: displayExperience,
     portfolio: portfolio.length ? portfolio : fallback?.portfolio || [],
     videos,
@@ -662,9 +682,9 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
         runway: Number(profile.latest_survey.runway_score) || 0,
         kol: Number(profile.latest_survey.kol_score) || 0,
       }
-      : (fallback as any)?.surveyScores || { pageant: 0, runway: 0, kol: 0 },
-    mainCategory: profile.latest_survey?.main_category || (fallback as any)?.mainCategory || "",
-    aiScore: Number(profile.latest_survey?.profile_score) || (fallback as any)?.aiScore || 0,
+      : fallback?.surveyScores || { pageant: 0, runway: 0, kol: 0 },
+    mainCategory: profile.latest_survey?.main_category || fallback?.mainCategory || "",
+    aiScore: Number(profile.latest_survey?.profile_score) || fallback?.aiScore || 0,
     price: profile.price || fallback?.price || "",
   };
 }
@@ -819,6 +839,22 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     views: 0,
     media,
     coverMedia,
+    events: (campaign.events ?? []).map((event) => ({
+      id: event.id,
+      name: event.name || "",
+      startAt: event.start_at || "",
+      endAt: event.end_at || "",
+      location: event.location || "",
+      content: Array.isArray(event.content) ? event.content : [],
+      sortOrder: numberOrNull(event.sort_order) ?? 0,
+    })),
+    positions: (campaign.positions ?? []).map((position) => ({
+      id: position.id,
+      talentType: position.talent_type || "",
+      quantity: Number(position.quantity) || 1,
+      requirements: Array.isArray(position.requirements) ? position.requirements : [],
+      sortOrder: numberOrNull(position.sort_order) ?? 0,
+    })),
   };
 }
 

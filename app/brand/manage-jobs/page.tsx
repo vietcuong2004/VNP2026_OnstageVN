@@ -17,7 +17,7 @@ import {
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { loadBrandCampaigns, deleteBrandCampaign, publishBrandCampaign, closeBrandCampaign } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
-import FormEditJob from "./[id]/edit-job/FormEditJobDesktop";
+import FormEditJob from "./[id]/edit-job/FormEditJob";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 
 type CampaignStatusTab = "all" | Campaign["status"];

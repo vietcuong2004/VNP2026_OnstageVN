@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { X, ImagePlus, Briefcase, ChevronDown, Pencil, Calendar, Eye } from "lucide-react";
+import { X, ImagePlus, Briefcase, ChevronDown, Pencil, Calendar, Eye, Plus, Trash2 } from "lucide-react";
 import { type Campaign } from "@/lib/brand-mvp-data";
-import { createBrandCampaign, publishBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
+import { updateBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
 import { TALENT_TYPE_VALUES } from "@/components/ui/ComboboxOptionValues";
 import BudgetPaymentSection from "../../create-job/BudgetPaymentSection";
@@ -117,6 +116,46 @@ function formatBudgetDigits(digits: string) {
   return normalizedDigits ? Number(normalizedDigits).toLocaleString("vi-VN") : "";
 }
 
+type CampaignEventDraft = {
+  name: string;
+  startAt: string;
+  endAt: string;
+  location: string;
+  content: string;
+};
+
+type CampaignPositionDraft = {
+  talentType: string;
+  quantity: string;
+  requirements: string;
+};
+
+function normalizeDateTimeLocalToISO(value: string) {
+  return value ? value.replace("T", " ") : "";
+}
+
+function normalizeDateTimeForInput(value: string, fallback: string) {
+  const raw = String(value || "").trim();
+  if (!raw) return fallback;
+  return raw.includes("T") ? raw.slice(0, 16) : raw.replace(" ", "T").slice(0, 16);
+}
+
+function buildDateTimeFromDate(value: string, fallbackTime: "08:00" | "22:00") {
+  const normalizedDate = parseVietnameseDateToYYYYMMDD(value);
+  return normalizedDate ? `${normalizedDate} ${fallbackTime}` : "";
+}
+
+function buildFullLocation(address: string, city: string) {
+  const normalizedAddress = String(address || "").trim();
+  const normalizedCity = String(city || "").trim();
+
+  if (normalizedAddress && normalizedCity && !normalizedAddress.toLowerCase().includes(normalizedCity.toLowerCase())) {
+    return `${normalizedAddress}, ${normalizedCity}`;
+  }
+
+  return normalizedAddress || normalizedCity;
+}
+
 const emptyForm = {
   title: "",
   jobType: "KOL livestream",
@@ -149,6 +188,8 @@ const emptyForm = {
   weightMax: "",
   experienceMin: "",
   experienceMax: "",
+  campaignEvents: [] as CampaignEventDraft[],
+  campaignPositions: [] as CampaignPositionDraft[],
 };
 
 function currentDateInputValue() {
@@ -260,17 +301,114 @@ function createDefaultForm() {
     deadline: today,
     applicationDeadline: today,
     eventDate: today,
+    campaignPositions: [
+      {
+        talentType: "KOL",
+        quantity: "3",
+        requirements: "",
+      },
+    ],
   };
 }
 
-interface FormCreateJobProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCampaignCreated: (campaign: Campaign) => void;
+function campaignToFormState(campaign: Campaign) {
+  const start = normalizeVietnameseDateDisplay(campaign.startDate || "");
+  const end = normalizeVietnameseDateDisplay(campaign.endDate || "");
+  const app = normalizeVietnameseDateDisplay(campaign.applicationDeadline || campaign.deadline || "");
+  const event = normalizeVietnameseDateDisplay(campaign.eventDate || "");
+  const campaignWithBudget = campaign as Campaign & {
+    budgetMin?: string | number | null;
+    budgetMax?: string | number | null;
+    budgetNegotiable?: boolean | null;
+  };
+  const parseArrayOrString = (value?: string[] | string | null) => (
+    Array.isArray(value) ? value.join("\n") : String(value || "")
+  );
+
+  let budgetMin = campaignWithBudget.budgetMin || "";
+  let budgetMax = campaignWithBudget.budgetMax || "";
+  if (!budgetMin && !budgetMax && campaign.budget) {
+    const numbers = campaign.budget.match(/\d+/g);
+    if (numbers && numbers.length >= 2) {
+      budgetMin = numbers[0];
+      budgetMax = numbers[1];
+    } else if (numbers && numbers.length === 1) {
+      budgetMin = numbers[0];
+    }
+  }
+
+  const fallbackStartAt = buildDateTimeFromDate(campaign.eventDate || campaign.startDate, "08:00").replace(" ", "T");
+  const fallbackEndAt = buildDateTimeFromDate(campaign.eventDate || campaign.endDate || campaign.startDate, "22:00").replace(" ", "T");
+  const campaignEvents = (campaign.events || []).map((eventItem) => ({
+    name: eventItem.name || campaign.eventName || campaign.title || "Job",
+    startAt: normalizeDateTimeForInput(eventItem.startAt || "", fallbackStartAt),
+    endAt: normalizeDateTimeForInput(eventItem.endAt || "", fallbackEndAt),
+    location: eventItem.location || campaign.address || campaign.city || "",
+    content: Array.isArray(eventItem.content) ? eventItem.content.join("\n") : "",
+  }));
+  const campaignPositions = (campaign.positions || []).map((position) => ({
+    talentType: position.talentType || "",
+    quantity: String(position.quantity || 1),
+    requirements: Array.isArray(position.requirements) ? position.requirements.join("\n") : "",
+  }));
+  const fallbackPositions = splitOptionText(parseArrayOrString(campaign.roles || campaign.targetProfiles || campaign.jobType)).map((talentType, index) => ({
+    talentType,
+    quantity: index === 0 ? String(campaign.talentQuantity || 1) : "1",
+    requirements: campaign.requirements || "",
+  }));
+
+  return {
+    ...emptyForm,
+    title: campaign.title || "",
+    jobType: campaign.jobType || "KOL livestream",
+    eventName: campaign.eventName || "",
+    campaignType: campaign.campaignType || campaign.jobType || "KOL livestream",
+    city: campaign.city || "Hà Nội",
+    address: campaign.address || "",
+    startDate: start,
+    endDate: end,
+    deadline: app,
+    applicationDeadline: app,
+    eventDate: event,
+    talentQuantity: String(campaign.talentQuantity || 3),
+    budget: campaign.budget || "",
+    budgetMin: String(budgetMin || ""),
+    budgetMax: String(budgetMax || ""),
+    budgetNegotiable: Boolean(campaignWithBudget.budgetNegotiable),
+    benefits: campaign.benefits || "",
+    requirements: campaign.requirements || "",
+    description: campaign.description || "",
+    roles: parseArrayOrString(campaign.roles),
+    responsibilities: parseArrayOrString(campaign.responsibilities),
+    industries: parseArrayOrString(campaign.industries),
+    targetProfiles: parseArrayOrString(campaign.targetProfiles),
+    contactNote: campaign.contactNote || "",
+    escrowed: campaign.escrowed || false,
+    heightMin: campaign.heightMinCm ? String(campaign.heightMinCm) : "",
+    weightMax: campaign.weightMaxKg ? String(campaign.weightMaxKg) : "",
+    experienceMin: campaign.experienceMinYears ? String(campaign.experienceMinYears) : "",
+    campaignEvents,
+    campaignPositions: campaignPositions.length > 0
+      ? campaignPositions
+      : fallbackPositions.length > 0
+        ? fallbackPositions
+        : [{ talentType: campaign.jobType || "KOL", quantity: String(campaign.talentQuantity || 1), requirements: campaign.requirements || "" }],
+  };
 }
 
-export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: FormCreateJobProps) {
-  const router = useRouter();
+interface FormEditJobProps {
+  isOpen: boolean;
+  onClose: () => void;
+  campaignToEdit: Campaign | null;
+  onCampaignUpdated: (campaign: Campaign) => void;
+}
+
+export default function FormEditJob({
+  isOpen,
+  onClose,
+  campaignToEdit,
+  onCampaignUpdated,
+}: FormEditJobProps) {
   const [form, setForm] = useState(createDefaultForm);
   const [campaignImages, setCampaignImages] = useState<File[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -347,6 +485,34 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   const [budgetFrom, setBudgetFrom] = useState("");
   const [budgetTo, setBudgetTo] = useState("");
   const [budgetNegotiable, setBudgetNegotiable] = useState(false);
+  const prevOpenRef = useRef(false);
+  const prevCampaignIdRef = useRef<string | null>(null);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (isOpen && campaignToEdit) {
+      const justOpened = !prevOpenRef.current && isOpen;
+      const campaignIdChanged = prevCampaignIdRef.current !== campaignToEdit.id;
+
+      if (justOpened || campaignIdChanged) {
+        const initialForm = campaignToFormState(campaignToEdit);
+        setForm(initialForm);
+        setBudgetFrom(formatBudgetDigits(initialForm.budgetMin));
+        setBudgetTo(formatBudgetDigits(initialForm.budgetMax));
+        setBudgetNegotiable(initialForm.budgetNegotiable);
+        setCampaignImages([]);
+        setDateErrors({});
+        setOpenDropdown(null);
+        setActiveTab("form");
+        setFormStep(1);
+        finalStepSubmitReadyAt.current = 0;
+      }
+    }
+
+    prevOpenRef.current = isOpen;
+    prevCampaignIdRef.current = campaignToEdit?.id || null;
+  }, [isOpen, campaignToEdit]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const updateBudgetState = (fromVal: string, toVal: string) => {
     const minValue = parseBudgetInputValue(fromVal);
@@ -410,6 +576,120 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
     }));
   };
 
+  function updateCampaignEvent(index: number, patch: Partial<CampaignEventDraft>) {
+    setForm((current) => ({
+      ...current,
+      campaignEvents: current.campaignEvents.map((event, eventIndex) =>
+        eventIndex === index ? { ...event, ...patch } : event
+      ),
+    }));
+  }
+
+  function addCampaignEvent() {
+    const nextIndex = form.campaignEvents.length + 1;
+
+    setForm((current) => ({
+      ...current,
+      campaignEvents: [
+        ...current.campaignEvents,
+        {
+          name: `${current.title || "Job"} - ${nextIndex}`,
+          startAt: buildDateTimeFromDate(current.eventDate || current.startDate, "08:00").replace(" ", "T"),
+          endAt: buildDateTimeFromDate(current.eventDate || current.endDate || current.startDate, "22:00").replace(" ", "T"),
+          location: buildFullLocation(current.address, current.city),
+          content: current.responsibilities,
+        },
+      ],
+    }));
+  }
+
+  function removeCampaignEvent(index: number) {
+    setForm((current) => ({
+      ...current,
+      campaignEvents: current.campaignEvents.filter((_, eventIndex) => eventIndex !== index),
+    }));
+  }
+
+  function updateCampaignPosition(index: number, patch: Partial<CampaignPositionDraft>) {
+    setForm((current) => ({
+      ...current,
+      campaignPositions: current.campaignPositions.map((position, positionIndex) =>
+        positionIndex === index ? { ...position, ...patch } : position
+      ),
+    }));
+  }
+
+  function addCampaignPosition() {
+    setForm((current) => ({
+      ...current,
+      campaignPositions: [
+        ...current.campaignPositions,
+        { talentType: "", quantity: "1", requirements: "" },
+      ],
+    }));
+  }
+
+  function removeCampaignPosition(index: number) {
+    setForm((current) => ({
+      ...current,
+      campaignPositions: current.campaignPositions.length > 1
+        ? current.campaignPositions.filter((_, positionIndex) => positionIndex !== index)
+        : current.campaignPositions,
+    }));
+  }
+
+  function buildCampaignEventsForPayload() {
+    const normalizedEvents = form.campaignEvents
+      .map((event, index) => ({
+        name: event.name.trim() || `${form.title || "Job"} - ${index + 1}`,
+        start_at: normalizeDateTimeLocalToISO(event.startAt) || buildDateTimeFromDate(form.eventDate || form.startDate, "08:00"),
+        end_at: normalizeDateTimeLocalToISO(event.endAt) || buildDateTimeFromDate(form.eventDate || form.endDate || form.startDate, "22:00"),
+        location: event.location.trim() || buildFullLocation(form.address, form.city),
+        content: splitOptionText(event.content || form.responsibilities),
+        sort_order: index,
+      }))
+      .filter((event) => event.start_at && event.end_at);
+
+    if (normalizedEvents.length > 0) return normalizedEvents;
+
+    const startAt = buildDateTimeFromDate(form.eventDate || form.startDate, "08:00");
+    const endAt = buildDateTimeFromDate(form.eventDate || form.endDate || form.startDate, "22:00");
+
+    return startAt && endAt
+      ? [{
+          name: form.eventName || form.title || "Job",
+          start_at: startAt,
+          end_at: endAt,
+          location: buildFullLocation(form.address, form.city),
+          content: splitOptionText(form.responsibilities || form.description),
+          sort_order: 0,
+        }]
+      : [];
+  }
+
+  function buildCampaignPositionsForPayload() {
+    const normalizedPositions = form.campaignPositions
+      .map((position, index) => ({
+        talent_type: position.talentType.trim(),
+        talent_type_name: position.talentType.trim(),
+        quantity: Math.max(1, Number(position.quantity) || 1),
+        requirements: splitOptionText(position.requirements || form.requirements),
+        sort_order: index,
+      }))
+      .filter((position) => position.talent_type);
+
+    if (normalizedPositions.length > 0) return normalizedPositions;
+
+    const fallbackTypes = splitOptionText(form.roles || form.targetProfiles || form.jobType);
+    return (fallbackTypes.length > 0 ? fallbackTypes : [form.jobType || "KOL"]).map((talentType, index) => ({
+      talent_type: talentType,
+      talent_type_name: talentType,
+      quantity: index === 0 ? Math.max(1, Number(form.talentQuantity) || 1) : 1,
+      requirements: splitOptionText(form.requirements),
+      sort_order: index,
+    }));
+  }
+
   function handleClose() {
     setForm(createDefaultForm());
     setDateErrors({});
@@ -431,13 +711,12 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
     }
   }
 
-  async function handleCreateCampaign() {
-    if (isSubmitting || formStep !== TOTAL_STEPS || Date.now() < finalStepSubmitReadyAt.current) return;
+  async function handleUpdateCampaign() {
+    if (!campaignToEdit || isSubmitting || formStep !== TOTAL_STEPS || Date.now() < finalStepSubmitReadyAt.current) return;
 
     setIsSubmitting(true);
-    let newCampaign: Campaign;
+    let updatedCampaign: Campaign;
 
-    // Build requirements string from separate height, weight, experience fields
     const reqParts: string[] = [];
     if (form.heightMin) {
       reqParts.push(`Chiều cao tối thiểu: ${form.heightMin} cm`);
@@ -448,7 +727,10 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
     if (form.experienceMin) {
       reqParts.push(`Kinh nghiệm tối thiểu: ${form.experienceMin} năm`);
     }
-    const finalRequirements = reqParts.join("; ") || "Chưa có yêu cầu chi tiết.";
+    const finalRequirements = reqParts.length > 0 ? reqParts.join("; ") : (form.requirements || "Chưa có yêu cầu chi tiết.");
+    const campaignEventsForPayload = buildCampaignEventsForPayload();
+    const campaignPositionsForPayload = buildCampaignPositionsForPayload();
+    const positionNames = campaignPositionsForPayload.map((position) => position.talent_type);
     const updatedForm = {
       ...form,
       requirements: finalRequirements,
@@ -457,41 +739,86 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
       deadline: parseVietnameseDateToYYYYMMDD(form.deadline),
       applicationDeadline: parseVietnameseDateToYYYYMMDD(form.applicationDeadline),
       eventDate: parseVietnameseDateToYYYYMMDD(form.eventDate),
+      talentQuantity: String(campaignPositionsForPayload.reduce((sum, position) => sum + position.quantity, 0) || Number(form.talentQuantity) || 1),
+      roles: positionNames.length > 0 ? positionNames.join("\n") : form.roles,
+      targetProfiles: positionNames.length > 0 ? positionNames.join("\n") : form.targetProfiles,
+      events: campaignEventsForPayload,
+      positions: campaignPositionsForPayload,
     };
 
     try {
-      const createdCampaign = await createBrandCampaign(updatedForm);
-      newCampaign = /^\d+$/.test(createdCampaign.id)
-        ? await publishBrandCampaign(createdCampaign.id)
-        : createdCampaign;
+      if (/^\d+$/.test(campaignToEdit.id)) {
+        updatedCampaign = await updateBrandCampaign(campaignToEdit.id, updatedForm);
+      } else {
+        updatedCampaign = {
+          ...campaignToEdit,
+          title: updatedForm.title || campaignToEdit.title,
+          jobType: updatedForm.jobType,
+          eventName: updatedForm.eventName,
+          campaignType: updatedForm.campaignType || updatedForm.jobType || "Job",
+          city: updatedForm.city,
+          address: updatedForm.address || updatedForm.city,
+          startDate: updatedForm.startDate,
+          endDate: updatedForm.endDate,
+          deadline: updatedForm.applicationDeadline || updatedForm.deadline,
+          applicationDeadline: updatedForm.applicationDeadline || updatedForm.deadline,
+          eventDate: updatedForm.eventDate,
+          talentQuantity: Number(updatedForm.talentQuantity) || 1,
+          budget: updatedForm.budget || campaignToEdit.budget,
+          benefits: updatedForm.benefits,
+          requirements: updatedForm.requirements,
+          description: updatedForm.description,
+          roles: splitOptionText(updatedForm.roles),
+          responsibilities: splitOptionText(updatedForm.responsibilities),
+          industries: splitOptionText(updatedForm.industries),
+          targetProfiles: splitOptionText(updatedForm.targetProfiles),
+          contactNote: updatedForm.contactNote,
+          events: campaignEventsForPayload.map((event) => ({
+            name: event.name,
+            startAt: event.start_at,
+            endAt: event.end_at,
+            location: event.location,
+            content: event.content,
+            sortOrder: event.sort_order,
+          })),
+          positions: campaignPositionsForPayload.map((position) => ({
+            talentType: position.talent_type,
+            quantity: position.quantity,
+            requirements: position.requirements,
+            sortOrder: position.sort_order,
+          })),
+        };
+      }
 
-      if (/^\d+$/.test(newCampaign.id) && campaignImages.length > 0) {
+      if (/^\d+$/.test(updatedCampaign.id) && campaignImages.length > 0) {
         try {
           const uploadedMedia = await Promise.all(
-            campaignImages.map((file, index) => uploadBrandCampaignMedia(newCampaign.id, file, {
+            campaignImages.map((file, index) => uploadBrandCampaignMedia(updatedCampaign.id, file, {
               category: "gallery",
               isPrimary: index === 0,
             }))
           );
 
           const media = uploadedMedia.filter(Boolean) as NonNullable<Campaign["media"]>;
-          newCampaign = {
-            ...newCampaign,
-            media,
-            coverMedia: media[0] || null,
-          };
+          if (media.length > 0) {
+            updatedCampaign = {
+              ...updatedCampaign,
+              media: [...(updatedCampaign.media || []), ...media],
+              coverMedia: updatedCampaign.coverMedia || media[0] || null,
+            };
+          }
         } catch (uploadError) {
-          console.warn("Cannot upload campaign images after creation", uploadError);
+          console.warn("Cannot upload campaign images after update", uploadError);
         }
       }
     } catch (error) {
-      console.warn("Cannot create campaign from API, using local fallback", error);
-      newCampaign = {
-        id: `camp-${Date.now()}`,
-        title: updatedForm.title || "Campaign mới",
+      console.warn("Cannot update campaign from API, using local fallback", error);
+      updatedCampaign = {
+        ...campaignToEdit,
+        title: updatedForm.title || campaignToEdit.title,
         jobType: updatedForm.jobType,
         eventName: updatedForm.eventName,
-        campaignType: updatedForm.campaignType || updatedForm.jobType || "Campaign",
+        campaignType: updatedForm.campaignType || updatedForm.jobType || "Job",
         city: updatedForm.city,
         address: updatedForm.address || updatedForm.city,
         startDate: updatedForm.startDate,
@@ -500,16 +827,11 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
         applicationDeadline: updatedForm.applicationDeadline || updatedForm.deadline,
         eventDate: updatedForm.eventDate,
         talentQuantity: Number(updatedForm.talentQuantity) || 1,
-        budget: updatedForm.budget,
+        budget: updatedForm.budget || campaignToEdit.budget,
         budgetValue: Number(updatedForm.budgetMax || updatedForm.budgetMin) || 0,
-        benefits: updatedForm.benefits || "Thỏa thuận theo brief",
-        status: "published",
-        shortlistedTalentIds: [],
-        applicants: [],
-        contactRequests: 0,
-        views: 0,
-        description: updatedForm.description || "Chưa có mô tả brief.",
-        requirements: updatedForm.requirements || "Chưa có yêu cầu chi tiết.",
+        benefits: updatedForm.benefits,
+        description: updatedForm.description,
+        requirements: updatedForm.requirements,
         heightMinCm: Number(updatedForm.heightMin) || null,
         weightMaxKg: Number(updatedForm.weightMax) || null,
         experienceMinYears: Number(updatedForm.experienceMin) || null,
@@ -518,19 +840,31 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
         industries: splitOptionText(updatedForm.industries),
         targetProfiles: splitOptionText(updatedForm.targetProfiles),
         contactNote: updatedForm.contactNote,
-        sponsorships: [],
         escrowed: updatedForm.escrowed,
+        events: campaignEventsForPayload.map((event) => ({
+          name: event.name,
+          startAt: event.start_at,
+          endAt: event.end_at,
+          location: event.location,
+          content: event.content,
+          sortOrder: event.sort_order,
+        })),
+        positions: campaignPositionsForPayload.map((position) => ({
+          talentType: position.talent_type,
+          quantity: position.quantity,
+          requirements: position.requirements,
+          sortOrder: position.sort_order,
+        })),
       };
     } finally {
       setIsSubmitting(false);
     }
 
-    onCampaignCreated(newCampaign);
+    onCampaignUpdated(updatedCampaign);
     handleClose();
-    router.push(`/brand/manage-jobs/${newCampaign.id}`);
   }
 
-  if (!isOpen) return null;
+  if (!isOpen || !campaignToEdit) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-0 backdrop-blur-md animate-in fade-in duration-200 md:relative md:inset-auto md:z-auto md:block md:bg-transparent md:p-0 md:backdrop-blur-0">
@@ -560,7 +894,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 )}
               >
                 <Briefcase className="h-4 w-4" />
-                Tạo job
+                Sửa job
               </button>
               <button
                 type="button"
@@ -852,6 +1186,13 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 setOpenDropdown={setOpenDropdown}
               />
 
+              <CampaignPositionsSection
+                positions={form.campaignPositions}
+                onAdd={addCampaignPosition}
+                onRemove={removeCampaignPosition}
+                onChange={updateCampaignPosition}
+              />
+
               {/* Yêu cầu ngoại hình */}
               <div className="rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
                 <span className="text-xs font-black uppercase tracking-wider text-amber-300 block mb-3 text-left">
@@ -912,6 +1253,14 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           {/* STEP 5: Hoàn tất */}
           {activeTab === "form" && formStep === 5 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+              <CampaignEventsSection
+                events={form.campaignEvents}
+                defaultLocation={buildFullLocation(form.address, form.city)}
+                onAdd={addCampaignEvent}
+                onRemove={removeCampaignEvent}
+                onChange={updateCampaignEvent}
+              />
+
               <div className="rounded-2xl border border-slate-700/80 bg-slate-900/90 p-5 text-left space-y-4 shadow-md">
                 {/* Header */}
                 <div className="flex flex-col gap-3 border-b border-slate-800 pb-4 sm:flex-row sm:items-start sm:justify-between text-left">
@@ -1088,12 +1437,12 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
               ) : (
                 <button
                   type="button"
-                  onClick={handleCreateCampaign}
+                  onClick={handleUpdateCampaign}
                   disabled={isSubmitting}
                   className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 px-5 text-xs font-black text-slate-950 hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-[0_0_25px_rgba(245,158,11,0.45)] disabled:opacity-40"
                 >
                   <Briefcase className="h-4 w-4" />
-                  {isSubmitting ? "Đang tạo..." : "Tạo Job"}
+                  {isSubmitting ? "Đang lưu..." : "Lưu Job"}
                 </button>
               )}
             </div>
@@ -1132,16 +1481,203 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   );
 }
 
+function CampaignPositionsSection({
+  positions,
+  onAdd,
+  onRemove,
+  onChange,
+}: {
+  positions: CampaignPositionDraft[];
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  onChange: (index: number, patch: Partial<CampaignPositionDraft>) => void;
+}) {
+  return (
+    <div className="space-y-3 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <span className="block text-xs font-black uppercase tracking-wider text-amber-300">
+            Vị trí tuyển dụng
+          </span>
+          <span className="mt-1 block text-[11px] font-medium text-slate-400">
+            Có thể thêm nhiều loại talent cho cùng một job.
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onAdd}
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/40 bg-amber-400/10 text-amber-300 transition hover:bg-amber-400/20"
+          title="Thêm vị trí"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {positions.map((position, index) => (
+          <div key={`position-${index}`} className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-300">
+                Vị trí #{index + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => onRemove(index)}
+                disabled={positions.length <= 1}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-400/20 bg-red-400/10 text-red-300 transition hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-40"
+                title="Xóa vị trí"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <FormInput
+                label="Loại talent"
+                value={position.talentType}
+                placeholder="KOL, Model, MC..."
+                onChange={(value) => onChange(index, { talentType: value })}
+              />
+              <FormInput
+                label="Số lượng"
+                type="number"
+                value={position.quantity}
+                onChange={(value) => onChange(index, { quantity: value })}
+              />
+            </div>
+            <label className="space-y-1.5 block">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                Yêu cầu riêng
+              </span>
+              <textarea
+                value={position.requirements}
+                onChange={(event) => onChange(index, { requirements: event.target.value })}
+                rows={3}
+                placeholder="Mỗi dòng là một yêu cầu riêng cho vị trí này"
+                className="w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+              />
+            </label>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CampaignEventsSection({
+  events,
+  defaultLocation,
+  onAdd,
+  onRemove,
+  onChange,
+}: {
+  events: CampaignEventDraft[];
+  defaultLocation: string;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  onChange: (index: number, patch: Partial<CampaignEventDraft>) => void;
+}) {
+  return (
+    <div className="space-y-3 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <span className="block text-xs font-black uppercase tracking-wider text-amber-300">
+            Sự kiện trong job
+          </span>
+          <span className="mt-1 block text-[11px] font-medium text-slate-400">
+            Không thêm sự kiện thì hệ thống sẽ dùng thời gian chính của job.
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onAdd}
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/40 bg-amber-400/10 text-amber-300 transition hover:bg-amber-400/20"
+          title="Thêm sự kiện"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+
+      {events.length === 0 ? (
+        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3 text-[11px] font-semibold text-slate-400">
+          Chưa thêm sự kiện riêng. Khi lưu, job vẫn có một sự kiện mặc định từ thời gian và địa điểm đã nhập.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {events.map((event, index) => (
+            <div key={`event-${index}`} className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-300">
+                  Sự kiện #{index + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemove(index)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-400/20 bg-red-400/10 text-red-300 transition hover:bg-red-400/20"
+                  title="Xóa sự kiện"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <FormInput
+                label="Tên sự kiện"
+                value={event.name}
+                placeholder="Casting, Livestream, Chụp lookbook..."
+                onChange={(value) => onChange(index, { name: value })}
+              />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="space-y-1.5 block">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Bắt đầu</span>
+                  <input
+                    type="datetime-local"
+                    value={event.startAt}
+                    onChange={(e) => onChange(index, { startAt: e.target.value })}
+                    className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                  />
+                </label>
+                <label className="space-y-1.5 block">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Kết thúc</span>
+                  <input
+                    type="datetime-local"
+                    value={event.endAt}
+                    onChange={(e) => onChange(index, { endAt: e.target.value })}
+                    className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                  />
+                </label>
+              </div>
+              <FormInput
+                label="Địa điểm sự kiện"
+                value={event.location}
+                placeholder={defaultLocation || "Địa điểm tổ chức"}
+                onChange={(value) => onChange(index, { location: value })}
+              />
+              <label className="space-y-1.5 block">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Nội dung sự kiện</span>
+                <textarea
+                  value={event.content}
+                  onChange={(e) => onChange(index, { content: e.target.value })}
+                  rows={3}
+                  placeholder="Mỗi dòng là một nội dung cần tham gia"
+                  className="w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                />
+              </label>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CreateJobLoadingOverlay() {
   return (
     <div className="fixed inset-0 z-[220] flex items-center justify-center bg-[#020408]/90 px-6 text-center backdrop-blur-md">
       <div className="w-full max-w-sm rounded-3xl border border-amber-400/25 bg-[#0c1021] p-7 shadow-[0_0_60px_rgba(245,158,11,0.2)]">
         <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-amber-400 border-t-transparent" />
         <h3 className="mt-5 text-base font-black uppercase tracking-wide text-white">
-          Đang tạo job
+          Đang lưu job
         </h3>
         <p className="mt-2 text-sm font-semibold text-slate-300">
-          Vui lòng chờ, hệ thống đang lưu thông tin và tải ảnh lên.
+          Vui lòng chờ, hệ thống đang cập nhật thông tin và tải ảnh lên.
         </p>
       </div>
     </div>

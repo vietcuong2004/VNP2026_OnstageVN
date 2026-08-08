@@ -7,6 +7,19 @@ export type LifestyleService = {
   enabled: boolean;
 };
 
+export type TalentBadge = {
+  id?: number | string;
+  code?: string | null;
+  title?: string | null;
+  description?: string | null;
+  tier?: string | null;
+  color_scheme?: string | null;
+  icon?: string | null;
+  period_type?: string | null;
+  period_value?: string | null;
+  score?: number | null;
+};
+
 export type TalentProfile = {
   id: string;
   name: string;
@@ -25,8 +38,8 @@ export type TalentProfile = {
   hairColor: string;
   yearsOfExperience: number;
   tier: "S" | "A" | "B" | "C" | "Potential";
-  badges?: any[];
-  active_badges?: any[];
+  badges?: TalentBadge[];
+  active_badges?: TalentBadge[];
   verified: boolean;
   rating: number;
   completedJobs: number;
@@ -98,6 +111,24 @@ export type CampaignMedia = {
   is_primary?: boolean;
 };
 
+export type CampaignEvent = {
+  id?: string | number;
+  name: string;
+  startAt: string;
+  endAt: string;
+  location?: string;
+  content?: string[];
+  sortOrder?: number;
+};
+
+export type CampaignPosition = {
+  id?: string | number;
+  talentType: string;
+  quantity: number;
+  requirements?: string[];
+  sortOrder?: number;
+};
+
 export type Campaign = {
   id: string;
   title: string;
@@ -134,6 +165,8 @@ export type Campaign = {
   escrowed?: boolean;
   media?: CampaignMedia[];
   coverMedia?: CampaignMedia | null;
+  events?: CampaignEvent[];
+  positions?: CampaignPosition[];
 };
 
 export const LIFESTYLE_SERVICES_TEMPLATES = [

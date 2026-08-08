@@ -8,7 +8,6 @@ import { createBrandCampaign, publishBrandCampaign, uploadBrandCampaignMedia } f
 import { cn } from "@/lib/utils";
 import { TALENT_TYPE_VALUES } from "@/components/ui/ComboboxOptionValues";
 import TimePickerInput from "@/components/ui/TimePickerInput";
-import { networkInterfaces } from "os";
 import BudgetPaymentSection from "./BudgetPaymentSection";
 import PreviewJob from "./PreviewJob";
 
@@ -349,9 +348,14 @@ interface FormCreateJobProps {
   onCampaignCreated: (campaign: Campaign) => void;
 }
 
-export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: FormCreateJobProps) {
+export default function FormCreateJob({
+  isOpen,
+  onClose,
+  onCampaignCreated,
+}: FormCreateJobProps) {
   const router = useRouter();
-  const [form, setForm] = useState(createDefaultForm);
+  const initialForm = useMemo(() => createDefaultForm(), []);
+  const [form, setForm] = useState(() => initialForm);
   const [campaignImages, setCampaignImages] = useState<File[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [formStep, setFormStep] = useState(1);
@@ -572,9 +576,9 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
         : formStep === 3 ? "Yêu cầu tuyển dụng"
           : "Danh sách các sự kiện";
 
-  const [budgetFrom, setBudgetFrom] = useState("");
-  const [budgetTo, setBudgetTo] = useState("");
-  const [budgetNegotiable, setBudgetNegotiable] = useState(false);
+  const [budgetFrom, setBudgetFrom] = useState(() => formatBudgetDigits(initialForm.budgetMin));
+  const [budgetTo, setBudgetTo] = useState(() => formatBudgetDigits(initialForm.budgetMax));
+  const [budgetNegotiable, setBudgetNegotiable] = useState(() => Boolean(initialForm.budgetNegotiable));
 
   const updateBudgetState = (fromVal: string, toVal: string) => {
     const minValue = parseBudgetInputValue(fromVal);
@@ -678,7 +682,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
 
     setIsSubmitting(true);
     setShowPublishDialog(false);
-    let newCampaign: Campaign;
+    let savedCampaign: Campaign;
 
     // Build requirements string from separate height, weight, experience fields
     const reqParts: string[] = [];
@@ -728,32 +732,32 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
 
     try {
       const createdCampaign = await createBrandCampaign(updatedForm);
-      newCampaign = /^\d+$/.test(createdCampaign.id)
+      savedCampaign = /^\d+$/.test(createdCampaign.id)
         ? await publishBrandCampaign(createdCampaign.id)
         : createdCampaign;
 
-      if (/^\d+$/.test(newCampaign.id) && campaignImages.length > 0) {
+      if (/^\d+$/.test(savedCampaign.id) && campaignImages.length > 0) {
         try {
           const uploadedMedia = await Promise.all(
-            campaignImages.map((file, index) => uploadBrandCampaignMedia(newCampaign.id, file, {
+            campaignImages.map((file, index) => uploadBrandCampaignMedia(savedCampaign.id, file, {
               category: "gallery",
               isPrimary: index === 0,
             }))
           );
 
           const media = uploadedMedia.filter(Boolean) as NonNullable<Campaign["media"]>;
-          newCampaign = {
-            ...newCampaign,
+          savedCampaign = {
+            ...savedCampaign,
             media,
             coverMedia: media[0] || null,
           };
         } catch (uploadError) {
-          console.warn("Cannot upload campaign images after creation", uploadError);
+          console.warn("Cannot upload campaign images after saving", uploadError);
         }
       }
     } catch (error) {
-      console.warn("Cannot create campaign from API, using local fallback", error);
-      newCampaign = {
+      console.warn("Cannot save campaign from API, using local fallback", error);
+      savedCampaign = {
         id: `camp-${Date.now()}`,
         title: updatedForm.title || "Campaign mới",
         jobType: updatedForm.jobType,
@@ -792,9 +796,9 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
       setIsSubmitting(false);
     }
 
-    onCampaignCreated(newCampaign);
+    onCampaignCreated(savedCampaign);
     handleClose();
-    router.push(`/brand/manage-jobs/${newCampaign.id}`);
+    router.push(`/brand/manage-jobs/${savedCampaign.id}`);
   }
 
   if (!isOpen) return null;

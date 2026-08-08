@@ -63,7 +63,7 @@ import ChecklistModal from "./components/ChecklistModal";
 import AddStaffModal from "./components/AddStaffModal";
 import PayoutSuccessModal from "./components/PayoutSuccessModal";
 import PayoutTableModal from "./components/PayoutTableModal";
-import FormEditJob from "./edit-job/FormEditJobDesktop";
+import FormEditJob from "./edit-job/FormEditJob";
 
 function isBackendRecordId(id?: string | number | null) {
   return /^\d+$/.test(String(id || ""));
