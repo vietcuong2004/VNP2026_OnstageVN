@@ -253,12 +253,19 @@ function parseVietnameseDateToYYYYMMDD(dateStr: string): string {
 
 function isValidVietnameseDate(dateStr: string): boolean {
   if (!dateStr) return true;
-  return /^\d{1,2}[/\-]\d{1,2}[/\-]\d{4}$/.test(dateStr.trim());
+  let trimmed = dateStr.trim();
+  if (trimmed.includes("T")) {
+    trimmed = trimmed.split("T")[0];
+  }
+  return /^\d{1,2}[/\-]\d{1,2}[/\-]\d{4}$/.test(trimmed) || /^\d{4}[/\-]\d{1,2}[/\-]\d{1,2}$/.test(trimmed);
 }
 
 function normalizeVietnameseDateDisplay(dateStr: string): string {
   if (!dateStr) return "";
   const trimmed = dateStr.trim();
+  if (/^\d{4}[/\-]\d{1,2}[/\-]\d{1,2}/.test(trimmed)) {
+    return trimmed.includes("T") ? trimmed.slice(0, 16) : parseVietnameseDateToYYYYMMDD(trimmed);
+  }
   const match = trimmed.match(/^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})$/);
   if (match) {
     const day = match[1].padStart(2, "0");

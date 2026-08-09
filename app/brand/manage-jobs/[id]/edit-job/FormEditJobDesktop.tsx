@@ -5,21 +5,8 @@ import { X, ImagePlus, Briefcase, ChevronDown, Pencil, Calendar, Plus, Trash2 } 
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { updateBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
-import { TALENT_TYPE_VALUES } from "@/components/ui/ComboboxOptionValues";
-
-const ROLE_OPTIONS = [
-  "CTV Take Care nghệ sĩ",
-  "CTV điều phối sự kiện",
-  "CTV check-in & đón tiếp khách mời",
-  "Người mẫu",
-  "Người dẫn chương trình",
-  "Ca sĩ",
-  "KOL/KOC",
-  "Beauty Blogger",
-  "Fashion Blogger",
-  "Đại sứ thương hiệu",
-  "Nhân vật truyền cảm hứng",
-];
+import TimePickerInput from "@/components/ui/TimePickerInput";
+import BudgetPaymentSection from "../../create-job/BudgetPaymentSection";
 
 const BENEFIT_OPTIONS = [
   "Hỗ trợ ăn uống trong chương trình",
@@ -82,18 +69,12 @@ const INDUSTRY_OPTIONS = [
   "Nhãn hàng đồng hành",
 ];
 
-const TARGET_PROFILE_OPTIONS = [
-  ...TALENT_TYPE_VALUES,
-  "Người đẹp",
-  "Đại sứ",
-];
-
-const STEP_LABELS = ["Cơ bản", "Địa điểm", "Mô tả", "Yêu cầu", "Hoàn tất"];
+const STEP_LABELS = ["Tổng quan", "Thông tin", "Yêu cầu", "Sự kiện"];
 
 function splitOptionText(value: string) {
   return value
     .split(/\r?\n/)
-    .map((item) => item.trim())
+    .map((item) => item.replace(/^[\s•*-]+/, "").trim())
     .filter(Boolean);
 }
 
@@ -132,6 +113,21 @@ function normalizeDateTimeLocalToISO(value: string) {
 function normalizeDateTimeForInput(value: string, fallback: string) {
   if (!value) return fallback;
   return value.includes("T") ? value.slice(0, 16) : value.replace(" ", "T").slice(0, 16);
+}
+
+function formatDateTimeInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hour}:${minute}`;
+}
+
+function currentDateTimeInputValue(offsetMinutes = 0) {
+  const date = new Date();
+  date.setMinutes(date.getMinutes() + offsetMinutes);
+  return formatDateTimeInputValue(date);
 }
 
 function buildDateTimeFromDate(value: string, fallbackTime: "08:00" | "22:00") {
@@ -220,9 +216,9 @@ function isValidVietnameseDate(dateStr: string): boolean {
 
 function normalizeVietnameseDateDisplay(dateStr: string): string {
   if (!dateStr) return "";
-  let trimmed = dateStr.trim();
-  if (trimmed.includes("T")) {
-    trimmed = trimmed.split("T")[0];
+  const trimmed = dateStr.trim();
+  if (/^\d{4}[/\-]\d{1,2}[/\-]\d{1,2}/.test(trimmed)) {
+    return trimmed.includes("T") ? trimmed.slice(0, 16) : parseVietnameseDateToYYYYMMDD(trimmed);
   }
   const match = trimmed.match(/^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})/);
   if (match) {
@@ -292,11 +288,6 @@ function validateDateFields(currentForm: typeof emptyForm) {
 }
 
 function campaignToFormState(campaign: Campaign) {
-  const start = normalizeVietnameseDateDisplay(campaign.startDate || "");
-  const end = normalizeVietnameseDateDisplay(campaign.endDate || "");
-  const app = normalizeVietnameseDateDisplay(campaign.applicationDeadline || campaign.deadline || "");
-  const event = normalizeVietnameseDateDisplay(campaign.eventDate || "");
-
   const campaignWithBudget = campaign as Campaign & {
     budgetMin?: string | number | null;
     budgetMax?: string | number | null;
@@ -321,6 +312,10 @@ function campaignToFormState(campaign: Campaign) {
 
   const fallbackStartAt = buildDateTimeFromDate(campaign.eventDate || campaign.startDate, "08:00").replace(" ", "T");
   const fallbackEndAt = buildDateTimeFromDate(campaign.eventDate || campaign.endDate || campaign.startDate, "22:00").replace(" ", "T");
+  const start = normalizeDateTimeForInput(campaign.startDate || "", fallbackStartAt);
+  const end = normalizeDateTimeForInput(campaign.endDate || "", fallbackEndAt);
+  const app = parseVietnameseDateToYYYYMMDD(campaign.applicationDeadline || campaign.deadline || "");
+  const event = parseVietnameseDateToYYYYMMDD(campaign.eventDate || "");
   const campaignEvents = (campaign.events || []).map((eventItem) => ({
     name: eventItem.name || campaign.eventName || campaign.title || "Job",
     startAt: normalizeDateTimeForInput(eventItem.startAt || "", fallbackStartAt),
@@ -404,7 +399,7 @@ export default function FormEditJob({
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const TOTAL_STEPS = 5;
+  const TOTAL_STEPS = 4;
 
   const imagePreviews = useMemo(
     () => campaignImages.map((file) => URL.createObjectURL(file)),
@@ -467,7 +462,7 @@ export default function FormEditJob({
   };
 
   function moveToStep(nextStep: number) {
-    if (formStep === 2 && nextStep > 2) {
+    if (formStep === 1 && nextStep > 1) {
       const { errors, normStart, normEnd, normApp, normEvent } = validateDateFields(form);
 
       setForm((c) => ({
@@ -486,7 +481,7 @@ export default function FormEditJob({
       }
     }
     const boundedStep = Math.min(Math.max(nextStep, 1), TOTAL_STEPS);
-    finalStepSubmitReadyAt.current = boundedStep === TOTAL_STEPS ? Date.now() + 450 : 0;
+    finalStepSubmitReadyAt.current = 0;
     setFormStep(boundedStep);
   }
 
@@ -615,32 +610,16 @@ export default function FormEditJob({
   }
 
   function buildCampaignEventsForPayload() {
-    const normalizedEvents = form.campaignEvents
+    return form.campaignEvents
       .map((event, index) => ({
         name: event.name.trim() || `${form.title || "Job"} - ${index + 1}`,
-        start_at: normalizeDateTimeLocalToISO(event.startAt) || buildDateTimeFromDate(form.eventDate || form.startDate, "08:00"),
-        end_at: normalizeDateTimeLocalToISO(event.endAt) || buildDateTimeFromDate(form.eventDate || form.endDate || form.startDate, "22:00"),
+        start_at: normalizeDateTimeLocalToISO(event.startAt),
+        end_at: normalizeDateTimeLocalToISO(event.endAt),
         location: event.location.trim() || buildFullLocation(form.address, form.city),
-        content: splitOptionText(event.content || form.responsibilities),
+        content: splitOptionText(event.content),
         sort_order: index,
       }))
       .filter((event) => event.start_at && event.end_at);
-
-    if (normalizedEvents.length > 0) return normalizedEvents;
-
-    const startAt = buildDateTimeFromDate(form.eventDate || form.startDate, "08:00");
-    const endAt = buildDateTimeFromDate(form.eventDate || form.endDate || form.startDate, "22:00");
-
-    return startAt && endAt
-      ? [{
-          name: form.eventName || form.title || "Job",
-          start_at: startAt,
-          end_at: endAt,
-          location: buildFullLocation(form.address, form.city),
-          content: splitOptionText(form.responsibilities || form.description),
-          sort_order: 0,
-        }]
-      : [];
   }
 
   function buildCampaignPositionsForPayload() {
@@ -687,7 +666,7 @@ export default function FormEditJob({
   }
 
   async function handleUpdateCampaign() {
-    if (!campaignToEdit || isSubmitting || formStep !== TOTAL_STEPS || Date.now() < finalStepSubmitReadyAt.current) return;
+    if (!campaignToEdit || isSubmitting || formStep !== TOTAL_STEPS) return;
 
     setIsSubmitting(true);
     let updatedCampaign: Campaign;
@@ -696,7 +675,7 @@ export default function FormEditJob({
     if (form.heightMin) reqParts.push(`Chiều cao tối thiểu: ${form.heightMin} cm`);
     if (form.weightMax) reqParts.push(`Cân nặng tối đa: ${form.weightMax} kg`);
     if (form.experienceMin) reqParts.push(`Kinh nghiệm tối thiểu: ${form.experienceMin} năm`);
-    const finalRequirements = reqParts.length > 0 ? reqParts.join("; ") : (form.requirements || "Chưa có yêu cầu chi tiết.");
+    const finalRequirements = [...reqParts, ...splitOptionText(form.requirements)].join("; ") || "Chưa có yêu cầu chi tiết.";
 
     const campaignEventsForPayload = buildCampaignEventsForPayload();
     const campaignPositionsForPayload = buildCampaignPositionsForPayload();
@@ -852,11 +831,7 @@ export default function FormEditJob({
                 Bước {formStep}/{TOTAL_STEPS}
               </span>
               <h2 className="mt-2 text-xl font-black text-white tracking-tight drop-shadow-sm">
-                {formStep === 1 && "Thông tin cơ bản"}
-                {formStep === 2 && "Địa điểm & Thời gian"}
-                {formStep === 3 && "Mô tả công việc"}
-                {formStep === 4 && "Yêu cầu & Quyền lợi"}
-                {formStep === 5 && "Cập nhật chiến dịch"}
+                {STEP_LABELS[formStep - 1] || "Cập nhật job"}
               </h2>
             </div>
             <button
@@ -909,145 +884,63 @@ export default function FormEditJob({
         {/* ── STEP CONTENT (scrollable) ── */}
         <div className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4 custom-scrollbar">
 
-          {/* STEP 1: Thông tin cơ bản */}
+          {/* STEP 1: Tổng quan */}
           {formStep === 1 && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="sm:col-span-2">
-                <FormInput label="Tiêu đề job *" value={form.title} onChange={(value) => setForm((c) => ({ ...c, title: value }))} required />
+                <JobTitleInput
+                  label="Tiêu đề job *"
+                  value={form.title}
+                  onChange={(value) => setForm((c) => ({ ...c, title: value }))}
+                />
               </div>
-              <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Loại hình job *</span>
-                <select
-                  value={form.jobType}
-                  onChange={(e) => setForm((c) => ({ ...c, jobType: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 hover:border-slate-600 transition-all shadow-inner"
-                >
-                  <option className="bg-slate-900 text-slate-100">Tuyển cộng tác viên</option>
-                  <option className="bg-slate-900 text-slate-100">Tuyển đại sứ</option>
-                  <option className="bg-slate-900 text-slate-100">Beauty KOL/KOC</option>
-                  <option className="bg-slate-900 text-slate-100">KOL livestream</option>
-                  <option className="bg-slate-900 text-slate-100">Model lookbook</option>
-                  <option className="bg-slate-900 text-slate-100">PG event</option>
-                  <option className="bg-slate-900 text-slate-100">MC sự kiện</option>
-                  <option className="bg-slate-900 text-slate-100">Dancer performance</option>
-                </select>
-              </label>
-              <FormInput label="Số lượng cần tuyển *" type="number" value={form.talentQuantity} onChange={(value) => setForm((c) => ({ ...c, talentQuantity: value }))} />
-              <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-700/80 bg-slate-900/90 p-3.5 sm:col-span-2 cursor-pointer hover:border-amber-400/50 transition-all shadow-sm">
-                <div>
-                  <span className="block text-xs font-extrabold uppercase tracking-wider text-amber-300">Thù lao thỏa thuận</span>
-                  <span className="mt-0.5 block text-[11px] font-medium text-slate-400">Chọn nếu brand sẽ trao đổi mức thù lao trực tiếp với talent.</span>
+              <div className="grid grid-cols-1 gap-4 sm:col-span-2 xl:grid-cols-3">
+                <DateTimeSplitInput
+                  label="Thời gian bắt đầu"
+                  value={form.startDate}
+                  onChange={(value) => setForm((c) => ({ ...c, startDate: value }))}
+                />
+                <DateTimeSplitInput
+                  label="Thời gian kết thúc"
+                  value={form.endDate}
+                  onChange={(value) => setForm((c) => ({ ...c, endDate: value }))}
+                />
+                <DateOnlyInput
+                  label="Hạn ứng tuyển"
+                  value={form.applicationDeadline}
+                  onChange={(value) => setForm((c) => ({ ...c, applicationDeadline: value, deadline: value }))}
+                />
+              </div>
+              <BudgetPaymentSection
+                budgetFrom={budgetFrom}
+                budgetTo={budgetTo}
+                budgetNegotiable={budgetNegotiable}
+                onNegotiableChange={handleBudgetNegotiableChange}
+                onBudgetFromChange={(value) => handleBudgetChange(value, budgetFrom, setBudgetFrom, true)}
+                onBudgetToChange={(value) => handleBudgetChange(value, budgetTo, setBudgetTo, false)}
+              />
+              <div className="space-y-3 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md sm:col-span-2">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+                  Địa điểm làm việc
+                </span>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <FormInput label="Thành phố *" value={form.city} onChange={(value) => setForm((c) => ({ ...c, city: value }))} />
+                  <FormInput label="Địa điểm cụ thể *" value={form.address} onChange={(value) => setForm((c) => ({ ...c, address: value }))} />
                 </div>
-                <input
-                  type="checkbox"
-                  checked={budgetNegotiable}
-                  onChange={(e) => handleBudgetNegotiableChange(e.target.checked)}
-                  className="h-4.5 w-4.5 shrink-0 cursor-pointer accent-amber-400 rounded"
-                />
-              </label>
-              <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Thù lao tối thiểu</span>
-                <input
-                  type="text"
-                  value={budgetFrom}
-                  onChange={(e) => handleBudgetChange(e.target.value, budgetFrom, setBudgetFrom, true)}
-                  disabled={budgetNegotiable}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-45 hover:border-slate-600 transition-all shadow-inner placeholder:text-slate-500"
-                  placeholder="700.000 VND/ngày"
-                />
-              </label>
-              <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Thù lao tối đa</span>
-                <input
-                  type="text"
-                  value={budgetTo}
-                  onChange={(e) => handleBudgetChange(e.target.value, budgetTo, setBudgetTo, false)}
-                  disabled={budgetNegotiable}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-45 hover:border-slate-600 transition-all shadow-inner placeholder:text-slate-500"
-                  placeholder="1.000.000 VND/ngày"
-                />
-              </label>
+              </div>
+              <JobImagesUploadSection
+                campaignImagesCount={campaignImages.length}
+                imagePreviews={imagePreviews}
+                onImagesAdd={handleImagesAdd}
+                onImageReplace={handleImageReplace}
+                onImageDelete={handleImageDelete}
+                onPreviewImage={setPreviewImage}
+              />
             </div>
           )}
 
-          {/* STEP 2: Địa điểm & Thời gian */}
+          {/* STEP 2: Thông tin */}
           {formStep === 2 && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 animate-in fade-in slide-in-from-right-4 duration-300">
-              <FormInput label="Thành phố *" value={form.city} onChange={(value) => setForm((c) => ({ ...c, city: value }))} />
-              <FormInput label="Địa điểm *" value={form.address} onChange={(value) => setForm((c) => ({ ...c, address: value }))} />
-              <FormInput
-                label="Ngày bắt đầu"
-                placeholder="dd/mm/yyyy"
-                value={form.startDate}
-                onChange={(value) => {
-                  setForm((c) => ({ ...c, startDate: value }));
-                  if (dateErrors.startDate) setDateErrors((prev) => ({ ...prev, startDate: undefined }));
-                }}
-                onBlur={() => {
-                  const norm = normalizeVietnameseDateDisplay(form.startDate);
-                  const updated = { ...form, startDate: norm };
-                  setForm((c) => ({ ...c, startDate: norm }));
-                  setDateErrors(validateDateFields(updated).errors);
-                }}
-                error={dateErrors.startDate}
-                isDateField
-              />
-              <FormInput
-                label="Ngày kết thúc"
-                placeholder="dd/mm/yyyy"
-                value={form.endDate}
-                onChange={(value) => {
-                  setForm((c) => ({ ...c, endDate: value }));
-                  if (dateErrors.endDate) setDateErrors((prev) => ({ ...prev, endDate: undefined }));
-                }}
-                onBlur={() => {
-                  const norm = normalizeVietnameseDateDisplay(form.endDate);
-                  const updated = { ...form, endDate: norm };
-                  setForm((c) => ({ ...c, endDate: norm }));
-                  setDateErrors(validateDateFields(updated).errors);
-                }}
-                error={dateErrors.endDate}
-                isDateField
-              />
-              <FormInput
-                label="Hạn ứng tuyển"
-                placeholder="dd/mm/yyyy"
-                value={form.applicationDeadline}
-                onChange={(value) => {
-                  setForm((c) => ({ ...c, applicationDeadline: value, deadline: value }));
-                  if (dateErrors.applicationDeadline) setDateErrors((prev) => ({ ...prev, applicationDeadline: undefined }));
-                }}
-                onBlur={() => {
-                  const norm = normalizeVietnameseDateDisplay(form.applicationDeadline);
-                  const updated = { ...form, applicationDeadline: norm, deadline: norm };
-                  setForm((c) => ({ ...c, applicationDeadline: norm, deadline: norm }));
-                  setDateErrors(validateDateFields(updated).errors);
-                }}
-                error={dateErrors.applicationDeadline}
-                isDateField
-              />
-              <FormInput
-                label="Ngày sự kiện chính"
-                placeholder="dd/mm/yyyy"
-                value={form.eventDate}
-                onChange={(value) => {
-                  setForm((c) => ({ ...c, eventDate: value }));
-                  if (dateErrors.eventDate) setDateErrors((prev) => ({ ...prev, eventDate: undefined }));
-                }}
-                onBlur={() => {
-                  const norm = normalizeVietnameseDateDisplay(form.eventDate);
-                  const updated = { ...form, eventDate: norm };
-                  setForm((c) => ({ ...c, eventDate: norm }));
-                  setDateErrors(validateDateFields(updated).errors);
-                }}
-                error={dateErrors.eventDate}
-                isDateField
-              />
-            </div>
-          )}
-
-          {/* STEP 3: Mô tả công việc */}
-          {formStep === 3 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <label className="space-y-1.5 block">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Mô tả công việc *</span>
@@ -1059,6 +952,17 @@ export default function FormEditJob({
                   className="w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 placeholder:text-slate-500 leading-relaxed hover:border-slate-600 transition-all shadow-inner"
                 />
               </label>
+              <MultiChoiceField
+                id="industries"
+                label="Lĩnh vực công việc"
+                value={form.industries}
+                options={INDUSTRY_OPTIONS}
+                placeholder={"Nhập thêm lĩnh vực khác, mỗi dòng một mục"}
+                onChange={(value) => setForm((c) => ({ ...c, industries: value }))}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                showCustomInput
+              />
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
                 <div className="md:col-span-7">
                   <MultiChoiceField
@@ -1096,22 +1000,6 @@ export default function FormEditJob({
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* STEP 4: Phân loại & Quyền lợi */}
-          {formStep === 4 && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-              <MultiChoiceField
-                id="roles"
-                label="Vị trí tuyển dụng"
-                value={form.roles}
-                options={ROLE_OPTIONS}
-                placeholder={"Nhập thêm vị trí khác, mỗi dòng một mục"}
-                onChange={(value) => setForm((c) => ({ ...c, roles: value }))}
-                openDropdown={openDropdown}
-                setOpenDropdown={setOpenDropdown}
-              />
               <MultiChoiceField
                 id="benefits"
                 label="Quyền lợi / đãi ngộ"
@@ -1121,35 +1009,14 @@ export default function FormEditJob({
                 onChange={(value) => setForm((c) => ({ ...c, benefits: value }))}
                 openDropdown={openDropdown}
                 setOpenDropdown={setOpenDropdown}
+                showCustomInput
               />
-              <MultiChoiceField
-                id="industries"
-                label="Lĩnh vực công việc"
-                value={form.industries}
-                options={INDUSTRY_OPTIONS}
-                placeholder={"Nhập thêm lĩnh vực khác, mỗi dòng một mục"}
-                onChange={(value) => setForm((c) => ({ ...c, industries: value }))}
-                openDropdown={openDropdown}
-                setOpenDropdown={setOpenDropdown}
-              />
-              <MultiChoiceField
-                id="targetProfiles"
-                label="Nhóm Talent phù hợp"
-                value={form.targetProfiles}
-                options={TARGET_PROFILE_OPTIONS}
-                placeholder={"Nhập thêm nhóm Talent khác, mỗi dòng một mục"}
-                onChange={(value) => setForm((c) => ({ ...c, targetProfiles: value }))}
-                openDropdown={openDropdown}
-                setOpenDropdown={setOpenDropdown}
-              />
+            </div>
+          )}
 
-              <CampaignPositionsSection
-                positions={form.campaignPositions}
-                onAdd={addCampaignPosition}
-                onRemove={removeCampaignPosition}
-                onChange={updateCampaignPosition}
-              />
-
+          {/* STEP 3: Yêu cầu */}
+          {formStep === 3 && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               {/* Yêu cầu ngoại hình */}
               <div className="rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
                 <span className="text-xs font-black uppercase tracking-wider text-amber-300 block mb-3 text-left">
@@ -1204,11 +1071,34 @@ export default function FormEditJob({
                   />
                 </div>
               </div>
+
+              <label className="space-y-1.5 block rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 text-left shadow-md">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-300 block">
+                  Yêu cầu khác
+                </span>
+                <span className="block text-[10px] font-semibold text-slate-400">
+                  Mỗi dòng là một yêu cầu tuyển dụng bổ sung.
+                </span>
+                <textarea
+                  value={form.requirements}
+                  onChange={(event) => setForm((c) => ({ ...c, requirements: event.target.value }))}
+                  rows={4}
+                  placeholder={"Ví dụ:\nCó hình ảnh cá nhân chuyên nghiệp\nCó khả năng làm việc theo brief\nĐúng giờ và phối hợp tốt với ekip"}
+                  className="mt-3 w-full resize-y rounded-xl border border-slate-700/80 bg-slate-950/60 px-3.5 py-2.5 text-xs leading-relaxed text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                />
+              </label>
+
+              <CampaignPositionsSection
+                positions={form.campaignPositions}
+                onAdd={addCampaignPosition}
+                onRemove={removeCampaignPosition}
+                onChange={updateCampaignPosition}
+              />
             </div>
           )}
 
-          {/* STEP 5: Hoàn tất */}
-          {formStep === 5 && (
+          {/* STEP 4: Sự kiện */}
+          {formStep === 4 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <CampaignEventsSection
                 events={form.campaignEvents}
@@ -1217,94 +1107,6 @@ export default function FormEditJob({
                 onRemove={removeCampaignEvent}
                 onChange={updateCampaignEvent}
               />
-
-              <div className="rounded-2xl border border-slate-700/80 bg-slate-900/90 p-5 text-left space-y-4 shadow-md">
-                {/* Header */}
-                <div className="flex flex-col gap-3 border-b border-slate-800 pb-4 sm:flex-row sm:items-start sm:justify-between text-left">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/40 bg-amber-400/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
-                      <ImagePlus className="h-5 w-5 text-amber-300" />
-                    </div>
-                    <div>
-                      <h2 className="text-xs font-black uppercase tracking-wider text-white">Bộ ảnh job</h2>
-                      <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Tải lên các hình ảnh bạn muốn dùng cho job (Tối đa 10 ảnh)
-                      </p>
-                    </div>
-                  </div>
-                  <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300 shrink-0">
-                    {campaignImages.length}/10 ảnh
-                  </span>
-                </div>
-
-                {/* Horizontal Scroll List */}
-                <div className="flex gap-4 overflow-x-auto pb-3 custom-scrollbar snap-x">
-                  {/* Upload card (only show if < 10 images) */}
-                  {campaignImages.length < 10 && (
-                    <label className="group relative flex aspect-[4/5] w-[130px] shrink-0 snap-start cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-amber-400/40 bg-amber-500/5 p-4 text-center transition-all hover:border-amber-400 hover:bg-amber-500/10">
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        multiple
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files || []);
-                          handleImagesAdd(files);
-                        }}
-                        className="hidden"
-                      />
-                      <ImagePlus className="mb-2 h-7 w-7 text-amber-400 transition-transform duration-200 group-hover:scale-110" />
-                      <span className="text-[10px] font-black uppercase tracking-wider text-white">
-                        Tải ảnh lên
-                      </span>
-                      <span className="mt-1 text-[9px] font-medium leading-relaxed text-slate-400">
-                        JPG, PNG hoặc WebP
-                      </span>
-                    </label>
-                  )}
-
-                  {/* Previews */}
-                  {imagePreviews.map((url, idx) => (
-                    <div key={idx} className="group relative aspect-[4/5] w-[130px] shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-700 bg-slate-950 shadow-md">
-                      <img
-                        src={url}
-                        alt="Campaign preview"
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.05] cursor-pointer"
-                        onClick={() => setPreviewImage(url)}
-                      />
-
-                      {/* Delete button (X) */}
-                      <button
-                        type="button"
-                        onClick={() => handleImageDelete(idx)}
-                        className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg backdrop-blur transition hover:border-red-500 hover:bg-red-500 cursor-pointer"
-                        title="Xóa ảnh"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-
-                      {/* Edit button (Pencil) */}
-                      <label className="absolute right-12 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg backdrop-blur transition hover:border-amber-300 hover:bg-amber-300 hover:text-slate-950">
-                        <Pencil className="h-3.5 w-3.5" />
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleImageReplace(idx, file);
-                          }}
-                          className="hidden"
-                        />
-                      </label>
-
-                      {idx === 0 && (
-                        <span className="absolute bottom-2 left-2 bg-gradient-to-r from-amber-300 to-yellow-500 text-slate-950 text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-md">
-                          Cover
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
 
               {/* Summary preview */}
               <div className="rounded-2xl border border-amber-500/30 bg-slate-900/90 p-4 space-y-4 shadow-md">
@@ -1316,8 +1118,7 @@ export default function FormEditJob({
                   <SummarySection title="Thông tin cơ bản">
                     <SummaryGrid>
                       <SummaryField label="Tiêu đề job" value={form.title} wide />
-                      <SummaryField label="Loại hình job" value={form.jobType} />
-                      <SummaryField label="Số lượng cần tuyển" value={form.talentQuantity} />
+                      <SummaryList label="Lĩnh vực công việc" items={splitOptionText(form.industries)} />
                       <SummaryField label="Thù lao" value={form.budgetNegotiable ? "Thỏa thuận" : form.budget} wide />
                     </SummaryGrid>
                   </SummarySection>
@@ -1329,7 +1130,6 @@ export default function FormEditJob({
                       <SummaryField label="Ngày bắt đầu" value={form.startDate} />
                       <SummaryField label="Ngày kết thúc" value={form.endDate} />
                       <SummaryField label="Hạn ứng tuyển" value={form.applicationDeadline} />
-                      <SummaryField label="Ngày sự kiện chính" value={form.eventDate} />
                     </SummaryGrid>
                   </SummarySection>
 
@@ -1337,18 +1137,16 @@ export default function FormEditJob({
                     <SummaryGrid>
                       <SummaryField label="Mô tả công việc" value={form.description} wide multiline />
                       <SummaryList label="Đầu việc chi tiết" items={splitOptionText(form.responsibilities)} />
+                      <SummaryList label="Quyền lợi / đãi ngộ" items={splitOptionText(form.benefits)} />
                     </SummaryGrid>
                   </SummarySection>
 
                   <SummarySection title="Yêu cầu">
                     <SummaryGrid>
-                      <SummaryList label="Vị trí tuyển" items={splitOptionText(form.roles)} />
-                      <SummaryList label="Quyền lợi / đãi ngộ" items={splitOptionText(form.benefits)} />
-                      <SummaryList label="Lĩnh vực công việc" items={splitOptionText(form.industries)} />
-                      <SummaryList label="Nhóm Talent phù hợp" items={splitOptionText(form.targetProfiles)} />
                       <SummaryField label="Chiều cao tối thiểu" value={form.heightMin ? `${form.heightMin} cm` : ""} />
                       <SummaryField label="Cân nặng tối đa" value={form.weightMax ? `${form.weightMax} kg` : ""} />
                       <SummaryField label="Kinh nghiệm tối thiểu" value={form.experienceMin ? `${form.experienceMin} năm` : ""} />
+                      <SummaryField label="Yêu cầu khác" value={form.requirements} wide multiline />
                     </SummaryGrid>
                   </SummarySection>
 
@@ -1434,6 +1232,174 @@ export default function FormEditJob({
         )}
 
       </form>
+    </div>
+  );
+}
+
+function JobTitleInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="space-y-1.5 block">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1">
+        {label}
+      </span>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        required
+        rows={2}
+        wrap="soft"
+        placeholder="Nhập tiêu đề job"
+        className="min-h-[3.25rem] w-full resize-y rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs leading-relaxed text-slate-100 outline-none shadow-inner transition-all placeholder:text-slate-500 hover:border-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 break-words [overflow-wrap:anywhere]"
+      />
+    </label>
+  );
+}
+
+function DateTimeSplitInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [datePart = "", timePart = ""] = String(value || "").split("T");
+  const validTimePart = /^\d{2}:\d{2}$/.test(timePart) ? timePart : timePart || "00:00";
+
+  const handleDateChange = (nextDate: string) => {
+    onChange(`${nextDate}T${validTimePart}`);
+  };
+
+  const handleTimeChange = (nextTime: string) => {
+    onChange(`${datePart || currentDateTimeInputValue().slice(0, 10)}T${nextTime}`);
+  };
+
+  return (
+    <label className="space-y-1.5 block">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">{label}</span>
+      <div className="grid grid-cols-[minmax(0,1fr)_6.75rem] gap-2">
+        <input
+          type="date"
+          value={datePart}
+          onChange={(event) => handleDateChange(event.target.value)}
+          className="min-w-0 w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none shadow-inner transition-all hover:border-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+        />
+        <TimePickerInput value={validTimePart} onChange={handleTimeChange} />
+      </div>
+    </label>
+  );
+}
+
+function DateOnlyInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="space-y-1.5 block">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">{label}</span>
+      <input
+        type="date"
+        value={parseVietnameseDateToYYYYMMDD(value)}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-xl border border-slate-700/80 bg-slate-950/70 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+      />
+    </label>
+  );
+}
+
+function JobImagesUploadSection({
+  campaignImagesCount,
+  imagePreviews,
+  onImagesAdd,
+  onImageReplace,
+  onImageDelete,
+  onPreviewImage,
+}: {
+  campaignImagesCount: number;
+  imagePreviews: string[];
+  onImagesAdd: (files: File[]) => void;
+  onImageReplace: (index: number, file: File) => void;
+  onImageDelete: (index: number) => void;
+  onPreviewImage: (url: string) => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 text-left shadow-md sm:col-span-2">
+      <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
+        <div>
+          <span className="block text-xs font-black uppercase tracking-wider text-amber-300">Bộ ảnh job</span>
+          <span className="mt-1 block text-[11px] font-medium text-slate-400">
+            Tải tối đa 10 ảnh. Ảnh đầu tiên sẽ là cover.
+          </span>
+        </div>
+        <span className="shrink-0 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">
+          {campaignImagesCount}/10 ảnh
+        </span>
+      </div>
+      <div className="mt-4 flex gap-3 overflow-x-auto pb-2 custom-scrollbar snap-x">
+        {campaignImagesCount < 10 && (
+          <label className="group relative flex aspect-[4/5] w-[130px] shrink-0 snap-start cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-amber-400/40 bg-amber-500/5 p-4 text-center transition-all hover:border-amber-400 hover:bg-amber-500/10">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={(event) => onImagesAdd(Array.from(event.target.files || []))}
+              className="hidden"
+            />
+            <ImagePlus className="mb-2 h-7 w-7 text-amber-400 transition-transform duration-200 group-hover:scale-110" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-white">Tải ảnh</span>
+            <span className="mt-1 text-[9px] font-medium leading-relaxed text-slate-400">JPG, PNG, WebP</span>
+          </label>
+        )}
+        {imagePreviews.map((url, idx) => (
+          <div key={url} className="group relative aspect-[4/5] w-[130px] shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-700 bg-slate-950 shadow-md">
+            <img
+              src={url}
+              alt="Job preview"
+              className="h-full w-full cursor-pointer object-cover transition duration-300 group-hover:scale-[1.05]"
+              onClick={() => onPreviewImage(url)}
+            />
+            <button
+              type="button"
+              onClick={() => onImageDelete(idx)}
+              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg backdrop-blur transition hover:border-red-500 hover:bg-red-500"
+              title="Xóa ảnh"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+            <label className="absolute right-12 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg backdrop-blur transition hover:border-amber-300 hover:bg-amber-300 hover:text-slate-950">
+              <Pencil className="h-3.5 w-3.5" />
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) onImageReplace(idx, file);
+                }}
+                className="hidden"
+              />
+            </label>
+            {idx === 0 && (
+              <span className="absolute bottom-2 left-2 rounded-full bg-gradient-to-r from-amber-300 to-yellow-500 px-2 py-0.5 text-[9px] font-black uppercase text-slate-950 shadow-md">
+                Cover
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
