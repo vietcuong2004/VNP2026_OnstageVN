@@ -19,7 +19,6 @@ import {
   Download,
   QrCode,
   X,
-  Phone,
   Mail,
   ShieldCheck,
   Eye,
@@ -67,13 +66,6 @@ import FormEditJob from "./edit-job/FormEditJob";
 
 function isBackendRecordId(id?: string | number | null) {
   return /^\d+$/.test(String(id || ""));
-}
-
-function getTalentPhone(talent: any, applicant: any): string {
-  if (talent?.phone && String(talent.phone).trim()) return String(talent.phone).trim();
-  if (applicant?.phone && String(applicant.phone).trim()) return String(applicant.phone).trim();
-  if (talent?.user?.phone && String(talent.user.phone).trim()) return String(talent.user.phone).trim();
-  return "0988 654 321";
 }
 
 function getTalentEmail(talent: any, applicant: any): string {
@@ -768,13 +760,6 @@ export default function CampaignDetailPage() {
               <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2.5 text-slate-300">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <Phone className="h-3 w-3" />
-                  </div>
-                  <span className="text-[10.5px] text-slate-400 font-medium">Số điện thoại:</span>
-                  <span className="font-bold text-white font-mono text-[11.5px] ml-auto">{activeOwner.phone}</span>
-                </div>
-                <div className="flex items-center gap-2.5 text-slate-300">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                     <Mail className="h-3 w-3" />
                   </div>
                   <span className="text-[10.5px] text-slate-400 font-medium">Email:</span>
@@ -809,7 +794,6 @@ export default function CampaignDetailPage() {
               : (referredByName ? { name: referredByName } : null);
             const referrerName = referrer?.name;
 
-            const talentPhone = getTalentPhone(talent, item);
             const talentEmail = getTalentEmail(talent, item);
 
             return (
@@ -852,13 +836,6 @@ export default function CampaignDetailPage() {
                     <span>Thông tin liên hệ</span>
                   </div>
                   <div className="space-y-2 text-xs">
-                    <div className="flex items-center gap-2.5 text-slate-300">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                        <Phone className="h-3 w-3" />
-                      </div>
-                      <span className="text-[10.5px] text-slate-400 font-medium">Số điện thoại:</span>
-                      <span className="font-bold text-white font-mono text-[11.5px] ml-auto">{talentPhone}</span>
-                    </div>
                     <div className="flex items-center gap-2.5 text-slate-300">
                       <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
                         <Mail className="h-3 w-3" />

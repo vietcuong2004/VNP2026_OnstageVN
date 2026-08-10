@@ -124,7 +124,6 @@ export default function RewardsPage() {
                 <tr key={claim.id} className="border-b border-white/5 last:border-transparent">
                   <td className="py-4 font-bold text-white">
                     <span>{claim.name}</span>
-                    <span className="block text-[8px] text-slate-500 font-mono mt-0.5">{claim.phone}</span>
                   </td>
                   <td className="py-4">
                     <span className="text-[10px] font-bold text-amber-400">{claim.tier}</span>

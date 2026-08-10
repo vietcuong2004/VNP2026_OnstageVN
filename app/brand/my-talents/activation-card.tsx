@@ -179,7 +179,7 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
                         />
                         <div className="min-w-0">
                           <p className="truncate text-sm font-black text-white">{talent.name}</p>
-                          <p className="truncate text-xs font-semibold text-slate-500">{talent.phone || talent.email || "Chưa có thông tin liên hệ"}</p>
+                          <p className="truncate text-xs font-semibold text-slate-500">{talent.email || "Chưa có email liên hệ"}</p>
                         </div>
                       </div>
                       

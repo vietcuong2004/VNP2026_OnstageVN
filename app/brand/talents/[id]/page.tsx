@@ -31,7 +31,6 @@ import {
   ChevronDown,
   ChevronUp,
   Mail,
-  Phone,
   Globe,
   FileText,
   Video,
