@@ -32,6 +32,7 @@ function getPageTitle(pathname?: string | null) {
     "/brand/dashboard": "Bảng điều khiển",
     "/brand/search": "Tìm kiếm Idol",
     "/brand/shortlists": "Idol đã lưu",
+    "/brand/my-bookings": "Quản lý Booking",
     "/brand/manage-jobs": "Quản lý việc làm",
     "/brand/manage-jobs/create-job": "Tạo job mới",
     "/brand/my-talents": "Quản lý Idol",
@@ -68,13 +69,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isTalentSurvey = pathname === "/talent/survey";
   const isBrandSearch = pathname === "/brand/search";
   const isBrandShortlists = pathname === "/brand/shortlists";
+  const isBrandMyBookings = pathname === "/brand/my-bookings";
   const isBrandCreateJob = pathname === "/brand/manage-jobs/create-job";
   const isTalentJobs = pathname === "/talent/jobs";
   const isTalentSavedJobs = pathname === "/talent/jobs/saved-jobs";
   const isBooking = pathname ? (pathname === "/booking" || pathname.endsWith("/booking") || pathname.endsWith("/booking-talent")) : false;
   const isBookingTalent = pathname ? pathname.endsWith("/booking-talent") : false;
   const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
-  const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isTalentJobs || isTalentSavedJobs || isBooking;
+  const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs || isBooking;
   const hideChrome = isBrandCreateJob || isBookingTalent;
 
   useEffect(() => {
@@ -138,7 +140,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     ? "p-0"
                     : cn(
                         "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",
-                        (isBrandSearch || isBrandShortlists || isTalentJobs || isTalentSavedJobs) && "pt-0 md:pt-7",
+                        (isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs) && "pt-0 md:pt-7",
                         isBooking && "p-0 md:px-8 md:py-7 md:pb-8"
                       ),
                   isTalentSurvey && "md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 md:pb-8"

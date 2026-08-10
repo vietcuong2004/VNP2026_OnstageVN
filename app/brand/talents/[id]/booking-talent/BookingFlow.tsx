@@ -247,8 +247,8 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
     <div className={cn("h-full min-h-0 text-slate-100", className)}>
       {/* ── STEP 2: CHỌN LOẠI CÔNG VIỆC ── */}
       {step === 2 && (
-        <div className="h-dvh w-full animate-in fade-in duration-300">
-          <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-[#070913]">
+        <div className="h-full w-full animate-in fade-in duration-300">
+          <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#070913]">
 
             {/* Top Right Close / Back Button */}
             <button
@@ -302,8 +302,8 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
 
       {/* ── STEP 3: NHẬP YÊU CẦU CHI TIẾT (FORM TÁCH VỚI HEADER & FOOTER CỐ ĐỊNH) ── */}
       {step === 8 && (
-        <div className="h-dvh w-full animate-in fade-in duration-300">
-          <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-[#070913]">
+        <div className="h-full w-full animate-in fade-in duration-300">
+          <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#070913]">
             <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-white/10 bg-[#070913]/95 px-5 backdrop-blur-md">
               <div className="flex items-center gap-3">
                 <button
@@ -456,8 +456,8 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
 
       {/* ── STEP 4: XÁC NHẬN THÔNG TIN & ĐẶT CỌC (HEADER & FOOTER CỐ ĐỊNH) ── */}
       {step === 4 && (
-        <div className="h-dvh w-full animate-in fade-in duration-300">
-          <form onSubmit={handleConfirmBooking} className="relative flex h-dvh w-full flex-col overflow-hidden bg-[#070913]">
+        <div className="h-full w-full animate-in fade-in duration-300">
+          <form onSubmit={handleConfirmBooking} className="relative flex h-full w-full flex-col overflow-hidden bg-[#070913]">
 
             {/* ── Fixed Header ── */}
             <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-white/10 bg-[#070913]/95 px-5 backdrop-blur-md">
@@ -645,7 +645,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
 
       {/* ── SUCCESS MODAL ── */}
       {step === 5 && (
-        <div className="flex h-dvh w-full flex-col overflow-hidden bg-[#070913] text-white animate-in fade-in duration-300">
+        <div className="flex h-full w-full flex-col overflow-hidden bg-[#070913] text-white animate-in fade-in duration-300">
           <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-white/10 bg-[#070913]/95 px-5 backdrop-blur-md">
             <button type="button" onClick={() => setStep(4)} className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5 text-amber-400">
               <ArrowLeft className="h-5 w-5" />
@@ -760,7 +760,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
       )}
 
       {step === 6 && (
-        <div className="flex h-dvh w-full flex-col overflow-hidden bg-[#070913] text-white animate-in fade-in duration-300">
+        <div className="flex h-full w-full flex-col overflow-hidden bg-[#070913] text-white animate-in fade-in duration-300">
           <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-white/10 bg-[#070913]/95 px-5 backdrop-blur-md">
             <button type="button" onClick={() => setStep(5)} className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5 text-amber-400">
               <ArrowLeft className="h-5 w-5" />
@@ -806,7 +806,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
       )}
 
       {step === 7 && (
-        <div className="flex h-dvh w-full flex-col items-center justify-center bg-[#070913] p-6 text-center text-white animate-in fade-in duration-300">
+        <div className="flex h-full w-full flex-col items-center justify-center bg-[#070913] p-6 text-center text-white animate-in fade-in duration-300">
           <div className="mb-10 flex h-24 w-24 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-400 shadow-[0_0_45px_rgba(52,211,153,0.28)]">
             <CheckCircle2 className="h-14 w-14" />
           </div>
@@ -829,9 +829,9 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
             type="button"
             onClick={() => {
               if (onSuccess) onSuccess();
-              else router.push("/brand/search");
+              else router.push("/brand/my-bookings");
             }}
-            className="mt-12 h-13 w-full max-w-sm rounded-2xl bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 text-xs font-black uppercase tracking-widest text-slate-950 shadow-[0_4px_25px_rgba(245,158,11,0.35)]"
+            className="mt-12 h-13 w-full max-w-sm rounded-2xl bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 text-xs font-black uppercase tracking-widest text-slate-950 shadow-[0_4px_25px_rgba(245,158,11,0.35)] cursor-pointer"
           >
             Xem yêu cầu của tôi
           </button>

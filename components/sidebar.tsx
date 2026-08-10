@@ -8,6 +8,7 @@ import {
   Bookmark,
   Briefcase,
   Building2,
+  CalendarCheck,
   CircleHelp,
   HelpCircle,
   Heart,
@@ -34,6 +35,7 @@ export const unifiedDiscoveryNavigation = [
 ];
 
 export const unifiedManagementNavigation = [
+  { label: "Quản lý Booking", icon: CalendarCheck, href: "/brand/my-bookings" },
   { label: "Quản lý việc làm", icon: Briefcase, href: "/brand/manage-jobs" },
   { label: "Quản lý Idol", icon: Users2, href: "/brand/my-talents" },
   { label: "Hợp tác", icon: Users2, href: "/talent/brands" },

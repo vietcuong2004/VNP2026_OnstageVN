@@ -3,7 +3,7 @@
 import React from "react";
 import { ArrowLeft, X } from "lucide-react";
 import BookingTimeFields from "./BookingTimeFields";
-import BookingTextarea from "./BookingTextarea";
+import TextArea from "@/components/ui/TextArea";
 
 export type BookingMCFormProps = {
   jobName: string;
@@ -53,8 +53,8 @@ export default function BookingMCForm({
   handleClose,
 }: BookingMCFormProps) {
   return (
-    <div className="h-dvh w-full animate-in fade-in duration-300">
-      <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-[#070913]">
+    <div className="h-full w-full animate-in fade-in duration-300">
+      <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#070913]">
 
         {/* ── Fixed Header ── */}
         <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-white/10 bg-[#070913]/95 px-5 backdrop-blur-md">
@@ -88,7 +88,7 @@ export default function BookingMCForm({
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Tiêu đề công việc:
             </label>
-            <BookingTextarea
+            <TextArea
               rows={2}
               value={jobName}
               onChange={(e) => setJobName(e.target.value)}
@@ -101,7 +101,7 @@ export default function BookingMCForm({
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Mô tả công việc:
             </label>
-            <BookingTextarea
+            <TextArea
               rows={3}
               value={mcJobDescription}
               onChange={(e) => setMcJobDescription(e.target.value)}
@@ -121,67 +121,63 @@ export default function BookingMCForm({
           />
 
           {/* Địa điểm (WrapText Multiline) */}
-          <div className="space-y-1.5 border-b border-white/5 pb-5">
-            <label className="block text-xs font-black uppercase tracking-wider text-amber-300">
-              Địa điểm
+          <div>
+            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
+              Địa điểm làm việc:
             </label>
-            <BookingTextarea
+            <TextArea
               rows={2}
               value={mcLocation}
               onChange={(e) => setMcLocation(e.target.value)}
-              placeholder="Nhập địa điểm sự kiện..."
-              className="w-full rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-medium text-white outline-none focus:border-amber-400 placeholder:text-slate-600 resize-none whitespace-pre-wrap break-words leading-relaxed"
+              placeholder="Nhập địa điểm làm việc..."
+              className="w-full resize-none whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-semibold leading-relaxed text-white outline-none placeholder:text-slate-600 focus:border-amber-400"
             />
           </div>
 
           {/* Ngôn ngữ */}
-          <div className="space-y-1.5 border-b border-white/5 pb-5">
-            <label className="block text-xs font-black uppercase tracking-wider text-amber-300">
-              Ngôn ngữ
+          <div>
+            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
+              Ngôn ngữ dẫn:
             </label>
             <select
               value={mcLanguage}
               onChange={(e) => setMcLanguage(e.target.value)}
-              className="h-12 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 text-xs font-semibold text-white outline-none focus:border-amber-400"
+              className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 text-xs font-semibold text-white outline-none focus:border-amber-400"
             >
               <option value="Tiếng Việt">Tiếng Việt</option>
-              <option value="Tiếng Anh">Tiếng Anh</option>
               <option value="Song ngữ Việt - Anh">Song ngữ Việt - Anh</option>
-              <option value="Tiếng Trung">Tiếng Trung</option>
-              <option value="Tiếng Hàn">Tiếng Hàn</option>
-              <option value="Tiếng Nhật">Tiếng Nhật</option>
+              <option value="Tiếng Anh">Tiếng Anh</option>
             </select>
           </div>
 
           {/* Kinh nghiệm */}
-          <div className="space-y-1.5 border-b border-white/5 pb-5">
-            <label className="block text-xs font-black uppercase tracking-wider text-amber-300">
-              Kinh nghiệm
+          <div>
+            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
+              Kinh nghiệm:
             </label>
             <select
               value={mcExperience}
               onChange={(e) => setMcExperience(e.target.value)}
-              className="h-12 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 text-xs font-semibold text-white outline-none focus:border-amber-400"
+              className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 text-xs font-semibold text-white outline-none focus:border-amber-400"
             >
               <option value="Không yêu cầu">Không yêu cầu</option>
               <option value="Dưới 1 năm">Dưới 1 năm</option>
               <option value="1 - 3 năm">1 - 3 năm</option>
-              <option value="3 - 5 năm">3 - 5 năm</option>
-              <option value="Trên 5 năm (Sự kiện lớn)">Trên 5 năm (Sự kiện lớn)</option>
+              <option value="Trên 3 năm">Trên 3 năm</option>
             </select>
           </div>
 
-          {/* Ghi chú thêm (WrapText Multiline) */}
+          {/* Yêu cầu thêm (WrapText Multiline) */}
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-amber-300 mb-1.5">
-              Ghi chú thêm
+            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
+              Yêu cầu thêm:
             </label>
-            <BookingTextarea
+            <TextArea
               rows={3}
               value={extraRequirements}
               onChange={(e) => setExtraRequirements(e.target.value)}
-              placeholder="Nhập ghi chú (không bắt buộc)"
-              className="w-full rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-medium text-white outline-none focus:border-amber-400 placeholder:text-slate-600 resize-none whitespace-pre-wrap break-words leading-relaxed"
+              placeholder="Nhập yêu cầu thêm về trang phục, kịch bản..."
+              className="w-full resize-none whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-semibold leading-relaxed text-white outline-none placeholder:text-slate-600 focus:border-amber-400"
             />
           </div>
         </div>
@@ -191,12 +187,11 @@ export default function BookingMCForm({
           <button
             type="button"
             onClick={onNext}
-            className="w-full h-13 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-slate-950 text-xs md:text-sm font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-[0_4px_25px_rgba(245,158,11,0.35)]"
+            className="flex h-13 w-full cursor-pointer items-center justify-center rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-xs font-black uppercase tracking-widest text-slate-950 shadow-[0_4px_25px_rgba(245,158,11,0.35)] transition-all hover:brightness-110 active:scale-[0.98] md:text-sm"
           >
-            Tiếp theo
+            Tiếp tục
           </button>
         </div>
-
       </div>
     </div>
   );

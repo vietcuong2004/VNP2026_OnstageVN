@@ -3,7 +3,7 @@
 import React from "react";
 import { ArrowLeft, X } from "lucide-react";
 import BookingTimeFields from "./BookingTimeFields";
-import BookingTextarea from "./BookingTextarea";
+import TextArea from "@/components/ui/TextArea";
 
 export type BookingLookbookFormProps = {
   jobName: string;
@@ -56,8 +56,8 @@ export default function BookingLookbookForm({
   ];
 
   return (
-    <div className="h-dvh w-full animate-in fade-in duration-300">
-      <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-[#070913]">
+    <div className="h-full w-full animate-in fade-in duration-300">
+      <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#070913]">
 
         {/* ── Fixed Header ── */}
         <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-white/10 bg-[#070913]/95 px-5 backdrop-blur-md">
@@ -71,7 +71,7 @@ export default function BookingLookbookForm({
               <ArrowLeft className="h-5 w-5 text-amber-400" />
             </button>
             <h2 className="text-lg md:text-xl font-black text-white tracking-tight">
-              Yêu cầu chi tiết - Lookbook
+              Yêu cầu Lookbook
             </h2>
           </div>
 
@@ -86,12 +86,12 @@ export default function BookingLookbookForm({
         </div>
 
         {/* ── Scrollable Body ── */}
-        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5 pb-8 text-left sm:p-7 sm:pb-10">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5 pb-8 text-left sm:p-7 sm:pb-10">
           <div>
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Tiêu đề công việc:
             </label>
-            <BookingTextarea
+            <TextArea
               rows={2}
               value={jobName}
               onChange={(e) => setJobName(e.target.value)}
@@ -100,20 +100,7 @@ export default function BookingLookbookForm({
             />
           </div>
 
-          {/* Chủ đề */}
-          <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-amber-300 mb-1.5">
-              Chủ đề:
-            </label>
-            <BookingTextarea
-              rows={2}
-              value={lookbookTopic}
-              onChange={(e) => setLookbookTopic(e.target.value)}
-              placeholder="Nhập chủ đề cần chụp/quay"
-              className="w-full rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-medium text-white outline-none focus:border-amber-400 placeholder:text-slate-600 resize-none whitespace-pre-wrap break-words leading-relaxed"
-            />
-          </div>
-
+          {/* Thời gian */}
           <BookingTimeFields
             workDate={workDate}
             setWorkDate={setWorkDate}
@@ -123,65 +110,71 @@ export default function BookingLookbookForm({
             setEndTime={setEndTime}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {/* Phong cách */}
-            <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-amber-300 mb-1.5">
-                Phong cách:
-              </label>
-              <input
-                type="text"
-                value={lookbookStyle}
-                onChange={(e) => setLookbookStyle(e.target.value)}
-                placeholder="Nhập phong cách hoặc chọn gợi ý..."
-                className="h-12 w-full rounded-xl border border-white/10 bg-slate-950 px-3 text-xs font-semibold text-white outline-none placeholder:text-slate-600 focus:border-amber-400"
-              />
-              <datalist id="lookbook-style-suggestions">
-                <option value="Sang trọng & Dạ hội">Sang trọng & Dạ hội</option>
-                <option value="Thời trang đường phố">Thời trang đường phố</option>
-                <option value="Công sở & Elegance">Công sở & Elegance</option>
-                <option value="Thể thao & Dynamic">Thể thao & Dynamic</option>
-              </datalist>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {styleSuggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => setLookbookStyle(suggestion)}
-                    className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-bold text-slate-300 transition hover:border-amber-400/50 hover:text-amber-200 active:scale-95"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Chủ đề/Bộ sưu tập */}
+          <div>
+            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
+              Chủ đề / Tên BST:
+            </label>
+            <TextArea
+              rows={2}
+              value={lookbookTopic}
+              onChange={(e) => setLookbookTopic(e.target.value)}
+              placeholder="Nhập chủ đề chụp ảnh, BST..."
+              className="w-full resize-none whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-semibold leading-relaxed text-white outline-none placeholder:text-slate-600 focus:border-amber-400"
+            />
+          </div>
 
-            {/* Địa điểm (tùy chọn) */}
-            <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-amber-300 mb-1.5">
-                Địa điểm (tùy chọn):
-              </label>
-              <BookingTextarea
-                rows={2}
-                value={lookbookLocation}
-                onChange={(e) => setLookbookLocation(e.target.value)}
-                placeholder="Nhập địa điểm studio/outdoor"
-                className="w-full rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-medium text-white outline-none focus:border-amber-400 placeholder:text-slate-600 resize-none whitespace-pre-wrap break-words leading-relaxed"
-              />
+          {/* Phong cách */}
+          <div>
+            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
+              Phong cách mong muốn:
+            </label>
+            <input
+              type="text"
+              value={lookbookStyle}
+              onChange={(e) => setLookbookStyle(e.target.value)}
+              placeholder="Chọn hoặc nhập phong cách..."
+              className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 text-xs font-semibold text-white outline-none focus:border-amber-400"
+            />
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {styleSuggestions.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setLookbookStyle(item)}
+                  className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-slate-300 hover:border-amber-400/50 hover:text-amber-300"
+                >
+                  {item}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Yêu cầu thêm (tùy chọn) */}
+          {/* Địa điểm */}
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-amber-300 mb-1.5">
-              Yêu cầu thêm (tùy chọn):
+            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
+              Địa điểm chụp / Studio:
             </label>
-            <BookingTextarea
+            <TextArea
+              rows={2}
+              value={lookbookLocation}
+              onChange={(e) => setLookbookLocation(e.target.value)}
+              placeholder="Nhập tên studio hoặc địa điểm ngoại cảnh..."
+              className="w-full resize-none whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-semibold leading-relaxed text-white outline-none placeholder:text-slate-600 focus:border-amber-400"
+            />
+          </div>
+
+          {/* Yêu cầu thêm */}
+          <div>
+            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
+              Yêu cầu thêm:
+            </label>
+            <TextArea
               rows={3}
               value={extraRequirements}
               onChange={(e) => setExtraRequirements(e.target.value)}
-              placeholder="Ví dụ: Số lượng bộ trang phục, thợ trang điểm..."
-              className="w-full rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-medium text-white outline-none focus:border-amber-400 placeholder:text-slate-600 resize-none whitespace-pre-wrap break-words leading-relaxed"
+              placeholder="Nhập yêu cầu về trang điểm, trang phục..."
+              className="w-full resize-none whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-semibold leading-relaxed text-white outline-none placeholder:text-slate-600 focus:border-amber-400"
             />
           </div>
         </div>
@@ -191,12 +184,11 @@ export default function BookingLookbookForm({
           <button
             type="button"
             onClick={onNext}
-            className="w-full h-13 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-slate-950 text-xs md:text-sm font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-[0_4px_25px_rgba(245,158,11,0.35)]"
+            className="flex h-13 w-full cursor-pointer items-center justify-center rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-xs font-black uppercase tracking-widest text-slate-950 shadow-[0_4px_25px_rgba(245,158,11,0.35)] transition-all hover:brightness-110 active:scale-[0.98] md:text-sm"
           >
-            Tiếp theo
+            Tiếp tục
           </button>
         </div>
-
       </div>
     </div>
   );

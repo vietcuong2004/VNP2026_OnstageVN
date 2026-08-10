@@ -2,9 +2,9 @@
 
 import React, { useLayoutEffect, useRef } from "react";
 
-export type BookingTextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+export type TextAreaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-export default function BookingTextarea({ className = "", onChange, value, ...props }: BookingTextareaProps) {
+export default function TextArea({ className = "", onChange, value, ...props }: TextAreaProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const resize = () => {
