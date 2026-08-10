@@ -331,17 +331,6 @@ export default function BottomNavigation() {
                           <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.15em] text-transparent">
                             {section.title}
                           </span>
-                          {section.title !== "Cài đặt" && section.title !== "Hệ thống" && (
-                            <button
-                              type="button"
-                              onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
-                              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400/35 bg-amber-400/10 text-[10px] font-black text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.12)] transition-all hover:scale-105 hover:border-amber-300/70 hover:bg-amber-400/20 hover:text-white active:scale-95 cursor-pointer"
-                              aria-label={`Giải thích ${section.title}`}
-                              title={`Giải thích ${section.title}`}
-                            >
-                              <HelpCircle className="h-3 w-3" />
-                            </button>
-                          )}
                         </div>
                         <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
                           {section.items?.map((item) => {
@@ -438,30 +427,37 @@ export default function BottomNavigation() {
             );
           })}
 
-          <button
-            type="button"
-            onClick={() => setShowMoreMenu(true)}
-            className="group flex flex-col items-center justify-center gap-1 py-1 focus:outline-none cursor-pointer"
-          >
-            <div
-              className={cn(
-                "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
-                showMoreMenu
-                  ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white",
-              )}
-            >
-              <Menu className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-            </div>
-            <span
-              className={cn(
-                "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
-                showMoreMenu ? "text-amber-400 font-black" : "text-slate-500",
-              )}
-            >
-              Menu
-            </span>
-          </button>
+          {(() => {
+            const isPrimaryActive = primaryItems.some((item) => isActiveHref(item.href));
+            const isMenuActive = showMoreMenu || !isPrimaryActive;
+
+            return (
+              <button
+                type="button"
+                onClick={() => setShowMoreMenu((prev) => !prev)}
+                className="group flex flex-col items-center justify-center gap-1 py-1 focus:outline-none cursor-pointer"
+              >
+                <div
+                  className={cn(
+                    "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
+                    isMenuActive
+                      ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
+                      : "text-slate-400 hover:bg-white/5 hover:text-white",
+                  )}
+                >
+                  <Menu className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                </div>
+                <span
+                  className={cn(
+                    "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
+                    isMenuActive ? "text-amber-400 font-black" : "text-slate-500",
+                  )}
+                >
+                  Menu
+                </span>
+              </button>
+            );
+          })()}
         </nav>
       </div>
 

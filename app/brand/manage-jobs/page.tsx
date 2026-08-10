@@ -103,10 +103,7 @@ export default function CampaignsPage() {
           <div className="max-w-2xl">
             <div className="mb-3 flex items-center gap-2">
               <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-amber-400/40 bg-amber-400/10 text-amber-300">
-                Brand Portal
-              </span>
-              <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-yellow-400/20 bg-yellow-400/5 text-yellow-200">
-                Job Manager
+                QUẢN LÝ VIỆC LÀM
               </span>
             </div>
 

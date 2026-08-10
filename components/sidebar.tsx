@@ -26,38 +26,46 @@ import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/l
 import { getGuestDesktopNavigation } from "@/lib/public-navigation";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
-export const unifiedBrandNavigation = [
+export const unifiedDiscoveryNavigation = [
   { label: "Tìm kiếm Idol", icon: Search, href: "/brand/search" },
+  { label: "Cơ hội việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Idol đã lưu", icon: Heart, href: "/brand/shortlists" },
-  { label: "Quản lý việc làm", icon: Briefcase, href: "/brand/manage-jobs" },
-  // { label: "Quản lý cuộc thi", icon: Trophy, href: "/brand/manage-competitions" },
-  { label: "Quản lý Idol", icon: Users2, href: "/brand/my-talents" },
-  { label: "Thông tin brand", icon: Building2, href: "/brand/informations" },
+  { label: "Việc làm đã lưu", icon: Bookmark, href: "/talent/jobs/saved-jobs" },
 ];
 
-export const unifiedTalentNavigation = [
-  { label: "Cơ hội việc làm", icon: Briefcase, href: "/talent/jobs" },
-  { label: "Hồ sơ Idol", icon: User, href: "/talent/profile" },
-  { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
-  { label: "Hợp tác Brand", icon: Users2, href: "/talent/brands" },
+export const unifiedManagementNavigation = [
+  { label: "Quản lý việc làm", icon: Briefcase, href: "/brand/manage-jobs" },
+  { label: "Quản lý Idol", icon: Users2, href: "/brand/my-talents" },
+  { label: "Hợp tác", icon: Users2, href: "/talent/brands" },
 ];
 
 export const unifiedSystemNavigation = [
+  { label: "Hồ sơ cá nhân", icon: User, href: "/talent/profile" },
+  { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
   { label: "Về chúng tôi", icon: Info, href: "/about" },
   { label: "Cài đặt", icon: Settings, href: "/settings" },
 ];
 
+export const unifiedBrandNavigation = [
+  ...unifiedDiscoveryNavigation,
+  ...unifiedManagementNavigation,
+];
+
+export const unifiedTalentNavigation = [
+  ...unifiedSystemNavigation,
+];
+
 export const unifiedLoggedInNavigationSections = [
-  { title: "Dành cho Brand", icon: Briefcase, helpIcon: CircleHelp, items: unifiedBrandNavigation, href: undefined },
-  { title: "Dành cho Idol", icon: Sparkles, helpIcon: CircleHelp, items: unifiedTalentNavigation, href: undefined },
-  { title: "Hệ thống", icon: Settings, helpIcon: CircleHelp, items: unifiedSystemNavigation, href: undefined },
+  { title: "Khám phá & Booking", icon: Search, helpIcon: CircleHelp, items: unifiedDiscoveryNavigation, href: undefined },
+  { title: "Quản lý & Hợp tác", icon: Briefcase, helpIcon: CircleHelp, items: unifiedManagementNavigation, href: undefined },
+  { title: "Tài khoản & Hệ thống", icon: Settings, helpIcon: CircleHelp, items: unifiedSystemNavigation, href: undefined },
 ];
 
 export const unifiedLoggedInMobilePrimaryNavigation = [
-  unifiedBrandNavigation[0],
-  unifiedBrandNavigation[1],
-  unifiedTalentNavigation[0],
-  unifiedTalentNavigation[2],
+  unifiedDiscoveryNavigation[0],
+  unifiedDiscoveryNavigation[1],
+  unifiedDiscoveryNavigation[2],
+  unifiedDiscoveryNavigation[3],
 ];
 
 export function resolveUnifiedSettingsHref() {
@@ -210,26 +218,13 @@ export default function Sidebar() {
                     </Link>
                   ) : (
                     <>
-                      <div className="flex items-center justify-between gap-2 px-1 py-1 transition-all duration-300">
-                        <div className="flex items-center gap-3">
-                          <span className="text-amber-400 transition-transform duration-300 hover:rotate-12">
-                            <section.icon className="h-4.5 w-4.5" />
-                          </span>
-                          <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
-                            {section.title}
-                          </span>
-                        </div>
-                        {section.title !== "Cài đặt" && section.title !== "Hệ thống" && (
-                          <button
-                            type="button"
-                            onClick={() => setExplanationTab(section.title.includes("Brand") ? "brand" : "talent")}
-                            className="text-amber-400 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
-                            aria-label={`Giải thích ${section.title}`}
-                            title={`Giải thích ${section.title}`}
-                          >
-                            <HelpCircle className="h-4.5 w-4.5" />
-                          </button>
-                        )}
+                      <div className="flex items-center gap-3 px-1 py-1 transition-all duration-300">
+                        <span className="text-amber-400 transition-transform duration-300 hover:rotate-12">
+                          <section.icon className="h-4.5 w-4.5" />
+                        </span>
+                        <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
+                          {section.title}
+                        </span>
                       </div>
                       <div className="space-y-2 px-0.5">
                         {section.items?.map((item) => {

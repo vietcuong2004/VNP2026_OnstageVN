@@ -187,7 +187,7 @@ export default function DashboardPage() {
   const handleApply = async (job: any) => {
     if (!requireAuthAction({
       actionLabel: `Ứng tuyển chiến dịch "${job.title}"`,
-      description: "Bạn cần đăng nhập tài khoản Idol để ứng tuyển chiến dịch này và kết nối với Brand.",
+      description: "Bạn cần đăng nhập tài khoản Idol để ứng tuyển chiến dịch này và kết nối với Đối tác.",
     })) {
       return;
     }

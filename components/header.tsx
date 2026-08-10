@@ -356,12 +356,7 @@ export default function Header() {
 
   const dropdownItems = user
     ? [
-      ...(user.capabilities?.includes("talent")
-        ? [{ label: "Hồ sơ idol", href: "/talent/profile", icon: User }]
-        : []),
-      ...(user.capabilities?.includes("brand")
-        ? [{ label: "Thông tin Brand", href: "/brand/informations", icon: Building2 }]
-        : []),
+      { label: "Hồ sơ cá nhân", href: "/talent/profile", icon: User },
       { label: "Cài đặt", href: resolveUnifiedSettingsHref(), icon: Settings },
     ]
     : [];

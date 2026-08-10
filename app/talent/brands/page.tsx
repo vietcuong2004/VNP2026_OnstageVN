@@ -223,7 +223,7 @@ export default function TalentBrandsPage() {
       console.warn("Cannot accept brand invitation from backend", error);
       save(invitations.map(i => i.id === invId ? { ...i, status: "accepted" as const } : i));
     }
-    addToast("Đã chấp nhận lời mời hợp tác Brand! Manager sẽ sớm liên hệ với bạn.", "success");
+    addToast("Đã chấp nhận lời mời hợp tác! Quản lý sẽ sớm liên hệ với bạn.", "success");
   };
 
   const handleDecline = async (invId: string) => {
@@ -257,7 +257,7 @@ export default function TalentBrandsPage() {
       setInvitations((current) => current.map((item) => item.id === invitation.id ? nextInvitation : item));
     } catch (error) {
       console.warn("Cannot load talent child invite link", error);
-      addToast("Chưa thể tải link mời riêng cho Brand này.", "info");
+      addToast("Chưa thể tải link mời riêng cho đối tác này.", "info");
     } finally {
       setIsLoadingInviteLink(false);
     }
@@ -315,7 +315,7 @@ export default function TalentBrandsPage() {
 
     const { code, talentSlug } = extractInviteParts(inviteLinkValue);
     if (!code) {
-      addToast("Vui lòng nhập link hoặc mã mời Brand.", "info");
+      addToast("Vui lòng nhập link hoặc mã mời hợp tác.", "info");
       return;
     }
 
@@ -328,7 +328,7 @@ export default function TalentBrandsPage() {
 
   const statusConfig = {
     pending: { label: "Đang chờ phản hồi", dot: "bg-amber-400 animate-pulse", text: "text-amber-400", bg: "bg-amber-500/5 border-amber-500/20" },
-    accepted: { label: "Đã hợp tác Brand", dot: "bg-emerald-400", text: "text-emerald-400", bg: "bg-emerald-500/5 border-emerald-500/20" },
+    accepted: { label: "Đã hợp tác", dot: "bg-emerald-400", text: "text-emerald-400", bg: "bg-emerald-500/5 border-emerald-500/20" },
     declined: { label: "Đã từ chối", dot: "bg-red-400", text: "text-red-400", bg: "bg-red-500/5 border-red-500/10" },
   };
 
@@ -338,11 +338,11 @@ export default function TalentBrandsPage() {
       <div className="border-b border-white/5 pb-4 md:pb-5">
         <div className="mb-2 flex items-center gap-2">
           <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-            HỢP TÁC BRAND
+            MẠNG LƯỚI HỢP TÁC
           </span>
         </div>
         <h1 className="font-display text-xl md:text-2xl font-black text-white tracking-tight uppercase leading-none">
-          Hợp tác Brand
+          Danh sách Hợp tác
         </h1>
         <p className="text-[11px] md:text-xs text-slate-400 mt-2 font-medium leading-relaxed">
           Xem lời mời từ các đối tác muốn thêm bạn vào mạng lưới hợp tác của họ.
@@ -351,7 +351,7 @@ export default function TalentBrandsPage() {
 
       {/* ── Top Layout Grid ── */}
       <div className="grid gap-6 lg:grid-cols-12 items-stretch">
-        {/* Cột Trái: Nhập link tham gia Brand */}
+        {/* Cột Trái: Nhập link tham gia Hợp tác */}
         <form
           onSubmit={handleAcceptInviteLink}
           className="lg:col-span-5 flex flex-col justify-between rounded-2xl bg-gradient-to-b from-[#221809] via-[#0f0e13] to-[#070913] border border-amber-500/40 p-5 md:p-6 shadow-[0_0_50px_rgba(245,158,11,0.06)] relative overflow-hidden group hover:border-amber-400/60 hover:shadow-[0_0_60px_rgba(245,158,11,0.12)] transition-all duration-300 min-h-[340px]"
@@ -366,10 +366,10 @@ export default function TalentBrandsPage() {
               </div>
               <div>
                 <h3 className="text-sm font-black uppercase tracking-widest text-amber-300">
-                  Nhập link tham gia Brand
+                  Nhập link tham gia Hợp tác
                 </h3>
                 <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-400 mt-1 inline-block">
-                  BRAND PARTNERSHIP
+                  PARTNERSHIP
                 </span>
               </div>
             </div>
@@ -387,7 +387,7 @@ export default function TalentBrandsPage() {
               <input
                 value={inviteLinkValue}
                 onChange={(event) => setInviteLinkValue(event.target.value)}
-                placeholder="https://onstage.vn/ref/ten-brand"
+                placeholder="https://onstage.vn/ref/ma-doi-tac"
                 className="h-12 w-full rounded-xl border border-amber-500/25 bg-black/55 px-4 text-xs font-semibold text-white outline-none placeholder:text-slate-600 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all shadow-inner text-amber-100"
               />
             </div>
@@ -413,7 +413,7 @@ export default function TalentBrandsPage() {
                 <Network className="h-5.5 w-5.5 text-amber-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-xs font-black text-amber-300 uppercase tracking-widest">Hợp tác Brand là gì?</h3>
+                <h3 className="text-xs font-black text-amber-300 uppercase tracking-widest">Mạng lưới Hợp tác là gì?</h3>
                 <p className="text-[11px] text-slate-300 mt-2 leading-relaxed font-medium">
                   Khi bạn tham gia vào <strong className="text-white">mạng lưới hợp tác</strong>, hệ thống sẽ ghi nhận người giới thiệu trực tiếp và áp dụng chính sách thù lao/hoa hồng theo cấu hình từng campaign.
                 </p>
@@ -442,7 +442,7 @@ export default function TalentBrandsPage() {
               ))}
             </div>
             <p className="text-[9.5px] text-slate-500 mt-4 text-center font-semibold uppercase tracking-wider leading-relaxed">
-              💡 Bạn vẫn tự do nhận job ngoài — Hợp tác Brand là kênh tăng thêm cơ hội được booking trực tiếp từ các Agency lớn.
+              💡 Bạn vẫn tự do nhận job ngoài — Tham gia hợp tác giúp tăng thêm cơ hội được booking trực tiếp từ các Agency & Khách hàng.
             </p>
           </div>
         </div>
@@ -548,7 +548,7 @@ export default function TalentBrandsPage() {
       {accepted.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 border-b border-white/5 pb-2">
-            <CheckCircle className="h-4 w-4 text-emerald-400" /> Các Brand đang hợp tác
+            <CheckCircle className="h-4 w-4 text-emerald-400" /> Các Đối tác đang hợp tác
           </h2>
           {accepted.map(inv => (
             <div
@@ -610,7 +610,7 @@ export default function TalentBrandsPage() {
                 <div className="space-y-1 text-left">
                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Người giới thiệu</span>
                   <span className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
-                    <Users2 className="h-4 w-4 text-emerald-450 shrink-0" /> {inv.invitedBy || "Trực tiếp từ Brand"}
+                    <Users2 className="h-4 w-4 text-emerald-450 shrink-0" /> {inv.invitedBy || "Trực tiếp từ Đối tác"}
                   </span>
                 </div>
                 <div className="space-y-1 text-left min-w-0">
@@ -716,7 +716,7 @@ export default function TalentBrandsPage() {
                     "text-[10px] font-black uppercase tracking-[0.22em]",
                     selectedInvitation.status === "pending" ? "text-amber-400" : "text-emerald-300"
                   )}>
-                    {selectedInvitation.status === "pending" ? "Lời mời hợp tác Brand" : "Chi tiết hợp tác Brand"}
+                    {selectedInvitation.status === "pending" ? "Lời mời hợp tác" : "Chi tiết hợp tác"}
                   </p>
                   <h3 className="mt-2 text-base md:text-lg font-black text-white">{selectedInvitation.managerBrand}</h3>
                   <p className="mt-1 text-xs font-semibold text-slate-405">Quản lý trực tiếp: <span className="text-white font-bold">{selectedInvitation.managerName}</span> ({selectedInvitation.managerTier})</p>
@@ -752,7 +752,7 @@ export default function TalentBrandsPage() {
                   <p className="mt-2 text-sm font-black text-white">{Math.round(selectedInvitation.commissionRate * 100)}% / JOB</p>
                 </div>
                 <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-cyan-300">Idol của Brand</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-cyan-300">Thành viên mạng lưới</p>
                   <p className="mt-2 text-sm font-black text-white">{selectedInvitation.members?.length || selectedInvitation.childCount || 0}</p>
                 </div>
               </div>
@@ -804,11 +804,11 @@ export default function TalentBrandsPage() {
 
 
 
-              {/* ── Danh sách Talent của Brand (Hiển thị cho cả 2 trạng thái ở dưới cùng) ── */}
+              {/* ── Danh sách Thành viên mạng lưới (Hiển thị cho cả 2 trạng thái ở dưới cùng) ── */}
               <div className="mt-5 rounded-2xl border border-[#151b2d] bg-[#050711] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-widest text-white">Danh sách Idol của Brand</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-white">Danh sách thành viên mạng lưới</p>
                     <p className="mt-1 text-[10px] text-slate-500">
                       Tất cả người dùng đang thuộc mạng lưới liên kết này, dù được mời trực tiếp hay qua người giới thiệu khác.
                     </p>
@@ -837,7 +837,7 @@ export default function TalentBrandsPage() {
                             Tham gia: {member.joinedAt || "Chưa cập nhật"}
                           </p>
                           <p className="mt-0.5 text-[10px] font-semibold text-slate-500">
-                            Được mời bởi: <span className="font-bold text-slate-300">{member.invitedBy || "Brand"}</span>
+                            Được mời bởi: <span className="font-bold text-slate-300">{member.invitedBy || "Đối tác"}</span>
                           </p>
                         </div>
                         <span className="rounded-md border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 text-[9px] font-black uppercase text-emerald-300">

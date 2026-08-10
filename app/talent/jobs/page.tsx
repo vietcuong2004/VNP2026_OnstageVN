@@ -1385,7 +1385,7 @@ function JobsPageContent() {
                     setIsJobSuggestOpen(false);
                   }
                 }}
-                placeholder="Tìm job theo tên, brand, loại công việc..."
+                placeholder="Tìm job theo tên, nhà tuyển dụng, loại công việc..."
                 className="h-[50px] w-full rounded-2xl border border-white/10 bg-slate-950/60 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500"
               />
               {searchInput && (

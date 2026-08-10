@@ -118,7 +118,7 @@ export default function SurveyPage() {
   const resultItems = [
     { icon: User, label: "Hồ sơ Idol chuyên nghiệp" },
     { icon: Heart, label: "Sẵn sàng nhận lời mời booking" },
-    { icon: Search, label: "Xuất hiện trong kết quả tìm kiếm của Brand" },
+    { icon: Search, label: "Xuất hiện trong kết quả tìm kiếm Idol" },
   ];
 
   return (
@@ -349,7 +349,7 @@ export default function SurveyPage() {
               <div className="mt-6 flex items-start gap-3 rounded-xl border border-[#D4A64A]/10 bg-[#D4A64A]/5 p-4">
                 <Info className="mt-0.5 h-4.5 w-4.5 shrink-0 text-[#F0C56B]" />
                 <div className="text-left text-[11px] leading-relaxed text-slate-400 md:text-xs">
-                  <strong className="font-bold text-[#F0C56B]">Gợi ý:</strong> Hồ sơ có ảnh rõ ràng, portfolio đầy đủ và thông tin liên hệ chính xác sẽ giúp brand đánh giá nhanh hơn khi tìm kiếm Idol phù hợp.
+                  <strong className="font-bold text-[#F0C56B]">Gợi ý:</strong> Hồ sơ có ảnh rõ ràng, portfolio đầy đủ và thông tin liên hệ chính xác sẽ giúp đối tác đánh giá nhanh hơn khi tìm kiếm Idol phù hợp.
                 </div>
               </div>
             </div>

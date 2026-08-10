@@ -392,7 +392,7 @@ export default function SavedJobsPage() {
           </p>
           <p className="mx-auto mt-2 max-w-sm text-xs font-semibold leading-relaxed text-slate-500">
             {searchInput
-              ? "Thử nhập tên job, brand hoặc địa điểm khác."
+              ? "Thử nhập tên job, nhà tuyển dụng hoặc địa điểm khác."
               : "Bấm nút Lưu trên card job để giữ lại những cơ hội bạn muốn xem sau."}
           </p>
           {!searchInput && (

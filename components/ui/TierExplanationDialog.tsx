@@ -26,7 +26,7 @@ const achievementCards = [
     className: "border-amber-300/40 bg-gradient-to-br from-amber-100/12 via-amber-500/10 to-yellow-500/8",
     iconClass: "text-amber-300",
     description:
-      "Dành cho hồ sơ hoạt động ổn định, thông tin đầy đủ, phản hồi tốt và thường xuyên phù hợp với nhu cầu tuyển chọn của Brand.",
+      "Dành cho hồ sơ hoạt động ổn định, thông tin đầy đủ, phản hồi tốt và thường xuyên phù hợp với nhu cầu tuyển chọn của Khách hàng & Đối tác.",
   },
   {
     tier: "B",
@@ -136,7 +136,7 @@ export default function TierExplanationDialog({ isOpen, onClose }: TierExplanati
                 <strong className="text-white">Hoàn thiện hồ sơ:</strong> ảnh đại diện, ảnh bìa, ảnh toàn thân, video giới thiệu, bio, số đo, kỹ năng và portfolio.
               </li>
               <li>
-                <strong className="text-white">Tín hiệu hợp tác:</strong> lượt booking, phản hồi từ Brand, tỷ lệ hoàn thành việc và chất lượng trao đổi.
+                <strong className="text-white">Tín hiệu hợp tác:</strong> lượt booking, phản hồi từ Khách hàng, tỷ lệ hoàn thành việc và chất lượng trao đổi.
               </li>
               <li>
                 <strong className="text-white">Mạng xã hội:</strong> liên kết TikTok, Facebook, Instagram, follower, engagement và độ phủ nội dung thực tế.

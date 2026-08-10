@@ -368,13 +368,7 @@ export default function DonatePage() {
           <div className="max-w-2xl">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-amber-400/40 bg-amber-400/10 text-amber-300">
-                Cổng quyên góp
-              </span>
-              <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-yellow-400/30 bg-yellow-400/10 text-yellow-200">
-                QR Gateway
-              </span>
-              <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-cyan-400/30 bg-cyan-400/10 text-cyan-200">
-                {allCampaigns.length} chiến dịch
+                CỔNG QUYÊN GÓP
               </span>
             </div>
             <h1 className="font-display text-2xl xs:text-3xl font-black tracking-tight text-white md:text-4xl uppercase leading-none">

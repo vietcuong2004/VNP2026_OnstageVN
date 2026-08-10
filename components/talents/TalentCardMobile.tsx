@@ -260,7 +260,7 @@ export default function TalentCardMobile({
                   ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
                   : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110"
               )}
-              title={isSaved ? "Bỏ lưu" : "Lưu thông tin"}
+              title={isSaved ? "Bỏ lưu Idol" : "Lưu Idol"}
             >
               <Heart className={cn("h-3 w-3", isSaved && "fill-current")} />
               <span className="whitespace-nowrap">{saveLabel === "Lưu thông tin" ? "Lưu" : saveLabel || (isSaved ? "Đã lưu" : "Lưu")}</span>
@@ -285,10 +285,10 @@ export default function TalentCardMobile({
               <UserPlus className="h-6 w-6" />
             </div>
             <h3 className="text-center font-display text-base font-black uppercase tracking-wide text-white">
-              Xác nhận thêm vào Brand
+              Xác nhận thêm vào Quản lý Idol
             </h3>
             <p className="mt-2 text-center text-xs font-semibold leading-relaxed text-slate-300">
-              Bạn có muốn thêm Idol này vào Brand của bạn (Mục &quot;Dành cho brand / Quản lý Idol&quot;)?
+              Bạn có muốn thêm Idol này vào danh sách quản lý của bạn (Mục &quot;Quản lý Idol&quot;) để tiện theo dõi và giao việc?
             </p>
             <div className="mt-6 flex gap-3">
               <button
@@ -306,7 +306,7 @@ export default function TalentCardMobile({
                 }}
                 className="flex-1 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 py-2.5 text-xs font-black uppercase tracking-wider text-slate-950 transition hover:brightness-110 active:scale-95 cursor-pointer"
               >
-                Xác nhận
+                Thêm
               </button>
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function TalentCardMobile({
         document.body
       )}
 
-      {/* Dialog Modal xác nhận Xóa khỏi Brand */}
+      {/* Dialog Modal xác nhận Xóa khỏi Quản lý Idol */}
       {mounted && showRemoveConfirm && createPortal(
         <div
           onClick={closeModals}
@@ -330,10 +330,10 @@ export default function TalentCardMobile({
               <Trash2 className="h-6 w-6" />
             </div>
             <h3 className="text-center font-display text-base font-black uppercase tracking-wide text-white">
-              Xác nhận xóa khỏi Brand
+              Xác nhận xóa khỏi Quản lý Idol
             </h3>
             <p className="mt-2 text-center text-xs font-semibold leading-relaxed text-slate-300">
-              Bạn có muốn xóa Idol này ra khỏi Brand của bạn (Mục &quot;Dành cho brand / Quản lý Idol&quot;)?
+              Bạn có muốn xóa Idol này khỏi danh sách quản lý của bạn (Mục &quot;Quản lý Idol&quot;)?
             </p>
             <div className="mt-6 flex gap-3">
               <button
@@ -355,7 +355,7 @@ export default function TalentCardMobile({
                 }}
                 className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-black uppercase tracking-wider text-white transition hover:bg-rose-500 active:scale-95 cursor-pointer"
               >
-                Xóa khỏi Brand
+                Xóa khỏi quản lý
               </button>
             </div>
           </div>

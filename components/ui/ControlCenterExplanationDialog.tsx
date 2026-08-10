@@ -76,7 +76,7 @@ export default function ControlCenterExplanationDialog({
                   : "text-slate-400 hover:text-white"
               )}
             >
-              Brand (Nhãn Hàng & Agency...)
+              Nhà tuyển dụng & Khách hàng
             </button>
           </div>
 
@@ -153,7 +153,7 @@ export default function ControlCenterExplanationDialog({
                   <div className="flex items-center gap-2 mb-2">
                     <Briefcase className="h-4 w-4 text-[#C9A86A] shrink-0" />
                     <h4 className="text-xs font-black text-[#C9A86A] uppercase tracking-wider">
-                      ĐỐI TƯỢNG BRAND LÀ NHỮNG AI?
+                      ĐỐI TƯỢNG TUYỂN DỤNG LÀ NHỮNG AI?
                     </h4>
                   </div>
                   <p className="text-xs text-slate-200 leading-relaxed text-justify">
@@ -165,7 +165,7 @@ export default function ControlCenterExplanationDialog({
                 {/* Core Features */}
                 <div className="space-y-4">
                   <h4 className="text-xs font-black text-white uppercase tracking-wider">
-                    CÁC TÍNH NĂNG NỔI BẬT DÀNH CHO BRAND
+                    CÁC TÍNH NĂNG NỔI BẬT DÀNH CHO NHÀ TUYỂN DỤNG
                   </h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

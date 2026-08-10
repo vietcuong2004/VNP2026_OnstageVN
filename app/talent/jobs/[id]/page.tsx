@@ -345,7 +345,7 @@ export default function JobDetailPage() {
     }
     if (!requireAuthAction({
       actionLabel: `Ứng tuyển chiến dịch "${job.title}"`,
-      description: "Bạn cần đăng nhập tài khoản Idol để ứng tuyển chiến dịch này và kết nối với Brand.",
+      description: "Bạn cần đăng nhập tài khoản Idol để ứng tuyển chiến dịch này và kết nối với Đối tác.",
     })) {
       return;
     }
@@ -706,7 +706,7 @@ export default function JobDetailPage() {
         {job.sponsorships && job.sponsorships.length > 0 && (
           <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-b from-[#0e1322] to-[#080a12] p-5 space-y-3">
             <h4 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-300 uppercase tracking-wider">
-              <Gift className="h-4 w-4 text-amber-400" /> Cam kết tài trợ từ Brand
+              <Gift className="h-4 w-4 text-amber-400" /> Cam kết tài trợ từ Nhà tuyển dụng
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {job.sponsorships.map((spons: any, idx: number) => (
