@@ -490,7 +490,7 @@ export default function MyTalentsPage() {
     if (!requireAuthAction({ actionLabel: "Chia sẻ link tuyển dụng" })) return;
     if (navigator.share) {
       navigator.share({
-        title: "Tuyển dụng Talent vào Brand",
+        title: "Tuyển dụng Idol vào mạng lưới",
         url: affiliateLink,
       }).catch(() => { });
     } else {
@@ -607,13 +607,13 @@ export default function MyTalentsPage() {
               </div>
               <div className="space-y-1">
                 <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-400">
-                  LINK MỜI VÀO BRAND
+                  LINK MỜI THAM GIA
                 </span>
                 <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
                   Tuyển Dụng Idol
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-normal">
-                  Chia sẻ link này cho Idol để họ đăng ký tham gia mạng lưới của Brand.
+                  Chia sẻ link này cho Idol để họ đăng ký tham gia mạng lưới quản lý của bạn.
                 </p>
               </div>
             </div>

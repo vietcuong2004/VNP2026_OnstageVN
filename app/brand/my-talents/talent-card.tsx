@@ -190,7 +190,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
           <FileText className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
           <p className={cn("leading-relaxed font-semibold", entry.notes ? "text-slate-300" : "text-slate-500 italic")}>
             {(() => {
-              if (!entry.notes) return "Idol được tạo bởi Brand.";
+              if (!entry.notes) return "Idol được tạo bởi quản lý.";
               const notes = entry.notes.trim();
               if (
                 notes.startsWith("Thêm từ") ||
@@ -221,7 +221,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
                 )}
                 title="Click để xem chi tiết mô tả"
               >
-                Hiện tại chỉ Brand có thể quản lý hồ sơ này. Gửi lời mời để Idol tự đăng nhập và cập nhật thông tin của mình.
+                Hiện tại chỉ nhà quản lý mới có thể quản lý hồ sơ này. Gửi lời mời để Idol tự đăng nhập và cập nhật thông tin của mình.
               </p>
             </div>
             <button
