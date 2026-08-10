@@ -25,6 +25,7 @@ function getPageTitle(pathname?: string | null) {
   const titles: Record<string, string> = {
     "/": "Tìm kiếm Idol",
     "/about": "Về chúng tôi",
+    "/booking": "Đặt dịch vụ Idol",
     "/auth/login": "Đăng nhập",
     "/auth/register": "Đăng ký",
     "/brand": "Khám phá",
@@ -70,9 +71,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isBrandCreateJob = pathname === "/brand/manage-jobs/create-job";
   const isTalentJobs = pathname === "/talent/jobs";
   const isTalentSavedJobs = pathname === "/talent/jobs/saved-jobs";
+  const isBooking = pathname ? (pathname === "/booking" || pathname.endsWith("/booking") || pathname.endsWith("/booking-talent")) : false;
+  const isBookingTalent = pathname ? pathname.endsWith("/booking-talent") : false;
   const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
-  const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isTalentJobs || isTalentSavedJobs;
-  const hideChrome = isBrandCreateJob;
+  const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isTalentJobs || isTalentSavedJobs || isBooking;
+  const hideChrome = isBrandCreateJob || isBookingTalent;
 
   useEffect(() => {
     const pageTitle = getPageTitle(pathname);
@@ -131,11 +134,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex-1",
                   isMessages || isBrandCreateJob ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden",
-                  isStandalonePublic || isMessages || isDiscoverHome || isAbout || isTalentSurvey || isBrandCreateJob
+                  isStandalonePublic || isMessages || isDiscoverHome || isAbout || isTalentSurvey || isBrandCreateJob || isBookingTalent
                     ? "p-0"
                     : cn(
                         "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",
-                        (isBrandSearch || isBrandShortlists || isTalentJobs || isTalentSavedJobs) && "pt-0 md:pt-7"
+                        (isBrandSearch || isBrandShortlists || isTalentJobs || isTalentSavedJobs) && "pt-0 md:pt-7",
+                        isBooking && "p-0 md:px-8 md:py-7 md:pb-8"
                       ),
                   isTalentSurvey && "md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 md:pb-8"
                 )}
@@ -143,7 +147,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div
                   className={cn(
                     "w-full",
-                    isBrandCreateJob && "h-full min-h-0",
+                    (isBrandCreateJob || isBookingTalent) && "h-full min-h-0",
                     isStandalonePublic
                       ? "mx-auto max-w-none"
                       : "mx-0 max-w-none [@media(min-width:2400px)]:mx-auto [@media(min-width:2400px)]:max-w-[2040px] [@media(min-width:3200px)]:max-w-[2280px]"
@@ -156,7 +160,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {!isStandalonePublic && !hideChrome && (
-            <div className={cn((isTalentJobDetail || isTalentSurveyForm || isMobileOverlayOpen) ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
+            <div className={cn((isTalentJobDetail || isTalentSurveyForm || isMobileOverlayOpen || isBooking) ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
               <BottomNavigation />
             </div>
           )}

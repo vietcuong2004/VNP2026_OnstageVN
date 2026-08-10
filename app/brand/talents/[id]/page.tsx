@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Award,
@@ -38,7 +38,9 @@ import {
   MoreVertical,
   BookmarkCheck,
   ExternalLink,
+  CalendarCheck,
 } from "lucide-react";
+import BookingFlow from "@/app/brand/talents/[id]/booking-talent/BookingFlow";
 import { findTalentById } from "@/lib/brand-mvp-data";
 import { cn } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
@@ -401,8 +403,16 @@ const JOBS_LIST = [
 
 export default function BrandTalentProfilePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const params = useParams<{ id: string }>();
+
+  const scrollToBooking = () => {
+    const el = document.getElementById("booking-section");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
   const staticTalent = useMemo(() => findTalentById(params.id), [params.id]);
   const [talent, setTalent] = useState<any>(staticTalent);
   const [loading, setLoading] = useState(!staticTalent);
@@ -509,6 +519,14 @@ export default function BrandTalentProfilePage() {
       cancelled = true;
     };
   }, [params.id]);
+
+  useEffect(() => {
+    if (searchParams?.get("tab") === "booking" || searchParams?.get("booking") === "true") {
+      setTimeout(() => {
+        scrollToBooking();
+      }, 500);
+    }
+  }, [searchParams]);
 
   const profile = useMemo(() => {
     if (!talent) return null;
@@ -772,7 +790,18 @@ export default function BrandTalentProfilePage() {
                   className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-left"
                 >
                   <Users className="h-4 w-4 text-amber-400" />
-                  <span>{isAddedToBrand ? "Đã thêm vào Brand" : "Thêm vào Brand"}</span>
+                  <span>{isAddedToBrand ? "Đã thêm vào danh sách quản lý" : "Thêm vào danh sách quản lý"}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    router.push(`/brand/talents/${params.id}/booking-talent`);
+                  }}
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition duration-200 text-left"
+                >
+                  <CalendarCheck className="h-4 w-4 text-amber-400" />
+                  <span>Đặt ngay</span>
                 </button>
 
                 <button
@@ -916,26 +945,34 @@ export default function BrandTalentProfilePage() {
             {talent.experience || "Chưa cập nhật giới thiệu bản thân."}
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2.5">
+          <div className="mt-4 grid grid-cols-3 gap-2">
             <button
               type="button"
               aria-disabled={portfolioLinks.length === 0}
               onClick={handleViewPortfolio}
               className={cn(
-                "flex h-10 items-center justify-center rounded-xl border px-3 text-[10px] font-black uppercase tracking-wider transition active:scale-95",
+                "flex h-10 items-center justify-center rounded-xl border px-2 text-[9.5px] font-black uppercase tracking-wider transition active:scale-95",
                 portfolioLinks.length > 0
                   ? "cursor-pointer border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
                   : "cursor-not-allowed border-white/10 bg-white/[0.03] text-slate-500"
               )}
             >
-              <Eye className="mr-1.5 h-3.5 w-3.5 shrink-0 text-current" />
-              Xem Portfolio
+              <Eye className="mr-1 h-3.5 w-3.5 shrink-0 text-current" />
+              <span className="truncate">Portfolio</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push(`/brand/talents/${params.id}/booking-talent`)}
+              className="flex h-10 items-center justify-center rounded-xl border border-amber-400/40 bg-gradient-to-r from-amber-400/25 via-yellow-500/20 to-amber-500/30 px-2 text-[9.5px] font-black uppercase tracking-wider text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)] transition active:scale-95 cursor-pointer"
+            >
+              <CalendarCheck className="mr-1 h-3.5 w-3.5 shrink-0 text-amber-400" />
+              <span className="truncate">Đặt ngay</span>
             </button>
             <button
               type="button"
               onClick={handleAddToWishlist}
               className={cn(
-                "flex h-10 items-center justify-center rounded-xl px-3 text-[10px] font-black uppercase tracking-wider shadow-md transition-all duration-300 active:scale-95",
+                "flex h-10 items-center justify-center rounded-xl px-2 text-[9.5px] font-black uppercase tracking-wider shadow-md transition-all duration-300 active:scale-95",
                 isInWishlist
                   ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
                   : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 shadow-[0_0_15px_rgba(201,168,106,0.2)]"
@@ -943,13 +980,13 @@ export default function BrandTalentProfilePage() {
             >
               {isInWishlist ? (
                 <>
-                  <CheckCircle2 className="mr-1.5 h-4 w-4 shrink-0 text-emerald-400" />
-                  <span>Đã lưu</span>
+                  <CheckCircle2 className="mr-1 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                  <span className="truncate">Đã lưu</span>
                 </>
               ) : (
                 <>
-                  <Heart className="mr-1.5 h-4 w-4 shrink-0 fill-slate-950 text-slate-950" />
-                  <span>Lưu thông tin</span>
+                  <Heart className="mr-1 h-3.5 w-3.5 shrink-0 fill-slate-950 text-slate-950" />
+                  <span className="truncate">Lưu</span>
                 </>
               )}
             </button>
@@ -1084,6 +1121,14 @@ export default function BrandTalentProfilePage() {
           >
             <Eye className="mr-1.5 h-3.5 w-3.5 shrink-0 text-current" />
             Xem Portfolio
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push(`/brand/talents/${params.id}/booking-talent`)}
+            className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-400/25 via-yellow-500/20 to-amber-500/30 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-95 cursor-pointer whitespace-nowrap"
+          >
+            <CalendarCheck className="mr-2 h-4 w-4 shrink-0 text-amber-400" />
+            <span>Đặt ngay</span>
           </button>
           <button
             type="button"

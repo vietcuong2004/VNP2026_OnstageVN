@@ -54,7 +54,7 @@ export default function SavedIdols({
               onView={onView}
               onMessage={(item) => onAddToBrand(String(item.id))}
               onRemoveFromBrand={(item) => onRemoveFromBrand(String(item.id))}
-              messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào Brand"}
+              messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào danh sách quản lý"}
               messageDisabled={isInBrand}
               messageLoading={isAddingToBrand}
               showMessageIcon
@@ -68,7 +68,7 @@ export default function SavedIdols({
               onView={onView}
               onMessage={(item) => onAddToBrand(String(item.id))}
               onRemoveFromBrand={(item) => onRemoveFromBrand(String(item.id))}
-              messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào Brand"}
+              messageLabel={isInBrand ? "Đã thêm" : isAddingToBrand ? "Đang thêm" : "Thêm vào danh sách quản lý"}
               messageDisabled={isInBrand}
               messageLoading={isAddingToBrand}
               showMessageIcon

@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
-import { Briefcase, Check, CheckCircle2, Heart, Loader2, MapPin, Star, Trash2, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Briefcase, CalendarCheck, Check, CheckCircle2, Heart, Loader2, MapPin, Star, Trash2, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import BadgeTier, { getPrimaryAchievementBadge, type TalentAchievementBadge } from "@/components/ui/BadgeTier";
@@ -102,7 +103,7 @@ export default function TalentCard({
   onMessage,
   onRemoveFromBrand,
   saveLabel,
-  messageLabel = "Thêm vào Brand",
+  messageLabel = "Thêm vào danh sách quản lý",
   showMessageIcon = true,
   messageDisabled = false,
   messageLoading = false,
@@ -110,6 +111,7 @@ export default function TalentCard({
   showSocialStats = false,
   className,
 }: TalentCardProps) {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [showAddConfirm, setShowAddConfirm] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
@@ -142,6 +144,13 @@ export default function TalentCard({
     } else {
       setShowAddConfirm(true);
     }
+  };
+
+  const handleBookNowClick = (event: MouseEvent) => {
+    stopCardClick(event);
+    const targetId = talent?.id || talent?.slug;
+    if (!targetId) return;
+    router.push(`/brand/talents/${targetId}/booking-talent`);
   };
 
   const closeModals = (e: MouseEvent) => {
@@ -189,7 +198,7 @@ export default function TalentCard({
                   ? "border-[#C9A86A]/40 bg-[#0F1115]/80 text-[#C9A86A] hover:bg-rose-500/20 hover:border-rose-500/50 hover:text-rose-400"
                   : "border-white/10 bg-[#0F1115]/60 text-slate-300 hover:border-[#C9A86A]/50 hover:text-white"
               )}
-              title={messageDisabled ? "Bấm để xóa khỏi Brand" : "Thêm vào Brand"}
+              title={messageDisabled ? "Bấm để xóa khỏi danh sách quản lý" : "Thêm vào danh sách quản lý"}
             >
               {messageLoading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -243,6 +252,17 @@ export default function TalentCard({
 
 
         <div className="min-w-0 space-y-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-h-[24px] min-w-0 flex-1 items-center justify-center gap-1 rounded-full border border-[#C9A86A]/45 bg-[#1B1608] px-2 text-center text-[#FFE05F] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <Briefcase className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate text-[9px] font-black tracking-tight">{mockStats.bookings} lượt booking</span>
+            </div>
+            <div className="flex min-h-[24px] min-w-0 flex-1 items-center justify-center gap-1 rounded-full border border-fuchsia-300/35 bg-[#34183B] px-2 text-center text-fuchsia-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <Star className="h-3.5 w-3.5 shrink-0 fill-current" />
+              <span className="truncate text-[9px] font-black tracking-tight">{mockStats.goodReviews} đánh giá</span>
+            </div>
+          </div>
+
           <div className="flex min-w-0 items-center gap-1.5">
             <h3 className="flex-1 truncate text-base font-black leading-tight tracking-wide text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.12)]">
               {talent?.name}
@@ -321,7 +341,17 @@ export default function TalentCard({
 
       {hasActions && (
         <div className="mt-4 flex items-center gap-2 border-t border-white/5 pt-3.5">
-          <div className="grid min-w-0 flex-[1.75] grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={handleBookNowClick}
+            className="flex min-h-[46px] flex-1 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-[#D7A900]/80 bg-[#241D08] px-4 text-[11px] font-black uppercase tracking-wider text-[#FFE05F] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:border-[#FFE05F] hover:bg-[#2D2409] active:scale-95"
+            title="Đặt ngay"
+          >
+            <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Đặt ngay</span>
+          </button>
+
+          <div className="hidden">
             <div className="flex min-h-[44px] min-w-0 items-center justify-center gap-1.5 rounded-lg border border-[#C9A86A]/25 bg-gradient-to-r from-[#C9A86A]/18 via-white/[0.04] to-transparent px-2.5 text-center text-[#F4D77C] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               <Briefcase className="h-3.5 w-3.5 shrink-0" />
               <span className="flex flex-col items-center leading-[1.05]">
@@ -346,7 +376,7 @@ export default function TalentCard({
                 onToggleSaved(talent);
               }}
               className={cn(
-                "flex min-h-[40px] flex-[0.85] min-w-[70px] cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 text-[9px] font-black uppercase tracking-wider transition active:scale-95",
+                "flex min-h-[40px] flex-1 min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 text-[9px] font-black uppercase tracking-wider transition active:scale-95",
                 isSaved
                   ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
                   : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110"

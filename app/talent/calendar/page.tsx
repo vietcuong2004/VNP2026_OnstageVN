@@ -2,16 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
+import {
   Calendar as CalendarIcon, Clock, ArrowLeft, Check, Play, AlertCircle, ChevronLeft, ChevronRight,
   Trophy, CheckCircle, Sparkles, MapPin, ExternalLink, X, Info, Phone, Mail, Globe, MapPinned, Crown,
   Eye, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { 
-  createTalentCalendarEvent, deleteTalentCalendarEvent, loadTalentCalendar, 
+import {
+  createTalentCalendarEvent, deleteTalentCalendarEvent, loadTalentCalendar,
   loadTalentProfile, persistTalentProfile, updateTalentCalendarEvent,
-  loadTalentCampaignsPage, mapCampaignToTalentJob 
+  loadTalentCampaignsPage, mapCampaignToTalentJob
 } from "@/lib/talent-api";
 import { getStoredAuthUser } from "@/lib/api-client";
 import { busyDatesFromTodoLists, getTalentDayStatus } from "@/lib/talent-calendar";
@@ -83,7 +83,7 @@ export default function CalendarPage() {
     const todayMonth = today.getMonth() + 1;
     const todayDay = today.getDate();
     const dateStr = `${todayYear}-${String(todayMonth).padStart(2, '0')}-${String(todayDay).padStart(2, '0')}`;
-    
+
     setSelectedDate(dateStr);
     setCurrentMonth(todayMonth);
     setCurrentYear(todayYear);
@@ -287,11 +287,11 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      
+
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => router.push("/talent/jobs")}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#151b2d] bg-[#08090f] text-slate-400 hover:text-white transition-all cursor-pointer"
           >
@@ -306,7 +306,7 @@ export default function CalendarPage() {
 
       {/* Main Grid layout: Timeline (Main) Left, Calendar (Minor) Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
+
         {/* Left Column: Timeline & Daily To-Do Card (Main - 7/12) */}
         <div className="lg:col-span-7 space-y-6">
 
@@ -318,7 +318,7 @@ export default function CalendarPage() {
                   <Clock className="h-4 w-4 text-cyan-400" /> Lịch trình ngày {selectedDate.split("-")[2]}/{selectedDate.split("-")[1]}/{selectedDate.split("-")[0]}
                 </h4>
               </div>
-              
+
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
@@ -341,10 +341,10 @@ export default function CalendarPage() {
                   const isCompleted = todo.status === "completed";
                   const isInProgress = todo.status === "in_progress";
                   const isCampaignEvent = todo.eventType === "campaign" || todo.locked;
-                  
+
                   return (
                     <div key={todo.id} className="relative group animate-in fade-in slide-in-from-left-1 duration-200">
-                      
+
                       {/* Interactive circular timeline status toggle */}
                       <button
                         type="button"
@@ -387,7 +387,7 @@ export default function CalendarPage() {
                               {isCampaignEvent ? "Chiến dịch" : isCompleted ? "Đã hoàn thành" : isInProgress ? "Đang làm" : "Chưa hoàn thành"}
                             </span>
                           </div>
-                          
+
                           <h5 className={cn("text-xs font-black text-white mt-1 leading-snug", isCompleted && "line-through text-slate-500")}>
                             {todo.title}
                           </h5>
@@ -435,7 +435,7 @@ export default function CalendarPage() {
             {/* Add Task Inline Form */}
             <form onSubmit={handleAddTask} className="border-t border-[#151b2d] pt-4 space-y-3">
               <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider text-left">Thêm công việc mới</span>
-              
+
               <div className="grid grid-cols-3 gap-2">
                 <input
                   type="text"
@@ -447,13 +447,13 @@ export default function CalendarPage() {
                 <input
                   type="text"
                   required
-                  placeholder="Tên công việc..."
+                  placeholder="Tiêu đề công việc..."
                   value={newTask.title}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                   className="col-span-2 w-full bg-slate-950 border border-white/10 rounded-xl px-2.5 py-1.5 text-[10px] text-white focus:outline-none focus:border-amber-400 transition-colors"
                 />
               </div>
-              
+
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -478,7 +478,7 @@ export default function CalendarPage() {
         <div className="lg:col-span-5 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="h-4.5 w-4.5 text-amber-400" /> 
+              <CalendarIcon className="h-4.5 w-4.5 text-amber-400" />
               <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
                 Tháng {currentMonth < 10 ? `0${currentMonth}` : currentMonth}/{currentYear}
               </h3>
@@ -534,8 +534,8 @@ export default function CalendarPage() {
                       isSelected
                         ? "border-amber-400 bg-amber-400/10 text-amber-300 ring-2 ring-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.25)] z-10"
                         : status === "available"
-                        ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.1)] hover:border-emerald-400"
-                        : "border-red-500/30 bg-red-500/5 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.1)] hover:border-red-500"
+                          ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.1)] hover:border-emerald-400"
+                          : "border-red-500/30 bg-red-500/5 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.1)] hover:border-red-500"
                     )}
                   >
                     <span className="text-[10px] font-mono font-bold block">{dayStr}</span>
@@ -610,7 +610,7 @@ export default function CalendarPage() {
               const appStatus = job.application?.status || "pending";
               const isApproved = appStatus === "approved" || appStatus === "executing" || appStatus === "completed";
               const dateRange = job.startDate && job.endDate ? `${formatDate(job.startDate)} - ${formatDate(job.endDate)}` : "Chưa cập nhật";
-              
+
               return (
                 <div key={job.id} className={cn(
                   "relative overflow-hidden rounded-2xl bg-[#08090f] border hover:border-amber-400/40 p-6 transition-all duration-300 group",
@@ -663,7 +663,7 @@ export default function CalendarPage() {
                       <span className="text-amber-300 font-bold">{job.budget}</span>
                     )}
                   </div>
-                  
+
                   <div className="mt-4 flex justify-end">
                     <button
                       type="button"
@@ -718,7 +718,7 @@ export default function CalendarPage() {
             {/* Modal Body */}
             <div className="p-6 space-y-4">
               <div className="space-y-1">
-                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Tên công việc</span>
+                <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">Tiêu đề công việc</span>
                 <h3 className="text-sm font-extrabold text-white leading-snug">
                   {selectedTask.title}
                 </h3>
