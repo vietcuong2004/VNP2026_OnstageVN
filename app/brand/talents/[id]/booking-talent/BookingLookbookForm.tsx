@@ -3,15 +3,17 @@
 import React from "react";
 import { ArrowLeft, X } from "lucide-react";
 import BookingTimeFields from "./BookingTimeFields";
+import BookingTextarea from "./BookingTextarea";
 
 export type BookingLookbookFormProps = {
   jobName: string;
   setJobName: (v: string) => void;
+  workDate: string;
+  setWorkDate: (v: string) => void;
   startTime: string;
   setStartTime: (v: string) => void;
   endTime: string;
   setEndTime: (v: string) => void;
-  setWorkDate: (v: string) => void;
   lookbookTopic: string;
   setLookbookTopic: (v: string) => void;
   lookbookStyle: string;
@@ -28,11 +30,12 @@ export type BookingLookbookFormProps = {
 export default function BookingLookbookForm({
   jobName,
   setJobName,
+  workDate,
+  setWorkDate,
   startTime,
   setStartTime,
   endTime,
   setEndTime,
-  setWorkDate,
   lookbookTopic,
   setLookbookTopic,
   lookbookStyle,
@@ -88,7 +91,7 @@ export default function BookingLookbookForm({
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Tiêu đề công việc:
             </label>
-            <textarea
+            <BookingTextarea
               rows={2}
               value={jobName}
               onChange={(e) => setJobName(e.target.value)}
@@ -102,7 +105,7 @@ export default function BookingLookbookForm({
             <label className="block text-xs font-black uppercase tracking-wider text-amber-300 mb-1.5">
               Chủ đề:
             </label>
-            <textarea
+            <BookingTextarea
               rows={2}
               value={lookbookTopic}
               onChange={(e) => setLookbookTopic(e.target.value)}
@@ -112,11 +115,12 @@ export default function BookingLookbookForm({
           </div>
 
           <BookingTimeFields
+            workDate={workDate}
+            setWorkDate={setWorkDate}
             startTime={startTime}
             setStartTime={setStartTime}
             endTime={endTime}
             setEndTime={setEndTime}
-            setWorkDate={setWorkDate}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -157,7 +161,7 @@ export default function BookingLookbookForm({
               <label className="block text-xs font-black uppercase tracking-wider text-amber-300 mb-1.5">
                 Địa điểm (tùy chọn):
               </label>
-              <textarea
+              <BookingTextarea
                 rows={2}
                 value={lookbookLocation}
                 onChange={(e) => setLookbookLocation(e.target.value)}
@@ -172,7 +176,7 @@ export default function BookingLookbookForm({
             <label className="block text-xs font-black uppercase tracking-wider text-amber-300 mb-1.5">
               Yêu cầu thêm (tùy chọn):
             </label>
-            <textarea
+            <BookingTextarea
               rows={3}
               value={extraRequirements}
               onChange={(e) => setExtraRequirements(e.target.value)}

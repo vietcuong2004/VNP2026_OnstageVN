@@ -3,6 +3,7 @@
 import React from "react";
 import { ArrowLeft, X } from "lucide-react";
 import BookingTimeFields from "./BookingTimeFields";
+import BookingTextarea from "./BookingTextarea";
 
 export type BookingMCFormProps = {
   jobName: string;
@@ -87,7 +88,7 @@ export default function BookingMCForm({
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Tiêu đề công việc:
             </label>
-            <textarea
+            <BookingTextarea
               rows={2}
               value={jobName}
               onChange={(e) => setJobName(e.target.value)}
@@ -100,7 +101,7 @@ export default function BookingMCForm({
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Mô tả công việc:
             </label>
-            <textarea
+            <BookingTextarea
               rows={3}
               value={mcJobDescription}
               onChange={(e) => setMcJobDescription(e.target.value)}
@@ -111,68 +112,20 @@ export default function BookingMCForm({
 
           {/* Thời gian */}
           <BookingTimeFields
+            workDate={workDate}
+            setWorkDate={setWorkDate}
             startTime={startTime}
             setStartTime={setStartTime}
             endTime={endTime}
             setEndTime={setEndTime}
-            setWorkDate={setWorkDate}
           />
-
-          <div className="hidden space-y-3.5 border-b border-white/5 pb-5">
-            <label className="block text-xs font-black uppercase tracking-wider text-amber-300">
-              Thời gian
-            </label>
-
-            {/* Ngày */}
-            <div className="hidden">
-              <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                Ngày
-              </label>
-              <input
-                type="date"
-                value={workDate}
-                onChange={(e) => setWorkDate(e.target.value)}
-                className="h-12 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 text-xs font-semibold text-white outline-none focus:border-amber-400"
-              />
-            </div>
-
-            {/* Giờ bắt đầu & Giờ kết thúc */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                  Giờ bắt đầu
-                </label>
-                <input
-                  type="datetime-local"
-                  value={startTime}
-                  onChange={(e) => {
-                    setStartTime(e.target.value);
-                    setWorkDate(e.target.value.split("T")[0] || "");
-                  }}
-                  className="h-12 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 text-xs font-semibold text-white outline-none focus:border-amber-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                  Giờ kết thúc
-                </label>
-                <input
-                  type="datetime-local"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 text-xs font-semibold text-white outline-none focus:border-amber-400"
-                />
-              </div>
-            </div>
-          </div>
 
           {/* Địa điểm (WrapText Multiline) */}
           <div className="space-y-1.5 border-b border-white/5 pb-5">
             <label className="block text-xs font-black uppercase tracking-wider text-amber-300">
               Địa điểm
             </label>
-            <textarea
+            <BookingTextarea
               rows={2}
               value={mcLocation}
               onChange={(e) => setMcLocation(e.target.value)}
@@ -223,7 +176,7 @@ export default function BookingMCForm({
             <label className="block text-xs font-black uppercase tracking-wider text-amber-300 mb-1.5">
               Ghi chú thêm
             </label>
-            <textarea
+            <BookingTextarea
               rows={3}
               value={extraRequirements}
               onChange={(e) => setExtraRequirements(e.target.value)}

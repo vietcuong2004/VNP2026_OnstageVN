@@ -3,17 +3,19 @@
 import React from "react";
 import { ArrowLeft, X } from "lucide-react";
 import BookingTimeFields from "./BookingTimeFields";
+import BookingTextarea from "./BookingTextarea";
 
 export type BookingPGFormProps = {
   jobName: string;
   setJobName: (v: string) => void;
   pgJobDescription: string;
   setPgJobDescription: (v: string) => void;
+  workDate: string;
+  setWorkDate: (v: string) => void;
   startTime: string;
   setStartTime: (v: string) => void;
   endTime: string;
   setEndTime: (v: string) => void;
-  setWorkDate: (v: string) => void;
   pgOutfit: string;
   setPgOutfit: (v: string) => void;
   pgSkills: string;
@@ -30,11 +32,12 @@ export default function BookingPGForm({
   setJobName,
   pgJobDescription,
   setPgJobDescription,
+  workDate,
+  setWorkDate,
   startTime,
   setStartTime,
   endTime,
   setEndTime,
-  setWorkDate,
   pgOutfit,
   setPgOutfit,
   pgSkills,
@@ -78,7 +81,7 @@ export default function BookingPGForm({
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Tên công việc:
             </label>
-            <textarea
+            <BookingTextarea
               rows={2}
               value={jobName}
               onChange={(e) => setJobName(e.target.value)}
@@ -91,7 +94,7 @@ export default function BookingPGForm({
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Mô tả công việc:
             </label>
-            <textarea
+            <BookingTextarea
               rows={3}
               value={pgJobDescription}
               onChange={(e) => setPgJobDescription(e.target.value)}
@@ -101,18 +104,19 @@ export default function BookingPGForm({
           </div>
 
           <BookingTimeFields
+            workDate={workDate}
+            setWorkDate={setWorkDate}
             startTime={startTime}
             setStartTime={setStartTime}
             endTime={endTime}
             setEndTime={setEndTime}
-            setWorkDate={setWorkDate}
           />
 
           <div>
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Trang phục:
             </label>
-            <textarea
+            <BookingTextarea
               rows={2}
               value={pgOutfit}
               onChange={(e) => setPgOutfit(e.target.value)}
@@ -125,7 +129,7 @@ export default function BookingPGForm({
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Kỹ năng (tùy chọn):
             </label>
-            <textarea
+            <BookingTextarea
               rows={2}
               value={pgSkills}
               onChange={(e) => setPgSkills(e.target.value)}
@@ -138,7 +142,7 @@ export default function BookingPGForm({
             <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
               Yêu cầu thêm (tùy chọn):
             </label>
-            <textarea
+            <BookingTextarea
               rows={3}
               value={extraRequirements}
               onChange={(e) => setExtraRequirements(e.target.value)}

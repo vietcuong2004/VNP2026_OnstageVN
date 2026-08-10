@@ -11,12 +11,26 @@ import BookingMCForm from "./BookingMCForm";
 import BookingLookbookForm from "./BookingLookbookForm";
 import BookingPGForm from "./BookingPGForm";
 import BookingContactForm from "./BookingContactForm";
+import { getAuthToken } from "@/lib/api-client";
 
 type JobType = "mc" | "lookbook" | "pg";
-type BookingStep = 2 | 3 | 4 | 5 | 6 | 7;
+type BookingStep = 2 | 8 | 3 | 4 | 5 | 6 | 7;
+type BookingPackageId = "basic" | "standard" | "premium";
 
 const DEPOSIT_AMOUNT = 200000;
 const DEPOSIT_AMOUNT_LABEL = "200.000 VND";
+
+const BOOKING_PACKAGES: {
+  id: BookingPackageId;
+  name: string;
+  duration: string;
+  note: string;
+  price: string;
+}[] = [
+    { id: "basic", name: "Gói cơ bản", duration: "1-2 tiếng", note: "Tư vấn nhanh", price: "200.000đ" },
+    { id: "standard", name: "Gói tiêu chuẩn", duration: "2-4 tiếng", note: "Gợi ý lịch phù hợp", price: "300.000đ" },
+    { id: "premium", name: "Gói nâng cao", duration: "1 ngày", note: "Ưu tiên xác nhận", price: "500.000đ" },
+  ];
 
 export type BookingFlowProps = {
   talent?: any;
@@ -24,16 +38,15 @@ export type BookingFlowProps = {
   className?: string;
 };
 
-function toDateTimeLocalValue(date: Date) {
+function toDateValue(date: Date) {
   const pad = (value: number) => String(value).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-function formatBookingDateTime(value: string) {
-  if (!value) return "";
-  const [date, time] = value.split("T");
-  if (!date || !time) return value;
-  return `${date} ${time}`;
+function formatBookingSchedule(date: string, start: string, end: string) {
+  if (!date && !start && !end) return "";
+  const timeRange = [start, end].filter(Boolean).join(" - ");
+  return [date, timeRange].filter(Boolean).join(" ");
 }
 
 function buildBookingCode(jobType: JobType | null) {
@@ -111,6 +124,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
   const [step, setStep] = useState<BookingStep>(2);
   const [selectedTalent, setSelectedTalent] = useState<any>(talent || null);
   const [selectedJobType, setSelectedJobType] = useState<JobType | null>("mc");
+  const [selectedPackage, setSelectedPackage] = useState<BookingPackageId>("basic");
   const [jobName, setJobName] = useState("");
   const [mcJobDescription, setMcJobDescription] = useState("");
 
@@ -159,9 +173,9 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
     const end = new Date(start);
     end.setHours(20, 0, 0, 0);
 
-    setWorkDate(toDateTimeLocalValue(start).split("T")[0]);
-    setStartTime(toDateTimeLocalValue(start));
-    setEndTime(toDateTimeLocalValue(end));
+    setWorkDate(toDateValue(start));
+    setStartTime("18:00");
+    setEndTime("20:00");
   }, []);
 
   const handleConfirmBooking = (e: React.FormEvent) => {
@@ -178,6 +192,14 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
   const handleClose = () => {
     router.back();
   };
+
+  const handleSelectJobType = (type: JobType) => {
+    setSelectedJobType(type);
+    setSelectedPackage("basic");
+    setStep(getAuthToken() ? 3 : 8);
+  };
+
+  const getDetailsBackStep = () => (getAuthToken() ? 2 : 8);
 
   const jobTypeOptions: { type: JobType; label: string; desc: string; icon: any }[] = [
     {
@@ -255,10 +277,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
                 return (
                   <div
                     key={item.type}
-                    onClick={() => {
-                      setSelectedJobType(item.type);
-                      setStep(3);
-                    }}
+                    onClick={() => handleSelectJobType(item.type)}
                     className="flex items-center gap-5 p-5 sm:p-6 rounded-3xl border border-amber-500/20 bg-gradient-to-r from-[#161c2c] via-[#101422] to-[#090c17] hover:border-amber-400/70 hover:bg-slate-900/90 shadow-[0_6px_25px_rgba(0,0,0,0.4)] hover:shadow-[0_0_30px_rgba(245,158,11,0.22)] transition-all duration-300 cursor-pointer relative overflow-hidden group active:scale-[0.99] min-h-[100px] md:min-h-[112px]"
                   >
                     <div className="h-16 w-16 md:h-18 md:w-18 rounded-2xl flex items-center justify-center shrink-0 border border-amber-500/35 bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent text-amber-400 group-hover:bg-amber-400 group-hover:text-slate-950 transition-all duration-300 shadow-md">
@@ -282,6 +301,81 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
       )}
 
       {/* ── STEP 3: NHẬP YÊU CẦU CHI TIẾT (FORM TÁCH VỚI HEADER & FOOTER CỐ ĐỊNH) ── */}
+      {step === 8 && (
+        <div className="h-dvh w-full animate-in fade-in duration-300">
+          <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-[#070913]">
+            <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-white/10 bg-[#070913]/95 px-5 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-white/5 text-slate-300 transition hover:bg-white/10 active:scale-95"
+                  title="Quay lại"
+                >
+                  <ArrowLeft className="h-5 w-5 text-amber-400" />
+                </button>
+                <div className="min-w-0">
+                  <h2 className="truncate text-lg font-black tracking-tight text-white md:text-xl">
+                    {getJobTypeName(selectedJobType)}
+                  </h2>
+                  <p className="mt-1 text-xs font-semibold text-slate-400">Chọn gói & xem giá</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleClose}
+                className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-slate-900/80 text-slate-300 transition hover:bg-white/15 hover:text-white active:scale-95"
+                title="Thoát"
+              >
+                <X className="h-5 w-5 text-amber-400" />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5 pb-8 text-left sm:p-7 sm:pb-10">
+              <p className="text-xs font-bold text-slate-400">Chọn gói phù hợp</p>
+              {BOOKING_PACKAGES.map((item) => {
+                const active = selectedPackage === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSelectedPackage(item.id)}
+                    className={cn(
+                      "flex w-full items-center justify-between gap-4 rounded-2xl border p-4 text-left transition active:scale-[0.99]",
+                      active
+                        ? "border-amber-400 bg-amber-400/10 shadow-[0_0_18px_rgba(245,158,11,0.18)]"
+                        : "border-white/10 bg-white/[0.04] hover:border-amber-400/40"
+                    )}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-black text-white">{item.name}</p>
+                      <p className="mt-1 text-xs font-bold text-slate-400">{item.duration}</p>
+                      <p className="mt-0.5 text-[11px] font-medium text-slate-500">{item.note}</p>
+                    </div>
+                    <span className="shrink-0 text-sm font-black text-white">{item.price}</span>
+                  </button>
+                );
+              })}
+
+              <p className="pt-2 text-sm font-bold leading-relaxed text-slate-400">
+                Số tiền còn lại sẽ được thanh toán sau khi xác nhận ứng viên.
+              </p>
+            </div>
+
+            <div className="z-20 shrink-0 border-t border-white/10 bg-[#070913]/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md sm:p-5">
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className="flex h-13 w-full cursor-pointer items-center justify-center rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-xs font-black uppercase tracking-widest text-slate-950 shadow-[0_4px_25px_rgba(245,158,11,0.35)] transition-all hover:brightness-110 active:scale-[0.98] md:text-sm"
+              >
+                Tiếp tục
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {step === 3 && (
         <>
           {selectedJobType === "mc" && (
@@ -304,7 +398,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
               setMcExperience={setMcExperience}
               extraRequirements={extraRequirements}
               setExtraRequirements={setExtraRequirements}
-              onBack={() => setStep(2)}
+              onBack={() => setStep(getDetailsBackStep())}
               onNext={() => setStep(4)}
               handleClose={handleClose}
             />
@@ -314,11 +408,12 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
             <BookingLookbookForm
               jobName={jobName}
               setJobName={setJobName}
+              workDate={workDate}
+              setWorkDate={setWorkDate}
               startTime={startTime}
               setStartTime={setStartTime}
               endTime={endTime}
               setEndTime={setEndTime}
-              setWorkDate={setWorkDate}
               lookbookTopic={lookbookTopic}
               setLookbookTopic={setLookbookTopic}
               lookbookStyle={lookbookStyle}
@@ -327,7 +422,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
               setLookbookLocation={setLookbookLocation}
               extraRequirements={extraRequirements}
               setExtraRequirements={setExtraRequirements}
-              onBack={() => setStep(2)}
+              onBack={() => setStep(getDetailsBackStep())}
               onNext={() => setStep(4)}
               handleClose={handleClose}
             />
@@ -339,18 +434,19 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
               setJobName={setJobName}
               pgJobDescription={pgJobDescription}
               setPgJobDescription={setPgJobDescription}
+              workDate={workDate}
+              setWorkDate={setWorkDate}
               startTime={startTime}
               setStartTime={setStartTime}
               endTime={endTime}
               setEndTime={setEndTime}
-              setWorkDate={setWorkDate}
               pgOutfit={pgOutfit}
               setPgOutfit={setPgOutfit}
               pgSkills={pgSkills}
               setPgSkills={setPgSkills}
               extraRequirements={extraRequirements}
               setExtraRequirements={setExtraRequirements}
-              onBack={() => setStep(2)}
+              onBack={() => setStep(getDetailsBackStep())}
               onNext={() => setStep(4)}
               handleClose={handleClose}
             />
@@ -407,8 +503,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
 
                 <div className="space-y-3 text-xs md:text-sm">
                   {renderSummaryRow("Tên công việc", jobName)}
-                  {renderSummaryRow("Thời gian bắt đầu", formatBookingDateTime(startTime))}
-                  {renderSummaryRow("Thời gian kết thúc", formatBookingDateTime(endTime))}
+                  {renderSummaryRow("Thời gian", formatBookingSchedule(workDate, startTime, endTime))}
                   <div className="hidden items-start justify-between gap-4 rounded-xl border border-white/5 bg-black/30 p-3">
                     <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-slate-500">Thời gian</span>
                     <span className="min-w-0 text-right font-bold leading-relaxed text-white">{workDate || "Chưa chọn"} ({startTime} - {endTime})</span>
