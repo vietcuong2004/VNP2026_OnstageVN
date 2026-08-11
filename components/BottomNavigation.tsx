@@ -105,7 +105,11 @@ export default function BottomNavigation() {
   async function handleLogout() {
     setShowMoreMenu(false);
     await logoutCurrentSession();
-    router.replace("/brand/search");
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      router.replace("/");
+    } else {
+      router.replace("/brand/search");
+    }
   }
 
   useEffect(() => {
