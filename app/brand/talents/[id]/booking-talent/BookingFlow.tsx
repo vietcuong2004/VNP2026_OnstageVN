@@ -134,7 +134,6 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
   const [endTime, setEndTime] = useState("");
   const [mcLocation, setMcLocation] = useState("");
   const [mcLanguage, setMcLanguage] = useState("Tiếng Việt");
-  const [mcExperience, setMcExperience] = useState("Không yêu cầu");
 
   // Specific inputs per job type
   const [lookbookTopic, setLookbookTopic] = useState("");
@@ -394,8 +393,6 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
               setMcLocation={setMcLocation}
               mcLanguage={mcLanguage}
               setMcLanguage={setMcLanguage}
-              mcExperience={mcExperience}
-              setMcExperience={setMcExperience}
               extraRequirements={extraRequirements}
               setExtraRequirements={setExtraRequirements}
               onBack={() => setStep(getDetailsBackStep())}
@@ -514,7 +511,6 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
                       {renderSummaryRow("Mô tả công việc", mcJobDescription)}
                       {renderSummaryRow("Địa điểm", mcLocation)}
                       {renderSummaryRow("Ngôn ngữ", mcLanguage)}
-                      {renderSummaryRow("Kinh nghiệm", mcExperience)}
                     </>
                   )}
 
@@ -559,10 +555,6 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
                       <div className="flex justify-between items-center">
                         <span className="text-slate-400 font-medium">Ngôn ngữ:</span>
                         <span className="font-bold text-white">{mcLanguage}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400 font-medium">Kinh nghiệm:</span>
-                        <span className="font-bold text-white">{mcExperience}</span>
                       </div>
                     </>
                   )}

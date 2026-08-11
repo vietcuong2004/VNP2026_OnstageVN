@@ -20,8 +20,6 @@ export type BookingMCFormProps = {
   setMcLocation: (v: string) => void;
   mcLanguage: string;
   setMcLanguage: (v: string) => void;
-  mcExperience: string;
-  setMcExperience: (v: string) => void;
   extraRequirements: string;
   setExtraRequirements: (v: string) => void;
   onBack: () => void;
@@ -44,8 +42,6 @@ export default function BookingMCForm({
   setMcLocation,
   mcLanguage,
   setMcLanguage,
-  mcExperience,
-  setMcExperience,
   extraRequirements,
   setExtraRequirements,
   onBack,
@@ -147,23 +143,6 @@ export default function BookingMCForm({
               <option value="Tiếng Việt">Tiếng Việt</option>
               <option value="Song ngữ Việt - Anh">Song ngữ Việt - Anh</option>
               <option value="Tiếng Anh">Tiếng Anh</option>
-            </select>
-          </div>
-
-          {/* Kinh nghiệm */}
-          <div>
-            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
-              Kinh nghiệm:
-            </label>
-            <select
-              value={mcExperience}
-              onChange={(e) => setMcExperience(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 text-xs font-semibold text-white outline-none focus:border-amber-400"
-            >
-              <option value="Không yêu cầu">Không yêu cầu</option>
-              <option value="Dưới 1 năm">Dưới 1 năm</option>
-              <option value="1 - 3 năm">1 - 3 năm</option>
-              <option value="Trên 3 năm">Trên 3 năm</option>
             </select>
           </div>
 
