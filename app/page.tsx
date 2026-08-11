@@ -9,7 +9,7 @@ import { ArrowRight } from "lucide-react";
 const discoveryCards = [
   {
     title: "Tìm Idol phù hợp",
-    subtitle: "Khám phá hàng trăm KOL, Model, MC, Creater phù hợp với nhu cầu của bạn. Lọc nhanh - Kết nối dễ dàng",
+    subtitle: "Khám phá hàng trăm KOL, Model, MC, Creator phù hợp với nhu cầu của bạn. Lọc nhanh - Kết nối dễ dàng",
     href: "/brand/search",
     image: "/discovery-idols.png",
   },
@@ -21,7 +21,7 @@ const discoveryCards = [
   },
   {
     title: "Về OnstageVN",
-    subtitle: "Tìm hiểu về hệ sinh thái của chúng tôi.",
+    subtitle: "Tìm hiểu về hệ sinh thái và giải pháp kết nối giải trí hàng đầu của chúng tôi.",
     href: "/about",
     image: "/hero_bg.png",
   },
@@ -31,21 +31,21 @@ export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 768px)");
-    if (mediaQuery.matches) {
-      router.replace("/about");
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      router.replace("/brand/search");
     }
   }, [router]);
 
   return (
-    <div className="min-h-[calc(100dvh-4rem)] bg-[#03050c] px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] pt-5 md:hidden">
-      <div className="mx-auto flex w-full flex-col gap-4">
-        <div className="grid gap-4">
+    <div className="min-h-[calc(100dvh-4rem)] bg-[#03050c] px-4 py-6 pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:hidden">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        {/* Discovery Cards Grid */}
+        <div className="grid gap-4 grid-cols-1">
           {discoveryCards.map((card) => (
             <Link
               key={card.href}
               href={card.href}
-              className="group relative aspect-[16/9] overflow-hidden rounded-[1.65rem] border border-[#C9A86A]/35 bg-[#10131d] shadow-[0_18px_50px_rgba(0,0,0,0.35)] transition duration-300 active:scale-[0.99]"
+              className="group relative aspect-[16/9] overflow-hidden rounded-2xl border border-[#C9A86A]/35 bg-[#10131d] shadow-[0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 active:scale-[0.99]"
             >
               <Image
                 src={card.image}
@@ -55,21 +55,21 @@ export default function RootPage() {
                 sizes="100vw"
                 className="object-cover transition duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#03050c]/70 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#03050c]/80 via-transparent to-transparent" />
 
-              <div className="absolute inset-0 z-10 flex flex-col justify-between p-5">
+              <div className="absolute inset-0 z-10 flex flex-col justify-between p-5 text-left">
                 <div>
-                  <h2 className="max-w-full whitespace-nowrap text-[1.18rem] font-black leading-none tracking-tight text-white drop-shadow">
+                  <h2 className="text-[1.2rem] font-black leading-tight tracking-tight text-white drop-shadow">
                     {card.title}
                   </h2>
-                  <p className="mt-2 max-w-[10.75rem] text-[11px] font-semibold leading-relaxed text-white/80">
+                  <p className="mt-2 max-w-[14rem] text-xs font-semibold leading-relaxed text-white/80">
                     {card.subtitle}
                   </p>
                 </div>
 
-                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/20 text-white shadow-[0_8px_30px_rgba(0,0,0,0.25)] backdrop-blur-md transition duration-300 group-hover:bg-[#F5D76E] group-hover:text-slate-950">
-                  <ArrowRight className="h-4 w-4" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-[0_8px_30px_rgba(0,0,0,0.25)] backdrop-blur-md transition-all duration-300 group-hover:bg-[#F5D76E] group-hover:text-slate-950">
+                  <ArrowRight className="h-5 w-5" />
                 </div>
               </div>
             </Link>

@@ -29,6 +29,9 @@ function getApiBaseUrl() {
 }
 
 function getRedirectPath() {
+  if (typeof window !== "undefined" && window.innerWidth < 768) {
+    return "/";
+  }
   return "/brand/search";
 }
 

@@ -716,72 +716,228 @@ export default function CampaignDetailPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Người phụ trách Job card */}
-          <article
-            className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-b from-emerald-950/30 via-slate-900/50 to-slate-950/80 p-5 hover:border-emerald-500/50 transition-all duration-300 flex flex-col justify-between space-y-5 shadow-[0_4px_20px_rgba(16,185,129,0.06)] hover:shadow-[0_4px_30px_rgba(16,185,129,0.12)] group animate-in fade-in duration-300"
-          >
-            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
-
-            {/* Top info */}
-            <div className="flex gap-4 items-start text-left relative z-10">
-              <div className="relative shrink-0">
-                <img
-                  src={activeOwner.avatar}
-                  alt={activeOwner.name}
-                  onError={(event) => {
-                    event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
-                  }}
-                  className="h-16 w-16 rounded-xl object-cover border border-emerald-500/30 ring-2 ring-emerald-500/20 bg-slate-900"
-                />
-                <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-slate-950 text-slate-950" title="Người phụ trách">
-                  <ShieldCheck className="h-2.5 w-2.5 stroke-[3]" />
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col items-start gap-1">
-                  <h3 className="text-sm font-black text-white group-hover:text-emerald-300 transition-colors">{activeOwner.name}</h3>
-                  <span className="inline-flex items-center gap-1 font-display font-extrabold text-[9px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md shrink-0 uppercase tracking-wider">
-                    <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
-                    Người phụ trách Job
-                  </span>
-                </div>
-                <p className="text-[10.5px] text-emerald-400/90 font-medium mt-1">
-                  {activeOwner.role} · {activeOwner.location || "Hà Nội"}
-                </p>
-              </div>
-            </div>
-
-            {/* Contact Information */}
-            <div className="space-y-2 text-left relative z-10">
-              <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1 pb-1 border-b border-white/5">
-                <span>Thông tin liên hệ</span>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center gap-2.5 text-slate-300">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <Mail className="h-3 w-3" />
+        {/* --- DESKTOP TABLE VIEW (md:block) --- */}
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-800/80 bg-slate-950/60 backdrop-blur-md shadow-lg">
+          <table className="w-full text-left text-xs border-collapse font-medium min-w-[700px]">
+            <thead>
+              <tr className="border-b border-white/10 bg-slate-900/90 text-[9.5px] font-black uppercase tracking-wider text-slate-400">
+                <th className="py-3.5 px-4">Nhân sự</th>
+                <th className="py-3.5 px-4">Vai trò / Nguồn</th>
+                <th className="py-3.5 px-4">Trạng thái</th>
+                <th className="py-3.5 px-4 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {/* Người phụ trách Job */}
+              <tr className="hover:bg-emerald-950/20 transition-colors group">
+                <td className="py-3.5 px-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative shrink-0">
+                      <img
+                        src={activeOwner.avatar}
+                        alt={activeOwner.name}
+                        onError={(event) => {
+                          event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
+                        }}
+                        className="h-10 w-10 rounded-xl object-cover border border-emerald-500/40 ring-2 ring-emerald-500/20 bg-slate-900"
+                      />
+                      <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-slate-950 text-slate-950" title="Người phụ trách">
+                        <ShieldCheck className="h-2 w-2 stroke-[3]" />
+                      </span>
+                    </div>
+                    <div className="flex flex-col text-left min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white group-hover:text-emerald-300 transition-colors text-xs truncate">{activeOwner.name}</span>
+                        <span className="inline-flex items-center gap-1 font-display font-extrabold text-[8.5px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded shrink-0 uppercase tracking-wider">
+                          <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
+                          Người phụ trách Job
+                        </span>
+                      </div>
+                      <span className="text-[10.5px] text-slate-400 font-medium">
+                        {activeOwner.role} · {activeOwner.location || "Hà Nội"}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-[10.5px] text-slate-400 font-medium">Email:</span>
-                  <span className="font-bold text-white font-mono text-[11.5px] truncate max-w-[170px] ml-auto" title={activeOwner.email}>
-                    {activeOwner.email}
+                </td>
+                <td className="py-3.5 px-4 text-left">
+                  <span className="text-xs font-semibold text-slate-300">Quản lý Job</span>
+                </td>
+                <td className="py-3.5 px-4 text-left">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-[9.5px] font-extrabold text-emerald-400 uppercase tracking-wider">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Đang phụ trách
+                  </span>
+                </td>
+                <td className="py-3.5 px-4 text-right">
+                  <button
+                    onClick={() => setIsShowingOwnerTransferModal(true)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-amber-300 hover:bg-amber-500/20 hover:border-amber-400/50 hover:text-amber-200 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+                  >
+                    <Users className="h-3.5 w-3.5" />
+                    Chuyển quyền phụ trách
+                  </button>
+                </td>
+              </tr>
+
+              {/* Danh sách Applicants / Talents */}
+              {selectedCampaign.applicants.map((item) => {
+                const talent = displayTalents.find((candidate) => candidate.id === item.talentId)
+                  || (item as any)?.talent
+                  || (item as any).talent;
+                if (!talent) return null;
+                const stage = item.stage;
+                const referredByName = (item as any).referredByName;
+                const referrer = item.referredByTalentId
+                  ? displayTalents.find((candidate) => candidate.id === item.referredByTalentId) || (referredByName ? { name: referredByName } : null)
+                  : (referredByName ? { name: referredByName } : null);
+                const referrerName = referrer?.name;
+
+                return (
+                  <tr key={item.talentId} className="hover:bg-white/[0.02] transition-colors group">
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={talent.avatar}
+                          alt={talent.name}
+                          onError={(event) => {
+                            event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                          }}
+                          className="h-10 w-10 rounded-xl object-cover border border-white/10 ring-1 ring-white/5 shrink-0 bg-slate-950"
+                        />
+                        <div className="flex flex-col text-left min-w-0">
+                          <span className="font-bold text-white group-hover:text-amber-300 transition-colors text-xs truncate">{talent.name}</span>
+                          <span className="text-[10.5px] text-slate-400 font-medium">
+                            {talent.type || "Talent"} · {talent.city || "Hà Nội"}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-left">
+                      {referrerName ? (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-cyan-400/10 border border-cyan-500/25 px-2 py-0.5 text-[9.5px] font-bold text-cyan-300 tracking-wide">
+                          <Users className="h-3 w-3 text-cyan-400" />
+                          Giới thiệu: {referrerName}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400 font-medium">Ứng tuyển trực tiếp</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-left">
+                      {stage === "confirmed" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 text-[9.5px] font-bold text-emerald-400 uppercase tracking-wider">
+                          <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                          Đã giải ngân
+                        </span>
+                      ) : stage === "accepted" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-teal-500/10 border border-teal-500/30 px-2.5 py-1 text-[9.5px] font-bold text-teal-300 uppercase tracking-wider">
+                          <CheckCircle2 className="h-3 w-3 text-teal-400" />
+                          Đã duyệt
+                        </span>
+                      ) : stage === "new" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 text-[9.5px] font-bold text-amber-300 uppercase tracking-wider">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                          Mới ứng tuyển
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 border border-slate-700 px-2.5 py-1 text-[9.5px] font-bold text-slate-300 uppercase tracking-wider">
+                          {stage}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {stage === "confirmed" ? (
+                          <span className="inline-flex items-center gap-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-[9.5px] text-emerald-400 font-black uppercase tracking-wider whitespace-nowrap">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                            Đã giải ngân
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => router.push(`/brand/talents/${talent.id}`)}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 px-2.5 py-1.5 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 hover:border-white/20 active:scale-[0.98]"
+                          >
+                            <Eye className="h-3.5 w-3.5 text-slate-400" />
+                            Xem hồ sơ
+                          </button>
+                        )}
+
+                        {stage === "new" && (
+                          <button
+                            onClick={() => moveApplicant(selectedCampaign.id, talent.id, "accepted")}
+                            className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Duyệt
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => removeApplicant(selectedCampaign.id, talent.id)}
+                          className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/30 hover:text-red-300 hover:border-red-800/60 transition-all cursor-pointer active:scale-[0.98]"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Xóa
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* --- MOBILE CARDS VIEW (md:hidden) --- */}
+        <div className="md:hidden space-y-3">
+          {/* Mobile Card: Người phụ trách Job */}
+          <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-b from-emerald-950/20 via-slate-950/80 to-slate-950 p-4 space-y-3 shadow-md text-left">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative shrink-0">
+                  <img
+                    src={activeOwner.avatar}
+                    alt={activeOwner.name}
+                    onError={(event) => {
+                      event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
+                    }}
+                    className="h-11 w-11 rounded-xl object-cover border border-emerald-500/40 ring-2 ring-emerald-500/20 bg-slate-900"
+                  />
+                  <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-slate-950 text-slate-950" title="Người phụ trách">
+                    <ShieldCheck className="h-2 w-2 stroke-[3]" />
                   </span>
                 </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h3 className="text-sm font-bold text-white truncate">{activeOwner.name}</h3>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {activeOwner.role} · {activeOwner.location || "Hà Nội"}
+                  </p>
+                </div>
               </div>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-extrabold text-emerald-400 uppercase tracking-wider shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Đang phụ trách
+              </span>
             </div>
 
-            {/* Actions row */}
-            <div className="pt-3.5 border-t border-white/5 w-full relative z-10">
+            <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1 font-display font-extrabold text-[9px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded uppercase tracking-wider">
+                <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
+                Người phụ trách Job
+              </span>
+
               <button
                 onClick={() => setIsShowingOwnerTransferModal(true)}
-                className="flex w-full h-9.5 items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 px-4 text-[10px] font-black uppercase tracking-wider text-amber-300 hover:bg-amber-500/25 hover:border-amber-400/50 hover:text-amber-200 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-amber-300 hover:bg-amber-500/20 active:scale-[0.98] transition-all cursor-pointer"
               >
                 <Users className="h-3.5 w-3.5" />
-                Chuyển quyền phụ trách
+                Chuyển quyền
               </button>
             </div>
-          </article>
+          </div>
 
+          {/* Mobile Cards: Applicants / Talents */}
           {selectedCampaign.applicants.map((item) => {
             const talent = displayTalents.find((candidate) => candidate.id === item.talentId)
               || (item as any)?.talent
@@ -794,98 +950,98 @@ export default function CampaignDetailPage() {
               : (referredByName ? { name: referredByName } : null);
             const referrerName = referrer?.name;
 
-            const talentEmail = getTalentEmail(talent, item);
-
             return (
-              <article
-                key={item.talentId}
-                className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-950/80 p-5 hover:border-amber-400/40 hover:shadow-[0_4px_25px_rgba(245,158,11,0.08)] transition-all duration-300 flex flex-col justify-between space-y-5 group"
-              >
-                <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-amber-500/5 blur-2xl pointer-events-none" />
-
-                {/* Top info and note */}
-                <div className="flex gap-4 items-start text-left relative z-10">
-                  <img
-                    src={talent.avatar}
-                    alt={talent.name}
-                    onError={(event) => {
-                      event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
-                    }}
-                    className="h-16 w-16 rounded-xl object-cover border border-white/10 ring-2 ring-white/5 shrink-0 bg-slate-950"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-sm font-black text-white group-hover:text-amber-300 transition-colors truncate">{talent.name}</h3>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                      <span className="inline-flex items-center rounded bg-slate-800/80 border border-slate-700/60 px-2 py-0.5 text-[9px] font-bold text-slate-300 uppercase tracking-wider">
+              <div key={item.talentId} className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4 space-y-3 shadow-md text-left">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={talent.avatar}
+                      alt={talent.name}
+                      onError={(event) => {
+                        event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
+                      }}
+                      className="h-11 w-11 rounded-xl object-cover border border-white/10 ring-1 ring-white/5 shrink-0 bg-slate-950"
+                    />
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-bold text-white truncate">{talent.name}</h3>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
                         {talent.type || "Talent"} · {talent.city || "Hà Nội"}
-                      </span>
-                      {referrerName && (
-                        <span className="inline-flex items-center gap-1 rounded bg-cyan-400/10 border border-cyan-500/25 px-2 py-0.5 text-[8.5px] font-bold text-cyan-300 uppercase tracking-wider">
-                          Giới thiệu: {referrerName}
-                        </span>
-                      )}
+                      </p>
                     </div>
                   </div>
-                </div>
 
-                {/* Contact Information */}
-                <div className="space-y-2 text-left relative z-10">
-                  <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1 pb-1 border-b border-white/5">
-                    <span>Thông tin liên hệ</span>
-                  </div>
-                  <div className="space-y-2 text-xs">
-                    <div className="flex items-center gap-2.5 text-slate-300">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                        <Mail className="h-3 w-3" />
-                      </div>
-                      <span className="text-[10.5px] text-slate-400 font-medium">Email:</span>
-                      <span className="font-bold text-white font-mono text-[11.5px] truncate max-w-[170px] ml-auto" title={talentEmail}>
-                        {talentEmail}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions row */}
-                <div className="pt-3.5 border-t border-white/5 w-full relative z-10">
-                  <div className={cn("grid gap-2 w-full", stage === "new" ? "grid-cols-3" : "grid-cols-2")}>
+                  <div className="shrink-0">
                     {stage === "confirmed" ? (
-                      <span className="w-full flex items-center justify-center gap-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-1 py-2 text-[9.5px] text-emerald-400 font-black uppercase tracking-wider text-center whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-bold text-emerald-400 uppercase tracking-wider">
+                        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-400" />
+                        Đã giải ngân
+                      </span>
+                    ) : stage === "accepted" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-teal-500/10 border border-teal-500/30 px-2 py-0.5 text-[9px] font-bold text-teal-300 uppercase tracking-wider">
+                        <CheckCircle2 className="h-2.5 w-2.5 text-teal-400" />
+                        Đã duyệt
+                      </span>
+                    ) : stage === "new" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[9px] font-bold text-amber-300 uppercase tracking-wider">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                        Mới ứng tuyển
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[9px] font-bold text-slate-300 uppercase tracking-wider">
+                        {stage}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    {referrerName ? (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-cyan-400/10 border border-cyan-500/25 px-2 py-0.5 text-[9.5px] font-bold text-cyan-300 tracking-wide truncate">
+                        <Users className="h-3 w-3 text-cyan-400 shrink-0" />
+                        Giới thiệu: {referrerName}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400 font-medium">Ứng tuyển trực tiếp</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {stage === "confirmed" ? (
+                      <span className="inline-flex items-center gap-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-[9.5px] text-emerald-400 font-black uppercase tracking-wider">
                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
                         Đã giải ngân
                       </span>
                     ) : (
                       <button
                         onClick={() => router.push(`/brand/talents/${talent.id}`)}
-                        className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 px-2 py-2 text-[10.5px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 hover:border-white/20 active:scale-[0.98]"
+                        className="inline-flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 text-slate-200 px-2.5 py-1.5 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-white/10"
                       >
                         <Eye className="h-3.5 w-3.5 text-slate-400" />
-                        Xem hồ sơ
+                        Xem
                       </button>
                     )}
 
-                    {stage === "new" ? (
+                    {stage === "new" && (
                       <button
                         onClick={() => moveApplicant(selectedCampaign.id, talent.id, "accepted")}
-                        className="w-full flex items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+                        className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.25)]"
                       >
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         Duyệt
                       </button>
-                    ) : null}
+                    )}
 
                     <button
                       onClick={() => removeApplicant(selectedCampaign.id, talent.id)}
-                      className="w-full flex items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-[10.5px] font-black uppercase bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/30 hover:text-red-300 hover:border-red-800/60 transition-all cursor-pointer active:scale-[0.98]"
+                      className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/30 hover:text-red-300 transition-all cursor-pointer active:scale-[0.98]"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Xóa
                     </button>
                   </div>
                 </div>
-              </article>
+              </div>
             );
           })}
         </div>

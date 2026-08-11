@@ -346,7 +346,11 @@ export default function Header() {
 
   async function handleLogout() {
     await logoutCurrentSession();
-    router.replace("/brand/search");
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      router.replace("/");
+    } else {
+      router.replace("/brand/search");
+    }
   }
 
   async function handleStopImpersonation() {
@@ -383,7 +387,13 @@ export default function Header() {
       <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913] px-4 md:px-8 transform translate-z-0">
         <div className="flex w-auto md:w-72 shrink-0 items-center">
           <button
-            onClick={() => router.push("/brand/search")}
+            onClick={() => {
+              if (typeof window !== "undefined" && window.innerWidth < 768) {
+                router.push("/");
+              } else {
+                router.push("/brand/search");
+              }
+            }}
             className="flex items-center gap-1.5 hover:opacity-95 transition-opacity focus:outline-none cursor-pointer"
           >
             <img

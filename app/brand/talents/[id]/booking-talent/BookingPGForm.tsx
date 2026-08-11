@@ -132,15 +132,15 @@ export default function BookingPGForm({
 
           {/* Kỹ năng */}
           <div>
-            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-[#C9A86A]">
-              Kỹ năng / Ngoại hình:
+            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-amber-300">
+              Kỹ năng:
             </label>
-            <input
-              type="text"
+            <TextArea
+              rows={2}
               value={pgSkills}
               onChange={(e) => setPgSkills(e.target.value)}
-              placeholder="Giao tiếp tốt, cao 1m68 trở lên..."
-              className="w-full rounded-xl border border-white/10 bg-slate-950 p-3 text-xs font-semibold text-white outline-none focus:border-[#C9A86A]"
+              placeholder="Giao tiếp tốt, ứng biến nhanh..."
+              className="w-full resize-none whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950 p-3.5 text-xs font-semibold leading-relaxed text-white outline-none placeholder:text-slate-600 focus:border-amber-400"
             />
           </div>
 

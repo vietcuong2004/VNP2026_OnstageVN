@@ -173,7 +173,11 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     addToast("Đang đăng xuất khỏi tài khoản...", "info");
     await logoutCurrentSession();
-    router.replace("/brand/search");
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      router.replace("/");
+    } else {
+      router.replace("/brand/search");
+    }
   };
 
   return (
