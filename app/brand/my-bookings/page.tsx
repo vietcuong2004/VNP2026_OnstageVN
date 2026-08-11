@@ -10,9 +10,15 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getAuthToken } from "@/lib/api-client";
+import { loadBrandBookings } from "@/lib/brand-api";
 import { BookingRequest, BookingStatus } from "./types";
 import BookingCard from "./BookingCard";
 import BookingDetailModal from "./BookingDetailModal";
+
+type StoredBookingRecord = Omit<Partial<BookingRequest>, "status"> & {
+  status?: string | null;
+};
 
 const MOCK_BOOKINGS: BookingRequest[] = [
   {
@@ -32,7 +38,7 @@ const MOCK_BOOKINGS: BookingRequest[] = [
     contactPhone: "0988123456",
     contactEmail: "contact@brand.com",
     notes: "Yêu cầu trang phục đầm dạ hội đen sang trọng.",
-    status: "pending",
+    status: "deposit_pending",
     createdAt: "2026-08-10T10:15:00Z",
   },
   {
@@ -52,7 +58,7 @@ const MOCK_BOOKINGS: BookingRequest[] = [
     contactPhone: "0912345678",
     contactEmail: "duc.tran@agency.vn",
     notes: "MC Song ngữ Việt - Anh, điều phối chương trình ra mắt sản phẩm.",
-    status: "approved",
+    status: "confirmed",
     createdAt: "2026-08-08T14:20:00Z",
   },
   {
@@ -77,12 +83,36 @@ const MOCK_BOOKINGS: BookingRequest[] = [
   },
 ];
 
-const STATUS_TABS: Array<{ value: string; label: string }> = [
+const STATUS_TABS: Array<{ value: "all" | BookingStatus; label: string }> = [
   { value: "all", label: "Tất cả" },
-  { value: "pending", label: "Chờ duyệt" },
-  { value: "approved", label: "Đã duyệt" },
-  { value: "completed", label: "Hoàn thành" },
+  { value: "deposit_pending", label: "Chờ cọc" },
+  { value: "submitted", label: "Chờ kiểm tra" },
+  { value: "reviewing", label: "Đang xử lý" },
+  { value: "talent_confirming", label: "Chờ Idol" },
+  { value: "confirmed", label: "Đã xác nhận" },
+  { value: "rejected", label: "Từ chối" },
+  { value: "cancelled", label: "Đã hủy" },
+  { value: "completed", label: "Hoàn tất" },
 ];
+
+function normalizeStoredBookingStatus(status?: string | null): BookingStatus {
+  switch (status) {
+    case "submitted":
+    case "reviewing":
+    case "talent_confirming":
+    case "confirmed":
+    case "rejected":
+    case "cancelled":
+    case "completed":
+      return status;
+    case "approved":
+    case "talent_accepted":
+      return "confirmed";
+    case "pending":
+    default:
+      return "deposit_pending";
+  }
+}
 
 export default function MyBookingsPage() {
   const router = useRouter();
@@ -92,26 +122,62 @@ export default function MyBookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<BookingRequest | null>(null);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("brand_my_bookings");
-      if (stored) {
+    let cancelled = false;
+
+    const loadStoredBookings = (): BookingRequest[] => {
+      try {
+        const stored = localStorage.getItem("brand_my_bookings");
+        if (!stored) return [];
+
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const normalized = parsed.map((item: any) => {
-            let status: BookingStatus = "pending";
-            if (item.status === "completed") status = "completed";
-            else if (item.status === "approved" || item.status === "talent_accepted") status = "approved";
-            else status = "pending";
-            return { ...item, status };
-          });
-          setBookings(normalized);
-          return;
-        }
+        if (!Array.isArray(parsed)) return [];
+
+        return parsed
+          .filter((item: unknown): item is StoredBookingRecord => Boolean(item) && typeof item === "object")
+          .map((item) => ({
+            ...item,
+            status: normalizeStoredBookingStatus(item.status),
+          }) as BookingRequest);
+      } catch (e) {
+        console.error(e);
+        return [];
       }
-    } catch (e) {
-      console.error(e);
+    };
+
+    const mergeBookings = (primary: BookingRequest[], fallback: BookingRequest[]) => {
+      const seen = new Set<string>();
+      return [...primary, ...fallback].filter((item) => {
+        const id = String(item.id || "");
+        if (!id || seen.has(id)) return false;
+
+        seen.add(id);
+        return true;
+      });
+    };
+
+    if (getAuthToken()) {
+      loadBrandBookings()
+        .then((items) => {
+          if (!cancelled) setBookings(mergeBookings(items, loadStoredBookings()));
+        })
+        .catch((error) => {
+          console.error(error);
+          if (!cancelled) setBookings(loadStoredBookings());
+        });
+
+      return () => {
+        cancelled = true;
+      };
     }
-    setBookings(MOCK_BOOKINGS);
+
+    const storedBookings = loadStoredBookings();
+    queueMicrotask(() => {
+      if (!cancelled) setBookings(storedBookings.length > 0 ? storedBookings : MOCK_BOOKINGS);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredBookings = useMemo(() => {

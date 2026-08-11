@@ -796,7 +796,7 @@ export default function BrandTalentProfilePage() {
                 <button
                   onClick={() => {
                     setIsDropdownOpen(false);
-                    router.push(`/brand/talents/${params.id}/booking-talent`);
+                    router.push(`/booking?talentId=${encodeURIComponent(String(params.id))}`);
                   }}
                   className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition duration-200 text-left"
                 >
@@ -962,7 +962,7 @@ export default function BrandTalentProfilePage() {
             </button>
             <button
               type="button"
-              onClick={() => router.push(`/brand/talents/${params.id}/booking-talent`)}
+              onClick={() => router.push(`/booking?talentId=${encodeURIComponent(String(params.id))}`)}
               className="flex h-10 items-center justify-center rounded-xl border border-amber-400/40 bg-gradient-to-r from-amber-400/25 via-yellow-500/20 to-amber-500/30 px-2 text-[9.5px] font-black uppercase tracking-wider text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)] transition active:scale-95 cursor-pointer"
             >
               <CalendarCheck className="mr-1 h-3.5 w-3.5 shrink-0 text-amber-400" />
@@ -1124,7 +1124,7 @@ export default function BrandTalentProfilePage() {
           </button>
           <button
             type="button"
-            onClick={() => router.push(`/brand/talents/${params.id}/booking-talent`)}
+            onClick={() => router.push(`/booking?talentId=${encodeURIComponent(String(params.id))}`)}
             className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-400/25 via-yellow-500/20 to-amber-500/30 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-95 cursor-pointer whitespace-nowrap"
           >
             <CalendarCheck className="mr-2 h-4 w-4 shrink-0 text-amber-400" />

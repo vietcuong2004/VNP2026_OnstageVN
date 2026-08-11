@@ -236,8 +236,9 @@ export default function TalentCardMobile({
             type="button"
             onClick={(e) => {
               stopCardClick(e);
-              const targetId = talent?.id || talent?.slug || "talent-1";
-              router.push(`/brand/talents/${targetId}/booking-talent`);
+              const targetId = talent?.profileId || talent?.profile_id || talent?.id || talent?.slug;
+              if (!targetId) return;
+              router.push(`/booking?talentId=${encodeURIComponent(String(targetId))}`);
             }}
             className="flex min-h-[38px] w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl border border-amber-500/50 bg-[#282110] px-3 text-center text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.15)] transition-all active:scale-95 hover:brightness-125"
             title="Đặt ngay dịch vụ của Idol"

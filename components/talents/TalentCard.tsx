@@ -148,9 +148,9 @@ export default function TalentCard({
 
   const handleBookNowClick = (event: MouseEvent) => {
     stopCardClick(event);
-    const targetId = talent?.id || talent?.slug;
+    const targetId = talent?.profileId || talent?.profile_id || talent?.id || talent?.slug;
     if (!targetId) return;
-    router.push(`/brand/talents/${targetId}/booking-talent`);
+    router.push(`/booking?talentId=${encodeURIComponent(String(targetId))}`);
   };
 
   const closeModals = (e: MouseEvent) => {

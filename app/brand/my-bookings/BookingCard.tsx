@@ -1,37 +1,78 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, Clock, Eye, MapPin, UserCheck } from "lucide-react";
+import { CheckCircle2, Clock, Eye, MapPin, UserCheck, XCircle, type LucideIcon } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { BookingRequest, BookingStatus } from "./types";
 
-export function getStatusBadge(status: BookingStatus) {
+type StatusConfig = {
+  label: string;
+  className: string;
+  Icon: LucideIcon;
+};
+
+function statusConfig(status: BookingStatus): StatusConfig {
   switch (status) {
-    case "pending":
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-400">
-          <Clock className="h-3 w-3 shrink-0" /> Chờ duyệt
-        </span>
-      );
-    case "approved":
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-400">
-          <UserCheck className="h-3 w-3 shrink-0" /> Đã duyệt
-        </span>
-      );
+    case "deposit_pending":
+      return {
+        label: "Chờ đặt cọc",
+        Icon: Clock,
+        className: "border-amber-500/40 bg-amber-500/10 text-amber-400",
+      };
+    case "submitted":
+      return {
+        label: "Chờ kiểm tra",
+        Icon: Clock,
+        className: "border-yellow-500/40 bg-yellow-500/10 text-yellow-300",
+      };
+    case "reviewing":
+      return {
+        label: "Đang xử lý",
+        Icon: Clock,
+        className: "border-sky-500/40 bg-sky-500/10 text-sky-300",
+      };
+    case "talent_confirming":
+      return {
+        label: "Chờ Idol xác nhận",
+        Icon: UserCheck,
+        className: "border-violet-500/40 bg-violet-500/10 text-violet-300",
+      };
+    case "confirmed":
+      return {
+        label: "Đã xác nhận",
+        Icon: UserCheck,
+        className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
+      };
+    case "rejected":
+      return {
+        label: "Idol từ chối",
+        Icon: XCircle,
+        className: "border-rose-500/40 bg-rose-500/10 text-rose-300",
+      };
+    case "cancelled":
+      return {
+        label: "Đã hủy",
+        Icon: XCircle,
+        className: "border-slate-500/40 bg-slate-500/10 text-slate-300",
+      };
     case "completed":
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2.5 py-0.5 text-[10px] sm:text-xs font-black uppercase tracking-wider text-blue-400">
-          <CheckCircle2 className="h-3 w-3 shrink-0" /> Hoàn thành
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-400">
-          <Clock className="h-3 w-3 shrink-0" /> Chờ duyệt
-        </span>
-      );
+      return {
+        label: "Hoàn tất",
+        Icon: CheckCircle2,
+        className: "border-blue-500/40 bg-blue-500/10 text-blue-400",
+      };
   }
+}
+
+export function getStatusBadge(status: BookingStatus) {
+  const config = statusConfig(status);
+  const Icon = config.Icon;
+
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] sm:text-xs font-black uppercase tracking-wider ${config.className}`}>
+      <Icon className="h-3 w-3 shrink-0" /> {config.label}
+    </span>
+  );
 }
 
 interface BookingCardProps {
@@ -40,12 +81,16 @@ interface BookingCardProps {
 }
 
 export default function BookingCard({ item, onSelect }: BookingCardProps) {
+  const timeRange = [item.startTime, item.endTime].filter(Boolean).join(" - ");
+  const scheduleText = timeRange
+    ? `${item.workDate || "Chưa cập nhật"} (${timeRange})`
+    : item.workDate || "Chưa cập nhật";
+
   return (
     <article
       onClick={() => onSelect(item)}
       className="group relative flex flex-col justify-between rounded-3xl border border-[#2B313D] bg-[#171A21] p-4 shadow-xl transition-all duration-300 hover:border-[#C9A86A]/60 text-left overflow-hidden cursor-pointer active:scale-[0.99]"
     >
-      {/* ── CARD ROW 1: TOP BAR (Status Badge on Left, Booking ID on Right) ── */}
       <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2.5 mb-3">
         <div className="shrink-0">{getStatusBadge(item.status)}</div>
         <span className="text-xs font-black uppercase tracking-wider text-amber-400 font-mono bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20">
@@ -53,9 +98,7 @@ export default function BookingCard({ item, onSelect }: BookingCardProps) {
         </span>
       </div>
 
-      {/* ── CARD ROW 2: MIDDLE SECTION (Avatar + Main Info) ── */}
       <div className="flex flex-row items-start gap-3 sm:gap-4">
-        {/* Talent Avatar */}
         <div className="relative h-14 w-14 sm:h-16 sm:w-16 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-md">
           <img
             src={item.talentAvatar || createInitialAvatarDataUrl(item.talentName, "")}
@@ -67,7 +110,6 @@ export default function BookingCard({ item, onSelect }: BookingCardProps) {
           </span>
         </div>
 
-        {/* Main Info Column */}
         <div className="flex-1 min-w-0 space-y-1">
           <h3 className="text-sm sm:text-base font-black text-white leading-tight truncate group-hover:text-amber-300 transition-colors drop-shadow-[0_1px_8px_rgba(255,255,255,0.1)]">
             {item.campaignTitle}
@@ -80,17 +122,16 @@ export default function BookingCard({ item, onSelect }: BookingCardProps) {
           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-[10.5px] sm:text-xs font-semibold text-slate-400 pt-0.5">
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
-              {item.workDate} ({item.startTime} - {item.endTime})
+              {scheduleText}
             </span>
             <span className="flex items-center gap-1 truncate">
               <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
-              <span className="truncate">{item.location}</span>
+              <span className="truncate">{item.location || "Chưa cập nhật"}</span>
             </span>
           </div>
         </div>
       </div>
 
-      {/* ── CARD ROW 3: BOTTOM ACTIONS (Financial Deposit + Action Buttons) ── */}
       <div className="mt-3.5 flex items-center justify-between gap-2 border-t border-white/5 pt-3">
         <div className="text-left">
           <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400 block">

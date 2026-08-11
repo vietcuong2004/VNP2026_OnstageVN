@@ -31,6 +31,7 @@ type BackendUser = {
   external_avatar_url?: string | null;
   parent_id?: number | string | null;
   parent?: BackendUser | null;
+  profile?: BackendProfile | null;
 };
 
 export function requireBrandSession() {
@@ -248,18 +249,54 @@ type BackendWishlist = {
   items?: BackendWishlistItem[] | null;
 };
 
-type BackendBooking = {
+type BackendBookingRequest = {
   id: number | string;
-  campaign?: BackendCampaign | null;
+  request_code?: string | null;
+  brand_id?: number | string | null;
+  talent_id?: number | string | null;
   talent?: BackendUser | null;
-  starts_at?: string | null;
-  ends_at?: string | null;
+  job_type?: string | null;
+  package_id?: string | null;
+  package_price?: number | string | null;
+  package_name?: string | null;
+  package_duration?: string | null;
+  job_name?: string | null;
+  job_description?: string | null;
+  work_date?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
   location?: string | null;
-  compensation_amount?: number | string | null;
-  platform_commission_amount?: number | string | null;
-  status?: string | null;
+  extra_requirements?: string | null;
+  job_details?: Record<string, unknown> | null;
+  contact_name?: string | null;
+  contact_phone?: string | null;
+  contact_email?: string | null;
+  deposit_amount?: number | string | null;
+  remaining_amount?: number | string | null;
+  request_status?: string | null;
   payment_status?: string | null;
+  deposit_transfer_content?: string | null;
+  deposit_qr_payload?: string | null;
   created_at?: string | null;
+};
+
+export type CreateBookingRequestPayload = {
+  talent_id?: number | string | null;
+  profile_id?: number | string | null;
+  job_type: "mc" | "pg" | "lookbook" | "kol" | "influencer" | "model" | "pg_model" | string;
+  package_id?: "basic" | "standard" | "premium" | string | null;
+  job_name: string;
+  job_description?: string | null;
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  location?: string | null;
+  extra_requirements?: string | null;
+  job_details?: Record<string, unknown> | null;
+  contact_name: string;
+  contact_phone: string;
+  contact_email?: string | null;
+  payment_method?: "bank" | "wallet";
 };
 
 type BackendContactRequest = {
@@ -456,10 +493,6 @@ function formatDailyCompensation(value: number) {
   }
 
   return `${value.toLocaleString("vi-VN")}đ/ngày`;
-}
-
-function formatMoney(value: number) {
-  return `${Math.round(value).toLocaleString("vi-VN")}đ`;
 }
 
 function formatBudget(min: unknown, max: unknown) {
@@ -999,18 +1032,78 @@ export function mapBackendWishlist(wishlist: BackendWishlist, fallbackTalents: T
   };
 }
 
-export function mapBackendBooking(booking: BackendBooking) {
-  const amount = numberOrNull(booking.compensation_amount);
+const BOOKING_STATUS_VALUES = [
+  "deposit_pending",
+  "submitted",
+  "reviewing",
+  "talent_confirming",
+  "confirmed",
+  "rejected",
+  "cancelled",
+  "completed",
+] as const;
+
+type BookingStatusValue = (typeof BOOKING_STATUS_VALUES)[number];
+
+function mapBookingStatus(status?: string | null): BookingStatusValue {
+  const value = String(status || "").trim();
+  if ((BOOKING_STATUS_VALUES as readonly string[]).includes(value)) return value as BookingStatusValue;
+  if (value === "pending") return "deposit_pending";
+  if (value === "approved") return "confirmed";
+  return "deposit_pending";
+}
+
+function formatBookingDate(value?: string | null) {
+  const text = String(value || "").trim();
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return text;
+
+  return `${match[3]}/${match[2]}/${match[1]}`;
+}
+
+function formatBookingTime(value?: string | null) {
+  const text = String(value || "").trim();
+  const match = text.match(/^(\d{2}:\d{2})/);
+  return match ? match[1] : text;
+}
+
+export function mapBackendBooking(booking: BackendBookingRequest) {
+  const talent = booking.talent ?? null;
+  const profile = talent?.profile ?? null;
+  const talentName = String(repairMojibake(profile?.display_name || profile?.full_name || talent?.name || "Idol")).trim();
+  const talentRole = normalizeTalentTypeLabel(
+    String(repairMojibake(profile?.talent_types?.[0] || booking.job_type || "Idol")).trim(),
+  );
+  const rawAvatar = profileAvatarFromBackend(profile || undefined)
+    || normalizeBackendAssetUrl(profile?.avatar_url)
+    || normalizeBackendAssetUrl(talent?.external_avatar_url)
+    || "";
+  const talentAvatar = isUsableAvatarUrl(rawAvatar)
+    ? rawAvatar
+    : createInitialAvatarDataUrl(talentName, talent?.email || talent?.name || "");
+  const depositAmount = numberOrNull(booking.deposit_amount) ?? 200000;
+  const packagePrice = numberOrNull(booking.package_price);
+  const remainingAmount = numberOrNull(booking.remaining_amount);
+  const totalBudget = packagePrice ?? (remainingAmount !== null ? remainingAmount + depositAmount : undefined);
 
   return {
-    id: String(booking.id),
-    campaignTitle: booking.campaign?.title || "Booking không gắn campaign",
-    talentName: booking.talent?.name || "Talent",
-    startsAt: booking.starts_at || "",
-    endsAt: booking.ends_at || "",
-    location: booking.location || booking.campaign?.location || booking.campaign?.city || "",
-    amountText: amount ? formatMoney(amount) : "Thỏa thuận",
-    status: booking.status || "pending",
+    id: String(booking.request_code || booking.id),
+    talentId: String(booking.talent_id || talent?.id || ""),
+    talentName,
+    talentAvatar,
+    talentRole,
+    campaignTitle: String(repairMojibake(booking.job_name || "Yêu cầu booking")).trim(),
+    workDate: formatBookingDate(booking.work_date),
+    startTime: formatBookingTime(booking.start_time),
+    endTime: formatBookingTime(booking.end_time),
+    location: String(repairMojibake(booking.location || "")).trim(),
+    depositAmount,
+    totalBudget,
+    contactName: String(repairMojibake(booking.contact_name || "")).trim(),
+    contactPhone: booking.contact_phone || "",
+    contactEmail: booking.contact_email || "",
+    notes: String(repairMojibake(booking.extra_requirements || booking.job_description || "")).trim(),
+    status: mapBookingStatus(booking.request_status),
     paymentStatus: booking.payment_status || "pending",
     createdAt: booking.created_at || "",
   };
@@ -1464,11 +1557,20 @@ export async function removeTalentFromWishlist(wishlistId: string, itemId: strin
   });
 }
 
+export async function createBookingRequest(payload: CreateBookingRequestPayload) {
+  const response = await apiJson<{ data: BackendBookingRequest }>("/booking-requests", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  return response.data;
+}
+
 export async function loadBrandBookings() {
   if (!getAuthToken()) return [];
 
   try {
-    const response = await apiJson<{ data: BackendBooking[] }>("/bookings");
+    const response = await apiJson<{ data: BackendBookingRequest[] }>("/booking-requests");
     return (response.data ?? []).map(mapBackendBooking);
   } catch (error) {
     console.warn("Cannot load brand bookings", error);

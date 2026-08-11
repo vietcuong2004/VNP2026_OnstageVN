@@ -4,18 +4,32 @@ import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
 import {
-  Banknote, Check, CheckCircle2, Landmark, Mic, QrCode, Users, Wallet, X, ArrowLeft
+  Banknote, Check, CheckCircle2, Landmark, Mic, Users, Wallet, X, ArrowLeft
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import BookingMCForm from "./BookingMCForm";
 import BookingLookbookForm from "./BookingLookbookForm";
 import BookingPGForm from "./BookingPGForm";
 import BookingContactForm from "./BookingContactForm";
 import { getAuthToken } from "@/lib/api-client";
+import { createBookingRequest, mapBackendBooking } from "@/lib/brand-api";
 
 type JobType = "mc" | "lookbook" | "pg";
 type BookingStep = 2 | 8 | 3 | 4 | 5 | 6 | 7;
 type BookingPackageId = "basic" | "standard" | "premium";
+type BookingIcon = LucideIcon | React.ComponentType<{ className?: string }>;
+type TalentBookingData = {
+  id?: string | number;
+  profileId?: string | number;
+  profile_id?: string | number;
+  avatar?: string | null;
+  avatar_url?: string | null;
+  name?: string | null;
+  category?: string | null;
+  city?: string | null;
+  location?: string | null;
+};
 
 const DEPOSIT_AMOUNT = 200000;
 const DEPOSIT_AMOUNT_LABEL = "200.000 VND";
@@ -33,7 +47,7 @@ const BOOKING_PACKAGES: {
   ];
 
 export type BookingFlowProps = {
-  talent?: any;
+  talent?: TalentBookingData | null;
   onSuccess?: () => void;
   className?: string;
 };
@@ -43,17 +57,61 @@ function toDateValue(date: Date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+function getDefaultBookingSchedule() {
+  const start = new Date();
+  start.setDate(start.getDate() + 1);
+  start.setHours(18, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setHours(20, 0, 0, 0);
+
+  return {
+    workDate: toDateValue(start),
+    startTime: "18:00",
+    endTime: "20:00",
+  };
+}
+
 function formatBookingSchedule(date: string, start: string, end: string) {
   if (!date && !start && !end) return "";
   const timeRange = [start, end].filter(Boolean).join(" - ");
   return [date, timeRange].filter(Boolean).join(" ");
 }
 
-function buildBookingCode(jobType: JobType | null) {
-  const now = new Date();
-  const pad = (value: number) => String(value).padStart(2, "0");
-  const role = (jobType || "mc").toUpperCase();
-  return `#${role}${pad(now.getDate())}${pad(now.getMonth() + 1)}${String(now.getFullYear()).slice(-2)}-001`;
+function isBackendRecordId(value: unknown) {
+  return /^\d+$/.test(String(value || ""));
+}
+
+function saveBookingToLocalHistory(bookingRequest: unknown, talent?: TalentBookingData | null) {
+  if (typeof window === "undefined") return;
+
+  try {
+    const booking = mapBackendBooking(bookingRequest as Parameters<typeof mapBackendBooking>[0]);
+    const fallbackName = String(talent?.name || "").trim();
+    const fallbackAvatar = String(talent?.avatar || talent?.avatar_url || "").trim();
+    const fallbackRole = String(talent?.category || "").trim();
+
+    if (fallbackName && booking.talentName === "Idol") booking.talentName = fallbackName;
+    if (fallbackAvatar && booking.talentAvatar.startsWith("data:image/svg+xml")) booking.talentAvatar = fallbackAvatar;
+    if (fallbackRole && booking.talentRole === "Idol") booking.talentRole = fallbackRole;
+    if (!booking.talentId && talent?.id) booking.talentId = String(talent.id);
+
+    const stored = window.localStorage.getItem("brand_my_bookings");
+    const current = stored ? JSON.parse(stored) : [];
+    const currentList = Array.isArray(current) ? current : [];
+    const nextList = [
+      booking,
+      ...currentList.filter((item: unknown) => {
+        if (!item || typeof item !== "object") return false;
+
+        return String((item as { id?: unknown }).id || "") !== booking.id;
+      }),
+    ];
+
+    window.localStorage.setItem("brand_my_bookings", JSON.stringify(nextList.slice(0, 100)));
+  } catch (error) {
+    console.error("Cannot save booking history", error);
+  }
 }
 
 // ── Custom SVG Icon for Lookbook matching image 3 (Camera + Dress Mannequin & Hanger) ──
@@ -119,19 +177,20 @@ function downloadQrImage(canvas: HTMLCanvasElement | null, fileName: string) {
 export default function BookingFlow({ talent, onSuccess, className }: BookingFlowProps) {
   const router = useRouter();
   const depositQrCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [initialSchedule] = useState(() => getDefaultBookingSchedule());
 
   // ── State ──
   const [step, setStep] = useState<BookingStep>(2);
-  const [selectedTalent, setSelectedTalent] = useState<any>(talent || null);
+  const [selectedTalent, setSelectedTalent] = useState<TalentBookingData | null>(talent || null);
   const [selectedJobType, setSelectedJobType] = useState<JobType | null>("mc");
   const [selectedPackage, setSelectedPackage] = useState<BookingPackageId>("basic");
   const [jobName, setJobName] = useState("");
   const [mcJobDescription, setMcJobDescription] = useState("");
 
   // Step 3 Form Data - MC
-  const [workDate, setWorkDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [workDate, setWorkDate] = useState(initialSchedule.workDate);
+  const [startTime, setStartTime] = useState(initialSchedule.startTime);
+  const [endTime, setEndTime] = useState(initialSchedule.endTime);
   const [mcLocation, setMcLocation] = useState("");
   const [mcLanguage, setMcLanguage] = useState("Tiếng Việt");
 
@@ -155,37 +214,88 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
   // Success Modal
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [bookingCode, setBookingCode] = useState("");
+  const [bookingSubmitError, setBookingSubmitError] = useState("");
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
   const depositQrPayload = `ONSTAGE_DEPOC_${bookingCode || "PENDING"}_${DEPOSIT_AMOUNT}_${contactName || "HOTEN"}_${contactPhone || "SODT"}`;
 
   useEffect(() => {
     if (talent) {
-      setSelectedTalent(talent);
+      queueMicrotask(() => setSelectedTalent(talent));
     }
   }, [talent]);
 
-  // Default schedule to tomorrow evening.
-  useEffect(() => {
-    const start = new Date();
-    start.setDate(start.getDate() + 1);
-    start.setHours(18, 0, 0, 0);
+  const selectedTalentProfileId = String(selectedTalent?.profileId || selectedTalent?.profile_id || selectedTalent?.id || "");
 
-    const end = new Date(start);
-    end.setHours(20, 0, 0, 0);
+  const buildJobDescription = () => {
+    if (selectedJobType === "pg") return pgJobDescription || jobName;
+    if (selectedJobType === "lookbook") return lookbookTopic || jobName;
+    return mcJobDescription || jobName;
+  };
 
-    setWorkDate(toDateValue(start));
-    setStartTime("18:00");
-    setEndTime("20:00");
-  }, []);
+  const buildJobLocation = () => {
+    if (selectedJobType === "lookbook") return lookbookLocation;
+    if (selectedJobType === "pg") return selectedTalent?.city || selectedTalent?.location || "";
+    return mcLocation;
+  };
 
-  const handleConfirmBooking = (e: React.FormEvent) => {
+  const buildJobDetails = () => {
+    if (selectedJobType === "pg") {
+      return { outfit: pgOutfit || null, skills: pgSkills || null };
+    }
+
+    if (selectedJobType === "lookbook") {
+      return { topic: lookbookTopic || null, style: lookbookStyle || null };
+    }
+
+    return { language: mcLanguage || null };
+  };
+
+  const handleConfirmBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactName || !contactPhone) {
       alert("Vui lòng nhập Họ và tên và Số điện thoại liên hệ.");
       return;
     }
-    const code = buildBookingCode(selectedJobType);
-    setBookingCode(code);
-    setStep(5);
+    if (!selectedJobType) {
+      setBookingSubmitError("Vui lòng chọn loại công việc cần đặt.");
+      return;
+    }
+
+    if (!isBackendRecordId(selectedTalentProfileId)) {
+      setBookingSubmitError("Không tìm thấy hồ sơ Idol hợp lệ để tạo booking.");
+      return;
+    }
+
+    setBookingSubmitError("");
+    setIsSubmittingBooking(true);
+
+    try {
+      const bookingRequest = await createBookingRequest({
+        profile_id: selectedTalentProfileId,
+        job_type: selectedJobType,
+        package_id: selectedPackage,
+        job_name: jobName || `Booking ${getJobTypeName(selectedJobType)}`,
+        job_description: buildJobDescription() || null,
+        work_date: workDate,
+        start_time: startTime,
+        end_time: endTime,
+        location: buildJobLocation() || null,
+        extra_requirements: extraRequirements || null,
+        job_details: buildJobDetails(),
+        contact_name: contactName,
+        contact_phone: contactPhone,
+        contact_email: contactEmail || null,
+        payment_method: paymentMethod,
+      });
+
+      saveBookingToLocalHistory(bookingRequest, selectedTalent);
+      setBookingCode(String(bookingRequest.request_code || bookingRequest.id || ""));
+      setStep(5);
+    } catch (error) {
+      setBookingSubmitError(error instanceof Error ? error.message : "Không thể gửi yêu cầu booking. Vui lòng thử lại.");
+    } finally {
+      setIsSubmittingBooking(false);
+    }
   };
 
   const handleClose = () => {
@@ -200,7 +310,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
 
   const getDetailsBackStep = () => (getAuthToken() ? 2 : 8);
 
-  const jobTypeOptions: { type: JobType; label: string; desc: string; icon: any }[] = [
+  const jobTypeOptions: { type: JobType; label: string; desc: string; icon: BookingIcon }[] = [
     {
       type: "mc",
       label: "MC",
@@ -488,8 +598,8 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
               <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-b from-[#151206] to-[#070913] p-5 font-sans text-left space-y-3.5 shadow-md">
                 <div className="flex items-center gap-3.5 border-b border-white/5 pb-3.5">
                   <img
-                    src={selectedTalent?.avatar_url || selectedTalent?.avatar}
-                    alt={selectedTalent?.name}
+                    src={selectedTalent?.avatar_url || selectedTalent?.avatar || undefined}
+                    alt={selectedTalent?.name || "Idol"}
                     className="h-14 w-14 rounded-2xl object-cover border-2 border-amber-400/40 shadow-sm"
                   />
                   <div>
@@ -624,11 +734,17 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
 
             {/* ── Fixed Footer ── */}
             <div className="z-20 shrink-0 border-t border-white/10 bg-[#070913]/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md sm:p-5">
+              {bookingSubmitError && (
+                <p className="mb-3 rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-xs font-bold leading-relaxed text-red-200">
+                  {bookingSubmitError}
+                </p>
+              )}
               <button
                 type="submit"
-                className="w-full h-13 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-slate-950 text-xs md:text-sm font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-[0_4px_25px_rgba(245,158,11,0.35)]"
+                disabled={isSubmittingBooking}
+                className="w-full h-13 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-slate-950 text-xs md:text-sm font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer disabled:cursor-wait disabled:opacity-70 flex items-center justify-center gap-1.5 shadow-[0_4px_25px_rgba(245,158,11,0.35)]"
               >
-                Xác nhận & Đặt cọc
+                {isSubmittingBooking ? "Đang gửi yêu cầu..." : "Xác nhận & Đặt cọc"}
               </button>
             </div>
           </form>

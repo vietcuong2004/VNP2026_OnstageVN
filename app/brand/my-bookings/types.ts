@@ -1,14 +1,19 @@
 export type BookingStatus =
-  | "pending"   // Chờ duyệt
-  | "approved"  // Đã duyệt
-  | "completed"; // Hoàn thành
+  | "deposit_pending"
+  | "submitted"
+  | "reviewing"
+  | "talent_confirming"
+  | "confirmed"
+  | "rejected"
+  | "cancelled"
+  | "completed";
 
 export type BookingRequest = {
-  id: string; // e.g. "PG100826-001"
+  id: string;
   talentId: string;
   talentName: string;
   talentAvatar: string;
-  talentRole: string; // "MC" | "PG/PB" | "Lookbook" | "KOL"
+  talentRole: string;
   campaignTitle: string;
   workDate: string;
   startTime: string;
@@ -21,5 +26,6 @@ export type BookingRequest = {
   contactEmail: string;
   notes?: string;
   status: BookingStatus;
+  paymentStatus?: string;
   createdAt: string;
 };
