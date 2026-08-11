@@ -14,7 +14,7 @@ import BookingContactForm from "./BookingContactForm";
 import { getAuthToken } from "@/lib/api-client";
 
 type JobType = "mc" | "lookbook" | "pg";
-type BookingStep = 2 | 8 | 3 | 4 | 5 | 6 | 7;
+type BookingStep = 2 | 8 | 3 | 10 | 4 | 5 | 6 | 7;
 type BookingPackageId = "basic" | "standard" | "premium";
 
 const DEPOSIT_AMOUNT = 200000;
@@ -186,6 +186,16 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
     const code = buildBookingCode(selectedJobType);
     setBookingCode(code);
     setStep(5);
+  };
+
+  const handleProceedFromStep10 = () => {
+    if (getAuthToken()) {
+      const code = buildBookingCode(selectedJobType);
+      setBookingCode(code);
+      setStep(5);
+    } else {
+      setStep(4);
+    }
   };
 
   const handleClose = () => {
@@ -396,7 +406,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
               extraRequirements={extraRequirements}
               setExtraRequirements={setExtraRequirements}
               onBack={() => setStep(getDetailsBackStep())}
-              onNext={() => setStep(4)}
+              onNext={() => setStep(10)}
               handleClose={handleClose}
             />
           )}
@@ -420,7 +430,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
               extraRequirements={extraRequirements}
               setExtraRequirements={setExtraRequirements}
               onBack={() => setStep(getDetailsBackStep())}
-              onNext={() => setStep(4)}
+              onNext={() => setStep(10)}
               handleClose={handleClose}
             />
           )}
@@ -444,14 +454,243 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
               extraRequirements={extraRequirements}
               setExtraRequirements={setExtraRequirements}
               onBack={() => setStep(getDetailsBackStep())}
-              onNext={() => setStep(4)}
+              onNext={() => setStep(10)}
               handleClose={handleClose}
             />
           )}
         </>
       )}
 
-      {/* ── STEP 4: XÁC NHẬN THÔNG TIN & ĐẶT CỌC (HEADER & FOOTER CỐ ĐỊNH) ── */}
+      {/* ── STEP 10: XÁC NHẬN YÊU CẦU ── */}
+      {step === 10 && (
+        <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#070913]">
+          {/* Header */}
+          <div className="z-20 shrink-0 border-b border-white/10 bg-[#070913]/95 p-4 backdrop-blur-md flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setStep(3)}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] transition-all hover:bg-[#C9A86A]/25 active:scale-95 cursor-pointer"
+              title="Quay lại"
+              aria-label="Quay lại"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <h2 className="text-base font-black text-white">Xác nhận yêu cầu</h2>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-slate-900 text-slate-300 transition hover:bg-white/15 hover:text-white active:scale-95 cursor-pointer"
+              title="Thoát"
+              aria-label="Thoát"
+            >
+              <X className="h-4 w-4 text-amber-400" />
+            </button>
+          </div>
+
+          {/* Scrollable Content */}
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-6 pb-8 text-left">
+            <div className="rounded-3xl border border-white/10 bg-[#121522] p-5 space-y-4 shadow-xl">
+              {/* Talent Header Info */}
+              <div className="flex items-center gap-3.5 border-b border-white/5 pb-4">
+                <img
+                  src={selectedTalent?.avatar_url || selectedTalent?.avatar}
+                  alt={selectedTalent?.name || "Talent"}
+                  className="h-14 w-14 rounded-2xl object-cover border-2 border-amber-400/40 shadow-sm"
+                />
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base font-black text-white">{selectedTalent?.name}</h3>
+                  <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                    {selectedTalent?.category || (selectedJobType === "mc" ? "MC" : selectedJobType === "lookbook" ? "Lookbook" : "PG / PB")}
+                  </p>
+                </div>
+              </div>
+
+              {/* Job Title if entered */}
+              {jobName && (
+                <div className="border-b border-white/5 pb-3.5 space-y-1">
+                  <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Tiêu đề công việc
+                  </span>
+                  <p className="text-xs font-bold text-white">{jobName}</p>
+                </div>
+              )}
+
+              {/* Time Row */}
+              <div className="border-b border-white/5 pb-3.5 space-y-1">
+                <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  Thời gian
+                </span>
+                <div className="flex items-center justify-between text-xs font-black">
+                  <span className="text-amber-400">
+                    {workDate ? workDate.split("-").reverse().join("/") : "Chưa chọn ngày"}
+                  </span>
+                  <span className="text-white">
+                    {startTime && endTime ? `${startTime} - ${endTime}` : "Chưa chọn giờ"}
+                  </span>
+                </div>
+              </div>
+
+              {/* ── MC FIELDS ── */}
+              {selectedJobType === "mc" && (
+                <>
+                  <div className="border-b border-white/5 pb-3.5 space-y-1">
+                    <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Ngôn ngữ dẫn
+                    </span>
+                    <p className="text-xs font-bold text-white">{mcLanguage}</p>
+                  </div>
+
+                  {mcLocation && (
+                    <div className="border-b border-white/5 pb-3.5 space-y-1">
+                      <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Địa điểm làm việc
+                      </span>
+                      <p className="text-xs font-bold text-white leading-relaxed">{mcLocation}</p>
+                    </div>
+                  )}
+
+                  {mcJobDescription && (
+                    <div className="border-b border-white/5 pb-3.5 space-y-1">
+                      <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Mô tả công việc
+                      </span>
+                      <p className="text-xs font-medium text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        {mcJobDescription}
+                      </p>
+                    </div>
+                  )}
+
+                  {extraRequirements && (
+                    <div className="space-y-1 pt-0.5">
+                      <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Ghi chú thêm
+                      </span>
+                      <p className="text-xs font-medium text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        {extraRequirements}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ── LOOKBOOK FIELDS ── */}
+              {selectedJobType === "lookbook" && (
+                <>
+                  {lookbookTopic && (
+                    <div className="border-b border-white/5 pb-3.5 space-y-1">
+                      <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Chủ đề / Concept
+                      </span>
+                      <p className="text-xs font-bold text-amber-300 leading-relaxed">
+                        {lookbookTopic}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="border-b border-white/5 pb-3.5 space-y-1">
+                    <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Yêu cầu khác / Phong cách
+                    </span>
+                    <p className="text-xs font-bold text-amber-400">{lookbookStyle}</p>
+                  </div>
+
+                  {lookbookLocation && (
+                    <div className="border-b border-white/5 pb-3.5 space-y-1">
+                      <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Địa điểm
+                      </span>
+                      <p className="text-xs font-bold text-white leading-relaxed">
+                        {lookbookLocation}
+                      </p>
+                    </div>
+                  )}
+
+                  {extraRequirements && (
+                    <div className="space-y-1 pt-0.5">
+                      <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Ghi chú thêm
+                      </span>
+                      <p className="text-xs font-medium text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        {extraRequirements}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ── PG / PB FIELDS ── */}
+              {selectedJobType === "pg" && (
+                <>
+                  {pgJobDescription && (
+                    <div className="border-b border-white/5 pb-3.5 space-y-1">
+                      <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Mô tả công việc PG/PB
+                      </span>
+                      <p className="text-xs font-medium text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        {pgJobDescription}
+                      </p>
+                    </div>
+                  )}
+
+                  {pgOutfit && (
+                    <div className="border-b border-white/5 pb-3.5 space-y-1">
+                      <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Trang phục yêu cầu
+                      </span>
+                      <p className="text-xs font-bold text-amber-300 leading-relaxed">
+                        {pgOutfit}
+                      </p>
+                    </div>
+                  )}
+
+                  {pgSkills && (
+                    <div className="border-b border-white/5 pb-3.5 space-y-1">
+                      <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Kỹ năng
+                      </span>
+                      <p className="text-xs font-bold text-white">{pgSkills}</p>
+                    </div>
+                  )}
+
+                  {extraRequirements && (
+                    <div className="space-y-1 pt-0.5">
+                      <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Ghi chú thêm
+                      </span>
+                      <p className="text-xs font-medium text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        {extraRequirements}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="z-20 shrink-0 border-t border-white/10 bg-[#070913]/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md sm:p-5">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className="flex-1 h-13 rounded-2xl border border-white/15 bg-white/5 text-xs md:text-sm font-bold text-slate-300 hover:bg-white/10 hover:text-white active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <ArrowLeft className="h-4 w-4 text-amber-400" />
+                Bước trước
+              </button>
+              <button
+                type="button"
+                onClick={handleProceedFromStep10}
+                className="flex-1 h-13 cursor-pointer items-center justify-center rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-xs font-black uppercase tracking-widest text-slate-950 shadow-[0_4px_25px_rgba(245,158,11,0.35)] transition-all hover:brightness-110 active:scale-[0.98] md:text-sm"
+              >
+                Tiếp tục
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── STEP 4: THÔNG TIN LIÊN HỆ (HIỂN THỊ KHI CHƯA ĐĂNG NHẬP) ── */}
       {step === 4 && (
         <div className="h-full w-full animate-in fade-in duration-300">
           <form onSubmit={handleConfirmBooking} className="relative flex h-full w-full flex-col overflow-hidden bg-[#070913]">
@@ -461,14 +700,14 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setStep(3)}
+                  onClick={() => setStep(10)}
                   className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-white/5 text-slate-300 transition hover:bg-white/10 active:scale-95"
-                  title="Quay lại sửa yêu cầu"
+                  title="Quay lại"
                 >
                   <ArrowLeft className="h-5 w-5 text-amber-400" />
                 </button>
                 <h2 className="text-lg md:text-xl font-black text-white tracking-tight">
-                  Xác nhận yêu cầu
+                  Thông tin liên hệ
                 </h2>
               </div>
 
@@ -484,97 +723,6 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
 
             {/* ── Scrollable Body ── */}
             <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5 pb-8 text-left sm:p-7 sm:pb-10">
-              {/* Request Summary Card */}
-              <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-b from-[#151206] to-[#070913] p-5 font-sans text-left space-y-3.5 shadow-md">
-                <div className="flex items-center gap-3.5 border-b border-white/5 pb-3.5">
-                  <img
-                    src={selectedTalent?.avatar_url || selectedTalent?.avatar}
-                    alt={selectedTalent?.name}
-                    className="h-14 w-14 rounded-2xl object-cover border-2 border-amber-400/40 shadow-sm"
-                  />
-                  <div>
-                    <h3 className="text-base font-black text-white">{selectedTalent?.name}</h3>
-                    <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">{selectedTalent?.category || getJobTypeName(selectedJobType)}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3 text-xs md:text-sm">
-                  {renderSummaryRow("Tên công việc", jobName)}
-                  {renderSummaryRow("Thời gian", formatBookingSchedule(workDate, startTime, endTime))}
-                  <div className="hidden items-start justify-between gap-4 rounded-xl border border-white/5 bg-black/30 p-3">
-                    <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-slate-500">Thời gian</span>
-                    <span className="min-w-0 text-right font-bold leading-relaxed text-white">{workDate || "Chưa chọn"} ({startTime} - {endTime})</span>
-                  </div>
-
-                  {selectedJobType === "mc" && (
-                    <>
-                      {renderSummaryRow("Mô tả công việc", mcJobDescription)}
-                      {renderSummaryRow("Địa điểm", mcLocation)}
-                      {renderSummaryRow("Ngôn ngữ", mcLanguage)}
-                    </>
-                  )}
-
-                  {selectedJobType === "pg" && (
-                    <>
-                      {renderSummaryRow("Mô tả công việc", pgJobDescription)}
-                      {renderSummaryRow("Trang phục", pgOutfit)}
-                      {renderSummaryRow("Kỹ năng", pgSkills)}
-                    </>
-                  )}
-
-                  {selectedJobType === "lookbook" && (
-                    <>
-                      {renderSummaryRow("Chủ đề", lookbookTopic)}
-                      {renderSummaryRow("Phong cách", lookbookStyle)}
-                      {renderSummaryRow("Địa điểm", lookbookLocation)}
-                    </>
-                  )}
-
-                  {renderSummaryRow("Yêu cầu thêm", extraRequirements)}
-                </div>
-
-                <div className="hidden space-y-2.5 text-xs md:text-sm">
-                  {jobName && (
-                    <div className="flex justify-between items-center gap-4">
-                      <span className="text-slate-400 font-medium">Tiêu đề công việc:</span>
-                      <span className="min-w-0 truncate font-bold text-white">{jobName}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-medium">Thời gian:</span>
-                    <span className="font-bold text-white">{workDate || "Chưa chọn"} ({startTime} - {endTime})</span>
-                  </div>
-                  {selectedJobType === "mc" && (
-                    <>
-                      {mcLocation && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-400 font-medium">Địa điểm:</span>
-                          <span className="font-bold text-white">{mcLocation}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400 font-medium">Ngôn ngữ:</span>
-                        <span className="font-bold text-white">{mcLanguage}</span>
-                      </div>
-                    </>
-                  )}
-                  {selectedJobType === "lookbook" && lookbookLocation && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400 font-medium">Địa điểm:</span>
-                      <span className="font-bold text-white">{lookbookLocation}</span>
-                    </div>
-                  )}
-                  {extraRequirements && (
-                    <div className="pt-2.5 border-t border-white/5">
-                      <span className="text-slate-400 font-medium block mb-1">Ghi chú thêm:</span>
-                      <p className="text-xs text-slate-300 leading-relaxed font-medium bg-black/40 p-3 rounded-xl border border-white/5">
-                        {extraRequirements}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
               <BookingContactForm
                 contactName={contactName}
                 setContactName={setContactName}
@@ -583,53 +731,26 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
                 contactEmail={contactEmail}
                 setContactEmail={setContactEmail}
               />
-
-              {/* Contact Form */}
-              <div className="hidden space-y-4 text-left border-t border-white/10 pt-5">
-                <h3 className="text-xs md:text-sm font-black text-white uppercase tracking-wider">
-                  Thông tin liên hệ
-                </h3>
-
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    Họ và tên:
-                  </label>
-                  <input
-                    type="text"
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    placeholder="Nguyễn Văn A"
-                    className="h-12 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 text-xs font-semibold text-white outline-none focus:border-amber-400 placeholder:text-slate-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    Số điện thoại:
-                  </label>
-                  <input
-                    type="tel"
-                    value={contactPhone}
-                    onChange={(e) => setContactPhone(e.target.value)}
-                    placeholder="0123 456 789"
-                    className="h-12 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 text-xs font-semibold text-white outline-none focus:border-amber-400 placeholder:text-slate-600"
-                  />
-                </div>
-
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                  Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất!
-                </p>
-              </div>
             </div>
 
             {/* ── Fixed Footer ── */}
             <div className="z-20 shrink-0 border-t border-white/10 bg-[#070913]/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md sm:p-5">
-              <button
-                type="submit"
-                className="w-full h-13 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-slate-950 text-xs md:text-sm font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-[0_4px_25px_rgba(245,158,11,0.35)]"
-              >
-                Xác nhận & Đặt cọc
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStep(10)}
+                  className="flex-1 h-13 rounded-2xl border border-white/15 bg-white/5 text-xs md:text-sm font-bold text-slate-300 hover:bg-white/10 hover:text-white active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <ArrowLeft className="h-4 w-4 text-amber-400" />
+                  Bước trước
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 h-13 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-slate-950 text-xs md:text-sm font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-[0_4px_25px_rgba(245,158,11,0.35)]"
+                >
+                  Xác nhận & Đặt cọc
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -639,7 +760,7 @@ export default function BookingFlow({ talent, onSuccess, className }: BookingFlo
       {step === 5 && (
         <div className="flex h-full w-full flex-col overflow-hidden bg-[#070913] text-white animate-in fade-in duration-300">
           <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-white/10 bg-[#070913]/95 px-5 backdrop-blur-md">
-            <button type="button" onClick={() => setStep(4)} className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5 text-amber-400">
+            <button type="button" onClick={() => setStep(getAuthToken() ? 10 : 4)} className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5 text-amber-400">
               <ArrowLeft className="h-5 w-5" />
             </button>
             <h2 className="text-lg font-black">Đặt cọc</h2>

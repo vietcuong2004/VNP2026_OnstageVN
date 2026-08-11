@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bookmark, Briefcase, Heart, HelpCircle, Home, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
+import { Bookmark, Briefcase, CalendarCheck, Heart, HelpCircle, Home, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
 import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/components/sidebar";
@@ -158,7 +158,7 @@ export default function BottomNavigation() {
     return () => window.removeEventListener("scroll", handleScroll, { capture: true });
   }, [pathname, showMoreMenu]);
 
-  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/" && pathname !== "/about" && pathname !== "/settings") {
+  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/" && pathname !== "/about" && pathname !== "/settings" && pathname !== "/booking") {
     return null;
   }
 
@@ -173,6 +173,8 @@ export default function BottomNavigation() {
   const guestIconMap = {
     discover: Home,
     talent: Search,
+    booking: CalendarCheck,
+    my_bookings: CalendarCheck,
     jobs: Briefcase,
     about: Info,
     talent_profile: User,
