@@ -349,31 +349,31 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
     setIsSubmittingBooking(true);
 
     try {
-      const createdRequests = await Promise.all(
-        selectedTalentIds.map(async (profileId) => {
-          const talentDetail = selectedTalentsDetails.find((item) => String(item?.id || item?.profileId || item?.profile_id || "") === String(profileId));
-          const bookingRequest = await createBookingRequest({
-            profile_id: profileId,
-            job_type: selectedJobType,
-            package_id: selectedPackage,
-            job_name: jobName || `Booking ${getJobTypeName(selectedJobType)}`,
-            job_description: buildJobDescription() || null,
-            work_date: workDate,
-            start_time: startTime,
-            end_time: endTime,
-            location: buildJobLocation() || null,
-            extra_requirements: extraRequirements || null,
-            job_details: buildJobDetails(),
-            contact_name: contactName,
-            contact_phone: contactPhone,
-            contact_email: contactEmail || null,
-            payment_method: paymentMethod,
-          });
+      const createdRequests = [];
 
-          saveBookingToLocalHistory(bookingRequest, talentDetail);
-          return bookingRequest;
-        }),
-      );
+      for (const profileId of selectedTalentIds) {
+        const talentDetail = selectedTalentsDetails.find((item) => String(item?.id || item?.profileId || item?.profile_id || "") === String(profileId));
+        const bookingRequest = await createBookingRequest({
+          profile_id: profileId,
+          job_type: selectedJobType,
+          package_id: selectedPackage,
+          job_name: jobName || `Booking ${getJobTypeName(selectedJobType)}`,
+          job_description: buildJobDescription() || null,
+          work_date: workDate,
+          start_time: startTime,
+          end_time: endTime,
+          location: buildJobLocation() || null,
+          extra_requirements: extraRequirements || null,
+          job_details: buildJobDetails(),
+          contact_name: contactName,
+          contact_phone: contactPhone,
+          contact_email: contactEmail || null,
+          payment_method: paymentMethod,
+        });
+
+        saveBookingToLocalHistory(bookingRequest, talentDetail);
+        createdRequests.push(bookingRequest);
+      }
 
       const firstBooking = createdRequests[0];
       setBookingCode(String(firstBooking?.request_code || firstBooking?.id || buildBookingCode(selectedJobType)));
