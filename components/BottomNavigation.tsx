@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bookmark, Briefcase, Heart, HelpCircle, Home, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
+import { Bookmark, Briefcase, CalendarCheck, Heart, HelpCircle, Home, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
 import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/components/sidebar";
@@ -174,6 +174,7 @@ export default function BottomNavigation() {
     discover: Home,
     talent: Search,
     jobs: Briefcase,
+    booking: CalendarCheck,
     about: Info,
     talent_profile: User,
     talent_survey: Sparkles,
