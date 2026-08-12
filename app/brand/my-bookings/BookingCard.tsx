@@ -103,6 +103,10 @@ export default function BookingCard({ item, onSelect }: BookingCardProps) {
           <img
             src={item.talentAvatar || createInitialAvatarDataUrl(item.talentName, "")}
             alt={item.talentName}
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = createInitialAvatarDataUrl(item.talentName, "");
+            }}
             className="h-full w-full object-cover"
           />
           <span className="absolute bottom-0 inset-x-0 bg-slate-950/85 text-[7.5px] sm:text-[8.5px] font-black uppercase text-amber-300 py-0.5 text-center truncate">

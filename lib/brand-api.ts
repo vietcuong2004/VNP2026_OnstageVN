@@ -1067,6 +1067,18 @@ function formatBookingTime(value?: string | null) {
   return match ? match[1] : text;
 }
 
+function isBareImageFilename(value?: string | null) {
+  return /^[^/?#\\/]+\.(?:avif|gif|heic|heif|jpe?g|png|webp)$/i.test(String(value || "").trim());
+}
+
+function isBookingAvatarCandidate(value?: string | null) {
+  const url = String(value || "").trim();
+  if (!url) return false;
+  if (isBareImageFilename(url)) return false;
+
+  return isUsableAvatarUrl(url);
+}
+
 export function mapBackendBooking(booking: BackendBookingRequest) {
   const talent = booking.talent ?? null;
   const profile = talent?.profile ?? null;
@@ -1078,7 +1090,7 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
     || normalizeBackendAssetUrl(profile?.avatar_url)
     || normalizeBackendAssetUrl(talent?.external_avatar_url)
     || "";
-  const talentAvatar = isUsableAvatarUrl(rawAvatar)
+  const talentAvatar = isBookingAvatarCandidate(rawAvatar)
     ? rawAvatar
     : createInitialAvatarDataUrl(talentName, talent?.email || talent?.name || "");
   const depositAmount = numberOrNull(booking.deposit_amount) ?? 200000;
