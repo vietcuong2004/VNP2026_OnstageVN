@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Bookmark, Briefcase, CalendarCheck, Heart, HelpCircle, Home, Info, LogIn, Megaphone, Menu, Plus, Search, Settings, Sparkles, User, UserPlus, X } from "lucide-react";
+import { Bell, Bookmark, Briefcase, CalendarCheck, ChevronRight, Heart, HelpCircle, Home, Info, LogIn, Megaphone, Menu, Plus, Search, Settings, Sparkles, User, UserPlus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
 import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/components/sidebar";
@@ -433,8 +433,8 @@ export default function BottomNavigation() {
                   <span className="block text-sm font-black text-white">Tham gia hệ thống</span>
                   <span className="mt-1 block text-xs font-semibold leading-relaxed text-slate-400">Tạo hồ sơ để bắt đầu nhận job phù hợp</span>
                 </span>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400">
-                  <Plus className="h-4 w-4" />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-400">
+                  <ChevronRight className="h-4 w-4" />
                 </span>
               </button>
 
@@ -450,8 +450,8 @@ export default function BottomNavigation() {
                   <span className="block text-sm font-black text-white">Đăng tuyển</span>
                   <span className="mt-1 block text-xs font-semibold leading-relaxed text-slate-400">Tạo tin tuyển dụng mới và tìm kiếm ứng viên</span>
                 </span>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400">
-                  <Plus className="h-4 w-4" />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-400">
+                  <ChevronRight className="h-4 w-4" />
                 </span>
               </button>
 
@@ -510,13 +510,21 @@ export default function BottomNavigation() {
               setShowMoreMenu(false);
               setShowCreateMenu((prev) => !prev);
             }}
-            className="group relative -mt-8 flex flex-col items-center justify-center gap-1 py-1 focus:outline-none cursor-pointer"
+            className="group flex flex-col items-center justify-center gap-1 py-1 focus:outline-none cursor-pointer"
           >
-            <div className={cn(
-              "flex h-14 w-14 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#03050c] text-[#F0C56B] shadow-[0_0_18px_rgba(201,168,106,0.18)] transition-all duration-300 group-active:scale-95",
-              showCreateMenu && "border-[#F0C56B]/70 bg-[#C9A86A]/12 text-[#F0C56B] shadow-[0_0_22px_rgba(201,168,106,0.24)]"
-            )}>
-              {showCreateMenu ? <X className="h-6 w-6" /> : <Plus className="h-7 w-7" />}
+            <div
+              className={cn(
+                "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
+                showCreateMenu
+                  ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white",
+              )}
+            >
+              {showCreateMenu ? (
+                <X className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+              ) : (
+                <Plus className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+              )}
             </div>
             <span
               className={cn(
