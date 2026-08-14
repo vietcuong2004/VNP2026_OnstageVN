@@ -759,7 +759,14 @@ export default function BrandTalentProfilePage() {
       {/* Sticky Header */}
       <div className="sticky top-0 z-30 -mt-5 md:-mt-7 lg:-mt-8 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 pt-3 bg-transparent pointer-events-none flex items-center justify-between h-0 overflow-visible">
         <button
-          onClick={() => router.back()}
+          onClick={() => {
+            const from = searchParams.get("from");
+            if (from) {
+              router.push(from);
+            } else {
+              router.back();
+            }
+          }}
           className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border border-amber-500/30 bg-[#0c1120]/85 backdrop-blur-md text-amber-400 hover:text-amber-300 hover:bg-[#0c1120] hover:border-amber-500/50 shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer"
           aria-label="Quay lại"
           title="Quay lại"

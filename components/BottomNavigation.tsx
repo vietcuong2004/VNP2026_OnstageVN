@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Bookmark, Briefcase, CalendarCheck, Heart, Home, Info, LogIn, Megaphone, Menu, Plus, Search, Settings, Sparkles, User, UserPlus, X } from "lucide-react";
+import { Bell, Bookmark, Briefcase, CalendarCheck, Heart, HelpCircle, Home, Info, LogIn, Megaphone, Menu, Plus, Search, Settings, Sparkles, User, UserPlus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
 import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/components/sidebar";
@@ -160,7 +160,7 @@ export default function BottomNavigation() {
     return () => window.removeEventListener("scroll", handleScroll, { capture: true });
   }, [pathname, showMoreMenu, showCreateMenu]);
 
-  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/" && pathname !== "/about" && pathname !== "/settings") {
+  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/" && pathname !== "/about" && pathname !== "/settings" && pathname !== "/booking") {
     return null;
   }
 
@@ -175,8 +175,9 @@ export default function BottomNavigation() {
   const guestIconMap = {
     discover: Home,
     talent: Search,
-    jobs: Briefcase,
     booking: CalendarCheck,
+    my_bookings: CalendarCheck,
+    jobs: Briefcase,
     about: Info,
     talent_profile: User,
     talent_survey: Sparkles,

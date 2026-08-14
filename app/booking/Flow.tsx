@@ -91,7 +91,6 @@ function saveBookingToLocalHistory(bookingRequest: unknown, talent?: any) {
     console.error("Cannot save booking history", error);
   }
 }
-
 function LookbookIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>

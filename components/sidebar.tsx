@@ -29,6 +29,7 @@ import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplana
 
 export const unifiedDiscoveryNavigation = [
   { label: "Tìm kiếm Idol", icon: Search, href: "/brand/search" },
+  { label: "Booking", icon: CalendarCheck, href: "/booking" },
   { label: "Cơ hội việc làm", icon: Briefcase, href: "/talent/jobs" },
   { label: "Booking", icon: CalendarCheck, href: "/booking" },
   { label: "Idol đã lưu", icon: Heart, href: "/brand/shortlists" },
@@ -87,8 +88,9 @@ export default function Sidebar() {
   const guestIconMap = {
     discover: Sparkles,
     talent: Search,
-    jobs: Briefcase,
     booking: CalendarCheck,
+    my_bookings: CalendarCheck,
+    jobs: Briefcase,
     about: Info,
     talent_survey: Sparkles,
     saved_idols: Heart,
