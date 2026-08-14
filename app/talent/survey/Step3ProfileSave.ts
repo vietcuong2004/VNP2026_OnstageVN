@@ -2,6 +2,7 @@
 
 import { normalizeTalentTypeList } from "@/components/ui/ComboboxOptionValues";
 import { API_BASE_URL } from "@/lib/api-client";
+import { saveGuestPortfolioVideoFiles } from "@/lib/guest-video-draft";
 import { persistTalentProfile } from "@/lib/talent-api";
 import { GUEST_SURVEY_PASSWORD } from "./Step3Dialog";
 
@@ -39,6 +40,10 @@ type Step3MediaUploads = {
   avatar: string | null;
   portfolio: string | null;
   introVideo: string | null;
+  cover?: string | null;
+  fullBody?: string | null;
+  portfolioPhotos?: string | null;
+  portfolioVideos?: string | null;
 };
 
 type Step3ProfileSaveInput = {
@@ -46,6 +51,13 @@ type Step3ProfileSaveInput = {
   avatarFile: File | null;
   avatarDataUrl: string;
   avatarPreviewUrl: string | null;
+  coverFile?: File | null;
+  coverPreviewUrl?: string | null;
+  fullBodyFile?: File | null;
+  fullBodyPreviewUrl?: string | null;
+  portfolioPhotoFiles?: { file: File }[];
+  portfolioVideoFiles?: { file: File; name?: string }[];
+  portfolioVideoLinks?: { id: string; title: string; url: string }[];
   mediaUploads: Step3MediaUploads;
   socialHighlights: string[];
   portfolioLinks: string[];
@@ -60,7 +72,7 @@ export function splitSkillValues(value: string) {
     .filter(Boolean);
 }
 
-export function fileToDataUrl(file: File) {
+function readFileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
@@ -69,9 +81,61 @@ export function fileToDataUrl(file: File) {
   });
 }
 
+export async function fileToDataUrl(file: File) {
+  if (typeof window === "undefined" || typeof document === "undefined" || !file.type.startsWith("image/")) {
+    return readFileAsDataUrl(file);
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = new Image();
+    image.decoding = "async";
+    const loaded = new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("Cannot load image"));
+    });
+    image.src = objectUrl;
+    await loaded;
+
+    const maxSize = 720;
+    const scale = Math.min(1, maxSize / Math.max(image.naturalWidth || 1, image.naturalHeight || 1));
+    const width = Math.max(1, Math.round((image.naturalWidth || 1) * scale));
+    const height = Math.max(1, Math.round((image.naturalHeight || 1) * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+    if (!context) return readFileAsDataUrl(file);
+
+    context.drawImage(image, 0, 0, width, height);
+    return canvas.toDataURL("image/jpeg", 0.86);
+  } catch {
+    return readFileAsDataUrl(file);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+export function dataUrlToFile(dataUrl: string, filename: string) {
+  const [header, data] = dataUrl.split(",");
+  const mime = header?.match(/data:([^;]+)/)?.[1] || "image/png";
+  const binary = atob(data || "");
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new File([bytes], filename, { type: mime });
+}
+
+import { safeSetLocalStorage } from "@/lib/storage-utils";
+
 export function persistGuestProfileSyncDraft(profile: Record<string, unknown>) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(GUEST_PROFILE_SYNC_KEY, JSON.stringify(profile));
+  safeSetLocalStorage(GUEST_PROFILE_SYNC_KEY, profile);
 }
 
 async function parseSurveyRegisterError(response: Response) {
@@ -136,20 +200,43 @@ async function buildStep3GuestProfileDraft({
   avatarFile,
   avatarDataUrl,
   avatarPreviewUrl,
+  coverFile,
+  coverPreviewUrl,
+  fullBodyFile,
+  fullBodyPreviewUrl,
+  portfolioPhotoFiles = [],
+  portfolioVideoFiles = [],
+  portfolioVideoLinks = [],
   mediaUploads,
   socialHighlights,
   portfolioLinks,
   socialAccounts,
 }: Step3ProfileSaveInput) {
-  const selectedAvatar = avatarFile
-    ? avatarDataUrl || await fileToDataUrl(avatarFile).catch(() => "")
-    : avatarPreviewUrl || "";
+  const selectedAvatar = avatarDataUrl || (avatarFile ? await fileToDataUrl(avatarFile).catch(() => "") : "") || (avatarPreviewUrl?.startsWith("data:") ? avatarPreviewUrl : "");
+  const selectedCover = coverFile ? await fileToDataUrl(coverFile).catch(() => "") : (coverPreviewUrl?.startsWith("data:") ? coverPreviewUrl : "");
+  const selectedFullBody = fullBodyFile ? await fileToDataUrl(fullBodyFile).catch(() => "") : (fullBodyPreviewUrl?.startsWith("data:") ? fullBodyPreviewUrl : "");
+  const selectedPhotos = (await Promise.all(
+    portfolioPhotoFiles.map((item) => fileToDataUrl(item.file).catch(() => ""))
+  )).filter(Boolean);
+  const guestPortfolioVideoFileIds = portfolioVideoFiles.length
+    ? await saveGuestPortfolioVideoFiles(portfolioVideoFiles.map((item) => item.file)).catch(() => [])
+    : [];
   const normalizedTalentTypes = normalizeTalentTypeList(formData.talentTypes);
   const skills = splitSkillValues(formData.skills);
 
-  return {
+  const draft: Record<string, unknown> = {
     ...formData,
     avatar: selectedAvatar || "/avatar.png",
+    cover: selectedCover || coverPreviewUrl || "",
+    fullBody: selectedFullBody || fullBodyPreviewUrl || "",
+    photos: selectedPhotos,
+    videos: portfolioVideoLinks.map((item) => ({
+      id: item.id,
+      title: item.title,
+      url: item.url,
+      video_type: "portfolio",
+    })),
+    guestPortfolioVideoFileIds,
     skills,
     specialSkills: skills,
     talentTypes: normalizedTalentTypes,
@@ -164,6 +251,12 @@ async function buildStep3GuestProfileDraft({
     isOnboarded: false,
     mediaUploads,
   };
+
+  selectedPhotos.slice(0, 8).forEach((photo, index) => {
+    draft[`lookbook${index + 1}`] = photo;
+  });
+
+  return draft;
 }
 
 export async function saveStep3GuestProfileDraft(input: Step3ProfileSaveInput) {

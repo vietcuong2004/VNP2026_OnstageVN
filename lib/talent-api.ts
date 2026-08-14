@@ -233,11 +233,13 @@ function readLocalProfile() {
   }
 }
 
+import { safeSetLocalStorage } from "@/lib/storage-utils";
+
 export function persistTalentProfile(profile: any) {
   const sanitizedProfile = sanitizeTalentProfile(profile);
 
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(sanitizedProfile));
+    safeSetLocalStorage(PROFILE_STORAGE_KEY, sanitizedProfile);
     window.dispatchEvent(new CustomEvent(TALENT_PROFILE_UPDATED_EVENT, { detail: sanitizedProfile }));
   }
   return sanitizedProfile;

@@ -5,14 +5,17 @@ import { useRouter } from "next/navigation";
 import {
   User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft,
   CheckCircle2, Info, Star, ChevronRight, Trophy, Heart,
-  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X, ChevronDown, Plus, Trash2, Lock, AlertTriangle
+  Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X, ChevronDown, Plus, Trash2, Lock, AlertTriangle,
+  Image as ImageIcon, Camera, Link as LinkIcon, ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { safeSetLocalStorage } from "@/lib/storage-utils";
 import RadarChart from "@/components/ui/RadarChart";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
 import Step3Dialog from "./Step3Dialog";
 import {
   completeStep3GuestProfile,
+  dataUrlToFile,
   fileToDataUrl,
   splitSkillValues,
 } from "./Step3ProfileSave";
@@ -24,7 +27,9 @@ import {
   saveTalentProfileOrThrow,
   saveTalentSurveyProgress,
   submitTalentSurvey,
+  createTalentVideoLink,
   uploadTalentPhoto,
+  uploadTalentVideo,
   type TalentSurveyAnalysis,
   type TalentSurveyHistoryEntry,
 } from "@/lib/talent-api";
@@ -72,14 +77,28 @@ function clampSurveyStep(value: unknown) {
 }
 
 const ORIENTATION_SURVEY_ENABLED = false;
-const SURVEY_STEP_COUNT = ORIENTATION_SURVEY_ENABLED ? 4 : 3;
-const SURVEY_STEPS = ORIENTATION_SURVEY_ENABLED ? [1, 2, 3, 4] : [1, 2, 3];
+const MEDIA_SURVEY_STEP = 4;
+const AI_SURVEY_STEP = 5;
+const SURVEY_STEP_COUNT = ORIENTATION_SURVEY_ENABLED ? 5 : 4;
+const SURVEY_STEPS = ORIENTATION_SURVEY_ENABLED ? [1, 2, 3, 4, 5] : [1, 2, 3, 4];
 
 const talentTypeOptions = TALENT_TYPE_VALUES;
 const GUEST_SURVEY_SYNC_KEY = "vnp_guest_survey_sync";
 
 function portfolioHref(link: string): string {
   return /^https?:\/\//i.test(link) ? link : `https://${link}`;
+}
+
+function isDirectVideoUrl(url: string) {
+  return /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(url);
+}
+
+function makeSurveyMediaId(file: File) {
+  const randomPart = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : String(Math.random()).slice(2);
+
+  return `${file.name}-${file.lastModified}-${randomPart}`;
 }
 
 function listFromProfileValue(...values: unknown[]) {
@@ -176,8 +195,7 @@ function persistGuestSurveySyncDraft(payload: {
   sectionAAnswers: { question_code: string; answer_value: unknown }[];
   sectionSAnswers: { question_code: string; answer_value: unknown }[];
 }) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(GUEST_SURVEY_SYNC_KEY, JSON.stringify(payload));
+  safeSetLocalStorage(GUEST_SURVEY_SYNC_KEY, payload);
 }
 
 type GuestSurveySyncPayload = {
@@ -185,6 +203,88 @@ type GuestSurveySyncPayload = {
   sectionAAnswers: { question_code: string; answer_value: unknown }[];
   sectionSAnswers: { question_code: string; answer_value: unknown }[];
 };
+
+type SurveyImageKey = "cover" | "fullBody";
+type SurveyPortfolioPhoto = {
+  id: string;
+  file: File;
+  previewUrl: string;
+  name: string;
+};
+type SurveyPortfolioVideo = {
+  id: string;
+  file: File;
+  previewUrl: string;
+  name: string;
+};
+type SurveyPortfolioVideoLink = {
+  id: string;
+  url: string;
+  title: string;
+};
+
+type SurveyImageUploadBlockProps = {
+  label: string;
+  placeholder: string;
+  previewUrl: string | null;
+  aspectClassName: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemove: () => void;
+};
+
+function SurveyImageUploadBlock({
+  label,
+  placeholder,
+  previewUrl,
+  aspectClassName,
+  onChange,
+  onRemove,
+}: SurveyImageUploadBlockProps) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+          {label}
+        </span>
+        {previewUrl && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-slate-400 transition-colors hover:text-rose-300"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Xóa
+          </button>
+        )}
+      </div>
+      <div className={cn(
+        "relative rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors",
+        aspectClassName
+      )}>
+        <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
+          {previewUrl ? (
+            <>
+              <img src={previewUrl} alt={`Xem trước ${label.toLowerCase()}`} className="absolute inset-0 h-full w-full object-cover" />
+              <span className="absolute bottom-3 right-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] text-slate-950 shadow-lg">
+                <Camera className="h-3.5 w-3.5" />
+              </span>
+            </>
+          ) : (
+            <>
+              <Upload className="h-7 w-7" />
+              <span className="text-[10px] font-black uppercase tracking-wider">{placeholder}</span>
+            </>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onChange}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
 
 type SurveyCityComboboxProps = {
   value: string;
@@ -443,6 +543,16 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           setAvatarPreviewUrl(profile.avatar);
           setMediaUploads((prev) => ({ ...prev, avatar: "current-avatar" }));
         }
+
+        if (profile.cover) {
+          setCoverPreviewUrl(profile.cover);
+          setMediaUploads((prev) => ({ ...prev, cover: "current-cover" }));
+        }
+
+        if (profile.fullBody) {
+          setFullBodyPreviewUrl(profile.fullBody);
+          setMediaUploads((prev) => ({ ...prev, fullBody: "current-full-body" }));
+        }
       }
     });
     return () => {
@@ -487,13 +597,36 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const [mediaUploads, setMediaUploads] = useState({
     avatar: null as string | null,
     portfolio: null as string | null, // Portfolio/CV (required)
-    introVideo: null as string | null // Intro video (optional)
+    introVideo: null as string | null, // Intro video (optional)
+    cover: null as string | null,
+    fullBody: null as string | null,
+    portfolioPhotos: null as string | null,
+    portfolioVideos: null as string | null,
   });
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [portfolioPreviewUrl, setPortfolioPreviewUrl] = useState<string | null>(null);
   const [introVideoPreviewUrl, setIntroVideoPreviewUrl] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarDataUrl, setAvatarDataUrl] = useState("");
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+  const [fullBodyFile, setFullBodyFile] = useState<File | null>(null);
+  const [fullBodyPreviewUrl, setFullBodyPreviewUrl] = useState<string | null>(null);
+  const [portfolioPhotoFiles, setPortfolioPhotoFiles] = useState<SurveyPortfolioPhoto[]>([]);
+  const [portfolioVideoFiles, setPortfolioVideoFiles] = useState<SurveyPortfolioVideo[]>([]);
+  const [portfolioVideoLinks, setPortfolioVideoLinks] = useState<SurveyPortfolioVideoLink[]>([]);
+  const [videoLinkInput, setVideoLinkInput] = useState("");
+  const surveyMediaCleanupRef = useRef<{
+    coverPreviewUrl: string | null;
+    fullBodyPreviewUrl: string | null;
+    portfolioPhotoFiles: SurveyPortfolioPhoto[];
+    portfolioVideoFiles: SurveyPortfolioVideo[];
+  }>({
+    coverPreviewUrl: null,
+    fullBodyPreviewUrl: null,
+    portfolioPhotoFiles: [],
+    portfolioVideoFiles: [],
+  });
   const [socialHighlights, setSocialHighlights] = useState<string[]>([]);
   const [socialHighlightInput, setSocialHighlightInput] = useState("");
   const [portfolioLinks, setPortfolioLinks] = useState<string[]>([]);
@@ -578,6 +711,15 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   }, [initialHistoryEntry]);
 
   React.useEffect(() => {
+    surveyMediaCleanupRef.current = {
+      coverPreviewUrl,
+      fullBodyPreviewUrl,
+      portfolioPhotoFiles,
+      portfolioVideoFiles,
+    };
+  }, [coverPreviewUrl, fullBodyPreviewUrl, portfolioPhotoFiles, portfolioVideoFiles]);
+
+  React.useEffect(() => {
     return () => {
       if (avatarPreviewUrlRef.current) {
         URL.revokeObjectURL(avatarPreviewUrlRef.current);
@@ -591,6 +733,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         URL.revokeObjectURL(introVideoPreviewUrlRef.current);
         introVideoPreviewUrlRef.current = null;
       }
+      const latestMedia = surveyMediaCleanupRef.current;
+      [latestMedia.coverPreviewUrl, latestMedia.fullBodyPreviewUrl].forEach((url) => {
+        if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+      });
+      latestMedia.portfolioPhotoFiles.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      latestMedia.portfolioVideoFiles.forEach((item) => URL.revokeObjectURL(item.previewUrl));
     };
   }, []);
 
@@ -682,19 +830,20 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       return;
     }
 
-    const cleanText = val.replace(/[0-9.\s/ngàyđ]/gi, "");
-    const isNumeric = cleanText === "";
+    const isPureNumber = /^[0-9.\s]+$/.test(val);
 
-    if (!isNumeric) {
-      setFormData((prev) => ({ ...prev, price: val }));
+    if (isPureNumber) {
+      const digitsOnly = val.replace(/\D/g, "");
+      if (!digitsOnly) {
+        setFormData((prev) => ({ ...prev, price: "" }));
+        return;
+      }
+      const formatted = Number(digitsOnly).toLocaleString("vi-VN");
+      setFormData((prev) => ({ ...prev, price: formatted }));
       return;
     }
 
-    const nextDigits = val.replace(/[^\d]/g, "");
-    setFormData((prev) => ({
-      ...prev,
-      price: nextDigits ? `${Number(nextDigits).toLocaleString("vi-VN")}/ngày` : "",
-    }));
+    setFormData((prev) => ({ ...prev, price: val }));
   };
 
   const handleSurveySelect = (qId: number, optionIdx: number) => {
@@ -741,8 +890,16 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       if (socialHighlights.length) count++;
       if (portfolioLinks.length) count++;
       if (socialAccounts.length) count++;
-      basePct += Math.round((count / 3) * (ORIENTATION_SURVEY_ENABLED ? 25 : 50));
-    } else if (ORIENTATION_SURVEY_ENABLED && step === 4) {
+      basePct += Math.round((count / 3) * 25);
+    } else if (step === MEDIA_SURVEY_STEP) {
+      basePct = 75;
+      let count = 0;
+      if (coverPreviewUrl || coverFile || mediaUploads.cover) count++;
+      if (fullBodyPreviewUrl || fullBodyFile || mediaUploads.fullBody) count++;
+      if (portfolioPhotoFiles.length || mediaUploads.portfolioPhotos) count++;
+      if (portfolioVideoFiles.length || portfolioVideoLinks.length || mediaUploads.portfolioVideos) count++;
+      basePct += Math.round((count / 4) * (ORIENTATION_SURVEY_ENABLED ? 12 : 25));
+    } else if (ORIENTATION_SURVEY_ENABLED && step === AI_SURVEY_STEP) {
       basePct = 75;
       // Survey answered count ratio
       const answeredCount = Object.keys(surveyAnswers).length;
@@ -763,7 +920,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       // return mediaUploads.portfolio !== null;
       return true;
     }
-    if (ORIENTATION_SURVEY_ENABLED && step === 4) {
+    if (ORIENTATION_SURVEY_ENABLED && step === AI_SURVEY_STEP) {
       // Valid if all 20 questions are answered
       return SURVEY_QUESTIONS.every((q) => surveyAnswers[q.id] !== undefined);
     }
@@ -775,7 +932,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     if (!ORIENTATION_SURVEY_ENABLED && savedStep > SURVEY_STEP_COUNT) {
       return;
     }
-    if (ORIENTATION_SURVEY_ENABLED && !isAuthenticated && savedStep === 4 && !guestSurveyUnlocked) {
+    if (ORIENTATION_SURVEY_ENABLED && !isAuthenticated && savedStep === AI_SURVEY_STEP && !guestSurveyUnlocked) {
       return;
     }
     setStep(savedStep);
@@ -801,6 +958,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         avatarFile,
         avatarDataUrl,
         avatarPreviewUrl,
+        coverFile,
+        coverPreviewUrl,
+        fullBodyFile,
+        fullBodyPreviewUrl,
+        portfolioPhotoFiles,
+        portfolioVideoFiles,
+        portfolioVideoLinks,
         mediaUploads,
         socialHighlights,
         portfolioLinks: getCurrentPortfolioLinks(),
@@ -830,14 +994,22 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     }
     setGuestSurveyUnlocked(true);
     setShowGuestAccountDialog(false);
-    setStep(4);
-    setMaxStep((prev) => Math.max(prev, 4));
-    void saveTalentSurveyProgress(4, "draft");
+    setStep(AI_SURVEY_STEP);
+    setMaxStep((prev) => Math.max(prev, AI_SURVEY_STEP));
+    void saveTalentSurveyProgress(AI_SURVEY_STEP, "draft");
     scrollSurveyToTop();
   };
 
   const handleStopSurvey = () => {
     setShowCancelSurveyDialog(false);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get("from");
+      if (fromUrl) {
+        router.push(fromUrl);
+        return;
+      }
+    }
     onBackToDashboard?.();
   };
 
@@ -845,7 +1017,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     if (!isStepValid()) return;
 
     if (step < SURVEY_STEP_COUNT) {
-      if (!isAuthenticated && step === 3 && !guestSurveyUnlocked) {
+      if (!isAuthenticated && step === MEDIA_SURVEY_STEP && !guestSurveyUnlocked) {
         openGuestAccountDialog();
         return;
       }
@@ -885,6 +1057,126 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     }
 
     introVideoInputRef.current?.click();
+  };
+
+  const handleSurveyImageSelection = (field: SurveyImageKey, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    const previewUrl = URL.createObjectURL(file);
+
+    if (field === "cover") {
+      if (coverPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(coverPreviewUrl);
+      setCoverFile(file);
+      setCoverPreviewUrl(previewUrl);
+      setMediaUploads((prev) => ({ ...prev, cover: file.name }));
+      return;
+    }
+
+    if (fullBodyPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(fullBodyPreviewUrl);
+    setFullBodyFile(file);
+    setFullBodyPreviewUrl(previewUrl);
+    setMediaUploads((prev) => ({ ...prev, fullBody: file.name }));
+  };
+
+  const handlePortfolioPhotoSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []).slice(0, Math.max(0, 8 - portfolioPhotoFiles.length));
+    event.target.value = "";
+    if (!files.length) return;
+
+    const nextItems = files.map((file) => ({
+      id: makeSurveyMediaId(file),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      name: file.name,
+    }));
+
+    setPortfolioPhotoFiles((current) => [...current, ...nextItems].slice(0, 8));
+    setMediaUploads((prev) => ({ ...prev, portfolioPhotos: `${portfolioPhotoFiles.length + nextItems.length} ảnh` }));
+  };
+
+  const handlePortfolioVideoSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []).slice(0, Math.max(0, 4 - portfolioVideoFiles.length - portfolioVideoLinks.length));
+    event.target.value = "";
+    if (!files.length) return;
+
+    const nextItems = files.map((file) => ({
+      id: makeSurveyMediaId(file),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      name: file.name,
+    }));
+
+    setPortfolioVideoFiles((current) => [...current, ...nextItems].slice(0, 4));
+    setMediaUploads((prev) => ({ ...prev, portfolioVideos: `${portfolioVideoFiles.length + nextItems.length} video` }));
+  };
+
+  const handleRemoveSurveyImage = (field: SurveyImageKey) => {
+    if (field === "cover") {
+      if (coverPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(coverPreviewUrl);
+      setCoverFile(null);
+      setCoverPreviewUrl(null);
+      setMediaUploads((prev) => ({ ...prev, cover: null }));
+      return;
+    }
+
+    if (fullBodyPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(fullBodyPreviewUrl);
+    setFullBodyFile(null);
+    setFullBodyPreviewUrl(null);
+    setMediaUploads((prev) => ({ ...prev, fullBody: null }));
+  };
+
+  const handleRemovePortfolioPhoto = (id: string) => {
+    setPortfolioPhotoFiles((current) => {
+      const target = current.find((item) => item.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      const next = current.filter((item) => item.id !== id);
+      setMediaUploads((prev) => ({ ...prev, portfolioPhotos: next.length ? `${next.length} ảnh` : null }));
+      return next;
+    });
+  };
+
+  const handleRemovePortfolioVideo = (id: string) => {
+    setPortfolioVideoFiles((current) => {
+      const target = current.find((item) => item.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      const next = current.filter((item) => item.id !== id);
+      setMediaUploads((prev) => ({ ...prev, portfolioVideos: next.length ? `${next.length} video` : null }));
+      return next;
+    });
+  };
+
+  const normalizeVideoUrl = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return "";
+    return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  };
+
+  const handleAddSurveyVideoLink = () => {
+    if (portfolioVideoFiles.length + portfolioVideoLinks.length >= 4) return;
+
+    const url = normalizeVideoUrl(videoLinkInput);
+    if (!url || portfolioVideoLinks.some((item) => item.url === url)) return;
+
+    setPortfolioVideoLinks((current) => [
+      ...current,
+      {
+        id: `survey-video-link-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        url,
+        title: `Video ${current.length + portfolioVideoFiles.length + 1}`,
+      },
+    ]);
+    setVideoLinkInput("");
+    setMediaUploads((prev) => ({ ...prev, portfolioVideos: `${portfolioVideoFiles.length + portfolioVideoLinks.length + 1} video` }));
+  };
+
+  const handleRemovePortfolioVideoLink = (id: string) => {
+    setPortfolioVideoLinks((current) => {
+      const next = current.filter((item) => item.id !== id);
+      setMediaUploads((prev) => ({ ...prev, portfolioVideos: portfolioVideoFiles.length + next.length ? `${portfolioVideoFiles.length + next.length} video` : null }));
+      return next;
+    });
   };
 
   const handleFileSelection = (
@@ -1077,9 +1369,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       const normalizedTalentTypes = normalizeTalentTypeList(formData.talentTypes);
       const currentPortfolioLinks = getCurrentPortfolioLinks();
       const hasAuth = !!getAuthToken();
-      const selectedAvatar = avatarFile
-        ? avatarDataUrl || await fileToDataUrl(avatarFile).catch(() => "")
-        : avatarPreviewUrl || "";
+      const selectedAvatar = avatarDataUrl || (avatarFile ? await fileToDataUrl(avatarFile).catch(() => "") : "") || (avatarPreviewUrl?.startsWith("data:") ? avatarPreviewUrl : "");
+      const selectedCover = coverFile ? await fileToDataUrl(coverFile).catch(() => "") : (coverPreviewUrl?.startsWith("data:") ? coverPreviewUrl : "");
+      const selectedFullBody = fullBodyFile ? await fileToDataUrl(fullBodyFile).catch(() => "") : (fullBodyPreviewUrl?.startsWith("data:") ? fullBodyPreviewUrl : "");
+      const portfolioPhotoDataUrls = await Promise.all(
+        portfolioPhotoFiles.map((item) => fileToDataUrl(item.file).catch(() => ""))
+      );
       const selectedCityOption = cityOptions.find((option) => option.value === formData.location || option.label === formData.location);
       const userProfile: Record<string, unknown> = {
         ...formData,
@@ -1111,20 +1406,135 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         socialAccounts,
         experienceText: formData.professionalExperience,
         bio: formData.professionalExperience,
+        cover: selectedCover || coverPreviewUrl || "",
+        fullBody: selectedFullBody || fullBodyPreviewUrl || "",
+        photos: portfolioPhotoDataUrls.filter(Boolean),
+        videos: portfolioVideoLinks.map((item) => ({
+          id: item.id,
+          title: item.title,
+          url: item.url,
+          video_type: "portfolio",
+        })),
         mediaUploads
       };
       const savedProfile = hasAuth
         ? await saveTalentProfileOrThrow(userProfile)
         : persistTalentProfile(userProfile);
 
-      if (hasAuth && avatarFile && savedProfile.backendProfileId) {
-        const uploadedAvatar = await uploadTalentPhoto(Number(savedProfile.backendProfileId), avatarFile, "avatar");
-        if (uploadedAvatar.url) {
-          userProfile.avatar = uploadedAvatar.url;
-          savedProfile.avatar = uploadedAvatar.url;
-          setAvatarPreviewUrl(uploadedAvatar.url);
-          setMediaUploads((prev) => ({ ...prev, avatar: "current-avatar" }));
+      if (hasAuth && savedProfile.backendProfileId) {
+        const fileToUpload = avatarFile || (typeof selectedAvatar === "string" && selectedAvatar.startsWith("data:image/") ? dataUrlToFile(selectedAvatar, "survey-avatar.png") : null);
+        if (fileToUpload) {
+          try {
+            const uploadedAvatar = await uploadTalentPhoto(Number(savedProfile.backendProfileId), fileToUpload, "avatar");
+            if (uploadedAvatar?.url) {
+              userProfile.avatar = uploadedAvatar.url;
+              savedProfile.avatar = uploadedAvatar.url;
+              setAvatarPreviewUrl(uploadedAvatar.url);
+              setMediaUploads((prev) => ({ ...prev, avatar: "current-avatar" }));
+              persistTalentProfile(savedProfile);
+            }
+          } catch (err) {
+            console.warn("Failed to upload avatar photo on survey submit", err);
+          }
         }
+
+        const profileId = Number(savedProfile.backendProfileId);
+
+        if (coverFile) {
+          try {
+            const uploadedCover = await uploadTalentPhoto(profileId, coverFile, "cover");
+            if (uploadedCover?.url) {
+              userProfile.cover = uploadedCover.url;
+              savedProfile.cover = uploadedCover.url;
+              setCoverPreviewUrl(uploadedCover.url);
+              setMediaUploads((prev) => ({ ...prev, cover: "current-cover" }));
+            }
+          } catch (err) {
+            console.warn("Failed to upload cover photo on survey submit", err);
+          }
+        }
+
+        if (fullBodyFile) {
+          try {
+            const uploadedFullBody = await uploadTalentPhoto(profileId, fullBodyFile, "full_body");
+            if (uploadedFullBody?.url) {
+              userProfile.fullBody = uploadedFullBody.url;
+              savedProfile.fullBody = uploadedFullBody.url;
+              setFullBodyPreviewUrl(uploadedFullBody.url);
+              setMediaUploads((prev) => ({ ...prev, fullBody: "current-full-body" }));
+            }
+          } catch (err) {
+            console.warn("Failed to upload full body photo on survey submit", err);
+          }
+        }
+
+        if (portfolioPhotoFiles.length) {
+          const uploadedPhotos: string[] = [];
+          for (const item of portfolioPhotoFiles) {
+            try {
+              const uploadedPhoto = await uploadTalentPhoto(profileId, item.file, "portfolio");
+              if (uploadedPhoto?.url) uploadedPhotos.push(uploadedPhoto.url);
+            } catch (err) {
+              console.warn("Failed to upload portfolio photo on survey submit", err);
+            }
+          }
+
+          if (uploadedPhotos.length) {
+            const nextPhotos = [...(Array.isArray(savedProfile.photos) ? savedProfile.photos : []), ...uploadedPhotos].slice(0, 8);
+            userProfile.photos = nextPhotos;
+            savedProfile.photos = nextPhotos;
+            uploadedPhotos.forEach((url, index) => {
+              const slot = index + 1;
+              if (slot <= 8) {
+                userProfile[`lookbook${slot}`] = url;
+                savedProfile[`lookbook${slot}`] = url;
+              }
+            });
+            setMediaUploads((prev) => ({ ...prev, portfolioPhotos: `${uploadedPhotos.length} ảnh` }));
+          }
+        }
+
+        if (portfolioVideoFiles.length) {
+          const uploadedVideos: any[] = [];
+          for (const item of portfolioVideoFiles) {
+            try {
+              const uploadedVideo = await uploadTalentVideo(profileId, item.file, item.name.replace(/\.[^.]+$/, ""));
+              if (uploadedVideo?.url) uploadedVideos.push(uploadedVideo);
+            } catch (err) {
+              console.warn("Failed to upload portfolio video on survey submit", err);
+            }
+          }
+
+          if (uploadedVideos.length) {
+            const nextVideos = [...(Array.isArray(savedProfile.videos) ? savedProfile.videos : []), ...uploadedVideos].slice(0, 4);
+            userProfile.videos = nextVideos;
+            savedProfile.videos = nextVideos;
+            setMediaUploads((prev) => ({ ...prev, portfolioVideos: `${uploadedVideos.length} video` }));
+          }
+        }
+
+        if (portfolioVideoLinks.length) {
+          const createdVideos: any[] = [];
+          const currentVideos = Array.isArray(savedProfile.videos) ? savedProfile.videos : [];
+
+          for (const item of portfolioVideoLinks) {
+            try {
+              const createdVideo = await createTalentVideoLink(profileId, item.url, item.title);
+              if (createdVideo?.url) createdVideos.push(createdVideo);
+            } catch (err) {
+              console.warn("Failed to create portfolio video link on survey submit", err);
+            }
+          }
+
+          if (createdVideos.length) {
+            const nextVideos = [...currentVideos, ...createdVideos].slice(0, 4);
+            userProfile.videos = nextVideos;
+            savedProfile.videos = nextVideos;
+            setMediaUploads((prev) => ({ ...prev, portfolioVideos: `${nextVideos.length} video` }));
+          }
+        }
+
+        persistTalentProfile({ ...savedProfile, ...userProfile });
       }
 
       const surveyQuestionAnswers = SURVEY_QUESTIONS
@@ -1568,7 +1978,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           </div>
           <div className="rounded-2xl border border-white/5 bg-[#03050c]/70 p-4 text-center">
             <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Số bước đã hoàn thành</span>
-            <span className="mt-1 block font-display text-3xl font-black text-white">{SURVEY_STEP_COUNT}/3</span>
+            <span className="mt-1 block font-display text-3xl font-black text-white">{SURVEY_STEP_COUNT}/{SURVEY_STEP_COUNT}</span>
           </div>
           <div className="rounded-2xl border border-white/5 bg-[#03050c]/70 p-4 text-center">
             <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Trạng thái</span>
@@ -1904,6 +2314,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         <div className="flex items-start justify-between gap-3 w-full min-w-0">
           {/* Left: step badge + step name + progress text – single row on all screens */}
           <div className="flex flex-col min-w-0">
+            <h2 className="mb-2 font-display text-base font-black uppercase tracking-wider text-white md:text-lg">
+              Tham gia hệ thống
+            </h2>
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="shrink-0 text-[11px] md:text-xs font-black text-amber-300 uppercase tracking-widest bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 whitespace-nowrap">
                 Bước {step} / {SURVEY_STEP_COUNT}
@@ -1912,13 +2325,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 {step === 1 && "Thông tin cơ bản"}
                 {step === 2 && "Nghề nghiệp"}
                 {step === 3 && "Social & Portfolio"}
-                {ORIENTATION_SURVEY_ENABLED && step === 4 && "Khảo sát định hướng"}
+                {step === MEDIA_SURVEY_STEP && "Hình ảnh & Video"}
+                {ORIENTATION_SURVEY_ENABLED && step === AI_SURVEY_STEP && "Khảo sát định hướng"}
               </span>
             </div>
-            {/* Micro feedback text */}
-            <p className="text-[11px] md:text-xs text-slate-400 mt-0.5 font-medium">
-              Hồ sơ định hướng của bạn đã hoàn thiện <strong className="text-amber-300 font-bold">{completenessPercent}%</strong>
-            </p>
           </div>
 
           {onBackToDashboard && (
@@ -1952,7 +2362,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               const stepNames = [
                 "Thông tin",
                 "Nghề nghiệp",
-                "Portfolio & Media",
+                "Portfolio",
+                "Hình ảnh & Video",
                 "Khảo sát AI"
               ];
 
@@ -2537,6 +2948,232 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           </div>
         )}
 
+        {/* STEP 4: PHOTOS & VIDEOS */}
+        {step === MEDIA_SURVEY_STEP && (
+          <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto space-y-6">
+            <SurveyImageUploadBlock
+              label="ẢNH BÌA"
+              placeholder="TẢI ẢNH BÌA"
+              previewUrl={coverPreviewUrl}
+              aspectClassName="aspect-[16/9] w-full"
+              onChange={(event) => handleSurveyImageSelection("cover", event)}
+              onRemove={() => handleRemoveSurveyImage("cover")}
+            />
+
+            <SurveyImageUploadBlock
+              label="ẢNH TOÀN THÂN"
+              placeholder="TẢI ẢNH LÊN"
+              previewUrl={fullBodyPreviewUrl}
+              aspectClassName="aspect-[3/4] w-full"
+              onChange={(event) => handleSurveyImageSelection("fullBody", event)}
+              onRemove={() => handleRemoveSurveyImage("fullBody")}
+            />
+
+            <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+              <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
+                    <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> BỘ SƯU TẬP
+                  </h3>
+                  <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                    HIỂN THỊ BỘ SƯU TẬP ẢNH, VIDEO CỦA IDOL
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+                  ({portfolioPhotoFiles.length}/8 ẢNH)
+                </span>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  {portfolioPhotoFiles.map((img) => (
+                    <div key={img.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
+                      <img
+                        src={img.previewUrl}
+                        alt={img.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent pointer-events-none" />
+
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleRemovePortfolioPhoto(img.id);
+                        }}
+                        className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
+                        title="Xóa ảnh"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+
+                      <div className="absolute bottom-3 right-3 z-20">
+                        <label className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
+                          <Camera className="h-3.5 w-3.5" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            disabled={portfolioPhotoFiles.length >= 8}
+                            onChange={handlePortfolioPhotoSelection}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+
+                  {portfolioPhotoFiles.length < 8 && (
+                    <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors">
+                      <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
+                        <Upload className="h-7 w-7" />
+                        <span className="text-[10px] font-black uppercase tracking-wider">TẢI ẢNH LÊN</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={handlePortfolioPhotoSelection}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-[#151b2d] pt-5 space-y-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+                    ({portfolioVideoFiles.length + portfolioVideoLinks.length}/4 VIDEO)
+                  </span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                    GẮN LINK HOẶC TẢI TRỰC TIẾP TỪ THIẾT BỊ
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  {portfolioVideoFiles.map((video) => (
+                    <div key={video.id} className="relative aspect-[9/16] overflow-hidden rounded-xl border border-white/5 bg-slate-950 shadow-md group">
+                      <video
+                        src={video.previewUrl}
+                        controls
+                        preload="metadata"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleRemovePortfolioVideo(video.id);
+                        }}
+                        className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
+                        title="Xóa video"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {portfolioVideoLinks.map((video) => (
+                    <div key={video.id} className="relative aspect-[9/16] overflow-hidden rounded-xl border border-white/5 bg-slate-950 shadow-md group">
+                      {isDirectVideoUrl(video.url) ? (
+                        <video
+                          src={video.url}
+                          controls
+                          preload="metadata"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      ) : (
+                        <a href={video.url} target="_blank" rel="noreferrer" className="block h-full w-full bg-slate-950">
+                          <img
+                            src="/video_thumb.png"
+                            alt="Video thumbnail"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        </a>
+                      )}
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
+                      <a
+                        href={video.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(event) => event.stopPropagation()}
+                        className="absolute left-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-amber-400/50 hover:text-amber-300 active:scale-95"
+                        title="Mở video"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleRemovePortfolioVideoLink(video.id);
+                        }}
+                        className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
+                        title="Xóa video"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {portfolioVideoFiles.length + portfolioVideoLinks.length < 4 && (
+                    <label className="flex aspect-[9/16] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 bg-slate-950/70 text-slate-500 transition-colors hover:border-amber-400/70 hover:text-amber-400">
+                      <Upload className="h-7 w-7" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">TẢI VIDEO</span>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,video/x-matroska"
+                        multiple
+                        className="hidden"
+                        onChange={handlePortfolioVideoSelection}
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {portfolioVideoFiles.length + portfolioVideoLinks.length < 4 && (
+                  <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                    <div className="space-y-1.5 md:col-span-10">
+                      <label className="block text-[9px] font-black uppercase tracking-wider text-slate-400">
+                        ĐƯỜNG DẪN VIDEO
+                      </label>
+                      <div className="relative">
+                        <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                        <input
+                          type="url"
+                          value={videoLinkInput}
+                          onChange={(event) => setVideoLinkInput(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              handleAddSurveyVideoLink();
+                            }
+                          }}
+                          placeholder="https://..."
+                          className="h-10 w-full rounded-xl border border-white/20 bg-[#060918] pl-9 pr-3.5 text-xs font-semibold text-white shadow-inner outline-none transition-colors placeholder:text-slate-500 focus:border-amber-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <button
+                        type="button"
+                        onClick={handleAddSurveyVideoLink}
+                        className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all hover:brightness-110 active:scale-95"
+                      >
+                        <Plus className="h-4 w-4" />
+                        THÊM LINK
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* STEP 3: SOCIAL & PORTFOLIO (Left Socials, Right Upload Zone) */}
         {false && step === 3 && (
           <div className="animate-in fade-in duration-300">
@@ -2927,36 +3564,36 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       )}
 
       {showCancelSurveyDialog && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-amber-400/30 bg-[#090a14] p-5 text-left shadow-[0_0_40px_rgba(245,158,11,0.16)]">
-            <div className="mb-4 flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/30 bg-amber-400/10 text-amber-300">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 px-4 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-3xl border border-amber-400/30 bg-[#090a14] p-6 text-left shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <div className="mb-6 flex items-start gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-400/40 bg-amber-400/10 text-amber-300">
                 <AlertTriangle className="h-5 w-5" />
               </div>
-              <div>
+              <div className="pt-0.5">
                 <h3 className="font-display text-base font-black uppercase tracking-wider text-white">
-                  Dừng làm bài khảo sát?
+                  Dừng hoàn thiện hồ sơ?
                 </h3>
-                <p className="mt-1 text-sm font-medium leading-relaxed text-slate-300">
-                  Bạn có muốn dừng làm bài khảo sát không?
+                <p className="mt-1.5 text-xs font-medium leading-relaxed text-slate-300">
+                  Các thông tin hồ sơ chưa hoàn tất sẽ không được lưu. Bạn có muốn dừng lại không?
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-2.5 w-full">
               <button
                 type="button"
                 onClick={() => setShowCancelSurveyDialog(false)}
-                className="flex h-11 items-center justify-center rounded-xl border border-white/15 bg-transparent text-xs font-black uppercase tracking-wider text-slate-100 transition-all hover:border-amber-400/50 hover:text-amber-300"
+                className="flex h-12 w-full items-center justify-center rounded-full border border-white/20 bg-transparent text-xs font-black uppercase tracking-wider text-slate-100 transition-all hover:bg-white/10 active:scale-98 cursor-pointer"
               >
-                Tiếp tục làm
+                Tiếp tục điền hồ sơ
               </button>
               <button
                 type="button"
                 onClick={handleStopSurvey}
-                className="flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-amber-300 to-yellow-500 text-xs font-black uppercase tracking-wider text-slate-950 transition-all hover:brightness-110"
+                className="flex h-12 w-full items-center justify-center rounded-full bg-[#F5C400] text-xs font-black uppercase tracking-wider text-slate-950 transition-all hover:brightness-110 active:scale-98 cursor-pointer shadow-md"
               >
-                Dừng làm
+                Dừng lại
               </button>
             </div>
           </div>

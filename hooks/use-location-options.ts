@@ -67,21 +67,19 @@ export function useCityOptions(): CityOption[] {
   const { cities } = useLocationCities();
 
   return useMemo(() => {
-    if (cities.length > 0) {
-      return uniqueCityOptions(
-        cities.map((city) => {
-          const label = cityLabel(city);
-          return {
-            id: city.id,
-            label,
-            value: label,
-            city,
-          };
-        }),
-      );
-    }
+    const backendOptions = cities.map((city) => {
+      const label = cityLabel(city);
+      return {
+        id: city.id,
+        label,
+        value: label,
+        city,
+      };
+    });
 
-    return uniqueCityOptions([...CITY_VALUES].map((label) => ({ label, value: label })));
+    const defaultOptions = [...CITY_VALUES].map((label) => ({ label, value: label }));
+
+    return uniqueCityOptions([...backendOptions, ...defaultOptions]);
   }, [cities]);
 }
 
