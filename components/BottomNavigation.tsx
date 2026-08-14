@@ -518,10 +518,12 @@ export default function BottomNavigation() {
             )}>
               {showCreateMenu ? <X className="h-6 w-6" /> : <Plus className="h-7 w-7" />}
             </div>
-            <span className={cn(
-              "text-[9px] font-black tracking-wider transition-colors duration-300",
-              showCreateMenu ? "text-amber-400" : "text-slate-500"
-            )}>
+            <span
+              className={cn(
+                "text-[9px] font-bold tracking-wider transition-colors duration-300",
+                showCreateMenu ? "text-amber-400 font-black" : "text-slate-500",
+              )}
+            >
               Tạo mới
             </span>
           </button>
