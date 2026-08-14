@@ -5,7 +5,6 @@ export type PublicNavigationItem = {
     | "booking"
     | "my_bookings"
     | "jobs"
-    | "booking"
     | "about"
     | "talent_profile"
     | "talent_survey"
@@ -38,7 +37,6 @@ const guestDesktopNavigation: PublicNavigationItem[] = [
   { key: "booking", label: "Booking", href: "/booking" },
   { key: "my_bookings", label: "Quản lý Booking", href: "/brand/my-bookings" },
   { key: "jobs", label: "Cơ hội việc làm", href: "/talent/jobs" },
-  { key: "booking", label: "Booking", href: "/booking" },
   { key: "saved_idols", label: "Idol đã lưu", href: "/brand/shortlists" },
   { key: "saved_jobs", label: "Việc làm đã lưu", href: "/talent/jobs/saved-jobs" },
   { key: "talent_survey", label: "Khảo sát", href: "/talent/survey" },
