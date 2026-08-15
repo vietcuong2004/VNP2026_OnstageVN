@@ -73,6 +73,7 @@ type BackendProfile = {
   budget_max?: number | string | null;
   avatar_url?: string | null;
   price?: string | null;
+  client_price?: string | null;
   portfolio_url?: string | null;
   photos?: BackendPhoto[] | null;
   videos?: BackendVideo[] | null;
@@ -258,6 +259,10 @@ type BackendBookingRequest = {
   job_type?: string | null;
   package_id?: string | null;
   package_price?: number | string | null;
+  client_budget_amount?: number | string | null;
+  talent_payout_amount?: number | string | null;
+  platform_fee_amount?: number | string | null;
+  platform_fee_rate?: number | string | null;
   package_name?: string | null;
   package_duration?: string | null;
   job_name?: string | null;
@@ -297,6 +302,8 @@ export type CreateBookingRequestPayload = {
   contact_phone: string;
   contact_email?: string | null;
   payment_method?: "bank" | "wallet";
+  client_budget_amount?: number | string | null;
+  talent_payout_amount?: number | string | null;
 };
 
 type BackendContactRequest = {
@@ -512,11 +519,14 @@ function formatFollowers(value: number) {
   return String(value);
 }
 
+const MOJIBAKE_MARKER_PATTERN = /[\u00c2-\u00c6]|\u00e1[\u00ba\u00bb]/;
+const MOJIBAKE_MARKER_PATTERN_GLOBAL = /[\u00c2-\u00c6]|\u00e1[\u00ba\u00bb]/g;
+
 function repairMojibake(value: unknown) {
   if (typeof value !== "string" || !value) return value ?? "";
 
   const text = value.trim();
-  if (!/[ÃÂÄÆ]|á»/.test(text)) return text;
+  if (!MOJIBAKE_MARKER_PATTERN.test(text)) return text;
 
   try {
     const bytes = Uint8Array.from(Array.from(text).map((char) => char.charCodeAt(0) & 0xff));
@@ -524,8 +534,8 @@ function repairMojibake(value: unknown) {
 
     if (!repaired) return text;
 
-    const beforeNoise = (text.match(/[ÃÂÄÆ]|á»/g) || []).length;
-    const afterNoise = (repaired.match(/[ÃÂÄÆ]|á»/g) || []).length;
+    const beforeNoise = (text.match(MOJIBAKE_MARKER_PATTERN_GLOBAL) || []).length;
+    const afterNoise = (repaired.match(MOJIBAKE_MARKER_PATTERN_GLOBAL) || []).length;
 
     return afterNoise < beforeNoise ? repaired : text;
   } catch {
@@ -538,7 +548,7 @@ function hasSuspiciousQuestionMojibake(value: unknown) {
   if (!text) return false;
 
   const questionMarks = (text.match(/\?/g) || []).length;
-  return questionMarks >= 2 && /[A-Za-zÀ-ỹ]/u.test(text);
+  return questionMarks >= 2 && /\p{L}/u.test(text);
 }
 
 function fallbackTalentExperience(profile: BackendProfile, fallback?: TalentProfile) {
@@ -718,7 +728,7 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
       : fallback?.surveyScores || { pageant: 0, runway: 0, kol: 0 },
     mainCategory: profile.latest_survey?.main_category || fallback?.mainCategory || "",
     aiScore: Number(profile.latest_survey?.profile_score) || fallback?.aiScore || 0,
-    price: profile.price || fallback?.price || "",
+    price: profile.client_price || profile.price || fallback?.price || "",
   };
 }
 
@@ -1094,9 +1104,10 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
     ? rawAvatar
     : createInitialAvatarDataUrl(talentName, talent?.email || talent?.name || "");
   const depositAmount = numberOrNull(booking.deposit_amount) ?? 200000;
+  const clientBudgetAmount = numberOrNull(booking.client_budget_amount);
   const packagePrice = numberOrNull(booking.package_price);
   const remainingAmount = numberOrNull(booking.remaining_amount);
-  const totalBudget = packagePrice ?? (remainingAmount !== null ? remainingAmount + depositAmount : undefined);
+  const totalBudget = clientBudgetAmount ?? packagePrice ?? (remainingAmount !== null ? remainingAmount + depositAmount : undefined);
 
   return {
     id: String(booking.request_code || booking.id),
