@@ -77,7 +77,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isBookingTalent = pathname ? pathname.endsWith("/booking-talent") : false;
   const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
   const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs || isBooking;
-  const hideChrome = isBrandCreateJob || isBookingTalent;
+  const hideChrome = isBrandCreateJob || isBooking;
 
   useEffect(() => {
     const pageTitle = getPageTitle(pathname);
@@ -135,13 +135,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 data-app-scroll-root
                 className={cn(
                   "flex-1",
-                  isMessages || isBrandCreateJob ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden",
-                  isStandalonePublic || isMessages || isDiscoverHome || isAbout || isTalentSurvey || isBrandCreateJob || isBookingTalent
+                  isMessages || isBrandCreateJob || isBooking ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden",
+                  isStandalonePublic || isMessages || isDiscoverHome || isAbout || isTalentSurvey || isBrandCreateJob || isBooking
                     ? "p-0"
                     : cn(
                         "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",
-                        (isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs) && "pt-0 md:pt-7",
-                        isBooking && "p-0 md:px-8 md:py-7 md:pb-8"
+                        (isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs) && "pt-0 md:pt-7"
                       ),
                   isTalentSurvey && "md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 md:pb-8"
                 )}
@@ -149,7 +148,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div
                   className={cn(
                     "w-full",
-                    (isBrandCreateJob || isBookingTalent) && "h-full min-h-0",
+                    (isBrandCreateJob || isBooking) && "h-full min-h-0",
                     isStandalonePublic
                       ? "mx-auto max-w-none"
                       : "mx-0 max-w-none [@media(min-width:2400px)]:mx-auto [@media(min-width:2400px)]:max-w-[2040px] [@media(min-width:3200px)]:max-w-[2280px]"

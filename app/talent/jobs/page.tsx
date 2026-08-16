@@ -428,6 +428,7 @@ function JobsPageContent() {
   const [isMobileJobSearchExpanded, setIsMobileJobSearchExpanded] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isMobileCityDialogOpen, setIsMobileCityDialogOpen] = useState(false);
+
   const [mobileQuickTab, setMobileQuickTab] = useState<MobileJobQuickTab>("all");
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [qrInputValue, setQrInputValue] = useState("");

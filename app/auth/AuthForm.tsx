@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, User, X } from "lucide-react";
 import { storeAuthSession } from "@/lib/api-client";
-import { syncGuestDraftsAfterNewRegistration } from "@/lib/guest-draft";
+import { hasGuestDraftsToSync, syncGuestDraftsAfterNewRegistration } from "@/lib/guest-draft";
 
 type AuthMode = "login" | "register";
 type AccountType = "user" | "admin" | string;
@@ -218,7 +218,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       }
 
       storeAuthSession(data.token, data.user);
-      if (shouldSyncGuestDraftAfterLogin) {
+      if (shouldSyncGuestDraftAfterLogin || hasGuestDraftsToSync()) {
         await syncGuestDraftsAfterNewRegistration();
       }
       const redirectPath = typeof window !== "undefined"

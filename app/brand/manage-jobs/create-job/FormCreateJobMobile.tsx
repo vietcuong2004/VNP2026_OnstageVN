@@ -1203,23 +1203,39 @@ function InlineCustomChoiceField({
   onChange: (value: string) => void;
 }) {
   const selected = splitOptionText(value);
+  const [inputValue, setInputValue] = useState("");
 
   const addOption = (option: string) => {
-    const normalized = option.trim();
-    if (!normalized) return;
-    onChange(joinOptionText([...selected, normalized]));
+    const items = option
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (!items.length) return;
+
+    const existingLower = new Set(selected.map((item) => item.toLowerCase()));
+    const newItems = items.filter((item) => !existingLower.has(item.toLowerCase()));
+    if (!newItems.length) return;
+
+    onChange(joinOptionText([...selected, ...newItems]));
   };
 
   const removeOption = (option: string) => {
     onChange(joinOptionText(selected.filter((item) => item.toLowerCase() !== option.toLowerCase())));
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== "Enter" && event.key !== ",") return;
-    event.preventDefault();
-    const current = event.currentTarget;
-    addOption(current.value);
-    current.value = "";
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      addOption(inputValue);
+      setInputValue("");
+    }
+  };
+
+  const handleBlur = () => {
+    if (inputValue.trim()) {
+      addOption(inputValue);
+      setInputValue("");
+    }
   };
 
   return (
@@ -1231,11 +1247,10 @@ function InlineCustomChoiceField({
       <input
         type="text"
         placeholder={placeholder}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        onBlur={(event) => {
-          addOption(event.currentTarget.value);
-          event.currentTarget.value = "";
-        }}
+        onBlur={handleBlur}
         className="w-full rounded-xl border border-slate-700/80 bg-slate-950/70 px-3.5 py-2.5 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
       />
       <div className="flex flex-wrap gap-2">
@@ -1248,7 +1263,7 @@ function InlineCustomChoiceField({
               type="button"
               onClick={() => isSelected ? removeOption(option) : addOption(option)}
               className={cn(
-                "rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition",
+                "rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition cursor-pointer",
                 isSelected
                   ? "border-amber-400/60 bg-amber-400/15 text-amber-200"
                   : "border-slate-700 bg-slate-950/70 text-slate-300 hover:border-amber-400/40 hover:text-white"
@@ -1268,7 +1283,7 @@ function InlineCustomChoiceField({
                 key={item}
                 type="button"
                 onClick={() => removeOption(item)}
-                className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-200"
+                className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-200 cursor-pointer"
               >
                 {item} ×
               </button>

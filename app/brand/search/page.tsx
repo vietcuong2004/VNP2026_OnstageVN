@@ -25,7 +25,6 @@ import {
   Star,
   Trash2,
   UserCheck,
-  UserPlus,
   Users2,
   X,
 } from "lucide-react";
@@ -1837,6 +1836,7 @@ export default function DiscoverTalentsPage() {
           pushToast("Đã áp dụng bộ lọc.");
         }}
       />
+
     </div>
   );
 }

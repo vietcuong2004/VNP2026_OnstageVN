@@ -3,17 +3,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bookmark, Briefcase, CalendarCheck, Heart, HelpCircle, Home, Info, LogIn, Menu, Search, Settings, Sparkles, User, X } from "lucide-react";
+import { Bell, Bookmark, Briefcase, CalendarCheck, ChevronRight, Heart, HelpCircle, Home, Info, LogIn, Megaphone, Menu, Plus, Search, Settings, Sparkles, User, UserPlus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
 import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/components/sidebar";
-import { getGuestMoreNavigation, getGuestPrimaryNavigation } from "@/lib/public-navigation";
+import { getGuestMoreNavigation } from "@/lib/public-navigation";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
 export default function BottomNavigation() {
   const pathname = usePathname();
   const router = useRouter();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [visible, setVisible] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [explanationTab, setExplanationTab] = useState<"talent" | "brand" | null>(null);
@@ -104,6 +105,7 @@ export default function BottomNavigation() {
 
   async function handleLogout() {
     setShowMoreMenu(false);
+    setShowCreateMenu(false);
     await logoutCurrentSession();
     if (typeof window !== "undefined" && window.innerWidth < 768) {
       router.replace("/");
@@ -121,7 +123,7 @@ export default function BottomNavigation() {
     let prevScrollY = 0;
 
     const handleScroll = (event: Event) => {
-      if (showMoreMenu) return;
+      if (showMoreMenu || showCreateMenu) return;
       const target = event.target;
       if (!target) return;
 
@@ -156,9 +158,9 @@ export default function BottomNavigation() {
 
     window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
     return () => window.removeEventListener("scroll", handleScroll, { capture: true });
-  }, [pathname, showMoreMenu]);
+  }, [pathname, showMoreMenu, showCreateMenu]);
 
-  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/" && pathname !== "/about" && pathname !== "/settings") {
+  if (!pathname.startsWith("/talent") && !pathname.startsWith("/brand") && pathname !== "/" && pathname !== "/about" && pathname !== "/settings" && pathname !== "/booking") {
     return null;
   }
 
@@ -173,8 +175,9 @@ export default function BottomNavigation() {
   const guestIconMap = {
     discover: Home,
     talent: Search,
-    jobs: Briefcase,
     booking: CalendarCheck,
+    my_bookings: CalendarCheck,
+    jobs: Briefcase,
     about: Info,
     talent_profile: User,
     talent_survey: Sparkles,
@@ -184,18 +187,27 @@ export default function BottomNavigation() {
     login: LogIn,
   };
 
-  const guestPrimaryItems = getGuestPrimaryNavigation().map((item) => ({
-    ...item,
-    icon: guestIconMap[item.key],
-  }));
-
   const guestMoreItems = getGuestMoreNavigation().map((item) => ({
     ...item,
     icon: guestIconMap[item.key],
   }));
 
-  const primaryItems = guestPrimaryItems;
   const allItems = !isLoggedIn ? guestMoreItems : [];
+  const bottomNavItems = [
+    { label: "Khám phá", href: "/", icon: Home },
+    { label: "Tìm Idol", href: "/brand/search", icon: Search },
+    { label: "Tìm job", href: "/talent/jobs", icon: Briefcase },
+  ];
+
+  const handleJoinSystem = () => {
+    setShowCreateMenu(false);
+    router.push("/talent/survey?form=1&from=/brand/search");
+  };
+
+  const handleCreateJob = () => {
+    setShowCreateMenu(false);
+    router.push("/brand/manage-jobs/create-job");
+  };
 
   const isActiveHref = (href: string) => {
     if (href === "/") return activePathname === "/";
@@ -395,12 +407,72 @@ export default function BottomNavigation() {
         </>
       )}
 
+      {showCreateMenu && (
+        <>
+          <div
+            onClick={() => setShowCreateMenu(false)}
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm transition-opacity duration-300 md:hidden animate-in fade-in"
+          />
+          <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-50 mx-auto w-full rounded-t-[2rem] border-t border-white/10 bg-[#070913]/98 px-5 pb-5 pt-4 shadow-[0_-14px_42px_rgba(0,0,0,0.62)] backdrop-blur-2xl md:hidden animate-in slide-in-from-bottom duration-300">
+            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20" />
+            <div className="mb-4 text-center">
+              <h3 className="font-display text-base font-black text-white">Bạn muốn làm gì?</h3>
+              <p className="mt-1 text-xs font-semibold text-slate-500">Chọn một hành động để bắt đầu</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={handleJoinSystem}
+                className="flex w-full items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-left shadow-[0_10px_24px_rgba(0,0,0,0.22)] transition-all active:scale-[0.99]"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/35 bg-[#C9A86A]/12 text-[#F0C56B] shadow-[0_0_16px_rgba(201,168,106,0.12)]">
+                  <UserPlus className="h-6 w-6" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-black text-white">Tham gia hệ thống</span>
+                  <span className="mt-1 block text-xs font-semibold leading-relaxed text-slate-400">Tạo hồ sơ để bắt đầu nhận job phù hợp</span>
+                </span>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-400">
+                  <ChevronRight className="h-4 w-4" />
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCreateJob}
+                className="flex w-full items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-left shadow-[0_10px_24px_rgba(0,0,0,0.22)] transition-all active:scale-[0.99]"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/35 bg-[#C9A86A]/12 text-[#F0C56B] shadow-[0_0_16px_rgba(201,168,106,0.12)]">
+                  <Megaphone className="h-6 w-6" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-black text-white">Đăng tuyển</span>
+                  <span className="mt-1 block text-xs font-semibold leading-relaxed text-slate-400">Tạo tin tuyển dụng mới và tìm kiếm ứng viên</span>
+                </span>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-400">
+                  <ChevronRight className="h-4 w-4" />
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowCreateMenu(false)}
+                className="flex h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-xs font-black uppercase tracking-wider text-slate-300 transition-all active:scale-[0.99]"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       <div className={cn(
         "fixed bottom-0 left-0 right-0 z-40 md:hidden transition-transform duration-300",
         visible ? "translate-y-0" : "translate-y-full",
       )}>
-        <nav className="flex h-[calc(4rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] w-full items-center justify-around border-t border-white/10 bg-[#03050c]/95 px-2 shadow-2xl backdrop-blur-xl">
-          {primaryItems.map((item) => {
+        <nav className="grid h-[calc(4.25rem+env(safe-area-inset-bottom,0px))] w-full grid-cols-5 items-center border-t border-white/10 bg-[#03050c]/95 px-2 pb-[env(safe-area-inset-bottom,0px)] shadow-2xl backdrop-blur-xl">
+          {bottomNavItems.slice(0, 2).map((item) => {
             const isActive = isActiveHref(item.href);
             const Icon = item.icon;
 
@@ -422,7 +494,72 @@ export default function BottomNavigation() {
                 </div>
                 <span
                   className={cn(
-                    "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
+                    "text-[9px] font-bold tracking-wider transition-colors duration-300",
+                    isActive ? "text-amber-400 font-black" : "text-slate-500",
+                  )}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowMoreMenu(false);
+              setShowCreateMenu((prev) => !prev);
+            }}
+            className="group flex flex-col items-center justify-center gap-1 py-1 focus:outline-none cursor-pointer"
+          >
+            <div
+              className={cn(
+                "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
+                showCreateMenu
+                  ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
+                  : "text-slate-400 hover:bg-white/5 hover:text-white",
+              )}
+            >
+              {showCreateMenu ? (
+                <X className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+              ) : (
+                <Plus className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+              )}
+            </div>
+            <span
+              className={cn(
+                "text-[9px] font-bold tracking-wider transition-colors duration-300",
+                showCreateMenu ? "text-amber-400 font-black" : "text-slate-500",
+              )}
+            >
+              Tạo mới
+            </span>
+          </button>
+
+          {bottomNavItems.slice(2).map((item) => {
+            const isActive = isActiveHref(item.href);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={() => setShowCreateMenu(false)}
+                className="group flex flex-col items-center justify-center gap-1 py-1 cursor-pointer"
+              >
+                <div
+                  className={cn(
+                    "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
+                    isActive
+                      ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
+                      : "text-slate-400 hover:bg-white/5 hover:text-white",
+                  )}
+                >
+                  <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                </div>
+                <span
+                  className={cn(
+                    "text-[9px] font-bold tracking-wider transition-colors duration-300",
                     isActive ? "text-amber-400 font-black" : "text-slate-500",
                   )}
                 >
@@ -433,13 +570,16 @@ export default function BottomNavigation() {
           })}
 
           {(() => {
-            const isPrimaryActive = primaryItems.some((item) => isActiveHref(item.href));
+            const isPrimaryActive = bottomNavItems.some((item) => isActiveHref(item.href));
             const isMenuActive = showMoreMenu || !isPrimaryActive;
 
             return (
               <button
                 type="button"
-                onClick={() => setShowMoreMenu((prev) => !prev)}
+                onClick={() => {
+                  setShowCreateMenu(false);
+                  setShowMoreMenu((prev) => !prev);
+                }}
                 className="group flex flex-col items-center justify-center gap-1 py-1 focus:outline-none cursor-pointer"
               >
                 <div
@@ -454,7 +594,7 @@ export default function BottomNavigation() {
                 </div>
                 <span
                   className={cn(
-                    "text-[9px] font-bold tracking-wider uppercase transition-colors duration-300",
+                    "text-[9px] font-bold tracking-wider transition-colors duration-300",
                     isMenuActive ? "text-amber-400 font-black" : "text-slate-500",
                   )}
                 >
