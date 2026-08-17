@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 
 const SITE_URL = getSiteUrl();
-const ASSET_VERSION = "8";
+const ASSET_VERSION = "10";
 
 export const metadata: Metadata = {
   title: "Onstage VN",
@@ -15,11 +15,11 @@ export const metadata: Metadata = {
     description: "Tim kiem va ket noi talent phu hop cho chien dich cua doanh nghiep.",
     images: [
       {
-        url: `${SITE_URL}/apple-touch-icon.png?v=${ASSET_VERSION}`,
-        secureUrl: `${SITE_URL}/apple-touch-icon.png?v=${ASSET_VERSION}`,
+        url: `${SITE_URL}/logo_vuong.png?v=${ASSET_VERSION}`,
+        secureUrl: `${SITE_URL}/logo_vuong.png?v=${ASSET_VERSION}`,
         type: "image/png",
-        width: 180,
-        height: 180,
+        width: 1200,
+        height: 1200,
         alt: "Onstage VN",
       },
     ],
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Onstage VN",
     description: "Tim kiem va ket noi talent phu hop cho chien dich cua doanh nghiep.",
-    images: [`${SITE_URL}/apple-touch-icon.png?v=${ASSET_VERSION}`],
+    images: [`${SITE_URL}/logo_vuong.png?v=${ASSET_VERSION}`],
   },
 };
 

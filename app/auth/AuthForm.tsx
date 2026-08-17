@@ -235,10 +235,10 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   return (
     <div
       className="relative flex min-h-svh flex-col animate-in fade-in duration-700 bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/hero_bg.png')" }}
+      style={{ backgroundImage: "url('/discovery-jobs-light.jpg')" }}
     >
       {/* Dark overlay so the form stays readable */}
-      <div className="absolute inset-0 -z-10 bg-[#03050c]/70" />
+      <div className="absolute inset-0 -z-10 bg-[#03050c]/60 backdrop-blur-[1px]" />
 
       {/* Form centred in remaining vertical space */}
       <div className="flex flex-1 flex-col items-center justify-center w-full px-6">

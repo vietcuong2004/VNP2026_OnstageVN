@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 
 const SITE_URL = getSiteUrl();
-const ASSET_VERSION = "9";
-const SHARE_IMAGE_URL = `${SITE_URL}/apple-touch-icon.png?v=${ASSET_VERSION}`;
+const ASSET_VERSION = "10";
+const SHARE_IMAGE_URL = `${SITE_URL}/logo_vuong.png?v=${ASSET_VERSION}`;
 
 export const metadata: Metadata = {
   title: "Onstage VN",

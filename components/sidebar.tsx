@@ -82,8 +82,7 @@ export default function Sidebar() {
   const [sourcePath, setSourcePath] = useState("");
   const [explanationTab, setExplanationTab] = useState<"talent" | "brand" | null>(null);
 
-  const isGateway = pathname === "/";
-  const isAppPath = pathname.startsWith("/talent") || pathname.startsWith("/brand") || pathname === "/about" || pathname === "/settings";
+  const isAppPath = pathname === "/" || pathname.startsWith("/talent") || pathname.startsWith("/brand") || pathname === "/about" || pathname === "/settings";
   const guestIconMap = {
     discover: Sparkles,
     talent: Search,
@@ -136,7 +135,7 @@ export default function Sidebar() {
     return () => window.clearTimeout(timeout);
   }, [pathname]);
 
-  if (isGateway || !isAppPath) {
+  if (!isAppPath) {
     return null;
   }
 
