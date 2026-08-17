@@ -845,30 +845,30 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-0 backdrop-blur-md animate-in fade-in duration-200 md:relative md:inset-auto md:z-auto md:block md:bg-transparent md:p-0 md:backdrop-blur-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-0 backdrop-blur-md animate-in fade-in duration-200 md:relative md:inset-auto md:z-auto md:block md:bg-transparent md:p-0 md:backdrop-blur-0">
       <form
         onSubmit={handleFormSubmit}
-        className="relative mx-auto flex h-full w-full max-w-2xl flex-col overflow-hidden border-0 border-amber-500/30 bg-[#0c1021] shadow-[0_0_50px_rgba(245,158,11,0.15),0_25px_60px_rgba(0,0,0,0.9)] sm:rounded-3xl sm:border md:mx-0 md:h-auto md:min-h-[calc(100dvh-9rem)] md:max-w-none md:max-h-none"
+        className="relative mx-auto flex h-full w-full max-w-2xl flex-col overflow-hidden border-0 border-[#F0D7D3] bg-[#FAF7F6] text-[#191116] shadow-2xl sm:rounded-3xl sm:border md:mx-0 md:h-auto md:min-h-[calc(100dvh-9rem)] md:max-w-none md:max-h-none"
       >
         {/* Top accent glow line */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-amber-300 to-yellow-500 shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.6)]" />
+        <div className="h-1.5 w-full bg-gradient-to-r from-[#E01B1F] via-[#C72524] to-[#8F0709] shrink-0 shadow-sm" />
 
         {/* Ambient background glow accents */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-yellow-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFF0EE] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#FFF5F3] rounded-full blur-3xl pointer-events-none" />
 
         {/* ── HEADER with step indicator ── */}
-        <div className="relative z-10 px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-slate-800/80 bg-slate-900/40 shrink-0">
+        <div className="relative z-10 px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-[#F0D7D3] bg-white shrink-0">
           <div className="mb-2 grid grid-cols-[minmax(0,1fr)_2.5rem] items-center gap-2">
-            <div className="grid grid-cols-2 gap-1 rounded-2xl border border-slate-800 bg-slate-950/60 p-1">
+            <div className="grid grid-cols-2 gap-1 rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] p-1">
               <button
                 type="button"
                 onClick={() => setActiveTab("form")}
                 className={cn(
-                  "flex h-10 items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                  "flex h-10 items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
                   activeTab === "form"
-                    ? "bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.35)]"
-                    : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"
+                    ? "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-sm"
+                    : "text-[#574D54] hover:bg-white hover:text-[#191116]"
                 )}
               >
                 <Briefcase className="h-4 w-4" />
@@ -878,10 +878,10 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 type="button"
                 onClick={() => setActiveTab("preview")}
                 className={cn(
-                  "flex h-10 items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                  "flex h-10 items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
                   activeTab === "preview"
-                    ? "bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.35)]"
-                    : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"
+                    ? "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-sm"
+                    : "text-[#574D54] hover:bg-white hover:text-[#191116]"
                 )}
               >
                 <Eye className="h-4 w-4" />
@@ -891,7 +891,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
             <button
               type="button"
               onClick={handleClose}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/60 bg-slate-800/60 text-slate-400 transition-all hover:bg-slate-700/80 hover:text-white"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#8F0709] transition-all hover:bg-[#FFF0EE] cursor-pointer shadow-sm"
               aria-label="Đóng"
             >
               <X className="h-5 w-5" />
@@ -899,20 +899,13 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           </div>
           {activeTab === "form" && <div className="mb-0 flex min-w-0 items-center gap-2">
             <div className="flex min-w-0 items-center gap-2">
-              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-400">
-                Bước {formStep}/{TOTAL_STEPS}
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[#8F0709]">
+                BƯỚC {formStep}/{TOTAL_STEPS}
               </span>
-              <h2 className="min-w-0 truncate text-sm font-black text-white tracking-tight drop-shadow-sm">
+              <h2 className="min-w-0 truncate text-base font-black text-[#191116] tracking-tight">
                 {currentStepTitle}
               </h2>
             </div>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="hidden text-slate-400 hover:text-white cursor-pointer transition-all p-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/60"
-            >
-              <X className="h-5 w-5" />
-            </button>
           </div>}
 
           {/* Step dots */}
@@ -969,7 +962,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           {/* STEP 1: Tổng quan */}
           {activeTab === "form" && formStep === 1 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-              <div className="rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
+              <div className="rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-sm text-[#191116]">
                 <div className="space-y-4">
                   <FormInput
                     label="Tiêu đề job *"
@@ -1006,8 +999,8 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 onBudgetToChange={(value) => handleBudgetChange(value, budgetTo, setBudgetTo, false)}
               />
 
-              <div className="space-y-3 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
-                <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+              <div className="space-y-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-sm text-[#191116]">
+                <span className="text-xs font-black uppercase tracking-wider text-[#C72524]">
                   Địa điểm làm việc
                 </span>
                 <FormInput
@@ -1037,13 +1030,13 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
           {activeTab === "form" && formStep === 2 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Mô tả công việc *</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54]">Mô tả công việc *</span>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm((c) => ({ ...c, description: e.target.value }))}
                   rows={5}
                   placeholder="Mô tả tổng quan về job, mục tiêu, timeline và nội dung cần talent tham gia..."
-                  className="w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 placeholder:text-slate-500 leading-relaxed hover:border-slate-600 transition-all shadow-inner"
+                  className="w-full resize-none rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] px-3.5 py-2.5 text-xs text-[#191116] outline-none focus:border-[#C72524] focus:ring-2 focus:ring-[#C72524]/10 placeholder:text-[#9A8B88] leading-relaxed hover:border-[#C72524]/40 transition-all shadow-sm"
                 />
               </label>
               <InlineCustomChoiceField
@@ -1113,11 +1106,11 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
 
         {/* ── FOOTER navigation ── */}
         {!openDropdown && activeTab === "form" && (
-          <div className="relative z-10 flex items-center justify-between gap-3 border-t border-slate-800/80 bg-slate-900/40 px-4 sm:px-6 py-3 sm:py-4 shrink-0">
+          <div className="relative z-10 flex items-center justify-between gap-3 border-t border-[#F0D7D3] bg-white px-4 sm:px-6 py-3.5 sm:py-4 shrink-0">
             <button
               type="button"
               onClick={() => formStep > 1 ? moveToStep(formStep - 1) : handleClose()}
-              className="flex h-10 items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/80 px-4 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:border-slate-600 hover:text-white cursor-pointer transition-all shadow-sm"
+              className="flex h-12 items-center justify-center gap-2 rounded-full border border-[#F0D7D3] bg-white px-6 text-xs font-bold text-[#191116] hover:bg-[#FFF0EE] cursor-pointer transition-all shadow-sm"
               disabled={isSubmitting}
             >
               {formStep > 1 ? "← Bước trước" : "Hủy"}
@@ -1125,9 +1118,9 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
 
             <div className="flex items-center gap-3">
               {/* Progress bar */}
-              <div className="hidden sm:flex h-2 w-24 rounded-full bg-slate-800 overflow-hidden border border-slate-700/60 p-0.5">
+              <div className="hidden sm:flex h-2 w-24 rounded-full bg-[#FFF7F6] overflow-hidden border border-[#F0D7D3] p-0.5">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 transition-all duration-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"
+                  className="h-full rounded-full bg-gradient-to-r from-[#E01B1F] via-[#C72524] to-[#8F0709] transition-all duration-500 shadow-sm"
                   style={{ width: `${(formStep / TOTAL_STEPS) * 100}%` }}
                 />
               </div>
@@ -1136,19 +1129,19 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                 <button
                   type="button"
                   onClick={() => moveToStep(formStep + 1)}
-                  className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 px-5 text-xs font-black text-slate-950 hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-[0_0_20px_rgba(245,158,11,0.35)]"
+                  className="light-force-white flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-8 text-xs font-black uppercase tracking-wider !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-md"
                 >
-                  Tiếp theo →
+                  TIẾP TỤC
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleCreateCampaign}
                   disabled={isSubmitting}
-                  className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 px-5 text-xs font-black text-slate-950 hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-[0_0_25px_rgba(245,158,11,0.45)] disabled:opacity-40"
+                  className="light-force-white flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-8 text-xs font-black uppercase tracking-wider !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-md disabled:opacity-40"
                 >
                   <Briefcase className="h-4 w-4" />
-                  {isSubmitting ? "Đang tạo..." : "Tạo Job"}
+                  {isSubmitting ? "Đang tạo..." : "TẠO JOB"}
                 </button>
               )}
             </div>
@@ -1239,10 +1232,10 @@ function InlineCustomChoiceField({
   };
 
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
+    <div className="space-y-3 rounded-3xl border border-[#F0D7D3] bg-white p-4 shadow-sm text-[#191116]">
       <div>
-        <span className="block text-xs font-black uppercase tracking-wider text-amber-300">{label}</span>
-        {description && <span className="mt-1 block text-[11px] font-medium text-slate-400">{description}</span>}
+        <span className="block text-xs font-black uppercase tracking-wider text-[#8F0709]">{label}:</span>
+        {description && <span className="mt-1 block text-xs font-semibold text-[#574D54]">{description}</span>}
       </div>
       <input
         type="text"
@@ -1251,7 +1244,7 @@ function InlineCustomChoiceField({
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
-        className="w-full rounded-xl border border-slate-700/80 bg-slate-950/70 px-3.5 py-2.5 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+        className="w-full rounded-2xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs font-bold text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/10 shadow-sm"
       />
       <div className="flex flex-wrap gap-2">
         {options.slice(0, 12).map((option) => {
@@ -1263,10 +1256,10 @@ function InlineCustomChoiceField({
               type="button"
               onClick={() => isSelected ? removeOption(option) : addOption(option)}
               className={cn(
-                "rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition cursor-pointer",
+                "rounded-full border px-3.5 py-1.5 text-xs font-bold transition cursor-pointer",
                 isSelected
-                  ? "border-amber-400/60 bg-amber-400/15 text-amber-200"
-                  : "border-slate-700 bg-slate-950/70 text-slate-300 hover:border-amber-400/40 hover:text-white"
+                  ? "border-[#E5C178] bg-[#FAF5E6] text-[#8F0709] shadow-sm"
+                  : "border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709]/40 hover:text-[#191116]"
               )}
             >
               {isSelected ? "✓ " : "+ "}{option}
@@ -1275,15 +1268,15 @@ function InlineCustomChoiceField({
         })}
       </div>
       {selected.length > 0 && (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-          <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Đã chọn</span>
+        <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] p-3">
+          <span className="block text-[10px] font-black uppercase tracking-wider text-[#8F0709]">Đã chọn</span>
           <div className="mt-2 flex flex-wrap gap-2">
             {selected.map((item) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => removeOption(item)}
-                className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-200 cursor-pointer"
+                className="rounded-full border border-[#E5C178] bg-[#FAF5E6] px-3 py-1 text-xs font-bold text-[#8F0709] cursor-pointer shadow-sm"
               >
                 {item} ×
               </button>
@@ -1317,10 +1310,10 @@ function InlineMultilineTextField({
   };
 
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
+    <div className="space-y-3 rounded-3xl border border-[#F0D7D3] bg-white p-4 shadow-sm text-[#191116]">
       <div>
-        <span className="block text-xs font-black uppercase tracking-wider text-amber-300">{label}</span>
-        {description && <span className="mt-1 block text-[11px] font-medium text-slate-400">{description}</span>}
+        <span className="block text-xs font-black uppercase tracking-wider text-[#8F0709]">{label}:</span>
+        {description && <span className="mt-1 block text-xs font-semibold text-[#574D54]">{description}</span>}
       </div>
       <textarea
         value={stripBulletTextareaValue(value)}
@@ -1328,7 +1321,7 @@ function InlineMultilineTextField({
         onBlur={(event) => onChange(stripBulletTextareaValue(event.target.value))}
         rows={5}
         placeholder={placeholder}
-        className="w-full resize-y rounded-xl border border-slate-700/80 bg-slate-950/70 px-3.5 py-2.5 text-xs leading-relaxed text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+        className="w-full resize-y rounded-2xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs font-bold leading-relaxed text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/10 shadow-sm"
       />
       <div className="flex flex-wrap gap-2">
         {suggestions.map((suggestion) => {
@@ -1341,10 +1334,10 @@ function InlineMultilineTextField({
               onClick={() => addSuggestion(suggestion)}
               disabled={isSelected}
               className={cn(
-                "rounded-full border px-3 py-1.5 text-[10px] font-bold transition",
+                "rounded-full border px-3.5 py-1.5 text-xs font-bold transition cursor-pointer",
                 isSelected
-                  ? "cursor-not-allowed border-amber-400/35 bg-amber-400/10 text-amber-200/70"
-                  : "border-slate-700 bg-slate-950/70 text-slate-300 hover:border-amber-400/40 hover:text-white"
+                  ? "cursor-not-allowed border-[#E5C178] bg-[#FAF5E6] text-[#8F0709]"
+                  : "border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709]/40 hover:text-[#191116]"
               )}
             >
               + {suggestion}
@@ -1376,10 +1369,10 @@ function GeneralRequirementsSection({
   onRequirementsChange: (value: string) => void;
 }) {
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
+    <div className="space-y-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-sm text-[#191116]">
       <div>
-        <span className="block text-xs font-black uppercase tracking-wider text-amber-300">Yêu cầu chung</span>
-        <span className="mt-1 block text-[11px] font-medium text-slate-400">
+        <span className="block text-xs font-black uppercase tracking-wider text-[#C72524]">Yêu cầu chung</span>
+        <span className="mt-1 block text-[11px] font-medium text-[#574D54]">
           Lưu vào trường yêu cầu chung của job.
         </span>
       </div>
@@ -1411,15 +1404,15 @@ function NumberRequirementInput({
 }) {
   return (
     <label className="space-y-1.5 block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">{label}</span>
-      <div className="flex items-center rounded-xl border border-slate-700/80 bg-slate-950/70 px-3.5 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-400/20">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54]">{label}</span>
+      <div className="flex items-center rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] px-3.5 focus-within:border-[#C72524] focus-within:ring-2 focus-within:ring-[#C72524]/10">
         <input
           type="number"
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="min-w-0 flex-1 bg-transparent py-2.5 text-xs text-slate-100 outline-none placeholder:text-slate-500"
+          className="min-w-0 flex-1 bg-transparent py-2.5 text-xs text-[#191116] outline-none placeholder:text-[#9A8B88]"
         />
-        <span className="shrink-0 text-[11px] font-bold text-slate-500">{suffix}</span>
+        <span className="shrink-0 text-[11px] font-bold text-[#574D54]">{suffix}</span>
       </div>
     </label>
   );
@@ -1438,13 +1431,13 @@ function InlineBulletTextarea({
 }) {
   return (
     <label className="space-y-1.5 block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">{label}</span>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54]">{label}</span>
       <textarea
         value={stripBulletTextareaValue(value)}
         onChange={(event) => onChange(stripBulletTextareaValue(event.target.value))}
         rows={4}
         placeholder={placeholder}
-        className="w-full resize-y rounded-xl border border-slate-700/80 bg-slate-950/70 px-3.5 py-2.5 text-xs leading-relaxed text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+        className="w-full resize-y rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] px-3.5 py-2.5 text-xs leading-relaxed text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#C72524] focus:ring-2 focus:ring-[#C72524]/10"
       />
     </label>
   );
@@ -1462,20 +1455,20 @@ function CampaignPositionsSection({
   onChange: (index: number, patch: Partial<CampaignPositionDraft>) => void;
 }) {
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
+    <div className="space-y-3 rounded-3xl border border-[#F0D7D3] bg-white p-4 shadow-sm text-[#191116]">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <span className="block text-xs font-black uppercase tracking-wider text-amber-300">
-            Vị trí tuyển dụng
+          <span className="block text-xs font-black uppercase tracking-wider text-[#8F0709]">
+            VỊ TRÍ TUYỂN DỤNG:
           </span>
-          <span className="mt-1 block text-[11px] font-medium text-slate-400">
+          <span className="mt-1 block text-xs font-semibold text-[#574D54]">
             Có thể thêm nhiều loại talent cho cùng một job.
           </span>
         </div>
         <button
           type="button"
           onClick={onAdd}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/40 bg-amber-400/10 text-amber-300 transition hover:bg-amber-400/20"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition hover:bg-[#FFE5E2] cursor-pointer"
           title="Thêm vị trí"
         >
           <Plus className="h-4 w-4" />
@@ -1484,16 +1477,16 @@ function CampaignPositionsSection({
 
       <div className="space-y-3">
         {positions.map((position, index) => (
-          <div key={`position-${index}`} className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+          <div key={`position-${index}`} className="space-y-3 rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-300">
+              <span className="text-xs font-black uppercase tracking-wider text-[#8F0709]">
                 Vị trí #{index + 1}
               </span>
               <button
                 type="button"
                 onClick={() => onRemove(index)}
                 disabled={positions.length <= 1}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-400/20 bg-red-400/10 text-red-300 transition hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-400/20 bg-red-400/10 text-red-600 transition hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                 title="Xóa vị trí"
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -1501,13 +1494,13 @@ function CampaignPositionsSection({
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Loại talent</span>
+                <span className="text-xs font-semibold text-[#574D54]">Loại talent</span>
                 <input
                   list={`position-type-options-${index}`}
                   value={position.talentType}
                   placeholder="KOL, Model, MC..."
                   onChange={(event) => onChange(index, { talentType: event.target.value })}
-                  className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                  className="w-full rounded-2xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs font-bold text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/10 shadow-sm"
                 />
                 <datalist id={`position-type-options-${index}`}>
                   {POSITION_TYPE_OPTIONS.map((option) => (
@@ -1549,20 +1542,20 @@ function CampaignEventsSection({
   onChange: (index: number, patch: Partial<CampaignEventDraft>) => void;
 }) {
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 shadow-md">
+    <div className="space-y-3 rounded-3xl border border-[#F0D7D3] bg-white p-4 shadow-sm text-[#191116]">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <span className="block text-xs font-black uppercase tracking-wider text-amber-300">
-            Sự kiện trong job
+          <span className="block text-xs font-black uppercase tracking-wider text-[#8F0709]">
+            SỰ KIỆN TRONG JOB:
           </span>
-          <span className="mt-1 block text-[11px] font-medium text-slate-400">
+          <span className="mt-1 block text-xs font-semibold text-[#574D54]">
             Không thêm sự kiện thì hệ thống sẽ dùng thời gian chính của job.
           </span>
         </div>
         <button
           type="button"
           onClick={onAdd}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/40 bg-amber-400/10 text-amber-300 transition hover:bg-amber-400/20"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition hover:bg-[#FFE5E2] cursor-pointer"
           title="Thêm sự kiện"
         >
           <Plus className="h-4 w-4" />
@@ -1570,21 +1563,21 @@ function CampaignEventsSection({
       </div>
 
       {events.length === 0 ? (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3 text-[11px] font-semibold text-slate-400">
+        <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] p-3 text-xs font-semibold text-[#574D54]">
           Chưa thêm sự kiện riêng. Khi lưu, job vẫn có một sự kiện mặc định từ thời gian và địa điểm đã nhập.
         </div>
       ) : (
         <div className="space-y-3">
           {events.map((event, index) => (
-            <div key={`event-${index}`} className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+            <div key={`event-${index}`} className="space-y-3 rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-300">
+                <span className="text-xs font-black uppercase tracking-wider text-[#8F0709]">
                   Sự kiện #{index + 1}
                 </span>
                 <button
                   type="button"
                   onClick={() => onRemove(index)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-400/20 bg-red-400/10 text-red-300 transition hover:bg-red-400/20"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-400/20 bg-red-400/10 text-red-600 transition hover:bg-red-400/20 cursor-pointer"
                   title="Xóa sự kiện"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -1598,21 +1591,21 @@ function CampaignEventsSection({
               />
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="space-y-1.5 block">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Bắt đầu</span>
+                  <span className="text-xs font-semibold text-[#574D54]">Bắt đầu</span>
                   <input
                     type="datetime-local"
                     value={event.startAt}
                     onChange={(e) => onChange(index, { startAt: e.target.value })}
-                    className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                    className="w-full rounded-2xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs font-bold text-[#191116] outline-none focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/10 shadow-sm"
                   />
                 </label>
                 <label className="space-y-1.5 block">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Kết thúc</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54]">Kết thúc</span>
                   <input
                     type="datetime-local"
                     value={event.endAt}
                     onChange={(e) => onChange(index, { endAt: e.target.value })}
-                    className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs text-[#191116] outline-none focus:border-[#C72524] focus:ring-2 focus:ring-[#C72524]/10"
                   />
                 </label>
               </div>
@@ -1623,13 +1616,13 @@ function CampaignEventsSection({
                 onChange={(value) => onChange(index, { location: value })}
               />
               <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Nội dung sự kiện</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54]">Nội dung sự kiện</span>
                 <textarea
                   value={event.content}
                   onChange={(e) => onChange(index, { content: e.target.value })}
                   rows={3}
                   placeholder="Mỗi dòng là một nội dung cần tham gia"
-                  className="w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                  className="w-full resize-none rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#C72524] focus:ring-2 focus:ring-[#C72524]/10"
                 />
               </label>
             </div>
@@ -1788,29 +1781,29 @@ function MultiChoiceField({
 
   return (
     <div className="space-y-1.5 md:col-span-2">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">{label}</span>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54]">{label}</span>
       <div className="relative">
         <button
           type="button"
           onClick={() => setOpenDropdown(open ? null : id)}
           className={cn(
-            "flex w-full items-center justify-between gap-3 rounded-xl border bg-slate-900/90 px-3.5 py-2.5 text-left text-xs outline-none transition-all shadow-inner",
+            "flex w-full items-center justify-between gap-3 rounded-xl border bg-[#FFF7F6] px-3.5 py-2.5 text-left text-xs outline-none transition-all shadow-sm cursor-pointer",
             open
-              ? "border-amber-400 ring-2 ring-amber-400/20"
-              : "border-slate-700/80 hover:border-amber-400/50"
+              ? "border-[#C72524] ring-2 ring-[#C72524]/10"
+              : "border-[#F0D7D3] hover:border-[#C72524]/50"
           )}
         >
-          <span className={cn("truncate font-medium", selectedItems.length > 0 ? "text-amber-300 font-semibold" : "text-slate-400")}>
+          <span className={cn("truncate font-medium", selectedItems.length > 0 ? "text-[#C72524] font-bold" : "text-[#9A8B88]")}>
             {summary}
           </span>
-          <ChevronDown className={cn("h-4 w-4 shrink-0 text-amber-400 transition-transform duration-200", open && "rotate-180")} />
+          <ChevronDown className={cn("h-4 w-4 shrink-0 text-[#C72524] transition-transform duration-200", open && "rotate-180")} />
         </button>
 
         {open && (
-          <div className="fixed inset-0 z-[100] sm:absolute sm:inset-auto sm:left-0 sm:right-0 sm:top-full sm:z-[70] sm:mt-2 h-full sm:h-auto max-h-full sm:max-h-[85vh] rounded-none sm:rounded-2xl border-0 sm:border border-amber-500/30 bg-[#0c1021] sm:bg-[#0d1226] p-4 sm:p-3.5 shadow-[0_25px_60px_rgba(0,0,0,0.9)] backdrop-blur-xl animate-in fade-in sm:zoom-in-95 duration-150 flex flex-col justify-between overflow-hidden">
+          <div className="fixed inset-0 z-[100] sm:absolute sm:inset-auto sm:left-0 sm:right-0 sm:top-full sm:z-[70] sm:mt-2 h-full sm:h-auto max-h-full sm:max-h-[85vh] rounded-none sm:rounded-2xl border-0 sm:border border-[#F0D7D3] bg-white p-4 sm:p-3.5 shadow-2xl backdrop-blur-xl animate-in fade-in sm:zoom-in-95 duration-150 flex flex-col justify-between overflow-hidden">
             {/* Header bar */}
-            <div className="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-800 shrink-0">
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-xs font-bold text-slate-200 hover:text-amber-300 transition-colors">
+            <div className="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-[#F0D7D3] shrink-0">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-xs font-bold text-[#191116] hover:text-[#C72524] transition-colors">
                 <input
                   type="checkbox"
                   checked={allSelected}
@@ -1820,7 +1813,7 @@ function MultiChoiceField({
                     }
                   }}
                   onChange={toggleAll}
-                  className="h-4 w-4 shrink-0 rounded accent-amber-400 cursor-pointer"
+                  className="h-4 w-4 shrink-0 rounded accent-[#C72524] cursor-pointer"
                 />
                 <span>{allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}</span>
               </label>
@@ -1829,7 +1822,7 @@ function MultiChoiceField({
                 <button
                   type="button"
                   onClick={() => setOpenDropdown(null)}
-                  className="rounded-xl bg-gradient-to-r from-amber-300 to-yellow-500 px-5 py-2 sm:py-1.5 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.4)] hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                  className="light-force-white rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-5 py-2 sm:py-1.5 text-xs font-black uppercase tracking-wider !text-white text-white shadow-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                 >
                   Xong
                 </button>
@@ -1849,15 +1842,15 @@ function MultiChoiceField({
                       className={cn(
                         "flex cursor-pointer items-center gap-2.5 rounded-xl border px-3.5 py-2.5 sm:py-2 text-xs font-medium transition-all",
                         checked
-                          ? "border-amber-400/50 bg-amber-400/15 text-amber-200 font-bold shadow-sm"
-                          : "border-slate-800 bg-slate-900/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80 hover:text-white"
+                          ? "border-2 border-[#C72524] bg-[#FFF0EE] !text-[#C72524] text-[#C72524] font-bold shadow-sm"
+                          : "border-[#F0D7D3] bg-[#FFF7F6] text-[#574D54] hover:border-[#C72524]/40 hover:text-[#191116]"
                       )}
                     >
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleOption(option)}
-                        className="h-4 w-4 sm:h-3.5 sm:w-3.5 shrink-0 rounded accent-amber-400 cursor-pointer"
+                        className="h-4 w-4 sm:h-3.5 sm:w-3.5 shrink-0 rounded accent-[#C72524] cursor-pointer"
                       />
                       <span>{option}</span>
                     </label>
@@ -1866,8 +1859,8 @@ function MultiChoiceField({
               </div>
 
               {/* Multiline textarea for entering custom items inside popover */}
-              <div className="pt-3 border-t border-slate-800/80 space-y-1.5 text-left">
-                <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider block">
+              <div className="pt-3 border-t border-[#F0D7D3] space-y-1.5 text-left">
+                <span className="text-[11px] font-bold text-[#C72524] uppercase tracking-wider block">
                   Nhập thêm tùy chỉnh (mỗi dòng 1 mục):
                 </span>
                 <textarea
@@ -1875,17 +1868,17 @@ function MultiChoiceField({
                   onChange={(event) => handleTextChange(event.target.value)}
                   rows={4}
                   placeholder={placeholder || "Nhập thêm tùy chỉnh, mỗi dòng 1 mục..."}
-                  className="w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 shadow-inner"
+                  className="w-full resize-none rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] px-3.5 py-2.5 text-xs text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#C72524] focus:ring-2 focus:ring-[#C72524]/10 shadow-sm"
                 />
               </div>
             </div>
 
             {/* Bottom sticky confirm button for mobile */}
-            <div className="pt-3 mt-3 border-t border-slate-800 shrink-0 sm:hidden">
+            <div className="pt-3 mt-3 border-t border-[#F0D7D3] shrink-0 sm:hidden">
               <button
                 type="button"
                 onClick={() => setOpenDropdown(null)}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-300 to-yellow-500 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.4)] active:scale-95 transition-all cursor-pointer"
+                className="light-force-white w-full py-3 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-xs font-black uppercase tracking-wider !text-white text-white shadow-sm active:scale-95 transition-all cursor-pointer"
               >
                 Hoàn tất chọn
               </button>
@@ -1949,7 +1942,7 @@ function FormInput({
 
   return (
     <label className="space-y-1.5 block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1">
+      <span className="text-xs font-semibold text-[#574D54] flex items-center gap-1">
         {label}
       </span>
       <div className="relative flex items-center">
@@ -1961,10 +1954,8 @@ function FormInput({
           required={required}
           placeholder={placeholder}
           className={cn(
-            "w-full rounded-xl border bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none transition-all shadow-inner",
-            error
-              ? "border-red-500/80 focus:border-red-400 focus:ring-2 focus:ring-red-400/20"
-              : "border-slate-700/80 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 hover:border-slate-600",
+            "w-full rounded-2xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs font-bold text-[#191116] placeholder:text-[#9A8B88] outline-none transition-all shadow-sm focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/10",
+            error && "border-red-500 focus:border-red-500 focus:ring-red-500/20",
             isDateField && "pr-10"
           )}
         />
@@ -1973,7 +1964,7 @@ function FormInput({
             <button
               type="button"
               onClick={handleCalendarClick}
-              className="absolute right-2.5 p-1 text-slate-400 hover:text-amber-300 cursor-pointer transition-colors rounded-lg hover:bg-slate-800/80"
+              className="absolute right-2.5 p-1 text-[#8F0709] hover:bg-[#FFF0EE] cursor-pointer transition-colors rounded-lg"
               title="Mở lịch chọn ngày"
             >
               <Calendar className="h-4 w-4" />
@@ -1990,7 +1981,7 @@ function FormInput({
         )}
       </div>
       {error && (
-        <span className="mt-1 block text-[11px] font-medium text-red-400 leading-snug animate-in fade-in duration-200">
+        <span className="mt-1 block text-[11px] font-medium text-red-500 leading-snug animate-in fade-in duration-200">
           {error}
         </span>
       )}
@@ -2009,13 +2000,13 @@ function DateOnlyInput({
 }) {
   return (
     <label className="space-y-1.5 block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">{label}</span>
+      <span className="text-xs font-semibold text-[#574D54]">{label}</span>
       <div className="relative">
         <input
           type="date"
           value={parseVietnameseDateToYYYYMMDD(value)}
           onChange={(event) => onChange(event.target.value)}
-          className="w-full rounded-xl border border-slate-700/80 bg-slate-950/70 px-3.5 py-2.5 text-xs text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+          className="w-full rounded-2xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs font-bold text-[#191116] outline-none shadow-sm focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/10"
         />
       </div>
     </label>
@@ -2038,21 +2029,21 @@ function JobImagesUploadSection({
   onPreviewImage: (url: string) => void;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 text-left shadow-md">
-      <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
+    <div className="rounded-3xl border border-[#F0D7D3] bg-white p-4 text-left shadow-sm">
+      <div className="flex items-start justify-between gap-3 border-b border-[#F0D7D3] pb-4">
         <div>
-          <span className="block text-xs font-black uppercase tracking-wider text-amber-300">Bộ ảnh job</span>
-          <span className="mt-1 block text-[11px] font-medium text-slate-400">
+          <span className="block text-xs font-black uppercase tracking-wider text-[#8F0709]">BỘ ẢNH JOB:</span>
+          <span className="mt-1 block text-xs font-semibold text-[#574D54]">
             Tải tối đa 10 ảnh. Ảnh đầu tiên sẽ là cover.
           </span>
         </div>
-        <span className="shrink-0 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">
+        <span className="shrink-0 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709]">
           {campaignImagesCount}/10 ảnh
         </span>
       </div>
       <div className="mt-4 flex gap-3 overflow-x-auto pb-2 custom-scrollbar snap-x">
         {campaignImagesCount < 10 && (
-          <label className="group relative flex aspect-[4/5] w-[116px] shrink-0 snap-start cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-amber-400/40 bg-amber-500/5 p-4 text-center transition-all hover:border-amber-400 hover:bg-amber-500/10">
+          <label className="group relative flex aspect-[4/5] w-[116px] shrink-0 snap-start cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#F0D7D3] bg-[#FFF7F6] p-4 text-center transition-all hover:border-[#8F0709] hover:bg-[#FFF0EE]">
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -2060,13 +2051,13 @@ function JobImagesUploadSection({
               onChange={(event) => onImagesAdd(Array.from(event.target.files || []))}
               className="hidden"
             />
-            <ImagePlus className="mb-2 h-7 w-7 text-amber-400 transition-transform duration-200 group-hover:scale-110" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-white">Tải ảnh</span>
-            <span className="mt-1 text-[9px] font-medium leading-relaxed text-slate-400">JPG, PNG, WebP</span>
+            <ImagePlus className="mb-2 h-7 w-7 text-[#8F0709] transition-transform duration-200 group-hover:scale-110" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#191116]">Tải ảnh</span>
+            <span className="mt-1 text-[9px] font-medium leading-relaxed text-[#574D54]">JPG, PNG, WebP</span>
           </label>
         )}
         {imagePreviews.map((url, idx) => (
-          <div key={url} className="group relative aspect-[4/5] w-[116px] shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-700 bg-slate-950 shadow-md">
+          <div key={url} className="group relative aspect-[4/5] w-[116px] shrink-0 snap-start overflow-hidden rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] shadow-sm">
             <img
               src={url}
               alt="Job preview"
@@ -2076,12 +2067,12 @@ function JobImagesUploadSection({
             <button
               type="button"
               onClick={() => onImageDelete(idx)}
-              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg backdrop-blur transition hover:border-red-500 hover:bg-red-500"
+              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-[#F0D7D3] bg-white/90 text-[#8F0709] shadow-lg backdrop-blur transition hover:border-red-500 hover:bg-red-500 hover:text-white"
               title="Xóa ảnh"
             >
               <X className="h-3.5 w-3.5" />
             </button>
-            <label className="absolute right-12 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg backdrop-blur transition hover:border-amber-300 hover:bg-amber-300 hover:text-slate-950">
+            <label className="absolute right-12 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#F0D7D3] bg-white/90 text-[#8F0709] shadow-lg backdrop-blur transition hover:border-[#8F0709] hover:bg-[#FFF0EE]">
               <Pencil className="h-3.5 w-3.5" />
               <input
                 type="file"
@@ -2094,7 +2085,7 @@ function JobImagesUploadSection({
               />
             </label>
             {idx === 0 && (
-              <span className="absolute bottom-2 left-2 rounded-full bg-gradient-to-r from-amber-300 to-yellow-500 px-2 py-0.5 text-[9px] font-black uppercase text-slate-950 shadow-md">
+              <span className="light-force-white absolute bottom-2 left-2 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-2 py-0.5 text-[9px] font-black uppercase !text-white text-white shadow-sm">
                 Cover
               </span>
             )}
@@ -2127,13 +2118,13 @@ function DateTimeSplitInput({
 
   return (
     <label className="space-y-1.5 block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">{label}</span>
+      <span className="text-xs font-semibold text-[#574D54]">{label}</span>
       <div className="grid grid-cols-[minmax(0,1fr)_6.75rem] gap-2">
         <input
           type="date"
           value={datePart}
           onChange={(event) => handleDateChange(event.target.value)}
-          className="min-w-0 w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none shadow-inner transition-all hover:border-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+          className="min-w-0 w-full rounded-2xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs font-bold text-[#191116] outline-none shadow-sm transition-all focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/10"
         />
         <TimePickerInput value={validTimePart} onChange={handleTimeChange} />
       </div>

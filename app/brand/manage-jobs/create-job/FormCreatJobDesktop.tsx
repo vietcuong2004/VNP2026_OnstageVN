@@ -811,30 +811,30 @@ export default function FormCreateJob({
   if (!isOpen) return null;
 
   return (
-    <div className="flex h-full min-h-0 w-full gap-4 bg-[#050711] p-3 animate-in fade-in duration-200">
+    <div className="flex h-full min-h-0 w-full gap-4 bg-[#FAF7F6] text-[#191116] p-3 animate-in fade-in duration-200">
       <form
         onSubmit={handleFormSubmit}
-        className="relative flex h-full min-w-0 flex-1 basis-1/2 flex-col overflow-hidden rounded-2xl border border-amber-500/25 bg-[#0c1021] shadow-[0_0_50px_rgba(245,158,11,0.12)]"
+        className="relative flex h-full min-w-0 flex-1 basis-1/2 flex-col overflow-hidden rounded-2xl border border-[#F0D7D3] bg-white shadow-md"
       >
         {/* Top accent glow line */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-amber-300 to-yellow-500 shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.6)]" />
+        <div className="h-1.5 w-full bg-gradient-to-r from-[#E01B1F] via-[#C72524] to-[#8F0709] shrink-0 shadow-sm" />
 
         {/* Ambient background glow accents */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-yellow-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFF0EE] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#FFF5F3] rounded-full blur-3xl pointer-events-none" />
 
         {/* ── HEADER with step indicator ── */}
-        <div className="relative z-10 px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-slate-800/80 bg-slate-900/40 shrink-0">
+        <div className="relative z-10 px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-[#F0D7D3] bg-white shrink-0">
           <div className="flex items-start justify-between mb-3.5">
             <div>
-              <h1 className="text-xl font-black uppercase tracking-tight text-white drop-shadow-sm">
+              <h1 className="text-xl font-black uppercase tracking-tight text-[#191116]">
                 Tạo Job Mới
               </h1>
               <div className="mt-2 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider text-amber-400">
-                  Bước {formStep}/{TOTAL_STEPS}
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[#8F0709]">
+                  BƯỚC {formStep}/{TOTAL_STEPS}
                 </span>
-                <h2 className="text-lg font-black text-white tracking-tight drop-shadow-sm">
+                <h2 className="text-lg font-black text-[#191116] tracking-tight">
                   {currentStepTitle}
                 </h2>
               </div>
@@ -843,7 +843,7 @@ export default function FormCreateJob({
               type="button"
               onClick={handleClose}
               disabled={isSubmitting}
-              className="text-slate-400 hover:text-white cursor-pointer transition-all p-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/60 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#8F0709] hover:bg-[#FFF0EE] cursor-pointer transition-all disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
             >
               <X className="h-5 w-5" />
             </button>
@@ -864,22 +864,22 @@ export default function FormCreateJob({
                       className={cn(
                         "flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-black transition-all cursor-pointer",
                         isDone
-                          ? "bg-amber-500/20 border border-amber-400/60 text-amber-300 hover:bg-amber-500/30"
+                          ? "bg-[#FFF0EE] border border-[#F0D7D3] text-[#8F0709] hover:bg-[#FFE5E2]"
                           : isActive
-                            ? "bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.5)] scale-110 font-black"
-                            : "bg-slate-800/80 border border-slate-700/80 text-slate-400 hover:border-amber-400/40 hover:text-slate-200"
+                            ? "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white font-black scale-110 shadow-sm"
+                            : "bg-white border border-[#F0D7D3] text-[#574D54] hover:border-[#8F0709]/40"
                       )}
                     >
                       {isDone ? "✓" : stepNum}
                     </button>
                     <span className={cn(
                       "text-[10px] font-bold uppercase tracking-wider hidden sm:block whitespace-nowrap transition-colors",
-                      isActive ? "text-amber-300 drop-shadow-sm" : isDone ? "text-slate-300" : "text-slate-500"
+                      isActive ? "text-[#8F0709] font-black" : isDone ? "text-[#191116]" : "text-[#574D54]"
                     )}>{label}</span>
                     {idx < STEP_LABELS.length - 1 && (
                       <div className={cn(
                         "h-0.5 flex-1 min-w-[12px] hidden sm:block transition-colors rounded-full",
-                        isDone ? "bg-amber-400/40" : "bg-slate-800"
+                        isDone ? "bg-[#F0D7D3]" : "bg-[#F0D7D3]/40"
                       )} />
                     )}
                   </div>
@@ -892,16 +892,16 @@ export default function FormCreateJob({
                 type="button"
                 onClick={handlePreviousStep}
                 disabled={formStep <= 1}
-                className="rounded-xl border border-slate-700/80 bg-slate-900/80 px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-200 transition hover:border-amber-400/50 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-full border border-[#F0D7D3] bg-white px-6 py-2.5 text-xs font-bold text-[#191116] hover:bg-[#FFF0EE] cursor-pointer transition disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
               >
-                Trước
+                ← Trước
               </button>
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="rounded-xl bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 px-5 py-2 text-xs font-black uppercase tracking-wider text-slate-950 shadow-[0_0_14px_rgba(245,158,11,0.35)] transition hover:brightness-110 active:scale-95"
+                className="light-force-white rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-7 py-2.5 text-xs font-black uppercase tracking-wider !text-white text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer"
               >
-                {formStep === TOTAL_STEPS ? "Hoàn thành" : "Tiếp"}
+                {formStep === TOTAL_STEPS ? "HOÀN THÀNH" : "TIẾP TỤC"}
               </button>
             </div>
           </div>

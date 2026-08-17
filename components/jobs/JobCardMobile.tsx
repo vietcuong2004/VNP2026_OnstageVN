@@ -117,7 +117,7 @@ export default function JobCardMobile({
   return (
     <article
       onClick={() => onView(job)}
-      className="group min-w-0 cursor-pointer overflow-hidden rounded-2xl border border-[#F0D7D3] bg-white p-1.5 text-[#191116] shadow-[0_16px_34px_rgba(143,7,9,0.10)] transition hover:border-[#C72524]/40 active:scale-[0.99] dark:rounded-xl dark:border-[#262B38] dark:bg-[#10131D] dark:text-white dark:shadow-[0_8px_24px_rgba(0,0,0,0.22)] dark:hover:border-[#C9A86A]/35"
+      className="group min-w-0 cursor-pointer overflow-hidden rounded-2xl border border-[#F0D7D3] bg-white p-1.5 text-[#191116] transition hover:border-[#C72524]/40 active:scale-[0.99] dark:rounded-xl dark:border-[#262B38] dark:bg-[#10131D] dark:text-white dark:hover:border-[#C9A86A]/35"
     >
       <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-xl border border-[#F2DCD8] bg-[#FFF7F6] dark:rounded-lg dark:border-white/5 dark:bg-slate-900">
         <img
@@ -138,17 +138,17 @@ export default function JobCardMobile({
       </div>
 
       <div className="px-0.5 pt-2">
-        <h3 className="line-clamp-2 min-h-[34px] text-[13px] font-black leading-tight tracking-tight text-[#7A1114] dark:text-white">
+        <h3 className="line-clamp-2 min-h-[34px] text-[13px] font-black leading-tight tracking-tight text-[#191116] dark:text-white">
           {job.title}
         </h3>
 
-        <div className="mt-1.5 space-y-1 text-[10.5px] font-semibold leading-tight text-[#7B6866] dark:text-slate-400">
+        <div className="mt-1.5 space-y-1 text-[10.5px] font-semibold leading-tight text-[#574D54] dark:text-slate-400">
           <div className="flex min-w-0 items-center gap-1.5">
-            <CalendarClock className="h-3 w-3 shrink-0 text-[#A36C1D] dark:text-slate-500" />
+            <CalendarClock className="h-3 w-3 shrink-0 text-[#8F0709] dark:text-slate-500" />
             <span className="truncate">{deadlineLabel}</span>
           </div>
           <div className="flex min-w-0 items-center gap-1.5">
-            <MapPin className="h-3 w-3 shrink-0 text-[#A36C1D] dark:text-slate-500" />
+            <MapPin className="h-3 w-3 shrink-0 text-[#8F0709] dark:text-slate-500" />
             <span className="truncate">{job.city || "Toàn quốc"}</span>
           </div>
         </div>
@@ -156,20 +156,20 @@ export default function JobCardMobile({
         <div className="mt-1.5 flex items-center justify-between gap-2">
           <div className="min-w-0 flex-1">
             {job.hasBudget && budgetText ? (
-              <p className="flex min-w-0 items-center gap-1 truncate text-[13px] font-black leading-tight text-[#9B1215] dark:text-[#F5D76E]">
-                <CircleDollarSign className="h-3.5 w-3.5 shrink-0 text-[#C72524] dark:text-[#FFD500]" />
+              <p className="flex min-w-0 items-center gap-1 truncate text-[13px] font-black leading-tight text-[#8F0709] dark:text-[#F5D76E]">
+                <CircleDollarSign className="h-3.5 w-3.5 shrink-0 text-[#8F0709] dark:text-[#FFD500]" />
                 {budgetText}
               </p>
             ) : (
-              <p className="flex min-w-0 items-center gap-1 truncate text-[12px] font-black leading-tight text-[#9B1215] dark:text-[#F5D76E]">
-                <CircleDollarSign className="h-3.5 w-3.5 shrink-0 text-[#C72524] dark:text-[#FFD500]" />
+              <p className="flex min-w-0 items-center gap-1 truncate text-[12px] font-black leading-tight text-[#8F0709] dark:text-[#F5D76E]">
+                <CircleDollarSign className="h-3.5 w-3.5 shrink-0 text-[#8F0709] dark:text-[#FFD500]" />
                 Thỏa thuận
               </p>
             )}
           </div>
 
           {applicantText && (
-            <div className="flex shrink-0 items-center gap-1 text-[10px] font-bold text-slate-400">
+            <div className="flex shrink-0 items-center gap-1 text-[10px] font-bold text-[#574D54] dark:text-slate-400">
               <Users className="h-3 w-3" />
               <span>{applicantText}</span>
             </div>
@@ -183,8 +183,8 @@ export default function JobCardMobile({
             className={cn(
               "flex h-8 min-w-0 items-center justify-center gap-1 rounded-lg px-1.5 text-[8.5px] font-black tracking-normal transition active:scale-95",
               isSaved
-                ? "light-force-white border border-[#C72524]/60 bg-[#C72524] text-white dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-400"
-                : "border border-[#F1D8D4] bg-[#FFF7F6] text-[#9B1215] hover:border-[#C72524]/35 hover:bg-[#FFF1EF] dark:border-white/10 dark:bg-white/8 dark:text-slate-200"
+                ? "border border-[#8F0709] bg-[#FFF0EE] text-[#8F0709] dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-400"
+                : "border border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] dark:border-white/10 dark:bg-white/8 dark:text-slate-200"
             )}
             aria-label={isSaved ? "Bỏ lưu job" : "Lưu job"}
             title={isSaved ? "Bỏ lưu job" : "Lưu job"}

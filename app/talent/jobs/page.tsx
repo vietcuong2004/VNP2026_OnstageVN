@@ -1184,7 +1184,7 @@ function JobsPageContent() {
           <button
             type="button"
             onClick={() => router.push("/talent/jobs/saved-jobs")}
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#F1D8D4] bg-[#FFF7F6] text-[#9B1215] shadow-[0_8px_18px_rgba(143,7,9,0.08)] transition hover:border-[#C72524]/45 hover:bg-[#FFF1EF] active:scale-95 dark:border-[#C9A86A]/45 dark:bg-[#C9A86A]/12 dark:text-[#C9A86A] dark:shadow-[0_0_14px_rgba(201,168,106,0.12)] dark:hover:border-[#C9A86A]/70 dark:hover:bg-[#C9A86A]/18 dark:hover:text-amber-200"
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#F1D8D4] bg-[#FFF7F6] text-[#9B1215] transition hover:border-[#C72524]/45 hover:bg-[#FFF1EF] active:scale-95 dark:border-[#C9A86A]/45 dark:bg-[#C9A86A]/12 dark:text-[#C9A86A] dark:hover:border-[#C9A86A]/70 dark:hover:bg-[#C9A86A]/18 dark:hover:text-amber-200"
             aria-label="Việc làm đã lưu"
             title="Việc làm đã lưu"
           >
@@ -1230,7 +1230,7 @@ function JobsPageContent() {
                     className={cn(
                       "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95 cursor-pointer",
                       isActive
-                        ? "border-[#E8C8C2] bg-[#FFF3F1] text-[#9B1215] shadow-[0_8px_18px_rgba(143,7,9,0.08)] dark:border-[#C9A86A]/70 dark:bg-[#C9A86A]/15 dark:text-[#F9D66D] dark:shadow-[0_0_14px_rgba(201,168,106,0.14)]"
+                        ? "border-[#E8C8C2] bg-[#FFF3F1] text-[#9B1215] dark:border-[#C9A86A]/70 dark:bg-[#C9A86A]/15 dark:text-[#F9D66D]"
                         : "border-[#F1D8D4] bg-white text-[#9B1215] hover:border-[#C72524]/35 hover:text-[#C72524] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-[#C9A86A]/35 dark:hover:text-white"
                     )}
                   >
@@ -1242,14 +1242,14 @@ function JobsPageContent() {
 
             {/* Visual gradient mask + swipe arrow indicator */}
             <div className="pointer-events-none absolute right-0 top-0 bottom-0 flex items-center justify-end pl-5 pr-0.5 bg-gradient-to-l from-white via-white/85 to-transparent dark:from-[#0f121d] dark:via-[#0f121d]/85">
-              <ChevronRight className="h-3.5 w-3.5 text-[#C9A86A] animate-pulse drop-shadow" />
+              <ChevronRight className="h-3.5 w-3.5 text-[#C9A86A] animate-pulse" />
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => setIsQrModalOpen(true)}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#F1D8D4] bg-[#FFF7F6] text-[#9B1215] shadow-[0_8px_18px_rgba(143,7,9,0.08)] transition hover:border-[#C72524]/45 hover:bg-[#FFF1EF] active:scale-95 cursor-pointer dark:border-[#C9A86A]/45 dark:bg-[#C9A86A]/12 dark:text-[#C9A86A] dark:shadow-[0_0_14px_rgba(201,168,106,0.12)] dark:hover:border-[#C9A86A]/70 dark:hover:bg-[#C9A86A]/20 dark:hover:text-amber-200"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#F1D8D4] bg-[#FFF7F6] text-[#9B1215] transition hover:border-[#C72524]/45 hover:bg-[#FFF1EF] active:scale-95 cursor-pointer dark:border-[#C9A86A]/45 dark:bg-[#C9A86A]/12 dark:text-[#C9A86A] dark:hover:border-[#C9A86A]/70 dark:hover:bg-[#C9A86A]/20 dark:hover:text-amber-200"
             title="Nhập mã QR Job ứng tuyển"
             aria-label="Nhập mã QR Job ứng tuyển"
           >
@@ -1344,7 +1344,7 @@ function JobsPageContent() {
       )}
 
       {/* Desktop Search Card */}
-      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#E4C8C2] bg-white p-6 shadow-[0_18px_45px_rgba(143,7,9,0.08)] backdrop-blur-md dark:border-[#C9A86A]/30 dark:bg-[#0f121d]/90 dark:shadow-[0_0_30px_rgba(201,168,106,0.06)]">
+      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#E4C8C2] bg-white p-6 backdrop-blur-md dark:border-[#C9A86A]/30 dark:bg-[#0f121d]/90">
         <div className="absolute left-0 right-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#C72524] to-transparent pointer-events-none dark:via-[#C9A86A]" />
 
         <div className="relative z-10 mb-4 flex items-center justify-between gap-4">
@@ -1358,7 +1358,7 @@ function JobsPageContent() {
           <button
             type="button"
             onClick={() => setIsQrModalOpen(true)}
-            className="flex h-9 items-center gap-2 rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 px-3.5 text-xs font-bold text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/20 hover:text-amber-200 active:scale-95 cursor-pointer shrink-0"
+            className="flex h-9 items-center gap-2 rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 px-3.5 text-xs font-bold text-[#C9A86A] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/20 hover:text-amber-200 active:scale-95 cursor-pointer shrink-0"
             title="Ứng tuyển qua link"
             aria-label="Ứng tuyển qua link"
           >
@@ -1985,23 +1985,23 @@ function JobsPageContent() {
 
       {/* QR Campaign / Job Apply Modal */}
       {isQrModalOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="relative w-full max-w-md rounded-3xl border border-[#C9A86A]/40 bg-[#070913] p-6 text-white shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="relative w-full max-w-md rounded-3xl border border-[#F0D7D3] bg-white p-6 text-[#191116] shadow-2xl space-y-4 dark:border-[#C9A86A]/40 dark:bg-[#070913] dark:text-white">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center justify-between border-b border-[#F0D7D3] pb-3 dark:border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#C9A86A]/20 text-[#C9A86A]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF0EE] text-[#C72524] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]">
                   <QrCode className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-display text-sm font-black uppercase text-white">Ứng tuyển bằng Link / QR Code</h3>
-                  <p className="text-[11px] text-slate-400">Nhập link hoặc tải ảnh QR từ thiết bị</p>
+                  <h3 className="font-display text-sm font-black uppercase text-[#191116] dark:text-white">Ứng tuyển bằng Link / QR Code</h3>
+                  <p className="text-[11px] text-[#7B6866] dark:text-slate-400">Nhập link hoặc tải ảnh QR từ thiết bị</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={resetQrModal}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-slate-400 hover:text-white transition cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-[#F0D7D3] text-[#7B6866] hover:bg-[#FFF0EE] hover:text-[#191116] transition cursor-pointer dark:border-white/10 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -2010,20 +2010,20 @@ function JobsPageContent() {
             {/* 1. Input URL field (Move to top) */}
             <div className="space-y-1.5">
               <label className="block space-y-1.5">
-                <span className="text-xs font-bold text-slate-300">Nhập link ứng tuyển:</span>
+                <span className="text-xs font-bold text-[#191116] dark:text-slate-300">Nhập link ứng tuyển:</span>
                 <input
                   type="text"
                   value={qrInputValue}
                   onChange={(e) => setQrInputValue(e.target.value)}
                   placeholder="Dán link ví dụ: https://onstage.vn/..."
-                  className="h-11 w-full rounded-2xl border border-white/15 bg-slate-950/80 px-4 text-xs text-white outline-none focus:border-[#C9A86A] placeholder:text-slate-500 font-mono"
+                  className="h-11 w-full rounded-2xl border border-[#F0D7D3] bg-[#FFFDFC] px-4 text-xs text-[#191116] outline-none focus:border-[#C72524] placeholder:text-[#A08E8C] font-mono dark:border-white/15 dark:bg-slate-950/80 dark:text-white dark:focus:border-[#C9A86A] dark:placeholder:text-slate-500"
                 />
               </label>
             </div>
 
             {/* 2. Upload Area for QR Image */}
             <div className="space-y-2">
-              <span className="text-xs font-bold text-slate-300">Hoặc tải ảnh QR từ máy cá nhân:</span>
+              <span className="text-xs font-bold text-[#191116] dark:text-slate-300">Hoặc tải ảnh QR từ máy cá nhân:</span>
 
               <input
                 ref={qrFileInputRef}
@@ -2045,36 +2045,36 @@ function JobsPageContent() {
                     const file = e.dataTransfer.files?.[0];
                     if (file) handleQrImageFile(file);
                   }}
-                  className="group flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#C9A86A]/30 bg-slate-950/60 p-4 text-center transition hover:border-[#C9A86A] hover:bg-[#C9A86A]/5 cursor-pointer"
+                  className="group flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#F0D7D3] bg-[#FFFDFC] p-4 text-center transition hover:border-[#C72524] hover:bg-[#FFF0EE] cursor-pointer dark:border-[#C9A86A]/30 dark:bg-slate-950/60 dark:hover:border-[#C9A86A] dark:hover:bg-[#C9A86A]/5"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#C9A86A]/15 text-[#C9A86A] group-hover:scale-110 transition">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF0EE] text-[#C72524] group-hover:scale-110 transition dark:bg-[#C9A86A]/15 dark:text-[#C9A86A]">
                     <Upload className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-200 group-hover:text-[#F9D66D] transition">
+                    <p className="text-xs font-bold text-[#191116] group-hover:text-[#C72524] transition dark:text-slate-200 dark:group-hover:text-[#F9D66D]">
                       Bấm để chọn ảnh mã QR từ thiết bị
                     </p>
-                    <p className="text-[10px] text-slate-500">Hỗ trợ JPG, PNG, WEBP — Tự đọc link QR vào ô bên trên</p>
+                    <p className="text-[10px] text-[#7B6866] dark:text-slate-500">Hỗ trợ JPG, PNG, WEBP — Tự đọc link QR vào ô bên trên</p>
                   </div>
                 </div>
               ) : (
-                <div className="relative flex items-center gap-3 rounded-2xl border border-white/15 bg-slate-950/80 p-3">
-                  <div className="h-14 w-14 shrink-0 rounded-xl overflow-hidden border border-[#C9A86A]/40 bg-black">
+                <div className="relative flex items-center gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-3 dark:border-white/15 dark:bg-slate-950/80">
+                  <div className="h-14 w-14 shrink-0 rounded-xl overflow-hidden border border-[#F0D7D3] bg-black dark:border-[#C9A86A]/40">
                     <img src={qrImagePreview} alt="QR Code Preview" className="h-full w-full object-cover" />
                   </div>
                   <div className="min-w-0 flex-1">
                     {qrScanStatus === "scanning" && (
-                      <p className="text-xs font-semibold text-amber-300 animate-pulse flex items-center gap-1.5">
+                      <p className="text-xs font-semibold text-[#C72524] animate-pulse flex items-center gap-1.5 dark:text-amber-300">
                         <Sparkles className="h-3.5 w-3.5 animate-spin" /> Đang quét nhận diện QR...
                       </p>
                     )}
                     {qrScanStatus === "success" && (
-                      <p className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                         <CheckCircle className="h-4 w-4 shrink-0" /> {qrScanMessage}
                       </p>
                     )}
                     {qrScanStatus === "error" && (
-                      <p className="text-xs font-semibold text-rose-400 flex items-start gap-1.5 leading-snug">
+                      <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-start gap-1.5 leading-snug">
                         <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /> {qrScanMessage}
                       </p>
                     )}
@@ -2087,7 +2087,7 @@ function JobsPageContent() {
                       setQrScanMessage("");
                       if (qrFileInputRef.current) qrFileInputRef.current.value = "";
                     }}
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 text-slate-400 hover:text-white transition cursor-pointer"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#F0D7D3] text-[#7B6866] hover:text-[#191116] transition cursor-pointer dark:border-white/10 dark:text-slate-400 dark:hover:text-white"
                     title="Đổi ảnh khác"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -2097,8 +2097,8 @@ function JobsPageContent() {
             </div>
 
             {/* Tip box */}
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-[11px] text-amber-200/90 leading-relaxed">
-              💡 <b>Mẹo:</b> Bạn có thể nhập link hoặc chọn tải ảnh QR từ máy, hệ thống sẽ tự động đọc mã QR và điền đường dẫn cho bạn!
+            <div className="rounded-2xl border border-[#F2DBD7] bg-[#FFF5F3] p-3 text-[11px] text-[#8F0709] leading-relaxed dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200/90">
+              💡 <b className="text-[#8F0709] dark:text-amber-200">Mẹo:</b> Bạn có thể nhập link hoặc chọn tải ảnh QR từ máy, hệ thống sẽ tự động đọc mã QR và điền đường dẫn cho bạn!
             </div>
 
             {/* Modal Footer */}
@@ -2106,14 +2106,14 @@ function JobsPageContent() {
               <button
                 type="button"
                 onClick={resetQrModal}
-                className="flex-1 py-3 rounded-full border border-white/10 bg-slate-900/60 text-xs font-semibold text-slate-300 transition hover:bg-white/5 cursor-pointer whitespace-nowrap"
+                className="flex-1 py-3 rounded-full border border-[#F0D7D3] bg-white text-xs font-bold text-[#574D54] transition hover:bg-[#FFF0EE] hover:text-[#191116] cursor-pointer whitespace-nowrap dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:bg-white/5"
               >
                 Hủy
               </button>
               <button
                 type="button"
                 onClick={handleApplyByQrCode}
-                className="flex-1 px-4 py-3 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center whitespace-nowrap cursor-pointer"
+                className="light-force-white flex-1 px-4 py-3 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white text-xs font-black uppercase tracking-wider transition active:scale-95 flex items-center justify-center whitespace-nowrap cursor-pointer dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950"
               >
                 Ứng tuyển ngay
               </button>

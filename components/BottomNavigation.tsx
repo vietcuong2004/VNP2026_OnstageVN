@@ -244,29 +244,30 @@ export default function BottomNavigation() {
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="fixed bottom-0 left-0 right-0 top-[74px] z-50 flex min-h-0 flex-col rounded-t-[2rem] border-t border-white/10 bg-[#070913]/98 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-[0_-10px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl md:hidden animate-in slide-in-from-bottom duration-300"
+            className="fixed bottom-0 left-0 right-0 top-[64px] z-50 flex min-h-0 flex-col rounded-t-[2.5rem] border-t border-[#F2DBD7] bg-[#FAF7F6] text-[#191116] p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-[0_-12px_44px_rgba(0,0,0,0.18)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#070913]/98 dark:text-white dark:shadow-[0_-10px_40px_rgba(0,0,0,0.6)] md:hidden animate-in slide-in-from-bottom duration-300"
           >
             <div
               onMouseDown={handleMouseDown}
-              className="mx-auto mb-3 -mt-2 flex w-full max-w-[200px] flex-col items-center py-2 cursor-grab active:cursor-grabbing touch-none select-none"
+              className="mx-auto mb-2 -mt-2 flex w-full max-w-[200px] flex-col items-center py-2 cursor-grab active:cursor-grabbing touch-none select-none"
             >
-              <div className="h-1.5 w-12 rounded-full bg-white/30 hover:bg-amber-400 transition-colors" />
+              <div className="h-1.5 w-12 rounded-full bg-slate-300 dark:bg-white/30 transition-colors" />
             </div>
 
-            <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-5">
-              <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Menu className="h-4 w-4 text-amber-400" /> Danh mục tiện ích
+            <div className="flex items-center justify-between pb-3.5 border-b border-[#F2DBD7] dark:border-white/10 mb-4">
+              <h3 className="text-xs font-black text-[#8F0709] dark:text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                <Menu className="h-4.5 w-4.5 text-[#C72524] dark:text-amber-400" />
+                DANH MỤC TIỆN ÍCH
               </h3>
               <button
                 onClick={() => setShowMoreMenu(false)}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-slate-400 hover:text-white cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] border border-[#F2DBD7] text-[#C72524] hover:bg-[#F2DBD7] dark:bg-white/5 dark:border-white/10 dark:text-slate-400 dark:hover:text-white cursor-pointer transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {!isLoggedIn ? (
-              <div ref={scrollContainerRef} className="grid min-h-0 flex-1 grid-cols-4 content-start gap-x-2.5 gap-y-5 overflow-y-auto pr-1">
+              <div ref={scrollContainerRef} className="grid min-h-0 flex-1 grid-cols-4 content-start gap-x-3 gap-y-6 overflow-y-auto pr-1 pt-1">
                 {allItems.map((item) => {
                   const Icon = item.icon;
                   const isLogin = item.label === "Đăng nhập";
@@ -274,19 +275,18 @@ export default function BottomNavigation() {
                   const content = (
                     <>
                       <div className={cn(
-                        "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300",
+                        "flex h-14 w-14 items-center justify-center rounded-2xl border transition-all duration-300 group-active:scale-95",
                         isActive
-                          ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
+                          ? "bg-white border-2 border-[#D4AF37] text-[#D4AF37] shadow-[0_4px_14px_rgba(212,175,55,0.25)] scale-105 dark:bg-gradient-to-br dark:from-amber-200 dark:to-yellow-500 dark:border-amber-400 dark:text-slate-950 dark:shadow-[0_0_12px_rgba(245,158,11,0.25)]"
                           : isLogin
-                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.08)]"
-                            : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400"
+                            : "bg-[#FFF8F7] border-[#F2DBD7] text-[#C72524] hover:bg-[#FFF0EE] shadow-xs dark:bg-white/5 dark:border-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
                       )}>
-                        <Icon className="h-5 w-5 animate-none" />
+                        <Icon className="h-5.5 w-5.5 animate-none" />
                       </div>
                       <span className={cn(
-                        "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[76px] text-center line-clamp-2 break-words",
-                        isActive && "text-amber-400 font-extrabold",
-                        isLogin ? "text-emerald-400 group-hover:text-emerald-300 font-black" : "text-slate-400 group-hover:text-white"
+                        "text-[9px] font-black mt-2 leading-tight uppercase tracking-wider block max-w-[80px] text-center line-clamp-2 break-words transition-colors",
+                        isActive ? "text-[#D4AF37] dark:text-amber-400" : isLogin ? "text-emerald-600 dark:text-emerald-400" : "text-[#574D54] dark:text-slate-400 group-hover:text-[#191116] dark:group-hover:text-white"
                       )}>
                         {item.label}
                       </span>
@@ -308,33 +308,32 @@ export default function BottomNavigation() {
             ) : (
               <div ref={scrollContainerRef} className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
                 {unifiedLoggedInNavigationSections.map((section) => (
-                  <div key={section.title} className="space-y-3">
+                  <div key={section.title} className="space-y-3.5">
                     {section.href ? (
                       <>
-                        <div className="flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400 bg-gradient-to-r from-amber-500/10 to-transparent py-1 pl-2">
-                          <section.icon className="h-3.5 w-3.5 text-amber-400" />
-                          <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.15em] text-transparent">
+                        <div className="flex items-center gap-2.5 rounded-full border border-[#F2DBD7] bg-gradient-to-r from-[#FFF0EE] via-[#FAF3F2] to-[#FFF0EE] px-4 py-2.5 shadow-xs dark:border-amber-500/20 dark:from-amber-500/10 dark:to-transparent dark:bg-none">
+                          <section.icon className="h-4 w-4 text-[#C72524] dark:text-amber-400" />
+                          <span className="text-[#8F0709] dark:bg-gradient-to-r dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:bg-clip-text text-[11px] font-black uppercase tracking-wider dark:text-transparent">
                             {section.title}
                           </span>
                         </div>
-                        <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
+                        <div className="grid grid-cols-4 gap-y-5 gap-x-3 pt-1">
                           <Link
                             href={section.href}
                             onClick={() => setShowMoreMenu(false)}
                             className="flex flex-col items-center text-center group cursor-pointer"
                           >
                             <div className={cn(
-                              "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 group-active:scale-95",
+                              "flex h-14 w-14 items-center justify-center rounded-2xl border transition-all duration-300 group-active:scale-95",
                               isActiveHref(section.href)
-                                ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
-                                : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                                ? "bg-white border-2 border-[#D4AF37] text-[#D4AF37] shadow-[0_4px_14px_rgba(212,175,55,0.25)] scale-105 dark:bg-gradient-to-br dark:from-amber-200 dark:to-yellow-500 dark:border-amber-400 dark:text-slate-950 dark:shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+                                : "bg-[#FFF8F7] border-[#F2DBD7] text-[#C72524] hover:bg-[#FFF0EE] shadow-xs dark:bg-white/5 dark:border-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
                             )}>
-                              <section.icon className="h-5 w-5 animate-none" />
+                              <section.icon className="h-5.5 w-5.5 animate-none" />
                             </div>
                             <span className={cn(
-                              "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[76px] text-center line-clamp-2 break-words",
-                              isActiveHref(section.href) && "text-amber-400 font-extrabold",
-                              "text-slate-400 group-hover:text-white"
+                              "text-[9px] font-black mt-2 leading-tight uppercase tracking-wider block max-w-[80px] text-center line-clamp-2 break-words transition-colors",
+                              isActiveHref(section.href) ? "text-[#D4AF37] dark:text-amber-400" : "text-[#574D54] dark:text-slate-400 group-hover:text-[#191116] dark:group-hover:text-white"
                             )}>
                               {section.title}
                             </span>
@@ -343,13 +342,13 @@ export default function BottomNavigation() {
                       </>
                     ) : (
                       <>
-                        <div className="flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400 bg-gradient-to-r from-amber-500/10 to-transparent py-1 pl-2">
-                          <section.icon className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
-                          <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.15em] text-transparent">
+                        <div className="flex items-center gap-2.5 rounded-full border border-[#F2DBD7] bg-gradient-to-r from-[#FFF0EE] via-[#FAF3F2] to-[#FFF0EE] px-4 py-2.5 shadow-xs dark:border-amber-500/20 dark:from-amber-500/10 dark:to-transparent dark:bg-none">
+                          <section.icon className="h-4 w-4 text-[#C72524] dark:text-amber-400 animate-pulse" />
+                          <span className="text-[#8F0709] dark:bg-gradient-to-r dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:bg-clip-text text-[11px] font-black uppercase tracking-wider dark:text-transparent">
                             {section.title}
                           </span>
                         </div>
-                        <div className="grid grid-cols-4 gap-y-4 gap-x-2.5">
+                        <div className="grid grid-cols-4 gap-y-5 gap-x-3 pt-1">
                           {section.items?.map((item) => {
                             const Icon = item.icon;
                             const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
@@ -357,17 +356,16 @@ export default function BottomNavigation() {
                             const content = (
                               <>
                                 <div className={cn(
-                                  "flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 group-active:scale-95",
+                                  "flex h-14 w-14 items-center justify-center rounded-2xl border transition-all duration-300 group-active:scale-95",
                                   isActive
-                                    ? "bg-gradient-to-br from-amber-200 to-yellow-500 border-amber-400 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-105"
-                                    : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                                    ? "bg-white border-2 border-[#D4AF37] text-[#D4AF37] shadow-[0_4px_14px_rgba(212,175,55,0.25)] scale-105 dark:bg-gradient-to-br dark:from-amber-200 dark:to-yellow-500 dark:border-amber-400 dark:text-slate-950 dark:shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+                                    : "bg-[#FFF8F7] border-[#F2DBD7] text-[#C72524] hover:bg-[#FFF0EE] shadow-xs dark:bg-white/5 dark:border-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
                                 )}>
-                                  <Icon className="h-5 w-5 animate-none" />
+                                  <Icon className="h-5.5 w-5.5 animate-none" />
                                 </div>
                                 <span className={cn(
-                                  "text-[8px] font-bold mt-1.5 leading-tight uppercase tracking-wider transition-colors block max-w-[76px] text-center line-clamp-2 break-words",
-                                  isActive && "text-amber-400 font-extrabold",
-                                  "text-slate-400 group-hover:text-white"
+                                  "text-[9px] font-black mt-2 leading-tight uppercase tracking-wider block max-w-[80px] text-center line-clamp-2 break-words transition-colors",
+                                  isActive ? "text-[#D4AF37] dark:text-amber-400" : "text-[#574D54] dark:text-slate-400 group-hover:text-[#191116] dark:group-hover:text-white"
                                 )}>
                                   {item.label}
                                 </span>
@@ -391,14 +389,14 @@ export default function BottomNavigation() {
                   </div>
                 ))}
 
-                <div className="border-t border-white/5 pt-5">
+                <div className="border-t border-[#F2DBD7] dark:border-white/10 pt-4 pb-2 flex justify-end">
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="ml-auto flex h-11 items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-5 text-xs font-black uppercase tracking-wider text-red-300 shadow-[0_0_14px_rgba(239,68,68,0.12)]"
+                    className="light-force-white flex h-11 items-center gap-2.5 rounded-full bg-[#C72524] hover:bg-[#8F0709] !text-white px-6 text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
                   >
-                    <LogIn className="h-4 w-4 rotate-180" />
-                    Đăng xuất
+                    <LogIn className="h-4 w-4 rotate-180 !text-white text-white" />
+                    <span className="!text-white text-white font-black">Đăng xuất</span>
                   </button>
                 </div>
               </div>

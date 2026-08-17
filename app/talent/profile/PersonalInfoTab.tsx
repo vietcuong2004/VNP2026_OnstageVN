@@ -247,7 +247,7 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
   const portfolioOwnerName = String(profile?.name || "Idol").trim().replace(/\s+/g, "_");
 
   return (
-    <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6 text-left">
+    <div className="rounded-2xl border border-[#F0D7D3] bg-white p-6 space-y-6 text-left dark:border-[#151b2d] dark:bg-[#08090f]">
       <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
         <FileText className="h-4.5 w-4.5 text-[#f4c430]" /> Portfolio & Mạng xã hội
       </h3>
@@ -1119,7 +1119,7 @@ export default function PersonalInfoTab({
       {/* LEFT COLUMN: Full-body photo and basic info */}
       <div className="order-[10] lg:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
         {/* Model Full-Body Photo Card */}
-        <div className="h-full rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
+        <div className="h-full rounded-2xl border border-[#F0D7D3] bg-white p-5 space-y-4 shadow-sm dark:border-[#151b2d] dark:bg-[#08090f]">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
             <Award className="h-4.5 w-4.5 text-[#f4c430]" /> ẢNH TOÀN THÂN (FULL-BODY)
           </h3>
@@ -1202,7 +1202,7 @@ export default function PersonalInfoTab({
         </div>
 
         {/* Physical Measurements Card */}
-        <div className="lg:col-span-2 h-full rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
+        <div className="lg:col-span-2 h-full rounded-2xl border border-[#F0D7D3] bg-white p-6 space-y-5 shadow-sm dark:border-[#151b2d] dark:bg-[#08090f]">
           <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
             <User className="h-4.5 w-4.5 text-[#f4c430]" /> THÔNG TIN CƠ BẢN
           </h3>
@@ -1318,7 +1318,7 @@ export default function PersonalInfoTab({
 
         {/* Lifestyle Co-Space Companion Services Card */}
         {profile.lifestyleServices && profile.lifestyleServices.some((s: any) => s.enabled) && (
-          <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 transition-all duration-300">
+          <div className="rounded-2xl border border-[#F0D7D3] bg-white p-6 transition-all duration-300 shadow-sm dark:border-[#151b2d] dark:bg-[#08090f]">
             <button
               onClick={() => setIsLifestyleExpanded(!isLifestyleExpanded)}
               className="w-full flex items-center justify-between text-left focus:outline-none group/title"
@@ -1397,7 +1397,7 @@ export default function PersonalInfoTab({
       </div>
 
       {/* SECTION D: LOOKBOOK PHOTOS & VIDEOS DISPLAY */}
-      <div className="order-[30] lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+      <div className="order-[30] lg:col-span-3 rounded-2xl border border-[#F0D7D3] bg-white p-6 space-y-6 shadow-sm dark:border-[#151b2d] dark:bg-[#08090f]">
         <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
           <div>
             <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
@@ -1572,11 +1572,11 @@ export default function PersonalInfoTab({
           {canAddVideo && (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
               <div className="space-y-1.5 md:col-span-10">
-                <label className="block text-[9px] font-black uppercase tracking-wider text-slate-400">
+                <label className="block text-[9px] font-black uppercase tracking-wider text-[#8F0709] dark:text-slate-400">
                   Đường dẫn video
                 </label>
                 <div className="relative">
-                  <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8F0709] dark:text-slate-500" />
                   <input
                     type="url"
                     value={videoLinkInput}
@@ -1588,7 +1588,7 @@ export default function PersonalInfoTab({
                       }
                     }}
                     placeholder="https://..."
-                    className="h-10 w-full rounded-xl border border-white/20 bg-[#060918] pl-9 pr-3.5 text-xs font-semibold text-white shadow-inner outline-none transition-colors placeholder:text-slate-500 focus:border-amber-400"
+                    className="h-10 w-full rounded-xl border border-[#F0D7D3] bg-white pl-9 pr-3.5 text-xs font-semibold text-[#191116] shadow-sm outline-none transition-colors placeholder:text-[#9A8B88] focus:border-[#8F0709] dark:border-white/20 dark:bg-[#060918] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-400"
                   />
                 </div>
               </div>
@@ -1597,10 +1597,11 @@ export default function PersonalInfoTab({
                 <button
                   type="button"
                   onClick={handleAddVideoLink}
-                  className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all hover:brightness-110 active:scale-95"
+                  style={{ color: "#ffffff" }}
+                  className="light-force-white flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 text-[10px] font-black uppercase tracking-wider !text-white text-white shadow-md transition-all hover:brightness-110 active:scale-95 cursor-pointer"
                 >
-                  <Plus className="h-4 w-4" />
-                  Thêm link
+                  <Plus className="h-4 w-4 stroke-[3] !text-white text-white" />
+                  <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Thêm link</span>
                 </button>
               </div>
 
@@ -1747,7 +1748,7 @@ export default function PersonalInfoTab({
       </div>
 
       {/* SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
-      <div className="order-[40] lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-4">
+      <div className="order-[40] lg:col-span-3 rounded-2xl border border-[#F0D7D3] bg-white p-6 space-y-4 shadow-sm dark:border-[#151b2d] dark:bg-[#08090f]">
         <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
           <div className="flex items-center gap-2">
             <Calendar className="h-4.5 w-4.5 text-slate-400" />
@@ -1822,7 +1823,7 @@ export default function PersonalInfoTab({
 
       {/* SECTION F: REPUTATION REVIEWS (Commented out) */}
       {/* 
-      <div className="lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+      <div className="lg:col-span-3 rounded-2xl border border-[#F0D7D3] bg-white p-6 space-y-6 shadow-sm dark:border-[#151b2d] dark:bg-[#08090f]">
         <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
           <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> ĐÁNH GIÁ
         </h3>

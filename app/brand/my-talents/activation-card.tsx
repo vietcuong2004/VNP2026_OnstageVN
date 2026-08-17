@@ -101,14 +101,14 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
 
   if (visibleItems.length === 0) {
     return (
-      <section className="rounded-3xl border border-white/8 bg-[#08090f]/70 p-4 md:p-5">
+      <section className="rounded-3xl border border-[#F0D7D3] bg-white p-4 md:p-5 shadow-sm dark:border-white/8 dark:bg-[#08090f]/70">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/10 text-emerald-600 dark:text-emerald-300">
             <UserCheck className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-display text-sm font-black uppercase tracking-wider text-white">Kích hoạt tài khoản Idol</h3>
-            <p className="mt-1 text-xs font-semibold text-slate-400">Tất cả Idol do Brand tạo đã được kích hoạt hoặc chưa có tài khoản cần nhận.</p>
+            <h3 className="font-display text-sm font-black uppercase tracking-wider text-[#191116] dark:text-white">Kích hoạt tài khoản Idol</h3>
+            <p className="mt-1 text-xs font-semibold text-[#574D54] dark:text-slate-400">Tất cả Idol do Brand tạo đã được kích hoạt hoặc chưa có tài khoản cần nhận.</p>
           </div>
         </div>
       </section>
@@ -116,23 +116,23 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
   }
 
   return (
-    <section className="rounded-3xl border border-amber-400/20 bg-[#08090f]/80 p-4 md:p-5 shadow-[0_20px_80px_rgba(0,0,0,0.25)] animate-in fade-in duration-300">
+    <section className="rounded-3xl border border-[#F0D7D3] bg-white p-4 md:p-5 shadow-sm dark:border-amber-400/20 dark:bg-[#08090f]/80 animate-in fade-in duration-300">
       <div className="space-y-4">
         {/* Header row with Collapse/Uncollapse button */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-amber-400/25 bg-amber-400/10 text-amber-300">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300">
               <UserCheck className="h-5 w-5" />
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-display text-sm font-black uppercase tracking-wider text-white">Kích hoạt tài khoản Idol</h3>
-                <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-300">
+                <h3 className="font-display text-sm font-black uppercase tracking-wider text-[#191116] dark:text-white">Kích hoạt tài khoản Idol</h3>
+                <span className="rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-sm dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300">
                   {visibleItems.length} chưa kích hoạt
                 </span>
               </div>
               {!isCollapsed && (
-                <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-400">
+                <p className="mt-1 text-xs font-semibold leading-relaxed text-[#574D54] dark:text-slate-400">
                   Khi sử dụng tính năng Thêm Idol mới, idol này vẫn chưa có tài khoản/hồ sơ trên hệ thống Onstage VN. Nhấn "Tạo link" và gửi link này cho idol bạn vừa tạo để họ vào kích hoạt tài khoản trên hệ thống Onstage VN
                 </p>
               )}
@@ -142,7 +142,7 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
           <button
             type="button"
             onClick={() => setIsCollapsed(v => !v)}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-[#0F1115]/60 text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer shrink-0"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#574D54] hover:text-[#8F0709] hover:bg-[#FFF0EE] active:scale-95 transition-all cursor-pointer shrink-0 shadow-sm dark:border-white/10 dark:bg-[#0F1115]/60 dark:text-slate-400 dark:hover:text-white"
             title={isCollapsed ? "Mở rộng" : "Thu gọn"}
           >
             {isCollapsed ? <ChevronDown className="h-4.5 w-4.5" /> : <ChevronUp className="h-4.5 w-4.5" />}
@@ -162,7 +162,7 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
               return (
                 <div 
                   key={rosterId || talent.id}
-                  className="rounded-3xl border border-white/8 bg-[#0a0c14] p-4 flex flex-col justify-between transition-all hover:border-amber-400/20"
+                  className="rounded-3xl border border-[#F0D7D3] bg-[#FAF7F6] p-4 flex flex-col justify-between transition-all hover:border-[#8F0709] shadow-sm dark:border-white/8 dark:bg-[#0a0c14] dark:hover:border-amber-400/20"
                 >
                   <div>
                     {/* Row 1: Avatar, Info, Action Button */}
@@ -175,29 +175,30 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
                             e.currentTarget.onerror = null;
                             e.currentTarget.src = createInitialAvatarDataUrl(talent.name, talent.email);
                           }}
-                          className="h-12 w-12 rounded-2xl border border-white/10 object-cover shrink-0"
+                          className="h-12 w-12 rounded-2xl border border-[#F0D7D3] object-cover shrink-0 dark:border-white/10"
                         />
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-black text-white">{talent.name}</p>
-                          <p className="truncate text-xs font-semibold text-slate-500">{talent.email || "Chưa có email liên hệ"}</p>
+                          <p className="truncate text-sm font-black text-[#191116] dark:text-white">{talent.name}</p>
+                          <p className="truncate text-xs font-semibold text-[#574D54] dark:text-slate-500">{talent.email || "Chưa có email liên hệ"}</p>
                         </div>
                       </div>
                       
                       <button
                         type="button"
+                        style={{ color: "#ffffff" }}
                         onClick={() => handleCreateLink(rosterId, Boolean(activationLink))}
                         disabled={isLoading || !rosterId}
-                        className="h-10 shrink-0 rounded-xl bg-gradient-to-r from-amber-200 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                        className="light-force-white h-10 shrink-0 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white px-4 text-[10px] font-black uppercase tracking-wider shadow-md transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                       >
-                        {isLoading ? "Đang tạo..." : activationLink?.is_expired ? "Tạo lại" : activationLink ? "Tạo lại" : "Tạo link"}
+                        <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">{isLoading ? "Đang tạo..." : activationLink?.is_expired ? "Tạo lại" : activationLink ? "Tạo lại" : "Tạo link"}</span>
                       </button>
                     </div>
 
                     {activationLink && (
-                      <div className="mt-3.5 space-y-3 border-t border-white/5 pt-3.5">
-                        <div className="flex items-center gap-2 rounded-2xl border border-white/5 bg-black/35 px-3 py-2">
-                          <Link2 className="h-4 w-4 shrink-0 text-amber-300 animate-pulse" />
-                          <span className="min-w-0 flex-1 truncate font-mono text-[11px] font-bold text-amber-100">{activationLink.url}</span>
+                      <div className="mt-3.5 space-y-3 border-t border-[#F0D7D3] pt-3.5 dark:border-white/5">
+                        <div className="flex items-center gap-2 rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-2">
+                          <Link2 className="h-4 w-4 shrink-0 text-[#8F0709] animate-pulse dark:text-amber-300" />
+                          <span className="min-w-0 flex-1 truncate font-mono text-[11px] font-bold text-[#8F0709] dark:text-amber-100">{activationLink.url}</span>
                         </div>
                         <div className="space-y-2">
                           {/* Core actions in exactly 1 row */}
@@ -205,9 +206,9 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
                             <button 
                               type="button" 
                               onClick={() => handleCopy(rosterId, activationLink.url)} 
-                              className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/5 text-[9px] font-black uppercase tracking-wider text-white hover:bg-white/10 cursor-pointer active:scale-95 transition"
+                              className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-xl border border-[#F0D7D3] bg-white text-[9px] font-black uppercase tracking-wider text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] shadow-sm cursor-pointer active:scale-95 transition dark:border-white/10 dark:bg-white/5 dark:text-white"
                             >
-                              {isCopied ? <Check className="h-3 w-3 text-emerald-300 shrink-0" /> : <Copy className="h-3 w-3 text-amber-300 shrink-0" />}
+                              {isCopied ? <Check className="h-3 w-3 text-emerald-600 shrink-0" /> : <Copy className="h-3 w-3 text-[#8F0709] shrink-0 dark:text-amber-300" />}
                               <span className="whitespace-nowrap">Sao chép</span>
                             </button>
                             <button 
@@ -216,16 +217,16 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
                                 setShowQrUrl(activationLink.url);
                                 setShowQrName(talent.name);
                               }} 
-                              className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/5 text-[9px] font-black uppercase tracking-wider text-white hover:bg-white/10 cursor-pointer active:scale-95 transition"
+                              className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-xl border border-[#F0D7D3] bg-white text-[9px] font-black uppercase tracking-wider text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] shadow-sm cursor-pointer active:scale-95 transition dark:border-white/10 dark:bg-white/5 dark:text-white"
                             >
-                              <QrCode className="h-3 w-3 text-cyan-300 shrink-0" />
+                              <QrCode className="h-3 w-3 text-cyan-600 shrink-0 dark:text-cyan-300" />
                               <span className="whitespace-nowrap">Hiện QR</span>
                             </button>
                             <button 
                               type="button" 
                               onClick={() => handleCreateLink(rosterId, true)} 
                               disabled={isLoading} 
-                              className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/5 text-[9px] font-black uppercase tracking-wider text-slate-300 hover:bg-white/10 hover:text-white disabled:opacity-60 cursor-pointer active:scale-95 transition"
+                              className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-xl border border-[#F0D7D3] bg-white text-[9px] font-black uppercase tracking-wider text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] shadow-sm disabled:opacity-60 cursor-pointer active:scale-95 transition dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
                             >
                               <RefreshCw className="h-3 w-3 shrink-0" />
                               <span className="whitespace-nowrap">Tạo lại link</span>
@@ -238,14 +239,14 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
                               type="button" 
                               onClick={() => handleSendMessage(rosterId, String(activationLink.conversation_id), activationLink.url)} 
                               disabled={isSending} 
-                              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/10 text-[9px] font-black uppercase tracking-wider text-emerald-200 hover:bg-emerald-400/15 disabled:opacity-60 cursor-pointer active:scale-95 transition"
+                              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-50 text-[9px] font-black uppercase tracking-wider text-emerald-800 hover:bg-emerald-100 disabled:opacity-60 cursor-pointer active:scale-95 transition dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200"
                             >
                               <Send className="h-3.5 w-3.5 shrink-0" />
                               <span>{isSending ? "Đang gửi..." : "Gửi qua tin nhắn chat"}</span>
                             </button>
                           )}
                         </div>
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">
+                        <p className="text-[9px] font-bold text-[#574D54] uppercase tracking-wide dark:text-slate-500">
                           Hết hạn: {formatExpiry(activationLink.expires_at) || "Không xác định"}
                         </p>
                       </div>
@@ -259,30 +260,31 @@ export default function ActivationCard({ items, addToast }: ActivationCardProps)
       </div>
 
       {showQrUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#020408]/85 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-xs rounded-3xl border border-amber-400/20 bg-[#0b0c15] p-6 text-center shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#191116]/60 p-4 backdrop-blur-sm dark:bg-[#020408]/85">
+          <div className="relative w-full max-w-xs rounded-3xl border border-[#F0D7D3] bg-white p-6 text-center shadow-2xl dark:border-amber-400/20 dark:bg-[#0b0c15]">
             <button 
               type="button" 
               onClick={() => {
                 setShowQrUrl(null);
                 setShowQrName(null);
               }} 
-              className="absolute right-3 top-3 rounded-full border border-white/10 bg-white/5 p-1.5 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute right-3 top-3 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] p-1.5 text-[#574D54] hover:text-[#8F0709] cursor-pointer dark:border-white/10 dark:bg-white/5 dark:text-slate-400"
             >
               <X className="h-4 w-4" />
             </button>
-            <p className="mb-4 text-xs font-black uppercase tracking-wider text-white">QR kích hoạt tài khoản</p>
-            <div className="mx-auto flex h-56 w-56 items-center justify-center rounded-3xl bg-white p-4">
+            <p className="mb-4 text-xs font-black uppercase tracking-wider text-[#191116] dark:text-white">QR kích hoạt tài khoản</p>
+            <div className="mx-auto flex h-56 w-56 items-center justify-center rounded-3xl bg-white p-4 border border-[#F0D7D3] shadow-sm">
               <QRCodeCanvas id="managed-talent-activation-qr" value={showQrUrl} size={190} bgColor="#ffffff" fgColor="#020617" level="H" includeMargin={false} />
             </div>
-            <p className="mt-4 text-xs font-semibold text-slate-400">{showQrName}</p>
+            <p className="mt-4 text-xs font-semibold text-[#574D54] dark:text-slate-400">{showQrName}</p>
             <button
               type="button"
+              style={{ color: "#ffffff" }}
               onClick={handleDownloadQr}
-              className="mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-200 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 transition hover:brightness-105 active:scale-95"
+              className="light-force-white mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white px-4 text-[10px] font-black uppercase tracking-wider shadow-md transition hover:brightness-105 active:scale-95"
             >
-              <Download className="h-4 w-4" />
-              Tải QR
+              <Download className="h-4 w-4 stroke-[3] !text-white text-white" />
+              <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Tải QR</span>
             </button>
           </div>
         </div>

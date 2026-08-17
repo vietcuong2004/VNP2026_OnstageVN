@@ -62,8 +62,8 @@ export default function TimePickerInput({ value, onChange, className }: TimePick
     <div ref={wrapperRef} className={cn("relative", className)}>
       <div
         className={cn(
-          "flex w-full items-center gap-2 rounded-xl border bg-slate-900/90 px-3 py-2.5 text-xs text-slate-100 outline-none shadow-inner transition-all hover:border-slate-600 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-400/20",
-          isOpen ? "border-amber-400 ring-2 ring-amber-400/20" : "border-slate-700/80"
+          "flex w-full items-center gap-2 rounded-2xl border bg-white px-3.5 py-2.5 text-xs text-[#191116] outline-none shadow-sm transition-all focus-within:border-[#8F0709] focus-within:ring-2 focus-within:ring-[#8F0709]/10",
+          isOpen ? "border-[#8F0709] ring-2 ring-[#8F0709]/10" : "border-[#F0D7D3]"
         )}
       >
         <input
@@ -74,27 +74,27 @@ export default function TimePickerInput({ value, onChange, className }: TimePick
           onBlur={handleBlur}
           placeholder="08:00"
           inputMode="numeric"
-          className="min-w-0 flex-1 bg-transparent font-mono text-xs font-bold text-slate-100 outline-none placeholder:text-slate-500"
+          className="min-w-0 flex-1 bg-transparent font-mono text-xs font-bold text-[#191116] outline-none placeholder:text-[#9A8B88]"
         />
         <button
           type="button"
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => setIsOpen((open) => !open)}
-          className="shrink-0 rounded-md p-0.5 text-slate-400 transition hover:bg-slate-800 hover:text-amber-300"
+          className="shrink-0 rounded-md p-0.5 text-[#8F0709] transition hover:bg-[#FFF0EE]"
           aria-label="Chọn giờ"
         >
-          <Clock className="h-3.5 w-3.5" />
+          <Clock className="h-4 w-4 text-[#8F0709]" />
         </button>
       </div>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-[120] mt-2 w-36 overflow-hidden rounded-2xl border border-amber-400/30 bg-[#0d1226] shadow-[0_20px_45px_rgba(0,0,0,0.65)] animate-in fade-in zoom-in-95 slide-in-from-top-1 duration-150">
-          <div className="grid grid-cols-2 border-b border-slate-800 bg-slate-950/50 px-1.5 py-1.5 text-center text-[10px] font-black uppercase tracking-wider text-amber-300">
+        <div className="absolute right-0 top-full z-[120] mt-2 w-36 overflow-hidden rounded-2xl border border-[#F0D7D3] bg-white shadow-xl animate-in fade-in zoom-in-95 slide-in-from-top-1 duration-150">
+          <div className="grid grid-cols-2 border-b border-[#F0D7D3] bg-[#FFF7F6] px-1.5 py-1.5 text-center text-[10px] font-black uppercase tracking-wider text-[#8F0709]">
             <span>Giờ</span>
             <span>Phút</span>
           </div>
           <div className="grid max-h-44 grid-cols-2 overflow-hidden">
-            <div className="max-h-44 overflow-y-auto border-r border-slate-800 p-1 custom-scrollbar">
+            <div className="max-h-44 overflow-y-auto border-r border-[#F0D7D3] p-1 custom-scrollbar">
               {hours.map((hour) => (
                 <button
                   key={hour}
@@ -102,10 +102,10 @@ export default function TimePickerInput({ value, onChange, className }: TimePick
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => chooseTimePart("hour", hour)}
                   className={cn(
-                    "flex h-7 w-full items-center justify-center rounded-lg font-mono text-xs font-black transition-colors",
+                    "flex h-7 w-full items-center justify-center rounded-lg font-mono text-xs font-bold transition-colors cursor-pointer",
                     hour === selectedHour
-                      ? "bg-amber-300 text-slate-950"
-                      : "text-slate-200 hover:bg-slate-800 hover:text-amber-200"
+                      ? "bg-[#FAF5E6] text-[#8F0709] border border-[#E5C178]"
+                      : "text-[#574D54] hover:bg-[#FFF7F6] hover:text-[#191116]"
                   )}
                 >
                   {hour}
@@ -120,10 +120,10 @@ export default function TimePickerInput({ value, onChange, className }: TimePick
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => chooseTimePart("minute", minute)}
                   className={cn(
-                    "flex h-7 w-full items-center justify-center rounded-lg font-mono text-xs font-black transition-colors",
+                    "flex h-7 w-full items-center justify-center rounded-lg font-mono text-xs font-bold transition-colors cursor-pointer",
                     minute === selectedMinute
-                      ? "bg-amber-300 text-slate-950"
-                      : "text-slate-200 hover:bg-slate-800 hover:text-amber-200"
+                      ? "bg-[#FAF5E6] text-[#8F0709] border border-[#E5C178]"
+                      : "text-[#574D54] hover:bg-[#FFF7F6] hover:text-[#191116]"
                   )}
                 >
                   {minute}
@@ -135,7 +135,7 @@ export default function TimePickerInput({ value, onChange, className }: TimePick
             type="button"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => setIsOpen(false)}
-            className="h-8 w-full border-t border-slate-800 bg-amber-300 text-[11px] font-black uppercase tracking-wider text-slate-950 transition hover:bg-yellow-300"
+            className="light-force-white h-8 w-full border-t border-[#F0D7D3] bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-[11px] font-black uppercase tracking-wider !text-white text-white transition hover:brightness-110 cursor-pointer"
           >
             Xong
           </button>

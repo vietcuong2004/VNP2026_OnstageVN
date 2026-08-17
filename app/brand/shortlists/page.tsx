@@ -184,7 +184,7 @@ function FilterDropdown({
     <div
       ref={dropdownRef}
       style={dropdownStyle}
-      className="max-h-60 overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+      className="max-h-60 overflow-hidden rounded-xl border border-[#F0D7D3] bg-white p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-150 dark:border-[#2B313D] dark:bg-[#12151C]"
     >
       {searchable && (
         <div className="mb-1.5 px-1">
@@ -193,14 +193,14 @@ function FilterDropdown({
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder={searchPlaceholder}
-            className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-2.5 py-1.5 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/50"
+            className="w-full rounded-lg border border-[#F0D7D3] bg-white px-2.5 py-1.5 text-xs text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#8F0709] dark:border-white/10 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]/50"
             autoFocus
           />
         </div>
       )}
       <div className="max-h-44 space-y-0.5 overflow-y-auto pr-0.5 custom-scrollbar">
         {filteredOptions.length === 0 ? (
-          <div className="px-3 py-2 text-center text-xs text-slate-500">{emptyText}</div>
+          <div className="px-3 py-2 text-center text-xs text-[#9A8B88] dark:text-slate-500">{emptyText}</div>
         ) : (
           filteredOptions.map((opt) => {
             const isSelected = opt.value === value;
@@ -216,12 +216,12 @@ function FilterDropdown({
                 className={cn(
                   "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-medium transition-colors",
                   isSelected
-                    ? "bg-[#C9A86A]/20 font-bold text-[#C9A86A]"
-                    : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    ? "bg-[#FFF0EE] font-bold text-[#8F0709] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]"
+                    : "text-[#191116] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                 )}
               >
                 <span className="truncate">{opt.label}</span>
-                {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />}
+                {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-[#8F0709] dark:text-[#C9A86A]" />}
               </button>
             );
           })
@@ -237,15 +237,15 @@ function FilterDropdown({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 shadow-inner",
-          isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+          "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-[#F0D7D3] bg-white px-4 text-xs font-semibold text-[#191116] outline-none transition-all duration-300 hover:border-[#8F0709] shadow-sm dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:hover:border-[#C9A86A]/40",
+          isOpen && "border-[#8F0709] bg-[#FFF0EE] dark:border-[#C9A86A]/60 dark:bg-slate-900/90"
         )}
       >
         <span className="flex items-center gap-1.5 truncate text-left">
-          {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-slate-400" />}
+          {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-[#8F0709] dark:text-slate-400" />}
           <span className="truncate">{isDefaultValue ? placeholder : (selectedOption?.label || placeholder)}</span>
         </span>
-        <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-300", isOpen && "rotate-180")} />
+        <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-[#8F0709] transition-transform duration-300 dark:text-slate-400", isOpen && "rotate-180")} />
       </button>
 
       {typeof window !== "undefined" && panelContent && createPortal(panelContent, document.body)}
@@ -296,16 +296,16 @@ function MultiFilterDropdown({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 shadow-inner",
-          isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+          "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-[#F0D7D3] bg-white px-4 text-xs font-semibold text-[#191116] outline-none transition-all duration-300 hover:border-[#8F0709] shadow-sm dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:hover:border-[#C9A86A]/40",
+          isOpen && "border-[#8F0709] bg-[#FFF0EE] dark:border-[#C9A86A]/60 dark:bg-slate-900/90"
         )}
       >
         <span className="truncate text-left font-medium">{selectedLabel}</span>
-        <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-300", isOpen && "rotate-180")} />
+        <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-[#8F0709] transition-transform duration-300 dark:text-slate-400", isOpen && "rotate-180")} />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-60 w-full overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-60 w-full overflow-hidden rounded-xl border border-[#F0D7D3] bg-white p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-150 dark:border-[#2B313D] dark:bg-[#12151C]">
           <div className="max-h-52 space-y-0.5 overflow-y-auto pr-0.5 custom-scrollbar">
             {options.map((opt) => {
               const isAll = opt.value === allValue;
@@ -331,15 +331,15 @@ function MultiFilterDropdown({
                   className={cn(
                     "flex w-full items-center rounded-lg px-2.5 py-2 text-left text-xs font-medium transition-colors",
                     isSelected
-                      ? "bg-[#C9A86A]/10 font-bold text-[#C9A86A]"
-                      : "text-slate-300 hover:bg-white/5 hover:text-white"
+                      ? "bg-[#FFF0EE] font-bold text-[#8F0709] dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]"
+                      : "text-[#191116] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                   )}
                 >
                   <div className={cn(
                     "mr-2.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border transition-all",
                     isSelected
-                      ? "border-[#C9A86A] bg-[#C9A86A] text-slate-950"
-                      : "border-white/20 bg-slate-950/40 text-transparent"
+                      ? "border-[#8F0709] bg-[#8F0709] text-white dark:border-[#C9A86A] dark:bg-[#C9A86A] dark:text-slate-950"
+                      : "border-[#F0D7D3] bg-white text-transparent dark:border-white/20 dark:bg-slate-950/40"
                   )}>
                     <Check className="h-2.5 w-2.5 stroke-[3px]" />
                   </div>
@@ -659,7 +659,7 @@ export default function BrandShortlistsPage() {
 
   return (
     <div className="space-y-6 pb-16">
-      <section className="block md:hidden sticky top-0 z-50 bg-[#070913]/95 backdrop-blur-md pt-3.5 pb-2.5 border-b border-white/5 -mx-4 px-4">
+      <section className="block md:hidden sticky top-0 z-50 bg-white/95 backdrop-blur-md pt-3.5 pb-2.5 border-b border-[#F0D7D3] -mx-4 px-4 dark:bg-[#070913]/95 dark:border-white/5">
         <div className="flex items-center gap-2.5">
           <button
             type="button"
@@ -667,8 +667,8 @@ export default function BrandShortlistsPage() {
             className={cn(
               "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all",
               selectedGender !== allValue || selectedType !== allValue || minHeight !== 150 || maxHeight !== 190 || minWeight !== 40 || maxWeight !== 90
-                ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
-                : "border-white/10 bg-slate-900/60 text-slate-400"
+                ? "border-[#8F0709] bg-[#FFF0EE] text-[#8F0709] dark:border-[#C9A86A] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]"
+                : "border-[#F0D7D3] bg-white text-[#574D54] dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-400"
             )}
           >
             <SlidersHorizontal className="h-4 w-4" />
@@ -679,26 +679,26 @@ export default function BrandShortlistsPage() {
             onClick={() => setIsMobileCitySelectorOpen(true)}
             className="relative flex shrink-0 items-center gap-1"
           >
-            <span className="font-display text-[15px] font-black tracking-tight text-white whitespace-nowrap">
+            <span className="font-display text-[15px] font-black tracking-tight text-[#191116] whitespace-nowrap dark:text-white">
               {currentCityLabel}
             </span>
-            <ChevronDown className="h-4 w-4 text-[#C9A86A]" />
+            <ChevronDown className="h-4 w-4 text-[#8F0709] dark:text-[#C9A86A]" />
           </button>
 
           <div className="relative min-w-0 flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8F0709] dark:text-[#C9A86A]" />
             <input
               type="text"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Tên idol..."
-              className="h-9 w-full rounded-full border border-white/10 bg-slate-950/60 pl-8.5 pr-8 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/60"
+              className="h-9 w-full rounded-full border border-[#F0D7D3] bg-white pl-8.5 pr-8 text-xs font-semibold text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#8F0709] shadow-sm dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]/60"
             />
             {searchInput && (
               <button
                 type="button"
                 onClick={() => setSearchInput("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9A8B88] hover:text-[#8F0709] dark:text-slate-400 dark:hover:text-white"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -708,13 +708,13 @@ export default function BrandShortlistsPage() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] transition active:scale-95"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition active:scale-95 dark:border-[#C9A86A]/50 dark:bg-[#C9A86A]/15 dark:text-[#C9A86A]"
             aria-label="Quay lại"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-white/5 bg-slate-950/45 p-1">
+        <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-[#F0D7D3] bg-white p-1 shadow-sm dark:border-white/5 dark:bg-slate-950/45">
           {([
             { key: "saved", label: "Idol đã lưu", count: savedTalents.length },
             { key: "viewed", label: "Idol đã xem", count: viewedTalents.length },
@@ -726,17 +726,17 @@ export default function BrandShortlistsPage() {
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
                 className={cn(
-                  "flex h-9 items-center justify-center gap-1.5 rounded-xl text-xs font-black transition",
+                  "flex h-9 items-center justify-center gap-1.5 rounded-xl text-xs font-black transition cursor-pointer",
                   isActive
-                    ? "bg-[#C9A86A]/15 text-[#C9A86A]"
-                    : "text-slate-400 active:text-white"
+                    ? "bg-[#FFF0EE] text-[#8F0709] shadow-sm dark:bg-[#C9A86A]/15 dark:text-[#C9A86A]"
+                    : "text-[#574D54] active:text-[#191116] dark:text-slate-400 dark:active:text-white"
                 )}
               >
                 <span>{tab.label}</span>
                 <span
                   className={cn(
-                    "rounded-full px-1.5 py-0.5 text-[9px] leading-none",
-                    isActive ? "bg-[#C9A86A]/20" : "bg-white/5"
+                    "rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none",
+                    isActive ? "bg-[#8F0709]/10 text-[#8F0709] dark:bg-[#C9A86A]/20" : "bg-[#F0D7D3]/40 text-[#574D54] dark:bg-white/5"
                   )}
                 >
                   {tab.count}
@@ -747,13 +747,11 @@ export default function BrandShortlistsPage() {
         </div>
       </section>
 
-      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-6 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A86A] to-transparent pointer-events-none" />
-        <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#C9A86A]/5 blur-3xl opacity-60 pointer-events-none" />
+      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#F0D7D3] bg-white p-6 shadow-sm dark:border-[#C9A86A]/30 dark:bg-[#0f121d]/90">
         <div className="relative z-10 mb-4">
-          <h1 className="font-display text-lg font-black tracking-tight text-white md:text-xl">
+          <h1 className="font-display text-lg font-black tracking-tight text-[#191116] md:text-xl dark:text-white">
             {activeTab === "saved" ? "Idol đã lưu" : "Idol đã xem"}{" "}
-            <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+            <span className="text-[#8F0709] dark:bg-gradient-to-r dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:bg-clip-text dark:text-transparent">
               ({filteredSavedTalents.length})
             </span>
           </h1>
@@ -761,20 +759,19 @@ export default function BrandShortlistsPage() {
 
         <div className="relative z-10 flex flex-col xl:flex-row gap-3 items-stretch">
           <div className="group relative flex-1 min-w-[280px]">
-            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#C9A86A]/30 to-yellow-600/20 opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-focus-within:opacity-100 group-focus-within:blur-md" />
             <div className="relative h-full w-full">
-              <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#C9A86A] transition-colors group-focus-within:text-amber-300" />
+              <Search className="absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#8F0709] transition-colors dark:text-[#C9A86A]" />
               <input
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Nhập tên Idol..."
-                className="h-[50px] w-full rounded-2xl border border-white/10 bg-slate-950/60 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 placeholder:text-slate-500 focus:border-[#C9A86A]/60"
+                className="h-[50px] w-full rounded-2xl border border-[#F0D7D3] bg-white pl-12 pr-10 text-xs font-semibold text-[#191116] outline-none transition-all duration-300 placeholder:text-[#9A8B88] focus:border-[#8F0709] shadow-sm dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]/60"
               />
               {searchInput && (
                 <button
                   type="button"
                   onClick={() => setSearchInput("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 transition-colors hover:text-white"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9A8B88] transition-colors hover:text-[#8F0709] dark:text-slate-450 dark:hover:text-white"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -805,20 +802,21 @@ export default function BrandShortlistsPage() {
           <div className="flex shrink-0 gap-2">
             <button
               type="button"
-              className="flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-8 text-xs font-black uppercase tracking-wider text-slate-950 shadow-lg transition-all duration-300 hover:brightness-110 hover:shadow-[0_0_15px_rgba(201,168,106,0.3)] active:scale-95 xl:flex-none"
+              style={{ color: "#ffffff" }}
+              className="light-force-white flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white px-8 text-xs font-black uppercase tracking-wider shadow-md transition-all duration-300 hover:brightness-110 active:scale-95 xl:flex-none"
             >
-              <Search className="h-4 w-4" />
-              <span>Tìm kiếm</span>
+              <Search className="h-4 w-4 stroke-[3] !text-white text-white" />
+              <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Tìm kiếm</span>
             </button>
 
             <button
               type="button"
               onClick={() => setShowAdvancedFilters((current) => !current)}
               className={cn(
-                "flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl border px-5 text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 xl:flex-none",
+                "flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl border px-5 text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 xl:flex-none shadow-sm",
                 showAdvancedFilters
-                  ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A] shadow-[0_0_12px_rgba(201,168,106,0.15)]"
-                  : "border-white/10 bg-white/5 text-slate-300 hover:border-[#C9A86A]/40 hover:bg-white/10 hover:text-white"
+                  ? "border-[#8F0709] bg-[#FFF0EE] text-[#8F0709] dark:border-[#C9A86A] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]"
+                  : "border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-[#C9A86A]/40 dark:hover:bg-white/10 dark:hover:text-white"
               )}
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -834,17 +832,17 @@ export default function BrandShortlistsPage() {
                 placeholder="Sắp xếp"
                 icon={ArrowUpDown}
                 align="right"
-                className="[&>button]:!bg-white/5 [&>button]:!border-white/10 [&>button]:!text-slate-300 [&>button]:hover:!bg-white/10 [&>button]:hover:!border-[#C9A86A]/40 [&>button]:hover:!text-white"
+                className="[&>button]:!bg-white [&>button]:!border-[#F0D7D3] [&>button]:!text-[#574D54] [&>button]:hover:!border-[#8F0709] [&>button]:hover:!text-[#8F0709] dark:[&>button]:!bg-white/5 dark:[&>button]:!border-white/10 dark:[&>button]:!text-slate-300"
               />
             </div>
           </div>
         </div>
 
         {showAdvancedFilters && (
-          <div className="relative z-10 mt-5 space-y-4 border-t border-white/5 pt-5 animate-in slide-in-from-top-2 duration-300">
+          <div className="relative z-10 mt-5 space-y-4 border-t border-[#F0D7D3] pt-5 animate-in slide-in-from-top-2 duration-300 dark:border-white/5">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               <div className="space-y-2">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-400">
                   Giới tính
                 </span>
                 <FilterDropdown
@@ -858,7 +856,7 @@ export default function BrandShortlistsPage() {
               </div>
 
               <div className="space-y-2">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-400">
                   Chiều cao ({minHeight} - {maxHeight}cm)
                 </span>
                 <div className="grid grid-cols-2 gap-3">
@@ -868,7 +866,7 @@ export default function BrandShortlistsPage() {
                     max={200}
                     value={minHeight}
                     onChange={(event) => setMinHeight(Number(event.target.value))}
-                    className="h-10 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 text-center text-xs text-white outline-none focus:border-[#C9A86A]/60"
+                    className="h-10 w-full rounded-xl border border-[#F0D7D3] bg-white px-3 text-center text-xs font-bold text-[#191116] outline-none focus:border-[#8F0709] shadow-sm dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                   />
                   <input
                     type="number"
@@ -876,13 +874,13 @@ export default function BrandShortlistsPage() {
                     max={200}
                     value={maxHeight}
                     onChange={(event) => setMaxHeight(Number(event.target.value))}
-                    className="h-10 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 text-center text-xs text-white outline-none focus:border-[#C9A86A]/60"
+                    className="h-10 w-full rounded-xl border border-[#F0D7D3] bg-white px-3 text-center text-xs font-bold text-[#191116] outline-none focus:border-[#8F0709] shadow-sm dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-400">
                   Cân nặng ({minWeight} - {maxWeight}kg)
                 </span>
                 <div className="grid grid-cols-2 gap-3">
@@ -892,7 +890,7 @@ export default function BrandShortlistsPage() {
                     max={120}
                     value={minWeight}
                     onChange={(event) => setMinWeight(Number(event.target.value))}
-                    className="h-10 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 text-center text-xs text-white outline-none focus:border-[#C9A86A]/60"
+                    className="h-10 w-full rounded-xl border border-[#F0D7D3] bg-white px-3 text-center text-xs font-bold text-[#191116] outline-none focus:border-[#8F0709] shadow-sm dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                   />
                   <input
                     type="number"
@@ -900,7 +898,7 @@ export default function BrandShortlistsPage() {
                     max={120}
                     value={maxWeight}
                     onChange={(event) => setMaxWeight(Number(event.target.value))}
-                    className="h-10 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 text-center text-xs text-white outline-none focus:border-[#C9A86A]/60"
+                    className="h-10 w-full rounded-xl border border-[#F0D7D3] bg-white px-3 text-center text-xs font-bold text-[#191116] outline-none focus:border-[#8F0709] shadow-sm dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                   />
                 </div>
               </div>
@@ -910,7 +908,7 @@ export default function BrandShortlistsPage() {
       </section>
 
       <section className="hidden md:block">
-        <div className="grid w-full max-w-[460px] grid-cols-2 gap-2 rounded-2xl border border-white/5 bg-slate-950/45 p-1">
+        <div className="grid w-full max-w-[460px] grid-cols-2 gap-2 rounded-2xl border border-[#F0D7D3] bg-white p-1 shadow-sm dark:border-white/5 dark:bg-slate-950/45">
           {([
             { key: "saved", label: "Idol đã lưu", count: savedTalents.length },
             { key: "viewed", label: "Idol đã xem", count: viewedTalents.length },
@@ -922,17 +920,17 @@ export default function BrandShortlistsPage() {
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
                 className={cn(
-                  "flex h-10 items-center justify-center gap-2 rounded-xl border text-xs font-black transition",
+                  "flex h-10 items-center justify-center gap-2 rounded-xl border text-xs font-black transition cursor-pointer",
                   isActive
-                    ? "border-[#C9A86A]/35 bg-[#C9A86A]/15 text-[#C9A86A] shadow-[0_0_18px_rgba(201,168,106,0.08)]"
-                    : "border-transparent text-slate-400 hover:bg-white/5 hover:text-white"
+                    ? "border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] shadow-sm dark:border-[#C9A86A]/35 dark:bg-[#C9A86A]/15 dark:text-[#C9A86A]"
+                    : "border-transparent text-[#574D54] hover:bg-[#FFF7F6] hover:text-[#191116] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
                 )}
               >
                 <span>{tab.label}</span>
                 <span
                   className={cn(
-                    "rounded-full px-1.5 py-0.5 text-[10px] leading-none",
-                    isActive ? "bg-[#C9A86A]/20 text-[#F4D36A]" : "bg-white/5 text-slate-500"
+                    "rounded-full px-2 py-0.5 text-[10px] font-bold leading-none",
+                    isActive ? "bg-[#8F0709]/10 text-[#8F0709] dark:bg-[#C9A86A]/20 dark:text-[#F4D36A]" : "bg-[#F0D7D3]/40 text-[#574D54] dark:bg-white/5 dark:text-slate-500"
                   )}
                 >
                   {tab.count}

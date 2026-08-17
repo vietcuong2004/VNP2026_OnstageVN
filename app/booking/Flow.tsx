@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
 import {
-  Banknote, Check, CheckCircle2, Landmark, Mic, QrCode, Users, Wallet, X, ArrowLeft
+  Banknote, Check, CheckCircle2, Landmark, Mic, QrCode, Users, Wallet, X, ArrowLeft, ChevronRight, Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MCForm from "./MCForm";
@@ -272,9 +272,15 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
     }
   }, []);
 
+  const isFixedTalent = Boolean(talent?.id && String(talent.id) !== "default");
+
   const handleProceedFromStep3 = () => {
-    // Move from Step 3 (Job Form) to Step 9 (Select Idol)
-    setStep(9);
+    // Move from Step 3 (Job Form) to Step 10 if talent was pre-selected, otherwise Step 9 (Select Idol)
+    if (isFixedTalent) {
+      setStep(10);
+    } else {
+      setStep(9);
+    }
   };
 
   const handleProceedFromStep9 = () => {
@@ -328,15 +334,12 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
       return false;
     }
 
-    if (!selectedTalentIds.length) {
-      setBookingSubmitError("Vui lòng chọn ít nhất 1 Idol để booking.");
-      return false;
-    }
-
-    const invalidIds = selectedTalentIds.filter((id) => !isBackendRecordId(id));
-    if (invalidIds.length) {
-      setBookingSubmitError("Có Idol chưa có hồ sơ hợp lệ trên hệ thống nên chưa thể tạo booking.");
-      return false;
+    if (selectedTalentIds.length > 0) {
+      const invalidIds = selectedTalentIds.filter((id) => !isBackendRecordId(id));
+      if (invalidIds.length) {
+        setBookingSubmitError("Có Idol chưa có hồ sơ hợp lệ trên hệ thống nên chưa thể tạo booking.");
+        return false;
+      }
     }
 
     if (!contactName || !contactPhone) {
@@ -349,9 +352,13 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
 
     try {
       const createdRequests = [];
+      const targetTalentIds = selectedTalentIds.length > 0 ? selectedTalentIds : [null];
 
-      for (const profileId of selectedTalentIds) {
-        const talentDetail = selectedTalentsDetails.find((item) => String(item?.id || item?.profileId || item?.profile_id || "") === String(profileId));
+      for (const profileId of targetTalentIds) {
+        const talentDetail = profileId
+          ? selectedTalentsDetails.find((item) => String(item?.id || item?.profileId || item?.profile_id || "") === String(profileId))
+          : null;
+
         const bookingRequest = await createBookingRequest({
           profile_id: profileId,
           job_type: selectedJobType,
@@ -687,7 +694,7 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
           <div className="z-20 shrink-0 border-b border-white/10 bg-[#070913]/95 p-4 backdrop-blur-md flex items-center justify-between">
             <button
               type="button"
-              onClick={() => setStep(9)}
+              onClick={() => setStep(isFixedTalent ? 3 : 9)}
               className="flex h-9 w-9 items-center justify-center rounded-full border border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] transition-all hover:bg-[#C9A86A]/25 active:scale-95 cursor-pointer"
               title="Quay lại"
               aria-label="Quay lại"
@@ -1128,45 +1135,49 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
 
       {/* ── SUCCESS / DEPOSIT MODAL (STEP 5) ── */}
       {step === 5 && (
-        <div className="flex h-full w-full flex-col overflow-hidden bg-[#070913] text-white animate-in fade-in duration-300">
-          <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-white/10 bg-[#070913]/95 px-5 backdrop-blur-md">
+        <div className="flex h-full w-full flex-col overflow-hidden bg-[#FAF7F6] text-[#191116] animate-in fade-in duration-300 dark:bg-[#070913] dark:text-white">
+          <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-[#F0D7D3] bg-white px-5 backdrop-blur-md dark:border-white/10 dark:bg-[#070913]/95">
             <button
               type="button"
               onClick={() => setStep(getAuthToken() ? 10 : 4)}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5 text-amber-400"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF7F6] text-[#C72524] hover:bg-[#FFF0EE] cursor-pointer dark:border-white/15 dark:bg-white/5 dark:text-amber-400"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <h2 className="text-lg font-black">Đặt cọc</h2>
-            <button type="button" onClick={handleClose} className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-slate-900/80 text-amber-400">
+            <h2 className="text-lg font-black text-[#191116] dark:text-white">Đặt cọc</h2>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF7F6] text-[#C72524] hover:bg-[#FFF0EE] cursor-pointer dark:border-white/15 dark:bg-slate-900/80 dark:text-amber-400"
+            >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.10),transparent_34%),linear-gradient(180deg,#090713,#05050d)] p-5 pb-8">
-            <div className="space-y-1.5">
-              <h3 className="text-xl font-black tracking-tight text-white">Đặt cọc để gửi yêu cầu</h3>
-              <p className="max-w-sm text-xs font-semibold leading-relaxed text-slate-400">Khoản đặt cọc giúp giữ lịch ưu tiên và sẽ được trừ vào tổng chi phí khi booking thành công.</p>
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-[#FAF7F6] p-5 pb-8 dark:bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.10),transparent_34%),linear-gradient(180deg,#090713,#05050d)]">
+            <div className="space-y-1.5 text-left">
+              <h3 className="text-xl font-black tracking-tight text-[#191116] dark:text-white">Đặt cọc để gửi yêu cầu</h3>
+              <p className="max-w-sm text-xs font-medium leading-relaxed text-[#574D54] dark:text-slate-400">Khoản đặt cọc giúp giữ lịch ưu tiên và sẽ được trừ vào tổng chi phí khi booking thành công.</p>
             </div>
 
-            <div className="relative overflow-hidden rounded-3xl border border-amber-300/30 bg-gradient-to-br from-[#1a1608] via-[#0d0b14] to-[#080811] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.08)]">
-              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-300/10 blur-3xl" />
-              <div className="relative flex items-start gap-4">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-300/30 bg-amber-300/10 text-amber-300 shadow-[0_0_24px_rgba(245,158,11,0.16)]">
+            <div className="relative overflow-hidden rounded-3xl border border-[#F0D7D3] bg-white p-5 shadow-[0_8px_25px_rgba(143,7,9,0.06)] dark:border-amber-300/30 dark:bg-gradient-to-br dark:from-[#1a1608] dark:via-[#0d0b14] dark:to-[#080811] dark:shadow-[0_18px_55px_rgba(0,0,0,0.42)]">
+              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#FFF0EE] blur-3xl dark:bg-amber-300/10" />
+              <div className="relative flex items-start gap-4 text-left">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#F2DBD7] bg-[#FFF0EE] text-[#C72524] shadow-sm dark:border-amber-300/30 dark:bg-amber-300/10 dark:text-amber-300">
                   <Banknote className="h-6 w-6" />
                 </span>
                 <div className="min-w-0">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Số tiền đặt cọc</span>
-                  <p className="mt-1 text-3xl font-black tracking-tight text-amber-300">{DEPOSIT_AMOUNT_LABEL}</p>
-                  <p className="mt-3 text-xs font-semibold leading-relaxed text-slate-400">Số tiền này sẽ được trừ vào tổng chi phí nếu booking thành công.</p>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#574D54] dark:text-slate-400">Số tiền đặt cọc</span>
+                  <p className="mt-1 text-3xl font-black tracking-tight text-[#C72524] dark:text-amber-300">{DEPOSIT_AMOUNT_LABEL}</p>
+                  <p className="mt-3 text-xs font-semibold leading-relaxed text-[#574D54] dark:text-slate-400">Số tiền này sẽ được trừ vào tổng chi phí nếu booking thành công.</p>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 text-left">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-black text-white">Phương thức thanh toán</h3>
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Chọn 1</span>
+                <h3 className="text-sm font-black text-[#191116] dark:text-white">Phương thức thanh toán</h3>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#7B6866] dark:text-slate-500">Chọn 1</span>
               </div>
               {[
                 { key: "bank" as const, icon: Landmark, title: "Chuyển khoản ngân hàng", desc: "Quét mã QR để chuyển khoản" },
@@ -1180,18 +1191,20 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
                     type="button"
                     onClick={() => setPaymentMethod(item.key)}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-2xl border p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition active:scale-[0.99]",
-                      active ? "border-amber-300/70 bg-amber-300/10 shadow-[0_0_24px_rgba(245,158,11,0.12)]" : "border-white/10 bg-[#11111c] hover:border-white/20"
+                      "flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition active:scale-[0.99] cursor-pointer",
+                      active
+                        ? "border-2 border-[#C72524] bg-[#FFF0EE] shadow-sm dark:border-amber-300/70 dark:bg-amber-300/10"
+                        : "border border-[#F0D7D3] bg-white hover:border-[#C72524]/40 dark:border-white/10 dark:bg-[#11111c] dark:hover:border-white/20"
                     )}
                   >
-                    <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl border", active ? "border-amber-300/35 bg-amber-300/15 text-amber-300" : "border-white/10 bg-slate-950 text-slate-400")}>
+                    <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl border", active ? "border-[#F2DBD7] bg-[#FFF0EE] text-[#C72524] dark:border-amber-300/35 dark:bg-amber-300/15 dark:text-amber-300" : "border-[#F0D7D3] bg-[#FFF7F6] text-[#7B6866] dark:border-white/10 dark:bg-slate-950 dark:text-slate-400")}>
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-black text-white">{item.title}</span>
-                      <span className="mt-0.5 block text-xs font-semibold text-slate-500">{item.desc}</span>
+                      <span className="block text-sm font-black text-[#191116] dark:text-white">{item.title}</span>
+                      <span className="mt-0.5 block text-xs font-semibold text-[#574D54] dark:text-slate-500">{item.desc}</span>
                     </span>
-                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full border", active ? "border-amber-300 bg-amber-300 text-slate-950" : "border-white/15 text-transparent")}>
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full border", active ? "border-[#C72524] bg-[#C72524] text-white dark:border-amber-300 dark:bg-amber-300 dark:text-slate-950" : "border-[#F0D7D3] text-transparent dark:border-white/15")}>
                       <Check className="h-3.5 w-3.5" />
                     </span>
                   </button>
@@ -1199,8 +1212,12 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
               })}
             </div>
           </div>
-          <div className="z-20 shrink-0 border-t border-white/10 bg-[#070913]/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md">
-            <button type="button" onClick={() => setStep(6)} className="h-13 w-full rounded-2xl bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 text-xs font-black uppercase tracking-widest text-slate-950 shadow-[0_4px_25px_rgba(245,158,11,0.35)]">
+          <div className="z-20 shrink-0 border-t border-[#F0D7D3] bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md dark:border-white/10 dark:bg-[#070913]/95">
+            <button
+              type="button"
+              onClick={() => setStep(6)}
+              className="light-force-white h-13 w-full rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white text-xs font-black uppercase tracking-widest transition-all hover:brightness-110 active:scale-95 cursor-pointer dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:text-slate-950"
+            >
               Tiếp tục
             </button>
           </div>
@@ -1208,45 +1225,57 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
       )}
 
       {step === 6 && (
-        <div className="flex h-full w-full flex-col overflow-hidden bg-[#070913] text-white animate-in fade-in duration-300">
-          <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-white/10 bg-[#070913]/95 px-5 backdrop-blur-md">
-            <button type="button" onClick={() => setStep(5)} className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5 text-amber-400">
+        <div className="flex h-full w-full flex-col overflow-hidden bg-[#FAF7F6] text-[#191116] animate-in fade-in duration-300 dark:bg-[#070913] dark:text-white">
+          <div className="z-20 flex h-[88px] shrink-0 items-center justify-between border-b border-[#F0D7D3] bg-white px-5 backdrop-blur-md dark:border-white/10 dark:bg-[#070913]/95">
+            <button
+              type="button"
+              onClick={() => setStep(5)}
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF7F6] text-[#C72524] hover:bg-[#FFF0EE] cursor-pointer dark:border-white/15 dark:bg-white/5 dark:text-amber-400"
+            >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <h2 className="text-lg font-black">Chuyển khoản đặt cọc</h2>
-            <button type="button" onClick={handleClose} className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-slate-900/80 text-amber-400">
+            <h2 className="text-lg font-black text-[#191116] dark:text-white">Chuyển khoản đặt cọc</h2>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF7F6] text-[#C72524] hover:bg-[#FFF0EE] cursor-pointer dark:border-white/15 dark:bg-slate-900/80 dark:text-amber-400"
+            >
               <X className="h-5 w-5" />
             </button>
           </div>
-          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5 pb-8">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5 pb-8 text-left">
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div><span className="block font-black uppercase text-slate-500">Số tiền</span><span className="mt-1 block font-black text-white">{DEPOSIT_AMOUNT_LABEL}</span></div>
-              <div><span className="block font-black uppercase text-slate-500">Mã yêu cầu</span><span className="mt-1 block font-black text-white">{bookingCode}</span></div>
+              <div><span className="block font-black uppercase text-[#7B6866] dark:text-slate-500">Số tiền</span><span className="mt-1 block font-black text-[#C72524] dark:text-white">{DEPOSIT_AMOUNT_LABEL}</span></div>
+              <div><span className="block font-black uppercase text-[#7B6866] dark:text-slate-500">Mã yêu cầu</span><span className="mt-1 block font-black text-[#191116] dark:text-white">{bookingCode}</span></div>
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Nội dung chuyển khoản</span>
-              <p className="mt-1 break-words text-sm font-black text-white">ONSTAGE_DEPOC_{contactName || "HOTEN"}_{contactPhone || "SODT"}</p>
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#7B6866] dark:text-slate-500">Nội dung chuyển khoản</span>
+              <p className="mt-1 break-words text-sm font-black text-[#191116] dark:text-white">ONSTAGE_DEPOC_{contactName || "HOTEN"}_{contactPhone || "SODT"}</p>
             </div>
             <div className="flex flex-col items-center gap-3 py-2">
               <DepositQrCode payload={depositQrPayload} canvasRef={depositQrCanvasRef} />
               <button
                 type="button"
                 onClick={() => downloadQrImage(depositQrCanvasRef.current, `onstage-qr-${bookingCode.replace("#", "") || "deposit"}.png`)}
-                className="rounded-full border border-amber-300/35 bg-amber-300/10 px-4 py-2 text-xs font-black text-amber-200 transition hover:border-amber-300 hover:bg-amber-300/15 active:scale-95"
+                className="rounded-full border border-[#F2DBD7] bg-[#FFF0EE] px-4 py-2 text-xs font-black text-[#C72524] transition hover:bg-[#FFE8E5] active:scale-95 cursor-pointer dark:border-amber-300/35 dark:bg-amber-300/10 dark:text-amber-200"
               >
                 Tải QR về
               </button>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-xs font-semibold leading-relaxed text-slate-300">
-              <p className="font-black text-white">Thông tin tài khoản</p>
+            <div className="rounded-2xl border border-[#F0D7D3] bg-white p-4 text-xs font-semibold leading-relaxed text-[#574D54] shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300">
+              <p className="font-black text-[#191116] dark:text-white">Thông tin tài khoản</p>
               <p className="mt-2">Ngân hàng: Techcombank</p>
               <p>STK: 1234 5678 9012</p>
               <p>Chủ TK: ONSTAGE VN</p>
             </div>
-            <p className="text-xs font-semibold leading-relaxed text-slate-400">Sau khi chuyển khoản, yêu cầu của bạn sẽ được gửi đi tự động.</p>
+            <p className="text-xs font-semibold leading-relaxed text-[#574D54] dark:text-slate-400">Sau khi chuyển khoản, yêu cầu của bạn sẽ được gửi đi tự động.</p>
           </div>
-          <div className="z-20 shrink-0 border-t border-white/10 bg-[#070913]/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md">
-            <button type="button" onClick={() => setStep(7)} className="h-13 w-full rounded-2xl bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 text-xs font-black uppercase tracking-widest text-slate-950 shadow-[0_4px_25px_rgba(245,158,11,0.35)]">
+          <div className="z-20 shrink-0 border-t border-[#F0D7D3] bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md dark:border-white/10 dark:bg-[#070913]/95">
+            <button
+              type="button"
+              onClick={() => setStep(7)}
+              className="light-force-white h-13 w-full rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white text-xs font-black uppercase tracking-widest transition-all hover:brightness-110 active:scale-95 cursor-pointer dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:text-slate-950"
+            >
               Đã chuyển khoản
             </button>
           </div>
@@ -1254,39 +1283,72 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
       )}
 
       {step === 7 && (
-        <div className="flex h-full w-full flex-col items-center justify-center bg-[#070913] p-6 text-center text-white animate-in fade-in duration-300">
-          <div className="mb-10 flex h-24 w-24 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-400 shadow-[0_0_45px_rgba(52,211,153,0.28)]">
-            <CheckCircle2 className="h-14 w-14" />
+        <div className="relative flex h-full w-full flex-col items-center justify-center bg-[#FAF7F6] text-[#191116] p-6 text-center animate-in fade-in duration-300 dark:bg-[#070913] dark:text-white overflow-hidden">
+          {/* Ambient soft glow background decorations */}
+          <div className="pointer-events-none absolute -bottom-16 -right-16 h-80 w-80 rounded-full bg-gradient-to-tl from-[#FFD5CF]/50 via-[#FFF0EE]/30 to-transparent blur-2xl dark:from-amber-500/10 dark:to-transparent" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-gradient-to-tr from-[#FFD5CF]/40 via-[#FFF0EE]/20 to-transparent blur-2xl dark:from-amber-500/10 dark:to-transparent" />
+
+          {/* Top Multi-layered Glowing Circle Icon */}
+          <div className="relative mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-[#FFF0EE] border border-[#F2DBD7] shadow-sm dark:bg-amber-400/10 dark:border-amber-400/20">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#FFE5E2] dark:bg-amber-400/20">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-lg shadow-red-950/20">
+                <Check className="h-8 w-8 stroke-[3.5] !text-white text-white" />
+              </div>
+            </div>
+            <Sparkles className="absolute top-1 right-2 h-4 w-4 text-[#D4AF37] animate-pulse" />
+            <Sparkles className="absolute bottom-2 left-2 h-4 w-4 text-[#D4AF37] animate-pulse" />
           </div>
-          <h2 className="text-2xl font-black">Gửi yêu cầu thành công!</h2>
-          <div className="mt-5 max-w-xs space-y-4 text-sm font-semibold leading-relaxed text-slate-300">
+
+          {/* Heading */}
+          <h2 className="text-2xl sm:text-3xl font-display font-black text-[#8F0709] dark:text-white tracking-tight mb-2">
+            Gửi yêu cầu thành công!
+          </h2>
+
+          {/* Decorative Divider with Star */}
+          <div className="flex items-center justify-center gap-2.5 my-3">
+            <span className="h-[1px] w-14 bg-[#F2DBD7] dark:bg-white/10" />
+            <Sparkles className="h-3.5 w-3.5 text-[#D4AF37]" />
+            <span className="h-[1px] w-14 bg-[#F2DBD7] dark:bg-white/10" />
+          </div>
+
+          {/* Body Details */}
+          <div className="max-w-xs space-y-3.5 text-xs sm:text-sm font-medium leading-relaxed text-[#574D54] dark:text-slate-300">
             <p>Cảm ơn bạn đã đặt cọc {DEPOSIT_AMOUNT_LABEL}.</p>
-            <p>
-              Mã yêu cầu: <span className="font-black text-amber-300">{bookingCode}</span>
+            <p className="flex items-center justify-center gap-1.5 font-semibold">
+              Mã yêu cầu:{" "}
+              <span className="inline-block px-3 py-1 rounded-full bg-[#FFF0EE] border border-[#F2DBD7] text-[#8F0709] font-black text-xs font-mono dark:bg-amber-400/10 dark:border-amber-400/20 dark:text-amber-300">
+                {bookingCode}
+              </span>
             </p>
-            <p>
-              Chúng tôi sẽ liên hệ với bạn qua<br />
-              <span className="font-black text-white">{contactPhone || "số điện thoại"}</span>
-            </p>
-            <p>trong thời gian sớm nhất.</p>
+            <div>
+              <p className="text-xs font-semibold text-[#574D54] dark:text-slate-400">Chúng tôi sẽ liên hệ với bạn qua</p>
+              <p className="my-1.5 text-2xl font-black text-[#8F0709] tracking-wider dark:text-amber-400">
+                {contactPhone || "0123456"}
+              </p>
+              <p className="text-xs font-semibold text-[#574D54] dark:text-slate-400">trong thời gian sớm nhất.</p>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              if (onSuccess) onSuccess();
-              else router.push("/brand/my-bookings");
-            }}
-            className="mt-12 h-13 w-full max-w-sm rounded-2xl bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 text-xs font-black uppercase tracking-widest text-slate-950 shadow-[0_4px_25px_rgba(245,158,11,0.35)] cursor-pointer"
-          >
-            Xem yêu cầu của tôi
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/brand")}
-            className="mt-4 text-xs font-bold text-slate-300 underline underline-offset-4 transition hover:text-amber-300"
-          >
-            Quay về trang chủ
-          </button>
+
+          {/* Primary & Secondary Buttons */}
+          <div className="w-full max-w-xs space-y-3.5 pt-7 z-10">
+            <button
+              type="button"
+              onClick={() => {
+                if (onSuccess) onSuccess();
+                else router.push("/brand/my-bookings");
+              }}
+              className="light-force-white w-full py-3.5 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white text-xs font-black uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5 dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:text-slate-950"
+            >
+              XEM YÊU CẦU CỦA TÔI <ChevronRight className="h-4 w-4 stroke-[3]" />
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/brand")}
+              className="w-full py-3.5 rounded-full border border-[#C72524] bg-white text-[#C72524] hover:bg-[#FFF0EE] text-xs font-bold transition-all cursor-pointer dark:border-white/20 dark:bg-transparent dark:text-slate-300 dark:hover:bg-white/5"
+            >
+              Quay về trang chủ
+            </button>
+          </div>
         </div>
       )}
 

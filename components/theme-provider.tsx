@@ -15,16 +15,18 @@ export function applyAppTheme(theme: AppTheme) {
 }
 
 function getDefaultAppTheme(): AppTheme {
-  if (typeof window === "undefined") return "dark";
+  return "light";
+}
 
-  return window.matchMedia("(max-width: 767px)").matches ? "light" : "dark";
+function normalizeStoredTheme(value: string | null): AppTheme | null {
+  return value === "light" || value === "dark" ? value : null;
 }
 
 export function getStoredAppTheme(): AppTheme {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return getDefaultAppTheme();
 
-  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (storedTheme === "light" || storedTheme === "dark") return storedTheme;
+  const storedTheme = normalizeStoredTheme(window.localStorage.getItem(THEME_STORAGE_KEY));
+  if (storedTheme) return storedTheme;
 
   return getDefaultAppTheme();
 }

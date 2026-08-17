@@ -410,10 +410,10 @@ export default function PortfolioPage() {
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-300">
 
       {/* Cover Banner Header - Dynamic & Responsive */}
-      <div className="relative overflow-hidden rounded-[24px] border border-white/5 bg-[#05070e]/85 p-0 shadow-soft backdrop-blur-md md:rounded-[32px] md:p-6">
+      <div className="relative overflow-hidden rounded-[24px] border border-[#F0D7D3] bg-[#FAF7F6] p-0 shadow-sm backdrop-blur-md md:rounded-[32px] md:p-6 text-[#191116] dark:border-white/5 dark:bg-[#05070e]/85 dark:text-white">
 
         {/* Cover Background */}
-        <div className="group relative h-44 w-full overflow-hidden rounded-t-[24px] border-b border-white/5 bg-[#05070e] shadow-inner sm:h-56 md:h-72 md:rounded-2xl md:border">
+        <div className="group relative h-44 w-full overflow-hidden rounded-t-[24px] border-b border-[#F0D7D3] bg-white shadow-inner sm:h-56 md:h-72 md:rounded-2xl md:border dark:border-white/5 dark:bg-[#05070e]">
           {/* Cover image */}
           {normalizeBackendAssetUrl(profile.cover) ? (
             <img
@@ -429,20 +429,18 @@ export default function PortfolioPage() {
             </div>
           )}
 
-
-
           {/* Cover camera edit button in bottom-right corner */}
           <div className="absolute bottom-3 right-6 z-20" data-image-action-menu>
             <button
               type="button"
               onClick={() => setOpenImageActionMenu(openImageActionMenu === "cover" ? null : "cover")}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-[#F0C56B]/80 text-white hover:text-[#F0C56B] cursor-pointer shadow-soft transition-all active:scale-95"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 hover:bg-white border border-[#F0D7D3] hover:border-[#8F0709] text-[#8F0709] cursor-pointer shadow-sm transition-all active:scale-95 dark:bg-slate-950/80 dark:hover:bg-slate-950 dark:border-white/10 dark:text-white"
             >
               <Camera className="h-4.5 w-4.5" />
             </button>
             {openImageActionMenu === "cover" && (
-              <div className="absolute right-0 bottom-full mb-2 z-50 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#08090f] shadow-2xl">
-                <label className="flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/10 hover:text-[#F0C56B]">
+              <div className="absolute right-0 bottom-full mb-2 z-50 w-40 overflow-hidden rounded-xl border border-[#F0D7D3] bg-white shadow-2xl dark:border-white/10 dark:bg-[#08090f]">
+                <label className="flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-[#191116] transition hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-200 dark:hover:bg-white/10">
                   <Upload className="h-4 w-4 shrink-0" />
                   Chọn ảnh mới
                   <input
@@ -459,7 +457,7 @@ export default function PortfolioPage() {
                 <button
                   type="button"
                   onClick={() => handleRemoveProfileImage("cover")}
-                  className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-xs font-bold text-rose-300 transition hover:bg-rose-500/10 hover:text-rose-200"
+                  className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-xs font-bold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700 dark:text-rose-300 dark:hover:bg-rose-500/10"
                 >
                   <Trash2 className="h-4 w-4 shrink-0" />
                   Xóa ảnh
@@ -478,15 +476,15 @@ export default function PortfolioPage() {
 
         <div className="relative z-20 px-4 pb-4 md:hidden">
           <div className="-mt-6 flex items-start gap-3">
-            <div className="relative shrink-0 rounded-full bg-[#08090f] p-1 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
-              <div className="h-24 w-24 rounded-full bg-gradient-gold p-[3px] shadow-[0_0_20px_rgba(240,197,107,0.35)]">
+            <div className="relative shrink-0 rounded-full bg-white p-1 shadow-md dark:bg-[#08090f]">
+              <div className="h-24 w-24 rounded-full bg-gradient-gold p-[3px] shadow-sm">
                 <img
                   src={normalizeBackendAssetUrl(profile.avatar) || createInitialAvatarDataUrl(profile.name || "Khách truy cập", profile.email)}
                   alt={profile.name || "Khách truy cập"}
                   onError={(event) => {
                     event.currentTarget.src = createInitialAvatarDataUrl(profile.name || "Khách truy cập", profile.email);
                   }}
-                  className="h-full w-full rounded-full border border-black/10 object-cover"
+                  className="h-full w-full rounded-full border border-black/10 object-cover cursor-pointer"
                   onClick={() => normalizeBackendAssetUrl(profile.avatar) && setPreviewImage(normalizeBackendAssetUrl(profile.avatar))}
                 />
               </div>
@@ -495,13 +493,13 @@ export default function PortfolioPage() {
                 <button
                   type="button"
                   onClick={() => setOpenImageActionMenu(openImageActionMenu === "avatar" ? null : "avatar")}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#05070e] bg-[#F0C56B] text-slate-950 shadow-lg transition-all active:scale-95"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#FFF0EE] text-[#8F0709] shadow-lg transition-all active:scale-95 dark:border-[#05070e] dark:bg-[#F0C56B] dark:text-slate-950"
                 >
                   <Camera className="h-4 w-4" />
                 </button>
                 {openImageActionMenu === "avatar" && (
-                  <div className="absolute left-0 bottom-full z-50 mb-2 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#08090f] shadow-2xl">
-                    <label className="flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/10 hover:text-[#F0C56B]">
+                  <div className="absolute left-0 bottom-full z-50 mb-2 w-40 overflow-hidden rounded-xl border border-[#F0D7D3] bg-white shadow-2xl dark:border-white/10 dark:bg-[#08090f]">
+                    <label className="flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-[#191116] transition hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-200 dark:hover:bg-white/10">
                       <Upload className="h-4 w-4 shrink-0" />
                       Chọn ảnh mới
                       <input
@@ -518,7 +516,7 @@ export default function PortfolioPage() {
                     <button
                       type="button"
                       onClick={() => handleRemoveProfileImage("avatar")}
-                      className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-xs font-bold text-rose-300 transition hover:bg-rose-500/10 hover:text-rose-200"
+                      className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-xs font-bold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700 dark:text-rose-300 dark:hover:bg-rose-500/10"
                     >
                       <Trash2 className="h-4 w-4 shrink-0" />
                       Xóa ảnh
@@ -537,16 +535,16 @@ export default function PortfolioPage() {
             </div>
 
             <div className="min-w-0 flex-1 pt-7">
-              <h2 className="font-display text-lg font-black leading-tight tracking-wide text-white">
+              <h2 className="font-display text-lg font-black leading-tight tracking-wide text-[#191116] dark:text-white">
                 <span>{formatDisplayName(profile.name || "Chưa cập nhật")}</span>
-                <span className="ml-2 inline-flex h-4 w-4 select-none items-center justify-center rounded-full bg-amber-400 align-middle text-[9px] font-extrabold text-slate-950 shadow-md" title="Đã xác minh">
+                <span className="ml-2 inline-flex h-4 w-4 select-none items-center justify-center rounded-full bg-[#8F0709] align-middle text-[9px] font-extrabold text-white shadow-sm dark:bg-amber-400 dark:text-slate-950" title="Đã xác minh">
                   ✓
                 </span>
               </h2>
 
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-extrabold leading-snug text-slate-200">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-extrabold leading-snug text-[#574D54] dark:text-slate-200">
                 <span className="inline-flex items-center gap-1">
-                  <MapPin className="h-4 w-4 text-[#F0C56B]" />
+                  <MapPin className="h-4 w-4 text-[#8F0709] dark:text-[#F0C56B]" />
                   {profile.location || "Chưa cập nhật"}
                 </span>
                 {profile.isOnboarded && primaryBadge && (
@@ -557,7 +555,7 @@ export default function PortfolioPage() {
                     title="Xem chi tiết danh hiệu"
                   >
                     <BadgeTier badge={primaryBadge} tier={profile.tier} seed={profile.email || profile.name} variant="gradient" size="xs" />
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[10px] font-black text-white">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[10px] font-black text-[#8F0709] dark:border-white/10 dark:bg-white/10 dark:text-white">
                       ?
                     </span>
                   </button>
@@ -566,17 +564,17 @@ export default function PortfolioPage() {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-1.5 text-[10px] font-black leading-snug text-[#F0C56B]">
-            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1">
-              <Ruler className="h-3.5 w-3.5 shrink-0" />
+          <div className="mt-4 grid grid-cols-3 gap-1.5 text-[10px] font-black leading-snug text-[#8F0709] dark:text-[#F0C56B]">
+            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-1 shadow-sm dark:border-[#F0C56B]/20 dark:bg-[#F0C56B]/10">
+              <Ruler className="h-3.5 w-3.5 shrink-0 text-[#8F0709] dark:text-[#F0C56B]" />
               <span className="truncate">{profile.height ? formatHeight(profile.height) : "Chưa biết"}</span>
             </span>
-            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1">
-              <Scale className="h-3.5 w-3.5 shrink-0" />
+            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-1 shadow-sm dark:border-[#F0C56B]/20 dark:bg-[#F0C56B]/10">
+              <Scale className="h-3.5 w-3.5 shrink-0 text-[#8F0709] dark:text-[#F0C56B]" />
               <span className="truncate">{profile.weight ? `${profile.weight} kg` : "Chưa biết"}</span>
             </span>
-            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0C56B]/20 bg-[#F0C56B]/10 px-2 py-1 font-mono">
-              <User className="h-3.5 w-3.5 shrink-0" />
+            <span className="inline-flex min-w-0 items-center justify-center gap-1 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-1 font-mono shadow-sm dark:border-[#F0C56B]/20 dark:bg-[#F0C56B]/10">
+              <User className="h-3.5 w-3.5 shrink-0 text-[#8F0709] dark:text-[#F0C56B]" />
               <span className="truncate">{formatMeasurements(profile)}</span>
             </span>
           </div>
@@ -584,18 +582,18 @@ export default function PortfolioPage() {
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {profileTalentTypes.length ? (
               profileTalentTypes.map((type) => (
-                <span key={type} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                <span key={type} className="inline-flex rounded-md border border-[#F0D7D3] bg-[#FFF7F6] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                   {type}
                 </span>
               ))
             ) : (
-              <span className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+              <span className="inline-flex rounded-md border border-[#F0D7D3] bg-[#FFF7F6] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                 Idol mới
               </span>
             )}
 
             {profileSocialHighlights.map((highlight) => (
-              <span key={highlight} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+              <span key={highlight} className="inline-flex rounded-md border border-[#F0D7D3] bg-[#FFF7F6] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                 {highlight}
               </span>
             ))}
@@ -603,7 +601,7 @@ export default function PortfolioPage() {
             {profileSkills.map((skill) => (
               <span
                 key={skill}
-                className="inline-flex rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-slate-300"
+                className="inline-flex rounded-md border border-[#F0D7D3] bg-white px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#574D54] dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
               >
                 {skill}
               </span>
@@ -611,7 +609,7 @@ export default function PortfolioPage() {
           </div>
 
           {headerBio ? (
-            <div className="mt-3 border-t border-white/5 pt-3 text-left text-xs font-medium leading-relaxed text-slate-400">
+            <div className="mt-3 border-t border-[#F0D7D3] pt-3 text-left text-xs font-semibold leading-relaxed text-[#574D54] dark:border-white/5 dark:text-slate-400">
               {headerBio}
             </div>
           ) : null}
@@ -622,10 +620,10 @@ export default function PortfolioPage() {
               aria-disabled={portfolioLinks.length === 0}
               onClick={handleViewPortfolio}
               className={cn(
-                "flex h-12 w-full items-center justify-center rounded-2xl border px-4 text-xs font-black uppercase tracking-wider transition active:scale-95",
+                "flex h-12 w-full items-center justify-center rounded-2xl border px-4 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-sm",
                 portfolioLinks.length > 0
-                  ? "cursor-pointer border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
-                  : "cursor-not-allowed border-white/10 bg-white/[0.03] text-slate-500"
+                  ? "cursor-pointer border-[#F0D7D3] bg-white text-[#191116] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+                  : "cursor-not-allowed border-[#F0D7D3] bg-[#FFF7F6] text-[#9A8B88] dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-500"
               )}
             >
               <Eye className="mr-2 h-4 w-4 shrink-0 text-current" />
@@ -643,7 +641,7 @@ export default function PortfolioPage() {
               
               {/* Avatar block */}
               <div className="relative shrink-0">
-                <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-gradient-gold p-[3.5px] shadow-[0_0_25px_rgba(240,197,107,0.45)] relative">
+                <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-gradient-gold p-[3.5px] shadow-sm relative">
                   <img
                     src={normalizeBackendAssetUrl(profile.avatar) || createInitialAvatarDataUrl("Khách truy cập", profile.email)}
                     alt={profile.name || "Khách truy cập"}
@@ -660,13 +658,13 @@ export default function PortfolioPage() {
                   <button
                     type="button"
                     onClick={() => setOpenImageActionMenu(openImageActionMenu === "avatar" ? null : "avatar")}
-                    className="h-9 w-9 bg-[#F0C56B] text-slate-950 rounded-full border-2 border-[#05070e] hover:brightness-110 active:scale-95 shadow-lg flex items-center justify-center cursor-pointer transition-all"
+                    className="h-9 w-9 bg-[#FFF0EE] text-[#8F0709] rounded-full border-2 border-white hover:brightness-110 active:scale-95 shadow-md flex items-center justify-center cursor-pointer transition-all dark:bg-[#F0C56B] dark:text-slate-950 dark:border-[#05070e]"
                   >
                     <Camera className="h-4.5 w-4.5" />
                   </button>
                   {openImageActionMenu === "avatar" && (
-                    <div className="absolute right-0 bottom-full mb-2 z-50 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#08090f] shadow-2xl">
-                      <label className="flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-white/10 hover:text-[#F0C56B]">
+                    <div className="absolute right-0 bottom-full mb-2 z-50 w-40 overflow-hidden rounded-xl border border-[#F0D7D3] bg-white shadow-2xl dark:border-white/10 dark:bg-[#08090f]">
+                      <label className="flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-[#191116] transition hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-200 dark:hover:bg-white/10">
                         <Upload className="h-4 w-4 shrink-0" />
                         Chọn ảnh mới
                         <input
@@ -683,7 +681,7 @@ export default function PortfolioPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveProfileImage("avatar")}
-                        className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-xs font-bold text-rose-300 transition hover:bg-rose-500/10 hover:text-rose-200"
+                        className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-xs font-bold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700 dark:text-rose-300 dark:hover:bg-rose-500/10"
                       >
                         <Trash2 className="h-4 w-4 shrink-0" />
                         Xóa ảnh
@@ -703,9 +701,9 @@ export default function PortfolioPage() {
 
               {/* Details stack next to Avatar */}
               <div className="space-y-2.5 flex-1 min-w-0 w-full">
-                <h2 className="font-display font-black text-white text-2xl sm:text-3xl tracking-wide leading-tight text-center sm:text-left">
+                <h2 className="font-display font-black text-[#191116] text-2xl sm:text-3xl tracking-wide leading-tight text-center sm:text-left dark:text-white">
                   <span>{formatDisplayName(profile.name || "Chưa cập nhật")}</span>
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold shadow-md select-none ml-2 align-middle" title="Đã xác minh">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#8F0709] text-white text-[10px] font-extrabold shadow-sm select-none ml-2 align-middle dark:bg-amber-400 dark:text-slate-950" title="Đã xác minh">
                     ✓
                   </span>
                 </h2>
@@ -713,18 +711,18 @@ export default function PortfolioPage() {
                 <div className="flex flex-wrap justify-center items-center gap-1.5 sm:justify-start">
                   {profileTalentTypes.length ? (
                     profileTalentTypes.map((type) => (
-                      <span key={type} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                      <span key={type} className="inline-flex rounded-md border border-[#F0D7D3] bg-[#FFF7F6] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                         {type}
                       </span>
                     ))
                   ) : (
-                    <span className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                    <span className="inline-flex rounded-md border border-[#F0D7D3] bg-[#FFF7F6] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                       Idol mới
                     </span>
                   )}
 
                   {profileSocialHighlights.map((highlight) => (
-                    <span key={highlight} className="inline-flex rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#C9A86A]">
+                    <span key={highlight} className="inline-flex rounded-md border border-[#F0D7D3] bg-[#FFF7F6] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                       {highlight}
                     </span>
                   ))}
@@ -737,7 +735,7 @@ export default function PortfolioPage() {
                       title="Xem chi tiết danh hiệu"
                     >
                       <BadgeTier badge={primaryBadge} tier={profile.tier} seed={profile.email || profile.name} variant="gradient" />
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/10 bg-white/10 text-[8px] font-black text-white transition-colors hover:bg-white/25">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[8px] font-black text-[#8F0709] transition-colors dark:border-white/10 dark:bg-white/10 dark:text-white">
                         ?
                       </span>
                     </button>
@@ -745,22 +743,22 @@ export default function PortfolioPage() {
                 </div>
                 
                 {/* Location & Measurements Row */}
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-slate-400">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 text-[11px] sm:text-xs font-bold text-[#574D54] dark:text-slate-400">
                   <div className="flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4 text-[#F0C56B]" />
-                    <span className="text-slate-300 font-medium">{profile.location || "Chưa cập nhật"}</span>
+                    <MapPin className="h-4 w-4 text-[#8F0709] dark:text-[#F0C56B]" />
+                    <span className="text-[#191116] font-medium dark:text-slate-300">{profile.location || "Chưa cập nhật"}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Ruler className="h-4 w-4 text-[#F0C56B]" />
-                    <span className="text-slate-300 font-medium">{profile.height ? formatHeight(profile.height) : "Chưa cập nhật"}</span>
+                    <Ruler className="h-4 w-4 text-[#8F0709] dark:text-[#F0C56B]" />
+                    <span className="text-[#191116] font-medium dark:text-slate-300">{profile.height ? formatHeight(profile.height) : "Chưa cập nhật"}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Scale className="h-4 w-4 text-[#F0C56B]" />
-                    <span className="text-slate-300 font-medium">{profile.weight ? `${profile.weight} kg` : "Chưa cập nhật"}</span>
+                    <Scale className="h-4 w-4 text-[#8F0709] dark:text-[#F0C56B]" />
+                    <span className="text-[#191116] font-medium dark:text-slate-300">{profile.weight ? `${profile.weight} kg` : "Chưa cập nhật"}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <User className="h-4 w-4 text-[#F0C56B]" />
-                    <span className="text-slate-300 font-medium font-mono">{formatMeasurements(profile)}</span>
+                    <User className="h-4 w-4 text-[#8F0709] dark:text-[#F0C56B]" />
+                    <span className="text-[#191116] font-medium font-mono dark:text-slate-300">{formatMeasurements(profile)}</span>
                   </div>
                 </div>
 
@@ -769,7 +767,7 @@ export default function PortfolioPage() {
                     {profileSkills.map((skill) => (
                       <span
                         key={skill}
-                        className="inline-flex rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-slate-300"
+                        className="inline-flex rounded-md border border-[#F0D7D3] bg-white px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#574D54] dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
                       >
                         {skill}
                       </span>
@@ -779,22 +777,22 @@ export default function PortfolioPage() {
 
                 {/* Bio (Description) Row */}
                 {headerBio ? (
-                  <div className="text-[11px] sm:text-xs text-slate-400 font-medium leading-relaxed pt-2.5 border-t border-white/5 mt-1 text-center sm:text-left">
+                  <div className="text-[11px] sm:text-xs text-[#574D54] font-medium leading-relaxed pt-2.5 border-t border-[#F0D7D3] mt-1 text-center sm:text-left dark:border-white/5 dark:text-slate-400">
                     {headerBio}
                   </div>
                 ) : null}
 
                 {/* Portfolio URL Button */}
-                <div className="pt-3 flex justify-center">
+                <div className="pt-3 flex justify-center sm:justify-start">
                   <button
                     type="button"
                     aria-disabled={portfolioLinks.length === 0}
                     onClick={handleViewPortfolio}
                     className={cn(
-                      "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-[0_4px_15px_rgba(240,197,107,0.2)] active:scale-98 transition-all duration-300",
+                      "light-force-white inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider active:scale-98 transition-all duration-300 shadow-sm",
                       portfolioLinks.length > 0
-                        ? "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110 hover:scale-[1.02] cursor-pointer"
-                        : "border border-white/10 bg-white/[0.03] text-slate-500 cursor-not-allowed"
+                        ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white hover:brightness-110 hover:scale-[1.02] cursor-pointer"
+                        : "border border-[#F0D7D3] bg-[#FFF7F6] text-[#9A8B88] cursor-not-allowed dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-500"
                     )}
                   >
                     <Eye className="h-4 w-4 shrink-0 text-current" />
@@ -811,45 +809,32 @@ export default function PortfolioPage() {
         </div>
       </div>
 
-      {/* Main 3 Tab Navigation – responsive grid, no horizontal scroll */}
-      <div className="grid grid-cols-3 border-b border-[#151b2d]">
+      {/* Main 2 Tab Navigation – responsive grid, no horizontal scroll */}
+      <div className="grid grid-cols-2 border-b border-[#F0D7D3] dark:border-[#151b2d]">
         <button
           onClick={() => setActiveTab("personal-info")}
           className={cn(
-            "py-3 px-1 text-[10px] sm:text-xs font-black uppercase tracking-wide transition-all relative cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-center",
-            activeTab === "personal-info" ? "text-amber-400" : "text-slate-400 hover:text-white"
+            "py-3 px-1 text-[10px] sm:text-xs font-black uppercase tracking-wide transition-all relative cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-center border-r border-[#F0D7D3] dark:border-[#151b2d]",
+            activeTab === "personal-info" ? "text-[#8F0709] font-black dark:text-amber-400" : "text-[#574D54] hover:text-[#191116] dark:text-slate-400 dark:hover:text-white"
           )}
         >
           <User className="h-4 w-4 shrink-0" />
           <span className="leading-tight">Thông tin</span>
           {activeTab === "personal-info" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400 rounded-full" />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#8F0709] dark:bg-amber-400 rounded-full" />
           )}
         </button>
         <button
           onClick={() => setActiveTab("edit-info")}
           className={cn(
-            "py-3 px-1 text-[10px] sm:text-xs font-black uppercase tracking-wide transition-all relative cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-center border-x border-[#151b2d]",
-            activeTab === "edit-info" ? "text-[#f4c430]" : "text-slate-400 hover:text-white"
+            "py-3 px-1 text-[10px] sm:text-xs font-black uppercase tracking-wide transition-all relative cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-center",
+            activeTab === "edit-info" ? "text-[#8F0709] font-black dark:text-[#f4c430]" : "text-[#574D54] hover:text-[#191116] dark:text-slate-400 dark:hover:text-white"
           )}
         >
           <Edit3 className="h-4 w-4 shrink-0" />
           <span className="leading-tight">Cập nhật</span>
           {activeTab === "edit-info" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#f4c430] rounded-full" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab("addon-services")}
-          className={cn(
-            "py-3 px-1 text-[10px] sm:text-xs font-black uppercase tracking-wide transition-all relative cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 text-center",
-            activeTab === "addon-services" ? "text-purple-400" : "text-slate-400 hover:text-white"
-          )}
-        >
-          <Sparkles className="h-4 w-4 shrink-0 text-purple-400 animate-pulse" />
-          <span className="leading-tight">Dịch vụ</span>
-          {activeTab === "addon-services" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-400 rounded-full" />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#8F0709] dark:bg-[#f4c430] rounded-full" />
           )}
         </button>
       </div>
@@ -873,16 +858,6 @@ export default function PortfolioPage() {
             setActiveTab={setActiveTab}
           />
         )}
-
-        {activeTab === "addon-services" && (
-          <AddonServicesTab
-            profile={profile}
-            setProfile={setProfile}
-            addToast={addToast}
-            rankingScore={rankingScore}
-          />
-        )}
-
       </div>
 
       {/* Floating Toast Notification System */}

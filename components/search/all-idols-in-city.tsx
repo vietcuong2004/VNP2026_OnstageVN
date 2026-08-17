@@ -499,21 +499,26 @@ export default function TopIdolCity({
   };
 
   return (
-    <div className="fixed inset-0 z-[1100] flex h-dvh w-screen flex-col overflow-hidden bg-[#050711] text-white animate-in fade-in duration-200">
+    <>
+      <div className="fixed inset-0 z-[10998] bg-[#FAF7F6] dark:bg-[#070913] opacity-100 pointer-events-auto" />
+      <div
+        style={{ backgroundColor: "#FAF7F6" }}
+        className="fixed inset-0 z-[11000] flex h-dvh w-screen flex-col overflow-hidden bg-[#FAF7F6] text-[#191116] dark:!bg-[#070913] dark:text-white opacity-100 animate-in fade-in duration-200"
+      >
       {/* Header */}
-      <div className="shrink-0 border-b border-white/5 bg-[#070913] px-4 py-3">
+      <div className="shrink-0 border-b border-[#F2DBD7] bg-white dark:border-white/10 dark:bg-[#0c0f1d] px-4 py-3">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/5 bg-slate-950/40 text-white transition active:scale-95 cursor-pointer"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] hover:bg-[#FFF0EE] dark:border-white/10 dark:bg-[#14182a] dark:text-white transition active:scale-95 cursor-pointer"
             aria-label="Quay lại"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
 
           <div className="relative min-w-0 flex-1">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C72524] dark:text-[#C9A86A]" />
             <input
               type="text"
               value={searchQuery}
@@ -522,7 +527,7 @@ export default function TopIdolCity({
                 setUserTypedQuery(e.target.value);
               }}
               placeholder="Nhập địa điểm..."
-              className="h-10 w-full rounded-full border border-white/10 bg-slate-950/55 pl-9 pr-9 text-sm font-medium text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/60"
+              className="h-10 w-full rounded-full border border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] placeholder:text-[#574D54] focus:border-[#C72524] dark:border-white/10 dark:bg-[#14182a] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]/60 pl-9 pr-9 text-sm font-medium outline-none"
             />
             {searchQuery && (
               <button
@@ -532,7 +537,7 @@ export default function TopIdolCity({
                   setUserTypedQuery("");
                   setDraftCity("all");
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 transition active:scale-95 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#574D54] dark:text-slate-400 transition active:scale-95 cursor-pointer"
                 aria-label="Xóa tìm kiếm"
               >
                 <X className="h-3.5 w-3.5" />
@@ -543,9 +548,9 @@ export default function TopIdolCity({
           <button
             type="button"
             onClick={handleApplyFilter}
-            className="shrink-0 px-4 py-2 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-md hover:brightness-110 cursor-pointer"
+            className="shrink-0 px-5 py-2 rounded-full bg-[#C72524] hover:bg-[#8F0709] !text-white text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-md cursor-pointer"
           >
-            Áp dụng
+            <span className="!text-white font-black text-white">Áp dụng</span>
           </button>
         </div>
       </div>
@@ -555,7 +560,7 @@ export default function TopIdolCity({
         {targetCityObj && (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#C9A86A]">
+              <span className="text-xs font-black uppercase tracking-wider text-[#8F0709] dark:text-[#C9A86A]">
                 Tất cả Idol tại {targetCityObj.label} ({filteredDistricts.length})
               </span>
             </div>
@@ -575,15 +580,15 @@ export default function TopIdolCity({
                       setSearchQuery(`${targetCityObj.label}, ${district.label}`);
                       setUserTypedQuery("");
                     }}
-                    className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[#0b0e1a]/85 px-4 py-3.5 text-left text-xs font-bold text-slate-200 transition active:scale-[0.99] cursor-pointer hover:border-white/20 hover:bg-[#0e1222]"
+                    className="flex w-full items-center justify-between rounded-2xl border border-[#F2DBD7] bg-white px-4 py-3.5 text-left text-xs font-bold text-[#191116] transition active:scale-[0.99] cursor-pointer hover:border-[#C72524]/40 hover:bg-[#FFF8F7] dark:border-white/10 dark:bg-[#0c0f1d] dark:text-slate-200 dark:hover:border-white/20 dark:hover:bg-[#14182a]"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <MapPin className="h-4 w-4 shrink-0 text-[#C9A86A]" />
-                      <span className="truncate text-sm font-bold text-white">{district.label}</span>
+                      <MapPin className="h-4 w-4 shrink-0 text-[#C72524] dark:text-[#C9A86A]" />
+                      <span className="truncate text-sm font-bold text-[#191116] dark:text-white">{district.label}</span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs font-semibold text-slate-400">{district.count}</span>
-                      {isDistrictSelected && <Check className="h-4 w-4 text-emerald-400 shrink-0" />}
+                      <span className="text-xs font-semibold text-[#574D54] dark:text-slate-400">{district.count}</span>
+                      {isDistrictSelected && <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />}
                     </div>
                   </button>
                 );
@@ -591,8 +596,8 @@ export default function TopIdolCity({
 
               {filteredDistricts.length === 0 && (
                 <div className="col-span-full py-12 text-center space-y-2">
-                  <MapPin className="mx-auto h-8 w-8 text-slate-600" />
-                  <p className="text-sm font-semibold text-slate-400">
+                  <MapPin className="mx-auto h-8 w-8 text-[#574D54] dark:text-slate-600" />
+                  <p className="text-sm font-semibold text-[#574D54] dark:text-slate-400">
                     Không tìm thấy quận/huyện phù hợp tại {targetCityObj.label}
                   </p>
                 </div>
@@ -602,5 +607,6 @@ export default function TopIdolCity({
         )}
       </div>
     </div>
+    </>
   );
 }

@@ -1230,7 +1230,7 @@ export default function DiscoverTalentsPage() {
                   className={cn(
                     "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95 cursor-pointer",
                     isActive
-                      ? "border-[#E8C8C2] bg-[#FFF3F1] text-[#9B1215] shadow-[0_8px_18px_rgba(143,7,9,0.08)] dark:border-[#C9A86A]/70 dark:bg-[#C9A86A]/15 dark:text-[#F9D66D] dark:shadow-[0_0_14px_rgba(201,168,106,0.14)]"
+                      ? "border-[#E8C8C2] bg-[#FFF3F1] text-[#9B1215] dark:border-[#C9A86A]/70 dark:bg-[#C9A86A]/15 dark:text-[#F9D66D]"
                       : "border-[#F1D8D4] bg-white text-[#9B1215] hover:border-[#C72524]/35 hover:text-[#C72524] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-[#C9A86A]/35 dark:hover:text-white"
                   )}
                 >
@@ -1412,7 +1412,7 @@ export default function DiscoverTalentsPage() {
       )}
 
       {/* Unified Search Card */}
-      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#E4C8C2] bg-white p-6 mb-6 shadow-[0_18px_45px_rgba(143,7,9,0.08)] backdrop-blur-md dark:border-[#C9A86A]/30 dark:bg-[#0f121d]/90 dark:shadow-[0_0_30px_rgba(201,168,106,0.06)]">
+      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#E4C8C2] bg-white p-6 mb-6 backdrop-blur-md dark:border-[#C9A86A]/30 dark:bg-[#0f121d]/90">
         {/* Top Highlight line */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C72524] to-transparent pointer-events-none dark:via-[#C9A86A]" />
         <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#C72524]/5 blur-3xl opacity-60 pointer-events-none dark:bg-[#C9A86A]/5" />
@@ -1500,7 +1500,7 @@ export default function DiscoverTalentsPage() {
             <button
               type="button"
               onClick={applyFilters}
-              className="light-force-white flex-1 xl:flex-none h-[50px] px-6 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-xs font-black uppercase tracking-wider text-white transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(143,7,9,0.22)] flex items-center justify-center gap-1.5 whitespace-nowrap dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950 dark:hover:shadow-[0_0_15px_rgba(201,168,106,0.3)]"
+              className="light-force-white flex-1 xl:flex-none h-[50px] px-6 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-xs font-black uppercase tracking-wider text-white transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950"
             >
               <Search className="h-4 w-4" />
               <span>Tìm kiếm</span>
@@ -1513,7 +1513,7 @@ export default function DiscoverTalentsPage() {
               className={cn(
                 "flex-1 xl:flex-none h-[50px] px-4 rounded-2xl border text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap",
                 showAdvancedFilters
-                  ? "border-[#C72524] bg-[#FFF1EF] text-[#9B1215] shadow-[0_0_12px_rgba(143,7,9,0.10)] dark:border-[#C9A86A] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A] dark:shadow-[0_0_12px_rgba(201,168,106,0.15)]"
+                  ? "border-[#C72524] bg-[#FFF1EF] text-[#9B1215] dark:border-[#C9A86A] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]"
                   : "border-[#F0D7D3] bg-[#FFFDFC] text-[#9B1215] hover:bg-[#FFF1EF] hover:border-[#C72524]/40 hover:text-[#C72524] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:border-[#C9A86A]/40 dark:hover:text-white"
               )}
             >

@@ -124,7 +124,7 @@ export default function JobCard({
             stopCardClick(event);
             onApply(job);
           }}
-          className="light-force-white flex h-11 cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-xs font-black uppercase tracking-wider text-white shadow-[0_4px_20px_rgba(143,7,9,0.24)] transition-all hover:brightness-110 active:scale-[0.98] dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950 dark:shadow-[0_4px_20px_rgba(245,197,24,0.3)]"
+          className="light-force-white flex h-11 cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-xs font-black uppercase tracking-wider text-white transition-all hover:brightness-110 active:scale-[0.98] dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950"
         >
           ỨNG TUYỂN
         </button>
@@ -155,7 +155,7 @@ export default function JobCard({
   return (
     <div
       onClick={() => onView(job)}
-      className="relative flex h-full min-h-[525px] cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[#F0D7D3] bg-white shadow-[0_16px_34px_rgba(143,7,9,0.10)] transition-all duration-300 hover:border-[#C72524]/40 dark:border-[#1a1c2e] dark:bg-[#0a0b12] dark:shadow-xl dark:hover:border-[#f5c518]/30"
+      className="relative flex h-full min-h-[525px] cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[#F0D7D3] bg-white transition-all duration-300 hover:border-[#C72524]/40 dark:border-[#1a1c2e] dark:bg-[#0a0b12] dark:hover:border-[#f5c518]/30"
     >
       <div className="relative h-48 w-full shrink-0 overflow-hidden bg-[#FFF7F6] dark:bg-slate-900">
         <img
@@ -163,71 +163,71 @@ export default function JobCard({
           alt={job.title}
           className="h-full w-full object-cover"
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-white/10 via-transparent to-transparent dark:from-[#0a0b12] dark:via-[#0a0b12]/60" />
 
         <div className="absolute right-3 top-3 z-10">
-          <span className={cn("inline-block rounded-full px-3 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-lg", badge.className)}>
+          <span className={cn("inline-block rounded-full px-3 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-sm", badge.className)}>
             {badge.label}
           </span>
-        </div>
-
-        <div className="absolute bottom-2.5 left-3.5 right-3.5 z-10 flex items-center gap-2.5">
-          <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-white text-xs sm:text-sm font-black text-slate-950 shadow-xl dark:border-[#0a0b12]">
-            {job.brandLogo ? (
-              <img src={job.brandLogo} alt={job.brand} className="h-full w-full object-cover" />
-            ) : job.brand ? (
-              <span>{getBrandInitials(job.brand)}</span>
-            ) : null}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h4 className="truncate text-xs sm:text-sm font-black leading-normal tracking-tight text-[#9B1215] drop-shadow dark:text-[#f5c518]">
-              {job.brand}
-            </h4>
-          </div>
         </div>
       </div>
 
       <div className="flex flex-1 flex-col justify-between space-y-3 p-4 sm:p-5">
         <div className="flex flex-1 flex-col">
+          {/* Brand Logo & Brand Name */}
+          <div className="mb-2.5 flex items-center gap-2.5">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-xs sm:text-sm font-black text-[#8F0709] shadow-sm dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
+              {job.brandLogo ? (
+                <img src={job.brandLogo} alt={job.brand} className="h-full w-full object-cover" />
+              ) : job.brand ? (
+                <span>{getBrandInitials(job.brand)}</span>
+              ) : null}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h4 className="truncate text-xs sm:text-sm font-black leading-tight tracking-tight text-[#8F0709] dark:text-[#f5c518]">
+                {job.brand}
+              </h4>
+            </div>
+          </div>
+
           <h3
-            className="line-clamp-2 min-h-[44px] font-display text-sm sm:text-base font-extrabold leading-snug tracking-tight text-[#7A1114] transition-colors hover:text-[#C72524] dark:text-white dark:hover:text-[#f5c518]"
+            className="line-clamp-2 min-h-[44px] font-display text-sm sm:text-base font-extrabold leading-snug tracking-tight text-[#191116] transition-colors hover:text-[#8F0709] dark:text-white dark:hover:text-[#f5c518]"
           >
             {job.title}
           </h3>
 
-            <div className="mt-3.5 flex min-h-[50px] flex-col gap-2 text-xs font-medium text-[#7B6866] dark:text-slate-300">
-              <div className="flex items-center gap-2">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[#E9CFC5] bg-[#FFF7F6] dark:border-[#f5c518]/60 dark:bg-[#f5c518]/10">
-                  <Calendar className="h-3.5 w-3.5 text-[#C72524] dark:text-[#f5c518]" />
+          <div className="mt-3.5 flex min-h-[50px] flex-col gap-2 text-xs font-medium text-[#574D54] dark:text-slate-300">
+            <div className="flex items-center gap-2">
+              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] dark:border-[#f5c518]/60 dark:bg-[#f5c518]/10 dark:text-[#f5c518]">
+                <Calendar className="h-3.5 w-3.5" />
+              </div>
+              <span className="whitespace-nowrap text-xs leading-none">
+                <span className="text-[#574D54] font-semibold dark:text-slate-300">Hạn ứng tuyển:</span>{" "}
+                <span className="text-[#191116] font-bold dark:text-white">
+                  {job.applicationDeadline ? formatDate(job.applicationDeadline) : "Không có"}
+                </span>
+              </span>
+            </div>
+
+            {job.city && (
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] dark:border-[#f5c518]/60 dark:bg-[#f5c518]/10 dark:text-[#f5c518]">
+                  <MapPin className="h-3.5 w-3.5" />
                 </div>
-                <span className="whitespace-nowrap text-xs leading-none">
-                  <span className="text-[#7B6866] font-semibold dark:text-slate-300">Hạn ứng tuyển:</span>{" "}
-                  <span className="text-[#191116] font-bold dark:text-white">
-                    {job.applicationDeadline ? formatDate(job.applicationDeadline) : "Không có"}
-                  </span>
+                <span className="truncate text-xs leading-none">
+                  <span className="text-[#574D54] font-semibold dark:text-slate-300">Địa điểm:</span>{" "}
+                  <span className="text-[#191116] font-bold dark:text-white">{job.city}</span>
                 </span>
               </div>
-
-              {job.city && (
-                <div className="flex min-w-0 items-center gap-2">
-                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[#E9CFC5] bg-[#FFF7F6] dark:border-[#f5c518]/60 dark:bg-[#f5c518]/10">
-                    <MapPin className="h-3.5 w-3.5 text-[#C72524] dark:text-[#f5c518]" />
-                  </div>
-                  <span className="truncate text-xs leading-none">
-                    <span className="text-[#7B6866] font-semibold dark:text-slate-300">Địa điểm:</span>{" "}
-                    <span className="text-[#191116] font-bold dark:text-white">{job.city}</span>
-                  </span>
-                </div>
-              )}
-            </div>
+            )}
+          </div>
 
           {job.hasBudget && (
             <>
-              <div className="my-3 border-t border-[#F1D8D4] dark:border-[#1a1d30]" />
+              <div className="my-3 border-t border-[#F0D7D3] dark:border-[#1a1d30]" />
 
               <div className="min-h-[22px] min-w-0">
-                <span className="flex w-full items-center gap-1 font-mono text-[11px] xs:text-xs sm:text-xs md:text-sm font-black leading-tight tracking-tight text-[#C72524] dark:text-[#f5c518] whitespace-nowrap overflow-hidden">
-                  <CircleDollarSign className="h-4 w-4 shrink-0 text-[#C72524] dark:text-[#f5c518]" />
+                <span className="flex w-full items-center gap-1 font-mono text-[11px] xs:text-xs sm:text-xs md:text-sm font-black leading-tight tracking-tight text-[#8F0709] dark:text-[#f5c518] whitespace-nowrap overflow-hidden">
+                  <CircleDollarSign className="h-4 w-4 shrink-0 text-[#8F0709] dark:text-[#f5c518]" />
                   <span className="truncate">{formatDisplayBudget(job.budget)}</span>
                 </span>
               </div>
@@ -242,8 +242,8 @@ export default function JobCard({
               className={cn(
                 "flex h-9 sm:h-10 cursor-pointer items-center justify-center gap-1.5 rounded-full text-xs font-black transition-all active:scale-[0.98]",
                 isSaved
-                  ? "light-force-white border border-[#C72524]/60 bg-[#C72524] text-white hover:bg-[#A40E10] dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-400"
-                  : "border border-[#F1D8D4] bg-[#FFF7F6] text-[#9B1215] hover:border-[#C72524]/40 hover:bg-[#FFF1EF] dark:border-white/10 dark:bg-white/8 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
+                  ? "border border-[#8F0709] bg-[#FFF0EE] text-[#8F0709] hover:bg-[#8F0709] hover:text-white dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-400"
+                  : "border border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] dark:border-white/10 dark:bg-white/8 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
               )}
               aria-label={isSaved ? "Bỏ lưu job" : "Lưu job"}
               title={isSaved ? "Bỏ lưu job" : "Lưu job"}

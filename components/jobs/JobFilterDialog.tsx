@@ -161,32 +161,33 @@ export default function JobFilterDialog({
         style={{
           transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
           transition: isDragging ? "none" : "transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)",
+          backgroundColor: "var(--dialog-bg, #FAF7F6)",
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="fixed inset-x-0 bottom-0 top-[62px] h-[calc(100dvh-62px)] z-[1051] flex flex-col rounded-t-[2rem] border-t border-white/10 bg-[#070913] p-6 pb-0 shadow-[0_-10px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl animate-in slide-in-from-bottom duration-300 text-white overflow-hidden"
+        className="fixed inset-x-0 bottom-0 top-[62px] h-[calc(100dvh-62px)] z-[1051] flex flex-col rounded-t-[2rem] border-t border-[#F2DBD7] bg-[#FAF7F6] text-[#191116] dark:border-white/10 dark:!bg-[#070913] dark:text-white p-6 pb-0 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl animate-in slide-in-from-bottom duration-300 overflow-hidden"
       >
         {/* Top Drag Handle Indicator */}
         <div
           onMouseDown={handleMouseDown}
           className="mx-auto mb-3 -mt-2 flex w-full max-w-[200px] flex-col items-center py-2 cursor-grab active:cursor-grabbing touch-none select-none"
         >
-          <div className="h-1.5 w-12 rounded-full bg-white/30 hover:bg-amber-400 transition-colors" />
+          <div className="h-1.5 w-12 rounded-full bg-[#574D54]/30 hover:bg-[#C72524] dark:bg-white/30 dark:hover:bg-amber-400 transition-colors" />
         </div>
 
         {/* Dialog Header */}
-        <div className="flex shrink-0 items-center justify-between pb-3 border-b border-white/5 mb-4">
+        <div className="flex shrink-0 items-center justify-between pb-3 border-b border-[#F2DBD7] dark:border-white/5 mb-4">
           <h2
             id="job-filter-dialog-title"
-            className="font-display text-base font-black tracking-wide text-white uppercase"
+            className="font-display text-base font-black tracking-wide text-[#191116] dark:text-white uppercase"
           >
             Bộ lọc Job
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/5 bg-slate-950/60 text-slate-400 hover:text-white cursor-pointer"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#F2DBD7] bg-white text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#C72524] dark:border-white/5 dark:bg-slate-950/60 dark:text-slate-400 dark:hover:text-white cursor-pointer transition"
             aria-label="Đóng bộ lọc"
           >
             <X className="h-4 w-4" />
@@ -197,8 +198,8 @@ export default function JobFilterDialog({
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-1 py-1 pb-4 space-y-4 custom-scrollbar">
 
           {/* Sắp xếp Card */}
-          <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3 shadow-md shadow-black/10">
-            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+          <div className="relative z-0 p-4 rounded-3xl border border-[#F2DBD7] bg-white shadow-xs dark:border-white/5 dark:bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3 shadow-md shadow-black/5">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-[#C9A86A]">
               SẮP XẾP
             </span>
             <div className="space-y-2">
@@ -218,12 +219,12 @@ export default function JobFilterDialog({
                     className={cn(
                       "w-full px-4 py-3 rounded-2xl border text-xs md:text-sm font-semibold flex items-center justify-between transition-all cursor-pointer text-left",
                       isActive
-                        ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.12)]"
-                        : "border-white/10 bg-[#070913]/60 text-slate-300 hover:border-white/20 hover:text-white"
+                        ? "border-[#C72524] bg-[#FFF0EE] text-[#8F0709] font-bold shadow-xs dark:border-[#C9A86A] dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]"
+                        : "border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] hover:bg-[#FFF0EE] hover:border-[#C72524]/40 dark:border-white/10 dark:bg-[#070913]/60 dark:text-slate-300 dark:hover:border-white/20 dark:hover:text-white"
                     )}
                   >
                     <span>{option.label}</span>
-                    {isActive && <Check className="h-4 w-4 text-[#C9A86A] shrink-0 stroke-[3px]" />}
+                    {isActive && <Check className="h-4 w-4 text-[#C72524] dark:text-[#C9A86A] shrink-0 stroke-[3px]" />}
                   </button>
                 );
               })}
@@ -231,8 +232,8 @@ export default function JobFilterDialog({
           </div>
 
           {/* Loại hình job Card */}
-          <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+          <div className="p-4 rounded-3xl border border-[#F2DBD7] bg-white shadow-xs dark:border-white/5 dark:bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/5">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-[#C9A86A]">
               Loại hình job
             </span>
             <div className="grid grid-cols-2 gap-2">
@@ -246,16 +247,16 @@ export default function JobFilterDialog({
                     className={cn(
                       "py-2.5 px-3 rounded-full border text-xs font-semibold flex items-center justify-start gap-2.5 transition-all truncate cursor-pointer",
                       isActive
-                        ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                        : "border-white/10 bg-[#070913]/60 text-slate-355"
+                        ? "border-[#C72524] bg-[#FFF0EE] text-[#8F0709] font-bold shadow-xs dark:border-[#C9A86A] dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]"
+                        : "border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] hover:bg-[#FFF0EE] dark:border-white/10 dark:bg-[#070913]/60 dark:text-slate-300"
                     )}
                   >
                     <div
                       className={cn(
                         "w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-all",
                         isActive
-                          ? "border-[#C9A86A] bg-[#C9A86A] text-slate-950"
-                          : "border-white/20 bg-slate-950/40 text-transparent"
+                          ? "border-[#C72524] bg-[#C72524] text-white dark:border-[#C9A86A] dark:bg-[#C9A86A] dark:text-slate-950"
+                          : "border-[#F2DBD7] bg-white text-transparent dark:border-white/20 dark:bg-slate-950/40"
                       )}
                     >
                       <Check className="h-3 w-3 stroke-[3px]" />
@@ -268,8 +269,8 @@ export default function JobFilterDialog({
           </div>
 
           {/* Trạng thái Card */}
-          <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+          <div className="p-4 rounded-3xl border border-[#F2DBD7] bg-white shadow-xs dark:border-white/5 dark:bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/5">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-[#C9A86A]">
               Trạng thái
             </span>
             <div className="grid grid-cols-2 gap-2">
@@ -284,8 +285,8 @@ export default function JobFilterDialog({
                     className={cn(
                       "py-2.5 px-3 rounded-full border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all truncate cursor-pointer",
                       isActive
-                        ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                        : "border-white/10 bg-[#070913]/60 text-slate-355"
+                        ? "border-[#C72524] bg-[#FFF0EE] text-[#8F0709] font-bold shadow-xs dark:border-[#C9A86A] dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]"
+                        : "border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] hover:bg-[#FFF0EE] dark:border-white/10 dark:bg-[#070913]/60 dark:text-slate-300"
                     )}
                   >
                     <span className="truncate">{stageFilterLabels[option]}</span>
@@ -293,7 +294,7 @@ export default function JobFilterDialog({
                       <span
                         className={cn(
                           "rounded-full px-1.5 py-0.5 text-[9px] font-black shrink-0",
-                          isActive ? "bg-[#C9A86A]/20" : "bg-white/5 text-slate-500"
+                          isActive ? "bg-[#C72524]/20 text-[#8F0709] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]" : "bg-[#F2DBD7] text-[#574D54] dark:bg-white/5 dark:text-slate-500"
                         )}
                       >
                         {count}
@@ -306,13 +307,13 @@ export default function JobFilterDialog({
           </div>
 
           {/* Thù lao Card */}
-          <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+          <div className="p-4 rounded-3xl border border-[#F2DBD7] bg-white shadow-xs dark:border-white/5 dark:bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/5">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-[#C9A86A]">
               Thù lao
             </span>
             <div className="space-y-3">
               <label className="block">
-                <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-500">
                   Tối thiểu
                 </span>
                 <div className="relative">
@@ -322,16 +323,16 @@ export default function JobFilterDialog({
                     value={minBudget ? formatVNDNumber(minBudget) : ""}
                     onChange={(event) => setMinBudget(parseVNDNumber(event.target.value))}
                     placeholder="VD: 700.000"
-                    className="h-9 w-full rounded-full border border-white/10 bg-[#070913]/60 px-3 pr-24 text-xs font-semibold text-white outline-none focus:border-[#C9A86A]/60"
+                    className="h-9 w-full rounded-full border border-[#F2DBD7] bg-[#FFF8F7] px-3 pr-24 text-xs font-semibold text-[#191116] outline-none placeholder:text-[#574D54] focus:border-[#C72524] dark:border-white/10 dark:bg-[#070913]/60 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]/60"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-500">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-[#574D54] dark:text-slate-500">
                     VND / ngày
                   </span>
                 </div>
               </label>
 
               <label className="block">
-                <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-500">
                   Tối đa
                 </span>
                 <div className="relative">
@@ -341,9 +342,9 @@ export default function JobFilterDialog({
                     value={maxBudget ? formatVNDNumber(maxBudget) : ""}
                     onChange={(event) => setMaxBudget(parseVNDNumber(event.target.value))}
                     placeholder="VD: 1.000.000"
-                    className="h-9 w-full rounded-full border border-white/10 bg-[#070913]/60 px-3 pr-24 text-xs font-semibold text-white outline-none focus:border-[#C9A86A]/60"
+                    className="h-9 w-full rounded-full border border-[#F2DBD7] bg-[#FFF8F7] px-3 pr-24 text-xs font-semibold text-[#191116] outline-none placeholder:text-[#574D54] focus:border-[#C72524] dark:border-white/10 dark:bg-[#070913]/60 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]/60"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-500">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-[#574D54] dark:text-slate-500">
                     VND / ngày
                   </span>
                 </div>
@@ -353,11 +354,11 @@ export default function JobFilterDialog({
         </div>
 
         {/* Footer Actions */}
-        <div className="shrink-0 border-t border-white/10 bg-[#070913] -mx-6 px-6 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] flex gap-3 z-10">
+        <div className="shrink-0 border-t border-[#F2DBD7] bg-white dark:border-white/10 dark:bg-[#070913] -mx-6 px-6 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] flex gap-3 z-10">
           <button
             type="button"
             onClick={onReset}
-            className="w-1/2 py-3 rounded-full border border-white/10 bg-slate-900/60 text-slate-300 text-xs font-semibold uppercase tracking-wider transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-1/2 py-3 rounded-full border border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] hover:bg-[#FFF0EE] dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-300 text-xs font-semibold uppercase tracking-wider transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
           >
             Đặt lại
           </button>
@@ -367,9 +368,9 @@ export default function JobFilterDialog({
               onApply();
               onClose();
             }}
-            className="w-1/2 py-3 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-1/2 py-3 rounded-full bg-[#C72524] hover:bg-[#8F0709] !text-white text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5 cursor-pointer dark:bg-gradient-to-r dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600"
           >
-            Áp dụng
+            <span className="!text-white dark:text-slate-950 font-black">Áp dụng</span>
           </button>
         </div>
       </div>

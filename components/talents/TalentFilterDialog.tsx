@@ -178,11 +178,11 @@ function CityCombobox({
     <div ref={comboboxRef} className="relative">
       <div
         className={cn(
-          "relative flex h-11 items-center rounded-2xl border border-white/10 bg-[#070913]/70 transition-all",
-          isOpen && "border-[#C9A86A]/60 bg-slate-950/80"
+          "relative flex h-11 items-center rounded-2xl border border-[#F2DBD7] bg-[#FFF8F7] dark:border-white/10 dark:bg-[#070913]/70 transition-all",
+          isOpen && "border-[#C72524] bg-white dark:border-[#C9A86A]/60 dark:bg-slate-950/80"
         )}
       >
-        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
+        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C72524] dark:text-[#C9A86A]" />
         <input
           type="text"
           value={isOpen ? searchInput : selectedOption?.label || ""}
@@ -195,7 +195,7 @@ function CityCombobox({
             setIsOpen(true);
           }}
           placeholder="Tìm kiếm tỉnh thành..."
-          className="h-full min-w-0 flex-1 rounded-2xl bg-transparent pl-10 pr-10 text-xs font-semibold text-white outline-none placeholder:text-slate-500"
+          className="h-full min-w-0 flex-1 rounded-2xl bg-transparent pl-10 pr-10 text-xs font-semibold text-[#191116] outline-none placeholder:text-[#574D54] dark:text-white dark:placeholder:text-slate-500"
         />
         <button
           type="button"
@@ -203,15 +203,15 @@ function CityCombobox({
             setIsOpen((current) => !current);
             setSearchInput("");
           }}
-          className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-white/5 hover:text-white"
+          className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[#574D54] transition hover:bg-[#FFF0EE] hover:text-[#C72524] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
           aria-label="Mở danh sách tỉnh thành"
         >
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180 text-[#C9A86A]")} />
+          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180 text-[#C72524] dark:text-[#C9A86A]")} />
         </button>
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-[1001] mt-2 overflow-hidden rounded-2xl border border-white/10 bg-[#080b15] p-1.5 shadow-2xl">
+        <div className="absolute left-0 right-0 top-full z-[1001] mt-2 overflow-hidden rounded-2xl border border-[#F2DBD7] bg-white p-1.5 shadow-2xl dark:border-white/10 dark:bg-[#080b15]">
           <div className="max-h-56 space-y-0.5 overflow-y-auto pr-1 custom-scrollbar">
             {filteredOptions.map((option) => {
               const isActive = option.value === value;
@@ -227,18 +227,18 @@ function CityCombobox({
                   className={cn(
                     "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition",
                     isActive
-                      ? "bg-[#C9A86A]/15 text-[#C9A86A]"
-                      : "text-slate-300 hover:bg-white/5 hover:text-white"
+                      ? "bg-[#FFF0EE] text-[#8F0709] font-bold dark:bg-[#C9A86A]/15 dark:text-[#C9A86A]"
+                      : "text-[#191116] hover:bg-[#FFF8F7] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                   )}
                 >
                   <span className="truncate">{option.label}</span>
-                  {isActive && <Check className="h-4 w-4 shrink-0" />}
+                  {isActive && <Check className="h-4 w-4 shrink-0 text-[#C72524] dark:text-[#C9A86A]" />}
                 </button>
               );
             })}
 
             {filteredOptions.length === 0 && (
-              <div className="px-3 py-4 text-center text-xs font-semibold text-slate-500">
+              <div className="px-3 py-4 text-center text-xs font-semibold text-[#574D54] dark:text-slate-500">
                 Không tìm thấy tỉnh thành
               </div>
             )}
@@ -372,29 +372,30 @@ export default function TalentFilterDialog({
         style={{
           transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
           transition: isDragging ? "none" : "transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)",
+          backgroundColor: "var(--dialog-bg, #FAF7F6)",
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="fixed inset-x-0 bottom-0 top-[62px] h-[calc(100dvh-62px)] z-[1051] flex flex-col rounded-t-[2rem] border-t border-white/10 bg-[#070913] p-6 pb-0 shadow-[0_-10px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl animate-in slide-in-from-bottom duration-300 text-white overflow-hidden"
+        className="fixed inset-x-0 bottom-0 top-[62px] h-[calc(100dvh-62px)] z-[1051] flex flex-col rounded-t-[2rem] border-t border-[#F2DBD7] bg-[#FAF7F6] text-[#191116] dark:border-white/10 dark:!bg-[#070913] dark:text-white p-6 pb-0 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl animate-in slide-in-from-bottom duration-300 overflow-hidden"
       >
         {/* Top Drag Handle Indicator */}
         <div
           onMouseDown={handleMouseDown}
           className="mx-auto mb-3 -mt-2 flex w-full max-w-[200px] flex-col items-center py-2 cursor-grab active:cursor-grabbing touch-none select-none"
         >
-          <div className="h-1.5 w-12 rounded-full bg-white/30 hover:bg-amber-400 transition-colors" />
+          <div className="h-1.5 w-12 rounded-full bg-[#574D54]/30 hover:bg-[#C72524] dark:bg-white/30 dark:hover:bg-amber-400 transition-colors" />
         </div>
 
         {/* Dialog Header */}
-        <div className="flex shrink-0 items-center justify-between pb-3 border-b border-white/5 mb-4">
-          <h2 className="font-display text-base font-black tracking-wide text-white uppercase">
+        <div className="flex shrink-0 items-center justify-between pb-3 border-b border-[#F2DBD7] dark:border-white/5 mb-4">
+          <h2 className="font-display text-base font-black tracking-wide text-[#191116] dark:text-white uppercase">
             Bộ lọc Idol
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/5 bg-slate-950/60 text-slate-400 hover:text-white cursor-pointer"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#F2DBD7] bg-white text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#C72524] dark:border-white/5 dark:bg-slate-950/60 dark:text-slate-400 dark:hover:text-white cursor-pointer transition"
           >
             <X className="h-4 w-4" />
           </button>
@@ -402,8 +403,8 @@ export default function TalentFilterDialog({
 
         {/* Scrollable Content Container */}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-1 py-1 pb-4 space-y-4 custom-scrollbar">
-          <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+          <div className="relative z-0 p-4 rounded-3xl border border-[#F2DBD7] bg-white shadow-xs dark:border-white/5 dark:bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/5">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-[#C9A86A]">
               Lọc theo
             </span>
             <div className="grid grid-cols-2 gap-2">
@@ -417,8 +418,8 @@ export default function TalentFilterDialog({
                     className={cn(
                       "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate cursor-pointer",
                       isActive
-                        ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                        : "border-white/10 bg-[#070913]/60 text-slate-350"
+                        ? "border-[#C72524] bg-[#FFF0EE] text-[#8F0709] font-bold shadow-xs dark:border-[#C9A86A] dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]"
+                        : "border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] hover:bg-[#FFF0EE] dark:border-white/10 dark:bg-[#070913]/60 dark:text-slate-350"
                     )}
                   >
                     {option.label}
@@ -428,8 +429,8 @@ export default function TalentFilterDialog({
             </div>
           </div>
 
-          <div className="relative z-0 p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+          <div className="relative z-0 p-4 rounded-3xl border border-[#F2DBD7] bg-white shadow-xs dark:border-white/5 dark:bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/5">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-[#C9A86A]">
               Giới tính
             </span>
             <div className="grid grid-cols-3 gap-2">
@@ -443,8 +444,8 @@ export default function TalentFilterDialog({
                     className={cn(
                       "py-2.5 px-3 rounded-full border text-xs font-semibold text-center transition-all truncate cursor-pointer",
                       isActive
-                        ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                        : "border-white/10 bg-[#070913]/60 text-slate-350"
+                        ? "border-[#C72524] bg-[#FFF0EE] text-[#8F0709] font-bold shadow-xs dark:border-[#C9A86A] dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]"
+                        : "border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] hover:bg-[#FFF0EE] dark:border-white/10 dark:bg-[#070913]/60 dark:text-slate-350"
                     )}
                   >
                     {option.label}
@@ -454,8 +455,8 @@ export default function TalentFilterDialog({
             </div>
           </div>
 
-          <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+          <div className="p-4 rounded-3xl border border-[#F2DBD7] bg-white shadow-xs dark:border-white/5 dark:bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/5">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-[#C9A86A]">
               Loại hình
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -487,16 +488,16 @@ export default function TalentFilterDialog({
                     className={cn(
                       "py-2 px-3 rounded-full border text-xs font-semibold flex items-center justify-start gap-2.5 transition-all truncate cursor-pointer",
                       isActive
-                        ? "border-[#C9A86A] bg-[#C9A86A]/10 text-[#C9A86A] font-bold shadow-[0_0_12px_rgba(201,168,106,0.1)]"
-                        : "border-white/10 bg-[#070913]/60 text-slate-355"
+                        ? "border-[#C72524] bg-[#FFF0EE] text-[#8F0709] font-bold shadow-xs dark:border-[#C9A86A] dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]"
+                        : "border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] hover:bg-[#FFF0EE] dark:border-white/10 dark:bg-[#070913]/60 dark:text-slate-355"
                     )}
                   >
                     <div
                       className={cn(
                         "w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-all",
                         isActive
-                          ? "border-[#C9A86A] bg-[#C9A86A] text-slate-950"
-                          : "border-white/20 bg-slate-950/40 text-transparent"
+                          ? "border-[#C72524] bg-[#C72524] text-white dark:border-[#C9A86A] dark:bg-[#C9A86A] dark:text-slate-950"
+                          : "border-[#F2DBD7] bg-white text-transparent dark:border-white/20 dark:bg-slate-950/40"
                       )}
                     >
                       <Check className="h-3 w-3 stroke-[3px]" />
@@ -508,61 +509,61 @@ export default function TalentFilterDialog({
             </div>
           </div>
 
-          <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+          <div className="p-4 rounded-3xl border border-[#F2DBD7] bg-white shadow-xs dark:border-white/5 dark:bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/5">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-[#C9A86A]">
               Chiều cao ({minHeight} - {maxHeight}cm)
             </span>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-semibold">Từ:</span>
+                <span className="text-xs text-[#574D54] dark:text-slate-500 font-semibold">Từ:</span>
                 <input
                   type="number"
                   min={140}
                   max={200}
                   value={minHeight}
                   onChange={(event) => setMinHeight(Number(event.target.value))}
-                  className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                  className="w-full h-9 rounded-full border border-[#F2DBD7] bg-[#FFF8F7] px-3 text-xs text-[#191116] outline-none focus:border-[#C72524] text-center font-semibold dark:border-white/10 dark:bg-[#070913]/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-semibold">Đến:</span>
+                <span className="text-xs text-[#574D54] dark:text-slate-500 font-semibold">Đến:</span>
                 <input
                   type="number"
                   min={140}
                   max={200}
                   value={maxHeight}
                   onChange={(event) => setMaxHeight(Number(event.target.value))}
-                  className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                  className="w-full h-9 rounded-full border border-[#F2DBD7] bg-[#FFF8F7] px-3 text-xs text-[#191116] outline-none focus:border-[#C72524] text-center font-semibold dark:border-white/10 dark:bg-[#070913]/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                 />
               </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-3xl border border-white/5 bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/10">
-            <span className="block text-[11px] font-black uppercase tracking-wider text-[#C9A86A]">
+          <div className="p-4 rounded-3xl border border-[#F2DBD7] bg-white shadow-xs dark:border-white/5 dark:bg-[#0b0e1a]/85 backdrop-blur-sm space-y-3.5 shadow-md shadow-black/5">
+            <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-[#C9A86A]">
               Cân nặng ({minWeight} - {maxWeight}kg)
             </span>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-semibold">Từ:</span>
+                <span className="text-xs text-[#574D54] dark:text-slate-500 font-semibold">Từ:</span>
                 <input
                   type="number"
                   min={35}
                   max={120}
                   value={minWeight}
                   onChange={(event) => setMinWeight(Number(event.target.value))}
-                  className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                  className="w-full h-9 rounded-full border border-[#F2DBD7] bg-[#FFF8F7] px-3 text-xs text-[#191116] outline-none focus:border-[#C72524] text-center font-semibold dark:border-white/10 dark:bg-[#070913]/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-semibold">Đến:</span>
+                <span className="text-xs text-[#574D54] dark:text-slate-500 font-semibold">Đến:</span>
                 <input
                   type="number"
                   min={35}
                   max={120}
                   value={maxWeight}
                   onChange={(event) => setMaxWeight(Number(event.target.value))}
-                  className="w-full h-9 rounded-full border border-white/10 bg-[#070913]/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center font-semibold"
+                  className="w-full h-9 rounded-full border border-[#F2DBD7] bg-[#FFF8F7] px-3 text-xs text-[#191116] outline-none focus:border-[#C72524] text-center font-semibold dark:border-white/10 dark:bg-[#070913]/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                 />
               </div>
             </div>
@@ -570,11 +571,11 @@ export default function TalentFilterDialog({
         </div>
 
         {/* Footer Actions */}
-        <div className="shrink-0 border-t border-white/10 bg-[#070913] -mx-6 px-6 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] flex gap-3 z-10">
+        <div className="shrink-0 border-t border-[#F2DBD7] bg-white dark:border-white/10 dark:bg-[#070913] -mx-6 px-6 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] flex gap-3 z-10">
           <button
             type="button"
             onClick={onReset}
-            className="w-1/2 py-3 rounded-full border border-white/10 bg-slate-900/60 text-slate-300 text-xs font-semibold uppercase tracking-wider transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-1/2 py-3 rounded-full border border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] hover:bg-[#FFF0EE] dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-300 text-xs font-semibold uppercase tracking-wider transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
           >
             Đặt lại
           </button>
@@ -584,9 +585,9 @@ export default function TalentFilterDialog({
               onApply();
               onClose();
             }}
-            className="w-1/2 py-3 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-1/2 py-3 rounded-full bg-[#C72524] hover:bg-[#8F0709] !text-white text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-lg flex items-center justify-center gap-1.5 cursor-pointer dark:bg-gradient-to-r dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600"
           >
-            Áp dụng
+            <span className="!text-white dark:text-slate-950 font-black">Áp dụng</span>
           </button>
         </div>
       </div>

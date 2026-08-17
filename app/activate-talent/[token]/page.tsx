@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -170,7 +170,7 @@ export default function TalentActivationPage() {
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 text-sm font-bold text-white outline-none focus:border-amber-400/50"
+                  className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 text-sm font-bold text-[#C72524] outline-none focus:border-amber-400/50"
                   placeholder="ten@email.com"
                 />
               </label>
@@ -185,7 +185,7 @@ export default function TalentActivationPage() {
                   minLength={8}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 text-sm font-bold text-white outline-none focus:border-amber-400/50"
+                  className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 text-sm font-bold text-[#C72524] outline-none focus:border-amber-400/50"
                   placeholder="Tối thiểu 8 ký tự"
                 />
               </label>
@@ -200,7 +200,7 @@ export default function TalentActivationPage() {
                   minLength={8}
                   value={passwordConfirmation}
                   onChange={(event) => setPasswordConfirmation(event.target.value)}
-                  className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 text-sm font-bold text-white outline-none focus:border-amber-400/50"
+                  className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 text-sm font-bold text-[#C72524] outline-none focus:border-amber-400/50"
                   placeholder="Nhập lại mật khẩu"
                 />
               </label>

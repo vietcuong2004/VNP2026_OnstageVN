@@ -28,10 +28,10 @@ export default function ViewedIdol({
 }: ViewedIdolProps) {
   if (talents.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/5 bg-slate-950/25 p-10 text-center">
-        <BookmarkCheck className="mx-auto mb-3 h-8 w-8 text-slate-600" />
-        <h3 className="text-sm font-black text-white">Chưa có idol nào đã xem</h3>
-        <p className="mt-2 text-xs text-slate-500">Hãy mở hồ sơ idol từ màn Tìm kiếm Idol để lưu vào lịch sử đã xem.</p>
+      <div className="rounded-2xl border border-[#F0D7D3] bg-white p-10 text-center shadow-sm dark:border-white/5 dark:bg-slate-950/25">
+        <BookmarkCheck className="mx-auto mb-3 h-8 w-8 text-[#8F0709] dark:text-slate-600" />
+        <h3 className="text-sm font-black text-[#191116] dark:text-white">Chưa có idol nào đã xem</h3>
+        <p className="mt-2 text-xs text-[#574D54] dark:text-slate-500">Hãy mở hồ sơ idol từ màn Tìm kiếm Idol để lưu vào lịch sử đã xem.</p>
       </div>
     );
   }

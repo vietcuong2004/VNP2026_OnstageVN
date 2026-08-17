@@ -97,7 +97,7 @@ export default function TalentCardMobile({
     <article
       onClick={() => onView?.(talent)}
       className={cn(
-        "group flex min-w-0 flex-col justify-between rounded-3xl border border-[#F0D7D3] bg-white p-3 shadow-[0_16px_34px_rgba(143,7,9,0.10)] transition-all duration-300 hover:border-[#C72524]/45 dark:border-[#2B313D] dark:bg-[#171A21] dark:shadow-xl dark:hover:border-[#C9A86A]/40 sm:p-4",
+        "group flex min-w-0 flex-col justify-between rounded-3xl border border-[#F0D7D3] bg-white p-3 transition-all duration-300 hover:border-[#C72524]/45 dark:border-[#2B313D] dark:bg-[#171A21] dark:hover:border-[#C9A86A]/40 sm:p-4",
         onView && "cursor-pointer active:scale-[0.99]",
         className
       )}
@@ -119,7 +119,7 @@ export default function TalentCardMobile({
         {/* Right: 2 Stat Pills on 1 Single Line */}
         <div className="contents">
           {/* 1. Lượt booking pill */}
-          <div className="flex min-w-0 max-w-full items-center justify-center gap-1 rounded-full border border-[#E9CFC5] bg-[#FFFDFB] px-1 py-0.5 text-[#A36C1D] shadow-[0_5px_14px_rgba(143,7,9,0.06)] dark:border-amber-500/40 dark:bg-[#16140e] dark:text-amber-300 dark:shadow-sm">
+          <div className="flex min-w-0 max-w-full items-center justify-center gap-1 rounded-full border border-[#E9CFC5] bg-[#FFFDFB] px-1 py-0.5 text-[#A36C1D] dark:border-amber-500/40 dark:bg-[#16140e] dark:text-amber-300">
             <CalendarCheck className="h-3 w-3 shrink-0 text-[#A36C1D] dark:text-amber-400" />
             <span className="min-w-0 whitespace-nowrap text-[7.5px] font-black text-[#A36C1D] dark:text-amber-300">
               {mockStats.bookings} lượt booking
@@ -127,7 +127,7 @@ export default function TalentCardMobile({
           </div>
 
           {/* 2. Đánh giá pill */}
-          <div className="flex min-w-0 max-w-full items-center justify-center gap-1 rounded-full border border-[#F1D5D8] bg-[#FFF7F8] px-1.5 py-0.5 text-[#C72524] shadow-[0_5px_14px_rgba(143,7,9,0.06)] dark:border-purple-500/40 dark:bg-[#191022] dark:text-purple-300 dark:shadow-sm">
+          <div className="flex min-w-0 max-w-full items-center justify-center gap-1 rounded-full border border-[#F1D5D8] bg-[#FFF7F8] px-1.5 py-0.5 text-[#C72524] dark:border-purple-500/40 dark:bg-[#191022] dark:text-purple-300">
             <Star className="h-3.5 w-3.5 shrink-0 fill-[#C72524] text-[#C72524] dark:fill-purple-300 dark:text-purple-300" />
             <span className="min-w-0 whitespace-nowrap text-[8.5px] font-black text-[#C72524] dark:text-purple-300">
               {mockStats.goodReviews} đánh giá
@@ -139,7 +139,7 @@ export default function TalentCardMobile({
       {/* ── ROW 2: MIDDLE SECTION (Compact Avatar on Left, Info on Right) ── */}
       <div className="flex flex-row gap-3 items-start min-w-0">
         {/* Left Column: Compact Avatar Image */}
-        <div className="relative h-[95px] w-[95px] shrink-0 overflow-hidden rounded-2xl border border-[#F1DBD7] bg-[#FFF7F5] shadow-[0_10px_24px_rgba(143,7,9,0.10)] dark:border-white/10 dark:bg-slate-900 dark:shadow-md">
+        <div className="relative h-[95px] w-[95px] shrink-0 overflow-hidden rounded-2xl border border-[#F1DBD7] bg-[#FFF7F5] dark:border-white/10 dark:bg-slate-900">
           <img
             src={talentAvatar}
             alt={talent?.name || "Idol"}
@@ -179,7 +179,7 @@ export default function TalentCardMobile({
         <div className="flex-1 min-w-0 space-y-1 text-left">
           {/* Name & Verified Badge */}
           <div className="flex items-center gap-1 flex-wrap">
-            <h3 className="text-[13px] font-black leading-tight tracking-wide text-[#191116] dark:text-white dark:drop-shadow-[0_1px_8px_rgba(255,255,255,0.12)]">
+            <h3 className="text-[13px] font-black leading-tight tracking-wide text-[#191116] dark:text-white">
               {talent?.name}
             </h3>
             {talent?.verified && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#C72524] dark:text-emerald-400" />}
@@ -240,7 +240,7 @@ export default function TalentCardMobile({
               if (!targetId) return;
               router.push(`/booking?talentId=${encodeURIComponent(String(targetId))}`);
             }}
-            className="flex min-h-[38px] w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl border border-[#D8A8A3] bg-[#FFF7F6] px-3 text-center text-[#C72524] shadow-[0_8px_18px_rgba(143,7,9,0.08)] transition-all hover:border-[#C72524]/55 hover:bg-[#FFF1EF] active:scale-95 dark:border-amber-500/50 dark:bg-[#282110] dark:text-amber-300 dark:shadow-[0_0_12px_rgba(245,158,11,0.15)] dark:hover:brightness-125"
+            className="flex min-h-[38px] w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl border border-[#D8A8A3] bg-[#FFF7F6] px-3 text-center text-[#C72524] transition-all hover:border-[#C72524]/55 hover:bg-[#FFF1EF] active:scale-95 dark:border-amber-500/50 dark:bg-[#282110] dark:text-amber-300 dark:hover:brightness-125"
             title="Đặt ngay dịch vụ của Idol"
           >
             <CalendarCheck className="h-3.5 w-3.5 shrink-0 text-[#C72524] dark:text-amber-400" />
@@ -258,10 +258,10 @@ export default function TalentCardMobile({
                 onToggleSaved(talent);
               }}
               className={cn(
-                "flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-2xl px-3 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md",
+                "flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-2xl px-3 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer",
                 isSaved
                   ? "light-force-white border border-[#C72524]/55 bg-[#C72524] text-white hover:bg-[#A40E10] dark:border-emerald-500/50 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30"
-                  : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white shadow-[0_10px_22px_rgba(143,7,9,0.18)] hover:brightness-110 dark:from-yellow-200 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950"
+                  : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white hover:brightness-110 dark:from-yellow-200 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950"
               )}
               title={isSaved ? "Bỏ lưu Idol" : "Lưu Idol"}
             >
@@ -274,10 +274,10 @@ export default function TalentCardMobile({
               disabled={messageLoading}
               onClick={handleBrandButtonClick}
               className={cn(
-                "flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-2xl px-3 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md",
+                "flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-2xl px-3 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer",
                 messageDisabled
                   ? "border border-[#D8A8A3] bg-[#FFF7F6] text-[#C72524] hover:border-[#C72524]/55 hover:bg-[#FFF1EF] dark:border-[#C9A86A]/30 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A] dark:hover:border-rose-500/40 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
-                  : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white shadow-[0_10px_22px_rgba(143,7,9,0.18)] hover:brightness-110 dark:from-yellow-200 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950"
+                  : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white hover:brightness-110 dark:from-yellow-200 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950"
               )}
             >
               {messageLoading ? (

@@ -207,6 +207,14 @@
   color: #191116;
 }
 
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #C72524 !important;
+  color: #C72524 !important;
+}
+
 .light .glass-panel {
   background: rgba(255, 255, 255, 0.88);
   border-color: rgba(212, 175, 55, 0.22);
@@ -479,6 +487,26 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: white !important;
   caret-color: white;
   transition: background-color 9999s ease-in-out 0s;
+}
+
+.auth-red-input,
+.auth-red-input:-webkit-autofill,
+.auth-red-input:-webkit-autofill:hover,
+.auth-red-input:-webkit-autofill:focus,
+.auth-red-input:-webkit-autofill:active {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+}
+
+.light .auth-red-input,
+.light .auth-red-input:-webkit-autofill,
+.light .auth-red-input:-webkit-autofill:hover,
+.light .auth-red-input:-webkit-autofill:focus,
+.light .auth-red-input:-webkit-autofill:active {
+  color: #8f0709 !important;
+  -webkit-text-fill-color: #8f0709 !important;
+  caret-color: #8f0709 !important;
 }
 
 /* Style for date input fields, specifically targeting iOS Safari shadow DOM elements in dark mode/with white text */

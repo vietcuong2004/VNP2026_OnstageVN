@@ -122,61 +122,64 @@ export default function JobFilterCityDialog({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="job-city-dialog-title"
-      className="fixed inset-0 z-[999] flex h-dvh w-screen flex-col overflow-hidden bg-[#050711] text-white animate-in fade-in duration-200"
-    >
-      <div className="shrink-0 border-b border-white/5 bg-[#070913] px-4 py-3">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/5 bg-slate-950/40 text-white transition active:scale-95 cursor-pointer"
-            aria-label="Quay lại"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
+    <>
+      <div className="fixed inset-0 z-[9998] bg-[#FAF7F6] dark:bg-[#070913] opacity-100 pointer-events-auto" />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="job-city-dialog-title"
+        style={{ backgroundColor: "#FAF7F6" }}
+        className="fixed inset-0 z-[9999] flex h-dvh w-screen flex-col overflow-hidden bg-[#FAF7F6] text-[#191116] dark:!bg-[#070913] dark:text-white opacity-100 animate-in fade-in duration-200"
+      >
+        <div className="shrink-0 border-b border-[#F2DBD7] bg-white dark:border-white/10 dark:bg-[#0c0f1d] px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] hover:bg-[#FFF0EE] dark:border-white/10 dark:bg-[#14182a] dark:text-white transition active:scale-95 cursor-pointer"
+              aria-label="Quay lại"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
 
-          <div className="relative min-w-0 flex-1">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
-            <input
-              id="job-city-dialog-title"
-              type="text"
-              value={searchQuery}
-              onChange={(event) => {
-                setSearchQuery(event.target.value);
-                setUserTypedQuery(event.target.value);
-              }}
-              placeholder="Nhập địa điểm..."
-              className="h-10 w-full rounded-full border border-white/10 bg-slate-950/55 pl-9 pr-9 text-sm font-medium text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/60"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery("");
-                  setUserTypedQuery("");
-                  setDraftCity("all");
+            <div className="relative min-w-0 flex-1">
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C72524] dark:text-[#C9A86A]" />
+              <input
+                id="job-city-dialog-title"
+                type="text"
+                value={searchQuery}
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                  setUserTypedQuery(event.target.value);
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 transition active:scale-95 cursor-pointer"
-                aria-label="Xóa tìm kiếm"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
+                placeholder="Nhập địa điểm..."
+                className="h-10 w-full rounded-full border border-[#F2DBD7] bg-[#FFF8F7] text-[#191116] placeholder:text-[#574D54] focus:border-[#C72524] dark:border-white/10 dark:bg-[#14182a] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]/60 pl-9 pr-9 text-sm font-medium outline-none"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setUserTypedQuery("");
+                    setDraftCity("all");
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#574D54] dark:text-slate-400 transition active:scale-95 cursor-pointer"
+                  aria-label="Xóa tìm kiếm"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
 
-          <button
-            type="button"
-            onClick={handleApplyFilter}
-            className="shrink-0 px-4 py-2 rounded-full bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-md hover:brightness-110 cursor-pointer"
-          >
-            Áp dụng
-          </button>
+            <button
+              type="button"
+              onClick={handleApplyFilter}
+              className="shrink-0 px-5 py-2 rounded-full bg-[#C72524] hover:bg-[#8F0709] !text-white text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-md cursor-pointer"
+            >
+              <span className="!text-white font-black text-white">Áp dụng</span>
+            </button>
+          </div>
         </div>
-      </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] custom-scrollbar space-y-4">
         {/* Danh sách toàn bộ tỉnh thành & quận huyện trực tiếp */}
@@ -188,8 +191,8 @@ export default function JobFilterCityDialog({
                 className={cn(
                   "overflow-hidden rounded-2xl border transition",
                   draftCity === "toàn quốc" || draftCity === "all" || !draftCity
-                    ? "border-[#C9A86A]/70 bg-[#C9A86A]/10 text-[#C9A86A]"
-                    : "border-white/8 bg-white/[0.03] text-white"
+                    ? "border-[#C72524] bg-[#FFF0EE] text-[#8F0709] dark:border-[#C9A86A] dark:bg-[#1f1b13] dark:text-[#C9A86A]"
+                    : "border-[#F2DBD7] bg-white text-[#191116] hover:bg-[#FFF8F7] dark:border-white/10 dark:bg-[#0c0f1d] dark:text-white"
                 )}
               >
                 <button
@@ -204,9 +207,9 @@ export default function JobFilterCityDialog({
                   }}
                   className="flex w-full items-center gap-3 px-3 py-3 text-left transition active:scale-[0.99] cursor-pointer"
                 >
-                  <MapPin className={cn("h-4 w-4 shrink-0 transition-transform duration-300", (draftCity === "toàn quốc" || draftCity === "all" || !draftCity) ? "text-[#C9A86A]" : "text-slate-400")} />
-                  <span className="min-w-0 flex-1 truncate text-sm font-bold">Toàn quốc</span>
-                  <span className="shrink-0 text-xs font-semibold text-slate-400">Tất cả vị trí</span>
+                  <MapPin className={cn("h-4 w-4 shrink-0 transition-transform duration-300", (draftCity === "toàn quốc" || draftCity === "all" || !draftCity) ? "text-[#C72524] dark:text-[#C9A86A]" : "text-[#574D54] dark:text-slate-400")} />
+                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-[#191116] dark:text-white">Toàn quốc</span>
+                  <span className="shrink-0 text-xs font-semibold text-[#574D54] dark:text-slate-400">Tất cả vị trí</span>
                 </button>
               </div>
             )}
@@ -225,8 +228,8 @@ export default function JobFilterCityDialog({
                   className={cn(
                     "overflow-hidden rounded-2xl border transition",
                     isActive
-                      ? "border-[#C9A86A]/70 bg-[#C9A86A]/10"
-                      : "border-white/8 bg-white/[0.03]"
+                      ? "border-[#C72524]/60 bg-[#FFF0EE] dark:border-[#C9A86A] dark:bg-[#181510]"
+                      : "border-[#F2DBD7] bg-white dark:border-white/10 dark:bg-[#0c0f1d]"
                   )}
                 >
                   <button
@@ -243,20 +246,20 @@ export default function JobFilterCityDialog({
                       }
                     }}
                     className={cn(
-                      "flex w-full items-center gap-3 px-3 py-3 text-left transition active:scale-[0.99] cursor-pointer",
-                      isActive ? "text-[#C9A86A]" : "text-white"
+                      "flex w-full items-center gap-2.5 px-3 py-3 text-left transition active:scale-[0.99] cursor-pointer",
+                      isActive ? "text-[#8F0709] dark:text-[#C9A86A]" : "text-[#191116] dark:text-white"
                     )}
                   >
-                    <MapPin className={cn("h-4 w-4 shrink-0 transition-transform duration-300", isActive ? "text-[#C9A86A]" : "text-slate-400")} />
-                    <span className="min-w-0 flex-1 truncate text-sm font-bold">{location.label}</span>
-                    {isMajorCity && <span className="shrink-0 text-xs font-semibold text-slate-400">{location.count}</span>}
+                    <MapPin className={cn("h-4 w-4 shrink-0 transition-transform duration-300", isActive ? "text-[#C72524] dark:text-[#C9A86A]" : "text-[#574D54] dark:text-slate-400")} />
+                    <span className="truncate text-sm font-bold">{location.label}</span>
+                    {isMajorCity && <span className="shrink-0 text-xs font-semibold text-[#574D54] dark:text-slate-400 ml-auto">{location.count}</span>}
                     {isMajorCity && (
-                      <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-500 transition-transform", isExpanded && "rotate-180 text-[#C9A86A]")} />
+                      <ChevronDown className={cn("h-4 w-4 shrink-0 text-[#574D54] dark:text-slate-500 transition-transform", isExpanded && "rotate-180 text-[#C72524] dark:text-[#C9A86A]")} />
                     )}
                   </button>
 
                   {isExpanded && (
-                    <div className="space-y-1.5 border-t border-white/5 px-3 pb-3 pt-2">
+                    <div className="space-y-1.5 border-t border-[#F2DBD7] dark:border-white/5 px-3 pb-3 pt-2">
                       {location.districts.slice(0, 3).map((district, idx) => {
                         const districtValue = makeDistrictLocationValue(location.value, district.value);
                         const isDistrictSelected = draftCity === districtValue;
@@ -295,7 +298,7 @@ export default function JobFilterCityDialog({
                               setSearchQuery(`${location.label}, ${district.label}`);
                               setUserTypedQuery("");
                             }}
-                            className="flex w-full items-center justify-between rounded-xl border border-white/8 bg-[#070913]/55 px-3 py-2 text-left text-xs font-bold text-slate-200 transition active:scale-[0.99] cursor-pointer hover:border-white/15 hover:text-white"
+                            className="flex w-full items-center justify-between rounded-xl border border-[#F2DBD7] bg-[#FFF8F7] px-3 py-2 text-left text-xs font-bold text-[#191116] transition active:scale-[0.99] cursor-pointer hover:border-[#C72524]/40 hover:bg-[#FFF0EE] dark:border-white/10 dark:bg-[#070a14] dark:text-slate-200 dark:hover:border-white/20 dark:hover:bg-[#0e1324]"
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs shadow-sm", badgeStyle)}>
@@ -304,8 +307,8 @@ export default function JobFilterCityDialog({
                               <span className="truncate">{district.label}</span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-[10px] font-semibold text-slate-500">{district.count}</span>
-                              {isDistrictSelected && <Check className="h-4 w-4 text-emerald-400 shrink-0" />}
+                              <span className="text-[10px] font-semibold text-[#574D54] dark:text-slate-500">{district.count}</span>
+                              {isDistrictSelected && <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />}
                             </div>
                           </button>
                         );
@@ -317,7 +320,7 @@ export default function JobFilterCityDialog({
                           setTopJobCityInitialCity(location.value);
                           setIsTopJobCityOpen(true);
                         }}
-                        className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#C9A86A]/30 bg-[#C9A86A]/10 py-2.5 text-center text-xs font-bold text-[#C9A86A] transition active:scale-[0.98] hover:bg-[#C9A86A]/20 hover:border-[#C9A86A]/50 cursor-pointer"
+                        className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#C72524]/30 bg-[#FFF0EE] py-2.5 text-center text-xs font-bold text-[#C72524] transition active:scale-[0.98] hover:bg-[#F2DBD7] cursor-pointer dark:border-[#C9A86A]/40 dark:bg-[#1f1b13] dark:text-[#C9A86A] dark:hover:bg-[#2a2417]"
                       >
                         <span>Xem thêm</span>
                         <ChevronRight className="h-3.5 w-3.5" />
@@ -329,7 +332,7 @@ export default function JobFilterCityDialog({
             })}
 
             {filteredHotLocations.length === 0 && (
-              <div className="py-10 text-center text-sm font-semibold text-slate-500">
+              <div className="py-10 text-center text-sm font-semibold text-[#574D54] dark:text-slate-500">
                 Không tìm thấy địa điểm phù hợp
               </div>
             )}
@@ -349,5 +352,6 @@ export default function JobFilterCityDialog({
         selectedCity={selectedCity}
       />
     </div>
+    </>
   );
 }

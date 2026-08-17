@@ -362,16 +362,16 @@ export default function SelectIdolStep({
 
   return (
     <div className="h-full w-full animate-in fade-in duration-300">
-      <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#070913]">
+      <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#FAF7F6] text-[#191116] dark:bg-[#070913] dark:text-white">
 
         {/* ── HEADER ── */}
-        <div className="z-20 shrink-0 border-b border-white/10 bg-[#070913]/95 px-4 py-3 backdrop-blur-md space-y-2.5">
+        <div className="z-20 shrink-0 border-b border-[#F0D7D3] bg-white px-4 py-3 backdrop-blur-md space-y-2.5 dark:border-white/10 dark:bg-[#070913]/95">
           <div className="flex items-center gap-2">
             {/* ArrowLeft Back Button on Far Left */}
             <button
               type="button"
               onClick={onBack}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] transition-all hover:bg-[#C9A86A]/25 active:scale-95 cursor-pointer"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF7F6] text-[#C72524] transition-all hover:bg-[#FFF0EE] active:scale-95 cursor-pointer dark:border-[#C9A86A]/50 dark:bg-[#C9A86A]/15 dark:text-[#C9A86A]"
               title="Quay lại"
               aria-label="Quay lại"
             >
@@ -385,8 +385,8 @@ export default function SelectIdolStep({
               className={cn(
                 "flex items-center justify-center h-9 w-9 rounded-full border transition-all shrink-0 cursor-pointer active:scale-95",
                 hasActiveFilters
-                  ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
-                  : "border-white/10 bg-slate-900/80 text-[#C9A86A] hover:border-[#C9A86A]/50"
+                  ? "border-[#C72524] bg-[#FFF0EE] text-[#C72524] dark:border-[#C9A86A] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]"
+                  : "border-[#F0D7D3] bg-[#FFF7F6] text-[#C72524] hover:border-[#C72524] dark:border-white/10 dark:bg-slate-900/80 dark:text-[#C9A86A]"
               )}
               title="Bộ lọc nâng cao"
               aria-label="Bộ lọc nâng cao"
@@ -401,27 +401,27 @@ export default function SelectIdolStep({
               className="relative flex items-center gap-1 cursor-pointer shrink-0 border-none bg-transparent outline-none active:scale-95"
               aria-label="Chọn vị trí"
             >
-              <span className="font-display text-sm md:text-base font-black tracking-tight text-white whitespace-nowrap">
+              <span className="font-display text-sm md:text-base font-black tracking-tight text-[#191116] whitespace-nowrap dark:text-white">
                 {formatLocationFilterLabel(selectedCity, cityOptions)}
               </span>
-              <ChevronDown className="h-4 w-4 text-[#C9A86A]" />
+              <ChevronDown className="h-4 w-4 text-[#C72524] dark:text-[#C9A86A]" />
             </button>
 
             {/* Search Input Box */}
             <div className="relative flex min-w-0 flex-1 items-center">
-              <Search className="absolute left-3 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+              <Search className="absolute left-3 h-3.5 w-3.5 text-[#C72524] dark:text-slate-400 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tên idol..."
-                className="h-9 w-full rounded-full border border-white/10 bg-slate-950 pl-9 pr-7 text-xs font-semibold text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]"
+                className="h-9 w-full rounded-full border border-[#F0D7D3] bg-[#FFFDFC] pl-9 pr-7 text-xs font-semibold text-[#191116] outline-none placeholder:text-[#A08E8C] focus:border-[#C72524] dark:border-white/10 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:text-white"
+                  className="absolute right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FFF0EE] text-[#C72524] hover:bg-[#C72524] hover:text-white dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white"
                 >
                   <X className="h-2.5 w-2.5" />
                 </button>
@@ -432,11 +432,11 @@ export default function SelectIdolStep({
             <button
               type="button"
               onClick={handleClose}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-slate-900 text-slate-300 transition hover:bg-white/15 hover:text-white active:scale-95 cursor-pointer"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF7F6] text-[#C72524] transition hover:bg-[#FFF0EE] active:scale-95 cursor-pointer dark:border-white/15 dark:bg-slate-900 dark:text-amber-400"
               title="Thoát"
               aria-label="Thoát"
             >
-              <X className="h-4 w-4 text-amber-400" />
+              <X className="h-4 w-4 text-[#C72524] dark:text-amber-400" />
             </button>
           </div>
 
@@ -455,8 +455,8 @@ export default function SelectIdolStep({
                     className={cn(
                       "h-7 shrink-0 rounded-full border px-3 text-[10px] font-black transition active:scale-95 cursor-pointer",
                       isActive
-                        ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F9D66D] shadow-[0_0_14px_rgba(201,168,106,0.14)]"
-                        : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/35 hover:text-white"
+                        ? "border-[#E8C8C2] bg-[#FFF0EE] text-[#C72524] dark:border-[#C9A86A]/70 dark:bg-[#C9A86A]/15 dark:text-[#F9D66D]"
+                        : "border-[#F0D7D3] bg-white text-[#7B6866] hover:border-[#C72524]/40 hover:text-[#C72524] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-[#C9A86A]/35 dark:hover:text-white"
                     )}
                   >
                     {tab.label}
@@ -465,17 +465,17 @@ export default function SelectIdolStep({
               })}
             </div>
 
-            <div className="pointer-events-none absolute right-0 inset-y-0 flex items-center bg-gradient-to-l from-[#070913] via-[#070913]/80 to-transparent pl-3 pr-0">
-              <ChevronRight className="h-3.5 w-3.5 animate-pulse text-[#C9A86A]/80" />
+            <div className="pointer-events-none absolute right-0 inset-y-0 flex items-center bg-gradient-to-l from-white via-white/80 to-transparent pl-3 pr-0 dark:from-[#070913] dark:via-[#070913]/80">
+              <ChevronRight className="h-3.5 w-3.5 animate-pulse text-[#C72524] dark:text-[#C9A86A]/80" />
             </div>
           </div>
         </div>
 
         {/* ── Selection Counter & Select All Bar ── */}
-        <div className="z-10 shrink-0 border-b border-white/5 bg-[#090c17] px-4 py-2.5 sm:px-6 flex items-center justify-between text-xs">
-          <span className="font-bold text-slate-300">
+        <div className="z-10 shrink-0 border-b border-[#F0D7D3] bg-white px-4 py-2.5 sm:px-6 flex items-center justify-between text-xs dark:border-white/5 dark:bg-[#090c17]">
+          <span className="font-bold text-[#191116] dark:text-slate-300">
             Đã chọn:{" "}
-            <strong className="text-amber-400 font-black">
+            <strong className="text-[#C72524] font-black dark:text-amber-400">
               {selectedTalentIds.length} Idol
             </strong>
           </span>
@@ -483,7 +483,7 @@ export default function SelectIdolStep({
           <button
             type="button"
             onClick={handleSelectAll}
-            className="text-[11px] font-black uppercase tracking-wider text-slate-400 hover:text-amber-300 transition cursor-pointer"
+            className="text-[11px] font-black uppercase tracking-wider text-[#C72524] hover:underline cursor-pointer dark:text-slate-400 dark:hover:text-amber-300"
           >
             {selectedTalentIds.length > 0 ? "BỎ CHỌN TẤT CẢ" : "CHỌN TẤT CẢ"}
           </button>

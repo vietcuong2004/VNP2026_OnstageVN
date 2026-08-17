@@ -5,7 +5,7 @@ import { getSiteUrl } from "@/lib/site-url";
 
 const SITE_URL = getSiteUrl();
 const ASSET_VERSION = "9";
-const FAVICON_VERSION = "11";
+const FAVICON_VERSION = "12";
 const SHARE_IMAGE = `/home-og-image.png?v=${ASSET_VERSION}`;
 const SHARE_IMAGE_URL = `${SITE_URL}${SHARE_IMAGE}`;
 
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  colorScheme: "dark",
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -63,12 +63,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" suppressHydrationWarning className="h-full dark antialiased">
+    <html lang="vi" suppressHydrationWarning className="h-full light antialiased">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body suppressHydrationWarning className="h-full bg-[#03050c] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
+      <body suppressHydrationWarning className="h-full bg-white text-[#191116] font-sans selection:bg-[#E8CF91]/40 selection:text-[#8F0709] dark:bg-[#03050c] dark:text-slate-100 dark:selection:bg-amber-500/30 dark:selection:text-amber-200">
         <AppShell>{children}</AppShell>
       </body>
     </html>

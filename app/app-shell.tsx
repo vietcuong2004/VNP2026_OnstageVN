@@ -32,8 +32,8 @@ function getPageTitle(pathname?: string | null) {
     "/brand/dashboard": "Bảng điều khiển",
     "/brand/search": "Tìm kiếm Idol",
     "/brand/shortlists": "Idol đã lưu",
-    "/brand/my-bookings": "Quản lý Booking",
-    "/brand/manage-jobs": "Quản lý việc làm",
+    "/brand/my-bookings": "Yêu cầu của tôi",
+    "/brand/manage-jobs": "Tạo Job",
     "/brand/manage-jobs/create-job": "Tạo job mới",
     "/brand/my-talents": "Quản lý Idol",
     "/brand/informations": "Thông tin cá nhân",
@@ -139,9 +139,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   isStandalonePublic || isMessages || isDiscoverHome || isAbout || isTalentSurvey || isBrandCreateJob || isBooking
                     ? "p-0"
                     : cn(
-                        "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",
-                        (isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs) && "pt-0 md:pt-7"
-                      ),
+                      "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",
+                      (isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs) && "pt-0 md:pt-7"
+                    ),
                   isTalentSurvey && "md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 md:pb-8"
                 )}
               >

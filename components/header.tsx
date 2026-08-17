@@ -127,7 +127,7 @@ export default function Header() {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [savedTalentCount, setSavedTalentCount] = useState(0);
   const [savedJobCount, setSavedJobCount] = useState(0);
-  const [theme, setTheme] = useState<AppTheme>("dark");
+  const [theme, setTheme] = useState<AppTheme>("light");
 
   useEffect(() => {
     function syncTalentProfileHeader() {
@@ -433,13 +433,16 @@ export default function Header() {
             <button
               type="button"
               onClick={() => router.push("/brand/shortlists")}
-              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95 md:flex"
+              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition hover:border-[#8F0709] hover:bg-[#FFE5E2] active:scale-95 md:flex dark:border-[#C9A86A]/45 dark:bg-[#C9A86A]/12 dark:text-[#C9A86A] dark:hover:border-[#C9A86A]/70 dark:hover:bg-[#C9A86A]/18 dark:hover:text-amber-200"
               aria-label="Idol đã lưu"
               title="Idol đã lưu"
             >
-              <Heart className="h-4.5 w-4.5 fill-current" />
+              <Heart className="h-4.5 w-4.5 fill-current text-[#8F0709] dark:text-current" />
               {savedTalentCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-[#070913] bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-1 text-[9px] font-black text-slate-950">
+                <span
+                  style={{ color: "#ffffff" }}
+                  className="light-force-white absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-[#C72524] !text-white text-white px-1 text-[9px] font-black shadow-sm dark:border-[#070913] dark:bg-gradient-to-r dark:from-amber-100 dark:via-amber-300 dark:to-yellow-500 dark:!text-slate-950 dark:text-slate-950"
+                >
                   {savedTalentCount > 99 ? "99+" : savedTalentCount}
                 </span>
               )}
@@ -450,13 +453,16 @@ export default function Header() {
             <button
               type="button"
               onClick={() => router.push("/talent/jobs/saved-jobs")}
-              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95 md:flex"
+              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition hover:border-[#8F0709] hover:bg-[#FFE5E2] active:scale-95 md:flex dark:border-[#C9A86A]/45 dark:bg-[#C9A86A]/12 dark:text-[#C9A86A] dark:hover:border-[#C9A86A]/70 dark:hover:bg-[#C9A86A]/18 dark:hover:text-amber-200"
               aria-label="Việc làm đã lưu"
               title="Việc làm đã lưu"
             >
-              <Bookmark className="h-4.5 w-4.5 fill-current" />
+              <Bookmark className="h-4.5 w-4.5 fill-current text-[#8F0709] dark:text-current" />
               {savedJobCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-[#070913] bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-1 text-[9px] font-black text-slate-950">
+                <span
+                  style={{ color: "#ffffff" }}
+                  className="light-force-white absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-[#C72524] !text-white text-white px-1 text-[9px] font-black shadow-sm dark:border-[#070913] dark:bg-gradient-to-r dark:from-amber-100 dark:via-amber-300 dark:to-yellow-500 dark:!text-slate-950 dark:text-slate-950"
+                >
                   {savedJobCount > 99 ? "99+" : savedJobCount}
                 </span>
               )}
@@ -467,12 +473,15 @@ export default function Header() {
             <button
               type="button"
               onClick={() => router.push("/brand/notifications")}
-              className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30 text-slate-400 transition-colors hover:text-white"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition hover:border-[#8F0709] hover:bg-[#FFE5E2] active:scale-95 dark:border-white/10 dark:bg-slate-900/30 dark:text-slate-400 dark:hover:text-white"
               aria-label="Thông báo"
             >
-              <Bell className="h-4.5 w-4.5" />
+              <Bell className="h-4.5 w-4.5 text-[#8F0709] dark:text-current" />
               {unreadNotifications > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">
+                <span
+                  style={{ color: "#ffffff" }}
+                  className="light-force-white absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-[#C72524] !text-white text-white px-1 text-[9px] font-black shadow-sm dark:border-[#070913]"
+                >
                   {unreadNotifications > 99 ? "99+" : unreadNotifications}
                 </span>
               )}

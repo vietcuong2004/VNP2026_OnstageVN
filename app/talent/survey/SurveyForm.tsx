@@ -3119,9 +3119,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   ))}
 
                   {portfolioVideoFiles.length + portfolioVideoLinks.length < 4 && (
-                    <label className="flex aspect-[9/16] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 bg-slate-950/70 text-slate-500 transition-colors hover:border-amber-400/70 hover:text-amber-400">
-                      <Upload className="h-7 w-7" />
-                      <span className="text-[10px] font-black uppercase tracking-wider">TẢI VIDEO</span>
+                    <label className="flex aspect-[9/16] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition-colors hover:border-[#8F0709] dark:border-dashed dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-500 dark:hover:border-amber-400/70 dark:hover:text-amber-400">
+                      <Upload className="h-7 w-7 text-[#8F0709] dark:text-slate-500" />
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-slate-500">TẢI VIDEO</span>
                       <input
                         type="file"
                         accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,video/x-matroska"
@@ -3136,11 +3136,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 {portfolioVideoFiles.length + portfolioVideoLinks.length < 4 && (
                   <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
                     <div className="space-y-1.5 md:col-span-10">
-                      <label className="block text-[9px] font-black uppercase tracking-wider text-slate-400">
+                      <label className="block text-[9px] font-black uppercase tracking-wider text-[#574D54] dark:text-slate-400">
                         ĐƯỜNG DẪN VIDEO
                       </label>
                       <div className="relative">
-                        <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                        <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8F0709] dark:text-slate-500" />
                         <input
                           type="url"
                           value={videoLinkInput}
@@ -3152,7 +3152,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                             }
                           }}
                           placeholder="https://..."
-                          className="h-10 w-full rounded-xl border border-white/20 bg-[#060918] pl-9 pr-3.5 text-xs font-semibold text-white shadow-inner outline-none transition-colors placeholder:text-slate-500 focus:border-amber-400"
+                          className="h-10 w-full rounded-xl border border-[#F0D7D3] bg-white pl-9 pr-3.5 text-xs font-semibold text-[#191116] shadow-sm outline-none transition-colors placeholder:text-[#9A8B88] focus:border-[#8F0709] dark:border-white/20 dark:bg-[#060918] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-400"
                         />
                       </div>
                     </div>
@@ -3161,7 +3161,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       <button
                         type="button"
                         onClick={handleAddSurveyVideoLink}
-                        className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all hover:brightness-110 active:scale-95"
+                        className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white px-4 text-[10px] font-black uppercase tracking-wider text-white shadow-md transition-all hover:brightness-110 active:scale-95 dark:bg-gradient-gold dark:!text-slate-950 dark:text-slate-950"
                       >
                         <Plus className="h-4 w-4" />
                         THÊM LINK

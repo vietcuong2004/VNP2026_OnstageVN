@@ -287,7 +287,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
                     required
                     value={name}
                     onChange={(event) => setName(event.target.value)}
-                    className="h-full flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
+                    className="h-full flex-1 bg-transparent text-sm font-bold text-white caret-white outline-none placeholder:text-slate-500 light:text-[#8F0709] light:caret-[#8F0709]"
                     placeholder="Nguyễn Văn A"
                   />
                 </div>
@@ -303,7 +303,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="h-full flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
+                  className="auth-red-input h-full flex-1 bg-transparent text-sm font-bold text-white caret-white outline-none placeholder:text-slate-500 light:text-[#8F0709] light:caret-[#8F0709]"
                   placeholder="you@example.com"
                 />
               </div>
@@ -319,7 +319,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="h-full flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
+                  className="auth-red-input h-full flex-1 bg-transparent text-sm font-bold text-white caret-white outline-none placeholder:text-slate-500 light:text-[#8F0709] light:caret-[#8F0709]"
                   placeholder="Tối thiểu 8 ký tự"
                 />
                 <button

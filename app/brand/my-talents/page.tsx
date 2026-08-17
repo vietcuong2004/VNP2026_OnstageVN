@@ -557,38 +557,39 @@ export default function MyTalentsPage() {
     <div className="relative space-y-6 pb-20 md:space-y-8 md:pb-0 animate-in fade-in duration-500">
 
       {/* ── Welcome Header Banner ── */}
-      <div className="relative z-10 overflow-hidden rounded-3xl border border-white/7 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.14),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+      <div className="relative z-10 overflow-hidden rounded-3xl border border-[#F0D7D3] bg-white p-6 shadow-sm dark:border-white/7 dark:bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.14),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))]">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-amber-400/40 bg-amber-400/10 text-amber-300">
+              <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] shadow-sm dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-300">
                 QUẢN LÝ IDOL
               </span>
             </div>
-            <h1 className="font-display text-3xl font-black tracking-tight text-white md:text-4xl uppercase">
-              Quản lý <span className="bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-600 bg-clip-text text-transparent">Idol</span>
+            <h1 className="font-display text-3xl font-black tracking-tight text-[#191116] md:text-4xl uppercase dark:text-white">
+              Quản lý <span className="text-[#8F0709] dark:bg-gradient-to-r dark:from-amber-100 dark:via-amber-300 dark:to-yellow-600 dark:bg-clip-text dark:text-transparent">Idol</span>
             </h1>
-            <p className="mt-3 text-xs leading-5 text-slate-400">
+            <p className="mt-3 text-xs leading-5 text-[#574D54] font-semibold dark:text-slate-400">
               Quản lý đội ngũ KOL độc quyền, theo dõi tiến độ việc làm và hoa hồng giới thiệu Affiliate.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
             <button
+              style={{ color: "#ffffff" }}
               onClick={() => {
                 if (!requireAuthAction({ actionLabel: "Tạo idol nhanh" })) return;
                 setShowCreateModal(true);
               }}
-              className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(244,196,48,0.25)] hover:shadow-[0_0_25px_rgba(244,196,48,0.45)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-300 shrink-0"
+              className="light-force-white flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md hover:brightness-110 active:scale-[0.98] cursor-pointer transition-all duration-300 shrink-0"
             >
-              <UserPlus className="h-4 w-4" />
-              Thêm Idol mới
+              <UserPlus className="h-4 w-4 stroke-[3] !text-white text-white" />
+              <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Thêm Idol mới</span>
             </button>
             <button
               onClick={() => router.push("/brand/search")}
-              className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-slate-950 border border-white/10 hover:border-amber-400/30 text-white hover:text-amber-300 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
+              className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-xs font-black uppercase tracking-widest bg-white border border-[#F0D7D3] text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] shadow-sm transition-all duration-300 active:scale-[0.98] cursor-pointer shrink-0 dark:bg-slate-950 dark:border-white/10 dark:text-white dark:hover:border-amber-400/30 dark:hover:text-amber-300"
             >
-              <Search className="h-4 w-4 text-amber-400" />
+              <Search className="h-4 w-4 text-[#8F0709] dark:text-amber-400" />
               Thêm từ hệ thống
             </button>
           </div>
@@ -598,21 +599,21 @@ export default function MyTalentsPage() {
       {/* ── Content Area ── */}
       <div className="relative z-10 space-y-6 animate-in fade-in duration-300">
         {/* 🔗 Tuyển Talent */}
-        <div className="rounded-3xl border border-amber-500/20 bg-gradient-to-b from-[#150f02]/90 to-[#050712]/95 shadow-[0_0_30px_rgba(245,158,11,0.08)] p-6 space-y-5">
+        <div className="rounded-3xl border border-[#F0D7D3] bg-white shadow-sm p-6 space-y-5 dark:border-amber-500/20 dark:bg-gradient-to-b dark:from-[#150f02]/90 dark:to-[#050712]/95">
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
             {/* Left section */}
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/5 text-amber-400">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] dark:border-amber-500/20 dark:bg-amber-500/5 dark:text-amber-400">
                 <Link2 className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-400">
+                <span className="inline-flex items-center rounded-full bg-[#FFF0EE] border border-[#F0D7D3] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-sm dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-400">
                   LINK MỜI THAM GIA
                 </span>
-                <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
+                <h3 className="font-display font-black text-sm text-[#191116] uppercase tracking-wider dark:text-white">
                   Tuyển Dụng Idol
                 </h3>
-                <p className="text-[11px] text-slate-400 leading-normal">
+                <p className="text-[11px] text-[#574D54] font-semibold leading-normal dark:text-slate-400">
                   Chia sẻ link này cho Idol để họ đăng ký tham gia mạng lưới quản lý của bạn.
                 </p>
               </div>
@@ -621,42 +622,43 @@ export default function MyTalentsPage() {
             {/* Right section (Buttons) */}
             <div className="grid grid-cols-2 gap-2 w-full xl:flex xl:w-auto shrink-0">
               <button
+                style={{ color: "#ffffff" }}
                 onClick={handleCopyLink}
                 className={cn(
                   "flex h-10 items-center justify-center gap-2 rounded-2xl px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer w-full xl:w-auto",
                   copiedLink
                     ? "border border-emerald-400/30 bg-emerald-400/15 text-emerald-300"
-                    : "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105"
+                    : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md hover:brightness-110"
                 )}
               >
-                {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copiedLink ? "Đã copy" : "Sao chép Link"}
+                {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4 stroke-[3] !text-white text-white" />}
+                <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">{copiedLink ? "Đã copy" : "Sao chép Link"}</span>
               </button>
 
               <button
+                style={{ color: "#ffffff" }}
                 onClick={() => setShowQrModal(true)}
-                className="flex h-10 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105 px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer active:scale-[0.98] w-full xl:w-auto"
+                className="light-force-white flex h-10 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider shadow-md hover:brightness-110 transition-all cursor-pointer active:scale-[0.98] w-full xl:w-auto"
               >
-                <QrCode className="h-4 w-4" /> Hiện QR
+                <QrCode className="h-4 w-4 stroke-[3] !text-white text-white" />
+                <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Hiện QR</span>
               </button>
             </div>
           </div>
 
           {/* Bottom section (URL display) */}
-          <div className="flex items-center gap-3 rounded-2xl bg-[#04060a]/90 border border-amber-500/10 px-4 py-3 font-mono text-xs font-bold text-amber-100/90">
-            <Link2 className="h-4 w-4 text-amber-400 shrink-0" />
+          <div className="flex items-center gap-3 rounded-2xl bg-[#FFF0EE] border border-[#F0D7D3] px-4 py-3 font-mono text-xs font-bold text-[#8F0709] dark:bg-[#04060a]/90 dark:border-amber-500/10 dark:text-amber-100/90">
+            <Link2 className="h-4 w-4 text-[#8F0709] shrink-0 dark:text-amber-400" />
             <span className="truncate select-all">{affiliateLink}</span>
           </div>
         </div>
         <ActivationCard items={activationTalentItems} addToast={addToast} />
 
-
-
         {/* 👥 Danh sách Talent */}
         <div className="space-y-4 pt-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h3 className="font-display font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
-              <Users2 className="h-4.5 w-4.5 text-amber-400 fill-amber-400/20 animate-pulse" /> Danh sách idol của tôi
+            <h3 className="font-display font-extrabold text-xs text-[#191116] uppercase tracking-wider flex items-center gap-2 dark:text-white">
+              <Users2 className="h-4.5 w-4.5 text-[#8F0709] fill-[#8F0709]/10 animate-pulse dark:text-amber-400 dark:fill-amber-400/20" /> Danh sách idol của tôi
             </h3>
             {/* Search Input with nested button */}
             <div className="relative w-full sm:w-64">
@@ -670,9 +672,9 @@ export default function MyTalentsPage() {
                   }
                 }}
                 placeholder="Nhập tên để tìm kiếm..."
-                className="w-full h-9 pl-9 pr-20 rounded-xl border border-white/10 bg-slate-950 text-xs font-semibold text-white focus:outline-none focus:border-white/30 placeholder:text-slate-500"
+                className="w-full h-9 pl-9 pr-20 rounded-xl border border-[#F0D7D3] bg-white text-xs font-semibold text-[#191116] focus:outline-none focus:border-[#8F0709] placeholder:text-[#9A8B88] shadow-sm dark:border-white/10 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9A8B88] dark:text-slate-500" />
 
               {/* Clear button X */}
               {searchInputValue && (
@@ -681,7 +683,7 @@ export default function MyTalentsPage() {
                     setSearchInputValue("");
                     setSearchQuery("");
                   }}
-                  className="absolute right-14 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer p-0.5"
+                  className="absolute right-14 top-1/2 -translate-y-1/2 text-[#9A8B88] hover:text-[#8F0709] cursor-pointer p-0.5 dark:text-slate-400 dark:hover:text-white"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -690,7 +692,7 @@ export default function MyTalentsPage() {
               {/* "Tìm" button inside search box on the right */}
               <button
                 onClick={() => setSearchQuery(searchInputValue)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-400/10 border border-amber-400/20 hover:bg-amber-400/20 text-amber-400 hover:text-amber-300 transition-all cursor-pointer"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[#FFF0EE] border border-[#F0D7D3] hover:bg-[#FFE5E2] text-[#8F0709] transition-all cursor-pointer dark:bg-amber-400/10 dark:border-amber-400/20 dark:text-amber-400 dark:hover:text-amber-300"
               >
                 Tìm
               </button>
@@ -698,20 +700,22 @@ export default function MyTalentsPage() {
           </div>
 
           {roster.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-14 md:py-20 px-4 text-center rounded-3xl border border-dashed border-white/5 bg-[#08090f]/40">
-              <Users2 className="h-12 w-12 text-slate-700 mb-4 animate-pulse" />
-              <p className="text-white font-black text-sm uppercase tracking-wider">Chưa có Idol nào</p>
-              <p className="text-slate-400 text-xs mt-2 max-w-sm font-semibold leading-relaxed">
+            <div className="flex flex-col items-center justify-center py-14 md:py-20 px-4 text-center rounded-3xl border border-[#F0D7D3] bg-white shadow-sm dark:border-white/5 dark:bg-[#08090f]/40">
+              <Users2 className="h-12 w-12 text-[#8F0709] mb-4 animate-pulse dark:text-slate-700" />
+              <p className="text-[#191116] font-black text-sm uppercase tracking-wider dark:text-white">Chưa có Idol nào</p>
+              <p className="text-[#574D54] text-xs mt-2 max-w-sm font-semibold leading-relaxed dark:text-slate-400">
                 Hãy mời Idol đầu tiên tham gia mạng lưới của Brand bằng link hoặc mã QR.
               </p>
               <button
+                style={{ color: "#ffffff" }}
                 onClick={() => {
                   if (!requireAuthAction({ actionLabel: "Mời idol vào Brand" })) return;
                   setShowInviteModal(true);
                 }}
-                className="mt-6 flex w-full max-w-xs items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 cursor-pointer shadow-[0_0_15px_rgba(244,196,48,0.2)] hover:shadow-[0_0_25px_rgba(244,196,48,0.3)] hover:brightness-105 active:scale-[0.98] transition-all duration-300 md:w-auto"
+                className="light-force-white mt-6 flex w-full max-w-xs items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white cursor-pointer shadow-md hover:brightness-110 active:scale-[0.98] transition-all duration-300 md:w-auto"
               >
-                <Plus className="h-4 w-4" /> Thêm Idol
+                <Plus className="h-4 w-4 stroke-[3] !text-white text-white" />
+                <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Thêm Idol</span>
               </button>
             </div>
           ) : (
@@ -766,12 +770,12 @@ export default function MyTalentsPage() {
 
       {/* ── QR Code Popover Dialog Modal ── */}
       {showQrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm flex flex-col bg-[#0b0c15] border border-[#1d2238] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#191116]/60 backdrop-blur-sm animate-in fade-in duration-200 dark:bg-[#020408]/85">
+          <div className="relative w-full max-w-sm flex flex-col bg-white border border-[#F0D7D3] rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 dark:bg-[#0b0c15] dark:border-[#1d2238]">
             {/* Close button top right */}
             <button
               onClick={() => setShowQrModal(false)}
-              className="absolute right-4 top-4 text-slate-400 hover:text-white cursor-pointer transition-colors z-10 p-1 bg-white/5 hover:bg-white/10 rounded-full"
+              className="absolute right-4 top-4 text-[#574D54] hover:text-[#8F0709] cursor-pointer transition-colors z-10 p-1.5 bg-[#FFF0EE] hover:bg-[#FFE5E2] rounded-full border border-[#F0D7D3] dark:text-slate-400 dark:hover:text-white dark:bg-white/5 dark:hover:bg-white/10 dark:border-transparent"
             >
               <X className="h-4.5 w-4.5" />
             </button>
@@ -792,33 +796,33 @@ export default function MyTalentsPage() {
 
       {/* ── Share Menu Dialog Modal ── */}
       {showShareMenu && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm flex flex-col bg-[#0b0c15] border border-[#1d2238] rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] p-6 text-left animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#191116]/60 backdrop-blur-sm animate-in fade-in duration-200 dark:bg-[#020408]/80">
+          <div className="relative w-full max-w-sm flex flex-col bg-white border border-[#F0D7D3] rounded-2xl shadow-2xl p-6 text-left animate-in zoom-in-95 duration-200 dark:bg-[#0b0c15] dark:border-[#1d2238]">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/5 pb-3.5 mb-4">
-              <h3 className="text-sm font-black text-white uppercase tracking-wider">
+            <div className="flex items-center justify-between border-b border-[#F0D7D3] pb-3.5 mb-4 dark:border-white/5">
+              <h3 className="text-sm font-black text-[#191116] uppercase tracking-wider dark:text-white">
                 Chia sẻ link tuyển dụng
               </h3>
               <button
                 onClick={() => setShowShareMenu(false)}
-                className="text-slate-400 hover:text-white cursor-pointer transition-colors"
+                className="text-[#574D54] hover:text-[#8F0709] cursor-pointer transition-colors dark:text-slate-400 dark:hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-400 mb-5 leading-normal">
+            <p className="text-xs text-[#574D54] font-semibold mb-5 leading-normal dark:text-slate-400">
               Chọn nền tảng để chia sẻ liên kết:
             </p>
 
             {/* Grid of options */}
-            <div className="grid grid-cols-4 gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">
+            <div className="grid grid-cols-4 gap-2 text-[10px] font-black uppercase tracking-widest text-[#574D54] text-center dark:text-slate-400">
               <button
                 onClick={() => {
                   window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(affiliateLink)}`, "_blank");
                   setShowShareMenu(false);
                 }}
-                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-[#FAF7F6] border border-[#F0D7D3] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition-colors cursor-pointer dark:bg-white/[0.02] dark:border-white/5 dark:hover:bg-white/5 dark:hover:text-white"
               >
                 <svg className="h-6 w-6 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -831,7 +835,7 @@ export default function MyTalentsPage() {
                   setShowShareMenu(false);
                   addToast("Đã sao chép liên kết! Bạn có thể chia sẻ lên Instagram.");
                 }}
-                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-[#FAF7F6] border border-[#F0D7D3] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition-colors cursor-pointer dark:bg-white/[0.02] dark:border-white/5 dark:hover:bg-white/5 dark:hover:text-white"
               >
                 <Share2 className="h-6 w-6 text-pink-500" />
                 <span className="text-[8px] mt-1">Instagram</span>
@@ -841,9 +845,9 @@ export default function MyTalentsPage() {
                   window.open(`https://sp.zalo.me/share?vt=1&url=${encodeURIComponent(affiliateLink)}`, "_blank");
                   setShowShareMenu(false);
                 }}
-                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-[#08090f]/20 border border-white/5 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-[#FAF7F6] border border-[#F0D7D3] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition-colors cursor-pointer dark:bg-[#08090f]/20 dark:border-white/5 dark:hover:bg-white/5 dark:hover:text-white"
               >
-                <Share2 className="h-6 w-6 text-sky-400" />
+                <Share2 className="h-6 w-6 text-sky-500" />
                 <span className="text-[8px] mt-1">Zalo</span>
               </button>
               <button
@@ -851,9 +855,9 @@ export default function MyTalentsPage() {
                   handleCopyLink();
                   setShowShareMenu(false);
                 }}
-                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+                className="flex flex-col items-center gap-2 p-2.5 rounded-xl bg-[#FAF7F6] border border-[#F0D7D3] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition-colors cursor-pointer dark:bg-white/[0.02] dark:border-white/5 dark:hover:bg-white/5 dark:hover:text-white"
               >
-                <Link2 className="h-6 w-6 text-[#F0C56B]" />
+                <Link2 className="h-6 w-6 text-[#8F0709] dark:text-amber-400" />
                 <span className="text-[8px] mt-1">Copy Link</span>
               </button>
             </div>
@@ -861,7 +865,7 @@ export default function MyTalentsPage() {
             {/* Cancel button */}
             <button
               onClick={() => setShowShareMenu(false)}
-              className="mt-6 w-full h-10 rounded-xl border border-white/5 bg-white/5 text-xs font-black uppercase text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer transition-all"
+              className="mt-6 w-full h-10 rounded-xl border border-[#F0D7D3] bg-white text-xs font-black uppercase text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] cursor-pointer transition-all shadow-sm dark:border-white/5 dark:bg-white/5 dark:text-slate-400 dark:hover:text-white"
             >
               Hủy
             </button>
@@ -871,26 +875,28 @@ export default function MyTalentsPage() {
 
       {/* ── Delete Confirmation Dialog Modal ── */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="relative w-full max-w-md flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl p-6 text-center space-y-5 shadow-[0_24px_60px_rgba(0,0,0,0.9)] overflow-hidden animate-in zoom-in-95 duration-300">
-            <h3 className="font-display font-black text-base text-white uppercase tracking-tight">Xác nhận xóa</h3>
-            <p className="text-xs text-slate-400 font-semibold leading-relaxed">
-              Bạn có chắc chắn muốn xóa Talent <strong className="text-white">"{deletingTalentName}"</strong> khỏi danh sách hợp tác không?
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#191116]/60 backdrop-blur-md animate-in fade-in duration-300 dark:bg-[#020408]/85">
+          <div className="relative w-full max-w-md flex flex-col bg-white border border-[#F0D7D3] rounded-3xl p-6 text-center space-y-5 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 dark:bg-[#08090f] dark:border-[#151b2d]">
+            <h3 className="font-display font-black text-base text-[#191116] uppercase tracking-tight dark:text-white">Xác nhận xóa</h3>
+            <p className="text-xs text-[#574D54] font-semibold leading-relaxed dark:text-slate-400">
+              Bạn có chắc chắn muốn xóa Talent <strong className="text-[#8F0709] dark:text-white">"{deletingTalentName}"</strong> khỏi danh sách hợp tác không?
             </p>
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={handleConfirmDelete}
-                className="flex-1 rounded-xl h-10 bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase transition-all cursor-pointer font-bold"
+                className="flex-1 rounded-xl h-10 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase transition-all cursor-pointer font-bold shadow-sm"
               >
                 Xóa
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setShowDeleteConfirm(false);
                   setDeletingTalentId(null);
                   setDeletingTalentName("");
                 }}
-                className="flex-1 rounded-xl h-10 border border-white/5 bg-white/5 text-slate-400 hover:text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer font-bold"
+                className="flex-1 rounded-xl h-10 border border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] text-xs font-black uppercase tracking-wider transition-all cursor-pointer font-bold shadow-sm dark:border-white/5 dark:bg-white/5 dark:text-slate-400 dark:hover:text-white"
               >
                 Hủy
               </button>
@@ -931,41 +937,43 @@ export default function MyTalentsPage() {
           }
         };
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="relative w-full max-w-sm max-h-[90vh] overflow-y-auto scrollbar-thin flex flex-col bg-[#0b0c15] border border-[#1d2238] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] p-5 sm:p-6 space-y-4 sm:space-y-5 animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#191116]/60 backdrop-blur-sm animate-in fade-in duration-200 dark:bg-[#020408]/85">
+            <div className="relative w-full max-w-sm max-h-[90vh] overflow-y-auto scrollbar-thin flex flex-col bg-white border border-[#F0D7D3] rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 sm:space-y-5 animate-in zoom-in-95 duration-200 dark:bg-[#0b0c15] dark:border-[#1d2238]">
 
               {/* Close Button top-right */}
               <button
+                type="button"
                 onClick={() => { setShowActivateModal(false); setActivatingTalent(null); }}
-                className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer transition-colors p-1.5 hover:bg-white/5 rounded-full z-10"
+                className="absolute top-4 right-4 text-[#574D54] hover:text-[#8F0709] cursor-pointer transition-colors p-1.5 hover:bg-[#FFF0EE] rounded-full z-10 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5"
               >
                 <X className="h-4 w-4" />
               </button>
 
               {/* Header */}
-              <div className="flex flex-col items-center justify-center border-b border-white/5 pb-3 shrink-0 pt-2">
-                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest border-amber-400/40 bg-amber-400/10 text-amber-300 mb-2">
+              <div className="flex flex-col items-center justify-center border-b border-[#F0D7D3] pb-3 shrink-0 pt-2 dark:border-white/5">
+                <span className="inline-flex items-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-[#8F0709] mb-2 shadow-sm dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-300">
                   ONSTAGEVN GATEWAY
                 </span>
-                <h3 className="font-display font-black text-[11px] sm:text-xs text-white uppercase tracking-normal flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <h3 className="font-display font-black text-[11px] sm:text-xs text-[#191116] uppercase tracking-normal flex items-center justify-center gap-1.5 whitespace-nowrap dark:text-white">
                   Mời Talent tham gia OnstageVN
                 </h3>
               </div>
 
               {/* Sub-header description */}
-              <p className="text-xs text-slate-300 font-semibold leading-relaxed text-justify px-1 shrink-0">
-                Gửi mã QR hoặc liên kết này cho <strong className="text-yellow-400 font-black">{activatingTalent.name}</strong> để nhận tài khoản. Talent nhận tài khoản, đăng ký/đăng nhập và hoàn thiện hồ sơ của mình.
+              <p className="text-xs text-[#574D54] font-semibold leading-relaxed text-justify px-1 shrink-0 dark:text-slate-300">
+                Gửi mã QR hoặc liên kết này cho <strong className="text-[#8F0709] font-black dark:text-yellow-400">{activatingTalent.name}</strong> để nhận tài khoản. Talent nhận tài khoản, đăng ký/đăng nhập và hoàn thiện hồ sơ của mình.
               </p>
 
               {/* URL + Copy button */}
-              <div className="flex items-center justify-between gap-2 rounded-2xl bg-[#04060a]/90 border border-white/5 px-2.5 py-1.5 sm:px-3 sm:py-2 font-mono text-[10px] sm:text-[11px] font-bold text-slate-350 shrink-0">
+              <div className="flex items-center justify-between gap-2 rounded-2xl bg-[#FFF0EE] border border-[#F0D7D3] px-2.5 py-1.5 sm:px-3 sm:py-2 font-mono text-[10px] sm:text-[11px] font-bold text-[#8F0709] shrink-0 dark:bg-[#04060a]/90 dark:border-white/5 dark:text-slate-350">
                 <span className="truncate select-all text-left flex-1">{activateLink}</span>
                 <button
+                  type="button"
                   onClick={() => {
                     navigator.clipboard.writeText(activateLink);
                     addToast("Đã sao chép liên kết mời!");
                   }}
-                  className="p-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-amber-400 hover:text-amber-300 transition-all cursor-pointer shrink-0"
+                  className="p-1.5 rounded-lg bg-white border border-[#F0D7D3] hover:border-[#8F0709] text-[#8F0709] transition-all cursor-pointer shrink-0 shadow-sm dark:bg-white/5 dark:border-white/10 dark:text-amber-400"
                   title="Sao chép liên kết"
                 >
                   <Copy className="h-3.5 w-3.5" />
@@ -974,7 +982,7 @@ export default function MyTalentsPage() {
 
               {/* QR Code Container */}
               <div className="flex flex-col items-center justify-center shrink-0">
-                <div className="relative h-40 w-40 sm:h-48 sm:w-48 rounded-[2rem] bg-white p-3.5 sm:p-4 flex flex-col items-center justify-center shadow-2xl shrink-0">
+                <div className="relative h-40 w-40 sm:h-48 sm:w-48 rounded-[2rem] bg-white p-3.5 sm:p-4 flex flex-col items-center justify-center shadow-md border border-[#F0D7D3] shrink-0 dark:border-transparent dark:shadow-2xl">
                   <QRCodeCanvas
                     value={activateLink}
                     size={180}
@@ -984,7 +992,7 @@ export default function MyTalentsPage() {
                     includeMargin={false}
                     className="h-full w-full rounded-2xl"
                   />
-                  <div className="absolute h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-[#02040a] border-2 border-white flex items-center justify-center shadow-lg overflow-hidden">
+                  <div className="absolute h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-[#FAF7F6] border-2 border-white flex items-center justify-center shadow-lg overflow-hidden dark:bg-[#02040a]">
                     <img
                       src="/logo_icon.png?v=20260817"
                       alt="ONSTAGE"
@@ -996,22 +1004,22 @@ export default function MyTalentsPage() {
               </div>
 
               {/* Instruction Steps */}
-              <div className="rounded-2xl bg-slate-950/60 border border-white/5 p-3 sm:p-4 space-y-1.5 sm:space-y-2 text-left shrink-0">
-                <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-slate-300 font-semibold leading-relaxed">
+              <div className="rounded-2xl bg-[#FAF7F6] border border-[#F0D7D3] p-3 sm:p-4 space-y-1.5 sm:space-y-2 text-left shrink-0 dark:bg-slate-950/60 dark:border-white/5">
+                <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-[#574D54] font-semibold leading-relaxed dark:text-slate-300">
                   <div className="flex gap-2">
-                    <span className="text-amber-400 font-bold">1.</span>
+                    <span className="text-[#8F0709] font-bold dark:text-amber-400">1.</span>
                     <span>Gửi mã cho Talent</span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-amber-400 font-bold">2.</span>
+                    <span className="text-[#8F0709] font-bold dark:text-amber-400">2.</span>
                     <span>Talent quét mã</span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-amber-400 font-bold">3.</span>
+                    <span className="text-[#8F0709] font-bold dark:text-amber-400">3.</span>
                     <span>Talent đăng nhập và hoàn thiện hồ sơ</span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-amber-400 font-bold">4.</span>
+                    <span className="text-[#8F0709] font-bold dark:text-amber-400">4.</span>
                     <span>Hồ sơ của Talent được cập nhật cho bạn xem</span>
                   </div>
                 </div>
@@ -1020,16 +1028,20 @@ export default function MyTalentsPage() {
               {/* Action buttons */}
               <div className="flex gap-3 text-[10px] sm:text-xs font-bold uppercase tracking-widest pt-2 shrink-0">
                 <button
+                  type="button"
                   onClick={handleDownloadActivateQr}
-                  className="flex-1 flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-slate-200 hover:text-white hover:border-slate-400 transition-all cursor-pointer"
+                  className="flex-1 flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl border border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] shadow-sm transition-all cursor-pointer dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:text-white"
                 >
                   <Download className="h-4 w-4 shrink-0" /> Tải về
                 </button>
                 <button
+                  type="button"
+                  style={{ color: "#ffffff" }}
                   onClick={handleShareActivate}
-                  className="flex-1 flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl bg-[#F0C56B] text-[#02040a] font-black hover:bg-[#d6af5d] hover:shadow-[0_0_15px_rgba(240,197,107,0.25)] hover:scale-[1.02] active:scale-98 transition-all duration-300 cursor-pointer shadow-lg"
+                  className="light-force-white flex-1 flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white font-black hover:brightness-110 active:scale-98 transition-all duration-300 cursor-pointer shadow-md dark:bg-[#F0C56B] dark:text-[#02040a]"
                 >
-                  <Share2 className="h-4 w-4 shrink-0" /> Chia sẻ
+                  <Share2 className="h-4 w-4 stroke-[3] !text-white text-white shrink-0" />
+                  <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Chia sẻ</span>
                 </button>
               </div>
             </div>

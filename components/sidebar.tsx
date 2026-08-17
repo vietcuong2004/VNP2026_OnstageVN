@@ -36,8 +36,8 @@ export const unifiedDiscoveryNavigation = [
 ];
 
 export const unifiedManagementNavigation = [
-  { label: "Quản lý Booking", icon: CalendarCheck, href: "/brand/my-bookings" },
-  { label: "Quản lý việc làm", icon: Briefcase, href: "/brand/manage-jobs" },
+  { label: "Yêu cầu của tôi", icon: CalendarCheck, href: "/brand/my-bookings" },
+  { label: "Tạo Job", icon: Briefcase, href: "/brand/manage-jobs" },
   { label: "Quản lý Idol", icon: Users2, href: "/brand/my-talents" },
   { label: "Hợp tác", icon: Users2, href: "/talent/brands" },
 ];
@@ -104,11 +104,11 @@ export default function Sidebar() {
     }));
   const activePathname = pathname.startsWith("/brand/talents/") && sourcePath.startsWith("/brand/")
     ? sourcePath
-    : pathname.startsWith("/talent/jobs/") && sourcePath.startsWith("/talent/")
+    : pathname.startsWith("/talent/jobs/") && sourcePath.startsWith("/talent/") && pathname !== "/talent/jobs/saved-jobs"
       ? sourcePath
       : pathname.startsWith("/brand/talents/")
         ? "/brand/search"
-        : pathname.startsWith("/talent/jobs/")
+        : pathname.startsWith("/talent/jobs/") && pathname !== "/talent/jobs/saved-jobs"
           ? "/talent/jobs"
           : pathname;
 
@@ -167,7 +167,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <aside className="hidden md:flex w-72 shrink-0 flex-col border-r border-white/5 bg-[#050711] p-6 overflow-y-auto">
+      <aside className="hidden md:flex w-72 shrink-0 flex-col border-r border-[#F0D7D3] bg-white p-6 overflow-y-auto dark:border-white/5 dark:bg-[#050711]">
         <nav className="flex-1 space-y-7 overflow-y-auto pr-1">
           {!isLoggedIn ? (
             <div className="space-y-2">
@@ -182,15 +182,15 @@ export default function Sidebar() {
                     className={cn(
                       "flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold tracking-wide transition-all duration-300 group relative",
                       isActive
-                        ? "bg-gradient-to-r from-amber-400/10 to-yellow-600/5 text-amber-300 border border-amber-500/20 shadow-[0_4px_12px_rgba(245,158,11,0.05)]"
-                        : "text-slate-400 hover:bg-white/2 hover:text-slate-100 border border-transparent",
+                        ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md border border-transparent dark:border-amber-500/20 dark:bg-gradient-to-r dark:from-amber-400/10 dark:to-yellow-600/5 dark:text-amber-300"
+                        : "text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] border border-transparent dark:text-slate-400 dark:hover:bg-white/2 dark:hover:text-slate-100",
                     )}
                   >
                     {isActive && (
-                      <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
+                      <div className="absolute left-0 top-1/3 bottom-1/3 w-1 rounded-r-full bg-[#F0C56B] dark:bg-amber-400" />
                     )}
-                    <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-amber-400" : "text-slate-400 group-hover:text-slate-100")} />
-                    <span>{item.label}</span>
+                    <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "!text-white text-white dark:text-amber-400" : "text-[#574D54] group-hover:text-[#8F0709] dark:text-slate-400 dark:group-hover:text-slate-100")} />
+                    <span className={cn(isActive ? "!text-white text-white font-bold dark:text-amber-300" : "")}>{item.label}</span>
                   </Link>
                 );
               })}
@@ -213,25 +213,25 @@ export default function Sidebar() {
                       className={cn(
                         "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
                         isActiveHref(section.href)
-                          ? "border-amber-500/20 bg-gradient-to-r from-amber-400/10 to-yellow-600/5 shadow-[0_4px_12px_rgba(245,158,11,0.055)] text-amber-300"
-                          : "border-transparent text-slate-400 hover:bg-white/2 hover:text-slate-100",
+                          ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md border-transparent dark:border-amber-500/20 dark:bg-gradient-to-r dark:from-amber-400/10 dark:to-yellow-600/5 dark:text-amber-300"
+                          : "border-transparent text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/2 dark:hover:text-slate-100",
                       )}
                     >
                       {isActiveHref(section.href) && (
-                        <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
+                        <div className="absolute left-0 top-1/3 bottom-1/3 w-1 rounded-r-full bg-[#F0C56B] dark:bg-amber-400" />
                       )}
-                      <section.icon className="h-4.5 w-4.5 text-amber-400 transition-transform duration-300 group-hover:scale-110" />
-                      <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
+                      <section.icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActiveHref(section.href) ? "!text-white text-white dark:text-amber-400" : "text-[#C72524] dark:text-amber-400")} />
+                      <span className={cn(isActiveHref(section.href) ? "!text-white text-white font-bold dark:text-amber-300" : "text-[#8F0709] dark:bg-gradient-to-r dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] dark:text-transparent")}>
                         {section.title}
                       </span>
                     </Link>
                   ) : (
                     <>
                       <div className="flex items-center gap-3 px-1 py-1 transition-all duration-300">
-                        <span className="text-amber-400 transition-transform duration-300 hover:rotate-12">
+                        <span className="text-[#C72524] dark:text-amber-400 transition-transform duration-300 hover:rotate-12">
                           <section.icon className="h-4.5 w-4.5" />
                         </span>
-                        <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] text-transparent drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
+                        <span className="text-[#8F0709] dark:bg-gradient-to-r dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] dark:text-transparent dark:drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
                           {section.title}
                         </span>
                       </div>
@@ -248,15 +248,15 @@ export default function Sidebar() {
                               className={cn(
                                 "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
                                 isActive
-                                  ? "border-amber-500/20 bg-gradient-to-r from-amber-400/10 to-yellow-600/5 text-amber-300 shadow-[0_4px_12px_rgba(245,158,11,0.055)]"
-                                  : "border-transparent text-slate-400 hover:bg-white/2 hover:text-slate-100",
+                                  ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md border-transparent dark:border-amber-500/20 dark:bg-gradient-to-r dark:from-amber-400/10 dark:to-yellow-600/5 dark:text-amber-300"
+                                  : "border-transparent text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/2 dark:hover:text-slate-100",
                               )}
                             >
                               {isActive && (
-                                <div className="absolute left-0 top-1/3 bottom-1/3 w-0.5 rounded bg-amber-400" />
+                                <div className="absolute left-0 top-1/3 bottom-1/3 w-1 rounded-r-full bg-[#F0C56B] dark:bg-amber-400" />
                               )}
-                              <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "text-amber-400" : "text-slate-400 group-hover:text-slate-100")} />
-                              <span>{item.label}</span>
+                              <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "!text-white text-white dark:text-amber-400" : "text-[#574D54] group-hover:text-[#8F0709] dark:text-slate-400 dark:group-hover:text-slate-100")} />
+                              <span className={cn(isActive ? "!text-white text-white font-bold dark:text-amber-300" : "")}>{item.label}</span>
                             </Link>
                           );
                         })}

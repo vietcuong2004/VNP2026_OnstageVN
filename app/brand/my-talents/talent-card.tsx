@@ -72,11 +72,11 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
     <article
       onClick={() => router.push(`/brand/talents/${talent.id}?from=/brand/my-talents`)}
       className={cn(
-        "group flex min-w-0 flex-col justify-between rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg transition-all duration-300 hover:border-[#C9A86A]/30 cursor-pointer active:scale-[0.99]"
+        "group flex min-w-0 flex-col justify-between rounded-2xl border border-[#F0D7D3] bg-white p-3.5 shadow-sm transition-all duration-300 hover:border-[#8F0709] cursor-pointer active:scale-[0.99] dark:border-[#2B313D] dark:bg-[#171A21] dark:hover:border-[#C9A86A]/30"
       )}
     >
       <div>
-        <div className="relative mb-3.5 aspect-square w-full overflow-hidden rounded-xl border border-white/5 bg-slate-950">
+        <div className="relative mb-3.5 aspect-square w-full overflow-hidden rounded-xl border border-[#F0D7D3] bg-slate-100 dark:border-white/5 dark:bg-slate-950">
           <img
             src={talentAvatar}
             alt={talent.name}
@@ -101,7 +101,7 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
                 event.stopPropagation();
                 setMenuOpen(v => !v);
               }}
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-[#0F1115]/60 text-slate-350 hover:text-white hover:bg-[#0F1115]/80 transition active:scale-90 shadow-lg backdrop-blur-sm"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#F0D7D3] bg-white/90 text-[#574D54] hover:text-[#8F0709] hover:bg-white transition active:scale-90 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-[#0F1115]/60 dark:text-slate-350 dark:hover:text-white"
               title="Thao tác"
             >
               <MoreVertical className="h-4 w-4" />
@@ -109,20 +109,20 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
             {menuOpen && (
               <div 
                 onClick={(e) => e.stopPropagation()}
-                className="absolute right-0 top-9 z-50 w-44 rounded-xl border border-white/10 bg-[#0d1020] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+                className="absolute right-0 top-9 z-50 w-44 rounded-xl border border-[#F0D7D3] bg-white shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 dark:border-white/10 dark:bg-[#0d1020]"
               >
                 <button
                   type="button"
                   onClick={() => { setMenuOpen(false); onEditClick(talent, entry); }}
-                  className="w-full flex items-center gap-2 px-3.5 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-300 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3.5 py-2.5 text-[11px] font-black uppercase tracking-wider text-[#191116] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition-colors cursor-pointer dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                 >
-                  <Edit className="h-3.5 w-3.5 text-yellow-400" /> Chỉnh sửa hồ sơ
+                  <Edit className="h-3.5 w-3.5 text-[#8F0709] dark:text-yellow-400" /> Chỉnh sửa hồ sơ
                 </button>
-                <div className="mx-3 h-px bg-white/5" />
+                <div className="mx-3 h-px bg-[#F0D7D3] dark:bg-white/5" />
                 <button
                   type="button"
                   onClick={() => { setMenuOpen(false); onDeleteClick(entry.talentId, talent.name); }}
-                  className="w-full flex items-center gap-2 px-3.5 py-2.5 text-[11px] font-black uppercase tracking-wider text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3.5 py-2.5 text-[11px] font-black uppercase tracking-wider text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
                 >
                   <Trash2 className="h-3.5 w-3.5 shrink-0" />
                   {isPending ? "Hủy lời mời" : "Xóa"}
@@ -134,14 +134,14 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
           {/* Status Badge */}
           <div className="absolute bottom-2 left-2">
             <span className={cn(
-              "inline-flex items-center gap-1 rounded border bg-[#0F1115]/85 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white backdrop-blur-sm",
+              "inline-flex items-center gap-1 rounded border bg-white/90 border-[#F0D7D3] px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-[#191116] backdrop-blur-sm dark:bg-[#0F1115]/85 dark:text-white",
               isManaged 
-                ? "border-amber-500/30 text-amber-400"
+                ? "border-amber-500/30 text-amber-700 dark:text-amber-400"
                 : sc.badge.replace(/bg-\S+/, "")
             )}>
               <span className={cn(
                 "h-1.5 w-1.5 rounded-full shrink-0", 
-                isManaged ? "bg-amber-400" : sc.dot.replace(/animate-pulse/, "")
+                isManaged ? "bg-amber-500" : sc.dot.replace(/animate-pulse/, "")
               )} />
               {isManaged ? "Managed" : sc.label}
             </span>
@@ -150,26 +150,26 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
 
         <div className="min-w-0 space-y-2">
           <div className="flex min-w-0 items-center gap-1.5">
-            <h3 className="flex-1 truncate text-base font-black leading-tight tracking-wide text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.12)]">
+            <h3 className="flex-1 truncate text-base font-black leading-tight tracking-wide text-[#191116] group-hover:text-[#8F0709] transition-colors dark:text-white dark:group-hover:text-amber-300">
               {talent.name}
             </h3>
-            {talent.verified && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />}
+            {talent.verified && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />}
           </div>
 
-          <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
+          <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-400">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#8F0709] dark:text-[#C9A86A]" />
             <span className="truncate">{locationText || "Chưa cập nhật"}</span>
           </div>
 
           <div className="flex flex-wrap gap-1">
             {talentTypes.length ? (
               talentTypes.map((type) => (
-                <span key={type} className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
+                <span key={type} className="inline-flex w-fit rounded-md border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                   {type}
                 </span>
               ))
             ) : (
-              <span className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#C9A86A]">
+              <span className="inline-flex w-fit rounded-md border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                 Chưa cập nhật
               </span>
             )}
@@ -177,18 +177,18 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
         </div>
 
         <div className="my-3 flex flex-nowrap gap-1 overflow-hidden">
-          <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.age || "-"} tuổi</span>
-          <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">
+          <span className="min-w-0 shrink rounded-md border border-[#F0D7D3] bg-[#FAF7F6] px-1.5 py-1 text-[8px] font-black uppercase text-[#574D54] shadow-sm whitespace-nowrap dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-100">{talent.age || "-"} tuổi</span>
+          <span className="min-w-0 shrink rounded-md border border-[#F0D7D3] bg-[#FAF7F6] px-1.5 py-1 text-[8px] font-black uppercase text-[#574D54] shadow-sm whitespace-nowrap dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-100">
             {experienceYears} năm kinh nghiệm
           </span>
-          <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.height || "-"}cm</span>
-          <span className="min-w-0 shrink rounded-md border border-white/10 bg-slate-800/90 px-1.5 py-1 text-[8px] font-black uppercase text-slate-100 shadow-sm whitespace-nowrap">{talent.weight || "-"}kg</span>
+          <span className="min-w-0 shrink rounded-md border border-[#F0D7D3] bg-[#FAF7F6] px-1.5 py-1 text-[8px] font-black uppercase text-[#574D54] shadow-sm whitespace-nowrap dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-100">{talent.height || "-"}cm</span>
+          <span className="min-w-0 shrink rounded-md border border-[#F0D7D3] bg-[#FAF7F6] px-1.5 py-1 text-[8px] font-black uppercase text-[#574D54] shadow-sm whitespace-nowrap dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-100">{talent.weight || "-"}kg</span>
         </div>
 
         {/* Notes */}
-        <div className="mt-2.5 flex items-start gap-2 rounded-xl border border-white/5 bg-[#0F1115]/30 p-2.5 text-[10px]">
-          <FileText className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
-          <p className={cn("leading-relaxed font-semibold", entry.notes ? "text-slate-300" : "text-slate-500 italic")}>
+        <div className="mt-2.5 flex items-start gap-2 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] p-2.5 text-[10px] dark:border-white/5 dark:bg-[#0F1115]/30">
+          <FileText className="h-3.5 w-3.5 text-[#8F0709] shrink-0 mt-0.5 dark:text-slate-400" />
+          <p className={cn("leading-relaxed font-semibold", entry.notes ? "text-[#191116] dark:text-slate-300" : "text-[#9A8B88] italic dark:text-slate-500")}>
             {(() => {
               if (!entry.notes) return "Idol được tạo bởi quản lý.";
               const notes = entry.notes.trim();
@@ -207,16 +207,16 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
 
         {/* Invite CTA — Managed */}
         {isAccepted && isManaged && (
-          <div className="mt-2.5 flex flex-col gap-2 rounded-xl border border-dashed border-amber-400/30 bg-amber-400/[0.03] p-2.5">
+          <div className="mt-2.5 flex flex-col gap-2 rounded-xl border border-dashed border-[#8F0709]/30 bg-[#FFF0EE] p-2.5 dark:border-amber-400/30 dark:bg-amber-400/[0.03]">
             <div>
-              <p className="text-[10px] font-black text-white uppercase tracking-wider">Mời Idol tham gia OnstageVN</p>
+              <p className="text-[10px] font-black text-[#191116] uppercase tracking-wider dark:text-white">Mời Idol tham gia OnstageVN</p>
               <p
                 onClick={(e) => {
                   e.stopPropagation();
                   setDescExpanded(v => !v);
                 }}
                 className={cn(
-                  "text-[9px] text-slate-400 mt-1 leading-relaxed cursor-pointer select-none",
+                  "text-[9px] text-[#574D54] mt-1 leading-relaxed cursor-pointer select-none dark:text-slate-400",
                   !descExpanded && "line-clamp-2"
                 )}
                 title="Click để xem chi tiết mô tả"
@@ -226,11 +226,12 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
             </div>
             <button
               type="button"
+              style={{ color: "#ffffff" }}
               onClick={(e) => {
                 e.stopPropagation();
                 onActivateClick(talent);
               }}
-              className="w-full h-8 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[9px] uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-[0.97] transition-all whitespace-nowrap mt-0.5"
+              className="light-force-white w-full h-8 rounded-lg bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white font-black text-[9px] uppercase tracking-wider cursor-pointer hover:brightness-105 active:scale-[0.97] transition-all whitespace-nowrap mt-0.5"
             >
               Gửi lời mời kích hoạt
             </button>
@@ -239,23 +240,23 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
 
         {/* Pending notice */}
         {isPending && (
-          <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-2.5">
-            <Clock className="h-3 w-3 shrink-0 text-amber-400" />
-            <p className="text-[9px] text-amber-300/80 font-bold uppercase tracking-wider leading-snug">
-              Mời lúc <span className="text-white">{entry.addedAt}</span> · Chờ xác nhận
+          <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-[#F0D7D3] bg-[#FFF0EE] p-2.5 dark:border-amber-500/20 dark:bg-amber-500/[0.03]">
+            <Clock className="h-3 w-3 shrink-0 text-[#8F0709] dark:text-amber-400" />
+            <p className="text-[9px] text-[#8F0709] font-bold uppercase tracking-wider leading-snug dark:text-amber-300/80">
+              Mời lúc <span className="text-[#191116] font-black dark:text-white">{entry.addedAt}</span> · Chờ xác nhận
             </p>
           </div>
         )}
       </div>
 
-      <div className="mt-4 flex gap-2 border-t border-white/5 pt-3.5">
+      <div className="mt-4 flex gap-2 border-t border-[#F0D7D3] pt-3.5 dark:border-white/5">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             router.push(`/brand/talents/${talent.id}?from=/brand/my-talents`);
           }}
-          className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-white/10 active:scale-95 cursor-pointer"
+          className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-[#F0D7D3] bg-white px-4 text-[10px] font-black uppercase tracking-wider text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] transition active:scale-95 cursor-pointer shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
           title="Xem hồ sơ chi tiết"
         >
           <Eye className="h-4 w-4 shrink-0" />
@@ -263,15 +264,16 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
         </button>
         <button
           type="button"
+          style={{ color: "#ffffff" }}
           onClick={(e) => {
             e.stopPropagation();
             onAssignJobClick(talent);
           }}
-          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer hover:brightness-110"
+          className="light-force-white flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer shadow-md hover:brightness-110"
           title="Giao việc cho idol"
         >
-          <Briefcase className="h-4 w-4 shrink-0" />
-          <span>Assign Job</span>
+          <Briefcase className="h-4 w-4 stroke-[3] !text-white text-white shrink-0" />
+          <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Assign Job</span>
         </button>
       </div>
     </article>

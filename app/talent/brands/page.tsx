@@ -333,18 +333,18 @@ export default function TalentBrandsPage() {
   };
 
   return (
-    <div className="space-y-5 pb-20 md:space-y-8 md:pb-0 animate-in fade-in duration-300">
+    <div className="space-y-5 pb-20 md:space-y-8 md:pb-0 animate-in fade-in duration-300 text-[#191116] dark:text-white">
       {/* ── Header ── */}
-      <div className="border-b border-white/5 pb-4 md:pb-5">
+      <div className="border-b border-[#F0D7D3] pb-4 md:pb-5 dark:border-white/5">
         <div className="mb-2 flex items-center gap-2">
-          <span className="rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
+          <span className="rounded-md border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#8F0709] shadow-sm dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
             MẠNG LƯỚI HỢP TÁC
           </span>
         </div>
-        <h1 className="font-display text-xl md:text-2xl font-black text-white tracking-tight uppercase leading-none">
+        <h1 className="font-display text-xl md:text-2xl font-black text-[#191116] tracking-tight uppercase leading-none dark:text-white">
           Danh sách Hợp tác
         </h1>
-        <p className="text-[11px] md:text-xs text-slate-400 mt-2 font-medium leading-relaxed">
+        <p className="text-[11px] md:text-xs text-[#574D54] mt-2 font-medium leading-relaxed dark:text-slate-400">
           Xem lời mời từ các đối tác muốn thêm bạn vào mạng lưới hợp tác của họ.
         </p>
       </div>
@@ -354,51 +354,53 @@ export default function TalentBrandsPage() {
         {/* Cột Trái: Nhập link tham gia Hợp tác */}
         <form
           onSubmit={handleAcceptInviteLink}
-          className="lg:col-span-5 flex flex-col justify-between rounded-2xl bg-gradient-to-b from-[#221809] via-[#0f0e13] to-[#070913] border border-amber-500/40 p-5 md:p-6 shadow-[0_0_50px_rgba(245,158,11,0.06)] relative overflow-hidden group hover:border-amber-400/60 hover:shadow-[0_0_60px_rgba(245,158,11,0.12)] transition-all duration-300 min-h-[340px]"
+          className="lg:col-span-5 flex flex-col justify-between rounded-2xl bg-white border border-[#F0D7D3] p-5 md:p-6 shadow-sm relative overflow-hidden group hover:border-[#8F0709] transition-all duration-300 min-h-[340px] dark:bg-[#0c0d14] dark:border-amber-500/40 dark:shadow-[0_0_50px_rgba(245,158,11,0.06)] dark:hover:border-amber-400/60"
         >
           {/* Decorative radial gradient glow */}
-          <div className="absolute -top-20 -left-20 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-20 -left-20 w-48 h-48 bg-[#FFF0EE] rounded-full blur-3xl pointer-events-none dark:bg-amber-500/10" />
 
           <div className="space-y-4 relative z-10 flex-1 flex flex-col justify-start">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/25 to-yellow-600/10 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)] text-amber-400">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#FFF0EE] border border-[#F0D7D3] shadow-sm text-[#8F0709] dark:bg-gradient-to-br dark:from-amber-400/25 dark:to-yellow-600/10 dark:border-amber-500/30 dark:text-amber-400">
                 <Link2 className="h-6 w-6 animate-pulse" />
               </div>
               <div>
-                <h3 className="text-sm font-black uppercase tracking-widest text-amber-300">
+                <h3 className="text-sm font-black uppercase tracking-widest text-[#191116] dark:text-amber-300">
                   Nhập link tham gia Hợp tác
                 </h3>
-                <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-400 mt-1 inline-block">
+                <span className="rounded-full bg-[#FFF0EE] border border-[#F0D7D3] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#8F0709] mt-1 inline-block dark:bg-amber-500/15 dark:border-amber-500/30 dark:text-amber-400">
                   PARTNERSHIP
                 </span>
               </div>
             </div>
 
-            <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
+            <p className="text-[11px] text-[#574D54] leading-relaxed font-medium dark:text-slate-300">
               Dán đường dẫn giới thiệu hoặc nhập mã mời để tự động gia nhập mạng lưới hợp tác.
             </p>
           </div>
 
           <div className="space-y-3.5 mt-6 relative z-10">
             <div>
-              <label className="block text-[10px] font-black text-amber-400/80 uppercase tracking-widest mb-1.5 px-0.5">
+              <label className="block text-[10px] font-black text-[#8F0709] uppercase tracking-widest mb-1.5 px-0.5 dark:text-amber-400/80">
                 Đường dẫn giới thiệu / Mã mời:
               </label>
               <input
                 value={inviteLinkValue}
                 onChange={(event) => setInviteLinkValue(event.target.value)}
                 placeholder="https://onstage.vn/ref/ma-doi-tac"
-                className="h-12 w-full rounded-xl border border-amber-500/25 bg-black/55 px-4 text-xs font-semibold text-white outline-none placeholder:text-slate-600 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all shadow-inner text-amber-100"
+                className="h-12 w-full rounded-xl border border-[#F0D7D3] bg-white px-4 text-xs font-semibold text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#8F0709] transition-all shadow-sm dark:bg-black/55 dark:border-amber-500/25 dark:text-amber-100 dark:placeholder:text-slate-600 dark:focus:border-amber-400"
               />
             </div>
 
             <button
               type="submit"
               disabled={isAcceptingLink}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 text-xs font-black uppercase tracking-widest text-slate-950 transition-all hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 shadow-[0_4px_20px_rgba(245,158,11,0.25)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.35)]"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-xs font-black uppercase tracking-widest transition-all hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 shadow-md cursor-pointer dark:bg-gradient-to-r dark:from-amber-400 dark:via-yellow-500 dark:to-amber-500 dark:!text-slate-950"
             >
-              <Send className="h-4 w-4" />
-              {isAcceptingLink ? "Đang xử lý..." : "Tham gia ngay"}
+              <Send className="h-4 w-4 stroke-[3]" />
+              <span className="font-black">
+                {isAcceptingLink ? "Đang xử lý..." : "Tham gia ngay"}
+              </span>
             </button>
           </div>
         </form>
@@ -406,42 +408,42 @@ export default function TalentBrandsPage() {
         {/* Cột Phải: Thông tin & Phân bổ thù lao */}
         <div className="lg:col-span-7 flex flex-col gap-6 justify-between">
           {/* Info Banner */}
-          <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-5 relative overflow-hidden flex-1 flex flex-col justify-center">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
+          <div className="rounded-2xl bg-[#FFF0EE] border border-[#F0D7D3] p-5 relative overflow-hidden flex-1 flex flex-col justify-center shadow-sm dark:bg-[#120e09] dark:border-amber-500/30">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#8F0709]/5 rounded-full blur-2xl pointer-events-none dark:bg-amber-500/5" />
             <div className="flex gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 shadow-[0_0_15px_rgba(244,196,48,0.1)]">
-                <Network className="h-5.5 w-5.5 text-amber-400" />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white border border-[#F0D7D3] shadow-sm text-[#8F0709] dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-400">
+                <Network className="h-5.5 w-5.5 text-[#8F0709] dark:text-amber-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-xs font-black text-amber-300 uppercase tracking-widest">Mạng lưới Hợp tác là gì?</h3>
-                <p className="text-[11px] text-slate-300 mt-2 leading-relaxed font-medium">
-                  Khi bạn tham gia vào <strong className="text-white">mạng lưới hợp tác</strong>, hệ thống sẽ ghi nhận người giới thiệu trực tiếp và áp dụng chính sách thù lao/hoa hồng theo cấu hình từng campaign.
+                <h3 className="text-xs font-black text-[#8F0709] uppercase tracking-widest dark:text-amber-300">Mạng lưới Hợp tác là gì?</h3>
+                <p className="text-[11px] text-[#574D54] mt-2 leading-relaxed font-medium dark:text-slate-300">
+                  Khi bạn tham gia vào <strong className="text-[#191116] font-bold dark:text-white">mạng lưới hợp tác</strong>, hệ thống sẽ ghi nhận người giới thiệu trực tiếp và áp dụng chính sách thù lao/hoa hồng theo cấu hình từng campaign.
                 </p>
               </div>
             </div>
           </div>
 
           {/* Commission breakdown visual */}
-          <div className="rounded-2xl bg-[#08090f] border border-[#151b2d] p-5">
-            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2 leading-relaxed">
-              <DollarSign className="h-4 w-4 text-emerald-400" /> Phân bổ thù lao (Ví dụ: Job trị giá 10.000.000đ)
+          <div className="rounded-2xl bg-white border border-[#F0D7D3] p-5 shadow-sm dark:bg-[#08090f] dark:border-[#151b2d]">
+            <h3 className="text-xs font-black text-[#191116] uppercase tracking-widest mb-4 flex items-center gap-2 leading-relaxed dark:text-white">
+              <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Phân bổ thù lao (Ví dụ: Job trị giá 10.000.000đ)
             </h3>
             <div className="space-y-3.5">
               {[
-                { label: "KOL nhận trực tiếp (75%)", value: "7.500.000đ", pct: 75, color: "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.2)]", textColor: "text-emerald-400" },
-                { label: "Manager nhận (10%)", value: "1.000.000đ", pct: 10, color: "bg-amber-400 shadow-[0_0_10px_rgba(244,196,48,0.2)]", textColor: "text-amber-400" },
-                { label: "Phí nền tảng (15%)", value: "1.500.000đ", pct: 15, color: "bg-slate-600", textColor: "text-slate-400" },
+                { label: "KOL nhận trực tiếp (75%)", value: "7.500.000đ", pct: 75, color: "bg-emerald-500 shadow-sm dark:bg-emerald-400", textColor: "text-emerald-700 dark:text-emerald-400" },
+                { label: "Manager nhận (10%)", value: "1.000.000đ", pct: 10, color: "bg-[#8F0709] shadow-sm dark:bg-amber-400", textColor: "text-[#8F0709] dark:text-amber-400" },
+                { label: "Phí nền tảng (15%)", value: "1.500.000đ", pct: 15, color: "bg-[#9A8B88] dark:bg-slate-600", textColor: "text-[#574D54] dark:text-slate-400" },
               ].map(row => (
                 <div key={row.label} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 w-44 shrink-0">{row.label}</p>
-                  <div className="flex-1 h-2 bg-[#151b2d] rounded-full overflow-hidden">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-[#574D54] w-44 shrink-0 dark:text-slate-400">{row.label}</p>
+                  <div className="flex-1 h-2.5 bg-[#FAF7F6] border border-[#F0D7D3] rounded-full overflow-hidden dark:bg-[#151b2d] dark:border-transparent">
                     <div className={cn("h-full rounded-full transition-all duration-1000", row.color)} style={{ width: `${row.pct}%` }} />
                   </div>
                   <span className={cn("text-xs font-black font-mono w-24 text-right sm:text-right shrink-0", row.textColor)}>{row.value}</span>
                 </div>
               ))}
             </div>
-            <p className="text-[9.5px] text-slate-500 mt-4 text-center font-semibold uppercase tracking-wider leading-relaxed">
+            <p className="text-[9.5px] text-[#574D54] mt-4 text-center font-semibold uppercase tracking-wider leading-relaxed dark:text-slate-500">
               💡 Bạn vẫn tự do nhận job ngoài — Tham gia hợp tác giúp tăng thêm cơ hội được booking trực tiếp từ các Agency & Khách hàng.
             </p>
           </div>
@@ -452,28 +454,24 @@ export default function TalentBrandsPage() {
       {pending.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-amber-400 animate-bounce" />
-            <h2 className="text-sm font-black text-white uppercase tracking-widest">
+            <Bell className="h-4 w-4 text-[#8F0709] animate-bounce dark:text-amber-400" />
+            <h2 className="text-sm font-black text-[#191116] uppercase tracking-widest dark:text-white">
               Lời mời đang chờ phản hồi
-              <span className="ml-2.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-[9px] font-black text-slate-950 shadow-md">{pending.length}</span>
+              <span className="ml-2.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#8F0709] text-[9px] font-black text-white shadow-sm dark:bg-amber-400 dark:text-slate-950">{pending.length}</span>
             </h2>
           </div>
           {pending.map(inv => (
             <div
               key={inv.id}
-              className="group relative overflow-hidden rounded-3xl border border-amber-500/30 bg-gradient-to-b from-[#1b1509] via-[#0d0f1a] to-[#070913] p-5 md:p-6 transition-all duration-500 hover:scale-[1.01] hover:border-amber-400/60 hover:shadow-[0_0_40px_rgba(245,158,11,0.22)]"
+              className="group relative overflow-hidden rounded-3xl border border-[#F0D7D3] bg-white p-5 md:p-6 shadow-sm transition-all duration-300 hover:border-[#8F0709] dark:border-amber-500/30 dark:bg-[#0c0d14]"
             >
               {/* Luxury gradient background accents */}
-              <div className="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-amber-500/10 blur-3xl pointer-events-none group-hover:bg-amber-500/15 transition-all duration-500" />
-              <div className="absolute -left-24 -bottom-24 h-48 w-48 rounded-full bg-cyan-500/5 blur-3xl pointer-events-none group-hover:bg-cyan-500/10 transition-all duration-500" />
-
-              {/* Shimmer light effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
+              <div className="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-[#FFF0EE] blur-3xl pointer-events-none dark:bg-amber-500/10" />
 
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
                 <div className="flex items-start gap-4">
                   <div className="relative shrink-0">
-                    <div className="h-16 w-16 rounded-2xl overflow-hidden border-2 border-amber-400/40 bg-gradient-to-br from-amber-400/20 to-transparent p-[2px] shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all duration-300">
+                    <div className="h-16 w-16 rounded-2xl overflow-hidden border-2 border-[#F0D7D3] bg-[#FAF7F6] p-[2px] shadow-sm dark:border-amber-400/40 dark:bg-amber-400/10">
                       <img
                         src={inv.managerAvatar}
                         alt={inv.managerBrand}
@@ -483,35 +481,35 @@ export default function TalentBrandsPage() {
                         className="h-full w-full rounded-[12px] object-cover"
                       />
                     </div>
-                    <div className="absolute -bottom-1.5 -right-1.5 h-6.5 w-6.5 rounded-full bg-[#08090f] border border-amber-400/40 flex items-center justify-center shadow-lg">
-                      <Crown className="h-3.5 w-3.5 text-amber-400 fill-amber-400/20" />
+                    <div className="absolute -bottom-1.5 -right-1.5 h-6.5 w-6.5 rounded-full bg-white border border-[#F0D7D3] flex items-center justify-center shadow-md dark:bg-[#08090f] dark:border-amber-400/40">
+                      <Crown className="h-3.5 w-3.5 text-[#8F0709] dark:text-amber-400" />
                     </div>
                   </div>
 
                   <div className="space-y-1.5 text-left min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[8px] font-black uppercase tracking-wider bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded text-amber-300 shadow-sm">
+                      <span className="text-[8px] font-black uppercase tracking-wider bg-[#FFF0EE] border border-[#F0D7D3] px-2 py-0.5 rounded text-[#8F0709] shadow-sm dark:bg-amber-400/15 dark:border-amber-400/30 dark:text-amber-300">
                         {inv.managerTier}
                       </span>
-                      <span className="text-[8px] font-black uppercase tracking-widest text-[#F0C56B] bg-[#071B42]/60 border border-[#D4A64A]/30 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <Clock className="h-2.5 w-2.5 text-amber-400" /> {inv.sentAt}
+                      <span className="text-[8px] font-black uppercase tracking-widest text-[#574D54] bg-[#FAF7F6] border border-[#F0D7D3] px-2 py-0.5 rounded-full flex items-center gap-1 dark:text-[#F0C56B] dark:bg-[#071B42]/60 dark:border-[#D4A64A]/30">
+                        <Clock className="h-2.5 w-2.5 text-[#8F0709] dark:text-amber-400" /> {inv.sentAt}
                       </span>
                     </div>
 
-                    <h3 className="text-base md:text-lg font-black text-white group-hover:text-amber-300 transition-colors leading-snug tracking-tight">
+                    <h3 className="text-base md:text-lg font-black text-[#191116] group-hover:text-[#8F0709] transition-colors leading-snug tracking-tight dark:text-white dark:group-hover:text-amber-300">
                       {inv.managerBrand}
                     </h3>
-                    <p className="text-xs font-semibold text-slate-400">
-                      Người phụ trách: <span className="font-extrabold text-[#F0C56B]">{inv.managerName}</span>
+                    <p className="text-xs font-semibold text-[#574D54] dark:text-slate-400">
+                      Người phụ trách: <span className="font-extrabold text-[#8F0709] dark:text-[#F0C56B]">{inv.managerName}</span>
                     </p>
                   </div>
                 </div>
 
                 {/* Terms preview section */}
-                <div className="flex md:flex-col items-start justify-between md:justify-center md:items-end p-3 rounded-2xl bg-[#08090f]/90 border border-white/5 md:border-0 md:bg-transparent w-full md:w-auto shrink-0 gap-2 shadow-inner md:shadow-none">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Mức hoa hồng đề xuất</span>
-                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-400/20 to-amber-500/10 border border-amber-400/30 px-3.5 py-2 rounded-xl text-amber-300 text-xs font-black uppercase tracking-widest shadow-md">
-                    <TrendingUp className="h-4 w-4 text-amber-400" /> {Math.round(inv.commissionRate * 100)}% / JOB
+                <div className="flex md:flex-col items-start justify-between md:justify-center md:items-end p-3 rounded-2xl bg-[#FAF7F6] border border-[#F0D7D3] md:border-0 md:bg-transparent w-full md:w-auto shrink-0 gap-2 dark:bg-[#08090f]/90 dark:border-0">
+                  <span className="text-[10px] text-[#574D54] font-bold uppercase tracking-wider dark:text-slate-400">Mức hoa hồng đề xuất</span>
+                  <div className="flex items-center gap-1.5 bg-[#FFF0EE] border border-[#F0D7D3] px-3.5 py-2 rounded-xl text-[#8F0709] text-xs font-black uppercase tracking-widest shadow-sm dark:bg-amber-400/20 dark:border-amber-400/30 dark:text-amber-300">
+                    <TrendingUp className="h-4 w-4 text-[#8F0709] dark:text-amber-400" /> {Math.round(inv.commissionRate * 100)}% / JOB
                   </div>
                 </div>
               </div>
@@ -520,20 +518,20 @@ export default function TalentBrandsPage() {
               <div className="mt-6 flex flex-col sm:flex-row items-center gap-3 w-full relative z-10">
                 <button
                   onClick={() => handleOpenDetails(inv)}
-                  className="w-full sm:w-auto px-6 h-12 rounded-xl border border-amber-400/30 bg-amber-400/5 text-amber-300 text-xs font-black uppercase tracking-wider hover:bg-amber-400 hover:text-black active:scale-[0.98] cursor-pointer transition-all duration-300 flex items-center justify-center gap-1.5 shrink-0 shadow-md"
+                  className="w-full sm:w-auto px-6 h-12 rounded-xl border border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] text-xs font-black uppercase tracking-wider cursor-pointer transition-all duration-300 flex items-center justify-center gap-1.5 shrink-0 shadow-sm dark:border-amber-400/30 dark:bg-amber-400/5 dark:text-amber-300 dark:hover:bg-amber-400 dark:hover:text-black"
                 >
                   <Sparkles className="h-3.5 w-3.5" /> Xem chi tiết
                 </button>
                 <div className="flex-1 w-full flex items-center gap-3">
                   <button
                     onClick={() => handleAccept(inv.id)}
-                    className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-400 to-green-600 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-110 hover:shadow-[0_0_15px_rgba(52,211,153,0.3)] active:scale-[0.98] cursor-pointer shadow-md transition-all duration-300 flex items-center justify-center gap-1.5"
+                    className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-xs font-black uppercase tracking-wider text-white hover:brightness-110 active:scale-[0.98] cursor-pointer shadow-md transition-all duration-300 flex items-center justify-center gap-1.5 dark:from-emerald-400 dark:to-green-600 dark:!text-slate-950"
                   >
                     <Check className="h-4.5 w-4.5 stroke-[2.5]" /> Chấp nhận
                   </button>
                   <button
                     onClick={() => handleDecline(inv.id)}
-                    className="flex-1 h-12 rounded-xl bg-[#050711] border border-[#151b2d] text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white hover:border-slate-700/50 cursor-pointer active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-1.5"
+                    className="flex-1 h-12 rounded-xl bg-white border border-[#F0D7D3] text-xs font-black uppercase tracking-wider text-[#574D54] hover:text-red-600 hover:border-red-600 cursor-pointer active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm dark:bg-[#050711] dark:border-[#151b2d] dark:text-slate-400 dark:hover:text-white"
                   >
                     <X className="h-4.5 w-4.5" /> Từ chối
                   </button>
@@ -547,25 +545,21 @@ export default function TalentBrandsPage() {
       {/* ── Accepted rosters ── */}
       {accepted.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 border-b border-white/5 pb-2">
-            <CheckCircle className="h-4 w-4 text-emerald-400" /> Các Đối tác đang hợp tác
+          <h2 className="text-sm font-black text-[#191116] uppercase tracking-widest flex items-center gap-2 border-b border-[#F0D7D3] pb-2 dark:text-white dark:border-white/5">
+            <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Các Đối tác đang hợp tác
           </h2>
           {accepted.map(inv => (
             <div
               key={inv.id}
-              className="group relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-[#0a2318] via-[#080d16] to-[#070913] p-5 md:p-6 transition-all duration-500 hover:scale-[1.01] hover:border-emerald-400/60 hover:shadow-[0_0_40px_rgba(16,185,129,0.22)]"
+              className="group relative overflow-hidden rounded-3xl border border-emerald-300 bg-white p-5 md:p-6 shadow-sm transition-all duration-300 hover:border-emerald-500 dark:border-emerald-500/30 dark:bg-[#080d16]"
             >
-              {/* Luxury gradient background accents */}
-              <div className="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none group-hover:bg-emerald-500/15 transition-all duration-500" />
-              <div className="absolute -left-24 -bottom-24 h-48 w-48 rounded-full bg-amber-500/5 blur-3xl pointer-events-none group-hover:bg-amber-500/10 transition-all duration-500" />
-
-              {/* Shimmer light effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
+              {/* Background accent */}
+              <div className="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-emerald-50 blur-3xl pointer-events-none dark:bg-emerald-500/10" />
 
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
                 <div className="flex items-start gap-4 flex-1 min-w-0">
                   <div className="relative shrink-0">
-                    <div className="h-16 w-16 rounded-2xl overflow-hidden border-2 border-emerald-400/40 bg-gradient-to-br from-emerald-400/20 to-transparent p-[2px] shadow-[0_0_15px_rgba(16,185,129,0.15)] group-hover:border-emerald-400 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300">
+                    <div className="h-16 w-16 rounded-2xl overflow-hidden border-2 border-emerald-300 bg-emerald-50 p-[2px] shadow-sm dark:border-emerald-400/40 dark:bg-emerald-400/10">
                       <img
                         src={inv.managerAvatar}
                         alt={inv.managerBrand}
@@ -575,66 +569,66 @@ export default function TalentBrandsPage() {
                         className="h-full w-full rounded-[12px] object-cover"
                       />
                     </div>
-                    <div className="absolute -bottom-1.5 -right-1.5 h-6.5 w-6.5 rounded-full bg-[#08090f] border border-emerald-400/40 flex items-center justify-center shadow-lg">
-                      <CheckCircle className="h-3.5 w-3.5 text-emerald-400 fill-emerald-400/20" />
+                    <div className="absolute -bottom-1.5 -right-1.5 h-6.5 w-6.5 rounded-full bg-white border border-emerald-300 flex items-center justify-center shadow-md dark:bg-[#08090f] dark:border-emerald-400/40">
+                      <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                   </div>
 
                   <div className="space-y-1.5 text-left min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-400">
+                      <span className="rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-700 shadow-sm dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400">
                         Đang hợp tác
                       </span>
                     </div>
 
-                    <h3 className="text-base md:text-lg font-black text-white group-hover:text-emerald-300 transition-colors leading-snug tracking-tight">
+                    <h3 className="text-base md:text-lg font-black text-[#191116] leading-snug tracking-tight dark:text-white">
                       {inv.managerBrand}
                     </h3>
-                    <p className="text-xs font-semibold text-slate-400">
-                      Người phụ trách: <span className="font-extrabold text-white">{inv.managerName}</span>
+                    <p className="text-xs font-semibold text-[#574D54] dark:text-slate-400">
+                      Người phụ trách: <span className="font-extrabold text-[#191116] dark:text-white">{inv.managerName}</span>
                     </p>
                   </div>
                 </div>
 
                 {/* Terms preview section */}
-                <div className="flex md:flex-col items-start justify-between md:justify-center md:items-end p-3 rounded-2xl bg-[#08090f]/90 border border-white/5 md:border-0 md:bg-transparent w-full md:w-auto shrink-0 gap-2 shadow-inner md:shadow-none">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Hoa hồng hợp tác</span>
-                  <div className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-400/20 to-emerald-500/10 border border-emerald-400/30 px-3.5 py-2 rounded-xl text-emerald-300 text-xs font-black uppercase tracking-widest shadow-md">
-                    <TrendingUp className="h-4 w-4 text-emerald-400" /> {Math.round(inv.commissionRate * 100)}% / JOB
+                <div className="flex md:flex-col items-start justify-between md:justify-center md:items-end p-3 rounded-2xl bg-[#FAF7F6] border border-[#F0D7D3] md:border-0 md:bg-transparent w-full md:w-auto shrink-0 gap-2 dark:bg-[#08090f]/90 dark:border-0">
+                  <span className="text-[10px] text-[#574D54] font-bold uppercase tracking-wider dark:text-slate-400">Hoa hồng hợp tác</span>
+                  <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-300 px-3.5 py-2 rounded-xl text-emerald-700 text-xs font-black uppercase tracking-widest shadow-sm dark:bg-emerald-400/20 dark:border-emerald-400/30 dark:text-emerald-300">
+                    <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> {Math.round(inv.commissionRate * 100)}% / JOB
                   </div>
                 </div>
               </div>
 
               {/* Inviter & Used Link Row */}
-              <div className="mt-5 grid gap-3 sm:grid-cols-2 relative z-10 border-t border-white/5 pt-4">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 relative z-10 border-t border-[#F0D7D3] pt-4 dark:border-white/5">
                 <div className="space-y-1 text-left">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Người giới thiệu</span>
-                  <span className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
-                    <Users2 className="h-4 w-4 text-emerald-450 shrink-0" /> {inv.invitedBy || "Trực tiếp từ Đối tác"}
+                  <span className="text-[9px] font-black uppercase tracking-widest text-[#574D54] block dark:text-slate-500">Người giới thiệu</span>
+                  <span className="text-xs font-bold text-[#191116] flex items-center gap-1.5 dark:text-slate-350">
+                    <Users2 className="h-4 w-4 text-emerald-600 shrink-0 dark:text-emerald-450" /> {inv.invitedBy || "Trực tiếp từ Đối tác"}
                   </span>
                 </div>
                 <div className="space-y-1 text-left min-w-0">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Link đã dùng để tham gia (từ người mời)</span>
-                  <span className="text-xs font-mono font-medium text-slate-400 truncate block bg-black/40 px-2.5 py-1.5 rounded-xl border border-white/5 select-all cursor-pointer" title="Click to select all">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-[#574D54] block dark:text-slate-500">Link đã dùng để tham gia (từ người mời)</span>
+                  <span className="text-xs font-mono font-medium text-[#191116] truncate block bg-[#FAF7F6] px-2.5 py-1.5 rounded-xl border border-[#F0D7D3] select-all cursor-pointer dark:bg-black/40 dark:border-white/5 dark:text-slate-400" title="Click to select all">
                     {inv.acceptedInviteLink || "Không qua link mời"}
                   </span>
                 </div>
               </div>
 
               {/* Personal Invite Link Row (To invite other KOLs) */}
-              <div className="mt-4 p-4 rounded-2xl border border-emerald-500/20 bg-emerald-950/20 space-y-2.5 relative z-10 text-left">
+              <div className="mt-4 p-4 rounded-2xl border border-[#F0D7D3] bg-[#FAF7F6] space-y-2.5 relative z-10 text-left dark:border-emerald-500/20 dark:bg-emerald-950/20">
                 <div className="flex items-center gap-2">
-                  <UserPlus className="h-4 w-4 text-emerald-400" />
-                  <p className="text-xs font-black uppercase tracking-widest text-[#F0C56B]">Mời người khác cùng tham gia</p>
+                  <UserPlus className="h-4 w-4 text-[#8F0709] dark:text-emerald-400" />
+                  <p className="text-xs font-black uppercase tracking-widest text-[#8F0709] dark:text-[#F0C56B]">Mời người khác cùng tham gia</p>
                 </div>
-                <p className="text-[10px] leading-relaxed text-slate-400">
+                <p className="text-[10px] leading-relaxed text-[#574D54] dark:text-slate-400">
                   Link này đưa người mới vào cùng mạng lưới hợp tác, đồng thời ghi nhận bạn là người giới thiệu trực tiếp. Link này không liên quan đến referral campaign.
                 </p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input
                     readOnly
                     value={inv.inviteLink || "Đang tải link..."}
-                    className="h-10 min-w-0 flex-1 rounded-xl border border-white/5 bg-[#050711] px-3 text-xs font-mono font-semibold text-slate-300 outline-none focus:border-emerald-400/50"
+                    className="h-10 min-w-0 flex-1 rounded-xl border border-[#F0D7D3] bg-white px-3 text-xs font-mono font-semibold text-[#191116] outline-none shadow-sm dark:bg-[#050711] dark:border-white/5 dark:text-slate-300"
                   />
                   <div className="flex items-center gap-2 shrink-0">
                     <button
@@ -647,15 +641,15 @@ export default function TalentBrandsPage() {
                           () => addToast("Không sao chép được link, hãy copy thủ công.", "info")
                         );
                       }}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 text-xs font-black uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-md"
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white px-4 text-xs font-black uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-md dark:bg-amber-400 dark:!text-slate-950"
                     >
-                      <Copy className="h-4 w-4" />
-                      Sao chép link
+                      <Copy className="h-4 w-4 stroke-[3]" />
+                      <span className="font-black">Sao chép link</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleOpenDetails(inv)}
-                      className="px-5 h-10 rounded-xl border border-emerald-400/30 bg-emerald-400/5 text-emerald-350 text-xs font-black uppercase tracking-wider hover:bg-emerald-400 hover:text-black active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                      className="px-5 h-10 rounded-xl border border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] text-xs font-black uppercase tracking-wider cursor-pointer shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 dark:border-emerald-400/30 dark:bg-emerald-400/5 dark:text-emerald-350"
                     >
                       Chi tiết <ChevronRight className="h-4 w-4" />
                     </button>
@@ -670,9 +664,9 @@ export default function TalentBrandsPage() {
       {/* ── Declined ── */}
       {declined.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">Đã từ chối</h2>
+          <h2 className="text-sm font-black text-[#574D54] uppercase tracking-widest border-b border-[#F0D7D3] pb-2 dark:text-slate-500 dark:border-white/5">Đã từ chối</h2>
           {declined.map(inv => (
-            <div key={inv.id} className={cn("rounded-2xl border p-4 bg-[#08090f]/50 border-red-500/10 opacity-50 hover:opacity-75 transition-opacity")}>
+            <div key={inv.id} className={cn("rounded-2xl border p-4 bg-[#FAF7F6] border-[#F0D7D3] opacity-60 hover:opacity-100 transition-opacity dark:bg-[#08090f]/50 dark:border-red-500/10")}>
               <div className="flex items-center gap-3">
                 <img
                   src={inv.managerAvatar}
@@ -680,11 +674,11 @@ export default function TalentBrandsPage() {
                   onError={(event) => {
                     event.currentTarget.src = createInitialAvatarDataUrl(inv.managerBrand || inv.managerName || "Brand", "");
                   }}
-                  className="h-10 w-10 rounded-xl object-cover border border-[#151b2d]"
+                  className="h-10 w-10 rounded-xl object-cover border border-[#F0D7D3] dark:border-[#151b2d]"
                 />
                 <div>
-                  <p className="text-xs font-black text-white">{inv.managerBrand}</p>
-                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Người phụ trách: {inv.managerName}</p>
+                  <p className="text-xs font-black text-[#191116] dark:text-white">{inv.managerBrand}</p>
+                  <p className="text-[10px] text-[#574D54] font-semibold mt-0.5 dark:text-slate-500">Người phụ trách: {inv.managerName}</p>
                 </div>
               </div>
             </div>
@@ -694,10 +688,10 @@ export default function TalentBrandsPage() {
 
       {/* ── Empty state ── */}
       {invitations.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl border border-dashed border-white/5 bg-[#08090f]/40">
-          <Users2 className="h-12 w-12 text-slate-700 mb-4 animate-pulse" />
-          <p className="text-slate-400 font-black text-sm uppercase tracking-wider">Không có lời mời nào</p>
-          <p className="text-slate-550 text-xs mt-1 max-w-sm">
+        <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl border border-dashed border-[#F0D7D3] bg-white shadow-sm dark:bg-[#08090f]/40 dark:border-white/5">
+          <Users2 className="h-12 w-12 text-[#9A8B88] mb-4 animate-pulse dark:text-slate-700" />
+          <p className="text-[#191116] font-black text-sm uppercase tracking-wider dark:text-slate-400">Không có lời mời nào</p>
+          <p className="text-[#574D54] text-xs mt-1 max-w-sm dark:text-slate-550">
             Khi có lời mời hợp tác, danh sách sẽ hiển thị tại đây.
           </p>
         </div>
@@ -705,26 +699,26 @@ export default function TalentBrandsPage() {
 
       {/* ── Toast Notifications ── */}
       {selectedInvitation && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 p-0 backdrop-blur-sm md:p-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#191116]/60 p-0 backdrop-blur-sm md:p-4 dark:bg-black/75">
           <div className="flex min-h-full items-end justify-center md:items-start lg:items-center animate-in fade-in duration-300">
-            <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-[#151b2d] bg-[#08090f] px-5 pt-5 pb-8 shadow-2xl md:max-h-[calc(100vh-2rem)] md:rounded-3xl md:px-6 md:pt-6 md:pb-10 relative">
-              <div className="absolute top-0 right-1/4 w-48 h-48 bg-gradient-to-br from-amber-500/5 to-transparent blur-3xl pointer-events-none" />
+            <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-[#F0D7D3] bg-white px-5 pt-5 pb-8 shadow-2xl md:max-h-[calc(100vh-2rem)] md:rounded-3xl md:px-6 md:pt-6 md:pb-10 relative text-[#191116] dark:border-[#151b2d] dark:bg-[#08090f] dark:text-white">
+              <div className="absolute top-0 right-1/4 w-48 h-48 bg-[#FFF0EE] blur-3xl pointer-events-none dark:bg-amber-500/5" />
 
-              <div className="flex items-start justify-between gap-4 border-b border-[#151b2d] pb-4">
+              <div className="flex items-start justify-between gap-4 border-b border-[#F0D7D3] pb-4 dark:border-[#151b2d]">
                 <div>
                   <p className={cn(
                     "text-[10px] font-black uppercase tracking-[0.22em]",
-                    selectedInvitation.status === "pending" ? "text-amber-400" : "text-emerald-300"
+                    selectedInvitation.status === "pending" ? "text-[#8F0709] dark:text-amber-400" : "text-emerald-700 dark:text-emerald-300"
                   )}>
                     {selectedInvitation.status === "pending" ? "Lời mời hợp tác" : "Chi tiết hợp tác"}
                   </p>
-                  <h3 className="mt-2 text-base md:text-lg font-black text-white">{selectedInvitation.managerBrand}</h3>
-                  <p className="mt-1 text-xs font-semibold text-slate-405">Quản lý trực tiếp: <span className="text-white font-bold">{selectedInvitation.managerName}</span> ({selectedInvitation.managerTier})</p>
+                  <h3 className="mt-2 text-base md:text-lg font-black text-[#191116] dark:text-white">{selectedInvitation.managerBrand}</h3>
+                  <p className="mt-1 text-xs font-semibold text-[#574D54] dark:text-slate-405">Quản lý trực tiếp: <span className="text-[#191116] font-bold dark:text-white">{selectedInvitation.managerName}</span> ({selectedInvitation.managerTier})</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedInvitation(null)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-colors"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#F0D7D3] bg-[#FFF0EE] text-[#574D54] hover:text-[#8F0709] transition-colors dark:border-white/10 dark:bg-white/5 dark:text-slate-400 dark:hover:text-white"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -734,67 +728,67 @@ export default function TalentBrandsPage() {
                 <div className={cn(
                   "rounded-2xl border p-4 transition-all duration-300",
                   selectedInvitation.status === "pending"
-                    ? "border-amber-500/20 bg-amber-500/5"
+                    ? "border-[#F0D7D3] bg-[#FFF0EE] dark:border-amber-500/20 dark:bg-amber-500/5"
                     : selectedInvitation.status === "accepted"
-                      ? "border-emerald-500/20 bg-emerald-500/5"
-                      : "border-red-500/20 bg-red-500/5"
+                      ? "border-emerald-300 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/5"
+                      : "border-rose-300 bg-rose-50 dark:border-red-500/20 dark:bg-red-500/5"
                 )}>
                   <p className={cn(
                     "text-[9px] font-black uppercase tracking-widest",
-                    selectedInvitation.status === "pending" ? "text-amber-400" : selectedInvitation.status === "accepted" ? "text-emerald-300" : "text-red-400"
+                    selectedInvitation.status === "pending" ? "text-[#8F0709] dark:text-amber-400" : selectedInvitation.status === "accepted" ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-red-400"
                   )}>Trạng thái</p>
-                  <p className="mt-2 text-sm font-black text-white">
+                  <p className="mt-2 text-sm font-black text-[#191116] dark:text-white">
                     {selectedInvitation.status === "pending" ? "Chờ phản hồi" : selectedInvitation.status === "accepted" ? "Đang hợp tác" : "Đã từ chối"}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-amber-300">Hoa hồng</p>
-                  <p className="mt-2 text-sm font-black text-white">{Math.round(selectedInvitation.commissionRate * 100)}% / JOB</p>
+                <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] p-4 dark:border-amber-500/20 dark:bg-amber-500/5">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-[#8F0709] dark:text-amber-300">Hoa hồng</p>
+                  <p className="mt-2 text-sm font-black text-[#191116] dark:text-white">{Math.round(selectedInvitation.commissionRate * 100)}% / JOB</p>
                 </div>
-                <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-cyan-300">Thành viên mạng lưới</p>
-                  <p className="mt-2 text-sm font-black text-white">{selectedInvitation.members?.length || selectedInvitation.childCount || 0}</p>
+                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4 dark:border-cyan-500/20 dark:bg-cyan-500/5">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-cyan-700 dark:text-cyan-300">Thành viên mạng lưới</p>
+                  <p className="mt-2 text-sm font-black text-[#191116] dark:text-white">{selectedInvitation.members?.length || selectedInvitation.childCount || 0}</p>
                 </div>
               </div>
 
               {/* ── Quyền lợi & Điều khoản hợp tác (Hiển thị cho cả 2 trạng thái) ── */}
-              <div className="mt-5 rounded-2xl border border-amber-500/20 bg-[#150f02]/45 p-5 space-y-4">
-                <div className="flex items-center gap-2 border-b border-amber-500/15 pb-3">
-                  <Sparkles className="h-4 w-4 text-amber-400" />
-                  <p className="text-xs font-black uppercase tracking-widest text-amber-300">Quyền lợi & Điều khoản hợp tác</p>
+              <div className="mt-5 rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] p-5 space-y-4 dark:border-amber-500/20 dark:bg-[#150f02]/45">
+                <div className="flex items-center gap-2 border-b border-[#F0D7D3] pb-3 dark:border-amber-500/15">
+                  <Sparkles className="h-4 w-4 text-[#8F0709] dark:text-amber-400" />
+                  <p className="text-xs font-black uppercase tracking-widest text-[#8F0709] dark:text-amber-300">Quyền lợi & Điều khoản hợp tác</p>
                 </div>
                 <div className="space-y-3.5">
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 rounded-full bg-amber-400/10 p-1">
-                      <Building2 className="h-3.5 w-3.5 text-amber-400" />
+                    <div className="mt-0.5 rounded-full bg-white p-1 border border-[#F0D7D3] shadow-sm dark:bg-amber-400/10 dark:border-transparent">
+                      <Building2 className="h-3.5 w-3.5 text-[#8F0709] dark:text-amber-400" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-extrabold text-white">Mạng lưới Agency chuyên nghiệp</p>
-                      <p className="text-[10.5px] leading-relaxed text-slate-400">
-                        Được đại diện và giới thiệu trực tiếp bởi <strong className="text-white">{selectedInvitation.managerName}</strong> ({selectedInvitation.managerTier}) đến các chiến dịch lớn của <strong className="text-white">{selectedInvitation.managerBrand}</strong>.
+                      <p className="text-xs font-extrabold text-[#191116] dark:text-white">Mạng lưới Agency chuyên nghiệp</p>
+                      <p className="text-[10.5px] leading-relaxed text-[#574D54] dark:text-slate-400">
+                        Được đại diện và giới thiệu trực tiếp bởi <strong className="text-[#191116] font-bold dark:text-white">{selectedInvitation.managerName}</strong> ({selectedInvitation.managerTier}) đến các chiến dịch lớn của <strong className="text-[#191116] font-bold dark:text-white">{selectedInvitation.managerBrand}</strong>.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 rounded-full bg-amber-400/10 p-1">
-                      <TrendingUp className="h-3.5 w-3.5 text-amber-400" />
+                    <div className="mt-0.5 rounded-full bg-white p-1 border border-[#F0D7D3] shadow-sm dark:bg-amber-400/10 dark:border-transparent">
+                      <TrendingUp className="h-3.5 w-3.5 text-[#8F0709] dark:text-amber-400" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-extrabold text-white">Tỷ lệ chia sẻ thù lao hấp dẫn</p>
-                      <p className="text-[10.5px] leading-relaxed text-slate-400">
-                        Nhận <strong className="text-emerald-400 font-bold">75% thù lao thực tế</strong> từ Job. Manager chỉ nhận <strong className="text-amber-400">{Math.round(selectedInvitation.commissionRate * 100)}%</strong> phí quản lý & vận hành khi kết nối thành công.
+                      <p className="text-xs font-extrabold text-[#191116] dark:text-white">Tỷ lệ chia sẻ thù lao hấp dẫn</p>
+                      <p className="text-[10.5px] leading-relaxed text-[#574D54] dark:text-slate-400">
+                        Nhận <strong className="text-emerald-700 font-bold dark:text-emerald-400">75% thù lao thực tế</strong> từ Job. Manager chỉ nhận <strong className="text-[#8F0709] font-bold dark:text-amber-400">{Math.round(selectedInvitation.commissionRate * 100)}%</strong> phí quản lý & vận hành khi kết nối thành công.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 rounded-full bg-amber-400/10 p-1">
-                      <Shield className="h-3.5 w-3.5 text-amber-400" />
+                    <div className="mt-0.5 rounded-full bg-white p-1 border border-[#F0D7D3] shadow-sm dark:bg-amber-400/10 dark:border-transparent">
+                      <Shield className="h-3.5 w-3.5 text-[#8F0709] dark:text-amber-400" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-extrabold text-white">Hợp đồng & Thanh toán Bảo chứng</p>
-                      <p className="text-[10.5px] leading-relaxed text-slate-400">
+                      <p className="text-xs font-extrabold text-[#191116] dark:text-white">Hợp đồng & Thanh toán Bảo chứng</p>
+                      <p className="text-[10.5px] leading-relaxed text-[#574D54] dark:text-slate-400">
                         Mọi hợp đồng booking được quản lý minh bạch, thanh toán được OnStage ký quỹ bảo vệ quyền lợi 100% cho Idol.
                       </p>
                     </div>
@@ -802,18 +796,16 @@ export default function TalentBrandsPage() {
                 </div>
               </div>
 
-
-
               {/* ── Danh sách Thành viên mạng lưới (Hiển thị cho cả 2 trạng thái ở dưới cùng) ── */}
-              <div className="mt-5 rounded-2xl border border-[#151b2d] bg-[#050711] p-4">
+              <div className="mt-5 rounded-2xl border border-[#F0D7D3] bg-[#FAF7F6] p-4 dark:border-[#151b2d] dark:bg-[#050711]">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-widest text-white">Danh sách thành viên mạng lưới</p>
-                    <p className="mt-1 text-[10px] text-slate-500">
+                    <p className="text-xs font-black uppercase tracking-widest text-[#191116] dark:text-white">Danh sách thành viên mạng lưới</p>
+                    <p className="mt-1 text-[10px] text-[#574D54] dark:text-slate-500">
                       Tất cả người dùng đang thuộc mạng lưới liên kết này, dù được mời trực tiếp hay qua người giới thiệu khác.
                     </p>
                   </div>
-                  <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[10px] font-black text-cyan-300">
+                  <span className="rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-[10px] font-black text-cyan-800 dark:border-cyan-400/25 dark:bg-cyan-400/10 dark:text-cyan-300">
                     {selectedInvitation.members?.length || 0}
                   </span>
                 </div>
@@ -821,7 +813,7 @@ export default function TalentBrandsPage() {
                 <div className="mt-4 space-y-2">
                   {selectedInvitation.members?.length ? (
                     selectedInvitation.members.map((member) => (
-                      <div key={member.id} className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950/60 p-3">
+                      <div key={member.id} className="flex items-center gap-3 rounded-xl border border-[#F0D7D3] bg-white p-3 shadow-sm dark:border-white/5 dark:bg-slate-950/60">
                         <img
                           src={member.avatar}
                           alt={member.name}
@@ -829,26 +821,26 @@ export default function TalentBrandsPage() {
                             event.currentTarget.onerror = null;
                             event.currentTarget.src = createInitialAvatarDataUrl(member.name, "");
                           }}
-                          className="h-10 w-10 rounded-xl object-cover"
+                          className="h-10 w-10 rounded-xl object-cover border border-[#F0D7D3] dark:border-transparent"
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-black text-white">{member.name}</p>
-                          <p className="mt-0.5 text-[10px] font-semibold text-slate-500">
+                          <p className="truncate text-xs font-black text-[#191116] dark:text-white">{member.name}</p>
+                          <p className="mt-0.5 text-[10px] font-semibold text-[#574D54] dark:text-slate-500">
                             Tham gia: {member.joinedAt || "Chưa cập nhật"}
                           </p>
-                          <p className="mt-0.5 text-[10px] font-semibold text-slate-500">
-                            Được mời bởi: <span className="font-bold text-slate-300">{member.invitedBy || "Đối tác"}</span>
+                          <p className="mt-0.5 text-[10px] font-semibold text-[#574D54] dark:text-slate-500">
+                            Được mời bởi: <span className="font-bold text-[#191116] dark:text-slate-300">{member.invitedBy || "Đối tác"}</span>
                           </p>
                         </div>
-                        <span className="rounded-md border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 text-[9px] font-black uppercase text-emerald-300">
+                        <span className="rounded-md border border-emerald-300 bg-emerald-50 px-2 py-1 text-[9px] font-black uppercase text-emerald-700 shadow-sm dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
                           {member.status === "active" ? "Đang hoạt động" : member.status}
                         </span>
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/40 p-4 text-center">
-                      <p className="text-xs font-bold text-slate-400">Mạng lưới này chưa có người dùng nào.</p>
-                      <p className="mt-1 text-[10px] text-slate-650">Khi có Idol tham gia, danh sách sẽ hiển thị tại đây.</p>
+                    <div className="rounded-xl border border-dashed border-[#F0D7D3] bg-white p-4 text-center dark:border-white/10 dark:bg-slate-950/40">
+                      <p className="text-xs font-bold text-[#574D54] dark:text-slate-400">Mạng lưới này chưa có người dùng nào.</p>
+                      <p className="mt-1 text-[10px] text-[#9A8B88] dark:text-slate-650">Khi có Idol tham gia, danh sách sẽ hiển thị tại đây.</p>
                     </div>
                   )}
                 </div>
@@ -856,13 +848,13 @@ export default function TalentBrandsPage() {
 
               {/* ── Hộp hành động Chấp nhận/Từ chối (Chỉ hiển thị cho trạng thái Đang chờ/Pending) ── */}
               {selectedInvitation.status === "pending" && (
-                <div className="mt-6 flex items-center gap-3 border-t border-[#151b2d] pt-5">
+                <div className="mt-6 flex items-center gap-3 border-t border-[#F0D7D3] pt-5 dark:border-[#151b2d]">
                   <button
                     onClick={() => {
                       handleAccept(selectedInvitation.id);
                       setSelectedInvitation(null);
                     }}
-                    className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-400 to-green-600 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-110 hover:shadow-[0_0_15px_rgba(52,211,153,0.3)] active:scale-[0.98] shadow-md transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-xs font-black uppercase tracking-wider text-white hover:brightness-110 active:scale-[0.98] shadow-md transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer dark:from-emerald-400 dark:to-green-600 dark:!text-slate-950"
                   >
                     <Check className="h-4.5 w-4.5 stroke-[2.5]" /> Chấp nhận lời mời
                   </button>
@@ -871,7 +863,7 @@ export default function TalentBrandsPage() {
                       handleDecline(selectedInvitation.id);
                       setSelectedInvitation(null);
                     }}
-                    className="flex-1 h-12 rounded-xl bg-[#050711] border border-[#151b2d] text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white hover:border-slate-700/50 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 h-12 rounded-xl bg-white border border-[#F0D7D3] text-xs font-black uppercase tracking-wider text-[#574D54] hover:text-red-600 hover:border-red-600 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm dark:bg-[#050711] dark:border-[#151b2d] dark:text-slate-400 dark:hover:text-white"
                   >
                     <X className="h-4.5 w-4.5" /> Từ chối
                   </button>
@@ -889,11 +881,11 @@ export default function TalentBrandsPage() {
             className={cn(
               "animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-xl border px-4 py-3 text-xs font-bold shadow-xl flex items-center gap-2",
               t.type === "success"
-                ? "bg-emerald-950 border-emerald-500/30 text-emerald-300"
-                : "bg-slate-900 border-slate-700 text-slate-300"
+                ? "bg-emerald-50 border-emerald-300 text-emerald-800 dark:bg-emerald-950 dark:border-emerald-500/30 dark:text-emerald-300"
+                : "bg-white border-[#F0D7D3] text-[#191116] dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
             )}
           >
-            {t.type === "success" ? <CheckCircle className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> : <AlertCircle className="h-3.5 w-3.5 text-slate-400 shrink-0" />}
+            {t.type === "success" ? <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0 dark:text-emerald-400" /> : <AlertCircle className="h-3.5 w-3.5 text-[#8F0709] shrink-0 dark:text-slate-400" />}
             {t.msg}
           </div>
         ))}

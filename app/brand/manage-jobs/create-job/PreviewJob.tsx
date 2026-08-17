@@ -163,10 +163,10 @@ export default function PreviewJob({
 
   return (
     <>
-    <aside className="flex h-full min-h-0 min-w-0 flex-1 basis-1/2 flex-col overflow-hidden rounded-2xl border border-slate-800/80 bg-[#080a12]">
+    <aside className="flex h-full min-h-0 min-w-0 flex-1 basis-1/2 flex-col overflow-hidden rounded-2xl border border-[#F0D6D0] bg-[#FAF7F6] text-[#191116] dark:border-slate-800/80 dark:bg-[#080a12] dark:text-white">
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         <div
-          className="relative h-56 cursor-zoom-in overflow-hidden border-b border-[#151b2d] bg-[#050711]"
+          className="relative h-56 cursor-zoom-in overflow-hidden border-b border-[#F0D6D0] bg-white dark:border-[#151b2d] dark:bg-[#050711]"
           role="button"
           tabIndex={0}
           onClick={() => setIsImageLightboxOpen(true)}
@@ -187,27 +187,27 @@ export default function PreviewJob({
               event.currentTarget.src = "/brand_cover_default.png";
             }}
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#080a12] via-[#080a12]/20 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#FAF7F6] via-[#FAF7F6]/20 to-transparent dark:from-[#080a12] dark:via-[#080a12]/20" />
           {showImageNavigation && (
             <div
-              className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/45 p-1 backdrop-blur"
+              className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 rounded-full border border-[#F0D6D0] bg-white/90 p-1 backdrop-blur shadow-md dark:border-white/10 dark:bg-black/45"
               onClick={(event) => event.stopPropagation()}
             >
               <button
                 type="button"
                 onClick={goToPrevImage}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/85 transition hover:bg-white/25 hover:text-white"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] transition hover:bg-[#FFE5E2] cursor-pointer dark:bg-white/10 dark:text-white/85 dark:hover:bg-white/25"
                 aria-label="Ảnh trước"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="min-w-10 text-center text-[11px] font-black text-white">
+              <span className="min-w-10 text-center text-[11px] font-black text-[#191116] dark:text-white">
                 {currentActiveImageIndex + 1}/{images.length}
               </span>
               <button
                 type="button"
                 onClick={goToNextImage}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/85 transition hover:bg-white/25 hover:text-white"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] transition hover:bg-[#FFE5E2] cursor-pointer dark:bg-white/10 dark:text-white/85 dark:hover:bg-white/25"
                 aria-label="Ảnh sau"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -222,20 +222,20 @@ export default function PreviewJob({
               {(industries.length > 0 ? industries : ["Chưa phân loại"]).map((industry) => (
                 <span
                   key={industry}
-                  className="rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-cyan-300"
+                  className="rounded-full border border-[#E8C8C2] bg-[#FFF3F1] px-3 py-1 text-xs font-black uppercase text-[#8F0709] dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-300"
                 >
                   {industry}
                 </span>
               ))}
             </div>
 
-            <h3 className="min-w-0 whitespace-normal break-words font-display text-2xl font-black uppercase leading-tight tracking-tight text-white [overflow-wrap:anywhere]">
+            <h3 className="min-w-0 whitespace-normal break-words font-display text-2xl font-black uppercase leading-tight tracking-tight text-[#191116] dark:text-white [overflow-wrap:anywhere]">
               {form.title || "Tên job sẽ hiển thị tại đây"}
             </h3>
 
-            <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Thương hiệu:</span>
-              <span className="font-bold text-amber-300">OnstageVN Brand</span>
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-[#574D54] dark:text-slate-400">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#9A8B88] dark:text-slate-500">Thương hiệu:</span>
+              <span className="font-bold text-[#8F0709] dark:text-amber-300">OnstageVN Brand</span>
             </p>
 
             <div className="grid grid-cols-1 gap-3 2xl:grid-cols-4">
@@ -245,18 +245,18 @@ export default function PreviewJob({
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-4 pt-3">
-              <button type="button" disabled className="min-w-64 rounded-2xl bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 px-6 py-4 text-sm font-black uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+              <button type="button" disabled className="light-force-white min-w-64 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-6 py-4 text-sm font-black uppercase tracking-wider !text-white text-white shadow-md opacity-90 cursor-not-allowed">
                 Ứng tuyển ngay
               </button>
-              <button type="button" disabled className="inline-flex min-w-64 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-6 py-4 text-sm font-black uppercase tracking-wider text-slate-100">
-                <Bookmark className="h-4 w-4" />
+              <button type="button" disabled className="inline-flex min-w-64 items-center justify-center gap-2 rounded-2xl border border-[#F0D6D0] bg-white px-6 py-4 text-sm font-black uppercase tracking-wider text-[#191116] shadow-sm opacity-90 cursor-not-allowed dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
+                <Bookmark className="h-4 w-4 text-[#8F0709] dark:text-white" />
                 Lưu công việc
               </button>
             </div>
           </section>
 
           <PreviewSection icon={Info} title="Mô tả công việc">
-            <p className="min-w-0 whitespace-pre-line break-words text-sm font-normal leading-relaxed text-slate-300 [overflow-wrap:anywhere]">
+            <p className="min-w-0 whitespace-pre-line break-words text-xs sm:text-sm font-normal leading-relaxed text-[#574D54] dark:text-slate-300 [overflow-wrap:anywhere]">
               {form.description || "Mô tả tổng quan về job, campaign, mục tiêu và kế hoạch sẽ hiển thị tại đây."}
             </p>
           </PreviewSection>
@@ -265,9 +265,9 @@ export default function PreviewJob({
             <PillBlock
               title="Lĩnh vực công việc"
               items={industries.length > 0 ? industries : ["Không có"]}
-              className="border-amber-400/20 bg-amber-400/10 text-amber-300"
+              className="border-[#E8C8C2] bg-[#FFF3F1] text-[#8F0709] dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300"
             />
-            <div className="grid grid-cols-1 gap-2 text-sm">
+            <div className="grid grid-cols-1 gap-2 text-xs sm:text-sm">
               <InfoLine icon={Calendar} label="Bắt đầu" value={formatDateTime(form.startDate)} />
               <InfoLine icon={Calendar} label="Kết thúc" value={formatDateTime(form.endDate)} />
             </div>
@@ -279,10 +279,10 @@ export default function PreviewJob({
             <div className="space-y-3">
               <GeneralRequirementsPreview items={requirements} />
               {(positionCards.length > 0 ? positionCards : [{ talentType: "Vị trí tuyển dụng", quantity: form.talentQuantity || "1", requirements: "" }]).map((position, index) => (
-                <article key={`${position.talentType}-${index}`} className="rounded-2xl border border-[#232a42] bg-[#090c17] p-4">
+                <article key={`${position.talentType}-${index}`} className="rounded-2xl border border-[#F0D6D0] bg-white p-4 transition-colors hover:border-[#C72524]/30 shadow-sm dark:border-[#232a42] dark:bg-[#090c17] dark:hover:border-amber-400/25">
                   <div className="flex items-start justify-between gap-3">
-                    <h4 className="text-base font-black leading-snug text-white">{position.talentType || `Vị trí ${index + 1}`}</h4>
-                    <span className="shrink-0 rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-[11px] font-black text-amber-300">
+                    <h4 className="text-base font-black leading-snug text-[#7A1114] dark:text-white">{position.talentType || `Vị trí ${index + 1}`}</h4>
+                    <span className="shrink-0 rounded-full border border-[#E8C8C2] bg-[#FFF3F1] px-3 py-1 text-[11px] font-black text-[#8F0709] dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300">
                       Cần tuyển {Number(position.quantity) || 1} người
                     </span>
                   </div>
@@ -296,18 +296,18 @@ export default function PreviewJob({
             <PreviewSection icon={Sparkles} title="Thông tin sự kiện" badge={`${form.campaignEvents.length} sự kiện`} flush>
               <div className="space-y-3">
                 {form.campaignEvents.map((event, index) => (
-                  <article key={`${event.name}-${index}`} className="rounded-2xl border border-[#232a42] bg-[#090c17] p-4">
+                  <article key={`${event.name}-${index}`} className="rounded-2xl border border-[#F0D6D0] bg-white p-4 transition-colors hover:border-[#C72524]/30 shadow-sm dark:border-[#232a42] dark:bg-[#090c17] dark:hover:border-amber-400/25">
                     <div className="flex flex-col gap-2">
-                      <h4 className="text-base font-black leading-snug text-amber-300">
+                      <h4 className="text-base font-black leading-snug text-[#8F0709] dark:text-amber-300">
                         {event.name || `Sự kiện ${index + 1}`}
                       </h4>
-                      <span className="inline-flex w-fit max-w-full items-center gap-1.5 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-1 text-[11px] font-black text-cyan-200">
-                        <Clock className="h-3.5 w-3.5 text-cyan-300" />
+                      <span className="inline-flex w-fit max-w-full items-center gap-1.5 rounded-full border border-[#E8C8C2] bg-[#FFF3F1] px-2.5 py-1 text-[11px] font-black text-[#8F0709] dark:border-cyan-400/20 dark:bg-cyan-400/10 dark:text-cyan-200">
+                        <Clock className="h-3.5 w-3.5 text-[#8F0709] dark:text-cyan-300" />
                         {formatRange(event.startAt, event.endAt)}
                       </span>
                     </div>
-                    <div className="mt-3 flex items-start gap-2 text-sm font-semibold text-slate-300">
-                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                    <div className="mt-3 flex items-start gap-2 text-xs sm:text-sm font-semibold text-[#574D54] dark:text-slate-300">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
                       <span className="leading-relaxed">{event.location || location}</span>
                     </div>
                     <ListBlock title="" items={splitLines(event.content).length > 0 ? splitLines(event.content) : ["Chưa có"]} marker="plain" compact />
@@ -321,7 +321,7 @@ export default function PreviewJob({
     </aside>
     {isImageLightboxOpen && (
       <div
-        className="fixed inset-0 z-[120] flex items-center justify-center bg-black/90 p-6 backdrop-blur-sm animate-in fade-in duration-200"
+        className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={() => setIsImageLightboxOpen(false)}
       >
         <button
@@ -369,18 +369,18 @@ function MetricCard({
   return (
     <div
       className={cn(
-        "min-h-24 rounded-3xl border p-5",
+        "min-h-24 rounded-2xl border p-4 shadow-[0_12px_28px_rgba(143,7,9,0.06)] transition-all",
         highlight
-          ? "border-amber-500/35 bg-gradient-to-br from-amber-500/10 via-[#0e1322] to-[#080a12]"
-          : "border-[#1b233a] bg-[#0c101d]",
+          ? "border-[#E8C8C2] bg-[#FFF3F1] text-[#8F0709] dark:border-amber-500/35 dark:bg-gradient-to-br dark:from-amber-500/10 dark:via-[#0e1322] dark:to-[#080a12]"
+          : "border-[#F0D6D0] bg-white text-[#191116] dark:border-[#1b233a] dark:bg-[#0c101d]",
         className
       )}
     >
-      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400">
-        <Icon className={cn("h-4 w-4 shrink-0", highlight ? "text-amber-400" : cyan ? "text-cyan-400" : "text-amber-400")} />
+      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#8F0709] dark:text-slate-400">
+        <Icon className={cn("h-4 w-4 shrink-0", highlight ? "text-[#8F0709] dark:text-amber-400" : cyan ? "text-[#8F0709] dark:text-cyan-400" : "text-[#8F0709] dark:text-amber-400")} />
         {label}
       </div>
-      <div className={cn("mt-3 min-w-0 text-base font-black leading-snug break-words [overflow-wrap:anywhere]", highlight ? "font-mono text-amber-300" : "text-slate-100")}>
+      <div className={cn("mt-3 min-w-0 text-base font-black leading-snug break-words [overflow-wrap:anywhere]", highlight ? "text-[#8F0709] dark:text-amber-300" : "text-[#191116] dark:text-slate-100")}>
         {value}
       </div>
     </div>
@@ -401,14 +401,14 @@ function PreviewSection({
   flush?: boolean;
 }) {
   return (
-    <section className={cn("overflow-hidden rounded-2xl border border-[#1b233a] bg-[#0c101d]", !flush && "p-5")}>
-      <div className={cn("flex items-center justify-between gap-3", flush && "border-b border-[#151b2d] bg-gradient-to-r from-amber-400/[0.08] via-[#0c101d] to-cyan-400/[0.05] p-5")}>
-        <h4 className={cn("flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white", !flush && "border-b border-[#151b2d] pb-2.5")}>
+    <section className={cn("overflow-hidden rounded-2xl border border-[#F0D6D0] bg-white shadow-[0_12px_28px_rgba(143,7,9,0.06)] dark:border-[#1b233a] dark:bg-[#0c101d]", !flush && "p-5")}>
+      <div className={cn("flex items-center justify-between gap-3", flush && "border-b border-[#F0D6D0] bg-gradient-to-r from-[#FFF7F6] via-white to-[#FFFDFC] p-5 dark:border-[#151b2d] dark:from-amber-400/[0.08] dark:via-[#0c101d] dark:to-cyan-400/[0.05]")}>
+        <h4 className={cn("flex items-center gap-2 text-sm font-black uppercase tracking-wider text-[#7A1114] dark:text-white", !flush && "border-b border-[#F0D6D0] pb-2.5 dark:border-[#151b2d]")}>
           <Icon className="h-4 w-4 text-amber-400" />
           {title}
         </h4>
         {badge && (
-          <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1.5 text-xs font-black text-amber-300">
+          <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[#E8C8C2] bg-[#FFF3F1] px-3 py-1.5 text-xs font-black text-[#8F0709] dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300">
             <Calendar className="h-3.5 w-3.5" />
             {badge}
           </span>
@@ -422,10 +422,10 @@ function PreviewSection({
 function PillBlock({ title, items, className }: { title: string; items: string[]; className: string }) {
   return (
     <div className="space-y-1.5">
-      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{title}</p>
+      <p className="text-xs font-bold uppercase tracking-wider text-[#8F0709] dark:text-slate-400">{title}</p>
       <div className="flex flex-wrap gap-1.5">
         {items.map((item) => (
-          <span key={item} className={cn("rounded-lg border px-2.5 py-1 text-xs font-bold uppercase tracking-wider", className)}>
+          <span key={item} className={cn("rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider", className)}>
             {item}
           </span>
         ))}
@@ -436,18 +436,18 @@ function PillBlock({ title, items, className }: { title: string; items: string[]
 
 function InfoLine({ icon: Icon, label, value }: { icon: ElementType; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-2 text-slate-300">
-      <Icon className="h-4 w-4 shrink-0 text-slate-400" />
-      <span className="font-medium text-slate-400">{label}:</span>
-      <span className="font-semibold text-slate-100">{value}</span>
+    <div className="flex items-center gap-2 text-[#574D54] dark:text-slate-300">
+      <Icon className="h-4 w-4 shrink-0 text-[#8F0709] dark:text-slate-400" />
+      <span className="font-medium text-[#574D54] dark:text-slate-400">{label}:</span>
+      <span className="font-semibold text-[#191116] dark:text-slate-100">{value}</span>
     </div>
   );
 }
 
 function GeneralRequirementsPreview({ items }: { items: string[] }) {
   return (
-    <article className="rounded-2xl border border-amber-400/20 bg-amber-400/[0.04] p-4">
-      <h4 className="text-base font-black leading-snug text-amber-300">Yêu cầu chung</h4>
+    <article className="rounded-2xl border border-[#F0D6D0] bg-[#FFF7F6] p-4 transition-colors hover:border-[#C72524]/35 dark:border-amber-400/25 dark:bg-amber-400/[0.04] dark:hover:border-amber-400/35">
+      <h4 className="text-base font-black leading-snug text-[#8F0709] dark:text-amber-300">Yêu cầu chung</h4>
       <ListBlock title="" items={items.length > 0 ? items : ["Chưa có"]} marker="check" compact />
     </article>
   );
@@ -466,13 +466,13 @@ function ListBlock({
 }) {
   return (
     <div className={cn("space-y-2", compact && "mt-4")}>
-      {title && <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{title}</p>}
-      <ul className="space-y-1.5 text-sm text-slate-200">
+      {title && <p className="text-xs font-bold uppercase tracking-wider text-[#8F0709] dark:text-slate-400">{title}</p>}
+      <ul className="space-y-1.5 text-xs sm:text-sm text-[#574D54] dark:text-slate-200">
         {items.map((item, index) => (
           <li key={`${item}-${index}`} className={cn("flex items-start gap-2", marker === "plain" && "list-disc")}>
             {marker === "check" && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />}
-            {marker === "dot" && <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />}
-            {marker === "plain" && <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-white" />}
+            {marker === "dot" && <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />}
+            {marker === "plain" && <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8F0709] dark:bg-white" />}
             <span className="leading-relaxed">{sentenceCase(item)}</span>
           </li>
         ))}
