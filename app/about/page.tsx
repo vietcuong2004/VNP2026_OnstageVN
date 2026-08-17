@@ -106,12 +106,12 @@ function AboutContent({
                   className="flex items-center hover:opacity-95 transition-opacity focus:outline-none cursor-pointer animate-in fade-in duration-300"
                 >
                   <img
-                    src="/logo_icon.png"
+                    src="/logo_icon.png?v=20260817"
                     alt="OnstageVN Logo Icon"
                     className="h-11 w-11 object-contain shrink-0"
                   />
                   <img
-                    src="/logo_text.png"
+                    src="/logo_text.png?v=20260817"
                     alt="OnstageVN Logo Text"
                     className="h-9 object-contain shrink-0"
                   />

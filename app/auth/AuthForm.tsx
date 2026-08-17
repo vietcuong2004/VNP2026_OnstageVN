@@ -262,7 +262,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
                 className="h-20 w-20 object-contain transition-transform duration-300 group-hover:scale-105"
               />
               <img
-                src="/logo_text.png"
+                src="/logo_text.png?v=20260817"
                 alt="OnstageVN"
                 className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />

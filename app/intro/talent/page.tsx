@@ -44,8 +44,8 @@ export default function TalentIntroPage() {
       <header className="relative z-50 w-full bg-[#02040a] border-b border-white/5 transform-gpu md:sticky md:top-0 md:bg-[#02040a]/80 md:backdrop-blur-md">
         <div className="w-full max-w-[1550px] mx-auto flex items-center justify-between py-4 px-4 md:px-8">
           <Link href="/" className="flex items-center hover:opacity-95 transition-opacity">
-            <img src="/logo_icon.png" alt="OnstageVN Logo Icon" className="h-10 w-10 object-contain shrink-0" />
-            <img src="/logo_text.png" alt="OnstageVN Logo Text" className="h-8 object-contain shrink-0" />
+            <img src="/logo_icon.png?v=20260817" alt="OnstageVN Logo Icon" className="h-10 w-10 object-contain shrink-0" />
+            <img src="/logo_text.png?v=20260817" alt="OnstageVN Logo Text" className="h-8 object-contain shrink-0" />
           </Link>
           <div className="flex items-center gap-6">
             <Link
@@ -168,7 +168,7 @@ export default function TalentIntroPage() {
             <div className="flex-1 flex flex-col justify-between pt-5">
               {/* Internal Mini Header */}
               <div className="flex items-center justify-between pb-2 border-b border-white/5 select-none">
-                <img src="/logo_icon.png" className="h-5 w-5" alt="" />
+                <img src="/logo_icon.png?v=20260817" className="h-5 w-5" alt="" />
                 <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">PORTFOLIO SỐ</span>
                 <div className="w-4 h-4 rounded-full bg-white/10" />
               </div>
@@ -416,12 +416,12 @@ export default function TalentIntroPage() {
         <div className="flex flex-col items-center mb-12 animate-in fade-in duration-300">
           <div className="flex items-center gap-2 mb-3 justify-center">
             <img
-              src="/logo_icon.png"
+              src="/logo_icon.png?v=20260817"
               alt="OnstageVN Logo Icon"
               className="h-12 w-12 object-contain shrink-0"
             />
             <img
-              src="/logo_text.png"
+              src="/logo_text.png?v=20260817"
               alt="OnstageVN Logo Text"
               className="h-9 object-contain shrink-0"
             />

@@ -212,7 +212,7 @@ export default function QRCodeContainer({
           )}
           <div className="absolute h-9 w-9 rounded-full bg-slate-950 border-2 border-white flex items-center justify-center shadow-lg overflow-hidden">
             <img
-              src="/logo_icon.png"
+              src="/logo_icon.png?v=20260817"
               alt="OSN"
               className="h-full w-full object-cover"
               onError={(event) => {

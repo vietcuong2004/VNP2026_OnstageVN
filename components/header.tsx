@@ -414,12 +414,12 @@ export default function Header() {
             className="flex items-center gap-1.5 hover:opacity-95 transition-opacity focus:outline-none cursor-pointer"
           >
             <img
-              src="/logo_icon.png"
+              src="/logo_icon.png?v=20260817"
               alt="OnstageVN Logo Icon"
               className="h-9 w-auto sm:h-10 object-contain shrink-0"
             />
             <img
-              src="/logo_text.png"
+              src="/logo_text.png?v=20260817"
               alt="OnstageVN Logo Text"
               className="h-6 w-auto sm:h-7 object-contain shrink-0"
             />
