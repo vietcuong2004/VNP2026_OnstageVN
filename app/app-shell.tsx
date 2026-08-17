@@ -118,8 +118,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <RouteScrollReset />
         </Suspense>
         <div className="flex flex-col h-dvh w-full relative overflow-hidden">
-          <div className="absolute top-[-10%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-amber-500/5 blur-[150px] pointer-events-none" />
-          <div className="absolute bottom-[-10%] left-[-10%] -z-10 h-[700px] w-[700px] rounded-full bg-purple-600/5 blur-[160px] pointer-events-none" />
+          <div className="pointer-events-none absolute top-[-10%] right-[-10%] -z-10 hidden h-[600px] w-[600px] rounded-full bg-amber-500/5 blur-[150px] dark:block" />
+          <div className="pointer-events-none absolute bottom-[-10%] left-[-10%] -z-10 hidden h-[700px] w-[700px] rounded-full bg-purple-600/5 blur-[160px] dark:block" />
 
           {!isStandalonePublic && !hideChrome && (
             <div className={hideHeaderOnMobile ? "hidden md:block" : "block"}>
