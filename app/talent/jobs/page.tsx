@@ -264,21 +264,21 @@ function FilterDropdown({
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         className={cn(
-          "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/5 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
-          isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+          "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-[#F0D7D3] bg-[#FFFDFC] px-4 text-xs text-[#191116] outline-none transition-all duration-300 hover:border-[#C72524]/40 focus:border-[#C72524]/60 shadow-inner cursor-pointer dark:border-white/5 dark:bg-slate-950/60 dark:text-white dark:hover:border-[#C9A86A]/40 dark:focus:border-[#C9A86A]/60",
+          isOpen && "border-[#C72524]/60 bg-[#FFF7F6] dark:border-[#C9A86A]/60 dark:bg-slate-900/90"
         )}
       >
         <div className="flex items-center gap-2 min-w-0">
           {icon}
-          <span className="truncate text-left font-medium text-slate-200">{selectedOption?.label}</span>
+          <span className="truncate text-left font-medium text-[#191116] dark:text-slate-200">{selectedOption?.label}</span>
         </div>
-        <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-300", isOpen && "rotate-180 text-[#C9A86A]")} />
+        <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-[#9A8581] transition-transform duration-300 dark:text-slate-400", isOpen && "rotate-180 text-[#C72524] dark:text-[#C9A86A]")} />
       </button>
 
       {mounted && isOpen && menuRect && createPortal(
         <div
           ref={menuRef}
-          className="fixed z-[9999] max-h-60 overflow-hidden rounded-xl border border-[#C9A86A]/25 bg-[#070913] p-1.5 shadow-[0_24px_60px_rgba(0,0,0,0.75)] animate-in fade-in zoom-in-95 duration-150"
+          className="fixed z-[9999] max-h-60 overflow-hidden rounded-xl border border-[#F0D7D3] bg-white p-1.5 shadow-[0_24px_60px_rgba(143,7,9,0.16)] animate-in fade-in zoom-in-95 duration-150 dark:border-[#C9A86A]/25 dark:bg-[#070913] dark:shadow-[0_24px_60px_rgba(0,0,0,0.75)]"
           style={{
             left: menuRect.left,
             top: menuRect.bottom + 6,
@@ -293,7 +293,7 @@ function FilterDropdown({
                   value={searchInput}
                   onChange={(event) => setSearchInput(event.target.value)}
                   placeholder={searchPlaceholder}
-                  className="w-full rounded-lg border border-white/10 bg-slate-950/80 py-1.5 pl-8 pr-2.5 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/50"
+                  className="w-full rounded-lg border border-[#F0D7D3] bg-[#FFFDFC] py-1.5 pl-8 pr-2.5 text-xs text-[#191116] outline-none placeholder:text-[#B8A2A0] focus:border-[#C72524]/50 dark:border-white/10 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]/50"
                   autoFocus
                 />
               </div>
@@ -313,8 +313,8 @@ function FilterDropdown({
                 className={cn(
                   "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors text-left cursor-pointer",
                   option.value === value
-                    ? "bg-[#C9A86A]/20 text-[#C9A86A] font-bold"
-                    : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    ? "bg-[#FFF1EF] text-[#9B1215] font-bold dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]"
+                    : "text-[#5F5554] hover:bg-[#FFF7F6] hover:text-[#C72524] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                 )}
               >
                 <span className="truncate">{option.label}</span>
@@ -1117,7 +1117,7 @@ function JobsPageContent() {
     <div className="space-y-6 animate-in fade-in duration-300">
 
       {/* Mobile Search Toolbar */}
-      <section className="block md:hidden sticky top-0 z-40 -mx-4 border-b border-white/5 bg-[#070913]/95 px-4 py-3.5 backdrop-blur-md">
+      <section className="block md:hidden sticky top-0 z-40 -mx-4 border-b border-[#F4E1DE] bg-white px-4 py-3.5 backdrop-blur-md dark:border-white/5 dark:bg-[#070913]/95">
         <div className="flex items-center gap-2.5">
           <button
             type="button"
@@ -1125,7 +1125,7 @@ function JobsPageContent() {
             className={cn(
               "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all cursor-pointer",
               isMobileFiltersActive
-                ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
+                ? "border-[#C72524] bg-[#FFF1EF] text-[#9B1215] dark:border-[#C9A86A] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]"
                 : "border-white/10 bg-slate-900/60 text-slate-400"
             )}
             aria-label="Mở bộ lọc"
@@ -1138,7 +1138,7 @@ function JobsPageContent() {
             onClick={() => setIsMobileCityDialogOpen(true)}
             className="relative flex shrink-0 items-center gap-1 cursor-pointer"
           >
-            <span className="font-display text-[15px] font-black tracking-tight text-white whitespace-nowrap">
+            <span className="font-display text-[15px] font-black tracking-tight text-[#191116] whitespace-nowrap dark:text-white">
               {currentCityLabel}
             </span>
             <ChevronDown className="h-4 w-4 text-[#C9A86A] pointer-events-none" />
@@ -1164,7 +1164,7 @@ function JobsPageContent() {
                 }
               }}
               placeholder="Tên job..."
-              className="h-9 w-full rounded-full border border-white/10 bg-slate-950/60 pl-8.5 pr-8 text-xs text-white outline-none focus:border-[#C9A86A]/60 placeholder:text-slate-500"
+              className="h-9 w-full rounded-full border border-[#F1D8D4] bg-[#FFF7F6] pl-8.5 pr-8 text-xs font-semibold text-[#191116] outline-none focus:border-[#C72524]/60 placeholder:text-[#B8A2A0] dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60 dark:placeholder:text-slate-500"
             />
             {searchInput && (
               <button
@@ -1184,13 +1184,13 @@ function JobsPageContent() {
           <button
             type="button"
             onClick={() => router.push("/talent/jobs/saved-jobs")}
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/18 hover:text-amber-200 active:scale-95"
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#F1D8D4] bg-[#FFF7F6] text-[#9B1215] shadow-[0_8px_18px_rgba(143,7,9,0.08)] transition hover:border-[#C72524]/45 hover:bg-[#FFF1EF] active:scale-95 dark:border-[#C9A86A]/45 dark:bg-[#C9A86A]/12 dark:text-[#C9A86A] dark:shadow-[0_0_14px_rgba(201,168,106,0.12)] dark:hover:border-[#C9A86A]/70 dark:hover:bg-[#C9A86A]/18 dark:hover:text-amber-200"
             aria-label="Việc làm đã lưu"
             title="Việc làm đã lưu"
           >
             <Bookmark className="h-4 w-4 fill-current" />
             {savedJobCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-[#070913] bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-1 text-[9px] font-black text-slate-950">
+              <span className="light-force-white absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-1 text-[9px] font-black text-white dark:border-[#070913] dark:from-amber-100 dark:via-amber-300 dark:to-yellow-500 dark:text-slate-950">
                 {savedJobCount > 99 ? "99+" : savedJobCount}
               </span>
             )}
@@ -1230,8 +1230,8 @@ function JobsPageContent() {
                     className={cn(
                       "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95 cursor-pointer",
                       isActive
-                        ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F9D66D] shadow-[0_0_14px_rgba(201,168,106,0.14)]"
-                        : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/35 hover:text-white"
+                        ? "border-[#E8C8C2] bg-[#FFF3F1] text-[#9B1215] shadow-[0_8px_18px_rgba(143,7,9,0.08)] dark:border-[#C9A86A]/70 dark:bg-[#C9A86A]/15 dark:text-[#F9D66D] dark:shadow-[0_0_14px_rgba(201,168,106,0.14)]"
+                        : "border-[#F1D8D4] bg-white text-[#9B1215] hover:border-[#C72524]/35 hover:text-[#C72524] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-[#C9A86A]/35 dark:hover:text-white"
                     )}
                   >
                     {tab.label}
@@ -1241,7 +1241,7 @@ function JobsPageContent() {
             </div>
 
             {/* Visual gradient mask + swipe arrow indicator */}
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 flex items-center justify-end pl-5 pr-0.5 bg-gradient-to-l from-[#0f121d] via-[#0f121d]/85 to-transparent">
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 flex items-center justify-end pl-5 pr-0.5 bg-gradient-to-l from-white via-white/85 to-transparent dark:from-[#0f121d] dark:via-[#0f121d]/85">
               <ChevronRight className="h-3.5 w-3.5 text-[#C9A86A] animate-pulse drop-shadow" />
             </div>
           </div>
@@ -1249,7 +1249,7 @@ function JobsPageContent() {
           <button
             type="button"
             onClick={() => setIsQrModalOpen(true)}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/45 bg-[#C9A86A]/12 text-[#C9A86A] shadow-[0_0_14px_rgba(201,168,106,0.12)] transition hover:border-[#C9A86A]/70 hover:bg-[#C9A86A]/20 hover:text-amber-200 active:scale-95 cursor-pointer"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#F1D8D4] bg-[#FFF7F6] text-[#9B1215] shadow-[0_8px_18px_rgba(143,7,9,0.08)] transition hover:border-[#C72524]/45 hover:bg-[#FFF1EF] active:scale-95 cursor-pointer dark:border-[#C9A86A]/45 dark:bg-[#C9A86A]/12 dark:text-[#C9A86A] dark:shadow-[0_0_14px_rgba(201,168,106,0.12)] dark:hover:border-[#C9A86A]/70 dark:hover:bg-[#C9A86A]/20 dark:hover:text-amber-200"
             title="Nhập mã QR Job ứng tuyển"
             aria-label="Nhập mã QR Job ứng tuyển"
           >
@@ -1344,13 +1344,13 @@ function JobsPageContent() {
       )}
 
       {/* Desktop Search Card */}
-      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-6 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md">
-        <div className="absolute left-0 right-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A86A] to-transparent pointer-events-none" />
+      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#E4C8C2] bg-white p-6 shadow-[0_18px_45px_rgba(143,7,9,0.08)] backdrop-blur-md dark:border-[#C9A86A]/30 dark:bg-[#0f121d]/90 dark:shadow-[0_0_30px_rgba(201,168,106,0.06)]">
+        <div className="absolute left-0 right-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#C72524] to-transparent pointer-events-none dark:via-[#C9A86A]" />
 
         <div className="relative z-10 mb-4 flex items-center justify-between gap-4">
-          <h1 className="font-display text-lg font-black tracking-tight text-white md:text-xl">
+          <h1 className="font-display text-lg font-black tracking-tight text-[#191116] md:text-xl dark:text-white">
             Tìm kiếm Job - {currentCityLabel}{" "}
-            <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#C72524] via-[#9B1215] to-[#D4AF37] bg-clip-text text-transparent dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500">
               ({activeResultTotal || filteredCampaigns.length})
             </span>
           </h1>
@@ -1387,7 +1387,7 @@ function JobsPageContent() {
                   }
                 }}
                 placeholder="Tìm job theo tên, nhà tuyển dụng, loại công việc..."
-                className="h-[50px] w-full rounded-2xl border border-white/10 bg-slate-950/60 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500"
+                className="h-[50px] w-full rounded-2xl border border-[#F0D7D3] bg-[#FFFDFC] pl-12 pr-10 text-xs font-semibold text-[#191116] outline-none transition-all duration-300 focus:border-[#C72524]/60 placeholder:text-[#B8A2A0] dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60 dark:placeholder:text-slate-500"
               />
               {searchInput && (
                 <button
@@ -1397,7 +1397,7 @@ function JobsPageContent() {
                     setSearchQuery("");
                     setIsJobSuggestOpen(false);
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9B8581] hover:text-[#C72524] transition-colors cursor-pointer dark:text-slate-450 dark:hover:text-white"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -1447,7 +1447,7 @@ function JobsPageContent() {
             <button
               type="button"
               onClick={applyFilters}
-              className="flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg xl:flex-none"
+              className="light-force-white flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-5 text-xs font-black uppercase tracking-wider text-white transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg xl:flex-none dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950"
             >
               <Search className="h-4 w-4" />
               Tìm kiếm
@@ -1458,8 +1458,8 @@ function JobsPageContent() {
               className={cn(
                 "flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-2xl border px-4 text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer xl:flex-none",
                 showAdvancedFilters
-                  ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
-                  : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:border-[#C9A86A]/40 hover:text-white"
+                  ? "border-[#C72524] bg-[#FFF1EF] text-[#9B1215] dark:border-[#C9A86A] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]"
+                  : "border-[#F0D7D3] bg-[#FFFDFC] text-[#9B1215] hover:bg-[#FFF1EF] hover:border-[#C72524]/40 hover:text-[#C72524] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:border-[#C9A86A]/40 dark:hover:text-white"
               )}
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -1469,8 +1469,8 @@ function JobsPageContent() {
         </div>
 
         {showAdvancedFilters && (
-          <div className="relative z-10 mt-5 grid grid-cols-1 gap-4 border-t border-white/5 pt-5 sm:grid-cols-2">
-            <div className="sm:col-span-2 rounded-2xl border border-white/8 bg-slate-950/35 p-3">
+          <div className="relative z-10 mt-5 grid grid-cols-1 gap-4 border-t border-[#F4E1DE] pt-5 sm:grid-cols-2 dark:border-white/5">
+            <div className="sm:col-span-2 rounded-2xl border border-[#F0D7D3] bg-[#FFFDFC] p-3 dark:border-white/8 dark:bg-slate-950/35">
               <div className="mb-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#C9A86A]">
                 Đang nhiều công việc
               </div>
@@ -1493,7 +1493,7 @@ function JobsPageContent() {
                       )}
                     >
                       <span>{location.label}</span>
-                      <span className={cn("font-mono text-[10px]", isSelected ? "text-amber-200" : "text-slate-500")}>
+                      <span className={cn("font-mono text-[10px]", isSelected ? "text-[#A36C1D] dark:text-amber-200" : "text-[#9A8581] dark:text-slate-500")}>
                         {location.count} việc
                       </span>
                     </button>
@@ -1513,7 +1513,7 @@ function JobsPageContent() {
                   value={minBudget ? formatVNDNumber(minBudget) : ""}
                   onChange={(event) => setMinBudget(parseVNDNumber(event.target.value))}
                   placeholder="VD: 700.000"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 pr-24 text-xs font-semibold text-white outline-none placeholder:text-slate-600 focus:border-[#f5c518]/60"
+                  className="h-10 w-full rounded-xl border border-[#F0D7D3] bg-[#FFFDFC] px-3 pr-24 text-xs font-semibold text-[#191116] outline-none placeholder:text-[#B8A2A0] focus:border-[#C72524]/60 dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:placeholder:text-slate-600 dark:focus:border-[#f5c518]/60"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 pointer-events-none">
                   VND / ngày
@@ -1532,7 +1532,7 @@ function JobsPageContent() {
                   value={maxBudget ? formatVNDNumber(maxBudget) : ""}
                   onChange={(event) => setMaxBudget(parseVNDNumber(event.target.value))}
                   placeholder="VD: 1.000.000"
-                  className="h-10 w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 pr-24 text-xs font-semibold text-white outline-none placeholder:text-slate-600 focus:border-[#f5c518]/60"
+                  className="h-10 w-full rounded-xl border border-[#F0D7D3] bg-[#FFFDFC] px-3 pr-24 text-xs font-semibold text-[#191116] outline-none placeholder:text-[#B8A2A0] focus:border-[#C72524]/60 dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:placeholder:text-slate-600 dark:focus:border-[#f5c518]/60"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 pointer-events-none">
                   VND / ngày
@@ -1564,14 +1564,14 @@ function JobsPageContent() {
                 "rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer border flex items-center gap-1.5 shrink-0",
                 isStageActive
                   ? "bg-[#f4c430] border-amber-400/30 text-slate-950 shadow-[0_4px_12px_rgba(244,196,48,0.2)]"
-                  : "bg-[#08090f] border-[#151b2d] text-slate-400 hover:text-white hover:bg-white/2"
+                  : "border-[#F0D7D3] bg-white text-[#9B1215] hover:border-[#C72524]/35 hover:text-[#C72524] dark:bg-[#08090f] dark:border-[#151b2d] dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/2"
               )}
             >
               {stageFilterLabels[sf]}
               {count > 0 && (
                 <span className={cn(
                   "rounded-full px-1.5 py-0.5 text-[9px] font-black min-w-[18px] text-center",
-                  isStageActive ? "bg-black/20" : "bg-white/5 text-slate-500"
+                  isStageActive ? "bg-[#C72524]/12 dark:bg-black/20" : "bg-[#FFF1EF] text-[#9A8581] dark:bg-white/5 dark:text-slate-500"
                 )}>
                   {count}
                 </span>
@@ -1599,7 +1599,7 @@ function JobsPageContent() {
                 "rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer border flex items-center gap-1.5 shrink-0",
                 isNearMeActive
                   ? "bg-[#f4c430] border-amber-400/30 text-slate-950 shadow-[0_4px_12px_rgba(244,196,48,0.2)]"
-                  : "bg-[#08090f] border-[#151b2d] text-slate-400 hover:text-white hover:bg-white/2"
+                  : "border-[#F0D7D3] bg-white text-[#9B1215] hover:border-[#C72524]/35 hover:text-[#C72524] dark:bg-[#08090f] dark:border-[#151b2d] dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/2"
               )}
             >
               Gần tôi

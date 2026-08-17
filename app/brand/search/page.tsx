@@ -347,7 +347,7 @@ function FilterDropdown({
     <div
       ref={dropdownRef}
       style={dropdownStyle}
-      className="max-h-60 overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+      className="max-h-60 overflow-hidden rounded-xl border border-[#F0D7D3] bg-white p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 dark:border-[#2B313D] dark:bg-[#12151C]"
     >
       {searchable && (
         <div className="mb-1.5 px-1">
@@ -356,7 +356,7 @@ function FilterDropdown({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={searchPlaceholder}
-            className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-2.5 py-1.5 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]/50"
+            className="w-full rounded-lg border border-[#F0D7D3] bg-[#FFFDFC] px-2.5 py-1.5 text-xs text-[#191116] outline-none placeholder:text-[#B8A2A0] focus:border-[#C72524]/50 dark:border-white/10 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]/50"
             autoFocus
           />
         </div>
@@ -379,8 +379,8 @@ function FilterDropdown({
                 className={cn(
                   "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors text-left cursor-pointer",
                   isSelected
-                    ? "bg-[#C9A86A]/20 text-[#C9A86A] font-bold"
-                    : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    ? "bg-[#FFF1EF] text-[#9B1215] font-bold dark:bg-[#C9A86A]/20 dark:text-[#C9A86A]"
+                    : "text-[#5F5554] hover:bg-[#FFF7F6] hover:text-[#C72524] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                 )}
               >
                 <span className="truncate">{opt.label}</span>
@@ -404,17 +404,17 @@ function FilterDropdown({
             ? cn(
               "flex h-8 w-full items-center justify-between gap-1 rounded-full border text-[10.5px] px-2.5 transition-all cursor-pointer font-semibold",
               isActivePill
-                ? "border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] font-bold"
-                : "border-white/10 bg-slate-900/60 text-slate-350 hover:text-white"
+                ? "border-[#C72524]/45 bg-[#FFF1EF] text-[#9B1215] font-bold dark:border-[#C9A86A]/50 dark:bg-[#C9A86A]/15 dark:text-[#C9A86A]"
+                : "border-[#F1D8D4] bg-white text-[#7B6866] hover:text-[#C72524] dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-350 dark:hover:text-white"
             )
             : cn(
-              "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
-              isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+              "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-[#F0D7D3] bg-[#FFFDFC] px-4 text-xs text-[#191116] outline-none transition-all duration-300 hover:border-[#C72524]/40 focus:border-[#C72524]/60 shadow-inner cursor-pointer dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:hover:border-[#C9A86A]/40 dark:focus:border-[#C9A86A]/60",
+              isOpen && "border-[#C72524]/60 bg-[#FFF7F6] dark:border-[#C9A86A]/60 dark:bg-slate-900/90"
             )
         )}
       >
         <span className="flex items-center gap-1.5 truncate text-left">
-          {Icon && <Icon className={cn("h-3.5 w-3.5 shrink-0", isActivePill ? "text-[#C9A86A]" : "text-slate-400")} />}
+          {Icon && <Icon className={cn("h-3.5 w-3.5 shrink-0", isActivePill ? "text-[#9B1215] dark:text-[#C9A86A]" : "text-[#9A8581] dark:text-slate-400")} />}
           <span className="truncate">{isDefaultValue ? placeholder : (selectedOption?.label || placeholder)}</span>
         </span>
         <ChevronDown
@@ -487,12 +487,12 @@ function MultiFilterDropdown({
             ? cn(
               "flex h-8 w-full items-center justify-between gap-1 rounded-full border text-[10.5px] px-2.5 transition-all cursor-pointer font-semibold",
               isActivePill
-                ? "border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] font-bold"
-                : "border-white/10 bg-slate-900/60 text-slate-355 hover:text-white"
+                ? "border-[#C72524]/45 bg-[#FFF1EF] text-[#9B1215] font-bold dark:border-[#C9A86A]/50 dark:bg-[#C9A86A]/15 dark:text-[#C9A86A]"
+                : "border-[#F1D8D4] bg-white text-[#7B6866] hover:text-[#C72524] dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-355 dark:hover:text-white"
             )
             : cn(
-              "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-xs text-white outline-none transition-all duration-300 hover:border-[#C9A86A]/40 focus:border-[#C9A86A]/60 shadow-inner cursor-pointer",
-              isOpen && "border-[#C9A86A]/60 bg-slate-900/90"
+              "flex h-[50px] w-full items-center justify-between gap-2 rounded-2xl border border-[#F0D7D3] bg-[#FFFDFC] px-4 text-xs text-[#191116] outline-none transition-all duration-300 hover:border-[#C72524]/40 focus:border-[#C72524]/60 shadow-inner cursor-pointer dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:hover:border-[#C9A86A]/40 dark:focus:border-[#C9A86A]/60",
+              isOpen && "border-[#C72524]/60 bg-[#FFF7F6] dark:border-[#C9A86A]/60 dark:bg-slate-900/90"
             )
         )}
       >
@@ -510,7 +510,7 @@ function MultiFilterDropdown({
 
       {isOpen && (
         <div className={cn(
-          "absolute top-full z-50 mt-1.5 max-h-60 overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150",
+          "absolute top-full z-50 mt-1.5 max-h-60 overflow-hidden rounded-xl border border-[#F0D7D3] bg-white p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 dark:border-[#2B313D] dark:bg-[#12151C]",
           align === "right" ? "right-0" : "left-0",
           isPill ? "w-[180px]" : "w-full"
         )}>
@@ -546,15 +546,15 @@ function MultiFilterDropdown({
                   className={cn(
                     "flex w-full items-center rounded-lg px-2.5 py-2 text-xs font-medium transition-colors text-left cursor-pointer",
                     isSelected
-                      ? "bg-[#C9A86A]/10 text-[#C9A86A] font-bold"
-                      : "text-slate-300 hover:bg-white/5 hover:text-white"
+                      ? "bg-[#FFF1EF] text-[#9B1215] font-bold dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]"
+                      : "text-[#5F5554] hover:bg-[#FFF7F6] hover:text-[#C72524] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                   )}
                 >
                   <div className={cn(
                     "w-3.5 h-3.5 rounded border shrink-0 flex items-center justify-center transition-all mr-2.5",
                     isSelected
-                      ? "border-[#C9A86A] bg-[#C9A86A] text-slate-950"
-                      : "border-white/20 bg-slate-950/40 text-transparent"
+                      ? "light-force-white border-[#C72524] bg-[#C72524] text-white dark:border-[#C9A86A] dark:bg-[#C9A86A] dark:text-slate-950"
+                      : "border-[#F1D8D4] bg-white text-transparent dark:border-white/20 dark:bg-slate-950/40"
                   )}>
                     <Check className="h-2.5 w-2.5 stroke-[3px]" />
                   </div>
@@ -1132,7 +1132,7 @@ export default function DiscoverTalentsPage() {
       )}
 
       {/* Mobile-Only Search Header (Hidden on Desktop) */}
-      <section className="block md:hidden sticky top-0 z-40 bg-[#070913]/95 backdrop-blur-md space-y-3 pt-3.5 pb-2.5 border-b border-white/5 -mx-4 px-4">
+      <section className="sticky top-0 z-40 -mx-4 block space-y-3 border-b border-[#F3E2DE] bg-[#FFFDFB]/95 px-4 pb-2.5 pt-3.5 backdrop-blur-md dark:border-white/5 dark:bg-[#070913]/95 md:hidden">
         {/* Row 1: City, Search Input, Search Button */}
         <div className="flex items-center gap-2.5">
           {/* Advanced Filter Toggle Button */}
@@ -1142,8 +1142,8 @@ export default function DiscoverTalentsPage() {
             className={cn(
               "flex items-center justify-center h-9 w-9 rounded-full border transition-all shrink-0 cursor-pointer",
               hasMobileFilterBadge
-                ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A]"
-                : "border-white/10 bg-slate-900/60 text-slate-400"
+                ? "border-[#C72524] bg-[#FFF1EF] text-[#C72524]"
+                : "border-[#F1D8D4] bg-white text-[#9B1215] dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-400"
             )}
           >
             <SlidersHorizontal className="h-4 w-4" />
@@ -1154,15 +1154,15 @@ export default function DiscoverTalentsPage() {
             onClick={() => setIsMobileCitySelectorOpen(true)}
             className="relative flex items-center gap-1 cursor-pointer shrink-0"
           >
-            <span className="font-display text-[15px] font-black tracking-tight text-white whitespace-nowrap">
+            <span className="font-display text-[15px] font-black tracking-tight text-[#191116] whitespace-nowrap dark:text-white">
               {currentCityLabel}
             </span>
-            <ChevronDown className="h-4 w-4 text-[#C9A86A] pointer-events-none" />
+            <ChevronDown className="h-4 w-4 text-[#9B1215] pointer-events-none dark:text-[#C9A86A]" />
           </div>
 
           {/* Search Input Box */}
           <div className="relative flex-1 min-w-0">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9B1215] dark:text-[#C9A86A]" />
             <input
               type="text"
               value={searchInput}
@@ -1183,7 +1183,7 @@ export default function DiscoverTalentsPage() {
                 }
               }}
               placeholder="Tên idol..."
-              className="w-full h-9 rounded-full border border-white/10 bg-slate-950/60 pl-8.5 pr-8 text-xs text-white outline-none focus:border-[#C9A86A]/60 placeholder:text-slate-500"
+              className="w-full h-9 rounded-full border border-[#F1D8D4] bg-[#FFF7F6] pl-8.5 pr-8 text-xs text-[#191116] outline-none placeholder:text-[#AFA09C] focus:border-[#C72524]/60 dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]/60"
             />
             {searchInput && (
               <button
@@ -1193,7 +1193,7 @@ export default function DiscoverTalentsPage() {
                   setAppliedFilters((prev) => ({ ...prev, query: "" }));
                   setIsTalentSuggestOpen(false);
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9B8581] hover:text-[#C72524] dark:text-slate-400 dark:hover:text-white"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -1203,12 +1203,12 @@ export default function DiscoverTalentsPage() {
           <button
             type="button"
             onClick={() => router.push("/brand/shortlists")}
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/50 bg-[#C9A86A]/15 text-[#C9A86A] transition-all hover:bg-[#C9A86A]/20 active:scale-95"
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#F1D8D4] bg-[#FFF7F6] text-[#C72524] transition-all hover:border-[#C72524]/45 hover:bg-[#FFF1EF] active:scale-95 dark:border-[#C9A86A]/50 dark:bg-[#C9A86A]/15 dark:text-[#C9A86A] dark:hover:bg-[#C9A86A]/20"
             aria-label="Mở danh sách đã lưu"
           >
             <Heart className="h-4 w-4 fill-current" />
             {savedIds.length > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full border border-[#070913] bg-gradient-to-br from-amber-100 via-[#C9A86A] to-yellow-600 px-1 text-[9px] font-black leading-none text-slate-950 shadow-[0_0_8px_rgba(201,168,106,0.45)]">
+              <span className="light-force-white absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full border border-white bg-gradient-to-br from-[#F6B7B2] via-[#C72524] to-[#8F0709] px-1 text-[9px] font-black leading-none text-white shadow-[0_0_8px_rgba(143,7,9,0.28)] dark:border-[#070913] dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950 dark:shadow-[0_0_8px_rgba(201,168,106,0.45)]">
                 {savedIds.length > 99 ? "99+" : savedIds.length}
               </span>
             )}
@@ -1230,8 +1230,8 @@ export default function DiscoverTalentsPage() {
                   className={cn(
                     "h-8 shrink-0 rounded-full border px-3.5 text-[11px] font-black transition active:scale-95 cursor-pointer",
                     isActive
-                      ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#F9D66D] shadow-[0_0_14px_rgba(201,168,106,0.14)]"
-                      : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/35 hover:text-white"
+                      ? "border-[#E8C8C2] bg-[#FFF3F1] text-[#9B1215] shadow-[0_8px_18px_rgba(143,7,9,0.08)] dark:border-[#C9A86A]/70 dark:bg-[#C9A86A]/15 dark:text-[#F9D66D] dark:shadow-[0_0_14px_rgba(201,168,106,0.14)]"
+                      : "border-[#F1D8D4] bg-white text-[#9B1215] hover:border-[#C72524]/35 hover:text-[#C72524] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-[#C9A86A]/35 dark:hover:text-white"
                   )}
                 >
                   {tab.label}
@@ -1239,8 +1239,8 @@ export default function DiscoverTalentsPage() {
               );
             })}
           </div>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-[#050711] via-[#050711]/90 to-transparent pl-4 pr-0">
-            <ChevronRight className="h-4 w-4 animate-pulse text-[#C9A86A]/80" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-[#FFFDFB] via-[#FFFDFB]/90 to-transparent pl-4 pr-0 dark:from-[#050711] dark:via-[#050711]/90">
+            <ChevronRight className="h-4 w-4 animate-pulse text-[#C72524]/80 dark:text-[#C9A86A]/80" />
           </div>
         </div>
 
@@ -1412,16 +1412,16 @@ export default function DiscoverTalentsPage() {
       )}
 
       {/* Unified Search Card */}
-      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#C9A86A]/30 bg-[#0f121d]/90 p-6 mb-6 shadow-[0_0_30px_rgba(201,168,106,0.06)] backdrop-blur-md">
+      <section className="hidden md:block relative z-40 overflow-visible rounded-3xl border border-[#E4C8C2] bg-white p-6 mb-6 shadow-[0_18px_45px_rgba(143,7,9,0.08)] backdrop-blur-md dark:border-[#C9A86A]/30 dark:bg-[#0f121d]/90 dark:shadow-[0_0_30px_rgba(201,168,106,0.06)]">
         {/* Top Highlight line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A86A] to-transparent pointer-events-none" />
-        <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#C9A86A]/5 blur-3xl opacity-60 pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C72524] to-transparent pointer-events-none dark:via-[#C9A86A]" />
+        <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-[#C72524]/5 blur-3xl opacity-60 pointer-events-none dark:bg-[#C9A86A]/5" />
 
         {/* Header Title block matching image layout */}
         <div className="relative z-10 mb-4">
-          <h1 className="font-display text-lg font-black tracking-tight text-white md:text-xl">
+          <h1 className="font-display text-lg font-black tracking-tight text-[#191116] md:text-xl dark:text-white">
             Tìm kiếm Idol - {currentCityLabel}{" "}
-            <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#C72524] via-[#9B1215] to-[#D4AF37] bg-clip-text text-transparent dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500">
               ({displayedTalentCount})
             </span>
           </h1>
@@ -1449,7 +1449,7 @@ export default function DiscoverTalentsPage() {
                   }
                 }}
                 placeholder="Nhập tên Idol..."
-                className="w-full h-[50px] rounded-2xl border border-white/10 bg-slate-950/60 pl-12 pr-10 text-xs text-white outline-none transition-all duration-300 focus:border-[#C9A86A]/60 placeholder:text-slate-500"
+                className="w-full h-[50px] rounded-2xl border border-[#F0D7D3] bg-[#FFFDFC] pl-12 pr-10 text-xs font-semibold text-[#191116] outline-none transition-all duration-300 focus:border-[#C72524]/60 placeholder:text-[#B8A2A0] dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60 dark:placeholder:text-slate-500"
               />
               {searchInput && (
                 <button
@@ -1459,7 +1459,7 @@ export default function DiscoverTalentsPage() {
                     setAppliedFilters((prev) => ({ ...prev, query: "" }));
                     setIsTalentSuggestOpen(false);
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-450 hover:text-white transition-colors cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9B8581] hover:text-[#C72524] transition-colors cursor-pointer dark:text-slate-450 dark:hover:text-white"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -1500,7 +1500,7 @@ export default function DiscoverTalentsPage() {
             <button
               type="button"
               onClick={applyFilters}
-              className="flex-1 xl:flex-none h-[50px] px-6 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-xs font-black uppercase tracking-wider text-slate-950 transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(201,168,106,0.3)] flex items-center justify-center gap-1.5 whitespace-nowrap"
+              className="light-force-white flex-1 xl:flex-none h-[50px] px-6 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-xs font-black uppercase tracking-wider text-white transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(143,7,9,0.22)] flex items-center justify-center gap-1.5 whitespace-nowrap dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950 dark:hover:shadow-[0_0_15px_rgba(201,168,106,0.3)]"
             >
               <Search className="h-4 w-4" />
               <span>Tìm kiếm</span>
@@ -1513,8 +1513,8 @@ export default function DiscoverTalentsPage() {
               className={cn(
                 "flex-1 xl:flex-none h-[50px] px-4 rounded-2xl border text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap",
                 showAdvancedFilters
-                  ? "border-[#C9A86A] bg-[#C9A86A]/20 text-[#C9A86A] shadow-[0_0_12px_rgba(201,168,106,0.15)]"
-                  : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:border-[#C9A86A]/40 hover:text-white"
+                  ? "border-[#C72524] bg-[#FFF1EF] text-[#9B1215] shadow-[0_0_12px_rgba(143,7,9,0.10)] dark:border-[#C9A86A] dark:bg-[#C9A86A]/20 dark:text-[#C9A86A] dark:shadow-[0_0_12px_rgba(201,168,106,0.15)]"
+                  : "border-[#F0D7D3] bg-[#FFFDFC] text-[#9B1215] hover:bg-[#FFF1EF] hover:border-[#C72524]/40 hover:text-[#C72524] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:border-[#C9A86A]/40 dark:hover:text-white"
               )}
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -1531,7 +1531,7 @@ export default function DiscoverTalentsPage() {
                 placeholder="Sắp xếp"
                 icon={ArrowUpDown}
                 align="right"
-                className="[&>button]:!bg-white/5 [&>button]:!border-white/10 [&>button]:!text-slate-300 [&>button]:hover:!bg-white/10 [&>button]:hover:!border-[#C9A86A]/40 [&>button]:hover:!text-white"
+                className="[&>button]:!border-[#F0D7D3] [&>button]:!bg-[#FFFDFC] [&>button]:!text-[#9B1215] [&>button]:hover:!bg-[#FFF1EF] [&>button]:hover:!border-[#C72524]/40 [&>button]:hover:!text-[#C72524] dark:[&>button]:!bg-white/5 dark:[&>button]:!border-white/10 dark:[&>button]:!text-slate-300 dark:[&>button]:hover:!bg-white/10 dark:[&>button]:hover:!border-[#C9A86A]/40 dark:[&>button]:hover:!text-white"
               />
             </div>
           </div>
@@ -1540,7 +1540,7 @@ export default function DiscoverTalentsPage() {
         {/* Collapsible Advanced Filters Area */}
         {showAdvancedFilters && (
           <div className="relative z-10 border-t border-white/5 mt-5 pt-5 space-y-4 animate-in slide-in-from-top-2 duration-300">
-            <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-4">
+            <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFFDFC] p-4 dark:border-white/10 dark:bg-slate-950/35">
               <span className="mb-3 block text-[10px] font-black uppercase tracking-[0.18em] text-[#C9A86A]">
                 Nổi bật
               </span>
@@ -1555,8 +1555,8 @@ export default function DiscoverTalentsPage() {
                       className={cn(
                         "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition active:scale-[0.98]",
                         isSelected
-                          ? "border-[#C9A86A]/70 bg-[#C9A86A]/15 text-[#C9A86A]"
-                          : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-[#C9A86A]/40 hover:text-white"
+                          ? "border-[#C72524]/45 bg-[#FFF1EF] text-[#9B1215] dark:border-[#C9A86A]/70 dark:bg-[#C9A86A]/15 dark:text-[#C9A86A]"
+                          : "border-[#F0D7D3] bg-white text-[#9B1215] hover:border-[#C72524]/40 hover:text-[#C72524] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-[#C9A86A]/40 dark:hover:text-white"
                       )}
                     >
                       <span>{location.label}</span>
@@ -1595,7 +1595,7 @@ export default function DiscoverTalentsPage() {
                     max={200}
                     value={minHeight}
                     onChange={(e) => setMinHeight(Number(e.target.value))}
-                    className="w-full h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                    className="w-full h-10 rounded-xl border border-[#F0D7D3] bg-[#FFFDFC] px-3 text-xs text-[#191116] outline-none focus:border-[#C72524]/60 text-center dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                   />
                   <input
                     type="number"
@@ -1603,7 +1603,7 @@ export default function DiscoverTalentsPage() {
                     max={200}
                     value={maxHeight}
                     onChange={(e) => setMaxHeight(Number(e.target.value))}
-                    className="w-full h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                    className="w-full h-10 rounded-xl border border-[#F0D7D3] bg-[#FFFDFC] px-3 text-xs text-[#191116] outline-none focus:border-[#C72524]/60 text-center dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                   />
                 </div>
               </div>
@@ -1620,7 +1620,7 @@ export default function DiscoverTalentsPage() {
                     max={120}
                     value={minWeight}
                     onChange={(e) => setMinWeight(Number(e.target.value))}
-                    className="w-full h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                    className="w-full h-10 rounded-xl border border-[#F0D7D3] bg-[#FFFDFC] px-3 text-xs text-[#191116] outline-none focus:border-[#C72524]/60 text-center dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                   />
                   <input
                     type="number"
@@ -1628,7 +1628,7 @@ export default function DiscoverTalentsPage() {
                     max={120}
                     value={maxWeight}
                     onChange={(e) => setMaxWeight(Number(e.target.value))}
-                    className="w-full h-10 rounded-xl border border-white/10 bg-slate-950/60 px-3 text-xs text-white outline-none focus:border-[#C9A86A]/60 text-center"
+                    className="w-full h-10 rounded-xl border border-[#F0D7D3] bg-[#FFFDFC] px-3 text-xs text-[#191116] outline-none focus:border-[#C72524]/60 text-center dark:border-white/10 dark:bg-slate-950/60 dark:text-white dark:focus:border-[#C9A86A]/60"
                   />
                 </div>
               </div>

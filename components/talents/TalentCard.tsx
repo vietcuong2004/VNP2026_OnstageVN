@@ -164,13 +164,13 @@ export default function TalentCard({
     <article
       onClick={() => onView?.(talent)}
       className={cn(
-        "group flex min-w-0 flex-col justify-between rounded-2xl border border-[#2B313D] bg-[#171A21] p-3.5 shadow-lg transition-all duration-300 hover:border-[#C9A86A]/30",
+        "group flex min-w-0 flex-col justify-between rounded-2xl border border-[#F0D7D3] bg-white p-3.5 shadow-[0_16px_34px_rgba(143,7,9,0.10)] transition-all duration-300 hover:border-[#C72524]/45 dark:border-[#2B313D] dark:bg-[#171A21] dark:shadow-lg dark:hover:border-[#C9A86A]/30",
         onView && "cursor-pointer active:scale-[0.99]",
         className
       )}
     >
       <div>
-        <div className="relative mb-3.5 aspect-square w-full overflow-hidden rounded-xl border border-white/5 bg-slate-900">
+        <div className="relative mb-3.5 aspect-square w-full overflow-hidden rounded-xl border border-[#F1DBD7] bg-[#FFF7F5] dark:border-white/5 dark:bg-slate-900">
           <img
             src={talentAvatar}
             alt={talent?.name || "Idol"}
@@ -184,7 +184,7 @@ export default function TalentCard({
           />
 
           <div className="absolute left-2 top-2">
-            <BadgeTier badge={primaryBadge} tier={talent?.tier} seed={talent?.id || talent?.slug || talent?.email || talent?.name} variant="gradient" />
+            <BadgeTier badge={primaryBadge} tier={talent?.tier} seed={talent?.id || talent?.slug || talent?.email || talent?.name} variant="gradient" className="talent-card-achievement" />
           </div>
 
           {onMessage ? (
@@ -195,8 +195,8 @@ export default function TalentCard({
               className={cn(
                 "absolute right-2 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border shadow-lg backdrop-blur-sm transition active:scale-90",
                 messageDisabled
-                  ? "border-[#C9A86A]/40 bg-[#0F1115]/80 text-[#C9A86A] hover:bg-rose-500/20 hover:border-rose-500/50 hover:text-rose-400"
-                  : "border-white/10 bg-[#0F1115]/60 text-slate-300 hover:border-[#C9A86A]/50 hover:text-white"
+                  ? "border-[#C72524]/45 bg-white/90 text-[#C72524] hover:border-[#C72524] hover:bg-[#FFF1EF] dark:border-[#C9A86A]/40 dark:bg-[#0F1115]/80 dark:text-[#C9A86A] dark:hover:bg-rose-500/20 dark:hover:border-rose-500/50 dark:hover:text-rose-400"
+                  : "border-[#F1D8D4] bg-white/85 text-[#9B1215] hover:border-[#C72524]/45 hover:text-[#C72524] dark:border-white/10 dark:bg-[#0F1115]/60 dark:text-slate-300 dark:hover:border-[#C9A86A]/50 dark:hover:text-white"
               )}
               title={messageDisabled ? "Bấm để xóa khỏi danh sách quản lý" : "Thêm vào danh sách quản lý"}
             >
@@ -218,8 +218,8 @@ export default function TalentCard({
               className={cn(
                 "absolute right-2 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border shadow-lg backdrop-blur-sm transition active:scale-90",
                 isSaved
-                  ? "border-emerald-500 bg-emerald-500 text-white"
-                  : "border-white/10 bg-[#0F1115]/60 text-slate-300 hover:text-white"
+                  ? "light-force-white border-[#C72524] bg-[#C72524] text-white dark:border-emerald-500 dark:bg-emerald-500 dark:text-white"
+                  : "border-[#F1D8D4] bg-white/85 text-[#9B1215] hover:border-[#C72524]/45 hover:text-[#C72524] dark:border-white/10 dark:bg-[#0F1115]/60 dark:text-slate-300 dark:hover:text-white"
               )}
               title={isSaved ? "Bỏ lưu" : "Lưu thông tin"}
             >
@@ -231,7 +231,7 @@ export default function TalentCard({
             <div className="absolute bottom-2 left-2">
               <span
                 className={cn(
-                  "inline-flex items-center gap-1 rounded border bg-[#0F1115]/80 px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white backdrop-blur-sm",
+                  "inline-flex items-center gap-1 rounded border bg-white/90 px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-[#191116] backdrop-blur-sm dark:bg-[#0F1115]/80 dark:text-white",
                   status === "available" && "border-emerald-500/30 text-emerald-400",
                   status === "busy" && "border-red-500/30 text-red-400"
                 )}
@@ -253,37 +253,37 @@ export default function TalentCard({
 
         <div className="min-w-0 space-y-2">
           <div className="flex min-w-0 items-center gap-2">
-            <div className="flex min-h-[24px] min-w-0 flex-1 items-center justify-center gap-1 rounded-full border border-[#C9A86A]/45 bg-[#1B1608] px-2 text-center text-[#FFE05F] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <div className="flex min-h-[24px] min-w-0 flex-1 items-center justify-center gap-1 rounded-full border border-[#E9CFC5] bg-[#FFFDFB] px-2 text-center text-[#A36C1D] shadow-[0_5px_14px_rgba(143,7,9,0.06)] dark:border-[#C9A86A]/45 dark:bg-[#1B1608] dark:text-[#FFE05F] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <Briefcase className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate text-[9px] font-black tracking-tight">{mockStats.bookings} lượt booking</span>
             </div>
-            <div className="flex min-h-[24px] min-w-0 flex-1 items-center justify-center gap-1 rounded-full border border-fuchsia-300/35 bg-[#34183B] px-2 text-center text-fuchsia-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <div className="flex min-h-[24px] min-w-0 flex-1 items-center justify-center gap-1 rounded-full border border-[#F1D5D8] bg-[#FFF7F8] px-2 text-center text-[#C72524] shadow-[0_5px_14px_rgba(143,7,9,0.06)] dark:border-fuchsia-300/35 dark:bg-[#34183B] dark:text-fuchsia-100 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <Star className="h-3.5 w-3.5 shrink-0 fill-current" />
               <span className="truncate text-[9px] font-black tracking-tight">{mockStats.goodReviews} đánh giá</span>
             </div>
           </div>
 
           <div className="flex min-w-0 items-center gap-1.5">
-            <h3 className="flex-1 truncate text-base font-black leading-tight tracking-wide text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.12)]">
+            <h3 className="flex-1 truncate text-base font-black leading-tight tracking-wide text-[#191116] dark:text-white dark:drop-shadow-[0_1px_8px_rgba(255,255,255,0.12)]">
               {talent?.name}
             </h3>
-            {talent?.verified && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />}
+            {talent?.verified && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#C72524] dark:text-emerald-400" />}
           </div>
 
-          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#7B6866] dark:text-slate-400">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-[#A36C1D] dark:text-[#C9A86A]" />
             <span className="truncate">{locationText || "Chưa cập nhật"}</span>
           </div>
 
           <div className="flex flex-wrap gap-1">
             {talentTypes.length ? (
               talentTypes.map((type) => (
-                <span key={type} className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#C9A86A]">
+                <span key={type} className="inline-flex w-fit rounded-md border border-[#F1D8D4] bg-[#FFF7F6] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#9B1215] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                   {getTalentTypeLabel(type)}
                 </span>
               ))
             ) : (
-              <span className="inline-flex w-fit rounded-md border border-[#C9A86A]/25 bg-[#C9A86A]/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#C9A86A]">
+              <span className="inline-flex w-fit rounded-md border border-[#F1D8D4] bg-[#FFF7F6] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#9B1215] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                 Chưa cập nhật
               </span>
             )}
@@ -296,7 +296,7 @@ export default function TalentCard({
             {profilePills.map((pill) => (
               <span
                 key={pill}
-                className="inline-flex max-w-full items-center rounded-lg border border-white/10 bg-slate-800/90 px-2 py-1 text-[9.5px] font-black uppercase tracking-wider text-slate-100 shadow-sm"
+                className="inline-flex max-w-full items-center rounded-lg border border-[#F1D8D4] bg-[#FFF9F8] px-2 py-1 text-[9.5px] font-black uppercase tracking-wider text-[#9B1215] shadow-sm dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-100"
                 title={pill}
               >
                 <span className="truncate">{pill}</span>
@@ -310,7 +310,7 @@ export default function TalentCard({
             {talent.lifestyleServices.filter((service: any) => service.enabled).map((service: any) => (
               <span
                 key={service.id}
-                className="flex items-center gap-1 rounded border border-amber-500/20 bg-amber-500/5 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400"
+                className="flex items-center gap-1 rounded border border-[#E9CFC5] bg-[#FFFDFB] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#A36C1D] dark:border-amber-500/20 dark:bg-amber-500/5 dark:text-amber-400"
                 title={service.title}
               >
                 <span className="max-w-[100px] truncate">
@@ -322,29 +322,29 @@ export default function TalentCard({
         )}
 
         {showSocialStats && (
-          <div className="my-3 grid grid-cols-2 gap-2 rounded-xl border border-white/5 bg-[#0F1115]/50 p-2 text-center text-[10px]">
+          <div className="my-3 grid grid-cols-2 gap-2 rounded-xl border border-[#F1D8D4] bg-[#FFF9F8] p-2 text-center text-[10px] dark:border-white/5 dark:bg-[#0F1115]/50">
             <div>
-              <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-500">Followers</span>
-              <span className="mt-0.5 block font-mono font-black text-amber-300">{talent?.followers || "-"}</span>
+              <span className="block text-[8px] font-bold uppercase tracking-wider text-[#9A8581] dark:text-slate-500">Followers</span>
+              <span className="mt-0.5 block font-mono font-black text-[#A36C1D] dark:text-amber-300">{talent?.followers || "-"}</span>
             </div>
-            <div className="border-l border-white/5">
-              <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-500">Engagement</span>
-              <span className="mt-0.5 block font-mono font-black text-cyan-300">{talent?.engagementRate ?? "-"}%</span>
+            <div className="border-l border-[#F1D8D4] dark:border-white/5">
+              <span className="block text-[8px] font-bold uppercase tracking-wider text-[#9A8581] dark:text-slate-500">Engagement</span>
+              <span className="mt-0.5 block font-mono font-black text-[#C72524] dark:text-cyan-300">{talent?.engagementRate ?? "-"}%</span>
             </div>
           </div>
         )}
 
-        <p className="mt-2 whitespace-pre-line text-[11px] leading-relaxed text-slate-300 font-semibold">
+        <p className="mt-2 whitespace-pre-line text-[11px] font-semibold leading-relaxed text-[#5F5554] dark:text-slate-300">
           {bioText || "Talent chuyên nghiệp. Rất mong được hợp tác"}
         </p>
       </div>
 
       {hasActions && (
-        <div className="mt-4 flex items-center gap-2 border-t border-white/5 pt-3.5">
+        <div className="mt-4 flex items-center gap-2 border-t border-[#F4E1DE] pt-3.5 dark:border-white/5">
           <button
             type="button"
             onClick={handleBookNowClick}
-            className="flex min-h-[46px] flex-1 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-[#D7A900]/80 bg-[#241D08] px-4 text-[11px] font-black uppercase tracking-wider text-[#FFE05F] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:border-[#FFE05F] hover:bg-[#2D2409] active:scale-95"
+            className="flex min-h-[46px] flex-1 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-[#D8A8A3] bg-[#FFF7F6] px-4 text-[11px] font-black uppercase tracking-wider text-[#C72524] shadow-[0_8px_18px_rgba(143,7,9,0.08)] transition hover:border-[#C72524]/55 hover:bg-[#FFF1EF] active:scale-95 dark:border-[#D7A900]/80 dark:bg-[#241D08] dark:text-[#FFE05F] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:hover:border-[#FFE05F] dark:hover:bg-[#2D2409]"
             title="Đặt ngay"
           >
             <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
@@ -378,8 +378,8 @@ export default function TalentCard({
               className={cn(
                 "flex min-h-[40px] flex-1 min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 text-[9px] font-black uppercase tracking-wider transition active:scale-95",
                 isSaved
-                  ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
-                  : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110"
+                  ? "light-force-white border border-[#C72524]/55 bg-[#C72524] text-white hover:bg-[#A40E10] dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30"
+                  : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white shadow-[0_10px_22px_rgba(143,7,9,0.18)] hover:brightness-110 dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950"
               )}
               title={isSaved ? "Bỏ lưu khỏi danh sách đã lưu" : "Lưu vào danh sách đã lưu"}
             >
@@ -394,14 +394,14 @@ export default function TalentCard({
               className={cn(
                 "flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg pl-2 pr-3 text-[9px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer",
                 messageDisabled
-                  ? "border border-[#C9A86A]/30 bg-[#C9A86A]/10 text-[#C9A86A] hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-400"
-                  : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950"
+                  ? "border border-[#D8A8A3] bg-[#FFF7F6] text-[#C72524] hover:border-[#C72524]/55 hover:bg-[#FFF1EF] dark:border-[#C9A86A]/30 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A] dark:hover:border-rose-500/40 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
+                  : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white shadow-[0_10px_22px_rgba(143,7,9,0.18)] dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950"
               )}
             >
               {messageLoading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : messageDisabled ? (
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#A36C1D] dark:text-[#C9A86A]" />
               ) : (
                 showMessageIcon && <UserPlus className="h-3.5 w-3.5" />
               )}

@@ -767,7 +767,7 @@ export default function BrandTalentProfilePage() {
               router.back();
             }
           }}
-          className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border border-amber-500/30 bg-[#0c1120]/85 backdrop-blur-md text-amber-400 hover:text-amber-300 hover:bg-[#0c1120] hover:border-amber-500/50 shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer"
+          className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E8C8C2] bg-white/90 backdrop-blur-md text-[#8F0709] shadow-[0_8px_22px_rgba(143,7,9,0.12)] transition-all duration-300 hover:border-[#C72524]/45 hover:bg-[#FFF3F1] active:scale-95 cursor-pointer dark:border-amber-500/30 dark:bg-[#0c1120]/85 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-[#0c1120] dark:hover:border-amber-500/50 dark:shadow-[0_4px_15px_rgba(0,0,0,0.4)]"
           aria-label="Quay lại"
           title="Quay lại"
         >
@@ -775,9 +775,10 @@ export default function BrandTalentProfilePage() {
         </button>
 
         <div className="relative pointer-events-auto">
+
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-amber-500/30 bg-[#0c1120]/85 backdrop-blur-md text-amber-400 hover:text-amber-300 hover:bg-[#0c1120] hover:border-amber-500/50 shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E8C8C2] bg-white/90 backdrop-blur-md text-[#8F0709] shadow-[0_8px_22px_rgba(143,7,9,0.12)] transition-all duration-300 hover:border-[#C72524]/45 hover:bg-[#FFF3F1] hover:text-[#C72524] active:scale-95 cursor-pointer dark:border-amber-500/30 dark:bg-[#0c1120]/85 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-[#0c1120] dark:hover:border-amber-500/50 dark:shadow-[0_4px_15px_rgba(0,0,0,0.4)]"
             aria-label="Thao tác"
             title="Thao tác"
           >
@@ -787,14 +788,14 @@ export default function BrandTalentProfilePage() {
           {isDropdownOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-              <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-white/5 bg-[#0c1120]/95 backdrop-blur-md p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-[#E8C8C2] bg-white/95 backdrop-blur-md p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200 dark:border-white/5 dark:bg-[#0c1120]/95">
                 <button
                   onClick={() => {
                     setIsDropdownOpen(false);
                     handleAddToBrand();
                   }}
                   disabled={isAddingToBrand || isAddedToBrand}
-                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                 >
                   <Users className="h-4 w-4 text-amber-400" />
                   <span>{isAddedToBrand ? "Đã thêm vào danh sách quản lý" : "Thêm vào danh sách quản lý"}</span>
@@ -805,7 +806,7 @@ export default function BrandTalentProfilePage() {
                     setIsDropdownOpen(false);
                     router.push(`/booking?talentId=${encodeURIComponent(String(params.id))}`);
                   }}
-                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition duration-200 text-left"
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                 >
                   <CalendarCheck className="h-4 w-4 text-amber-400" />
                   <span>Đặt ngay</span>
@@ -816,7 +817,7 @@ export default function BrandTalentProfilePage() {
                     setIsDropdownOpen(false);
                     handleAddToWishlist();
                   }}
-                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition duration-200 text-left"
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                 >
                   {isInWishlist ? (
                     <>
@@ -970,9 +971,9 @@ export default function BrandTalentProfilePage() {
             <button
               type="button"
               onClick={() => router.push(`/booking?talentId=${encodeURIComponent(String(params.id))}`)}
-              className="flex h-10 items-center justify-center rounded-xl border border-amber-400/40 bg-gradient-to-r from-amber-400/25 via-yellow-500/20 to-amber-500/30 px-2 text-[9.5px] font-black uppercase tracking-wider text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)] transition active:scale-95 cursor-pointer"
+              className="light-force-white flex h-10 items-center justify-center rounded-xl border border-[#C72524]/35 bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-2 text-[9.5px] font-black uppercase tracking-wider text-white shadow-[0_10px_22px_rgba(143,7,9,0.18)] transition active:scale-95 cursor-pointer dark:border-amber-400/40 dark:from-amber-400/25 dark:via-yellow-500/20 dark:to-amber-500/30 dark:text-amber-300 dark:shadow-[0_0_12px_rgba(245,158,11,0.2)]"
             >
-              <CalendarCheck className="mr-1 h-3.5 w-3.5 shrink-0 text-amber-400" />
+              <CalendarCheck className="mr-1 h-3.5 w-3.5 shrink-0 text-current" />
               <span className="truncate">Đặt ngay</span>
             </button>
             <button
@@ -981,18 +982,18 @@ export default function BrandTalentProfilePage() {
               className={cn(
                 "flex h-10 items-center justify-center rounded-xl px-2 text-[9.5px] font-black uppercase tracking-wider shadow-md transition-all duration-300 active:scale-95",
                 isInWishlist
-                  ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-                  : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 shadow-[0_0_15px_rgba(201,168,106,0.2)]"
+                  ? "light-force-white border border-[#C72524]/55 bg-[#C72524] text-white shadow-[0_10px_22px_rgba(143,7,9,0.16)] dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-400 dark:shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                  : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white shadow-[0_10px_22px_rgba(143,7,9,0.18)] dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950 dark:shadow-[0_0_15px_rgba(201,168,106,0.2)]"
               )}
             >
               {isInWishlist ? (
                 <>
-                  <CheckCircle2 className="mr-1 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                  <CheckCircle2 className="mr-1 h-3.5 w-3.5 shrink-0 text-current" />
                   <span className="truncate">Đã lưu</span>
                 </>
               ) : (
                 <>
-                  <Heart className="mr-1 h-3.5 w-3.5 shrink-0 fill-slate-950 text-slate-950" />
+                  <Heart className="mr-1 h-3.5 w-3.5 shrink-0 fill-current text-current" />
                   <span className="truncate">Lưu</span>
                 </>
               )}
@@ -1132,9 +1133,9 @@ export default function BrandTalentProfilePage() {
           <button
             type="button"
             onClick={() => router.push(`/booking?talentId=${encodeURIComponent(String(params.id))}`)}
-            className="flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-400/25 via-yellow-500/20 to-amber-500/30 px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-95 cursor-pointer whitespace-nowrap"
+            className="light-force-white flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-full border border-[#C72524]/35 bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider text-white shadow-[0_10px_22px_rgba(143,7,9,0.18)] transition-all duration-300 hover:scale-[1.02] hover:brightness-110 active:scale-95 cursor-pointer whitespace-nowrap dark:border-amber-400/40 dark:from-amber-400/25 dark:via-yellow-500/20 dark:to-amber-500/30 dark:text-amber-300 dark:shadow-[0_0_15px_rgba(245,158,11,0.25)]"
           >
-            <CalendarCheck className="mr-2 h-4 w-4 shrink-0 text-amber-400" />
+            <CalendarCheck className="mr-2 h-4 w-4 shrink-0 text-current" />
             <span>Đặt ngay</span>
           </button>
           <button
@@ -1143,18 +1144,18 @@ export default function BrandTalentProfilePage() {
             className={cn(
               "flex-1 sm:flex-initial flex h-10 items-center justify-center rounded-full px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer whitespace-nowrap shadow-md",
               isInWishlist
-                ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-                : "bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 hover:brightness-110 shadow-[0_0_15px_rgba(201,168,106,0.2)]"
+                ? "light-force-white border border-[#C72524]/55 bg-[#C72524] text-white hover:bg-[#A40E10] shadow-[0_10px_22px_rgba(143,7,9,0.16)] dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30 dark:shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white hover:brightness-110 shadow-[0_10px_22px_rgba(143,7,9,0.18)] dark:from-amber-100 dark:via-[#C9A86A] dark:to-yellow-600 dark:text-slate-950 dark:shadow-[0_0_15px_rgba(201,168,106,0.2)]"
             )}
           >
             {isInWishlist ? (
               <>
-                <CheckCircle2 className="mr-2 h-4 w-4 shrink-0 text-emerald-400" />
+                <CheckCircle2 className="mr-2 h-4 w-4 shrink-0 text-current" />
                 <span>ĐÃ LƯU</span>
               </>
             ) : (
               <>
-                <Heart className="mr-2 h-4 w-4 shrink-0 fill-slate-950 text-slate-950" />
+                <Heart className="mr-2 h-4 w-4 shrink-0 fill-current text-current" />
                 <span>LƯU THÔNG TIN</span>
               </>
             )}

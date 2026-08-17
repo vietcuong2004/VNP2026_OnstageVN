@@ -12,18 +12,21 @@ const discoveryCards = [
     subtitle: "Khám phá hàng trăm KOL, Model, MC, Creator phù hợp với nhu cầu của bạn. Lọc nhanh - Kết nối dễ dàng",
     href: "/brand/search",
     image: "/discovery-idols.png",
+    lightImage: "/discovery-idols-light.jpg",
   },
   {
     title: "Cơ hội việc làm",
     subtitle: "Hàng trăm Job mới mỗi ngày từ các thương hiệu uy tín. Tìm cơ hội phù hợp và bứt phá sự nghiệp.",
     href: "/talent/jobs",
     image: "/discovery-jobs.png",
+    lightImage: "/discovery-jobs-light.jpg",
   },
   {
     title: "Về OnstageVN",
     subtitle: "Tìm hiểu về hệ sinh thái và giải pháp kết nối giải trí hàng đầu của chúng tôi.",
     href: "/about",
     image: "/hero_bg.png",
+    lightImage: "/hero_bg.png",
   },
 ];
 
@@ -49,12 +52,19 @@ export default function RootPage() {
               className="group relative aspect-[16/9] overflow-hidden rounded-[1.55rem] border border-[#E8CF91]/70 bg-white shadow-[0_18px_42px_rgba(25,17,22,0.06)] transition-all duration-300 active:scale-[0.99] dark:rounded-2xl dark:border-[#C9A86A]/35 dark:bg-[#10131d] dark:shadow-[0_18px_50px_rgba(0,0,0,0.35)]"
             >
               <Image
-                src={card.image}
+                src={card.lightImage}
                 alt={card.title}
                 fill
                 priority
                 sizes="100vw"
-                className="object-cover opacity-[0.88] transition duration-700 group-hover:scale-105 dark:opacity-100"
+                className="object-cover opacity-[0.92] transition duration-700 group-hover:scale-105 dark:hidden"
+              />
+              <Image
+                src={card.image}
+                alt={card.title}
+                fill
+                sizes="100vw"
+                className="hidden object-cover opacity-100 transition duration-700 group-hover:scale-105 dark:block"
               />
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.9)_38%,rgba(255,255,255,0.18)_74%,rgba(255,255,255,0)_100%)] dark:bg-gradient-to-t dark:from-black/90 dark:via-black/50 dark:to-black/20" />
               <div className="absolute inset-0 bg-transparent dark:bg-gradient-to-t dark:from-[#03050c]/80 dark:via-transparent dark:to-transparent" />

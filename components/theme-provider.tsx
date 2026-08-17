@@ -14,10 +14,19 @@ export function applyAppTheme(theme: AppTheme) {
   document.documentElement.style.colorScheme = theme;
 }
 
+function getDefaultAppTheme(): AppTheme {
+  if (typeof window === "undefined") return "dark";
+
+  return window.matchMedia("(max-width: 767px)").matches ? "light" : "dark";
+}
+
 export function getStoredAppTheme(): AppTheme {
   if (typeof window === "undefined") return "dark";
 
-  return window.localStorage.getItem(THEME_STORAGE_KEY) === "light" ? "light" : "dark";
+  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (storedTheme === "light" || storedTheme === "dark") return storedTheme;
+
+  return getDefaultAppTheme();
 }
 
 export function setStoredAppTheme(theme: AppTheme) {

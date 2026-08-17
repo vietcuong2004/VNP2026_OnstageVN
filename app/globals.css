@@ -235,9 +235,9 @@
 }
 
 .light .bg-gradient-gold,
-.light [class*="from-amber-"],
-.light [class*="via-amber-"],
-.light [class*="to-yellow-"] {
+.light [class*="from-amber-"]:not([class*="dark:from-amber-"]),
+.light [class*="via-amber-"]:not([class*="dark:via-amber-"]),
+.light [class*="to-yellow-"]:not([class*="dark:to-yellow-"]) {
   background-image: linear-gradient(135deg, #8f0709 0%, #a91416 50%, #c72524 100%) !important;
   color: #ffffff !important;
 }
@@ -566,3 +566,69 @@ input[type="date"].text-white::-webkit-date-and-time-value {
   }
 }
 
+
+.light .light-force-white,
+.light .light-force-white * {
+  color: #fff !important;
+}
+
+.light .light-force-white svg {
+  color: #fff !important;
+}
+/* Booking flow light-mode readability */
+.light .booking-flow {
+  background: #fffdfa !important;
+  color: #191116 !important;
+}
+
+.light .booking-flow [class*="bg-[#070913]"],
+.light .booking-flow [class*="bg-[#090713]"],
+.light .booking-flow [class*="bg-[#090c17]"],
+.light .booking-flow [class*="bg-[#0d0b14]"],
+.light .booking-flow [class*="bg-[#11111c]"],
+.light .booking-flow [class*="bg-[#121522]"],
+.light .booking-flow [class*="bg-[#16140e]"],
+.light .booking-flow [class*="bg-[#161c2c]"],
+.light .booking-flow [class*="bg-[#171A21]"],
+.light .booking-flow [class*="bg-[#191022]"],
+.light .booking-flow [class*="bg-[#1a1608]"],
+.light .booking-flow [class*="bg-[#1a1c26]"],
+.light .booking-flow [class*="bg-slate-950"],
+.light .booking-flow [class*="bg-slate-900"],
+.light .booking-flow [class*="bg-[radial-gradient"] {
+  background-color: #ffffff !important;
+}
+
+.light .booking-flow [class*="from-[#161c2c]"],
+.light .booking-flow [class*="via-[#101422]"],
+.light .booking-flow [class*="to-[#090c17]"],
+.light .booking-flow [class*="from-[#1a1608]"],
+.light .booking-flow [class*="via-[#0d0b14]"],
+.light .booking-flow [class*="to-[#080811]"] {
+  background-image: linear-gradient(135deg, #ffffff 0%, #fff7f6 58%, #fffdfa 100%) !important;
+}
+
+.light .booking-flow [class*="border-white/"],
+.light .booking-flow [class*="border-[#2B313D]"] {
+  border-color: rgba(232, 200, 194, 0.95) !important;
+}
+
+.light .booking-flow [class*="from-amber-"]:not([class*="dark:from-amber-"]),
+.light .booking-flow [class*="via-yellow-"]:not([class*="dark:via-yellow-"]),
+.light .booking-flow [class*="to-amber-"]:not([class*="dark:to-amber-"]) {
+  color: #ffffff !important;
+}
+
+.light .booking-flow [class*="from-amber-"]:not([class*="dark:from-amber-"]) *,
+.light .booking-flow [class*="via-yellow-"]:not([class*="dark:via-yellow-"]) *,
+.light .booking-flow [class*="to-amber-"]:not([class*="dark:to-amber-"]) * {
+  color: #ffffff !important;
+}
+
+.light .booking-flow input,
+.light .booking-flow textarea,
+.light .booking-flow select {
+  background-color: #fffdfa !important;
+  border-color: rgba(232, 200, 194, 0.95) !important;
+  color: #191116 !important;
+}

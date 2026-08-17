@@ -43,7 +43,7 @@ export default function JobImagesSection({
 
   return (
     <>
-      <div className="relative w-full h-64 sm:h-80 bg-[#050711] shrink-0 overflow-hidden border-b border-[#151b2d]">
+      <div className="relative w-full h-64 sm:h-80 bg-white shrink-0 overflow-hidden border-b border-[#F0D6D0] dark:bg-[#050711] dark:border-[#151b2d]">
         {images.length > 0 ? (
           <div
             ref={bannerCarouselRef}
@@ -69,7 +69,7 @@ export default function JobImagesSection({
             ))}
           </div>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0e1322] to-[#080a12] text-slate-500 p-4">
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#FFF7F6] to-white text-[#8D8088] p-4 dark:from-[#0e1322] dark:to-[#080a12] dark:text-slate-500">
             <ImageIcon className="h-10 w-10 text-slate-600 mb-2" />
             <span className="text-xs font-semibold">Chưa có hình ảnh chiến dịch</span>
           </div>

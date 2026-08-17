@@ -362,10 +362,10 @@ export default function JobDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#080a12] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#FFFCFA] dark:bg-[#080a12] flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-amber-400 border-t-transparent" />
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Đang tải chi tiết công việc...</p>
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#C72524] border-t-transparent dark:border-amber-400 dark:border-t-transparent" />
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#8F0709] dark:text-slate-400">Đang tải chi tiết công việc...</p>
         </div>
       </div>
     );
@@ -373,8 +373,8 @@ export default function JobDetailPage() {
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-[#080a12] flex flex-col items-center justify-center p-6 text-center">
-        <div className="max-w-md space-y-4 rounded-3xl border border-[#1a2238] bg-[#0c101d] p-8">
+      <div className="min-h-screen bg-[#FFFCFA] dark:bg-[#080a12] flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md space-y-4 rounded-3xl border border-[#E8C8C2] bg-white p-8 shadow-[0_18px_40px_rgba(143,7,9,0.08)] dark:border-[#1a2238] dark:bg-[#0c101d]">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-400 mx-auto">
             <Info className="h-6 w-6" />
           </div>
@@ -384,7 +384,7 @@ export default function JobDetailPage() {
           </p>
           <button
             onClick={handleBack}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all cursor-pointer"
+            className="light-force-white w-full py-3 rounded-xl bg-gradient-to-r from-[#8F0709] via-[#C72524] to-[#D85E5A] text-white dark:from-amber-300 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950 font-bold text-xs uppercase tracking-wider hover:brightness-105 transition-all cursor-pointer"
           >
             Quay lại danh sách công việc
           </button>
@@ -480,7 +480,7 @@ export default function JobDetailPage() {
       return (
         <button
           onClick={handleApply}
-          className="px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-black bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-wider"
+          className="light-force-white px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-black bg-gradient-to-r from-[#8F0709] via-[#C72524] to-[#D85E5A] text-white shadow-[0_12px_26px_rgba(199,37,36,0.24)] hover:shadow-[0_14px_30px_rgba(199,37,36,0.3)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-wider dark:from-amber-300 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950 dark:shadow-[0_0_20px_rgba(245,158,11,0.3)] dark:hover:shadow-[0_0_25px_rgba(245,158,11,0.5)]"
         >
           Ứng tuyển ngay
         </button>
@@ -509,11 +509,11 @@ export default function JobDetailPage() {
       className={cn(
         "inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-black border shadow-[0_0_18px_rgba(0,0,0,0.25)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-wider",
         isSaved
-          ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-300"
-          : "border-white/10 bg-white/[0.06] text-slate-100 hover:border-amber-400/35 hover:text-amber-200"
+          ? "light-force-white border-[#C72524]/70 bg-[#C72524] text-white dark:border-emerald-400/40 dark:bg-emerald-500/15 dark:text-emerald-300"
+          : "border-[#E8C8C2] bg-white text-[#8F0709] hover:border-[#C72524]/45 hover:bg-[#FFF3F1] dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100 dark:hover:border-amber-400/35 dark:hover:text-amber-200"
       )}
     >
-      <Bookmark className={cn("h-4 w-4", isSaved && "fill-emerald-300")} />
+      <Bookmark className={cn("h-4 w-4", isSaved && "fill-white dark:fill-emerald-300")} />
       {isSaved ? "Đã lưu công việc" : "Lưu công việc"}
     </button>
   );
@@ -531,7 +531,7 @@ export default function JobDetailPage() {
       return (
         <button
           onClick={handleApply}
-          className="flex-1 py-3 rounded-xl font-display text-xs font-black bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-widest text-center justify-center items-center"
+          className="light-force-white flex-1 py-3 rounded-xl font-display text-xs font-black bg-gradient-to-r from-[#8F0709] via-[#C72524] to-[#D85E5A] text-white shadow-[0_12px_26px_rgba(199,37,36,0.24)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-widest text-center justify-center items-center dark:from-amber-300 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950 dark:shadow-[0_0_20px_rgba(245,158,11,0.3)]"
         >
           Ứng tuyển ngay
         </button>
@@ -554,13 +554,13 @@ export default function JobDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080a12] text-slate-100 flex flex-col justify-between selection:bg-amber-400 selection:text-slate-950">
+    <div className="min-h-screen bg-[#FFFCFA] text-[#191116] dark:bg-[#080a12] dark:text-slate-100 flex flex-col justify-between selection:bg-[#C72524] selection:text-white dark:selection:bg-amber-400 dark:selection:text-slate-950">
 
       <div className="sticky top-0 z-30 -mt-5 md:-mt-7 lg:-mt-8 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 pt-3 bg-transparent pointer-events-none flex items-center justify-between h-0 overflow-visible">
         <button
           type="button"
           onClick={handleBack}
-          className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border border-amber-500/30 bg-[#0c1120]/85 backdrop-blur-md text-amber-400 hover:text-amber-300 hover:bg-[#0c1120] hover:border-amber-500/50 shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer"
+          className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E8C8C2] bg-white/90 backdrop-blur-md text-[#8F0709] shadow-[0_8px_22px_rgba(143,7,9,0.12)] transition-all duration-300 hover:border-[#C72524]/45 hover:bg-[#FFF3F1] active:scale-95 cursor-pointer dark:border-amber-500/30 dark:bg-[#0c1120]/85 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-[#0c1120] dark:hover:border-amber-500/50 dark:shadow-[0_4px_15px_rgba(0,0,0,0.4)]"
           aria-label="Quay lại"
           title="Quay lại"
         >
@@ -571,15 +571,15 @@ export default function JobDetailPage() {
           type="button"
           onClick={handleToggleBookmark}
           className={cn(
-            "pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border bg-[#0c1120]/85 backdrop-blur-md shadow-[0_4px_15px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 cursor-pointer",
+            "pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E8C8C2] bg-white/90 backdrop-blur-md text-[#8F0709] shadow-[0_8px_22px_rgba(143,7,9,0.12)] transition-all duration-300 active:scale-95 cursor-pointer dark:border-amber-500/30 dark:bg-[#0c1120]/85 dark:shadow-[0_4px_15px_rgba(0,0,0,0.4)]",
             isSaved
-              ? "border-amber-400 bg-amber-400/20 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
-              : "border-amber-500/30 text-amber-400 hover:text-amber-300 hover:bg-[#0c1120] hover:border-amber-500/50"
+              ? "light-force-white border-[#C72524]/60 bg-[#C72524] text-white shadow-[0_10px_24px_rgba(199,37,36,0.22)] dark:border-amber-400 dark:bg-amber-400/20 dark:text-amber-300 dark:shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+              : "border-[#E8C8C2] text-[#8F0709] hover:text-[#C72524] hover:bg-[#FFF3F1] hover:border-[#C72524]/45 dark:border-amber-500/30 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-[#0c1120] dark:hover:border-amber-500/50"
           )}
           aria-label={isSaved ? "Bỏ lưu công việc" : "Lưu công việc"}
           title={isSaved ? "Bỏ lưu công việc" : "Lưu công việc"}
         >
-          <Bookmark className={cn("h-5 w-5 shrink-0", isSaved && "fill-amber-400")} />
+          <Bookmark className={cn("h-5 w-5 shrink-0", isSaved && "fill-white dark:fill-amber-400")} />
         </button>
       </div>
 
@@ -610,13 +610,13 @@ export default function JobDetailPage() {
               industryPills.map((industry: string) => (
                 <span
                   key={industry}
-                  className="rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] sm:text-xs font-extrabold text-cyan-300 uppercase"
+                  className="rounded-md border border-[#E8C8C2] bg-[#FFF3F1] px-2.5 py-0.5 text-[10px] sm:text-xs font-extrabold text-[#8F0709] uppercase dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-300"
                 >
                   {industry}
                 </span>
               ))
             ) : (
-              <span className="rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] sm:text-xs font-extrabold text-cyan-300 uppercase">
+              <span className="rounded-md border border-[#E8C8C2] bg-[#FFF3F1] px-2.5 py-0.5 text-[10px] sm:text-xs font-extrabold text-[#8F0709] uppercase dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-300">
                 Chưa phân loại
               </span>
             )}
@@ -627,43 +627,43 @@ export default function JobDetailPage() {
             )}
           </div>
 
-          <h1 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-white uppercase leading-tight tracking-tight">
+          <h1 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-[#7A1114] uppercase leading-tight tracking-tight dark:text-white">
             {job.title || "Không có tiêu đề"}
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-400 font-semibold flex items-center gap-1.5">
-            <span className="text-slate-500 uppercase tracking-wider text-[10px] sm:text-xs font-bold">Thương hiệu:</span>
-            <span className="text-amber-300 font-bold">{job.brand || "Không có"}</span>
+          <p className="text-xs sm:text-sm text-[#574D54] font-semibold flex items-center gap-1.5 dark:text-slate-400">
+            <span className="text-[#8F0709] uppercase tracking-wider text-[10px] sm:text-xs font-bold dark:text-slate-500">Thương hiệu:</span>
+            <span className="text-[#B31317] font-bold dark:text-amber-300">{job.brand || "Không có"}</span>
           </p>
 
           {/* Key Metrics Highlight Cards */}
           <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)]">
-            <div className="relative overflow-hidden rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-[#0e1322] to-[#080a12] p-4 flex flex-col justify-between space-y-1.5">
-              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-amber-400">
-                <DollarSign className="h-4 w-4 text-amber-400 shrink-0" />
+            <div className="light-force-white relative overflow-hidden rounded-2xl border border-[#C72524]/20 bg-gradient-to-br from-[#8F0709] via-[#C72524] to-[#D85E5A] p-4 flex flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.14)] dark:border-amber-500/25 dark:bg-gradient-to-br dark:from-amber-500/10 dark:via-[#0e1322] dark:to-[#080a12]">
+              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-white dark:text-amber-400">
+                <DollarSign className="h-4 w-4 text-current shrink-0 dark:text-amber-400" />
                 Thù lao
               </div>
-              <div className="font-mono font-black text-sm sm:text-base text-amber-300 whitespace-nowrap">
+              <div className="font-mono font-black text-sm sm:text-base text-white whitespace-nowrap dark:text-amber-300">
                 {job.hasBudget && job.budget ? job.budget : "Không có"}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#1b233a] bg-[#0c101d] p-4 flex flex-col justify-between space-y-1.5 sm:col-span-2 lg:col-span-1">
-              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
-                <Clock className="h-4 w-4 text-amber-400 shrink-0" />
+            <div className="rounded-2xl border border-[#F0D6D0] bg-white p-4 flex flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.06)] sm:col-span-2 lg:col-span-1 dark:border-[#1b233a] dark:bg-[#0c101d] dark:shadow-none">
+              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#8F0709] dark:text-slate-400">
+                <Clock className="h-4 w-4 text-[#B9861B] shrink-0 dark:text-amber-400" />
                 Hạn ứng tuyển
               </div>
-              <div className="font-semibold text-xs sm:text-sm text-slate-100">
+              <div className="font-semibold text-xs sm:text-sm text-[#191116] dark:text-slate-100">
                 {deadline ? formatDate(deadline) : "Không có"}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#1b233a] bg-[#0c101d] p-4 flex flex-col justify-between space-y-1.5">
-              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
+            <div className="rounded-2xl border border-[#F0D6D0] bg-white p-4 flex flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.06)] dark:border-[#1b233a] dark:bg-[#0c101d] dark:shadow-none">
+              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#8F0709] dark:text-slate-400">
                 <MapPin className="h-4 w-4 text-cyan-400 shrink-0" />
                 Địa điểm làm việc
               </div>
-              <div className="min-w-0 font-semibold text-xs sm:text-sm text-slate-100 break-words [overflow-wrap:anywhere]" title={job.location || "Không có"}>
+              <div className="min-w-0 font-semibold text-xs sm:text-sm text-[#191116] break-words [overflow-wrap:anywhere] dark:text-slate-100" title={job.location || "Không có"}>
                 {job.location || "Không có"}
               </div>
             </div>
@@ -676,11 +676,11 @@ export default function JobDetailPage() {
         </div>
 
         {/* Campaign Brief */}
-        <div className="rounded-2xl border border-[#1b233a] bg-[#0c101d] p-5 space-y-2.5">
-          <h4 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white uppercase tracking-wider border-b border-[#151b2d] pb-2.5">
+        <div className="rounded-2xl border border-[#F0D6D0] bg-white p-5 space-y-2.5 shadow-[0_12px_28px_rgba(143,7,9,0.06)] dark:border-[#1b233a] dark:bg-[#0c101d] dark:shadow-none">
+          <h4 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[#7A1114] uppercase tracking-wider border-b border-[#F0D6D0] pb-2.5 dark:border-[#151b2d] dark:text-white">
             <Info className="h-4 w-4 text-amber-400" /> Mô tả công việc
           </h4>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal whitespace-pre-line">
+          <p className="text-xs sm:text-sm text-[#574D54] leading-relaxed font-normal whitespace-pre-line dark:text-slate-300">
             {job.brief || job.description || "Không có"}
           </p>
         </div>
@@ -736,7 +736,7 @@ export default function JobDetailPage() {
       </div>
 
       {/* Mobile Fixed Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#0c101d] border-t border-white/5 px-6 py-4 flex items-center shadow-[0_-10px_30px_rgba(0,0,0,0.55)]">
+      <div className="mx-auto flex w-full max-w-7xl items-center px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] pt-1 md:hidden sm:px-8">
         {renderMobileFooterAction()}
       </div>
 
