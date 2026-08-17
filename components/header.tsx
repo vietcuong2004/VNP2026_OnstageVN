@@ -5,15 +5,13 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   Bookmark,
-  Building2,
   ChevronDown,
   Heart,
-  LogIn,
-  LogOut,
   Settings,
   ShieldAlert,
   User,
 } from "lucide-react";
+import AccountMenuDialog from "@/components/account-menu-dialog";
 import { resolveUnifiedSettingsHref } from "@/components/sidebar";
 import { loadTalentProfile, TALENT_PROFILE_UPDATED_EVENT } from "@/lib/talent-api";
 import { API_BASE_URL, AUTH_USER_UPDATED_EVENT, logoutCurrentSession } from "@/lib/api-client";
@@ -24,6 +22,7 @@ import { getRealtimeClient } from "@/lib/realtime";
 import { loadBrandWishlists } from "@/lib/brand-api";
 import { loadGuestSavedTalentIds, SAVED_TALENTS_UPDATED_EVENT } from "@/lib/guest-saved-talents";
 import { loadSavedJobsForSession, SAVED_JOBS_UPDATED_EVENT } from "@/lib/saved-jobs";
+import { getStoredAppTheme, setStoredAppTheme, THEME_UPDATED_EVENT, type AppTheme } from "@/components/theme-provider";
 
 type AuthUser = {
   id: number;
@@ -128,6 +127,7 @@ export default function Header() {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [savedTalentCount, setSavedTalentCount] = useState(0);
   const [savedJobCount, setSavedJobCount] = useState(0);
+  const [theme, setTheme] = useState<AppTheme>("dark");
 
   useEffect(() => {
     function syncTalentProfileHeader() {
@@ -146,6 +146,19 @@ export default function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    const syncTheme = () => setTheme(getStoredAppTheme());
+
+    syncTheme();
+    window.addEventListener(THEME_UPDATED_EVENT, syncTheme);
+    window.addEventListener("storage", syncTheme);
+
+    return () => {
+      window.removeEventListener(THEME_UPDATED_EVENT, syncTheme);
+      window.removeEventListener("storage", syncTheme);
+    };
+  }, []);
+
   const label = user
     ? { name: talentName || user.name, subtitle: user.email || "" }
     : { name: "Khách truy cập", subtitle: "Chưa đăng nhập" };
@@ -153,6 +166,10 @@ export default function Header() {
   const headerAvatarSrc = user
     ? (talentAvatar || user.external_avatar_url || fallbackAvatarSrc)
     : fallbackAvatarSrc;
+
+  const toggleTheme = () => {
+    setStoredAppTheme(theme === "dark" ? "light" : "dark");
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -484,63 +501,21 @@ export default function Header() {
             </button>
 
             {open && (
-              <div className="absolute right-0 top-12 w-64 rounded-xl border border-white/10 bg-[#080b16] p-2 shadow-2xl">
-                <div className="flex items-center gap-3 rounded-lg px-3 py-3 border-b border-white/5 mb-1.5">
-                  <img
-                    src={headerAvatarSrc}
-                    alt="Profile avatar"
-                    onError={(event) => {
-                      event.currentTarget.src = fallbackAvatarSrc;
-                    }}
-                    className="h-9 w-9 rounded-full border border-amber-400/30 object-cover bg-slate-950"
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-white">{label.name}</p>
-                    <p className="truncate text-xs text-slate-500">{label.subtitle}</p>
-                  </div>
-                </div>
-
-                {user && dropdownItems.map((item) => {
-                  const Icon = item.icon;
-
-                  return (
-                    <button
-                      key={item.href}
-                      type="button"
-                      onClick={() => {
-                        router.push(item.href);
-                        setOpen(false);
-                      }}
-                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-                    >
-                      <Icon className="h-4 w-4 text-slate-400" />
-                      {item.label}
-                    </button>
-                  );
-                })}
-
-                {user && <div className="border-t border-white/5 my-1.5" />}
-
-                {user ? (
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-red-200 transition-colors hover:bg-red-500/10 hover:text-red-100"
-                  >
-                    <LogOut className="h-4 w-4 text-red-400" />
-                    Đăng xuất
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(pathname || "/")}`)}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-400/10 hover:text-amber-100"
-                  >
-                    <LogIn className="h-4 w-4 text-amber-300" />
-                    Đăng nhập / Đăng ký
-                  </button>
-                )}
-              </div>
+              <AccountMenuDialog
+                isAuthenticated={Boolean(user)}
+                label={label}
+                avatarSrc={headerAvatarSrc}
+                fallbackAvatarSrc={fallbackAvatarSrc}
+                items={dropdownItems}
+                theme={theme}
+                onNavigate={(href) => {
+                  router.push(href);
+                  setOpen(false);
+                }}
+                onToggleTheme={toggleTheme}
+                onLogout={handleLogout}
+                onLogin={() => router.push(`/auth/login?redirect=${encodeURIComponent(pathname || "/")}`)}
+              />
             )}
           </div>
         </div>
