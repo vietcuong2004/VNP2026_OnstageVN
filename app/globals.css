@@ -609,6 +609,16 @@ input[type="date"].text-white::-webkit-date-and-time-value {
   color: #191116 !important;
 }
 
+.light .booking-flow,
+.light .booking-flow *,
+.light .booking-flow *::before,
+.light .booking-flow *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  -webkit-box-shadow: none !important;
+}
+
 .light .booking-flow [class*="bg-[#070913]"],
 .light .booking-flow [class*="bg-[#090713]"],
 .light .booking-flow [class*="bg-[#090c17]"],

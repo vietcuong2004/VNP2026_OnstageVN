@@ -9,7 +9,7 @@ const discoveryCards = [
   {
     id: "idols",
     title: "Tìm Idol phù hợp",
-    subtitle: "Khám phá hàng trăm KOL, Model, MC, Creator phù hợp với nhu cầu của bạn. Lọc nhanh – Kết quả chỉ trong 45s.",
+    subtitle: "Khám phá hàng trăm KOL, Model, MC, Creator phù hợp với nhu cầu của bạn.",
     href: "/brand/search",
     image: "/discovery-idols.png",
     lightImage: "/discovery-idols-light.jpg",

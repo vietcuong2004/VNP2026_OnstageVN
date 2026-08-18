@@ -28,6 +28,7 @@ export type TalentCardProps = {
   showLifestyleServices?: boolean;
   showSocialStats?: boolean;
   experienceLabel?: "full" | "short";
+  requireConfirm?: boolean;
   className?: string;
 };
 
@@ -109,6 +110,7 @@ export default function TalentCard({
   messageLoading = false,
   showLifestyleServices = false,
   showSocialStats = false,
+  requireConfirm = false,
   className,
 }: TalentCardProps) {
   const router = useRouter();
@@ -138,6 +140,15 @@ export default function TalentCard({
   const handleBrandButtonClick = (event: MouseEvent) => {
     stopCardClick(event);
     if (messageLoading) return;
+
+    if (!requireConfirm) {
+      if (messageDisabled) {
+        onRemoveFromBrand ? onRemoveFromBrand(talent) : onMessage?.(talent);
+      } else {
+        onMessage?.(talent);
+      }
+      return;
+    }
 
     if (messageDisabled) {
       setShowRemoveConfirm(true);
@@ -398,28 +409,28 @@ export default function TalentCard({
       {mounted && showAddConfirm && createPortal(
         <div
           onClick={closeModals}
-          className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm animate-in fade-in duration-150"
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-150"
         >
           <div
             onClick={(e) => {
               e.stopPropagation();
             }}
-            className="w-full max-w-sm rounded-2xl border border-[#2B313D] bg-[#171A21] p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left"
+            className="w-full max-w-sm rounded-3xl border border-[#F0D7D3] bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left text-[#191116]"
           >
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A86A]/30 bg-[#C9A86A]/10 text-[#C9A86A]">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709]">
               <UserPlus className="h-6 w-6" />
             </div>
-            <h3 className="text-center font-display text-base font-black uppercase tracking-wide text-white">
+            <h3 className="text-center font-display text-base font-black uppercase tracking-wide text-[#8F0709]">
               Xác nhận thêm vào Quản lý Idol
             </h3>
-            <p className="mt-2 text-center text-xs font-semibold leading-relaxed text-slate-300">
+            <p className="mt-2 text-center text-xs font-semibold leading-relaxed text-[#574D54]">
               Bạn có muốn thêm Idol này vào danh sách quản lý của bạn (Mục &quot;Quản lý Idol&quot;) để tiện theo dõi và giao việc?
             </p>
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
                 onClick={closeModals}
-                className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-black uppercase tracking-wider text-slate-300 transition hover:bg-white/10 active:scale-95 cursor-pointer"
+                className="flex-1 rounded-2xl border border-[#F0D7D3] bg-white py-2.5 text-xs font-bold uppercase tracking-wider text-[#574D54] transition hover:bg-[#FFF0EE] hover:text-[#8F0709] active:scale-95 cursor-pointer shadow-xs"
               >
                 Hủy
               </button>
@@ -429,7 +440,7 @@ export default function TalentCard({
                   closeModals(e);
                   onMessage?.(talent);
                 }}
-                className="flex-1 rounded-xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 py-2.5 text-xs font-black uppercase tracking-wider text-slate-950 transition hover:brightness-110 active:scale-95 cursor-pointer"
+                className="light-force-white flex-1 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] py-2.5 text-xs font-black uppercase tracking-wider !text-white text-white transition hover:brightness-110 active:scale-95 cursor-pointer shadow-md"
               >
                 Thêm
               </button>
@@ -443,28 +454,28 @@ export default function TalentCard({
       {mounted && showRemoveConfirm && createPortal(
         <div
           onClick={closeModals}
-          className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm animate-in fade-in duration-150"
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-150"
         >
           <div
             onClick={(e) => {
               e.stopPropagation();
             }}
-            className="w-full max-w-sm rounded-2xl border border-rose-500/30 bg-[#171A21] p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left"
+            className="w-full max-w-sm rounded-3xl border border-red-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-left text-[#191116]"
           >
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-400">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600">
               <Trash2 className="h-6 w-6" />
             </div>
-            <h3 className="text-center font-display text-base font-black uppercase tracking-wide text-white">
+            <h3 className="text-center font-display text-base font-black uppercase tracking-wide text-red-600">
               Xác nhận xóa khỏi Quản lý Idol
             </h3>
-            <p className="mt-2 text-center text-xs font-semibold leading-relaxed text-slate-300">
+            <p className="mt-2 text-center text-xs font-semibold leading-relaxed text-[#574D54]">
               Bạn có muốn xóa Idol này khỏi danh sách quản lý của bạn (Mục &quot;Quản lý Idol&quot;)?
             </p>
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
                 onClick={closeModals}
-                className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-black uppercase tracking-wider text-slate-300 transition hover:bg-white/10 active:scale-95 cursor-pointer"
+                className="flex-1 rounded-2xl border border-[#F0D7D3] bg-white py-2.5 text-xs font-bold uppercase tracking-wider text-[#574D54] transition hover:bg-[#FFF0EE] hover:text-[#8F0709] active:scale-95 cursor-pointer shadow-xs"
               >
                 Hủy
               </button>
@@ -478,9 +489,9 @@ export default function TalentCard({
                     onMessage?.(talent);
                   }
                 }}
-                className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-black uppercase tracking-wider text-white transition hover:bg-rose-500 active:scale-95 cursor-pointer"
+                className="light-force-white flex-1 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 py-2.5 text-xs font-black uppercase tracking-wider !text-white text-white transition hover:brightness-110 active:scale-95 cursor-pointer shadow-md"
               >
-                Xóa khỏi quản lý
+                Xóa ngay
               </button>
             </div>
           </div>

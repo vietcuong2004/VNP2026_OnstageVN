@@ -121,32 +121,36 @@ export default function AddStaffModal({
   }, [availableTalents, normalizedSearch]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-stretch justify-center bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300 sm:items-center sm:p-4">
-      <div className="relative flex h-full w-full flex-col overflow-hidden border-[#151b2d] bg-[#08090f] shadow-[0_24px_60px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300 sm:h-auto sm:max-h-[85vh] sm:max-w-6xl sm:rounded-3xl sm:border">
-        <div className="space-y-4 border-b border-[#151b2d] bg-slate-950/45 p-4 sm:p-6">
+    <div className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 sm:items-center sm:p-4">
+      <div className="relative flex h-full w-full flex-col overflow-hidden border-[#F0D7D3] bg-[#FAF7F6] text-[#191116] shadow-2xl animate-in zoom-in-95 duration-300 sm:h-auto sm:max-h-[85vh] sm:max-w-6xl sm:rounded-3xl sm:border">
+        <div className="space-y-4 border-b border-[#F0D7D3] bg-white p-4 sm:p-6 shadow-xs">
           <div className="flex items-start justify-between gap-4">
             <div className="text-left">
-              <h3 className="text-sm font-black text-white uppercase tracking-wider">Thêm nhân sự vào chiến dịch</h3>
-              <p className="mt-1 text-[10px] text-slate-500">Chọn Talent từ danh sách để thêm trực tiếp vào chiến dịch.</p>
+              <h3 className="text-sm font-black text-[#8F0709] uppercase tracking-wider">Thêm nhân sự vào chiến dịch</h3>
+              <p className="mt-1 text-[10px] text-[#574D54] font-semibold">Chọn Talent từ danh sách để thêm trực tiếp vào chiến dịch.</p>
             </div>
-            <button onClick={onClose} className="cursor-pointer text-slate-400 hover:text-white" aria-label="Đóng">
-              <X className="h-5 w-5" />
+            <button
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#8F0709] hover:bg-[#FFF0EE] cursor-pointer transition-colors shadow-xs"
+              aria-label="Đóng"
+            >
+              <X className="h-4 w-4" />
             </button>
           </div>
 
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A86A]" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8F0709]" />
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Tìm tên Talent..."
-              className="h-11 w-full rounded-2xl border border-white/10 bg-slate-950/80 pl-10 pr-10 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-[#C9A86A]/60"
+              className="h-11 w-full rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] pl-10 pr-10 text-sm font-semibold text-[#191116] outline-none transition placeholder:text-[#9A8B88] hover:border-[#8F0709]/40 focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/10 shadow-xs"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase text-slate-500 transition hover:text-white"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase text-[#574D54] transition hover:text-[#8F0709]"
               >
                 Xóa
               </button>
@@ -154,14 +158,14 @@ export default function AddStaffModal({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 scrollbar-thin sm:p-6">
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar sm:p-6">
           {availableTalents.length === 0 && !isLoadingTalents ? (
             <div className="space-y-2 py-12 text-center">
-              <p className="text-xs italic text-slate-500">Tất cả Talent đã được thêm vào chiến dịch này.</p>
+              <p className="text-xs italic text-[#574D54]">Tất cả Talent đã được thêm vào chiến dịch này.</p>
             </div>
           ) : filteredTalents.length === 0 && !isLoadingTalents ? (
             <div className="space-y-2 py-12 text-center">
-              <p className="text-xs italic text-slate-500">Không tìm thấy Talent phù hợp.</p>
+              <p className="text-xs italic text-[#574D54]">Không tìm thấy Talent phù hợp.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -174,6 +178,7 @@ export default function AddStaffModal({
                     messageLabel="Thêm vào Jobs"
                     showMessageIcon={false}
                     showLifestyleServices
+                    requireConfirm={false}
                     onView={(item) => {
                       onPreviewTalent(item, { talentId: item.id, stage: "new", note: "Được đề xuất thêm từ hệ thống." });
                     }}
@@ -189,6 +194,7 @@ export default function AddStaffModal({
                     messageLabel="Thêm vào Jobs"
                     showMessageIcon={false}
                     showLifestyleServices
+                    requireConfirm={false}
                     onView={(item) => {
                       onPreviewTalent(item, { talentId: item.id, stage: "new", note: "Được đề xuất thêm từ hệ thống." });
                     }}
@@ -204,13 +210,13 @@ export default function AddStaffModal({
 
           <div ref={loadMoreRef} className="flex min-h-14 items-center justify-center pt-4">
             {isLoadingTalents ? (
-              <span className="rounded-full border border-[#C9A86A]/20 bg-[#C9A86A]/10 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-[#C9A86A]">
+              <span className="rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-4 py-2 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-xs">
                 Đang tải Talent...
               </span>
             ) : hasMoreTalents ? (
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Kéo xuống để tải thêm</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#574D54]">Kéo xuống để tải thêm</span>
             ) : filteredTalents.length > 0 ? (
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Đã tải hết danh sách</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#574D54]">Đã tải hết danh sách</span>
             ) : null}
           </div>
         </div>

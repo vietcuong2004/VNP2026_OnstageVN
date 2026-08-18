@@ -488,9 +488,9 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
                   <div
                     key={item.type}
                     onClick={() => handleSelectJobType(item.type)}
-                    className="flex items-center gap-5 p-5 sm:p-6 rounded-3xl border border-amber-500/20 bg-gradient-to-r from-[#161c2c] via-[#101422] to-[#090c17] hover:border-amber-400/70 hover:bg-slate-900/90 shadow-[0_6px_25px_rgba(0,0,0,0.4)] hover:shadow-[0_0_30px_rgba(245,158,11,0.22)] transition-all duration-300 cursor-pointer relative overflow-hidden group active:scale-[0.99] min-h-[100px] md:min-h-[112px]"
+                    className="flex items-center gap-5 p-5 sm:p-6 rounded-3xl border border-amber-500/20 bg-gradient-to-r from-[#161c2c] via-[#101422] to-[#090c17] hover:border-amber-400/70 hover:bg-slate-900/90 transition-all duration-300 cursor-pointer relative overflow-hidden group active:scale-[0.99] min-h-[100px] md:min-h-[112px]"
                   >
-                    <div className="h-16 w-16 md:h-18 md:w-18 rounded-2xl flex items-center justify-center shrink-0 border border-amber-500/35 bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent text-amber-400 group-hover:bg-amber-400 group-hover:text-slate-950 transition-all duration-300 shadow-md">
+                    <div className="h-16 w-16 md:h-18 md:w-18 rounded-2xl flex items-center justify-center shrink-0 border border-amber-500/35 bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent text-amber-400 group-hover:bg-amber-400 group-hover:text-slate-950 transition-all duration-300">
                       <Icon className="h-8 w-8 md:h-9 md:w-9" />
                     </div>
 

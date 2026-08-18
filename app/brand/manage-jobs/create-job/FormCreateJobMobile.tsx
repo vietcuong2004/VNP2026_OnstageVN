@@ -839,7 +839,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
 
     onCampaignCreated(newCampaign);
     handleClose();
-    router.push(`/brand/manage-jobs/${newCampaign.id}`);
+    router.push("/brand/manage-jobs");
   }
 
   if (!isOpen) return null;
@@ -1494,19 +1494,22 @@ function CampaignPositionsSection({
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="space-y-1.5 block">
-                <span className="text-xs font-semibold text-[#574D54]">Loại talent</span>
-                <input
-                  list={`position-type-options-${index}`}
-                  value={position.talentType}
-                  placeholder="KOL, Model, MC..."
-                  onChange={(event) => onChange(index, { talentType: event.target.value })}
-                  className="w-full rounded-2xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs font-bold text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/10 shadow-sm"
-                />
-                <datalist id={`position-type-options-${index}`}>
-                  {POSITION_TYPE_OPTIONS.map((option) => (
-                    <option key={option} value={option} />
-                  ))}
-                </datalist>
+                <span className="text-xs font-semibold text-[#574D54]">Chọn vị trí</span>
+                <div className="relative">
+                  <select
+                    value={position.talentType}
+                    onChange={(event) => onChange(index, { talentType: event.target.value })}
+                    className="w-full appearance-none rounded-2xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 pr-9 text-xs font-bold text-[#191116] outline-none focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/10 shadow-sm cursor-pointer dark:bg-slate-900 dark:border-slate-700 dark:text-white"
+                  >
+                    <option value="" disabled>-- Chọn vị trí tuyển dụng --</option>
+                    {POSITION_TYPE_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8F0709] dark:text-amber-400" />
+                </div>
               </label>
               <FormInput
                 label="Số lượng"
@@ -1635,13 +1638,13 @@ function CampaignEventsSection({
 
 function CreateJobLoadingOverlay() {
   return (
-    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-[#020408]/90 px-6 text-center backdrop-blur-md">
-      <div className="w-full max-w-sm rounded-3xl border border-amber-400/25 bg-[#0c1021] p-7 shadow-[0_0_60px_rgba(245,158,11,0.2)]">
-        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-amber-400 border-t-transparent" />
-        <h3 className="mt-5 text-base font-black uppercase tracking-wide text-white">
+    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/75 px-6 text-center backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-3xl border border-[#F0D7D3] bg-white p-7 shadow-2xl dark:border-amber-400/25 dark:bg-[#0c1021]">
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[#8F0709] border-t-transparent dark:border-amber-400 dark:border-t-transparent" />
+        <h3 className="mt-5 text-base font-black uppercase tracking-wide text-[#8F0709] dark:text-white">
           Đang tạo job
         </h3>
-        <p className="mt-2 text-sm font-semibold text-slate-300">
+        <p className="mt-2 text-sm font-semibold text-[#574D54] dark:text-slate-300">
           Vui lòng chờ, hệ thống đang lưu thông tin và tải ảnh lên.
         </p>
       </div>

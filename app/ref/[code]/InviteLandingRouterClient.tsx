@@ -30,14 +30,11 @@ export default function InviteLandingRouterClient({ code }: { code: string }) {
 
   if (inviteType === "loading") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#02040a] px-4 text-center text-white">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAF7F6] px-4 text-center text-[#191116]">
         <div className="relative">
-          <div className="h-16 w-16 animate-spin rounded-full border-r-2 border-t-2 border-amber-400 border-b-transparent border-l-transparent" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#F0C56B]">VNP</span>
-          </div>
+          <div className="h-14 w-14 animate-spin rounded-full border-4 border-[#8F0709] border-t-transparent" />
         </div>
-        <p className="mt-4 text-xs font-black uppercase tracking-widest text-slate-500">
+        <p className="mt-4 text-xs font-black uppercase tracking-widest text-[#8F0709] animate-pulse">
           Đang mở lời mời...
         </p>
       </div>

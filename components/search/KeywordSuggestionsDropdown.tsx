@@ -29,14 +29,14 @@ export default function KeywordSuggestionsDropdown({
   return (
     <div
       className={cn(
-        "absolute left-0 right-0 top-full z-[95] mt-2 overflow-hidden rounded-2xl border border-[#C9A86A]/25 bg-[#070913]/95 p-1.5 shadow-[0_18px_45px_rgba(0,0,0,0.45),0_0_22px_rgba(201,168,106,0.12)] backdrop-blur-xl",
+        "absolute left-0 right-0 top-full z-[95] mt-2 overflow-hidden rounded-2xl border border-[#F0D7D3] bg-white p-1.5 shadow-xl dark:border-[#C9A86A]/25 dark:bg-[#070913] text-left",
         className,
       )}
     >
-      <div className="px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#C9A86A]">
+      <div className="px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#8F0709] dark:text-[#C9A86A]">
         Gợi ý tìm kiếm
       </div>
-      <div className="max-h-72 overflow-y-auto">
+      <div className="max-h-72 overflow-y-auto space-y-1">
         {suggestions.map((suggestion) => (
           <button
             key={`${suggestion.label}-${suggestion.meta || "suggest"}`}
@@ -45,12 +45,12 @@ export default function KeywordSuggestionsDropdown({
               event.preventDefault();
               onPick(suggestion);
             }}
-            className="flex w-full cursor-pointer items-center rounded-xl px-3 py-2.5 text-left transition hover:bg-[#C9A86A]/12 focus:bg-[#C9A86A]/12 focus:outline-none"
+            className="flex w-full cursor-pointer items-center rounded-xl px-3 py-2.5 text-left transition hover:bg-[#FFF0EE] focus:bg-[#FFF0EE] focus:outline-none dark:hover:bg-[#C9A86A]/12 dark:focus:bg-[#C9A86A]/12"
           >
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-xs font-bold text-white">{suggestion.label}</span>
+              <span className="block truncate text-xs font-bold text-[#191116] dark:text-white">{suggestion.label}</span>
               {suggestion.meta && (
-                <span className="mt-0.5 block truncate text-[10px] font-semibold text-slate-400">
+                <span className="mt-0.5 block truncate text-[10px] font-semibold text-[#574D54] dark:text-slate-400">
                   {suggestion.meta}
                 </span>
               )}

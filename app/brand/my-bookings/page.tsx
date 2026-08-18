@@ -20,69 +20,6 @@ type StoredBookingRecord = Omit<Partial<BookingRequest>, "status"> & {
   status?: string | null;
 };
 
-const MOCK_BOOKINGS: BookingRequest[] = [
-  {
-    id: "PG100826-001",
-    talentId: "talent-1",
-    talentName: "An An là Mặt trời nhỏ",
-    talentAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400",
-    talentRole: "PG/PB",
-    campaignTitle: "Sự kiện Khai trương Volvo Showroom Hà Nội",
-    workDate: "2026-08-26",
-    startTime: "18:00",
-    endTime: "22:00",
-    location: "Hai Bà Trưng, Hà Nội",
-    depositAmount: 200000,
-    totalBudget: 2500000,
-    contactName: "Nguyễn Văn Thương",
-    contactPhone: "0988123456",
-    contactEmail: "contact@brand.com",
-    notes: "Yêu cầu trang phục đầm dạ hội đen sang trọng.",
-    status: "deposit_pending",
-    createdAt: "2026-08-10T10:15:00Z",
-  },
-  {
-    id: "MC202608-002",
-    talentId: "talent-2",
-    talentName: "Bảo Ngọc MC",
-    talentAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400",
-    talentRole: "MC",
-    campaignTitle: "Hội thảo Giải pháp AI & Công nghệ 2026",
-    workDate: "2026-09-02",
-    startTime: "08:30",
-    endTime: "12:00",
-    location: "Quận 1, TP. Hồ Chí Minh",
-    depositAmount: 500000,
-    totalBudget: 5000000,
-    contactName: "Trần Minh Đức",
-    contactPhone: "0912345678",
-    contactEmail: "duc.tran@agency.vn",
-    notes: "MC Song ngữ Việt - Anh, điều phối chương trình ra mắt sản phẩm.",
-    status: "confirmed",
-    createdAt: "2026-08-08T14:20:00Z",
-  },
-  {
-    id: "LB202608-003",
-    talentId: "talent-3",
-    talentName: "Hà My Lookbook",
-    talentAvatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=400",
-    talentRole: "Lookbook",
-    campaignTitle: "Bộ sưu tập Thời trang Thu Đông Premium 2026",
-    workDate: "2026-08-18",
-    startTime: "09:00",
-    endTime: "17:00",
-    location: "Studio 88, Cầu Giấy, Hà Nội",
-    depositAmount: 300000,
-    totalBudget: 3800000,
-    contactName: "Phạm Hải Đăng",
-    contactPhone: "0977888999",
-    contactEmail: "fashion@brand.vn",
-    notes: "Chụp 15 bộ trang phục thời trang nữ cao cấp.",
-    status: "completed",
-    createdAt: "2026-08-01T09:00:00Z",
-  },
-];
-
 const STATUS_TABS: Array<{ value: "all" | BookingStatus; label: string }> = [
   { value: "all", label: "Tất cả" },
   { value: "deposit_pending", label: "Chờ cọc" },
@@ -172,7 +109,7 @@ export default function MyBookingsPage() {
 
     const storedBookings = loadStoredBookings();
     queueMicrotask(() => {
-      if (!cancelled) setBookings(storedBookings.length > 0 ? storedBookings : MOCK_BOOKINGS);
+      if (!cancelled) setBookings(storedBookings);
     });
 
     return () => {

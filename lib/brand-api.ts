@@ -1136,9 +1136,22 @@ function buildCampaignPayload(form: CampaignForm) {
   const budget = parseBudgetRange(form.budget);
   const explicitBudgetMin = numberOrNull(form.budgetMin);
   const explicitBudgetMax = numberOrNull(form.budgetMax);
-  const parsedBudgetMax = budget.budget_max !== budget.budget_min ? budget.budget_max : null;
-  const budgetMin = form.budgetNegotiable ? null : explicitBudgetMin ?? (explicitBudgetMax === null ? budget.budget_min : null);
-  const budgetMax = form.budgetNegotiable ? null : explicitBudgetMax ?? (explicitBudgetMin === null ? parsedBudgetMax : null);
+  
+  let budgetMin: number | null = form.budgetNegotiable ? null : explicitBudgetMin ?? budget.budget_min ?? null;
+  let budgetMax: number | null = form.budgetNegotiable ? null : explicitBudgetMax ?? budget.budget_max ?? null;
+
+  if (budgetMin !== null && budgetMax !== null) {
+    if (budgetMax < budgetMin) {
+      const temp = budgetMin;
+      budgetMin = budgetMax;
+      budgetMax = temp;
+    }
+  } else if (budgetMin !== null && budgetMax === null) {
+    budgetMax = budgetMin;
+  } else if (budgetMax !== null && budgetMin === null) {
+    budgetMin = budgetMax;
+  }
+
   const listFromText = (value?: string) => String(value || "")
     .split(/\r?\n/)
     .map((item) => item.trim())
