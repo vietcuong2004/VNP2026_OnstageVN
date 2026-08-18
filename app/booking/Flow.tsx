@@ -351,38 +351,26 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
     setIsSubmittingBooking(true);
 
     try {
-      const createdRequests = [];
-      const targetTalentIds = selectedTalentIds.length > 0 ? selectedTalentIds : [null];
+const bookingRequest = await createBookingRequest({
+        profile_ids: selectedTalentIds,
+        job_type: selectedJobType,
+        package_id: selectedPackage,
+        job_name: jobName || `Booking ${getJobTypeName(selectedJobType)}`,
+        job_description: buildJobDescription() || null,
+        work_date: workDate,
+        start_time: startTime,
+        end_time: endTime,
+        location: buildJobLocation() || null,
+        extra_requirements: extraRequirements || null,
+        job_details: buildJobDetails(),
+        contact_name: contactName,
+        contact_phone: contactPhone,
+        contact_email: contactEmail || null,
+        payment_method: paymentMethod,
+      });
 
-      for (const profileId of targetTalentIds) {
-        const talentDetail = profileId
-          ? selectedTalentsDetails.find((item) => String(item?.id || item?.profileId || item?.profile_id || "") === String(profileId))
-          : null;
-
-        const bookingRequest = await createBookingRequest({
-          profile_id: profileId,
-          job_type: selectedJobType,
-          package_id: selectedPackage,
-          job_name: jobName || `Booking ${getJobTypeName(selectedJobType)}`,
-          job_description: buildJobDescription() || null,
-          work_date: workDate,
-          start_time: startTime,
-          end_time: endTime,
-          location: buildJobLocation() || null,
-          extra_requirements: extraRequirements || null,
-          job_details: buildJobDetails(),
-          contact_name: contactName,
-          contact_phone: contactPhone,
-          contact_email: contactEmail || null,
-          payment_method: paymentMethod,
-        });
-
-        saveBookingToLocalHistory(bookingRequest, talentDetail);
-        createdRequests.push(bookingRequest);
-      }
-
-      const firstBooking = createdRequests[0];
-      setBookingCode(String(firstBooking?.request_code || firstBooking?.id || buildBookingCode(selectedJobType)));
+      saveBookingToLocalHistory(bookingRequest, selectedTalentsDetails[0]);
+      setBookingCode(String(bookingRequest?.request_code || bookingRequest?.id || buildBookingCode(selectedJobType)));
       return true;
     } catch (error) {
       setBookingSubmitError(error instanceof Error ? error.message : "Không thể gửi yêu cầu booking. Vui lòng thử lại.");

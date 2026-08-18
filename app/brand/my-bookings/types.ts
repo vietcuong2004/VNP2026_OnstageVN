@@ -8,12 +8,24 @@ export type BookingStatus =
   | "cancelled"
   | "completed";
 
-export type BookingRequest = {
+export type BookedTalentSummary = {
   id: string;
   talentId: string;
   talentName: string;
   talentAvatar: string;
   talentRole: string;
+  status?: string;
+  note?: string;
+};
+
+export type BookingRequest = {
+  id: string;
+  bookingType?: "single" | "multiple" | string;
+  talentId: string;
+  talentName: string;
+  talentAvatar: string;
+  talentRole: string;
+  bookedTalents?: BookedTalentSummary[];
   campaignTitle: string;
   workDate: string;
   startTime: string;

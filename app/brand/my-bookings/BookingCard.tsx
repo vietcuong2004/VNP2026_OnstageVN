@@ -85,7 +85,8 @@ export default function BookingCard({ item, onSelect }: BookingCardProps) {
   const scheduleText = timeRange
     ? `${item.workDate || "Chưa cập nhật"} (${timeRange})`
     : item.workDate || "Chưa cập nhật";
-
+  const bookedTalentCount = item.bookedTalents?.length ?? 0;
+  const isMultipleBooking = item.bookingType === "multiple" || bookedTalentCount > 1;
   return (
     <article
       onClick={() => onSelect(item)}
@@ -120,7 +121,15 @@ export default function BookingCard({ item, onSelect }: BookingCardProps) {
           </h3>
 
           <p className="text-xs font-bold text-[#574D54] dark:text-slate-300">
-            Idol: <span className="text-[#8F0709] font-extrabold dark:text-amber-300">{item.talentName}</span>
+            {isMultipleBooking ? (
+              <>
+                Loại đơn: <span className="text-[#8F0709] font-extrabold dark:text-amber-300">Booking nhiều Idol{bookedTalentCount ? ` (${bookedTalentCount})` : ""}</span>
+              </>
+            ) : (
+              <>
+                Idol: <span className="text-[#8F0709] font-extrabold dark:text-amber-300">{item.talentName}</span>
+              </>
+            )}
           </p>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-[10.5px] sm:text-xs font-semibold text-[#574D54] pt-0.5 dark:text-slate-400">
