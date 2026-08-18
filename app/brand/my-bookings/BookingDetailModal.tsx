@@ -4,6 +4,7 @@ import React from "react";
 import { X } from "lucide-react";
 import { BookingRequest } from "./types";
 import { getStatusBadge } from "./BookingCard";
+import { createInitialAvatarDataUrl } from "@/lib/avatar";
 
 interface BookingDetailModalProps {
   booking: BookingRequest | null;
@@ -82,6 +83,38 @@ export default function BookingDetailModal({ booking, onClose }: BookingDetailMo
             )}
           </div>
 
+
+          {booking.bookedTalents && booking.bookedTalents.length > 0 && (
+            <div className="rounded-2xl border border-white/5 bg-slate-950 p-4 space-y-3 shadow-md">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Idol trong đơn ({booking.bookedTalents.length})
+              </p>
+              <div className="space-y-2">
+                {booking.bookedTalents.map((talent) => (
+                  <div key={talent.id || talent.talentId || talent.talentName} className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-2.5">
+                    <img
+                      src={talent.talentAvatar || createInitialAvatarDataUrl(talent.talentName, talent.talentId)}
+                      alt={talent.talentName}
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = createInitialAvatarDataUrl(talent.talentName, talent.talentId);
+                      }}
+                      className="h-10 w-10 rounded-xl object-cover border border-white/10"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-black text-white">{talent.talentName}</p>
+                      <p className="truncate text-[11px] font-bold text-amber-300">{talent.talentRole}</p>
+                    </div>
+                    {talent.status && (
+                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] font-bold text-slate-300">
+                        {talent.status}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Contact Details for Purchaser */}
           <div className="rounded-2xl border border-[#F0D7D3] bg-[#FAF7F6] p-4 space-y-1.5 shadow-sm dark:border-white/5 dark:bg-slate-950">
             <p className="text-[10px] font-bold text-[#574D54] uppercase tracking-wider dark:text-slate-400">

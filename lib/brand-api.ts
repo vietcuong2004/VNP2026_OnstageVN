@@ -250,12 +250,24 @@ type BackendWishlist = {
   items?: BackendWishlistItem[] | null;
 };
 
+type BackendBookedTalent = {
+  id?: number | string;
+  booking_request_id?: number | string | null;
+  talent_id?: number | string | null;
+  status?: string | null;
+  talent_response_note?: string | null;
+  admin_note?: string | null;
+  talent?: BackendUser | null;
+};
+
 type BackendBookingRequest = {
   id: number | string;
   request_code?: string | null;
   brand_id?: number | string | null;
   talent_id?: number | string | null;
+  booking_type?: "single" | "multiple" | string | null;
   talent?: BackendUser | null;
+  booked_talents?: BackendBookedTalent[] | null;
   job_type?: string | null;
   package_id?: string | null;
   package_price?: number | string | null;
@@ -287,7 +299,9 @@ type BackendBookingRequest = {
 
 export type CreateBookingRequestPayload = {
   talent_id?: number | string | null;
+  talent_ids?: Array<number | string>;
   profile_id?: number | string | null;
+  profile_ids?: Array<number | string>;
   job_type: "mc" | "pg" | "lookbook" | "kol" | "influencer" | "model" | "pg_model" | string;
   package_id?: "basic" | "standard" | "premium" | string | null;
   job_name: string;
@@ -1089,12 +1103,11 @@ function isBookingAvatarCandidate(value?: string | null) {
   return isUsableAvatarUrl(url);
 }
 
-export function mapBackendBooking(booking: BackendBookingRequest) {
-  const talent = booking.talent ?? null;
+function mapBookingTalentSnapshot(talent: BackendUser | null | undefined, fallbackJobType?: string | null) {
   const profile = talent?.profile ?? null;
   const talentName = String(repairMojibake(profile?.display_name || profile?.full_name || talent?.name || "Idol")).trim();
   const talentRole = normalizeTalentTypeLabel(
-    String(repairMojibake(profile?.talent_types?.[0] || booking.job_type || "Idol")).trim(),
+    String(repairMojibake(profile?.talent_types?.[0] || fallbackJobType || "Idol")).trim(),
   );
   const rawAvatar = profileAvatarFromBackend(profile || undefined)
     || normalizeBackendAssetUrl(profile?.avatar_url)
@@ -1103,6 +1116,40 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
   const talentAvatar = isBookingAvatarCandidate(rawAvatar)
     ? rawAvatar
     : createInitialAvatarDataUrl(talentName, talent?.email || talent?.name || "");
+
+  return {
+    talentId: String(talent?.id || ""),
+    talentName,
+    talentAvatar,
+    talentRole,
+  };
+}
+
+export function mapBackendBooking(booking: BackendBookingRequest) {
+  const bookedTalents = (booking.booked_talents ?? [])
+    .map((item) => {
+      const snapshot = mapBookingTalentSnapshot(item.talent ?? null, booking.job_type);
+
+      return {
+        id: String(item.id || item.talent_id || snapshot.talentId || ""),
+        talentId: String(item.talent_id || snapshot.talentId || ""),
+        talentName: snapshot.talentName,
+        talentAvatar: snapshot.talentAvatar,
+        talentRole: snapshot.talentRole,
+        status: item.status || "pending",
+        note: String(repairMojibake(item.talent_response_note || item.admin_note || "")).trim(),
+      };
+    })
+    .filter((item) => item.id || item.talentId || item.talentName !== "Idol");
+  const isMultiple = booking.booking_type === "multiple" || bookedTalents.length > 1;
+  const primaryTalent = bookedTalents[0] ?? mapBookingTalentSnapshot(booking.talent ?? null, booking.job_type);
+  const talentName = isMultiple
+    ? `${bookedTalents.length || 0} Idol được chọn`
+    : primaryTalent.talentName;
+  const talentRole = isMultiple ? "Nhiều Idol" : primaryTalent.talentRole;
+  const talentAvatar = isMultiple
+    ? createInitialAvatarDataUrl(talentName, String(booking.request_code || booking.id || ""))
+    : primaryTalent.talentAvatar;
   const depositAmount = numberOrNull(booking.deposit_amount) ?? 200000;
   const clientBudgetAmount = numberOrNull(booking.client_budget_amount);
   const packagePrice = numberOrNull(booking.package_price);
@@ -1111,10 +1158,12 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
 
   return {
     id: String(booking.request_code || booking.id),
-    talentId: String(booking.talent_id || talent?.id || ""),
+    bookingType: booking.booking_type || (isMultiple ? "multiple" : "single"),
+    talentId: String(booking.talent_id || primaryTalent.talentId || ""),
     talentName,
     talentAvatar,
     talentRole,
+    bookedTalents,
     campaignTitle: String(repairMojibake(booking.job_name || "Yêu cầu booking")).trim(),
     workDate: formatBookingDate(booking.work_date),
     startTime: formatBookingTime(booking.start_time),
@@ -1131,7 +1180,6 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
     createdAt: booking.created_at || "",
   };
 }
-
 function buildCampaignPayload(form: CampaignForm) {
   const budget = parseBudgetRange(form.budget);
   const explicitBudgetMin = numberOrNull(form.budgetMin);
