@@ -164,6 +164,23 @@ function normalizeDateTimeToSql(value?: string | null): string {
   return trimmed;
 }
 
+function cleanCustomRequirements(requirements?: string | null): string {
+  if (!requirements) return "";
+  const lines = String(requirements)
+    .split(/\r?\n|;/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => {
+      const lower = line.toLowerCase();
+      if (lower.startsWith("chiều cao tối thiểu")) return false;
+      if (lower.startsWith("cân nặng tối đa")) return false;
+      if (lower.startsWith("kinh nghiệm tối thiểu")) return false;
+      if (lower === "chưa có yêu cầu chi tiết." || lower === "chưa có yêu cầu chi tiết") return false;
+      return true;
+    });
+  return lines.join("\n");
+}
+
 function parseVietnameseDateToYYYYMMDD(dateStr: string): string {
   if (!dateStr) return "";
   let trimmed = dateStr.trim();
@@ -321,7 +338,7 @@ function campaignToFormState(campaign: Campaign) {
     budgetMax: String(bMax),
     budgetNegotiable: Boolean(campaignWithBudget.budgetNegotiable),
     benefits: campaign.benefits || "",
-    requirements: campaign.requirements || "",
+    requirements: cleanCustomRequirements(campaign.requirements),
     description: campaign.description || "",
     roles: parseArrayOrString(campaign.roles),
     responsibilities: parseArrayOrString(campaign.responsibilities),
@@ -743,19 +760,17 @@ export default function FormEditJobMobile({
     setShowPublishDialog(false);
     let savedCampaign: Campaign;
 
-    // Build requirements string from separate height, weight, experience fields
-    const reqParts: string[] = [];
-    if (form.heightMin) {
-      reqParts.push(`Chiều cao tối thiểu: ${form.heightMin} cm`);
-    }
-    if (form.weightMax) {
-      reqParts.push(`Cân nặng tối đa: ${form.weightMax} kg`);
-    }
-    if (form.experienceMin) {
-      reqParts.push(`Kinh nghiệm tối thiểu: ${form.experienceMin} năm`);
-    }
-    reqParts.push(...splitOptionText(form.requirements));
-    const finalRequirements = reqParts.join("; ") || "Chưa có yêu cầu chi tiết.";
+    // Save custom requirements without duplicating height, weight, experience which have their own columns
+    const customReqLines = splitOptionText(form.requirements)
+      .filter((line) => {
+        const lower = line.toLowerCase();
+        if (lower.startsWith("chiều cao tối thiểu")) return false;
+        if (lower.startsWith("cân nặng tối đa")) return false;
+        if (lower.startsWith("kinh nghiệm tối thiểu")) return false;
+        if (lower === "chưa có yêu cầu chi tiết." || lower === "chưa có yêu cầu chi tiết") return false;
+        return true;
+      });
+    const finalRequirements = customReqLines.join("; ") || "Chưa có yêu cầu chi tiết.";
     
     const campaignEventsForPayload = normalizedEvents.map((event, index) => ({
       name: event.name || `Sự kiện ${index + 1}`,

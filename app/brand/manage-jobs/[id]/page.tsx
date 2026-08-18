@@ -435,13 +435,24 @@ export default function CampaignDetailPage() {
 
   const generalRequirements = useMemo(() => {
     if (!selectedCampaign) return [];
-    const list = String(selectedCampaign.requirements || "")
+    const customReqs = String(selectedCampaign.requirements || "")
       .split(/\r?\n|;/)
       .map(s => s.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter(line => {
+        const lower = line.toLowerCase();
+        if (lower.startsWith("chiều cao tối thiểu")) return false;
+        if (lower.startsWith("cân nặng tối đa")) return false;
+        if (lower.startsWith("kinh nghiệm tối thiểu")) return false;
+        if (lower === "chưa có yêu cầu chi tiết." || lower === "chưa có yêu cầu chi tiết") return false;
+        return true;
+      });
+
+    const list: string[] = [];
     if (selectedCampaign.heightMinCm) list.push(`Chiều cao tối thiểu: ${selectedCampaign.heightMinCm} cm.`);
     if (selectedCampaign.weightMaxKg) list.push(`Cân nặng tối đa: ${selectedCampaign.weightMaxKg} kg.`);
     if (selectedCampaign.experienceMinYears) list.push(`Kinh nghiệm tối thiểu: ${selectedCampaign.experienceMinYears} năm.`);
+    list.push(...customReqs);
     return list;
   }, [selectedCampaign]);
 

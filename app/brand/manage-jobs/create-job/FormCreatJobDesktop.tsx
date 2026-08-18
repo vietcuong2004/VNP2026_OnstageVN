@@ -691,19 +691,16 @@ export default function FormCreateJob({
     setShowPublishDialog(false);
     let savedCampaign: Campaign;
 
-    // Build requirements string from separate height, weight, experience fields
-    const reqParts: string[] = [];
-    if (form.heightMin) {
-      reqParts.push(`Chiều cao tối thiểu: ${form.heightMin} cm`);
-    }
-    if (form.weightMax) {
-      reqParts.push(`Cân nặng tối đa: ${form.weightMax} kg`);
-    }
-    if (form.experienceMin) {
-      reqParts.push(`Kinh nghiệm tối thiểu: ${form.experienceMin} năm`);
-    }
-    reqParts.push(...splitOptionText(form.requirements));
-    const finalRequirements = reqParts.join("; ") || "Chưa có yêu cầu chi tiết.";
+    const customReqLines = splitOptionText(form.requirements)
+      .filter((line) => {
+        const lower = line.toLowerCase();
+        if (lower.startsWith("chiều cao tối thiểu")) return false;
+        if (lower.startsWith("cân nặng tối đa")) return false;
+        if (lower.startsWith("kinh nghiệm tối thiểu")) return false;
+        if (lower === "chưa có yêu cầu chi tiết." || lower === "chưa có yêu cầu chi tiết") return false;
+        return true;
+      });
+    const finalRequirements = customReqLines.join("; ") || "Chưa có yêu cầu chi tiết.";
     const campaignEventsForPayload = form.campaignEvents.map((event, index) => ({
       name: event.name,
       start_at: event.startAt,
