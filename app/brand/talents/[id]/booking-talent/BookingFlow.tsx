@@ -56,7 +56,7 @@ function buildBookingCode(jobType?: JobType | null) {
   const role = jobType ? jobType.toUpperCase() : "BK";
   const now = new Date();
   const pad = (val: number) => String(val).padStart(2, "0");
-  return `#${role}${pad(now.getDate())}${pad(now.getMonth() + 1)}${String(now.getFullYear()).slice(-2)}-001`;
+  return `${role}${pad(now.getDate())}${pad(now.getMonth() + 1)}${String(now.getFullYear()).slice(-2)}-001`;
 }
 
 function toDateValue(date: Date) {
