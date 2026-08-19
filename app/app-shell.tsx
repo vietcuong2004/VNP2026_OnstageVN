@@ -94,9 +94,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const hideChrome = isBrandJobEditor || isBooking;
 
   useEffect(() => {
+    if (isBrandTalentDetail) {
+      return;
+    }
     const pageTitle = getPageTitle(pathname);
     document.title = pageTitle === "Onstage VN" ? "Onstage VN" : `Onstage VN - ${pageTitle}`;
-  }, [pathname]);
+  }, [pathname, isBrandTalentDetail]);
 
   useEffect(() => {
     const syncSurveyFormMode = () => {

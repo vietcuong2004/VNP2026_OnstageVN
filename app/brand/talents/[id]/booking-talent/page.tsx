@@ -18,7 +18,12 @@ export default function TalentBookingPage() {
     let cancelled = false;
     loadBrandTalent(params.id, staticTalent ?? null).then((loaded) => {
       if (!cancelled) {
-        if (loaded) setTalent(loaded);
+        if (loaded) {
+          setTalent(loaded);
+          if (loaded.name) {
+            document.title = `Onstage VN - ${loaded.name}`;
+          }
+        }
         setLoading(false);
       }
     });

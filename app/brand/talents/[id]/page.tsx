@@ -575,6 +575,14 @@ export default function BrandTalentProfilePage() {
     };
   }, [talent]);
 
+  useEffect(() => {
+    const talentName = profile?.name || talent?.name;
+    if (talentName) {
+      document.title = `Onstage VN - ${talentName}`;
+    } else {
+      document.title = "Onstage VN - Chi tiết Idol";
+    }
+  }, [profile?.name, talent?.name]);
 
   const lookbookPhotos = useMemo(() => {
     if (!profile) return [];
