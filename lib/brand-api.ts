@@ -272,7 +272,7 @@ type BackendBookingRequest = {
   request_code?: string | null;
   brand_id?: number | string | null;
   talent_id?: number | string | null;
-  booking_type?: "single" | "multiple" | string | null;
+  booking_type?: "single" | "multiple" | "mc" | "pg" | "lookbook" | string | null;
   talent?: BackendUser | null;
   booked_talents?: BackendBookedTalent[] | null;
   job_type?: string | null;
@@ -643,7 +643,34 @@ function avgEngagement(profile: BackendProfile) {
 
 function normalizeTalentTypeLabel(type: string) {
   const normalized = type.toLowerCase().trim();
-  return ["pg", "pb", "pg/pb"].includes(normalized) ? "PG/PB" : type;
+  if (["pg", "pb", "pg/pb", "pg_pb", "pg-pb"].includes(normalized)) return "PG/PB";
+  if (normalized === "mc") return "MC";
+  if (normalized === "lookbook") return "Lookbook";
+  return type;
+}
+
+function normalizeBookingRoleLabel(booking: Pick<BackendBookingRequest, "job_type" | "booking_type">) {
+  const rawJobType = String(booking.job_type || "").trim();
+  if (rawJobType) return normalizeTalentTypeLabel(String(repairMojibake(rawJobType)).trim());
+
+  const rawBookingType = String(booking.booking_type || "").trim();
+  const normalizedBookingType = rawBookingType.toLowerCase();
+  if (rawBookingType && !["single", "multiple"].includes(normalizedBookingType)) {
+    return normalizeTalentTypeLabel(String(repairMojibake(rawBookingType)).trim());
+  }
+
+  return "Idol";
+}
+
+function normalizeBookingSelectionType(bookingType?: string | null, bookedTalentCount = 0) {
+  const normalized = String(bookingType || "").toLowerCase().trim();
+  if (normalized === "single" || normalized === "multiple") return normalized;
+
+  return bookedTalentCount > 1 ? "multiple" : "single";
+}
+
+function normalizeBookingRequestCode(value: unknown) {
+  return String(value || "").trim().replace(/^#+/, "");
 }
 
 function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): TalentProfile {
@@ -1158,14 +1185,17 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
       };
     })
     .filter((item) => item.id || item.talentId || item.talentName !== "Idol");
-  const isMultiple = booking.booking_type === "multiple" || bookedTalents.length > 1;
+  const bookingSelectionType = normalizeBookingSelectionType(booking.booking_type, bookedTalents.length);
+  const isMultiple = bookingSelectionType === "multiple";
   const primaryTalent = bookedTalents[0] ?? mapBookingTalentSnapshot(booking.talent ?? null, booking.job_type);
+  const bookingRole = normalizeBookingRoleLabel(booking);
   const talentName = isMultiple
     ? `${bookedTalents.length || 0} Idol được chọn`
     : primaryTalent.talentName;
-  const talentRole = isMultiple ? "Nhiều Idol" : primaryTalent.talentRole;
+  const talentRole = bookingRole !== "Idol" ? bookingRole : primaryTalent.talentRole;
+  const requestCode = normalizeBookingRequestCode(booking.request_code || booking.id);
   const talentAvatar = isMultiple
-    ? createInitialAvatarDataUrl(talentName, String(booking.request_code || booking.id || ""))
+    ? createInitialAvatarDataUrl(talentName, requestCode)
     : primaryTalent.talentAvatar;
   const depositAmount = numberOrNull(booking.deposit_amount) ?? 200000;
   const clientBudgetAmount = numberOrNull(booking.client_budget_amount);
@@ -1174,8 +1204,9 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
   const totalBudget = clientBudgetAmount ?? packagePrice ?? (remainingAmount !== null ? remainingAmount + depositAmount : undefined);
 
   return {
-    id: String(booking.request_code || booking.id),
-    bookingType: booking.booking_type || (isMultiple ? "multiple" : "single"),
+    id: requestCode,
+    backendId: String(booking.id || ""),
+    bookingType: bookingSelectionType,
     talentId: String(booking.talent_id || primaryTalent.talentId || ""),
     talentName,
     talentAvatar,
@@ -1201,9 +1232,22 @@ function buildCampaignPayload(form: CampaignForm) {
   const budget = parseBudgetRange(form.budget);
   const explicitBudgetMin = numberOrNull(form.budgetMin);
   const explicitBudgetMax = numberOrNull(form.budgetMax);
-  const parsedBudgetMax = budget.budget_max !== budget.budget_min ? budget.budget_max : null;
-  const budgetMin = form.budgetNegotiable ? null : explicitBudgetMin ?? (explicitBudgetMax === null ? budget.budget_min : null);
-  const budgetMax = form.budgetNegotiable ? null : explicitBudgetMax ?? (explicitBudgetMin === null ? parsedBudgetMax : null);
+  
+  let budgetMin: number | null = form.budgetNegotiable ? null : explicitBudgetMin ?? budget.budget_min ?? null;
+  let budgetMax: number | null = form.budgetNegotiable ? null : explicitBudgetMax ?? budget.budget_max ?? null;
+
+  if (budgetMin !== null && budgetMax !== null) {
+    if (budgetMax < budgetMin) {
+      const temp = budgetMin;
+      budgetMin = budgetMax;
+      budgetMax = temp;
+    }
+  } else if (budgetMin !== null && budgetMax === null) {
+    budgetMax = budgetMin;
+  } else if (budgetMax !== null && budgetMin === null) {
+    budgetMin = budgetMax;
+  }
+
   const listFromText = (value?: string) => String(value || "")
     .split(/\r?\n/)
     .map((item) => item.trim())
@@ -1665,6 +1709,15 @@ export async function loadBrandBookings() {
     console.warn("Cannot load brand bookings", error);
     return [];
   }
+}
+
+export async function deleteBrandBooking(bookingId: string) {
+  requireBrandSession();
+  if (!isBackendRecordId(bookingId)) throw new Error("Đơn booking này đang là dữ liệu local, chưa có ID backend.");
+
+  await apiJson<void>(`/booking-requests/${bookingId}`, {
+    method: "DELETE",
+  });
 }
 
 export async function loadBrandContactRequests() {

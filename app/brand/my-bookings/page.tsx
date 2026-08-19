@@ -3,15 +3,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  AlertTriangle,
   ArrowLeft,
   CalendarCheck,
   ChevronRight,
   Search,
+  Trash2,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAuthToken } from "@/lib/api-client";
-import { loadBrandBookings } from "@/lib/brand-api";
+import { deleteBrandBooking, loadBrandBookings } from "@/lib/brand-api";
 import { BookingRequest, BookingStatus } from "./types";
 import BookingCard from "./BookingCard";
 import BookingDetailModal from "./BookingDetailModal";
@@ -19,69 +21,6 @@ import BookingDetailModal from "./BookingDetailModal";
 type StoredBookingRecord = Omit<Partial<BookingRequest>, "status"> & {
   status?: string | null;
 };
-
-const MOCK_BOOKINGS: BookingRequest[] = [
-  {
-    id: "PG100826-001",
-    talentId: "talent-1",
-    talentName: "An An là Mặt trời nhỏ",
-    talentAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400",
-    talentRole: "PG/PB",
-    campaignTitle: "Sự kiện Khai trương Volvo Showroom Hà Nội",
-    workDate: "2026-08-26",
-    startTime: "18:00",
-    endTime: "22:00",
-    location: "Hai Bà Trưng, Hà Nội",
-    depositAmount: 200000,
-    totalBudget: 2500000,
-    contactName: "Nguyễn Văn Thương",
-    contactPhone: "0988123456",
-    contactEmail: "contact@brand.com",
-    notes: "Yêu cầu trang phục đầm dạ hội đen sang trọng.",
-    status: "deposit_pending",
-    createdAt: "2026-08-10T10:15:00Z",
-  },
-  {
-    id: "MC202608-002",
-    talentId: "talent-2",
-    talentName: "Bảo Ngọc MC",
-    talentAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400",
-    talentRole: "MC",
-    campaignTitle: "Hội thảo Giải pháp AI & Công nghệ 2026",
-    workDate: "2026-09-02",
-    startTime: "08:30",
-    endTime: "12:00",
-    location: "Quận 1, TP. Hồ Chí Minh",
-    depositAmount: 500000,
-    totalBudget: 5000000,
-    contactName: "Trần Minh Đức",
-    contactPhone: "0912345678",
-    contactEmail: "duc.tran@agency.vn",
-    notes: "MC Song ngữ Việt - Anh, điều phối chương trình ra mắt sản phẩm.",
-    status: "confirmed",
-    createdAt: "2026-08-08T14:20:00Z",
-  },
-  {
-    id: "LB202608-003",
-    talentId: "talent-3",
-    talentName: "Hà My Lookbook",
-    talentAvatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=400",
-    talentRole: "Lookbook",
-    campaignTitle: "Bộ sưu tập Thời trang Thu Đông Premium 2026",
-    workDate: "2026-08-18",
-    startTime: "09:00",
-    endTime: "17:00",
-    location: "Studio 88, Cầu Giấy, Hà Nội",
-    depositAmount: 300000,
-    totalBudget: 3800000,
-    contactName: "Phạm Hải Đăng",
-    contactPhone: "0977888999",
-    contactEmail: "fashion@brand.vn",
-    notes: "Chụp 15 bộ trang phục thời trang nữ cao cấp.",
-    status: "completed",
-    createdAt: "2026-08-01T09:00:00Z",
-  },
-];
 
 const STATUS_TABS: Array<{ value: "all" | BookingStatus; label: string }> = [
   { value: "all", label: "Tất cả" },
@@ -114,12 +53,18 @@ function normalizeStoredBookingStatus(status?: string | null): BookingStatus {
   }
 }
 
+function normalizeBookingCode(value?: string | null) {
+  return String(value || "").trim().replace(/^#+/, "");
+}
+
 export default function MyBookingsPage() {
   const router = useRouter();
   const [bookings, setBookings] = useState<BookingRequest[]>([]);
   const [activeTab, setActiveTab] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<BookingRequest | null>(null);
+  const [pendingDeleteBooking, setPendingDeleteBooking] = useState<BookingRequest | null>(null);
+  const [deletingBookingId, setDeletingBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -136,6 +81,7 @@ export default function MyBookingsPage() {
           .filter((item: unknown): item is StoredBookingRecord => Boolean(item) && typeof item === "object")
           .map((item) => ({
             ...item,
+            id: normalizeBookingCode(item.id),
             status: normalizeStoredBookingStatus(item.status),
           }) as BookingRequest);
       } catch (e) {
@@ -172,7 +118,7 @@ export default function MyBookingsPage() {
 
     const storedBookings = loadStoredBookings();
     queueMicrotask(() => {
-      if (!cancelled) setBookings(storedBookings.length > 0 ? storedBookings : MOCK_BOOKINGS);
+      if (!cancelled) setBookings(storedBookings);
     });
 
     return () => {
@@ -194,6 +140,49 @@ export default function MyBookingsPage() {
       return matchesTab && matchesSearch;
     });
   }, [bookings, activeTab, searchQuery]);
+
+  const removeStoredBooking = (bookingId: string) => {
+    try {
+      const stored = localStorage.getItem("brand_my_bookings");
+      if (!stored) return;
+
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return;
+
+      localStorage.setItem(
+        "brand_my_bookings",
+        JSON.stringify(parsed.filter((item: { id?: string }) => normalizeBookingCode(item?.id) !== bookingId)),
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleRequestDeleteBooking = (item: BookingRequest) => {
+    setPendingDeleteBooking(item);
+  };
+
+  const handleConfirmDeleteBooking = async () => {
+    const item = pendingDeleteBooking;
+    if (!item) return;
+    setDeletingBookingId(item.id);
+
+    try {
+      if (item.backendId) {
+        await deleteBrandBooking(item.backendId);
+      }
+
+      setBookings((current) => current.filter((booking) => booking.id !== item.id));
+      removeStoredBooking(item.id);
+      if (selectedBooking?.id === item.id) setSelectedBooking(null);
+      setPendingDeleteBooking(null);
+    } catch (error) {
+      console.error(error);
+      window.alert(error instanceof Error ? error.message : "Không thể xóa đơn booking. Vui lòng thử lại.");
+    } finally {
+      setDeletingBookingId(null);
+    }
+  };
 
   return (
     <div className="space-y-4 pb-20">
@@ -330,6 +319,8 @@ export default function MyBookingsPage() {
               key={item.id}
               item={item}
               onSelect={setSelectedBooking}
+              onDelete={handleRequestDeleteBooking}
+              isDeleting={deletingBookingId === item.id}
             />
           ))}
         </div>
@@ -340,6 +331,60 @@ export default function MyBookingsPage() {
         booking={selectedBooking}
         onClose={() => setSelectedBooking(null)}
       />
+
+      {pendingDeleteBooking && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-booking-dialog-title"
+          onClick={() => {
+            if (!deletingBookingId) setPendingDeleteBooking(null);
+          }}
+          className="fixed inset-0 z-[100000] flex items-center justify-center bg-[#191116]/65 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="w-full max-w-sm rounded-3xl border border-[#F0D7D3] bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-[#171A21]"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 id="delete-booking-dialog-title" className="text-base font-black text-[#191116] dark:text-white">
+                  Xác nhận xóa đơn
+                </h3>
+                <p className="mt-1 text-xs font-medium leading-5 text-[#574D54] dark:text-slate-300">
+                  Bạn có chắc muốn xóa đơn <strong className="text-[#8F0709] dark:text-amber-300">{pendingDeleteBooking.id}</strong>? Hành động này sẽ xóa đơn khỏi danh sách booking.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setPendingDeleteBooking(null)}
+                disabled={Boolean(deletingBookingId)}
+                className="h-10 rounded-2xl border border-[#F0D7D3] bg-white px-4 text-xs font-black text-[#574D54] transition hover:border-[#8F0709] hover:text-[#8F0709] disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteBooking}
+                disabled={Boolean(deletingBookingId)}
+                style={{ color: "#ffffff" }}
+                className="light-force-white flex h-10 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 text-xs font-black !text-white text-white shadow-md transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Trash2 className="h-3.5 w-3.5 stroke-[3] !text-white text-white" />
+                <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">
+                  {deletingBookingId ? "Đang xóa" : "Xóa"}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

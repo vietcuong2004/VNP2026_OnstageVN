@@ -20,6 +20,7 @@ export type BookedTalentSummary = {
 
 export type BookingRequest = {
   id: string;
+  backendId?: string;
   bookingType?: "single" | "multiple" | string;
   talentId: string;
   talentName: string;

@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   Eye,
   Trash2,
+  Info,
 } from "lucide-react";
 import { type Campaign, type CampaignMedia, type CampaignStage } from "@/lib/brand-mvp-data";
 import {
@@ -62,7 +63,9 @@ import ChecklistModal from "./components/ChecklistModal";
 import AddStaffModal from "./components/AddStaffModal";
 import PayoutSuccessModal from "./components/PayoutSuccessModal";
 import PayoutTableModal from "./components/PayoutTableModal";
-import FormEditJob from "./edit-job/FormEditJob";
+import JobInfoSection from "@/app/talent/jobs/[id]/JobInfoSection";
+import RecruitmentPositionsSection from "@/app/talent/jobs/[id]/RecruitmentPositionsSection";
+import EventInformationSection from "@/app/talent/jobs/[id]/EventInformationSection";
 
 function isBackendRecordId(id?: string | number | null) {
   return /^\d+$/.test(String(id || ""));
@@ -122,13 +125,113 @@ function displayCampaignDate(value?: string | null) {
   }).format(date);
 }
 
+function displayCampaignDateTime(value?: string | null, explicitTime?: string | null) {
+  if (!value && !explicitTime) return "-";
+
+  const raw = String(value || "").trim();
+  const timeMatch = raw.match(/T(\d{2}:\d{2})/i) || raw.match(/\s+(\d{2}:\d{2})/);
+  const time = explicitTime?.trim() || (timeMatch ? timeMatch[1] : "");
+
+  let dateStr = "";
+  const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/) || raw.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (dateOnly) {
+    if (dateOnly[1].length === 4) {
+      dateStr = `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+    } else {
+      dateStr = `${dateOnly[1]}/${dateOnly[2]}/${dateOnly[3]}`;
+    }
+  } else if (raw) {
+    const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
+    const date = new Date(normalized);
+    if (!Number.isNaN(date.getTime())) {
+      dateStr = new Intl.DateTimeFormat("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }).format(date);
+    } else {
+      dateStr = raw;
+    }
+  }
+
+  if (time && dateStr && dateStr !== "-") {
+    return `${time} ${dateStr}`;
+  }
+  return dateStr || time || "-";
+}
+
+function formatEventScheduleTimeText(evt: any, fallbackDate?: string | null) {
+  const startRaw = evt.startAt || evt.start_at || evt.startDate || evt.start_date || evt.eventDate || evt.event_date || evt.date || fallbackDate;
+  const endRaw = evt.endAt || evt.end_at || evt.endDate || evt.end_date || fallbackDate;
+  const startTime = evt.startTime || evt.start_time || "";
+  const endTime = evt.endTime || evt.end_time || "";
+
+  const parsePoint = (val?: string | null, expTime?: string | null) => {
+    if (!val && !expTime) return null;
+    const raw = String(val || "").trim();
+    const timeMatch = raw.match(/T(\d{2}:\d{2})/i) || raw.match(/\s+(\d{2}:\d{2})/);
+    const time = expTime?.trim() || (timeMatch ? timeMatch[1] : "");
+
+    let dateStr = "";
+    const dateMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})/) || raw.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+    if (dateMatch) {
+      if (dateMatch[1].length === 4) {
+        dateStr = `${dateMatch[3]}/${dateMatch[2]}/${dateMatch[1]}`;
+      } else {
+        dateStr = `${dateMatch[1]}/${dateMatch[2]}/${dateMatch[3]}`;
+      }
+    } else if (raw) {
+      const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
+      const date = new Date(normalized);
+      if (!Number.isNaN(date.getTime())) {
+        dateStr = new Intl.DateTimeFormat("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(date);
+      }
+    }
+
+    return { dateStr, time };
+  };
+
+  const startObj = parsePoint(startRaw, startTime);
+  const endObj = parsePoint(endRaw, endTime);
+
+  if (startObj && endObj) {
+    if (startObj.dateStr === endObj.dateStr) {
+      if (startObj.time && endObj.time) {
+        return `${startObj.time} - ${endObj.time} ${startObj.dateStr}`;
+      }
+      if (startObj.time) {
+        return `${startObj.time} ${startObj.dateStr}`;
+      }
+      return startObj.dateStr;
+    }
+    const startPart = startObj.time ? `${startObj.time} ${startObj.dateStr}` : startObj.dateStr;
+    const endPart = endObj.time ? `${endObj.time} ${endObj.dateStr}` : endObj.dateStr;
+    if (startPart && endPart) return `${startPart} - ${endPart}`;
+    return startPart || endPart || "Theo lịch sự kiện";
+  }
+
+  if (startObj) {
+    return startObj.time ? `${startObj.time} ${startObj.dateStr}` : startObj.dateStr || "Theo lịch sự kiện";
+  }
+
+  if (endObj) {
+    return endObj.time ? `${endObj.time} ${endObj.dateStr}` : endObj.dateStr || "Theo lịch sự kiện";
+  }
+
+  return "Theo lịch sự kiện";
+}
+
 function displayCampaignDateRange(start?: string | null, end?: string | null) {
   if (!start && !end) return "-";
-  if (!start) return displayCampaignDate(end);
-  if (!end) return displayCampaignDate(start);
+  if (!start) return displayCampaignDateTime(end);
+  if (!end) return displayCampaignDateTime(start);
 
-  const startText = displayCampaignDate(start);
-  const endText = displayCampaignDate(end);
+  const startText = displayCampaignDateTime(start);
+  const endText = displayCampaignDateTime(end);
   return startText === endText ? startText : `${startText} - ${endText}`;
 }
 
@@ -149,12 +252,12 @@ export default function CampaignDetailPage() {
   const [isShowingPayoutModal, setIsShowingPayoutModal] = useState(false);
   const [commissionData, setCommissionData] = useState<BrandCampaignCommissionResponse | null>(null);
   const [isCommissionLoading, setIsCommissionLoading] = useState(false);
-  const [isEditingJob, setIsEditingJob] = useState(false);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [replacingMediaId, setReplacingMediaId] = useState<string | number | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
   const [deletingApplicant, setDeletingApplicant] = useState<{ talentId: string; talentName: string } | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [showAllBenefits, setShowAllBenefits] = useState(false);
 
   const [isShowingOwnerTransferModal, setIsShowingOwnerTransferModal] = useState(false);
   const [campaignOwnerId, setCampaignOwnerId] = useState<string>(() => {
@@ -322,6 +425,104 @@ export default function CampaignDetailPage() {
   const activeOwner = useMemo<StaffMember>(() => {
     return availableOwners.find(o => o.id === campaignOwnerId) || myProfile;
   }, [availableOwners, campaignOwnerId, myProfile]);
+
+  const benefits = useMemo(() => {
+    return String(selectedCampaign?.benefits || "")
+      .split(/\r?\n|;/)
+      .map(s => s.trim())
+      .filter(Boolean);
+  }, [selectedCampaign?.benefits]);
+
+  const generalRequirements = useMemo(() => {
+    if (!selectedCampaign) return [];
+    const customReqs = String(selectedCampaign.requirements || "")
+      .split(/\r?\n|;/)
+      .map(s => s.trim())
+      .filter(Boolean)
+      .filter(line => {
+        const lower = line.toLowerCase();
+        if (lower.startsWith("chiều cao tối thiểu")) return false;
+        if (lower.startsWith("cân nặng tối đa")) return false;
+        if (lower.startsWith("kinh nghiệm tối thiểu")) return false;
+        if (lower === "chưa có yêu cầu chi tiết." || lower === "chưa có yêu cầu chi tiết") return false;
+        return true;
+      });
+
+    const list: string[] = [];
+    if (selectedCampaign.heightMinCm) list.push(`Chiều cao tối thiểu: ${selectedCampaign.heightMinCm} cm.`);
+    if (selectedCampaign.weightMaxKg) list.push(`Cân nặng tối đa: ${selectedCampaign.weightMaxKg} kg.`);
+    if (selectedCampaign.experienceMinYears) list.push(`Kinh nghiệm tối thiểu: ${selectedCampaign.experienceMinYears} năm.`);
+    list.push(...customReqs);
+    return list;
+  }, [selectedCampaign]);
+
+  const recruitmentPositions = useMemo(() => {
+    if (!selectedCampaign) return [];
+    if (Array.isArray(selectedCampaign.positions) && selectedCampaign.positions.length > 0) {
+      return selectedCampaign.positions.map((pos, idx) => ({
+        id: String(pos.id || `pos-${idx}`),
+        title: pos.talentType || `Vị trí ${idx + 1}`,
+        count: Number(pos.quantity || 1),
+        requirements: Array.isArray(pos.requirements) && pos.requirements.length > 0
+          ? pos.requirements
+          : ["Không có yêu cầu đặc biệt"],
+      }));
+    }
+    if (Array.isArray(selectedCampaign.roles) && selectedCampaign.roles.length > 0) {
+      return selectedCampaign.roles.map((role, idx) => ({
+        id: `role-${idx}`,
+        title: role,
+        count: 1,
+        requirements: ["Không có yêu cầu đặc biệt"],
+      }));
+    }
+    return [];
+  }, [selectedCampaign]);
+
+  const recruitmentTotal = useMemo(() => {
+    return recruitmentPositions.reduce((sum, p) => sum + p.count, 0);
+  }, [recruitmentPositions]);
+
+  const eventSchedules = useMemo(() => {
+    if (!selectedCampaign) return [];
+    const rawEvents = Array.isArray(selectedCampaign.events)
+      ? selectedCampaign.events
+      : Array.isArray((selectedCampaign as any).eventSchedules)
+        ? (selectedCampaign as any).eventSchedules
+        : [];
+
+    if (rawEvents.length === 0) return [];
+
+    return rawEvents.map((evt: any, idx: number) => {
+      const title = evt.eventName || evt.event_name || evt.title || evt.name || `Sự kiện ${idx + 1}`;
+      const location = evt.address || evt.location || evt.event_address || selectedCampaign.address || selectedCampaign.city || "Không có";
+      const timeText = formatEventScheduleTimeText(evt, selectedCampaign.startDate);
+
+      const contentList = Array.isArray(evt.content)
+        ? evt.content
+        : String(evt.content || evt.note || evt.description || "")
+            .split(/\r?\n/)
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+
+      const note = contentList.join("\n");
+
+      return {
+        id: String(evt.id || `event-${idx}`),
+        title,
+        timeText,
+        location,
+        note,
+      };
+    });
+  }, [selectedCampaign]);
+
+  const startText = selectedCampaign?.startDate
+    ? displayCampaignDateTime(selectedCampaign.startDate, (selectedCampaign as any).startTime)
+    : "Không có";
+  const endText = selectedCampaign?.endDate
+    ? displayCampaignDateTime(selectedCampaign.endDate, (selectedCampaign as any).endTime)
+    : "Không có";
 
   useEffect(() => {
     if (!selectedCampaign) return;
@@ -677,11 +878,11 @@ export default function CampaignDetailPage() {
   if (!selectedCampaign) {
     return (
       <div className="space-y-6 pb-16 text-center py-20">
-        <h2 className="text-lg font-black text-[#191116] dark:text-white">Không tìm thấy job</h2>
+        <h2 className="text-lg font-black text-white">Không tìm thấy job</h2>
         <p className="text-xs text-slate-500 mt-2">Job này có thể đã bị xóa hoặc không tồn tại.</p>
         <button
           onClick={() => router.push("/brand/manage-jobs")}
-          className="mt-6 inline-flex h-10 items-center justify-center rounded-xl border border-[#E8C8C2] bg-white px-4 text-xs font-black text-[#8F0709] hover:bg-[#FFF3F1] cursor-pointer dark:bg-white/5 dark:border-white/10 dark:text-white dark:hover:bg-white/10"
+          className="mt-6 inline-flex h-10 items-center justify-center rounded-xl bg-white/5 border border-white/10 px-4 text-xs font-black text-white hover:bg-white/10 cursor-pointer"
         >
           Quay lại danh sách
         </button>
@@ -691,45 +892,50 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="space-y-6 pb-16">
-      {/* 1. HERO MỞ RỘNG (HERO + KPI) */}
+      {/* 1. HERO MỞ RỘNG (HERO + KPI + LINK ỨNG TUYỂN) */}
       <Hero
         selectedCampaign={selectedCampaign}
+        referralLink={referralLink}
+        copiedLink={copiedLink}
+        isGeneratingLink={isGeneratingLink}
+        onCopyReferralLink={handleCopyReferralLink}
+        onOpenQrModal={() => setShowQrModal(true)}
         onBack={() => router.push("/brand/manage-jobs")}
         onOpenPayoutModal={openPayoutModal}
         onUpdateStatus={(status) => updateCampaignStatus(selectedCampaign.id, status)}
         onDeleteCampaign={handleDeleteCampaign}
-        onEditCampaign={() => setIsEditingJob(true)}
+        onEditCampaign={() => router.push(`/brand/manage-jobs/${selectedCampaign.id}/edit-job`)}
       />
 
       {/* 5. NHÂN SỰ JOB */}
-      <section className="space-y-4 pt-4 border-t border-[#E8C8C2] dark:border-white/5">
+      <section className="space-y-4 pt-4 border-t border-[#F0D7D3]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-baseline justify-between sm:justify-start gap-3 w-full sm:w-auto text-left">
-            <h2 className="text-xs font-black uppercase tracking-widest text-[#191116] dark:text-slate-350">NHÂN SỰ JOB</h2>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#574D54] dark:text-slate-500">{selectedCampaign.applicants.length + 1} nhân sự</span>
+            <h2 className="text-xs font-black uppercase tracking-widest text-[#8F0709]">NHÂN SỰ JOB</h2>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#574D54]">{selectedCampaign.applicants.length + 1} nhân sự</span>
           </div>
           <button
             onClick={() => setIsAddingStaff(true)}
-            className="flex w-full sm:w-auto h-9 items-center justify-center rounded-xl bg-[#B80F14] px-4 text-[10px] font-black uppercase tracking-wider text-white shadow-sm transition-all hover:bg-[#8F0709] active:scale-95 cursor-pointer dark:bg-gradient-to-r dark:from-amber-100 dark:via-amber-300 dark:to-yellow-500 dark:text-slate-950 dark:hover:brightness-105"
+            className="light-force-white flex w-full sm:w-auto h-9 items-center justify-center rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 text-[10px] font-black uppercase tracking-wider !text-white text-white shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
           >
             Thêm nhân sự
           </button>
         </div>
 
         {/* --- DESKTOP TABLE VIEW (md:block) --- */}
-        <div className="hidden md:block overflow-x-auto rounded-2xl border border-[#E8C8C2] bg-white shadow-[0_14px_36px_rgba(143,7,9,0.08)] backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/60 dark:shadow-lg">
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-[#F0D7D3] bg-white shadow-sm">
           <table className="w-full text-left text-xs border-collapse font-medium min-w-[700px]">
             <thead>
-              <tr className="border-b border-[#F0D6D0] bg-[#FFF7F6] text-[9.5px] font-black uppercase tracking-wider text-[#574D54] dark:border-white/10 dark:bg-slate-900/90 dark:text-slate-400">
+              <tr className="border-b border-[#F0D7D3] bg-[#FAF7F6] text-[9.5px] font-black uppercase tracking-wider text-[#574D54]">
                 <th className="py-3.5 px-4">Nhân sự</th>
                 <th className="py-3.5 px-4">Vai trò / Nguồn</th>
                 <th className="py-3.5 px-4">Trạng thái</th>
                 <th className="py-3.5 px-4 text-right">Thao tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F0D6D0] dark:divide-white/5">
+            <tbody className="divide-y divide-[#F0D7D3]">
               {/* Người phụ trách Job */}
-              <tr className="hover:bg-[#FFF7F6] transition-colors group dark:hover:bg-emerald-950/20">
+              <tr className="hover:bg-[#FFF0EE]/30 transition-colors group">
                 <td className="py-3.5 px-4">
                   <div className="flex items-center gap-3">
                     <div className="relative shrink-0">
@@ -739,39 +945,39 @@ export default function CampaignDetailPage() {
                         onError={(event) => {
                           event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
                         }}
-                        className="h-10 w-10 rounded-xl object-cover border border-emerald-500/40 ring-2 ring-emerald-500/20 bg-white dark:bg-slate-900"
+                        className="h-10 w-10 rounded-xl object-cover border border-[#F0D7D3] bg-[#FFF0EE]"
                       />
-                      <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-slate-950 text-slate-950" title="Người phụ trách">
-                        <ShieldCheck className="h-2 w-2 stroke-[3]" />
+                      <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#8F0709] ring-2 ring-white text-white" title="Người phụ trách">
+                        <ShieldCheck className="h-2.5 w-2.5 stroke-[3]" />
                       </span>
                     </div>
                     <div className="flex flex-col text-left min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#191116] group-hover:text-[#8F0709] transition-colors text-xs truncate dark:text-white dark:group-hover:text-emerald-300">{activeOwner.name}</span>
-                        <span className="inline-flex items-center gap-1 font-display font-extrabold text-[8.5px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded shrink-0 uppercase tracking-wider">
-                          <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
+                        <span className="font-bold text-[#191116] group-hover:text-[#8F0709] transition-colors text-xs truncate">{activeOwner.name}</span>
+                        <span className="inline-flex items-center gap-1 font-display font-extrabold text-[8.5px] text-[#8F0709] bg-[#FFF0EE] border border-[#F0D7D3] px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wider">
+                          <ShieldCheck className="w-2.5 h-2.5 text-[#8F0709]" />
                           Người phụ trách Job
                         </span>
                       </div>
-                      <span className="text-[10.5px] text-[#574D54] font-medium dark:text-slate-400">
+                      <span className="text-[10.5px] text-[#574D54] font-medium">
                         {activeOwner.role} · {activeOwner.location || "Hà Nội"}
                       </span>
                     </div>
                   </div>
                 </td>
                 <td className="py-3.5 px-4 text-left">
-                  <span className="text-xs font-semibold text-[#574D54] dark:text-slate-300">Quản lý Job</span>
+                  <span className="text-xs font-bold text-[#191116]">Quản lý Job</span>
                 </td>
                 <td className="py-3.5 px-4 text-left">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-[9.5px] font-extrabold text-emerald-400 uppercase tracking-wider">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFF0EE] border border-[#F0D7D3] px-3 py-1 text-[9.5px] font-extrabold text-[#8F0709] uppercase tracking-wider shadow-xs">
+                    <span className="h-2 w-2 rounded-full bg-[#E01B1F] animate-pulse" />
                     Đang phụ trách
                   </span>
                 </td>
                 <td className="py-3.5 px-4 text-right">
                   <button
                     onClick={() => setIsShowingOwnerTransferModal(true)}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-[#D4A64A]/40 bg-[#FFF7E7] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-sm transition-all hover:bg-[#F8E6B7] active:scale-[0.98] cursor-pointer dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20 dark:hover:border-amber-400/50 dark:hover:text-amber-200"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#8F0709] hover:bg-[#FFE5E2] hover:border-[#8F0709]/40 active:scale-[0.98] transition-all cursor-pointer shadow-xs"
                   >
                     <Users className="h-3.5 w-3.5" />
                     Chuyển quyền phụ trách
@@ -793,7 +999,7 @@ export default function CampaignDetailPage() {
                 const referrerName = referrer?.name;
 
                 return (
-                  <tr key={item.talentId} className="hover:bg-[#FFF7F6] transition-colors group dark:hover:bg-white/[0.02]">
+                  <tr key={item.talentId} className="hover:bg-[#FFF0EE]/20 transition-colors group">
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
                         <img
@@ -802,11 +1008,11 @@ export default function CampaignDetailPage() {
                           onError={(event) => {
                             event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
                           }}
-                          className="h-10 w-10 rounded-xl object-cover border border-[#E8C8C2] ring-1 ring-[#F0D6D0] shrink-0 bg-white dark:border-white/10 dark:ring-white/5 dark:bg-slate-950"
+                          className="h-10 w-10 rounded-xl object-cover border border-[#F0D7D3] shrink-0 bg-[#FAF7F6]"
                         />
                         <div className="flex flex-col text-left min-w-0">
-                          <span className="font-bold text-[#191116] group-hover:text-[#8F0709] transition-colors text-xs truncate dark:text-white dark:group-hover:text-amber-300">{talent.name}</span>
-                          <span className="text-[10.5px] text-[#574D54] font-medium dark:text-slate-400">
+                          <span className="font-bold text-[#191116] group-hover:text-[#8F0709] transition-colors text-xs truncate">{talent.name}</span>
+                          <span className="text-[10.5px] text-[#574D54] font-medium">
                             {talent.type || "Talent"} · {talent.city || "Hà Nội"}
                           </span>
                         </div>
@@ -814,32 +1020,32 @@ export default function CampaignDetailPage() {
                     </td>
                     <td className="py-3.5 px-4 text-left">
                       {referrerName ? (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-cyan-400/10 border border-cyan-500/25 px-2 py-0.5 text-[9.5px] font-bold text-cyan-300 tracking-wide">
-                          <Users className="h-3 w-3 text-cyan-400" />
+                        <span className="inline-flex items-center gap-1 rounded-md bg-[#FFF0EE] border border-[#F0D7D3] px-2 py-0.5 text-[9.5px] font-bold text-[#8F0709] tracking-wide">
+                          <Users className="h-3 w-3 text-[#8F0709]" />
                           Giới thiệu: {referrerName}
                         </span>
                       ) : (
-                        <span className="text-xs text-[#574D54] font-medium dark:text-slate-400">Ứng tuyển trực tiếp</span>
+                        <span className="text-xs text-[#574D54] font-medium">Ứng tuyển trực tiếp</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-left">
                       {stage === "confirmed" ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 text-[9.5px] font-bold text-emerald-400 uppercase tracking-wider">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#EAF7EE] border border-[#A6E9BD] px-2.5 py-1 text-[9.5px] font-extrabold text-[#0A6C3B] uppercase tracking-wider">
+                          <CheckCircle2 className="h-3 w-3 text-[#0A6C3B]" />
                           Đã giải ngân
                         </span>
                       ) : stage === "accepted" ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-teal-500/10 border border-teal-500/30 px-2.5 py-1 text-[9.5px] font-bold text-teal-300 uppercase tracking-wider">
-                          <CheckCircle2 className="h-3 w-3 text-teal-400" />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#EBF3FF] border border-[#B9D7FE] px-2.5 py-1 text-[9.5px] font-extrabold text-[#1351B4] uppercase tracking-wider">
+                          <CheckCircle2 className="h-3 w-3 text-[#1351B4]" />
                           Đã duyệt
                         </span>
                       ) : stage === "new" ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 text-[9.5px] font-bold text-amber-300 uppercase tracking-wider">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF4E5] border border-[#FED7AA] px-2.5 py-1 text-[9.5px] font-extrabold text-[#B45309] uppercase tracking-wider">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
                           Mới ứng tuyển
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-[#E8C8C2] bg-[#FFF3F1] px-2.5 py-1 text-[9.5px] font-bold text-[#8F0709] uppercase tracking-wider dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2.5 py-1 text-[9.5px] font-bold text-slate-700 uppercase tracking-wider">
                           {stage}
                         </span>
                       )}
@@ -847,16 +1053,16 @@ export default function CampaignDetailPage() {
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {stage === "confirmed" ? (
-                          <span className="inline-flex items-center gap-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-[9.5px] text-emerald-400 font-black uppercase tracking-wider whitespace-nowrap">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                          <span className="inline-flex items-center gap-1 rounded-xl border border-[#A6E9BD] bg-[#EAF7EE] px-2.5 py-1.5 text-[9.5px] text-[#0A6C3B] font-black uppercase tracking-wider whitespace-nowrap">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-[#0A6C3B]" />
                             Đã giải ngân
                           </span>
                         ) : (
                           <button
                             onClick={() => router.push(`/brand/talents/${talent.id}`)}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E8C8C2] bg-white px-2.5 py-1.5 text-[10px] font-black uppercase text-[#8F0709] transition-all hover:bg-[#FFF3F1] active:scale-[0.98] cursor-pointer dark:bg-white/5 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:border-white/20"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-white border border-[#F0D7D3] text-[#574D54] px-2.5 py-1.5 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-[#FFF0EE] hover:text-[#8F0709] active:scale-[0.98]"
                           >
-                            <Eye className="h-3.5 w-3.5 text-slate-400" />
+                            <Eye className="h-3.5 w-3.5 text-[#574D54]" />
                             Xem hồ sơ
                           </button>
                         )}
@@ -864,7 +1070,7 @@ export default function CampaignDetailPage() {
                         {stage === "new" && (
                           <button
                             onClick={() => moveApplicant(selectedCampaign.id, talent.id, "accepted")}
-                            className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+                            className="light-force-white inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-xs"
                           >
                             <CheckCircle2 className="h-3.5 w-3.5" />
                             Duyệt
@@ -873,7 +1079,7 @@ export default function CampaignDetailPage() {
 
                         <button
                           onClick={() => removeApplicant(selectedCampaign.id, talent.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-[#FFF3F1] text-[#B80F14] border border-[#E8C8C2] hover:bg-[#FBE6E3] transition-all cursor-pointer active:scale-[0.98] dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/40 dark:hover:bg-red-900/30 dark:hover:text-red-300 dark:hover:border-red-800/60"
+                          className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:text-red-700 transition-all cursor-pointer active:scale-[0.98]"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                           Xóa
@@ -890,7 +1096,7 @@ export default function CampaignDetailPage() {
         {/* --- MOBILE CARDS VIEW (md:hidden) --- */}
         <div className="md:hidden space-y-3">
           {/* Mobile Card: Người phụ trách Job */}
-          <div className="rounded-2xl border border-emerald-200 bg-white p-4 space-y-3 shadow-[0_12px_28px_rgba(143,7,9,0.08)] text-left dark:border-emerald-500/30 dark:bg-gradient-to-b dark:from-emerald-950/20 dark:via-slate-950/80 dark:to-slate-950 dark:shadow-md">
+          <div className="rounded-2xl border border-[#F0D7D3] bg-white p-4 space-y-3 shadow-sm text-left">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative shrink-0">
@@ -900,36 +1106,36 @@ export default function CampaignDetailPage() {
                     onError={(event) => {
                       event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
                     }}
-                    className="h-11 w-11 rounded-xl object-cover border border-emerald-500/40 ring-2 ring-emerald-500/20 bg-slate-900"
+                    className="h-11 w-11 rounded-xl object-cover border border-[#F0D7D3] bg-[#FFF0EE]"
                   />
-                  <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-slate-950 text-slate-950" title="Người phụ trách">
-                    <ShieldCheck className="h-2 w-2 stroke-[3]" />
+                  <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#8F0709] ring-2 ring-white text-white" title="Người phụ trách">
+                    <ShieldCheck className="h-2.5 w-2.5 stroke-[3]" />
                   </span>
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <h3 className="text-sm font-bold text-[#191116] truncate dark:text-white">{activeOwner.name}</h3>
+                    <h3 className="text-sm font-bold text-[#191116] truncate">{activeOwner.name}</h3>
                   </div>
-                  <p className="text-[11px] text-[#574D54] mt-0.5 dark:text-slate-400">
+                  <p className="text-[11px] text-[#574D54] mt-0.5">
                     {activeOwner.role} · {activeOwner.location || "Hà Nội"}
                   </p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-extrabold text-emerald-400 uppercase tracking-wider shrink-0">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFF0EE] border border-[#F0D7D3] px-2.5 py-1 text-[9px] font-extrabold text-[#8F0709] uppercase tracking-wider shrink-0 shadow-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#E01B1F] animate-pulse" />
                 Đang phụ trách
               </span>
             </div>
 
-            <div className="pt-2 border-t border-[#F0D6D0] flex items-center justify-between gap-2 dark:border-white/5">
-              <span className="inline-flex items-center gap-1 font-display font-extrabold text-[9px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded uppercase tracking-wider">
-                <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
+            <div className="pt-2 border-t border-[#F0D7D3] flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1 font-display font-extrabold text-[9px] text-[#8F0709] bg-[#FFF0EE] border border-[#F0D7D3] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <ShieldCheck className="w-2.5 h-2.5 text-[#8F0709]" />
                 Người phụ trách Job
               </span>
 
               <button
                 onClick={() => setIsShowingOwnerTransferModal(true)}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-amber-300 hover:bg-amber-500/20 active:scale-[0.98] transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#8F0709] hover:bg-[#FFE5E2] active:scale-[0.98] transition-all cursor-pointer"
               >
                 <Users className="h-3.5 w-3.5" />
                 Chuyển quyền
@@ -951,7 +1157,7 @@ export default function CampaignDetailPage() {
             const referrerName = referrer?.name;
 
             return (
-              <div key={item.talentId} className="rounded-2xl border border-[#E8C8C2] bg-white p-4 space-y-3 shadow-[0_12px_28px_rgba(143,7,9,0.08)] text-left dark:border-slate-800/80 dark:bg-slate-950/60 dark:shadow-md">
+              <div key={item.talentId} className="rounded-2xl border border-[#F0D7D3] bg-white p-4 space-y-3 shadow-sm text-left">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <img
@@ -960,11 +1166,11 @@ export default function CampaignDetailPage() {
                       onError={(event) => {
                         event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
                       }}
-                      className="h-11 w-11 rounded-xl object-cover border border-[#E8C8C2] ring-1 ring-[#F0D6D0] shrink-0 bg-white dark:border-white/10 dark:ring-white/5 dark:bg-slate-950"
+                      className="h-11 w-11 rounded-xl object-cover border border-[#F0D7D3] shrink-0 bg-[#FAF7F6]"
                     />
                     <div className="min-w-0">
-                      <h3 className="text-sm font-bold text-[#191116] truncate dark:text-white">{talent.name}</h3>
-                      <p className="text-[11px] text-[#574D54] mt-0.5 dark:text-slate-400">
+                      <h3 className="text-sm font-bold text-[#191116] truncate">{talent.name}</h3>
+                      <p className="text-[11px] text-[#574D54] mt-0.5">
                         {talent.type || "Talent"} · {talent.city || "Hà Nội"}
                       </p>
                     </div>
@@ -972,52 +1178,52 @@ export default function CampaignDetailPage() {
 
                   <div className="shrink-0">
                     {stage === "confirmed" ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-bold text-emerald-400 uppercase tracking-wider">
-                        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-400" />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#EAF7EE] border border-[#A6E9BD] px-2 py-0.5 text-[9px] font-bold text-[#0A6C3B] uppercase tracking-wider">
+                        <CheckCircle2 className="h-2.5 w-2.5 text-[#0A6C3B]" />
                         Đã giải ngân
                       </span>
                     ) : stage === "accepted" ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-teal-500/10 border border-teal-500/30 px-2 py-0.5 text-[9px] font-bold text-teal-300 uppercase tracking-wider">
-                        <CheckCircle2 className="h-2.5 w-2.5 text-teal-400" />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#EBF3FF] border border-[#B9D7FE] px-2 py-0.5 text-[9px] font-bold text-[#1351B4] uppercase tracking-wider">
+                        <CheckCircle2 className="h-2.5 w-2.5 text-[#1351B4]" />
                         Đã duyệt
                       </span>
                     ) : stage === "new" ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[9px] font-bold text-amber-300 uppercase tracking-wider">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF4E5] border border-[#FED7AA] px-2 py-0.5 text-[9px] font-bold text-[#B45309] uppercase tracking-wider">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
                         Mới ứng tuyển
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-[#E8C8C2] bg-[#FFF3F1] px-2 py-0.5 text-[9px] font-bold text-[#8F0709] uppercase tracking-wider dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[9px] font-bold text-slate-700 uppercase tracking-wider">
                         {stage}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-[#F0D6D0] flex items-center justify-between gap-2 dark:border-white/5">
+                <div className="pt-2 border-t border-[#F0D7D3] flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     {referrerName ? (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-cyan-400/10 border border-cyan-500/25 px-2 py-0.5 text-[9.5px] font-bold text-cyan-300 tracking-wide truncate">
-                        <Users className="h-3 w-3 text-cyan-400 shrink-0" />
+                      <span className="inline-flex items-center gap-1 rounded-md bg-[#FFF0EE] border border-[#F0D7D3] px-2 py-0.5 text-[9.5px] font-bold text-[#8F0709] tracking-wide truncate">
+                        <Users className="h-3 w-3 text-[#8F0709] shrink-0" />
                         Giới thiệu: {referrerName}
                       </span>
                     ) : (
-                      <span className="text-[11px] text-[#574D54] font-medium dark:text-slate-400">Ứng tuyển trực tiếp</span>
+                      <span className="text-[11px] text-[#574D54] font-medium">Ứng tuyển trực tiếp</span>
                     )}
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
                     {stage === "confirmed" ? (
-                      <span className="inline-flex items-center gap-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-[9.5px] text-emerald-400 font-black uppercase tracking-wider">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                      <span className="inline-flex items-center gap-1 rounded-xl border border-[#A6E9BD] bg-[#EAF7EE] px-2.5 py-1.5 text-[9.5px] text-[#0A6C3B] font-black uppercase tracking-wider">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[#0A6C3B]" />
                         Đã giải ngân
                       </span>
                     ) : (
                       <button
                         onClick={() => router.push(`/brand/talents/${talent.id}`)}
-                        className="inline-flex items-center gap-1 rounded-xl border border-[#E8C8C2] bg-white px-2.5 py-1.5 text-[10px] font-black uppercase text-[#8F0709] transition-all hover:bg-[#FFF3F1] cursor-pointer dark:bg-white/5 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10"
+                        className="inline-flex items-center gap-1 rounded-xl bg-white border border-[#F0D7D3] text-[#574D54] px-2.5 py-1.5 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-[#FFF0EE] hover:text-[#8F0709]"
                       >
-                        <Eye className="h-3.5 w-3.5 text-slate-400" />
+                        <Eye className="h-3.5 w-3.5 text-[#574D54]" />
                         Xem
                       </button>
                     )}
@@ -1025,7 +1231,7 @@ export default function CampaignDetailPage() {
                     {stage === "new" && (
                       <button
                         onClick={() => moveApplicant(selectedCampaign.id, talent.id, "accepted")}
-                        className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+                        className="light-force-white inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-xs"
                       >
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         Duyệt
@@ -1034,7 +1240,7 @@ export default function CampaignDetailPage() {
 
                     <button
                       onClick={() => removeApplicant(selectedCampaign.id, talent.id)}
-                      className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/30 hover:text-red-300 transition-all cursor-pointer active:scale-[0.98]"
+                      className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:text-red-700 transition-all cursor-pointer active:scale-[0.98]"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Xóa
@@ -1047,297 +1253,59 @@ export default function CampaignDetailPage() {
         </div>
       </section>
 
-      {/* Affiliate Link Bar (full width, horizontal) */}
-      <div className="relative overflow-hidden rounded-3xl border border-[#E8C8C2] bg-white p-5 shadow-[0_16px_40px_rgba(143,7,9,0.08)] dark:border-amber-400/20 dark:bg-gradient-to-b dark:from-[#150f02]/90 dark:to-[#050712]/95 dark:shadow-[0_0_30px_rgba(245,158,11,0.08)]">
-        <div className="absolute right-[-60px] top-[-60px] h-40 w-40 rounded-full bg-amber-300/6 blur-3xl pointer-events-none" />
-        <div className="relative flex flex-col xl:flex-row xl:items-center justify-between gap-5">
-          {/* Left: Icon + Label + Description */}
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-amber-400/25 bg-amber-400/10 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.1)]">
-              <Link2 className="h-5 w-5" />
-            </div>
-            <div className="space-y-1">
-              <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-400/25 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-                LINK ỨNG TUYỂN JOB
-              </span>
-              <h3 className="font-display font-black text-sm text-[#191116] uppercase tracking-wider dark:text-white">
-                Ứng tuyển Job
-              </h3>
-              <p className="text-[11px] text-[#574D54] leading-normal dark:text-slate-400">
-                Chia sẻ link này cho Talent để họ xem chi tiết chiến dịch và đăng ký tham gia.
-              </p>
-            </div>
-          </div>
 
-          {/* Right: Buttons */}
-          <div className="grid grid-cols-2 gap-2 w-full xl:flex xl:w-auto shrink-0">
-            <button
-              type="button"
-              onClick={handleCopyReferralLink}
-              disabled={!referralLink}
-              className={cn(
-                "flex h-10 items-center justify-center gap-2 rounded-2xl px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer w-full xl:w-auto disabled:opacity-50",
-                copiedLink
-                  ? "border border-emerald-400/30 bg-emerald-400/15 text-emerald-300"
-                  : "bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105"
-              )}
-            >
-              {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              {copiedLink ? "Đã copy" : "Sao chép Link"}
-            </button>
 
-            <button
-              type="button"
-              onClick={() => setShowQrModal(true)}
-              disabled={!referralLink}
-              className="flex h-10 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:brightness-105 px-3 sm:px-5 text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer active:scale-[0.98] w-full xl:w-auto disabled:opacity-50"
-            >
-              <QrCode className="h-4 w-4" /> Hiện QR
-            </button>
-          </div>
-        </div>
-
-        {/* URL display */}
-        <div className="relative mt-4 flex min-w-0 items-center gap-3 rounded-2xl border border-[#E8C8C2] bg-[#FFF7F6] px-4 py-3 font-mono text-xs font-bold text-[#8F0709] dark:bg-[#04060a]/90 dark:border-amber-400/10 dark:text-amber-100/90">
-          <Link2 className="h-4 w-4 text-amber-400 shrink-0" />
-          <span className="truncate select-all flex-1">
-            {referralLink || (isGeneratingLink ? "Đang tạo link ứng tuyển..." : "Chưa có liên kết ứng tuyển")}
-          </span>
-        </div>
+      {/* 2. MÔ TẢ CÔNG VIỆC */}
+      <div className="rounded-3xl border border-[#F0D7D3] bg-white p-6 space-y-3 shadow-sm text-left dark:border-white/5 dark:bg-slate-950/25 dark:text-white">
+        <h4 className="flex items-center gap-2 text-xs sm:text-sm font-black text-[#8F0709] uppercase tracking-wider border-b border-[#F0D7D3] pb-3 dark:border-white/5 dark:text-white">
+          <Info className="h-4.5 w-4.5 text-[#8F0709] dark:text-amber-400" /> Mô tả công việc
+        </h4>
+        <p className="text-xs sm:text-sm text-[#191116] leading-relaxed font-normal whitespace-pre-line dark:text-slate-300">
+          {selectedCampaign.description || (selectedCampaign as any).brief || "Không có mô tả chi tiết."}
+        </p>
       </div>
 
-      {/* 2. HÀNG THÔNG TIN CHÍNH (MÔ TẢ CHUNG & THÔNG TIN TUYỂN CHỌN) */}
-      <section className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
+      {/* 3. THÔNG TIN CÔNG VIỆC */}
+      <JobInfoSection
+        job={selectedCampaign}
+        benefits={benefits}
+        startText={startText}
+        endText={endText}
+        showAllBenefits={showAllBenefits}
+        onToggleBenefits={() => setShowAllBenefits((cur) => !cur)}
+      />
 
-        {/* Left Column (7 columns): Mô tả chung */}
-        <div className="xl:col-span-7 rounded-3xl border border-[#E8C8C2] bg-white p-6 text-left self-stretch flex flex-col justify-between shadow-[0_12px_32px_rgba(143,7,9,0.06)] dark:border-white/5 dark:bg-slate-950/25 dark:shadow-none">
-          <div className="mb-5 flex items-center justify-between border-b border-[#F0D6D0] pb-3 dark:border-white/5">
-            <h2 className="text-xs font-black uppercase tracking-widest text-[#191116] dark:text-slate-350 flex items-center gap-1.5">
-              <Briefcase className="h-4.5 w-4.5 text-amber-400" /> Mô tả công việc
-            </h2>
-          </div>
+      {/* 4. VỊ TRÍ & YÊU CẦU TUYỂN DỤNG */}
+      {(recruitmentPositions.length > 0 || generalRequirements.length > 0) && (
+        <RecruitmentPositionsSection
+          positions={recruitmentPositions}
+          generalRequirements={generalRequirements}
+          total={recruitmentTotal}
+        />
+      )}
 
-          <div className="divide-y divide-[#F0D6D0] dark:divide-white/5 text-xs flex-1 flex flex-col justify-around">
-            <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5 first:pt-0">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Thù lao</span>
-              <p className="font-black text-[#8F0709] text-sm leading-none dark:text-amber-300">{selectedCampaign.budget}</p>
-            </div>
-
-            {/* Loại hình job + Số lượng tuyển */}
-            <div className="grid grid-cols-2 gap-3 py-3.5">
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Loại hình job</span>
-                <p className="mt-1 text-xs font-bold text-[#191116] dark:text-slate-200">{selectedCampaign.jobType || "Không có"}</p>
-              </div>
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Số lượng tuyển</span>
-                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">{selectedCampaign.talentQuantity ? `${selectedCampaign.talentQuantity} người` : "Không có"}</p>
-              </div>
-            </div>
-
-            {/* Thành phố + Địa điểm */}
-            <div className="grid grid-cols-2 gap-3 py-3.5">
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Thành phố</span>
-                <p className="mt-1 text-xs font-bold text-[#191116] dark:text-slate-200">{selectedCampaign.city || "Không có"}</p>
-              </div>
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Địa điểm</span>
-                <p className="mt-1 text-xs text-[#574D54] dark:text-slate-300">{selectedCampaign.address || "Không có"}</p>
-              </div>
-            </div>
-
-            {/* 4 mốc thời gian */}
-            <div className="grid grid-cols-2 gap-3 py-3.5">
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Bắt đầu job</span>
-                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">{displayCampaignDate(selectedCampaign.startDate) || "Không có"}</p>
-              </div>
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Kết thúc job</span>
-                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">{displayCampaignDate(selectedCampaign.endDate) || "Không có"}</p>
-              </div>
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Sự kiện chính</span>
-                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">
-                  {selectedCampaign.eventDate
-                    ? displayCampaignDate(selectedCampaign.eventDate)
-                    : (selectedCampaign.startDate && selectedCampaign.endDate
-                      ? displayCampaignDateRange(selectedCampaign.startDate, selectedCampaign.endDate)
-                      : "Không có")}
-                </p>
-              </div>
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Hạn ứng tuyển</span>
-                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">{displayCampaignDate(selectedCampaign.applicationDeadline || selectedCampaign.deadline) || "Không có"}</p>
-              </div>
-              <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Thời gian onstage</span>
-                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">{selectedCampaign.onstageTime || selectedCampaign.eventTime || "Không có"}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Quyền lợi</span>
-              {(() => {
-                const benefitItems = displayListText(selectedCampaign.benefits);
-                return benefitItems.length > 1 ? (
-                  <ul className="max-h-36 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-[#574D54] scrollbar-thin text-justify dark:text-slate-300">
-                    {benefitItems.map((item, idx) => (
-                      <li key={`${item}-${idx}`}>{item}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="max-h-36 overflow-y-auto pr-2 leading-relaxed text-[#574D54] scrollbar-thin text-justify dark:text-slate-300" title={selectedCampaign.benefits}>{benefitItems[0] || "-"}</p>
-                );
-              })()}
-            </div>
-
-            {selectedCampaign.description && (
-              <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Mô tả</span>
-                <p className="leading-relaxed text-[#574D54] text-justify dark:text-slate-300">
-                  {sentenceCaseText(selectedCampaign.description)}
-                </p>
-              </div>
-            )}
-
-            {selectedCampaign.responsibilities && selectedCampaign.responsibilities.length > 0 && (
-              <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5 last:pb-0">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Đầu việc</span>
-                <ul className="max-h-36 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-[#574D54] scrollbar-thin text-justify dark:text-slate-300">
-                  {selectedCampaign.responsibilities.map((item, idx) => (
-                    <li key={`${item}-${idx}`}>{sentenceCaseText(item)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Column (5 columns): Thông tin tuyển chọn */}
-        <div className="xl:col-span-5">
-          {(Boolean(selectedCampaign.roles?.length) ||
-            Boolean(selectedCampaign.targetProfiles?.length) ||
-            Boolean(selectedCampaign.industries?.length) ||
-            selectedCampaign.requirements ||
-            selectedCampaign.eventDate ||
-            selectedCampaign.startDate ||
-            selectedCampaign.endDate ||
-            selectedCampaign.applicationDeadline ||
-            selectedCampaign.deadline ||
-            selectedCampaign.contactNote ||
-            Boolean(selectedCampaign.sponsorships?.length)) && (
-              <div className="rounded-3xl border border-[#E8C8C2] bg-white p-6 text-left h-full flex flex-col justify-between shadow-[0_12px_32px_rgba(143,7,9,0.06)] dark:border-white/5 dark:bg-slate-950/25 dark:shadow-none">
-                <div>
-                  <div className="mb-5 flex items-center justify-between gap-3 border-b border-[#F0D6D0] pb-3 dark:border-white/5">
-                    <h2 className="text-xs font-black uppercase tracking-widest text-[#191116] dark:text-slate-350 flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4 text-amber-400" /> Yêu cầu tuyển chọn
-                    </h2>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-
-                    {/* Yêu cầu */}
-                    <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Yêu cầu</span>
-                      <p className="text-xs leading-relaxed text-[#574D54] text-justify dark:text-slate-300">
-                        {selectedCampaign.requirements ? sentenceCaseText(selectedCampaign.requirements) : "Không có"}
-                      </p>
-                    </div>
-
-                    {/* Chiều cao / Cân nặng / Kinh nghiệm */}
-                    <div className="space-y-1.5">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Chiều cao tối thiểu</span>
-                      <p className="text-xs font-bold leading-relaxed text-[#191116] dark:text-slate-200">
-                        {selectedCampaign.heightMinCm ? `${selectedCampaign.heightMinCm} cm` : "Không có"}
-                      </p>
-                    </div>
-                    <div className="space-y-1.5">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Cân nặng tối đa</span>
-                      <p className="text-xs font-bold leading-relaxed text-[#191116] dark:text-slate-200">
-                        {selectedCampaign.weightMaxKg ? `${selectedCampaign.weightMaxKg} kg` : "Không có"}
-                      </p>
-                    </div>
-                    <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Kinh nghiệm tối thiểu</span>
-                      <p className="text-xs font-bold leading-relaxed text-[#191116] dark:text-slate-200">
-                        {selectedCampaign.experienceMinYears ? `${selectedCampaign.experienceMinYears} năm` : "Không có"}
-                      </p>
-                    </div>
-
-                    {/* Vị trí tuyển */}
-                    <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Vị trí tuyển</span>
-                      {selectedCampaign.roles && selectedCampaign.roles.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {selectedCampaign.roles.map((role, idx) => (
-                            <span key={`${role}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
-                              {role}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-[#574D54] dark:text-slate-400">Không có</p>
-                      )}
-                    </div>
-
-                    {/* Nhóm talent phù hợp */}
-                    <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Nhóm talent phù hợp</span>
-                      {selectedCampaign.targetProfiles && selectedCampaign.targetProfiles.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {selectedCampaign.targetProfiles.map((profile, idx) => (
-                            <span key={`${profile}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
-                              {profile}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-[#574D54] dark:text-slate-400">Không có</p>
-                      )}
-                    </div>
-
-                    {/* Lĩnh vực */}
-                    <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Lĩnh vực công việc</span>
-                      {selectedCampaign.industries && selectedCampaign.industries.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {selectedCampaign.industries.map((industry, idx) => (
-                            <span key={`${industry}-${idx}`} className="rounded bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 text-[8.5px] font-bold text-amber-300 uppercase tracking-wider">
-                              {industry}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-[#574D54] dark:text-slate-400">Không có</p>
-                      )}
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            )}
-        </div>
-      </section>
+      {/* 5. THÔNG TIN SỰ KIỆN */}
+      {eventSchedules.length > 0 && (
+        <EventInformationSection events={eventSchedules} />
+      )}
 
       {/* 3. Bộ ảnh job */}
       <section className="space-y-5">
         {/* Bộ ảnh job (full width) */}
-        <div className="rounded-3xl border border-[#E8C8C2] bg-white p-6 text-left shadow-[0_12px_32px_rgba(143,7,9,0.06)] dark:border-white/10 dark:bg-slate-950/25 dark:shadow-none">
-          <div className="mb-6 flex flex-col gap-3 border-b border-[#F0D6D0] pb-4 sm:flex-row sm:items-start sm:justify-between text-left dark:border-white/10">
+        <div className="rounded-3xl border border-[#F0D7D3] bg-white p-6 text-left shadow-sm text-[#191116] dark:border-white/10 dark:bg-slate-950/25 dark:text-white">
+          <div className="mb-6 flex flex-col gap-3 border-b border-[#F0D7D3] pb-4 sm:flex-row sm:items-start sm:justify-between text-left dark:border-white/10">
             <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/20 bg-amber-400/10">
-                <ImagePlus className="h-4.5 w-4.5 text-amber-300" />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#F0D7D3] bg-[#FFF0EE] dark:border-amber-400/20 dark:bg-amber-400/10">
+                <ImagePlus className="h-4.5 w-4.5 text-[#8F0709] dark:text-amber-300" />
               </div>
               <div>
                 <h2 className="text-sm font-black uppercase tracking-wider text-[#191116] dark:text-white">Bộ ảnh job</h2>
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-500">
                   Tải lên các hình ảnh bạn muốn dùng cho job (Tối đa 10 ảnh)
                 </p>
               </div>
             </div>
-            <span className="rounded-full border border-[#E8C8C2] bg-[#FFF7F6] px-3 py-1 text-[9px] font-black uppercase tracking-wider text-[#8F0709] shrink-0 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
+            <span className="rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[9px] font-black uppercase tracking-wider text-[#8F0709] shrink-0 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
               {selectedCampaign.media?.length || 0}/10 ảnh
             </span>
           </div>
@@ -1345,7 +1313,7 @@ export default function CampaignDetailPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {/* Upload block (only show if < 10 images) */}
             {(selectedCampaign.media?.length || 0) < 10 && (
-              <label className="group relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-[#E8C8C2] bg-[#FFF7F6] p-4 text-center transition-all hover:border-[#C72524]/50 hover:bg-[#FFF3F1] dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-amber-400 dark:hover:bg-slate-900">
+              <label className="group relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#F0D7D3] bg-[#FFF0EE]/40 p-4 text-center transition-all hover:border-[#8F0709] hover:bg-[#FFF0EE] dark:border-white/20 dark:bg-slate-900/60">
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
@@ -1353,11 +1321,11 @@ export default function CampaignDetailPage() {
                   onChange={handleCampaignMediaUpload}
                   className="hidden"
                 />
-                <ImagePlus className="mb-3 h-8 w-8 text-slate-400 transition-colors group-hover:text-amber-300" />
+                <ImagePlus className="mb-3 h-8 w-8 text-[#8F0709] transition-colors group-hover:scale-110 dark:text-slate-400 dark:group-hover:text-amber-300" />
                 <span className="text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-slate-100">
                   {isUploadingMedia ? "Đang tải..." : "Tải ảnh lên"}
                 </span>
-                <span className="mt-1 text-[8.5px] font-medium leading-relaxed text-slate-500">
+                <span className="mt-1 text-[8.5px] font-medium leading-relaxed text-[#574D54] dark:text-slate-500">
                   JPG, PNG hoặc WebP
                 </span>
               </label>
@@ -1365,7 +1333,7 @@ export default function CampaignDetailPage() {
 
             {(selectedCampaign.media || []).map((media, index) => (
               media.url ? (
-                <div key={`${media.id || media.url || index}`} className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-[#E8C8C2] bg-white dark:border-white/10 dark:bg-slate-950">
+                <div key={`${media.id || media.url || index}`} className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-[#F0D7D3] bg-[#FAF7F6] shadow-sm dark:border-white/10 dark:bg-slate-950">
                   <img
                     src={media.url}
                     alt={media.caption || selectedCampaign.title}
@@ -1377,14 +1345,14 @@ export default function CampaignDetailPage() {
                   <button
                     type="button"
                     onClick={() => handleCampaignMediaDelete(media)}
-                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white opacity-100 shadow-lg backdrop-blur transition hover:border-red-500 hover:bg-red-500 hover:text-white sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
+                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#574D54] shadow-sm transition hover:border-red-500 hover:bg-red-500 hover:text-white cursor-pointer dark:border-white/15 dark:bg-black/60 dark:text-white"
                     title="Xóa ảnh"
                   >
                     <X className="h-4 w-4" />
                   </button>
 
                   {/* Edit button (Pencil) */}
-                  <label className="absolute right-14 top-3 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/60 text-white opacity-100 shadow-lg backdrop-blur transition hover:border-amber-300 hover:bg-amber-300 hover:text-slate-950 sm:opacity-0 sm:group-hover:opacity-100">
+                  <label className="absolute right-14 top-3 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#574D54] shadow-sm transition hover:border-[#8F0709] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:border-white/15 dark:bg-black/60 dark:text-white">
                     {replacingMediaId === media.id ? (
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     ) : (
@@ -1401,9 +1369,6 @@ export default function CampaignDetailPage() {
                 </div>
               ) : null
             ))}
-
-
-
           </div>
         </div>
       </section>
@@ -1411,7 +1376,7 @@ export default function CampaignDetailPage() {
       {/* QR Modal */}
       {showQrModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setShowQrModal(false)}
         >
           <div
@@ -1421,7 +1386,7 @@ export default function CampaignDetailPage() {
             <button
               type="button"
               onClick={() => setShowQrModal(false)}
-              className="absolute -top-3 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
+              className="absolute -top-3 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#8F0709] hover:bg-[#FFF0EE] transition-all cursor-pointer shadow-md"
             >
               <X className="h-4 w-4" />
             </button>
@@ -1433,7 +1398,7 @@ export default function CampaignDetailPage() {
               shareButtonLabel="Chia sẻ"
               onCopyLink={handleCopyReferralLink}
               onDownloadQr={handleDownloadQRCode}
-              className="border-[#D4A64A]/30 bg-gradient-to-br from-[#1a1305]/60 via-[#070913]/90 to-[#070913]/95 shadow-[0_8px_40px_rgba(212,166,74,0.08)] overflow-hidden"
+              className="border-[#F0D7D3] bg-white shadow-2xl overflow-hidden text-[#191116]"
             />
           </div>
         </div>
@@ -1524,54 +1489,49 @@ export default function CampaignDetailPage() {
         />
       )}
 
-      <FormEditJob
-        isOpen={isEditingJob}
-        campaignToEdit={selectedCampaign}
-        onClose={() => setIsEditingJob(false)}
-        onCampaignUpdated={(updated) =>
-          setCampaigns((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
-        }
-      />
 
       {/* Owner Transfer Modal Dialog */}
       {isShowingOwnerTransferModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020408]/85 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-xl max-h-[80vh] flex flex-col bg-[#08090f] border border-[#151b2d] rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-xl max-h-[80vh] flex flex-col bg-white border border-[#F0D7D3] rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 text-[#191116]">
             {/* Header */}
-            <div className="flex items-center justify-between p-5 border-b border-[#151b2d] bg-slate-950/45">
+            <div className="flex items-center justify-between p-5 border-b border-[#F0D7D3] bg-[#FAF7F6]">
               <div className="text-left">
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">Chuyển quyền phụ trách Job</h3>
-                <p className="text-[10px] text-slate-500 mt-1">Chọn nhân sự để bàn giao quản lý chiến dịch này</p>
+                <h3 className="text-sm font-black text-[#8F0709] uppercase tracking-wider">Chuyển quyền phụ trách Job</h3>
+                <p className="text-[10px] text-[#574D54] mt-1 font-semibold">Chọn nhân sự để bàn giao quản lý chiến dịch này</p>
               </div>
-              <button onClick={() => setIsShowingOwnerTransferModal(false)} className="text-slate-400 hover:text-white cursor-pointer transition-colors">
-                <X className="h-5 w-5" />
+              <button
+                onClick={() => setIsShowingOwnerTransferModal(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#8F0709] hover:bg-[#FFF0EE] cursor-pointer transition-colors shadow-xs"
+              >
+                <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-5 scrollbar-thin space-y-4">
+            <div className="flex-1 overflow-y-auto p-5 custom-scrollbar space-y-4">
               {/* Current Owner Highlight */}
-              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-left">
-                <span className="block text-[8px] font-black uppercase tracking-wider text-emerald-400 mb-2">Đang phụ trách hiện tại</span>
+              <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] p-4 text-left shadow-xs">
+                <span className="block text-[9px] font-black uppercase tracking-wider text-[#8F0709] mb-2">Đang phụ trách hiện tại</span>
                 <div className="flex items-center gap-3">
                   <img
                     src={activeOwner.avatar}
                     alt={activeOwner.name}
-                    className="h-10 w-10 rounded-lg object-cover border border-emerald-500/20 shrink-0"
+                    className="h-10 w-10 rounded-xl object-cover border border-[#F0D7D3] bg-white shrink-0 shadow-xs"
                     onError={(event) => {
                       event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
                     }}
                   />
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-black text-white">{activeOwner.name}</h4>
-                    <p className="text-[9.5px] text-emerald-400/80 mt-0.5">{activeOwner.role} · {activeOwner.location}</p>
+                    <h4 className="text-xs font-black text-[#191116]">{activeOwner.name}</h4>
+                    <p className="text-[10px] text-[#574D54] font-medium mt-0.5">{activeOwner.role} · {activeOwner.location}</p>
                   </div>
                 </div>
               </div>
 
               {/* List of candidates to transfer to */}
               <div className="space-y-2.5">
-                <span className="block text-[8px] font-black uppercase tracking-wider text-slate-500 text-left">Danh sách nhân sự chuyển giao</span>
+                <span className="block text-[9px] font-black uppercase tracking-wider text-[#574D54] text-left">Danh sách nhân sự chuyển giao</span>
                 <div className="space-y-2">
                   {availableOwners.map((owner) => {
                     const isCurrent = owner.id === campaignOwnerId;
@@ -1579,10 +1539,10 @@ export default function CampaignDetailPage() {
                       <div
                         key={owner.id}
                         className={cn(
-                          "flex items-center justify-between p-3.5 rounded-xl border transition-all duration-300 text-left gap-3",
+                          "flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-300 text-left gap-3",
                           isCurrent
-                            ? "border-emerald-500/20 bg-emerald-500/5 cursor-default"
-                            : "border-white/5 bg-slate-900/20 hover:border-amber-500/20 hover:bg-slate-900/40 cursor-pointer"
+                            ? "border-[#F0D7D3] bg-[#FFF0EE] cursor-default"
+                            : "border-[#F0D7D3] bg-white hover:border-[#8F0709]/40 hover:bg-[#FFF0EE]/40 cursor-pointer shadow-xs"
                         )}
                         onClick={() => {
                           if (!isCurrent) {
@@ -1595,32 +1555,32 @@ export default function CampaignDetailPage() {
                           <img
                             src={owner.avatar}
                             alt={owner.name}
-                            className="h-9 w-9 rounded-lg object-cover border border-white/5 shrink-0 bg-slate-800"
+                            className="h-9 w-9 rounded-xl object-cover border border-[#F0D7D3] shrink-0 bg-[#FAF7F6]"
                             onError={(event) => {
                               event.currentTarget.src = createInitialAvatarDataUrl(owner.name, "");
                             }}
                           />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
-                              <h4 className="text-xs font-black text-white truncate">{owner.name}</h4>
+                              <h4 className="text-xs font-bold text-[#191116] truncate">{owner.name}</h4>
                               {owner.id === "me" && (
-                                <span className="rounded bg-blue-500/10 px-1 py-0.5 text-[7px] font-black uppercase tracking-wider text-blue-400">
+                                <span className="rounded-full bg-[#FFF0EE] border border-[#F0D7D3] px-1.5 py-0.2 text-[8px] font-black uppercase tracking-wider text-[#8F0709]">
                                   Bạn
                                 </span>
                               )}
                             </div>
-                            <p className="text-[9.5px] text-slate-400 mt-0.5 truncate">{owner.role} · {owner.location}</p>
+                            <p className="text-[10px] text-[#574D54] mt-0.5 truncate">{owner.role} · {owner.location}</p>
                           </div>
                         </div>
 
                         <div>
                           {isCurrent ? (
-                            <span className="inline-flex h-7 items-center justify-center rounded-lg bg-emerald-500/15 border border-emerald-500/20 px-3 text-[9px] font-extrabold uppercase tracking-wider text-emerald-400">
+                            <span className="inline-flex h-7 items-center justify-center rounded-xl bg-white border border-[#F0D7D3] px-3 text-[9px] font-extrabold uppercase tracking-wider text-[#8F0709] shadow-xs">
                               Đang phụ trách
                             </span>
                           ) : (
                             <button
-                              className="h-7 rounded-lg bg-amber-400 px-3 text-[9px] font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+                              className="light-force-white h-7 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-3 text-[9px] font-black uppercase tracking-wider !text-white text-white hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-xs"
                             >
                               Chọn
                             </button>

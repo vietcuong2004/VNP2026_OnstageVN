@@ -577,6 +577,15 @@ export default function BrandTalentProfilePage() {
     };
   }, [talent]);
 
+  useEffect(() => {
+    const talentName = profile?.name || talent?.name;
+    if (talentName) {
+      document.title = `Onstage VN - ${talentName}`;
+    } else {
+      document.title = "Onstage VN - Chi tiết Idol";
+    }
+  }, [profile?.name, talent?.name]);
+
   const isOwnProfile = Boolean(talent?.isOwner || talent?.is_owner || talent?.canBook === false || talent?.can_book === false);
 
   const lookbookPhotos = useMemo(() => {
@@ -798,7 +807,7 @@ export default function BrandTalentProfilePage() {
                     handleAddToBrand();
                   }}
                   disabled={isAddingToBrand || isAddedToBrand || isOwnProfile}
-                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                 >
                   <Users className="h-4 w-4 text-amber-400" />
                   <span>{isAddedToBrand ? "Đã thêm vào danh sách quản lý" : "Thêm vào danh sách quản lý"}</span>

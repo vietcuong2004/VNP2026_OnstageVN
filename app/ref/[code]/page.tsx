@@ -2,10 +2,10 @@ import { Metadata } from "next";
 import InviteLandingRouterClient from "./InviteLandingRouterClient";
 
 export const metadata: Metadata = {
-  title: "OnstageVN - Lời mời hợp tác",
+  title: "Ứng tuyển job",
   description: "Tham gia mạng lưới Talent chuyên nghiệp cùng OnstageVN.",
   openGraph: {
-    title: "OnstageVN - Lời mời hợp tác",
+    title: "Ứng tuyển job",
     description: "Tham gia mạng lưới Talent chuyên nghiệp cùng OnstageVN.",
     images: [
       {
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "OnstageVN - Lời mời hợp tác",
+    title: "Ứng tuyển job",
     description: "Tham gia mạng lưới Talent chuyên nghiệp cùng OnstageVN.",
     images: ["https://onstage.vn/cover_image.png"],
   },

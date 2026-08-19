@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, Clock, Eye, MapPin, UserCheck, XCircle, type LucideIcon } from "lucide-react";
+import { CheckCircle2, Clock, MapPin, Trash2, UserCheck, XCircle, type LucideIcon } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { BookingRequest, BookingStatus } from "./types";
 
@@ -78,9 +78,11 @@ export function getStatusBadge(status: BookingStatus) {
 interface BookingCardProps {
   item: BookingRequest;
   onSelect: (item: BookingRequest) => void;
+  onDelete: (item: BookingRequest) => void;
+  isDeleting?: boolean;
 }
 
-export default function BookingCard({ item, onSelect }: BookingCardProps) {
+export default function BookingCard({ item, onSelect, onDelete, isDeleting = false }: BookingCardProps) {
   const timeRange = [item.startTime, item.endTime].filter(Boolean).join(" - ");
   const scheduleText = timeRange
     ? `${item.workDate || "Chưa cập nhật"} (${timeRange})`
@@ -161,12 +163,13 @@ export default function BookingCard({ item, onSelect }: BookingCardProps) {
             style={{ color: "#ffffff" }}
             onClick={(e) => {
               e.stopPropagation();
-              onSelect(item);
+              onDelete(item);
             }}
-            className="light-force-white flex h-9 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white px-4 text-xs font-black hover:brightness-110 active:scale-95 transition cursor-pointer shadow-md"
+            disabled={isDeleting}
+            className="light-force-white flex h-9 items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white px-4 text-xs font-black hover:brightness-110 active:scale-95 transition cursor-pointer shadow-md disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <Eye className="h-3.5 w-3.5 stroke-[3] !text-white text-white" />
-            <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Chi tiết</span>
+            <Trash2 className="h-3.5 w-3.5 stroke-[3] !text-white text-white" />
+            <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">{isDeleting ? "Đang xóa" : "Xóa"}</span>
           </button>
         </div>
       </div>

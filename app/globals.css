@@ -509,40 +509,71 @@ input:-webkit-autofill:active {
   caret-color: #8f0709 !important;
 }
 
-/* Style for date input fields, specifically targeting iOS Safari shadow DOM elements in dark mode/with white text */
+/* Style for date input fields */
 input[type="date"] {
   display: block;
-  -webkit-appearance: none;
-  appearance: none;
   box-sizing: border-box;
 }
 
-.dark input[type="date"],
-input[type="date"].text-white {
-  color-scheme: dark;
+/* Light date inputs (default or explicitly light) */
+input[type="date"],
+input[type="date"].bg-white,
+.light input[type="date"],
+.dark input[type="date"]:not(.text-white):not(.bg-slate-950):not(.bg-slate-900):not(.bg-gray-900):not(.bg-black) {
+  color-scheme: light;
+  color: #191116 !important;
 }
 
-.dark input[type="date"]::-webkit-datetime-edit,
-.dark input[type="date"]::-webkit-datetime-edit-fields-wrapper,
-.dark input[type="date"]::-webkit-datetime-edit-text,
-.dark input[type="date"]::-webkit-datetime-edit-month-field,
-.dark input[type="date"]::-webkit-datetime-edit-day-field,
-.dark input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-date-and-time-value,
+.dark input[type="date"]:not(.text-white):not(.bg-slate-950):not(.bg-slate-900):not(.bg-gray-900):not(.bg-black)::-webkit-datetime-edit,
+.dark input[type="date"]:not(.text-white):not(.bg-slate-950):not(.bg-slate-900):not(.bg-gray-900):not(.bg-black)::-webkit-datetime-edit-fields-wrapper,
+.dark input[type="date"]:not(.text-white):not(.bg-slate-950):not(.bg-slate-900):not(.bg-gray-900):not(.bg-black)::-webkit-datetime-edit-text,
+.dark input[type="date"]:not(.text-white):not(.bg-slate-950):not(.bg-slate-900):not(.bg-gray-900):not(.bg-black)::-webkit-datetime-edit-month-field,
+.dark input[type="date"]:not(.text-white):not(.bg-slate-950):not(.bg-slate-900):not(.bg-gray-900):not(.bg-black)::-webkit-datetime-edit-day-field,
+.dark input[type="date"]:not(.text-white):not(.bg-slate-950):not(.bg-slate-900):not(.bg-gray-900):not(.bg-black)::-webkit-datetime-edit-year-field,
+.dark input[type="date"]:not(.text-white):not(.bg-slate-950):not(.bg-slate-900):not(.bg-gray-900):not(.bg-black)::-webkit-date-and-time-value {
+  color: #191116 !important;
+}
+
+/* Explicitly dark date inputs */
+input[type="date"].text-white,
+input[type="date"].bg-slate-950,
+input[type="date"].bg-slate-900,
+.dark input[type="date"].text-white,
+.dark input[type="date"].bg-slate-950,
+.dark input[type="date"].bg-slate-900 {
+  color-scheme: dark;
+  color: #ffffff !important;
+}
+
 input[type="date"].text-white::-webkit-datetime-edit,
 input[type="date"].text-white::-webkit-datetime-edit-fields-wrapper,
 input[type="date"].text-white::-webkit-datetime-edit-text,
 input[type="date"].text-white::-webkit-datetime-edit-month-field,
 input[type="date"].text-white::-webkit-datetime-edit-day-field,
-input[type="date"].text-white::-webkit-datetime-edit-year-field {
-  color: white !important;
-}
-
-.dark input[type="date"]::-webkit-date-and-time-value,
-input[type="date"].text-white::-webkit-date-and-time-value {
-  color: white !important;
-  min-height: 1.5em;
-  display: flex;
-  align-items: center;
+input[type="date"].text-white::-webkit-datetime-edit-year-field,
+input[type="date"].text-white::-webkit-date-and-time-value,
+input[type="date"].bg-slate-950::-webkit-datetime-edit,
+input[type="date"].bg-slate-950::-webkit-datetime-edit-fields-wrapper,
+input[type="date"].bg-slate-950::-webkit-datetime-edit-text,
+input[type="date"].bg-slate-950::-webkit-datetime-edit-month-field,
+input[type="date"].bg-slate-950::-webkit-datetime-edit-day-field,
+input[type="date"].bg-slate-950::-webkit-datetime-edit-year-field,
+input[type="date"].bg-slate-950::-webkit-date-and-time-value,
+input[type="date"].bg-slate-900::-webkit-datetime-edit,
+input[type="date"].bg-slate-900::-webkit-datetime-edit-fields-wrapper,
+input[type="date"].bg-slate-900::-webkit-datetime-edit-text,
+input[type="date"].bg-slate-900::-webkit-datetime-edit-month-field,
+input[type="date"].bg-slate-900::-webkit-datetime-edit-day-field,
+input[type="date"].bg-slate-900::-webkit-datetime-edit-year-field,
+input[type="date"].bg-slate-900::-webkit-date-and-time-value {
+  color: #ffffff !important;
 }
 
 /* Hide bottom navigation on mobile when specific override class is set */
@@ -607,6 +638,16 @@ input[type="date"].text-white::-webkit-date-and-time-value {
 .light .booking-flow {
   background: #fffdfa !important;
   color: #191116 !important;
+}
+
+.light .booking-flow,
+.light .booking-flow *,
+.light .booking-flow *::before,
+.light .booking-flow *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  -webkit-box-shadow: none !important;
 }
 
 .light .booking-flow [class*="bg-[#070913]"],

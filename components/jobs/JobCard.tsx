@@ -32,10 +32,42 @@ function getBrandInitials(name?: string) {
 
 function formatDisplayBudget(budgetStr?: string | null) {
   if (!budgetStr) return "";
-  return String(budgetStr)
+  const raw = String(budgetStr).trim();
+  if (!raw.includes("-")) return raw;
+
+  const parts = raw.split("-").map((p) => p.trim());
+  if (parts.length !== 2) return raw;
+
+  const [first, second] = parts;
+
+  // Case 1: First is thousands (e.g. 949k/ngày or 949k), Second is millions (e.g. 9,4 triệu/ngày)
+  if (/k(?:\/ngày)?$/i.test(first) && /triệu|trieu/i.test(second)) {
+    const cleanFirst = first.replace(/\/ngày$/i, "").trim().replace(/\s*k$/i, "k");
+    return `${cleanFirst} - ${second}`;
+  }
+
+  // Case 2: Both are millions (e.g. 1 triệu/ngày - 1,5 triệu/ngày -> 1 - 1,5 triệu/ngày)
+  if (/triệu|trieu/i.test(first) && /triệu|trieu/i.test(second)) {
+    const cleanFirst = first.replace(/(?:\s*triệu|\s*trieu)(?:\/ngày)?$/i, "").trim();
+    return `${cleanFirst} - ${second}`;
+  }
+
+  // Case 3: Both are thousands (e.g. 300k/ngày - 500k/ngày -> 300 - 500k/ngày)
+  if (/k(?:\/ngày)?$/i.test(first) && /k(?:\/ngày)?$/i.test(second)) {
+    const cleanFirst = first.replace(/(?:\s*k)(?:\/ngày)?$/i, "").trim();
+    return `${cleanFirst} - ${second}`;
+  }
+
+  // Case 4: Both are dong (e.g. 300đ/ngày - 500đ/ngày -> 300 - 500đ/ngày)
+  if (/đ(?:\/ngày)?$/i.test(first) && /đ(?:\/ngày)?$/i.test(second)) {
+    const cleanFirst = first.replace(/(?:\s*đ)(?:\/ngày)?$/i, "").trim();
+    return `${cleanFirst} - ${second}`;
+  }
+
+  return raw
     .replace(/ triệu\/ngày\s*-\s*/gi, " - ")
-    .replace(/ k\/ngày\s*-\s*/gi, " - ")
-    .replace(/ đ\/ngày\s*-\s*/gi, " - ");
+    .replace(/ k\/ngày\s*-\s*/gi, "k - ")
+    .replace(/ đ\/ngày\s*-\s*/gi, "đ - ");
 }
 
 function getStatusBadge(stage: TalentJobStage, isApplied: boolean) {

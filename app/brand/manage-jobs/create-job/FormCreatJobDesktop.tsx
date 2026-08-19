@@ -691,19 +691,16 @@ export default function FormCreateJob({
     setShowPublishDialog(false);
     let savedCampaign: Campaign;
 
-    // Build requirements string from separate height, weight, experience fields
-    const reqParts: string[] = [];
-    if (form.heightMin) {
-      reqParts.push(`Chiều cao tối thiểu: ${form.heightMin} cm`);
-    }
-    if (form.weightMax) {
-      reqParts.push(`Cân nặng tối đa: ${form.weightMax} kg`);
-    }
-    if (form.experienceMin) {
-      reqParts.push(`Kinh nghiệm tối thiểu: ${form.experienceMin} năm`);
-    }
-    reqParts.push(...splitOptionText(form.requirements));
-    const finalRequirements = reqParts.join("; ") || "Chưa có yêu cầu chi tiết.";
+    const customReqLines = splitOptionText(form.requirements)
+      .filter((line) => {
+        const lower = line.toLowerCase();
+        if (lower.startsWith("chiều cao tối thiểu")) return false;
+        if (lower.startsWith("cân nặng tối đa")) return false;
+        if (lower.startsWith("kinh nghiệm tối thiểu")) return false;
+        if (lower === "chưa có yêu cầu chi tiết." || lower === "chưa có yêu cầu chi tiết") return false;
+        return true;
+      });
+    const finalRequirements = customReqLines.join("; ") || "Chưa có yêu cầu chi tiết.";
     const campaignEventsForPayload = form.campaignEvents.map((event, index) => ({
       name: event.name,
       start_at: event.startAt,
@@ -805,7 +802,7 @@ export default function FormCreateJob({
 
     onCampaignCreated(savedCampaign);
     handleClose();
-    router.push(`/brand/manage-jobs/${savedCampaign.id}`);
+    router.push("/brand/manage-jobs");
   }
 
   if (!isOpen) return null;
@@ -1071,13 +1068,13 @@ export default function FormCreateJob({
         )}
 
         {showPublishDialog && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full max-w-md rounded-3xl border border-amber-400/30 bg-[#0c1021] p-6 text-left shadow-[0_30px_90px_rgba(0,0,0,0.85)]">
-              <div className="space-y-2 border-b border-slate-800 pb-4">
-                <h3 className="text-xl font-black uppercase tracking-tight text-white">
+          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="w-full max-w-md rounded-3xl border border-[#F0D7D3] bg-white p-6 text-left shadow-2xl dark:border-amber-400/30 dark:bg-[#0c1021]">
+              <div className="space-y-2 border-b border-[#F0D7D3] pb-4 dark:border-slate-800">
+                <h3 className="text-xl font-black uppercase tracking-tight text-[#8F0709] dark:text-white">
                   Bạn có muốn đăng job này?
                 </h3>
-                <p className="text-sm font-medium leading-relaxed text-slate-400">
+                <p className="text-sm font-semibold leading-relaxed text-[#574D54] dark:text-slate-400">
                   Job sẽ được đăng để Talent có thể xem thông tin và ứng tuyển.
                 </p>
               </div>
@@ -1087,7 +1084,7 @@ export default function FormCreateJob({
                   type="button"
                   onClick={handleCreateCampaign}
                   disabled={isSubmitting}
-                  className="flex-1 rounded-2xl bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 px-5 py-3 text-sm font-black uppercase tracking-wider text-slate-950 shadow-[0_0_18px_rgba(245,158,11,0.35)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="light-force-white flex-1 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-5 py-3 text-sm font-black uppercase tracking-wider !text-white text-white shadow-md hover:brightness-110 active:scale-95 transition disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                 >
                   {isSubmitting ? "Đang đăng..." : "Đăng ngay"}
                 </button>
@@ -1095,7 +1092,7 @@ export default function FormCreateJob({
                   type="button"
                   onClick={() => setShowPublishDialog(false)}
                   disabled={isSubmitting}
-                  className="flex-1 rounded-2xl border border-slate-700/80 bg-slate-900/80 px-5 py-3 text-sm font-black uppercase tracking-wider text-slate-200 transition hover:border-amber-400/50 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex-1 rounded-2xl border border-[#F0D7D3] bg-white px-5 py-3 text-sm font-bold uppercase tracking-wider text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer dark:border-slate-700/80 dark:bg-slate-900/80 dark:text-slate-200"
                 >
                   Chỉnh sửa lại
                 </button>
@@ -1119,13 +1116,13 @@ export default function FormCreateJob({
 
 function CreateJobLoadingOverlay() {
   return (
-    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-[#020408]/90 px-6 text-center backdrop-blur-md">
-      <div className="w-full max-w-sm rounded-3xl border border-amber-400/25 bg-[#0c1021] p-7 shadow-[0_0_60px_rgba(245,158,11,0.2)]">
-        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-amber-400 border-t-transparent" />
-        <h3 className="mt-5 text-base font-black uppercase tracking-wide text-white">
+    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/75 px-6 text-center backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-3xl border border-[#F0D7D3] bg-white p-7 shadow-2xl dark:border-amber-400/25 dark:bg-[#0c1021]">
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[#8F0709] border-t-transparent dark:border-amber-400 dark:border-t-transparent" />
+        <h3 className="mt-5 text-base font-black uppercase tracking-wide text-[#8F0709] dark:text-white">
           Đang tạo job
         </h3>
-        <p className="mt-2 text-sm font-semibold text-slate-300">
+        <p className="mt-2 text-sm font-semibold text-[#574D54] dark:text-slate-300">
           Vui lòng chờ, hệ thống đang lưu thông tin và tải ảnh lên.
         </p>
       </div>
@@ -1211,12 +1208,12 @@ function InlineCustomChoiceField({
   }
 
   return (
-    <section className="space-y-3 rounded-2xl border border-amber-500/30 bg-[#0d1226] p-4 text-left shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
-      <div className="space-y-1 border-b border-slate-800 pb-3">
-        <span className="block text-[11px] font-black uppercase tracking-wider text-amber-300">
+    <section className="space-y-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 text-left shadow-sm dark:border-amber-500/30 dark:bg-[#0d1226] dark:shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+      <div className="space-y-1 border-b border-[#F0D7D3] pb-3 dark:border-slate-800">
+        <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-300">
           {label}
         </span>
-        <span className="block text-[10px] font-semibold text-slate-400">
+        <span className="block text-[10px] font-semibold text-[#574D54] dark:text-slate-400">
           {description}
         </span>
       </div>
@@ -1226,15 +1223,15 @@ function InlineCustomChoiceField({
         onChange={(event) => handleTextChange(event.target.value)}
         rows={4}
         placeholder={placeholder}
-        className="w-full resize-none rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-sm text-slate-100 outline-none placeholder:text-sm placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 shadow-inner"
+        className="w-full resize-none rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs text-[#191116] outline-none placeholder:text-xs placeholder:text-[#9A8B88] focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/20 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-amber-400"
       />
 
-      <div className="space-y-3 border-t border-slate-800/80 pt-3">
+      <div className="space-y-3 border-t border-[#F0D7D3] pt-3 dark:border-slate-800/80">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+          <span className="text-[11px] font-black uppercase tracking-wider text-[#574D54] dark:text-slate-400">
             Gợi ý
           </span>
-          <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-xs font-bold text-slate-200 transition-colors hover:text-amber-300">
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-xs font-bold text-[#574D54] hover:text-[#8F0709] transition-colors dark:text-slate-200 dark:hover:text-amber-300">
             <input
               type="checkbox"
               checked={allSelected}
@@ -1244,7 +1241,7 @@ function InlineCustomChoiceField({
                 }
               }}
               onChange={toggleAll}
-              className="h-4 w-4 shrink-0 cursor-pointer rounded accent-amber-400"
+              className="h-4 w-4 shrink-0 cursor-pointer rounded accent-[#8F0709] dark:accent-amber-400"
             />
             <span>{allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}</span>
           </label>
@@ -1260,15 +1257,15 @@ function InlineCustomChoiceField({
                 className={cn(
                   "flex cursor-pointer items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-xs font-medium transition-all sm:py-2",
                   checked
-                    ? "border-amber-400/50 bg-amber-400/15 font-bold text-amber-200 shadow-sm"
-                    : "border-slate-800 bg-slate-900/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80 hover:text-white"
+                    ? "border-[#8F0709] bg-[#FFF0EE] font-bold text-[#8F0709] shadow-sm dark:border-amber-400/50 dark:bg-amber-400/15 dark:text-amber-200"
+                    : "border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800/80 dark:hover:text-white"
                 )}
               >
                 <input
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleOption(option)}
-                  className="h-4 w-4 shrink-0 cursor-pointer rounded accent-amber-400 sm:h-3.5 sm:w-3.5"
+                  className="h-4 w-4 shrink-0 cursor-pointer rounded accent-[#8F0709] dark:accent-amber-400 sm:h-3.5 sm:w-3.5"
                 />
                 <span>{option}</span>
               </label>
@@ -1341,12 +1338,12 @@ function InlineMultilineTextField({
   }
 
   return (
-    <section className="space-y-3 rounded-2xl border border-amber-500/30 bg-[#0d1226] p-4 text-left shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
-      <div className="space-y-1 border-b border-slate-800 pb-3">
-        <span className="block text-[11px] font-black uppercase tracking-wider text-amber-300">
+    <section className="space-y-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 text-left shadow-sm dark:border-amber-500/30 dark:bg-[#0d1226] dark:shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+      <div className="space-y-1 border-b border-[#F0D7D3] pb-3 dark:border-slate-800">
+        <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-300">
           {label}
         </span>
-        <span className="block text-[10px] font-semibold text-slate-400">
+        <span className="block text-[10px] font-semibold text-[#574D54] dark:text-slate-400">
           {description}
         </span>
       </div>
@@ -1362,16 +1359,16 @@ function InlineMultilineTextField({
         onKeyDown={handleTextKeyDown}
         rows={6}
         placeholder={placeholder}
-        className="w-full resize-y rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-sm leading-relaxed text-slate-100 outline-none shadow-inner placeholder:text-sm placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+        className="w-full resize-y rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs leading-relaxed text-[#191116] outline-none shadow-sm placeholder:text-xs placeholder:text-[#9A8B88] focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/20 dark:border-slate-700/80 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-amber-400"
       />
 
       {visibleSuggestions.length > 0 && (
-        <div className="space-y-3 border-t border-slate-800/80 pt-3">
+        <div className="space-y-3 border-t border-[#F0D7D3] pt-3 dark:border-slate-800/80">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-black uppercase tracking-wider text-[#574D54] dark:text-slate-400">
               Gợi ý
             </span>
-            <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-xs font-bold text-slate-200 transition-colors hover:text-amber-300">
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-xs font-bold text-[#574D54] hover:text-[#8F0709] transition-colors dark:text-slate-200 dark:hover:text-amber-300">
               <input
                 type="checkbox"
                 checked={allSelected}
@@ -1381,7 +1378,7 @@ function InlineMultilineTextField({
                   }
                 }}
                 onChange={toggleAllSuggestions}
-                className="h-4 w-4 shrink-0 cursor-pointer rounded accent-amber-400"
+                className="h-4 w-4 shrink-0 cursor-pointer rounded accent-[#8F0709] dark:accent-amber-400"
               />
               <span>{allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}</span>
             </label>
@@ -1397,15 +1394,15 @@ function InlineMultilineTextField({
                   className={cn(
                     "flex cursor-pointer items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-xs font-medium transition-all sm:py-2",
                     checked
-                      ? "border-amber-400/50 bg-amber-400/15 font-bold text-amber-200 shadow-sm"
-                      : "border-slate-800 bg-slate-900/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80 hover:text-white"
+                      ? "border-[#8F0709] bg-[#FFF0EE] font-bold text-[#8F0709] shadow-sm dark:border-amber-400/50 dark:bg-amber-400/15 dark:text-amber-200"
+                      : "border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800/80 dark:hover:text-white"
                   )}
                 >
                   <input
                     type="checkbox"
                     checked={checked}
                     onChange={() => toggleSuggestion(suggestion)}
-                    className="h-4 w-4 shrink-0 cursor-pointer rounded accent-amber-400 sm:h-3.5 sm:w-3.5"
+                    className="h-4 w-4 shrink-0 cursor-pointer rounded accent-[#8F0709] dark:accent-amber-400 sm:h-3.5 sm:w-3.5"
                   />
                   <span>{suggestion}</span>
                 </label>
@@ -1438,12 +1435,12 @@ function GeneralRequirementsSection({
   onRequirementsChange: (value: string) => void;
 }) {
   return (
-    <section className="space-y-4 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 text-left shadow-md">
-      <div className="space-y-1 border-b border-slate-800 pb-3">
-        <span className="block text-xs font-black uppercase tracking-wider text-amber-300">
+    <section className="space-y-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 text-left shadow-sm dark:border-slate-700/80 dark:bg-slate-900/90">
+      <div className="space-y-1 border-b border-[#F0D7D3] pb-3 dark:border-slate-800">
+        <span className="block text-xs font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-300">
           Yêu cầu chung
         </span>
-        <span className="block text-[10px] font-semibold text-slate-400">
+        <span className="block text-[10px] font-semibold text-[#574D54] dark:text-slate-400">
           Thiết lập các điều kiện cơ bản và nhập thêm yêu cầu riêng nếu cần
         </span>
       </div>
@@ -1492,20 +1489,20 @@ function CampaignPositionsSection({
   onChange: (index: number, patch: Partial<CampaignPositionDraft>) => void;
 }) {
   return (
-    <section className="space-y-4 rounded-2xl border border-slate-700/80 bg-slate-900/90 p-4 text-left shadow-md">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-3">
+    <section className="space-y-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 text-left shadow-sm dark:border-slate-700/80 dark:bg-slate-900/90">
+      <div className="flex items-center justify-between gap-3 border-b border-[#F0D7D3] pb-3 dark:border-slate-800">
         <div className="space-y-1">
-          <span className="block text-xs font-black uppercase tracking-wider text-amber-300">
+          <span className="block text-xs font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-300">
             Vị trí tuyển dụng
           </span>
-          <span className="block text-[10px] font-semibold text-slate-400">
+          <span className="block text-[10px] font-semibold text-[#574D54] dark:text-slate-400">
             Mỗi vị trí có số lượng và yêu cầu riêng
           </span>
         </div>
         <button
           type="button"
           onClick={onAdd}
-          className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 text-xs font-black uppercase tracking-wider text-amber-200 transition-all hover:bg-amber-400/20 shadow-sm"
+          className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-[#8F0709] bg-[#FFF0EE] px-4 text-xs font-black uppercase tracking-wider text-[#8F0709] hover:bg-[#8F0709] hover:text-white transition-all shadow-sm dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-200"
         >
           <Plus className="h-4 w-4" />
           Thêm vị trí
@@ -1520,17 +1517,17 @@ function CampaignPositionsSection({
 
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
         {positions.map((position, index) => (
-          <article key={index} className="flex flex-col justify-between rounded-2xl border border-slate-700/80 bg-slate-950/45 p-4">
+          <article key={index} className="flex flex-col justify-between rounded-2xl border border-[#F0D7D3] bg-[#FAF7F6] p-4 dark:border-slate-700/80 dark:bg-slate-950/45">
             <div>
               <div className="mb-3 flex items-center justify-between gap-3">
-                <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">
+                <span className="rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
                   Vị trí {String(index + 1).padStart(2, "0")}
                 </span>
                 <button
                   type="button"
                   onClick={() => onRemove(index)}
                   disabled={positions.length <= 1}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-950/70 text-slate-400 transition hover:border-red-400/50 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-[#F0D7D3] bg-white text-[#574D54] transition hover:border-red-500 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700/80 dark:bg-slate-950/70 dark:text-slate-400"
                   title="Xóa vị trí"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -1539,16 +1536,24 @@ function CampaignPositionsSection({
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_6.5rem]">
                 <label className="space-y-1.5 block">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-300">
                     Chọn vị trí
                   </span>
-                  <input
-                    list="campaign-position-options"
-                    value={position.talentType}
-                    onChange={(event) => onChange(index, { talentType: event.target.value })}
-                    placeholder="Ví dụ: KOL, Model, Livestreamer"
-                    className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 shadow-inner outline-none transition-all placeholder:text-slate-500 hover:border-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
-                  />
+                  <div className="relative">
+                    <select
+                      value={position.talentType}
+                      onChange={(event) => onChange(index, { talentType: event.target.value })}
+                      className="w-full appearance-none rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 pr-9 text-xs font-semibold text-[#191116] shadow-sm outline-none transition-all hover:border-[#8F0709]/40 focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/20 cursor-pointer dark:border-slate-700/80 dark:bg-slate-900/90 dark:text-slate-100 dark:focus:border-amber-400"
+                    >
+                      <option value="" disabled>-- Chọn vị trí tuyển dụng --</option>
+                      {TARGET_PROFILE_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8F0709] dark:text-amber-400" />
+                  </div>
                 </label>
                 <NumberRequirementInput
                   label="Số lượng"
@@ -1575,16 +1580,16 @@ function CampaignPositionsSection({
         <button
           type="button"
           onClick={onAdd}
-          className="group flex min-h-[260px] h-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-amber-500/35 bg-amber-500/5 p-6 text-center transition-all hover:border-amber-400 hover:bg-amber-500/10 hover:shadow-[0_0_30px_rgba(245,158,11,0.15)] active:scale-[0.99] cursor-pointer"
+          className="group flex min-h-[260px] h-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#F0D7D3] bg-[#FFF0EE]/40 p-6 text-center transition-all hover:border-[#8F0709] hover:bg-[#FFF0EE] active:scale-[0.99] cursor-pointer dark:border-amber-500/35 dark:bg-amber-500/5 dark:hover:border-amber-400 dark:hover:bg-amber-500/10"
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 transition-all duration-300 group-hover:scale-110 group-hover:bg-amber-400 group-hover:text-slate-950 group-hover:shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#8F0709] group-hover:text-white dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-300 dark:group-hover:bg-amber-400 dark:group-hover:text-slate-950">
             <Plus className="h-6 w-6 stroke-[2.5]" />
           </div>
           <div className="space-y-1">
-            <span className="block text-sm font-black uppercase tracking-wider text-amber-300 group-hover:text-amber-200">
+            <span className="block text-sm font-black uppercase tracking-wider text-[#8F0709] group-hover:underline dark:text-amber-300 dark:group-hover:text-amber-200">
               Thêm vị trí
             </span>
-            <span className="block text-xs font-medium text-slate-400 group-hover:text-slate-300">
+            <span className="block text-xs font-medium text-[#574D54] dark:text-slate-400">
               Tạo vị trí tuyển dụng tiếp theo
             </span>
           </div>
@@ -1611,10 +1616,10 @@ function CampaignEventsSection({
     <section className="space-y-4 text-left">
       <div className="space-y-1">
         <div className="space-y-1">
-          <span className="block text-xs font-black uppercase tracking-wider text-amber-300">
+          <span className="block text-xs font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-300">
             Danh sách các sự kiện
           </span>
-          <span className="block text-[10px] font-semibold text-slate-400">
+          <span className="block text-[10px] font-semibold text-[#574D54] dark:text-slate-400">
             Nhập thông tin các sự kiện diễn ra trong job/chiến dịch này. Bạn có thể bỏ qua bước này nếu job không có sự kiện chính nào
           </span>
         </div>
@@ -1622,16 +1627,16 @@ function CampaignEventsSection({
 
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
         {events.map((event, index) => (
-          <article key={index} className="rounded-2xl border border-slate-700/80 bg-slate-950/45 p-4">
+          <article key={index} className="rounded-2xl border border-[#F0D7D3] bg-[#FAF7F6] p-4 dark:border-slate-700/80 dark:bg-slate-950/45">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">
+              <span className="rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
                 Sự kiện {String(index + 1).padStart(2, "0")}
               </span>
               <button
                 type="button"
                 onClick={() => onRemove(index)}
                 disabled={false}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-950/70 text-slate-400 transition hover:border-red-400/50 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-[#F0D7D3] bg-white text-[#574D54] transition hover:border-red-500 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700/80 dark:bg-slate-950/70 dark:text-slate-400"
                 title="Xóa sự kiện"
               >
                 <Trash2 className="h-4 w-4" />
@@ -1664,7 +1669,7 @@ function CampaignEventsSection({
                 placeholder={defaultLocation || "Ví dụ: Studio 102 Nguyễn Huệ, Quận 1, Hồ Chí Minh"}
               />
               <label className="space-y-1.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-300">
                   Nội dung sự kiện
                 </span>
                 <textarea
@@ -1672,7 +1677,7 @@ function CampaignEventsSection({
                   onChange={(eventChange) => onChange(index, { content: eventChange.target.value })}
                   rows={4}
                   placeholder="Ví dụ: Chụp ảnh sản phẩm, ảnh nhóm và nội dung truyền thông theo concept của thương hiệu."
-                  className="w-full resize-y rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-sm leading-relaxed text-slate-100 outline-none shadow-inner placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                  className="w-full resize-y rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs leading-relaxed text-[#191116] outline-none shadow-sm placeholder:text-[#9A8B88] focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/20 dark:border-slate-700/80 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-amber-400"
                 />
               </label>
             </div>
@@ -1682,16 +1687,16 @@ function CampaignEventsSection({
         <button
           type="button"
           onClick={onAdd}
-          className="group flex min-h-[320px] h-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-amber-500/35 bg-amber-500/5 p-6 text-center transition-all hover:border-amber-400 hover:bg-amber-500/10 hover:shadow-[0_0_30px_rgba(245,158,11,0.15)] active:scale-[0.99] cursor-pointer"
+          className="group flex min-h-[320px] h-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#F0D7D3] bg-[#FFF0EE]/40 p-6 text-center transition-all hover:border-[#8F0709] hover:bg-[#FFF0EE] active:scale-[0.99] cursor-pointer dark:border-amber-500/35 dark:bg-amber-500/5 dark:hover:border-amber-400 dark:hover:bg-amber-500/10"
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 transition-all duration-300 group-hover:scale-110 group-hover:bg-amber-400 group-hover:text-slate-950 group-hover:shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#8F0709] group-hover:text-white dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-300 dark:group-hover:bg-amber-400 dark:group-hover:text-slate-950">
             <Plus className="h-6 w-6 stroke-[2.5]" />
           </div>
           <div className="space-y-1">
-            <span className="block text-sm font-black uppercase tracking-wider text-amber-300 group-hover:text-amber-200">
+            <span className="block text-sm font-black uppercase tracking-wider text-[#8F0709] group-hover:underline dark:text-amber-300 dark:group-hover:text-amber-200">
               Thêm sự kiện
             </span>
-            <span className="block text-xs font-medium text-slate-400 group-hover:text-slate-300">
+            <span className="block text-xs font-medium text-[#574D54] dark:text-slate-400">
               Tạo mốc sự kiện tiếp theo
             </span>
           </div>
@@ -1714,7 +1719,7 @@ function NumberRequirementInput({
 }) {
   return (
     <div className="space-y-1.5 text-left">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-300">
         {label}
       </span>
       <input
@@ -1722,7 +1727,7 @@ function NumberRequirementInput({
         placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 shadow-inner outline-none transition-all placeholder:text-slate-500 hover:border-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+        className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs text-[#191116] shadow-sm outline-none transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709]/40 focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/20 dark:border-slate-700/80 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-amber-400"
       />
     </div>
   );
@@ -1767,10 +1772,10 @@ function InlineBulletTextarea({
   return (
     <div className="space-y-2 text-left">
       <div className="space-y-0.5">
-        <span className="block text-[11px] font-black uppercase tracking-wider text-amber-300">
+        <span className="block text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-300">
           {label}
         </span>
-        <span className="block text-[10px] font-semibold text-slate-400">
+        <span className="block text-[10px] font-semibold text-[#574D54] dark:text-slate-400">
           {description}
         </span>
       </div>
@@ -1780,7 +1785,7 @@ function InlineBulletTextarea({
         onKeyDown={handleTextKeyDown}
         rows={5}
         placeholder={placeholder}
-        className="w-full resize-y rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-sm leading-relaxed text-slate-100 outline-none shadow-inner placeholder:text-sm placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+        className="w-full resize-y rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs leading-relaxed text-[#191116] outline-none shadow-sm placeholder:text-[#9A8B88] focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/20 dark:border-slate-700/80 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-amber-400"
       />
     </div>
   );
@@ -2056,7 +2061,7 @@ function FormInput({
 
   return (
     <label className="space-y-1.5 block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54] flex items-center gap-1 dark:text-slate-300">
         {label}
       </span>
       <div className="relative flex items-center">
@@ -2068,10 +2073,10 @@ function FormInput({
           required={required}
           placeholder={placeholder}
           className={cn(
-            "w-full rounded-xl border bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none transition-all shadow-inner",
+            "w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs text-[#191116] placeholder:text-[#9A8B88] outline-none transition-all shadow-sm dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-500",
             error
-              ? "border-red-500/80 focus:border-red-400 focus:ring-2 focus:ring-red-400/20"
-              : "border-slate-700/80 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 hover:border-slate-600",
+              ? "border-red-500 focus:border-red-400 focus:ring-2 focus:ring-red-400/20"
+              : "focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/20 hover:border-[#8F0709]/40 dark:border-slate-700/80 dark:focus:border-amber-400 dark:hover:border-slate-600",
             isDateField && "pr-10"
           )}
         />
@@ -2080,7 +2085,7 @@ function FormInput({
             <button
               type="button"
               onClick={handleCalendarClick}
-              className="absolute right-2.5 p-1 text-slate-400 hover:text-amber-300 cursor-pointer transition-colors rounded-lg hover:bg-slate-800/80"
+              className="absolute right-2.5 p-1 text-[#8F0709] hover:text-[#C72524] cursor-pointer transition-colors rounded-lg hover:bg-[#FFF0EE] dark:text-slate-400 dark:hover:text-amber-300 dark:hover:bg-slate-800/80"
               title="Mở lịch chọn ngày"
             >
               <Calendar className="h-4 w-4" />
@@ -2097,7 +2102,7 @@ function FormInput({
         )}
       </div>
       {error && (
-        <span className="mt-1 block text-[11px] font-medium text-red-400 leading-snug animate-in fade-in duration-200">
+        <span className="mt-1 block text-[11px] font-medium text-red-500 leading-snug animate-in fade-in duration-200">
           {error}
         </span>
       )}
@@ -2116,7 +2121,7 @@ function DateOnlyInput({
 }) {
   return (
     <label className="space-y-1.5 block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-300">
         {label}
       </span>
       <div className="relative">
@@ -2124,7 +2129,7 @@ function DateOnlyInput({
           type="date"
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none shadow-inner transition-all hover:border-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+          className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs text-[#191116] outline-none shadow-sm transition-all hover:border-[#8F0709]/40 focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/20 dark:border-slate-700/80 dark:bg-slate-900/90 dark:text-slate-100 dark:hover:border-slate-600 dark:focus:border-amber-400"
         />
       </div>
     </label>
@@ -2147,27 +2152,27 @@ function JobImagesUploadSection({
   onPreviewImage: (index: number) => void;
 }) {
   return (
-    <section className="rounded-2xl border border-slate-700/80 bg-slate-900/90 p-5 text-left space-y-4 shadow-md sm:col-span-2">
-      <div className="flex flex-col gap-3 border-b border-slate-800 pb-4 sm:flex-row sm:items-start sm:justify-between text-left">
+    <section className="rounded-2xl border border-[#F0D7D3] bg-white p-5 text-left space-y-4 shadow-sm sm:col-span-2 dark:border-slate-700/80 dark:bg-slate-900/90">
+      <div className="flex flex-col gap-3 border-b border-[#F0D7D3] pb-4 sm:flex-row sm:items-start sm:justify-between text-left dark:border-slate-800">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/40 bg-amber-400/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
-            <ImagePlus className="h-5 w-5 text-amber-300" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#F0D7D3] bg-[#FFF0EE] shadow-xs dark:border-amber-400/40 dark:bg-amber-400/15">
+            <ImagePlus className="h-5 w-5 text-[#8F0709] dark:text-amber-300" />
           </div>
           <div>
-            <h2 className="text-xs font-black uppercase tracking-wider text-white">Bộ ảnh job</h2>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <h2 className="text-xs font-black uppercase tracking-wider text-[#191116] dark:text-white">Bộ ảnh job</h2>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-400">
               Tải lên các hình ảnh bạn muốn dùng cho job (Tối đa 10 ảnh)
             </p>
           </div>
         </div>
-        <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300 shrink-0">
+        <span className="rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shrink-0 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
           {campaignImagesCount}/10 ảnh
         </span>
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-3 custom-scrollbar snap-x">
         {campaignImagesCount < 10 && (
-          <label className="group relative flex aspect-[4/5] w-[130px] shrink-0 snap-start cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-amber-400/40 bg-amber-500/5 p-4 text-center transition-all hover:border-amber-400 hover:bg-amber-500/10">
+          <label className="group relative flex aspect-[4/5] w-[130px] shrink-0 snap-start cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[#F0D7D3] bg-[#FFF0EE]/40 p-4 text-center transition-all hover:border-[#8F0709] hover:bg-[#FFF0EE] dark:border-amber-400/40 dark:bg-amber-500/5 dark:hover:border-amber-400 dark:hover:bg-amber-500/10">
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -2178,18 +2183,18 @@ function JobImagesUploadSection({
               }}
               className="hidden"
             />
-            <ImagePlus className="mb-2 h-7 w-7 text-amber-400 transition-transform duration-200 group-hover:scale-110" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-white">
+            <ImagePlus className="mb-2 h-7 w-7 text-[#8F0709] transition-transform duration-200 group-hover:scale-110 dark:text-amber-400" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-white">
               Tải ảnh lên
             </span>
-            <span className="mt-1 text-[9px] font-medium leading-relaxed text-slate-400">
+            <span className="mt-1 text-[9px] font-medium leading-relaxed text-[#574D54] dark:text-slate-400">
               JPG, PNG hoặc WebP
             </span>
           </label>
         )}
 
         {imagePreviews.map((url, index) => (
-          <div key={`${url}-${index}`} className="group relative aspect-[4/5] w-[130px] shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-700 bg-slate-950 shadow-md">
+          <div key={`${url}-${index}`} className="group relative aspect-[4/5] w-[130px] shrink-0 snap-start overflow-hidden rounded-2xl border border-[#F0D7D3] bg-[#FAF7F6] shadow-sm dark:border-slate-700 dark:bg-slate-950">
             <img
               src={url}
               alt="Campaign preview"
@@ -2200,13 +2205,13 @@ function JobImagesUploadSection({
             <button
               type="button"
               onClick={() => onImageDelete(index)}
-              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg backdrop-blur transition hover:border-red-500 hover:bg-red-500 cursor-pointer"
+              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#574D54] shadow-sm transition hover:border-red-500 hover:bg-red-500 hover:text-white cursor-pointer dark:border-white/20 dark:bg-slate-950/80 dark:text-white"
               title="Xóa ảnh"
             >
               <X className="h-3.5 w-3.5" />
             </button>
 
-            <label className="absolute right-12 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-white shadow-lg backdrop-blur transition hover:border-amber-300 hover:bg-amber-300 hover:text-slate-950">
+            <label className="absolute right-12 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#574D54] shadow-sm transition hover:border-[#8F0709] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:border-white/20 dark:bg-slate-950/80 dark:text-white">
               <Pencil className="h-3.5 w-3.5" />
               <input
                 type="file"
@@ -2220,7 +2225,7 @@ function JobImagesUploadSection({
             </label>
 
             {index === 0 && (
-              <span className="absolute bottom-2 left-2 bg-gradient-to-r from-amber-300 to-yellow-500 text-slate-950 text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-md">
+              <span className="absolute bottom-2 left-2 bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-sm">
                 Cover
               </span>
             )}
@@ -2253,7 +2258,7 @@ function DateTimeSplitInput({
 
   return (
     <label className="space-y-1.5 block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-300">
         {label}
       </span>
       <div className="grid grid-cols-[minmax(0,1fr)_6.75rem] gap-2">
@@ -2261,7 +2266,7 @@ function DateTimeSplitInput({
           type="date"
           value={datePart}
           onChange={(event) => handleDateChange(event.target.value)}
-          className="w-full rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2.5 text-xs text-slate-100 outline-none shadow-inner transition-all hover:border-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+          className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-2.5 text-xs text-[#191116] outline-none shadow-sm transition-all hover:border-[#8F0709]/40 focus:border-[#8F0709] focus:ring-2 focus:ring-[#8F0709]/20 dark:border-slate-700/80 dark:bg-slate-900/90 dark:text-slate-100 dark:hover:border-slate-600 dark:focus:border-amber-400"
         />
         <TimePickerInput value={validTimePart} onChange={handleTimeChange} />
       </div>

@@ -1325,21 +1325,27 @@ export default function DiscoverTalentsPage() {
       </section>
 
       {isMobileSearchExpanded && typeof window !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-[#050711] text-white animate-in fade-in duration-150 md:hidden">
+        <div
+          style={{ backgroundColor: "#FFFCFA" }}
+          className="fixed inset-0 z-[9999] !bg-[#FFFCFA] text-[#191116] dark:!bg-[#050711] dark:text-white animate-in fade-in duration-150 md:hidden overflow-y-auto min-h-screen min-h-dvh flex flex-col"
+        >
           <button
             type="button"
             className="absolute inset-0 top-[68px] z-0 cursor-default"
             onClick={closeMobileSearch}
             aria-label="Thu nhỏ tìm kiếm"
           />
-          <div className="relative z-10 flex items-center gap-3 border-b border-white/5 bg-[#070913]/95 px-4 py-3">
+          <div
+            style={{ backgroundColor: "#FFFFFF" }}
+            className="relative z-10 flex items-center gap-3 border-b border-[#F0D7D3] !bg-white px-4 py-3 dark:border-white/5 dark:!bg-[#070913]"
+          >
             <button
               type="button"
               onClick={closeMobileSearch}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-slate-950/70 text-slate-300 transition active:scale-95"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition active:scale-95 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-300"
               aria-label="Đóng tìm kiếm"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 text-[#8F0709] dark:text-amber-400" />
             </button>
             <div className="relative min-w-0 flex-1">
               <input
@@ -1362,7 +1368,7 @@ export default function DiscoverTalentsPage() {
                   }
                 }}
                 placeholder="Tìm kiếm Idol..."
-                className="h-11 w-full rounded-full border border-[#C9A86A]/40 bg-slate-950/80 px-4 pr-10 text-base font-semibold text-white outline-none placeholder:text-slate-500 focus:border-[#C9A86A]"
+                className="h-11 w-full rounded-full border border-[#F0D7D3] bg-white px-4 pr-10 text-base font-semibold text-[#191116] outline-none placeholder:text-[#574D54] focus:border-[#8F0709] dark:border-[#C9A86A]/40 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#C9A86A]"
               />
               {searchInput && (
                 <button
@@ -1372,7 +1378,7 @@ export default function DiscoverTalentsPage() {
                     setAppliedFilters((prev) => ({ ...prev, query: "" }));
                     setIsTalentSuggestOpen(true);
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#574D54] transition hover:text-[#191116] dark:text-slate-400 dark:hover:text-white"
                   aria-label="Xóa từ khóa"
                 >
                   <X className="h-4 w-4" />
@@ -1382,22 +1388,26 @@ export default function DiscoverTalentsPage() {
           </div>
 
           {talentSearchSuggestions.length > 0 && (
-            <div className="relative z-10 px-4 py-4">
-              <div className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#C9A86A]">
+            <div
+              style={{ backgroundColor: "#FFFCFA" }}
+              className="relative z-10 px-4 py-4 !bg-[#FFFCFA] dark:!bg-[#050711] flex-1 pb-32"
+            >
+              <div className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#8F0709] dark:text-[#C9A86A]">
                 Gợi ý tìm kiếm
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {talentSearchSuggestions.map((suggestion) => (
                   <button
                     key={`${suggestion.label}-${suggestion.meta || "suggest"}`}
                     type="button"
+                    style={{ backgroundColor: "#FFFFFF" }}
                     onClick={() => handleTalentSuggestionPick(suggestion)}
-                    className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-left transition active:scale-[0.99]"
+                    className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border border-[#F0D7D3] !bg-white px-4 py-3 text-left transition hover:border-[#8F0709] hover:!bg-[#FFF0EE] active:scale-[0.99] dark:border-white/8 dark:!bg-white/[0.03] dark:hover:border-amber-400/50"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-black text-white">{suggestion.label}</span>
+                      <span className="block truncate text-sm font-black text-[#191116] dark:text-white">{suggestion.label}</span>
                       {suggestion.meta && (
-                        <span className="mt-0.5 block truncate text-xs font-semibold text-slate-400">
+                        <span className="mt-0.5 block truncate text-xs font-semibold text-[#574D54] dark:text-slate-400">
                           {suggestion.meta}
                         </span>
                       )}

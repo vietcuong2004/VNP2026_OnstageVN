@@ -140,19 +140,58 @@ export default function Sidebar() {
   }
 
   const isActiveHref = (href: string) => {
-    const isGuestTalentActive = !isLoggedIn && href === "/brand/search" && (
-      activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/")
-    );
-    const isGuestJobsActive = !isLoggedIn && href === "/talent/jobs" && (
-      activePathname === "/talent/jobs" || activePathname.startsWith("/talent/jobs/")
-    ) && activePathname !== "/talent/jobs/saved-jobs";
-    const isGuestSavedJobsActive = !isLoggedIn && href === "/talent/jobs/saved-jobs" && activePathname === "/talent/jobs/saved-jobs";
+    if (href === "/") return activePathname === "/";
 
-    return isGuestTalentActive
-      || isGuestJobsActive
-      || isGuestSavedJobsActive
-      || activePathname === href
-      || (href.split("/").length > 3 && activePathname.startsWith(href));
+    if (href === "/talent/jobs/saved-jobs") {
+      return activePathname === "/talent/jobs/saved-jobs";
+    }
+
+    if (href === "/talent/jobs") {
+      if (activePathname === "/talent/jobs/saved-jobs") return false;
+      return activePathname === "/talent/jobs" || activePathname.startsWith("/talent/jobs/");
+    }
+
+    if (href === "/brand/search") {
+      return activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/");
+    }
+
+    if (href === "/brand/manage-jobs") {
+      return activePathname.startsWith("/brand/manage-jobs");
+    }
+
+    if (href === "/brand/shortlists") {
+      return activePathname.startsWith("/brand/shortlists");
+    }
+
+    if (href === "/brand/my-bookings") {
+      return activePathname.startsWith("/brand/my-bookings");
+    }
+
+    if (href === "/brand/my-talents") {
+      return activePathname.startsWith("/brand/my-talents");
+    }
+
+    if (href === "/talent/brands") {
+      return activePathname.startsWith("/talent/brands");
+    }
+
+    if (href === "/talent/profile") {
+      return activePathname.startsWith("/talent/profile");
+    }
+
+    if (href === "/talent/survey") {
+      return activePathname.startsWith("/talent/survey");
+    }
+
+    if (href === "/about") {
+      return activePathname === "/about";
+    }
+
+    if (href === "/settings") {
+      return activePathname.startsWith("/settings");
+    }
+
+    return activePathname === href || (href !== "/" && activePathname.startsWith(`${href}/`));
   };
 
   const handleLogout = async () => {

@@ -212,19 +212,56 @@ export default function BottomNavigation() {
   const isActiveHref = (href: string) => {
     if (href === "/") return activePathname === "/";
 
-    const isGuestTalentActive = !isLoggedIn && href === "/brand/search" && (
-      activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/")
-    );
-    const isGuestJobsActive = !isLoggedIn && href === "/talent/jobs" && (
-      activePathname === "/talent/jobs" || activePathname.startsWith("/talent/jobs/")
-    ) && activePathname !== "/talent/jobs/saved-jobs";
-    const isGuestSavedJobsActive = !isLoggedIn && href === "/talent/jobs/saved-jobs" && activePathname === "/talent/jobs/saved-jobs";
+    if (href === "/talent/jobs/saved-jobs") {
+      return activePathname === "/talent/jobs/saved-jobs";
+    }
 
-    return isGuestTalentActive
-      || isGuestJobsActive
-      || isGuestSavedJobsActive
-      || activePathname === href
-      || activePathname.startsWith(href);
+    if (href === "/talent/jobs") {
+      if (activePathname === "/talent/jobs/saved-jobs") return false;
+      return activePathname === "/talent/jobs" || activePathname.startsWith("/talent/jobs/");
+    }
+
+    if (href === "/brand/search") {
+      return activePathname === "/brand/search" || activePathname.startsWith("/brand/talents/");
+    }
+
+    if (href === "/brand/manage-jobs") {
+      return activePathname.startsWith("/brand/manage-jobs");
+    }
+
+    if (href === "/brand/shortlists") {
+      return activePathname.startsWith("/brand/shortlists");
+    }
+
+    if (href === "/brand/my-bookings") {
+      return activePathname.startsWith("/brand/my-bookings");
+    }
+
+    if (href === "/brand/my-talents") {
+      return activePathname.startsWith("/brand/my-talents");
+    }
+
+    if (href === "/talent/brands") {
+      return activePathname.startsWith("/talent/brands");
+    }
+
+    if (href === "/talent/profile") {
+      return activePathname.startsWith("/talent/profile");
+    }
+
+    if (href === "/talent/survey") {
+      return activePathname.startsWith("/talent/survey");
+    }
+
+    if (href === "/about") {
+      return activePathname === "/about";
+    }
+
+    if (href === "/settings") {
+      return activePathname.startsWith("/settings");
+    }
+
+    return activePathname === href || (href !== "/" && activePathname.startsWith(`${href}/`));
   };
 
   return (
@@ -233,18 +270,20 @@ export default function BottomNavigation() {
         <>
           <div
             onClick={() => setShowMoreMenu(false)}
-            className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm transition-opacity duration-300 md:hidden animate-in fade-in"
+            className="fixed inset-0 z-40 bg-black/80 transition-opacity duration-300 md:hidden animate-in fade-in"
           />
 
           <div
             style={{
+              backgroundColor: "#FAF7F6",
+              opacity: 1,
               transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
               transition: isDragging ? "none" : "transform 0.25s cubic-bezier(0.32, 0.72, 0, 1)",
             }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="fixed bottom-0 left-0 right-0 top-[64px] z-50 flex min-h-0 flex-col rounded-t-[2.5rem] border-t border-[#F2DBD7] bg-[#FAF7F6] text-[#191116] p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-[0_-12px_44px_rgba(0,0,0,0.18)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#070913]/98 dark:text-white dark:shadow-[0_-10px_40px_rgba(0,0,0,0.6)] md:hidden animate-in slide-in-from-bottom duration-300"
+            className="fixed bottom-0 left-0 right-0 top-[64px] z-50 flex min-h-0 flex-col rounded-t-[2.5rem] border-t border-[#F2DBD7] !bg-[#FAF7F6] text-[#191116] p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] shadow-[0_-12px_44px_rgba(0,0,0,0.25)] dark:border-white/10 dark:!bg-[#070913] dark:text-white dark:shadow-[0_-10px_40px_rgba(0,0,0,0.8)] md:hidden animate-in slide-in-from-bottom duration-300"
           >
             <div
               onMouseDown={handleMouseDown}
@@ -409,29 +448,32 @@ export default function BottomNavigation() {
         <>
           <div
             onClick={() => setShowCreateMenu(false)}
-            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm transition-opacity duration-300 md:hidden animate-in fade-in"
+            className="fixed inset-0 z-40 bg-black/80 transition-opacity duration-300 md:hidden animate-in fade-in"
           />
-          <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-50 mx-auto w-full rounded-t-[2rem] border-t border-white/10 bg-[#070913]/98 px-5 pb-5 pt-4 shadow-[0_-14px_42px_rgba(0,0,0,0.62)] backdrop-blur-2xl md:hidden animate-in slide-in-from-bottom duration-300">
-            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20" />
+          <div
+            style={{ backgroundColor: "#FAF7F6", opacity: 1 }}
+            className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-50 mx-auto w-full rounded-t-[2rem] border-t border-[#F2DBD7] !bg-[#FAF7F6] text-[#191116] px-5 pb-5 pt-4 shadow-[0_-14px_42px_rgba(0,0,0,0.25)] dark:border-white/10 dark:!bg-[#070913] dark:text-white md:hidden animate-in slide-in-from-bottom duration-300"
+          >
+            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-slate-300 dark:bg-white/20" />
             <div className="mb-4 text-center">
-              <h3 className="font-display text-base font-black text-white">Bạn muốn làm gì?</h3>
-              <p className="mt-1 text-xs font-semibold text-slate-500">Chọn một hành động để bắt đầu</p>
+              <h3 className="font-display text-base font-black text-[#191116] dark:text-white">Bạn muốn làm gì?</h3>
+              <p className="mt-1 text-xs font-semibold text-[#574D54] dark:text-slate-400">Chọn một hành động để bắt đầu</p>
             </div>
 
             <div className="space-y-3">
               <button
                 type="button"
                 onClick={handleJoinSystem}
-                className="flex w-full items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-left shadow-[0_10px_24px_rgba(0,0,0,0.22)] transition-all active:scale-[0.99]"
+                className="flex w-full items-center gap-4 rounded-2xl border border-[#F2DBD7] bg-white p-4 text-left shadow-xs transition-all active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.035]"
               >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/35 bg-[#C9A86A]/12 text-[#F0C56B] shadow-[0_0_16px_rgba(201,168,106,0.12)]">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#F2DBD7] bg-[#FFF0EE] text-[#8F0709] shadow-xs dark:border-[#C9A86A]/35 dark:bg-[#C9A86A]/12 dark:text-[#F0C56B]">
                   <UserPlus className="h-6 w-6" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-black text-white">Tham gia hệ thống</span>
-                  <span className="mt-1 block text-xs font-semibold leading-relaxed text-slate-400">Tạo hồ sơ để bắt đầu nhận job phù hợp</span>
+                  <span className="block text-sm font-black text-[#191116] dark:text-white">Tham gia hệ thống</span>
+                  <span className="mt-1 block text-xs font-semibold leading-relaxed text-[#574D54] dark:text-slate-400">Tạo hồ sơ để bắt đầu nhận job phù hợp</span>
                 </span>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-400">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#F2DBD7] bg-[#FFF0EE] text-[#8F0709] dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
                   <ChevronRight className="h-4 w-4" />
                 </span>
               </button>
@@ -439,16 +481,16 @@ export default function BottomNavigation() {
               <button
                 type="button"
                 onClick={handleCreateJob}
-                className="flex w-full items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-left shadow-[0_10px_24px_rgba(0,0,0,0.22)] transition-all active:scale-[0.99]"
+                className="flex w-full items-center gap-4 rounded-2xl border border-[#F2DBD7] bg-white p-4 text-left shadow-xs transition-all active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.035]"
               >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#C9A86A]/35 bg-[#C9A86A]/12 text-[#F0C56B] shadow-[0_0_16px_rgba(201,168,106,0.12)]">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#F2DBD7] bg-[#FFF0EE] text-[#8F0709] shadow-xs dark:border-[#C9A86A]/35 dark:bg-[#C9A86A]/12 dark:text-[#F0C56B]">
                   <Megaphone className="h-6 w-6" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-black text-white">Đăng tuyển</span>
-                  <span className="mt-1 block text-xs font-semibold leading-relaxed text-slate-400">Tạo tin tuyển dụng mới và tìm kiếm ứng viên</span>
+                  <span className="block text-sm font-black text-[#191116] dark:text-white">Đăng tuyển</span>
+                  <span className="mt-1 block text-xs font-semibold leading-relaxed text-[#574D54] dark:text-slate-400">Tạo tin tuyển dụng mới và tìm kiếm ứng viên</span>
                 </span>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-400">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#F2DBD7] bg-[#FFF0EE] text-[#8F0709] dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
                   <ChevronRight className="h-4 w-4" />
                 </span>
               </button>
@@ -456,7 +498,7 @@ export default function BottomNavigation() {
               <button
                 type="button"
                 onClick={() => setShowCreateMenu(false)}
-                className="flex h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-xs font-black uppercase tracking-wider text-slate-300 transition-all active:scale-[0.99]"
+                className="flex h-11 w-full items-center justify-center rounded-2xl border border-[#F2DBD7] bg-white text-xs font-black uppercase tracking-wider text-[#574D54] transition-all active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300"
               >
                 Hủy
               </button>
@@ -469,7 +511,10 @@ export default function BottomNavigation() {
         "fixed bottom-0 left-0 right-0 z-40 md:hidden transition-transform duration-300",
         visible ? "translate-y-0" : "translate-y-full",
       )}>
-        <nav className="grid h-[calc(4.25rem+env(safe-area-inset-bottom,0px))] w-full grid-cols-5 items-center border-t border-white/10 bg-[#03050c]/95 px-2 pb-[env(safe-area-inset-bottom,0px)] shadow-2xl backdrop-blur-xl">
+        <nav
+          style={{ backgroundColor: "#FFFFFF", opacity: 1 }}
+          className="grid h-[calc(4.25rem+env(safe-area-inset-bottom,0px))] w-full grid-cols-5 items-center border-t border-[#F0D7D3] !bg-white text-[#191116] px-2 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] dark:border-white/10 dark:!bg-[#070913] dark:text-white"
+        >
           {bottomNavItems.slice(0, 2).map((item) => {
             const isActive = isActiveHref(item.href);
             const Icon = item.icon;
@@ -484,8 +529,8 @@ export default function BottomNavigation() {
                   className={cn(
                     "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
                     isActive
-                      ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
-                      : "text-slate-400 hover:bg-white/5 hover:text-white",
+                      ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md dark:bg-gradient-to-br dark:from-amber-200 dark:via-amber-400 dark:to-yellow-600 dark:text-slate-950"
+                      : "text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white",
                   )}
                 >
                   <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
@@ -493,7 +538,7 @@ export default function BottomNavigation() {
                 <span
                   className={cn(
                     "text-[9px] font-bold tracking-wider transition-colors duration-300",
-                    isActive ? "text-amber-400 font-black" : "text-slate-500",
+                    isActive ? "text-[#8F0709] font-black dark:text-amber-400" : "text-[#574D54] dark:text-slate-500",
                   )}
                 >
                   {item.label}
@@ -514,8 +559,8 @@ export default function BottomNavigation() {
               className={cn(
                 "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
                 showCreateMenu
-                  ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white",
+                  ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md dark:bg-gradient-to-br dark:from-amber-200 dark:via-amber-400 dark:to-yellow-600 dark:text-slate-950"
+                  : "text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white",
               )}
             >
               {showCreateMenu ? (
@@ -527,7 +572,7 @@ export default function BottomNavigation() {
             <span
               className={cn(
                 "text-[9px] font-bold tracking-wider transition-colors duration-300",
-                showCreateMenu ? "text-amber-400 font-black" : "text-slate-500",
+                showCreateMenu ? "text-[#8F0709] font-black dark:text-amber-400" : "text-[#574D54] dark:text-slate-500",
               )}
             >
               Tạo mới
@@ -549,8 +594,8 @@ export default function BottomNavigation() {
                   className={cn(
                     "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
                     isActive
-                      ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
-                      : "text-slate-400 hover:bg-white/5 hover:text-white",
+                      ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md dark:bg-gradient-to-br dark:from-amber-200 dark:via-amber-400 dark:to-yellow-600 dark:text-slate-950"
+                      : "text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white",
                   )}
                 >
                   <Icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
@@ -558,7 +603,7 @@ export default function BottomNavigation() {
                 <span
                   className={cn(
                     "text-[9px] font-bold tracking-wider transition-colors duration-300",
-                    isActive ? "text-amber-400 font-black" : "text-slate-500",
+                    isActive ? "text-[#8F0709] font-black dark:text-amber-400" : "text-[#574D54] dark:text-slate-500",
                   )}
                 >
                   {item.label}
@@ -584,8 +629,8 @@ export default function BottomNavigation() {
                   className={cn(
                     "relative flex h-[34px] w-[34px] items-center justify-center rounded-xl transition-all duration-300 group-active:scale-90",
                     isMenuActive
-                      ? "bg-gradient-to-br from-amber-200 via-amber-400 to-yellow-600 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
-                      : "text-slate-400 hover:bg-white/5 hover:text-white",
+                      ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md dark:bg-gradient-to-br dark:from-amber-200 dark:via-amber-400 dark:to-yellow-600 dark:text-slate-950"
+                      : "text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white",
                   )}
                 >
                   <Menu className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
@@ -593,7 +638,7 @@ export default function BottomNavigation() {
                 <span
                   className={cn(
                     "text-[9px] font-bold tracking-wider transition-colors duration-300",
-                    isMenuActive ? "text-amber-400 font-black" : "text-slate-500",
+                    isMenuActive ? "text-[#8F0709] font-black dark:text-amber-400" : "text-[#574D54] dark:text-slate-500",
                   )}
                 >
                   Menu

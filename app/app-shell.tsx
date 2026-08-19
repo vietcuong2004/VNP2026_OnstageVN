@@ -22,6 +22,18 @@ function getPageTitle(pathname?: string | null) {
     return "Chi tiết Idol";
   }
 
+  if (/^\/brand\/manage-jobs\/[^/]+\/edit-job$/.test(path)) {
+    return "Chỉnh sửa job";
+  }
+
+  if (/^\/brand\/manage-jobs\/[^/]+$/.test(path)) {
+    return "Quản lý job";
+  }
+
+  if (path.startsWith("/ref")) {
+    return "Ứng tuyển job";
+  }
+
   const titles: Record<string, string> = {
     "/": "Tìm kiếm Idol",
     "/about": "Về chúng tôi",
@@ -71,18 +83,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isBrandShortlists = pathname === "/brand/shortlists";
   const isBrandMyBookings = pathname === "/brand/my-bookings";
   const isBrandCreateJob = pathname === "/brand/manage-jobs/create-job";
+  const isBrandEditJob = pathname ? /^\/brand\/manage-jobs\/[^/]+\/edit-job$/.test(pathname) : false;
+  const isBrandJobEditor = isBrandCreateJob || isBrandEditJob;
   const isTalentJobs = pathname === "/talent/jobs";
   const isTalentSavedJobs = pathname === "/talent/jobs/saved-jobs";
   const isBooking = pathname ? (pathname === "/booking" || pathname.endsWith("/booking") || pathname.endsWith("/booking-talent")) : false;
   const isBookingTalent = pathname ? pathname.endsWith("/booking-talent") : false;
   const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
   const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs || isBooking;
-  const hideChrome = isBrandCreateJob || isBooking;
+  const hideChrome = isBrandJobEditor || isBooking;
 
   useEffect(() => {
+    if (isBrandTalentDetail) {
+      return;
+    }
     const pageTitle = getPageTitle(pathname);
     document.title = pageTitle === "Onstage VN" ? "Onstage VN" : `Onstage VN - ${pageTitle}`;
-  }, [pathname]);
+  }, [pathname, isBrandTalentDetail]);
 
   useEffect(() => {
     const syncSurveyFormMode = () => {
@@ -135,8 +152,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 data-app-scroll-root
                 className={cn(
                   "flex-1",
-                  isMessages || isBrandCreateJob || isBooking ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden",
-                  isStandalonePublic || isMessages || isDiscoverHome || isAbout || isTalentSurvey || isBrandCreateJob || isBooking
+                  isMessages || isBrandJobEditor || isBooking ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden",
+                  isStandalonePublic || isMessages || isDiscoverHome || isAbout || isTalentSurvey || isBrandJobEditor || isBooking
                     ? "p-0"
                     : cn(
                       "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",
@@ -148,7 +165,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div
                   className={cn(
                     "w-full",
-                    (isBrandCreateJob || isBooking) && "h-full min-h-0",
+                    (isBrandJobEditor || isBooking) && "h-full min-h-0",
                     isStandalonePublic
                       ? "mx-auto max-w-none"
                       : "mx-0 max-w-none [@media(min-width:2400px)]:mx-auto [@media(min-width:2400px)]:max-w-[2040px] [@media(min-width:3200px)]:max-w-[2280px]"

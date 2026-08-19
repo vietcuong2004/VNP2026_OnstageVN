@@ -59,9 +59,9 @@ export default function QRCodeContainer({
       onCopyLink();
     } else {
       navigator.clipboard.writeText(qrPayload);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const defaultDownloadQr = async () => {
@@ -235,22 +235,41 @@ export default function QRCodeContainer({
 
 
       {/* Action buttons */}
-      <div className="flex flex-row items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-bold uppercase tracking-widest">
+      <div className="grid grid-cols-3 gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+        <button
+          onClick={defaultCopyLink}
+          disabled={!qrPayload}
+          className={cn(
+            "flex h-11 items-center justify-center gap-1.5 rounded-xl border transition-all cursor-pointer disabled:opacity-50 px-2 shadow-xs active:scale-95",
+            copied
+              ? "bg-emerald-600 border-emerald-600 !text-white text-white shadow-sm"
+              : "border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] hover:bg-[#FFE5E2] hover:border-[#8F0709]"
+          )}
+          title="Sao chép liên kết ứng tuyển"
+        >
+          {copied ? <Check className="h-4 w-4 shrink-0" /> : <Copy className="h-4 w-4 shrink-0" />}
+          <span className="truncate">{copied ? "Đã copy" : "Sao chép"}</span>
+        </button>
+
         <button
           onClick={defaultDownloadQr}
           disabled={!qrPayload}
-          className="flex-1 flex h-11 items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] shadow-sm transition-all cursor-pointer disabled:opacity-50 px-2 dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:text-white"
+          className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] shadow-xs transition-all cursor-pointer disabled:opacity-50 px-2 active:scale-95 dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:text-white"
+          title="Tải mã QR về máy"
         >
-          <Download className="h-4 w-4 shrink-0" /> Tải về
+          <Download className="h-4 w-4 shrink-0" />
+          <span className="truncate">Tải về</span>
         </button>
+
         <button
           style={{ color: "#ffffff" }}
           onClick={defaultShare}
           disabled={!qrPayload}
-          className="light-force-white flex-1 flex h-11 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white font-black text-xs uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-md hover:brightness-110 active:scale-98 disabled:opacity-50 px-2 dark:bg-[#F0C56B] dark:text-[#02040a]"
+          className="light-force-white flex h-11 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white font-black text-xs uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-md hover:brightness-110 active:scale-95 disabled:opacity-50 px-2"
+          title="Chia sẻ lên mạng xã hội"
         >
           <Share2 className="h-4 w-4 stroke-[3] !text-white text-white shrink-0" />
-          <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">{shareButtonLabel}</span>
+          <span style={{ color: "#ffffff" }} className="!text-white text-white font-black truncate">{shareButtonLabel}</span>
         </button>
       </div>
 

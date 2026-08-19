@@ -21,6 +21,7 @@ type JobType = "mc" | "lookbook" | "pg";
 type BookingStep = 2 | 8 | 3 | 9 | 10 | 4 | 5 | 6 | 7;
 type BookingPackageId = "basic" | "standard" | "premium";
 
+const BOOKING_DRAFT_STORAGE_KEY = "onstagevn_booking_flow_draft";
 const DEPOSIT_AMOUNT = 200000;
 const DEPOSIT_AMOUNT_LABEL = "200.000 VND";
 
@@ -58,11 +59,61 @@ function buildBookingCode(jobType: JobType | null) {
   const now = new Date();
   const pad = (value: number) => String(value).padStart(2, "0");
   const role = (jobType || "mc").toUpperCase();
-  return `#${role}${pad(now.getDate())}${pad(now.getMonth() + 1)}${String(now.getFullYear()).slice(-2)}-001`;
+  return `${role}${pad(now.getDate())}${pad(now.getMonth() + 1)}${String(now.getFullYear()).slice(-2)}-001`;
 }
 
 function isBackendRecordId(value: unknown) {
   return /^\d+$/.test(String(value || ""));
+}
+
+type BookingFlowDraft = {
+  step?: BookingStep;
+  selectedTalentIds?: string[];
+  selectedJobType?: JobType | null;
+  selectedPackage?: BookingPackageId;
+  jobName?: string;
+  mcJobDescription?: string;
+  workDate?: string;
+  startTime?: string;
+  endTime?: string;
+  mcGender?: string;
+  mcLocation?: string;
+  mcLanguage?: string;
+  mcExperience?: string;
+  lookbookTopic?: string;
+  lookbookStyle?: string;
+  lookbookLocation?: string;
+  lookbookLooks?: string;
+  pgJobDescription?: string;
+  pgHeight?: string;
+  pgWeight?: string;
+  pgAppearance?: string;
+  pgOutfit?: string;
+  pgExperience?: string;
+  pgSkills?: string;
+  extraRequirements?: string;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  paymentMethod?: "bank" | "wallet";
+};
+
+function loadBookingFlowDraft(): BookingFlowDraft {
+  if (typeof window === "undefined") return {};
+
+  try {
+    const raw = window.sessionStorage.getItem(BOOKING_DRAFT_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function clearBookingFlowDraft() {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(BOOKING_DRAFT_STORAGE_KEY);
 }
 
 function saveBookingToLocalHistory(bookingRequest: unknown, talent?: any) {
@@ -153,51 +204,53 @@ function downloadQrImage(canvas: HTMLCanvasElement | null, fileName: string) {
 export default function Flow({ talent, initialStep, onSuccess, className }: FlowProps) {
   const router = useRouter();
   const depositQrCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const isDraftDisabledRef = useRef(false);
+  const [draft] = useState<BookingFlowDraft>(() => loadBookingFlowDraft());
 
   // ── State ──
-  const [step, setStep] = useState<BookingStep>(initialStep || 2);
+  const [step, setStep] = useState<BookingStep>(initialStep || draft.step || 2);
   const [selectedTalent, setSelectedTalent] = useState<any>(talent || null);
   const [selectedTalentIds, setSelectedTalentIds] = useState<string[]>(
-    talent?.id ? [String(talent.id)] : []
+    talent?.id ? [String(talent.id)] : draft.selectedTalentIds || []
   );
-  const [selectedJobType, setSelectedJobType] = useState<JobType | null>("mc");
-  const [selectedPackage, setSelectedPackage] = useState<BookingPackageId>("basic");
-  const [jobName, setJobName] = useState("");
-  const [mcJobDescription, setMcJobDescription] = useState("");
+  const [selectedJobType, setSelectedJobType] = useState<JobType | null>(draft.selectedJobType ?? "mc");
+  const [selectedPackage, setSelectedPackage] = useState<BookingPackageId>(draft.selectedPackage || "basic");
+  const [jobName, setJobName] = useState(draft.jobName || "");
+  const [mcJobDescription, setMcJobDescription] = useState(draft.mcJobDescription || "");
 
   // Step 3 Form Data - Common Time
-  const [workDate, setWorkDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [workDate, setWorkDate] = useState(draft.workDate || "");
+  const [startTime, setStartTime] = useState(draft.startTime || "");
+  const [endTime, setEndTime] = useState(draft.endTime || "");
 
   // MC Specific
-  const [mcGender, setMcGender] = useState("Nữ");
-  const [mcLocation, setMcLocation] = useState("");
-  const [mcLanguage, setMcLanguage] = useState("Tiếng Việt");
-  const [mcExperience, setMcExperience] = useState("Không yêu cầu");
+  const [mcGender, setMcGender] = useState(draft.mcGender || "Nữ");
+  const [mcLocation, setMcLocation] = useState(draft.mcLocation || "");
+  const [mcLanguage, setMcLanguage] = useState(draft.mcLanguage || "Tiếng Việt");
+  const [mcExperience, setMcExperience] = useState(draft.mcExperience || "Không yêu cầu");
 
   // Lookbook Specific
-  const [lookbookTopic, setLookbookTopic] = useState("");
-  const [lookbookStyle, setLookbookStyle] = useState("Sang trọng & Dạ hội");
-  const [lookbookLocation, setLookbookLocation] = useState("Studio");
-  const [lookbookLooks, setLookbookLooks] = useState("20 - 30 ảnh");
+  const [lookbookTopic, setLookbookTopic] = useState(draft.lookbookTopic || "");
+  const [lookbookStyle, setLookbookStyle] = useState(draft.lookbookStyle || "Sang trọng & Dạ hội");
+  const [lookbookLocation, setLookbookLocation] = useState(draft.lookbookLocation || "Studio");
+  const [lookbookLooks, setLookbookLooks] = useState(draft.lookbookLooks || "20 - 30 ảnh");
 
   // PG Specific
-  const [pgJobDescription, setPgJobDescription] = useState("");
-  const [pgHeight, setPgHeight] = useState("160 - 168 cm");
-  const [pgWeight, setPgWeight] = useState("45 - 55 kg");
-  const [pgAppearance, setPgAppearance] = useState("Ưa nhìn, năng động");
-  const [pgOutfit, setPgOutfit] = useState("");
-  const [pgExperience, setPgExperience] = useState("Không yêu cầu");
-  const [pgSkills, setPgSkills] = useState("");
+  const [pgJobDescription, setPgJobDescription] = useState(draft.pgJobDescription || "");
+  const [pgHeight, setPgHeight] = useState(draft.pgHeight || "160 - 168 cm");
+  const [pgWeight, setPgWeight] = useState(draft.pgWeight || "45 - 55 kg");
+  const [pgAppearance, setPgAppearance] = useState(draft.pgAppearance || "Ưa nhìn, năng động");
+  const [pgOutfit, setPgOutfit] = useState(draft.pgOutfit || "");
+  const [pgExperience, setPgExperience] = useState(draft.pgExperience || "Không yêu cầu");
+  const [pgSkills, setPgSkills] = useState(draft.pgSkills || "");
 
-  const [extraRequirements, setExtraRequirements] = useState("");
+  const [extraRequirements, setExtraRequirements] = useState(draft.extraRequirements || "");
 
   // Step 4 Form Data
-  const [contactName, setContactName] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"bank" | "wallet">("bank");
+  const [contactName, setContactName] = useState(draft.contactName || "");
+  const [contactPhone, setContactPhone] = useState(draft.contactPhone || "");
+  const [contactEmail, setContactEmail] = useState(draft.contactEmail || "");
+  const [paymentMethod, setPaymentMethod] = useState<"bank" | "wallet">(draft.paymentMethod || "bank");
 
   // Success Modal
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -244,6 +297,75 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
     };
   }, [selectedTalentIds]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isDraftDisabledRef.current) return;
+
+    const nextDraft: BookingFlowDraft = {
+      step,
+      selectedTalentIds,
+      selectedJobType,
+      selectedPackage,
+      jobName,
+      mcJobDescription,
+      workDate,
+      startTime,
+      endTime,
+      mcGender,
+      mcLocation,
+      mcLanguage,
+      mcExperience,
+      lookbookTopic,
+      lookbookStyle,
+      lookbookLocation,
+      lookbookLooks,
+      pgJobDescription,
+      pgHeight,
+      pgWeight,
+      pgAppearance,
+      pgOutfit,
+      pgExperience,
+      pgSkills,
+      extraRequirements,
+      contactName,
+      contactPhone,
+      contactEmail,
+      paymentMethod,
+    };
+
+    window.sessionStorage.setItem(BOOKING_DRAFT_STORAGE_KEY, JSON.stringify(nextDraft));
+  }, [
+    step,
+    selectedTalentIds,
+    selectedJobType,
+    selectedPackage,
+    jobName,
+    mcJobDescription,
+    workDate,
+    startTime,
+    endTime,
+    mcGender,
+    mcLocation,
+    mcLanguage,
+    mcExperience,
+    lookbookTopic,
+    lookbookStyle,
+    lookbookLocation,
+    lookbookLooks,
+    pgJobDescription,
+    pgHeight,
+    pgWeight,
+    pgAppearance,
+    pgOutfit,
+    pgExperience,
+    pgSkills,
+    extraRequirements,
+    contactName,
+    contactPhone,
+    contactEmail,
+    paymentMethod,
+  ]);
+
   // Default schedule to tomorrow evening & try filling contact if logged in.
   useEffect(() => {
     const start = new Date();
@@ -253,18 +375,18 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
     const end = new Date(start);
     end.setHours(20, 0, 0, 0);
 
-    setWorkDate(toDateValue(start));
-    setStartTime("18:00");
-    setEndTime("20:00");
+    setWorkDate((current) => current || toDateValue(start));
+    setStartTime((current) => current || "18:00");
+    setEndTime((current) => current || "20:00");
 
     if (getAuthToken()) {
       try {
         const storedUser = localStorage.getItem("onstage_user") || localStorage.getItem("auth_user") || localStorage.getItem("user");
         if (storedUser) {
           const parsed = JSON.parse(storedUser);
-          if (parsed.name || parsed.full_name) setContactName(parsed.name || parsed.full_name);
-          if (parsed.phone || parsed.phone_number) setContactPhone(parsed.phone || parsed.phone_number);
-          if (parsed.email) setContactEmail(parsed.email);
+          if (parsed.name || parsed.full_name) setContactName((current) => current || parsed.name || parsed.full_name);
+          if (parsed.phone || parsed.phone_number) setContactPhone((current) => current || parsed.phone || parsed.phone_number);
+          if (parsed.email) setContactEmail((current) => current || parsed.email);
         }
       } catch (e) {
         // ignore
@@ -272,7 +394,7 @@ export default function Flow({ talent, initialStep, onSuccess, className }: Flow
     }
   }, []);
 
-  const isFixedTalent = Boolean(talent?.id && String(talent.id) !== "default");
+  const isFixedTalent = Boolean((talent?.id && String(talent.id) !== "default") || (selectedTalent?.id && String(selectedTalent.id) !== "default"));
 
   const handleProceedFromStep3 = () => {
     // Move from Step 3 (Job Form) to Step 10 if talent was pre-selected, otherwise Step 9 (Select Idol)
@@ -370,6 +492,8 @@ const bookingRequest = await createBookingRequest({
       });
 
       saveBookingToLocalHistory(bookingRequest, selectedTalentsDetails[0]);
+      isDraftDisabledRef.current = true;
+      clearBookingFlowDraft();
       setBookingCode(String(bookingRequest?.request_code || bookingRequest?.id || buildBookingCode(selectedJobType)));
       return true;
     } catch (error) {
@@ -476,9 +600,9 @@ const bookingRequest = await createBookingRequest({
                   <div
                     key={item.type}
                     onClick={() => handleSelectJobType(item.type)}
-                    className="flex items-center gap-5 p-5 sm:p-6 rounded-3xl border border-amber-500/20 bg-gradient-to-r from-[#161c2c] via-[#101422] to-[#090c17] hover:border-amber-400/70 hover:bg-slate-900/90 shadow-[0_6px_25px_rgba(0,0,0,0.4)] hover:shadow-[0_0_30px_rgba(245,158,11,0.22)] transition-all duration-300 cursor-pointer relative overflow-hidden group active:scale-[0.99] min-h-[100px] md:min-h-[112px]"
+                    className="flex items-center gap-5 p-5 sm:p-6 rounded-3xl border border-amber-500/20 bg-gradient-to-r from-[#161c2c] via-[#101422] to-[#090c17] hover:border-amber-400/70 hover:bg-slate-900/90 transition-all duration-300 cursor-pointer relative overflow-hidden group active:scale-[0.99] min-h-[100px] md:min-h-[112px]"
                   >
-                    <div className="h-16 w-16 md:h-18 md:w-18 rounded-2xl flex items-center justify-center shrink-0 border border-amber-500/35 bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent text-amber-400 group-hover:bg-amber-400 group-hover:text-slate-950 transition-all duration-300 shadow-md">
+                    <div className="h-16 w-16 md:h-18 md:w-18 rounded-2xl flex items-center justify-center shrink-0 border border-amber-500/35 bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent text-amber-400 group-hover:bg-amber-400 group-hover:text-slate-950 transition-all duration-300">
                       <Icon className="h-8 w-8 md:h-9 md:w-9" />
                     </div>
 
@@ -956,13 +1080,15 @@ const bookingRequest = await createBookingRequest({
                 <span className="block text-xs font-black uppercase tracking-wider text-slate-300">
                   IDOL ĐÃ CHỌN ({selectedTalentIds.length})
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setStep(9)}
-                  className="text-xs font-bold text-amber-300 hover:underline cursor-pointer"
-                >
-                  Thay đổi
-                </button>
+                {!isFixedTalent && (
+                  <button
+                    type="button"
+                    onClick={() => setStep(9)}
+                    className="text-xs font-bold text-amber-300 hover:underline cursor-pointer"
+                  >
+                    Thay đổi
+                  </button>
+                )}
               </div>
 
               {selectedTalentIds.length === 0 ? (
@@ -1030,7 +1156,7 @@ const bookingRequest = await createBookingRequest({
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setStep(9)}
+                onClick={() => setStep(isFixedTalent ? 3 : 9)}
                 className="flex-1 h-13 rounded-2xl border border-white/15 bg-white/5 text-xs md:text-sm font-bold text-slate-300 hover:bg-white/10 hover:text-white active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <ArrowLeft className="h-4 w-4 text-amber-400" />

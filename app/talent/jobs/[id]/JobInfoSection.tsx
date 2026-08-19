@@ -24,6 +24,8 @@ export default function JobInfoSection({
   showAllBenefits,
   onToggleBenefits,
 }: JobInfoSectionProps) {
+  const onstageTime = job.onstageTime || job.onstage_time || job.eventTime || job.event_time || "";
+
   return (
     <div className="rounded-2xl border border-[#F0D6D0] bg-white p-5 space-y-4 shadow-[0_12px_28px_rgba(143,7,9,0.06)] dark:border-[#1b233a] dark:bg-[#0c101d] dark:shadow-none">
       <h4 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[#7A1114] uppercase tracking-wider border-b border-[#F0D6D0] pb-2.5 dark:border-[#151b2d] dark:text-white">
@@ -47,6 +49,13 @@ export default function JobInfoSection({
           <span className="text-[#574D54] font-medium dark:text-slate-400">Kết thúc:</span>
           <span className="font-semibold text-[#191116] dark:text-slate-100">{endText}</span>
         </div>
+        {onstageTime ? (
+          <div className="flex items-center gap-2 text-[#574D54] dark:text-slate-300">
+            <Calendar className="h-4 w-4 text-[#B9861B] shrink-0 dark:text-slate-400" />
+            <span className="text-[#574D54] font-medium dark:text-slate-400">Th?i gian onstage:</span>
+            <span className="font-semibold text-[#191116] dark:text-slate-100">{onstageTime}</span>
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-2 pt-2 border-t border-[#F0D6D0] dark:border-[#151b2d]">
