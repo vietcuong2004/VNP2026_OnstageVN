@@ -55,6 +55,7 @@ export default function JobCardMobile({
   formatDate,
 }: JobCardProps) {
   const isExpired = isApplicationDeadlineExpired(job.applicationDeadline);
+  const isOwnJob = Boolean(job.isOwner || job.is_owner || job.canApply === false || job.can_apply === false);
   const baseBadge = getStatusBadge(stage, isApplied);
   const badge =
     !isApplied && stage !== "approved" && stage !== "pending" && isExpired
@@ -93,7 +94,7 @@ export default function JobCardMobile({
 
   const handlePrimaryAction = (event: MouseEvent) => {
     stopCardClick(event);
-    if (!isApplied && isExpired) return;
+    if (isOwnJob || (!isApplied && isExpired)) return;
     if (!isApplied) {
       onApply(job);
       return;
@@ -103,7 +104,7 @@ export default function JobCardMobile({
 
   const handleSaveClick = async (event: MouseEvent) => {
     stopCardClick(event);
-    if (isSavingSavedJob) return;
+    if (isSavingSavedJob || isOwnJob) return;
 
     setIsSavingSavedJob(true);
     try {
@@ -180,8 +181,9 @@ export default function JobCardMobile({
           <button
             type="button"
             onClick={handleSaveClick}
+            disabled={isOwnJob}
             className={cn(
-              "flex h-8 min-w-0 items-center justify-center gap-1 rounded-lg px-1.5 text-[8.5px] font-black tracking-normal transition active:scale-95",
+              "flex h-8 min-w-0 items-center justify-center gap-1 rounded-lg px-1.5 text-[8.5px] font-black tracking-normal transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50",
               isSaved
                 ? "border border-[#8F0709] bg-[#FFF0EE] text-[#8F0709] dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-400"
                 : "border border-[#F0D7D3] bg-white text-[#574D54] hover:border-[#8F0709] hover:text-[#8F0709] dark:border-white/10 dark:bg-white/8 dark:text-slate-200"
@@ -195,7 +197,7 @@ export default function JobCardMobile({
           <button
             type="button"
             onClick={handlePrimaryAction}
-            disabled={(!isApplied && isExpired) || (isApplied && stage !== "approved")}
+            disabled={isOwnJob || (!isApplied && isExpired) || (isApplied && stage !== "approved")}
             className={cn(
               "flex h-8 min-w-0 items-center justify-center gap-1 rounded-lg px-1.5 text-[8.5px] font-black tracking-normal transition active:scale-95 disabled:cursor-not-allowed",
               !isApplied && isExpired
@@ -207,7 +209,7 @@ export default function JobCardMobile({
                   : "border border-amber-500/35 bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
             )}
           >
-            {!isApplied ? <Send className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
+            {isOwnJob ? <Check className="h-3.5 w-3.5" /> : !isApplied ? <Send className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
             <span className="truncate">{!isApplied ? (isExpired ? "Hết hạn" : "Ứng tuyển") : stage === "approved" ? "Duyệt" : "Chờ"}</span>
           </button>
         </div>

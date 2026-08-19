@@ -59,6 +59,7 @@ export default function JobCard({
   formatDate,
 }: JobCardProps) {
   const isExpired = isApplicationDeadlineExpired(job.applicationDeadline);
+  const isOwnJob = Boolean(job.isOwner || job.is_owner || job.canApply === false || job.can_apply === false);
   const baseBadge = getStatusBadge(stage, isApplied);
   const badge =
     !isApplied && stage !== "approved" && stage !== "pending" && isExpired
@@ -94,7 +95,7 @@ export default function JobCard({
 
   const handleSaveClick = async (event: MouseEvent) => {
     stopCardClick(event);
-    if (isSavingSavedJob) return;
+    if (isSavingSavedJob || isOwnJob) return;
 
     setIsSavingSavedJob(true);
     try {
@@ -106,6 +107,17 @@ export default function JobCard({
   };
 
   const renderPrimaryAction = () => {
+    if (isOwnJob) {
+      return (
+        <button
+          disabled
+          className="flex h-11 cursor-not-allowed items-center justify-center rounded-full border border-slate-500/25 bg-slate-500/15 text-xs font-black uppercase tracking-wider text-slate-400"
+        >
+          Job của bạn
+        </button>
+      );
+    }
+
     if (!isApplied && isExpired) {
       return (
         <button
@@ -239,6 +251,7 @@ export default function JobCard({
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={handleSaveClick}
+              disabled={isOwnJob}
               className={cn(
                 "flex h-9 sm:h-10 cursor-pointer items-center justify-center gap-1.5 rounded-full text-xs font-black transition-all active:scale-[0.98]",
                 isSaved

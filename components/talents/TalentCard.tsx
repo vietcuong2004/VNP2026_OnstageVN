@@ -130,6 +130,7 @@ export default function TalentCard({
   const mockStats = getMockTalentStats(talent);
   const primaryBadge = getTalentPrimaryBadge(talent);
   const hasActions = Boolean(onView || onToggleSaved || onMessage);
+  const isOwnTalent = Boolean(talent?.isOwner || talent?.is_owner || talent?.canBook === false || talent?.can_book === false);
 
   const stopCardClick = (event: MouseEvent) => {
     event.stopPropagation();
@@ -148,6 +149,7 @@ export default function TalentCard({
 
   const handleBookNowClick = (event: MouseEvent) => {
     stopCardClick(event);
+    if (isOwnTalent) return;
     const targetId = talent?.profileId || talent?.profile_id || talent?.id || talent?.slug;
     if (!targetId) return;
     router.push(`/booking?talentId=${encodeURIComponent(String(targetId))}`);
@@ -213,8 +215,10 @@ export default function TalentCard({
               type="button"
               onClick={(event) => {
                 stopCardClick(event);
+                if (isOwnTalent) return;
                 onToggleSaved(talent);
               }}
+              disabled={isOwnTalent}
               className={cn(
                 "absolute right-2 top-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border shadow-lg backdrop-blur-sm transition active:scale-90",
                 isSaved
@@ -344,7 +348,8 @@ export default function TalentCard({
           <button
             type="button"
             onClick={handleBookNowClick}
-            className="flex min-h-[46px] flex-1 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-[#D8A8A3] bg-[#FFF7F6] px-4 text-[11px] font-black uppercase tracking-wider text-[#C72524] transition hover:border-[#C72524]/55 hover:bg-[#FFF1EF] active:scale-95 dark:border-[#D7A900]/80 dark:bg-[#241D08] dark:text-[#FFE05F] dark:hover:border-[#FFE05F] dark:hover:bg-[#2D2409]"
+            disabled={isOwnTalent}
+            className="flex min-h-[46px] flex-1 min-w-0 cursor-pointer items-center justify-center gap-2 rounded-full disabled:cursor-not-allowed disabled:opacity-50 border border-[#D8A8A3] bg-[#FFF7F6] px-4 text-[11px] font-black uppercase tracking-wider text-[#C72524] transition hover:border-[#C72524]/55 hover:bg-[#FFF1EF] active:scale-95 dark:border-[#D7A900]/80 dark:bg-[#241D08] dark:text-[#FFE05F] dark:hover:border-[#FFE05F] dark:hover:bg-[#2D2409]"
             title="Đặt ngay"
           >
             <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
@@ -356,8 +361,10 @@ export default function TalentCard({
               type="button"
               onClick={(event) => {
                 stopCardClick(event);
+                if (isOwnTalent) return;
                 onToggleSaved(talent);
               }}
+              disabled={isOwnTalent}
               className={cn(
                 "flex min-h-[40px] flex-1 min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 text-[9px] font-black uppercase tracking-wider transition active:scale-95",
                 isSaved

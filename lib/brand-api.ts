@@ -44,6 +44,9 @@ export function requireBrandSession() {
 
 type BackendProfile = {
   id?: number | string;
+  user_id?: number | string | null;
+  is_owner?: boolean | number | null;
+  can_book?: boolean | number | null;
   full_name?: string | null;
   display_name?: string | null;
   talent_types?: string[] | null;
@@ -170,6 +173,10 @@ type BackendCampaign = {
   end_date?: string | null;
   application_deadline?: string | null;
   event_date?: string | null;
+  onstage_time?: string | null;
+  event_time?: string | null;
+  is_owner?: boolean | number | null;
+  can_apply?: boolean | number | null;
   deadline?: string | null;
   talent_quantity?: number | string | null;
   budget_min?: number | string | null;
@@ -452,6 +459,7 @@ type CampaignForm = {
   deadline: string;
   applicationDeadline?: string;
   eventDate?: string;
+  onstageTime?: string;
   talentQuantity: string;
   budget: string;
   budgetMin?: string;
@@ -679,6 +687,11 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
 
   return {
     id: String(profile.id ?? fallback?.id ?? ""),
+    userId: profile.user_id != null ? String(profile.user_id) : fallback?.userId,
+    isOwner: Boolean(profile.is_owner ?? fallback?.isOwner ?? false),
+    canBook: profile.can_book !== undefined && profile.can_book !== null
+      ? profile.can_book !== false && profile.can_book !== 0
+      : fallback?.canBook !== false,
     name: displayName,
     type: talentTypes[0] || "Talent",
     talentTypes,
@@ -875,6 +888,10 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     deadline: campaign.application_deadline || campaign.deadline || "",
     applicationDeadline: campaign.application_deadline || campaign.deadline || "",
     eventDate: campaign.event_date || "",
+    onstageTime: campaign.onstage_time || campaign.event_time || "",
+    eventTime: campaign.event_time || campaign.onstage_time || "",
+    isOwner: Boolean(campaign.is_owner),
+    canApply: campaign.can_apply !== false && campaign.can_apply !== 0,
     talentQuantity: Number(campaign.talent_quantity) || 1,
     budget: formatBudget(campaign.budget_min, campaign.budget_max),
     budgetValue: budgetMax ?? budgetMin ?? 0,
@@ -1203,6 +1220,7 @@ function buildCampaignPayload(form: CampaignForm) {
     end_date: form.endDate || null,
     application_deadline: form.applicationDeadline || form.deadline || null,
     event_date: form.eventDate || null,
+    onstage_time: form.onstageTime || null,
     talent_quantity: Number(form.talentQuantity) || 1,
     budget_min: budgetMin,
     budget_max: budgetMax,

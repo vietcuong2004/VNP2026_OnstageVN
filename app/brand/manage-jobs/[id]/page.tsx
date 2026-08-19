@@ -677,11 +677,11 @@ export default function CampaignDetailPage() {
   if (!selectedCampaign) {
     return (
       <div className="space-y-6 pb-16 text-center py-20">
-        <h2 className="text-lg font-black text-white">Không tìm thấy job</h2>
+        <h2 className="text-lg font-black text-[#191116] dark:text-white">Không tìm thấy job</h2>
         <p className="text-xs text-slate-500 mt-2">Job này có thể đã bị xóa hoặc không tồn tại.</p>
         <button
           onClick={() => router.push("/brand/manage-jobs")}
-          className="mt-6 inline-flex h-10 items-center justify-center rounded-xl bg-white/5 border border-white/10 px-4 text-xs font-black text-white hover:bg-white/10 cursor-pointer"
+          className="mt-6 inline-flex h-10 items-center justify-center rounded-xl border border-[#E8C8C2] bg-white px-4 text-xs font-black text-[#8F0709] hover:bg-[#FFF3F1] cursor-pointer dark:bg-white/5 dark:border-white/10 dark:text-white dark:hover:bg-white/10"
         >
           Quay lại danh sách
         </button>
@@ -702,34 +702,34 @@ export default function CampaignDetailPage() {
       />
 
       {/* 5. NHÂN SỰ JOB */}
-      <section className="space-y-4 pt-4 border-t border-white/5">
+      <section className="space-y-4 pt-4 border-t border-[#E8C8C2] dark:border-white/5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-baseline justify-between sm:justify-start gap-3 w-full sm:w-auto text-left">
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-350">NHÂN SỰ JOB</h2>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{selectedCampaign.applicants.length + 1} nhân sự</span>
+            <h2 className="text-xs font-black uppercase tracking-widest text-[#191116] dark:text-slate-350">NHÂN SỰ JOB</h2>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#574D54] dark:text-slate-500">{selectedCampaign.applicants.length + 1} nhân sự</span>
           </div>
           <button
             onClick={() => setIsAddingStaff(true)}
-            className="flex w-full sm:w-auto h-9 items-center justify-center rounded-xl bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 px-4 text-[10px] font-black uppercase tracking-wider text-slate-950 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+            className="flex w-full sm:w-auto h-9 items-center justify-center rounded-xl bg-[#B80F14] px-4 text-[10px] font-black uppercase tracking-wider text-white shadow-sm transition-all hover:bg-[#8F0709] active:scale-95 cursor-pointer dark:bg-gradient-to-r dark:from-amber-100 dark:via-amber-300 dark:to-yellow-500 dark:text-slate-950 dark:hover:brightness-105"
           >
             Thêm nhân sự
           </button>
         </div>
 
         {/* --- DESKTOP TABLE VIEW (md:block) --- */}
-        <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-800/80 bg-slate-950/60 backdrop-blur-md shadow-lg">
+        <div className="hidden md:block overflow-x-auto rounded-2xl border border-[#E8C8C2] bg-white shadow-[0_14px_36px_rgba(143,7,9,0.08)] backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/60 dark:shadow-lg">
           <table className="w-full text-left text-xs border-collapse font-medium min-w-[700px]">
             <thead>
-              <tr className="border-b border-white/10 bg-slate-900/90 text-[9.5px] font-black uppercase tracking-wider text-slate-400">
+              <tr className="border-b border-[#F0D6D0] bg-[#FFF7F6] text-[9.5px] font-black uppercase tracking-wider text-[#574D54] dark:border-white/10 dark:bg-slate-900/90 dark:text-slate-400">
                 <th className="py-3.5 px-4">Nhân sự</th>
                 <th className="py-3.5 px-4">Vai trò / Nguồn</th>
                 <th className="py-3.5 px-4">Trạng thái</th>
                 <th className="py-3.5 px-4 text-right">Thao tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[#F0D6D0] dark:divide-white/5">
               {/* Người phụ trách Job */}
-              <tr className="hover:bg-emerald-950/20 transition-colors group">
+              <tr className="hover:bg-[#FFF7F6] transition-colors group dark:hover:bg-emerald-950/20">
                 <td className="py-3.5 px-4">
                   <div className="flex items-center gap-3">
                     <div className="relative shrink-0">
@@ -739,7 +739,7 @@ export default function CampaignDetailPage() {
                         onError={(event) => {
                           event.currentTarget.src = createInitialAvatarDataUrl(activeOwner.name, "");
                         }}
-                        className="h-10 w-10 rounded-xl object-cover border border-emerald-500/40 ring-2 ring-emerald-500/20 bg-slate-900"
+                        className="h-10 w-10 rounded-xl object-cover border border-emerald-500/40 ring-2 ring-emerald-500/20 bg-white dark:bg-slate-900"
                       />
                       <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-slate-950 text-slate-950" title="Người phụ trách">
                         <ShieldCheck className="h-2 w-2 stroke-[3]" />
@@ -747,20 +747,20 @@ export default function CampaignDetailPage() {
                     </div>
                     <div className="flex flex-col text-left min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-white group-hover:text-emerald-300 transition-colors text-xs truncate">{activeOwner.name}</span>
+                        <span className="font-bold text-[#191116] group-hover:text-[#8F0709] transition-colors text-xs truncate dark:text-white dark:group-hover:text-emerald-300">{activeOwner.name}</span>
                         <span className="inline-flex items-center gap-1 font-display font-extrabold text-[8.5px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded shrink-0 uppercase tracking-wider">
                           <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
                           Người phụ trách Job
                         </span>
                       </div>
-                      <span className="text-[10.5px] text-slate-400 font-medium">
+                      <span className="text-[10.5px] text-[#574D54] font-medium dark:text-slate-400">
                         {activeOwner.role} · {activeOwner.location || "Hà Nội"}
                       </span>
                     </div>
                   </div>
                 </td>
                 <td className="py-3.5 px-4 text-left">
-                  <span className="text-xs font-semibold text-slate-300">Quản lý Job</span>
+                  <span className="text-xs font-semibold text-[#574D54] dark:text-slate-300">Quản lý Job</span>
                 </td>
                 <td className="py-3.5 px-4 text-left">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-[9.5px] font-extrabold text-emerald-400 uppercase tracking-wider">
@@ -771,7 +771,7 @@ export default function CampaignDetailPage() {
                 <td className="py-3.5 px-4 text-right">
                   <button
                     onClick={() => setIsShowingOwnerTransferModal(true)}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-amber-300 hover:bg-amber-500/20 hover:border-amber-400/50 hover:text-amber-200 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-[#D4A64A]/40 bg-[#FFF7E7] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-sm transition-all hover:bg-[#F8E6B7] active:scale-[0.98] cursor-pointer dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20 dark:hover:border-amber-400/50 dark:hover:text-amber-200"
                   >
                     <Users className="h-3.5 w-3.5" />
                     Chuyển quyền phụ trách
@@ -793,7 +793,7 @@ export default function CampaignDetailPage() {
                 const referrerName = referrer?.name;
 
                 return (
-                  <tr key={item.talentId} className="hover:bg-white/[0.02] transition-colors group">
+                  <tr key={item.talentId} className="hover:bg-[#FFF7F6] transition-colors group dark:hover:bg-white/[0.02]">
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
                         <img
@@ -802,11 +802,11 @@ export default function CampaignDetailPage() {
                           onError={(event) => {
                             event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
                           }}
-                          className="h-10 w-10 rounded-xl object-cover border border-white/10 ring-1 ring-white/5 shrink-0 bg-slate-950"
+                          className="h-10 w-10 rounded-xl object-cover border border-[#E8C8C2] ring-1 ring-[#F0D6D0] shrink-0 bg-white dark:border-white/10 dark:ring-white/5 dark:bg-slate-950"
                         />
                         <div className="flex flex-col text-left min-w-0">
-                          <span className="font-bold text-white group-hover:text-amber-300 transition-colors text-xs truncate">{talent.name}</span>
-                          <span className="text-[10.5px] text-slate-400 font-medium">
+                          <span className="font-bold text-[#191116] group-hover:text-[#8F0709] transition-colors text-xs truncate dark:text-white dark:group-hover:text-amber-300">{talent.name}</span>
+                          <span className="text-[10.5px] text-[#574D54] font-medium dark:text-slate-400">
                             {talent.type || "Talent"} · {talent.city || "Hà Nội"}
                           </span>
                         </div>
@@ -819,7 +819,7 @@ export default function CampaignDetailPage() {
                           Giới thiệu: {referrerName}
                         </span>
                       ) : (
-                        <span className="text-xs text-slate-400 font-medium">Ứng tuyển trực tiếp</span>
+                        <span className="text-xs text-[#574D54] font-medium dark:text-slate-400">Ứng tuyển trực tiếp</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-left">
@@ -839,7 +839,7 @@ export default function CampaignDetailPage() {
                           Mới ứng tuyển
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 border border-slate-700 px-2.5 py-1 text-[9.5px] font-bold text-slate-300 uppercase tracking-wider">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-[#E8C8C2] bg-[#FFF3F1] px-2.5 py-1 text-[9.5px] font-bold text-[#8F0709] uppercase tracking-wider dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                           {stage}
                         </span>
                       )}
@@ -854,7 +854,7 @@ export default function CampaignDetailPage() {
                         ) : (
                           <button
                             onClick={() => router.push(`/brand/talents/${talent.id}`)}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 px-2.5 py-1.5 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-white/10 hover:border-white/20 active:scale-[0.98]"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E8C8C2] bg-white px-2.5 py-1.5 text-[10px] font-black uppercase text-[#8F0709] transition-all hover:bg-[#FFF3F1] active:scale-[0.98] cursor-pointer dark:bg-white/5 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:border-white/20"
                           >
                             <Eye className="h-3.5 w-3.5 text-slate-400" />
                             Xem hồ sơ
@@ -873,7 +873,7 @@ export default function CampaignDetailPage() {
 
                         <button
                           onClick={() => removeApplicant(selectedCampaign.id, talent.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-red-950/30 text-red-400 border border-red-900/40 hover:bg-red-900/30 hover:text-red-300 hover:border-red-800/60 transition-all cursor-pointer active:scale-[0.98]"
+                          className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-black uppercase bg-[#FFF3F1] text-[#B80F14] border border-[#E8C8C2] hover:bg-[#FBE6E3] transition-all cursor-pointer active:scale-[0.98] dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/40 dark:hover:bg-red-900/30 dark:hover:text-red-300 dark:hover:border-red-800/60"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                           Xóa
@@ -890,7 +890,7 @@ export default function CampaignDetailPage() {
         {/* --- MOBILE CARDS VIEW (md:hidden) --- */}
         <div className="md:hidden space-y-3">
           {/* Mobile Card: Người phụ trách Job */}
-          <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-b from-emerald-950/20 via-slate-950/80 to-slate-950 p-4 space-y-3 shadow-md text-left">
+          <div className="rounded-2xl border border-emerald-200 bg-white p-4 space-y-3 shadow-[0_12px_28px_rgba(143,7,9,0.08)] text-left dark:border-emerald-500/30 dark:bg-gradient-to-b dark:from-emerald-950/20 dark:via-slate-950/80 dark:to-slate-950 dark:shadow-md">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative shrink-0">
@@ -908,9 +908,9 @@ export default function CampaignDetailPage() {
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <h3 className="text-sm font-bold text-white truncate">{activeOwner.name}</h3>
+                    <h3 className="text-sm font-bold text-[#191116] truncate dark:text-white">{activeOwner.name}</h3>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                  <p className="text-[11px] text-[#574D54] mt-0.5 dark:text-slate-400">
                     {activeOwner.role} · {activeOwner.location || "Hà Nội"}
                   </p>
                 </div>
@@ -921,7 +921,7 @@ export default function CampaignDetailPage() {
               </span>
             </div>
 
-            <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+            <div className="pt-2 border-t border-[#F0D6D0] flex items-center justify-between gap-2 dark:border-white/5">
               <span className="inline-flex items-center gap-1 font-display font-extrabold text-[9px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded uppercase tracking-wider">
                 <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
                 Người phụ trách Job
@@ -951,7 +951,7 @@ export default function CampaignDetailPage() {
             const referrerName = referrer?.name;
 
             return (
-              <div key={item.talentId} className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4 space-y-3 shadow-md text-left">
+              <div key={item.talentId} className="rounded-2xl border border-[#E8C8C2] bg-white p-4 space-y-3 shadow-[0_12px_28px_rgba(143,7,9,0.08)] text-left dark:border-slate-800/80 dark:bg-slate-950/60 dark:shadow-md">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <img
@@ -960,11 +960,11 @@ export default function CampaignDetailPage() {
                       onError={(event) => {
                         event.currentTarget.src = createInitialAvatarDataUrl(talent.name, "");
                       }}
-                      className="h-11 w-11 rounded-xl object-cover border border-white/10 ring-1 ring-white/5 shrink-0 bg-slate-950"
+                      className="h-11 w-11 rounded-xl object-cover border border-[#E8C8C2] ring-1 ring-[#F0D6D0] shrink-0 bg-white dark:border-white/10 dark:ring-white/5 dark:bg-slate-950"
                     />
                     <div className="min-w-0">
-                      <h3 className="text-sm font-bold text-white truncate">{talent.name}</h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <h3 className="text-sm font-bold text-[#191116] truncate dark:text-white">{talent.name}</h3>
+                      <p className="text-[11px] text-[#574D54] mt-0.5 dark:text-slate-400">
                         {talent.type || "Talent"} · {talent.city || "Hà Nội"}
                       </p>
                     </div>
@@ -987,14 +987,14 @@ export default function CampaignDetailPage() {
                         Mới ứng tuyển
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[9px] font-bold text-slate-300 uppercase tracking-wider">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-[#E8C8C2] bg-[#FFF3F1] px-2 py-0.5 text-[9px] font-bold text-[#8F0709] uppercase tracking-wider dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                         {stage}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                <div className="pt-2 border-t border-[#F0D6D0] flex items-center justify-between gap-2 dark:border-white/5">
                   <div className="min-w-0">
                     {referrerName ? (
                       <span className="inline-flex items-center gap-1 rounded-md bg-cyan-400/10 border border-cyan-500/25 px-2 py-0.5 text-[9.5px] font-bold text-cyan-300 tracking-wide truncate">
@@ -1002,7 +1002,7 @@ export default function CampaignDetailPage() {
                         Giới thiệu: {referrerName}
                       </span>
                     ) : (
-                      <span className="text-[11px] text-slate-400 font-medium">Ứng tuyển trực tiếp</span>
+                      <span className="text-[11px] text-[#574D54] font-medium dark:text-slate-400">Ứng tuyển trực tiếp</span>
                     )}
                   </div>
 
@@ -1015,7 +1015,7 @@ export default function CampaignDetailPage() {
                     ) : (
                       <button
                         onClick={() => router.push(`/brand/talents/${talent.id}`)}
-                        className="inline-flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 text-slate-200 px-2.5 py-1.5 text-[10px] font-black uppercase transition-all cursor-pointer hover:bg-white/10"
+                        className="inline-flex items-center gap-1 rounded-xl border border-[#E8C8C2] bg-white px-2.5 py-1.5 text-[10px] font-black uppercase text-[#8F0709] transition-all hover:bg-[#FFF3F1] cursor-pointer dark:bg-white/5 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10"
                       >
                         <Eye className="h-3.5 w-3.5 text-slate-400" />
                         Xem
@@ -1048,7 +1048,7 @@ export default function CampaignDetailPage() {
       </section>
 
       {/* Affiliate Link Bar (full width, horizontal) */}
-      <div className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-gradient-to-b from-[#150f02]/90 to-[#050712]/95 shadow-[0_0_30px_rgba(245,158,11,0.08)] p-5">
+      <div className="relative overflow-hidden rounded-3xl border border-[#E8C8C2] bg-white p-5 shadow-[0_16px_40px_rgba(143,7,9,0.08)] dark:border-amber-400/20 dark:bg-gradient-to-b dark:from-[#150f02]/90 dark:to-[#050712]/95 dark:shadow-[0_0_30px_rgba(245,158,11,0.08)]">
         <div className="absolute right-[-60px] top-[-60px] h-40 w-40 rounded-full bg-amber-300/6 blur-3xl pointer-events-none" />
         <div className="relative flex flex-col xl:flex-row xl:items-center justify-between gap-5">
           {/* Left: Icon + Label + Description */}
@@ -1060,10 +1060,10 @@ export default function CampaignDetailPage() {
               <span className="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-400/25 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
                 LINK ỨNG TUYỂN JOB
               </span>
-              <h3 className="font-display font-black text-sm text-white uppercase tracking-wider">
+              <h3 className="font-display font-black text-sm text-[#191116] uppercase tracking-wider dark:text-white">
                 Ứng tuyển Job
               </h3>
-              <p className="text-[11px] text-slate-400 leading-normal">
+              <p className="text-[11px] text-[#574D54] leading-normal dark:text-slate-400">
                 Chia sẻ link này cho Talent để họ xem chi tiết chiến dịch và đăng ký tham gia.
               </p>
             </div>
@@ -1098,7 +1098,7 @@ export default function CampaignDetailPage() {
         </div>
 
         {/* URL display */}
-        <div className="relative mt-4 flex min-w-0 items-center gap-3 rounded-2xl bg-[#04060a]/90 border border-amber-400/10 px-4 py-3 font-mono text-xs font-bold text-amber-100/90">
+        <div className="relative mt-4 flex min-w-0 items-center gap-3 rounded-2xl border border-[#E8C8C2] bg-[#FFF7F6] px-4 py-3 font-mono text-xs font-bold text-[#8F0709] dark:bg-[#04060a]/90 dark:border-amber-400/10 dark:text-amber-100/90">
           <Link2 className="h-4 w-4 text-amber-400 shrink-0" />
           <span className="truncate select-all flex-1">
             {referralLink || (isGeneratingLink ? "Đang tạo link ứng tuyển..." : "Chưa có liên kết ứng tuyển")}
@@ -1110,56 +1110,56 @@ export default function CampaignDetailPage() {
       <section className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
 
         {/* Left Column (7 columns): Mô tả chung */}
-        <div className="xl:col-span-7 rounded-3xl border border-white/5 bg-slate-950/25 p-6 text-left self-stretch flex flex-col justify-between">
-          <div className="mb-5 flex items-center justify-between border-b border-white/5 pb-3">
-            <h2 className="text-xs font-black uppercase tracking-widest text-slate-350 flex items-center gap-1.5">
+        <div className="xl:col-span-7 rounded-3xl border border-[#E8C8C2] bg-white p-6 text-left self-stretch flex flex-col justify-between shadow-[0_12px_32px_rgba(143,7,9,0.06)] dark:border-white/5 dark:bg-slate-950/25 dark:shadow-none">
+          <div className="mb-5 flex items-center justify-between border-b border-[#F0D6D0] pb-3 dark:border-white/5">
+            <h2 className="text-xs font-black uppercase tracking-widest text-[#191116] dark:text-slate-350 flex items-center gap-1.5">
               <Briefcase className="h-4.5 w-4.5 text-amber-400" /> Mô tả công việc
             </h2>
           </div>
 
-          <div className="divide-y divide-white/5 text-xs flex-1 flex flex-col justify-around">
+          <div className="divide-y divide-[#F0D6D0] dark:divide-white/5 text-xs flex-1 flex flex-col justify-around">
             <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5 first:pt-0">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Thù lao</span>
-              <p className="font-black text-amber-300 text-sm leading-none">{selectedCampaign.budget}</p>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Thù lao</span>
+              <p className="font-black text-[#8F0709] text-sm leading-none dark:text-amber-300">{selectedCampaign.budget}</p>
             </div>
 
             {/* Loại hình job + Số lượng tuyển */}
             <div className="grid grid-cols-2 gap-3 py-3.5">
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Loại hình job</span>
-                <p className="mt-1 text-xs font-bold text-slate-200">{selectedCampaign.jobType || "Không có"}</p>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Loại hình job</span>
+                <p className="mt-1 text-xs font-bold text-[#191116] dark:text-slate-200">{selectedCampaign.jobType || "Không có"}</p>
               </div>
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Số lượng tuyển</span>
-                <p className="mt-1 text-xs font-black text-amber-300">{selectedCampaign.talentQuantity ? `${selectedCampaign.talentQuantity} người` : "Không có"}</p>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Số lượng tuyển</span>
+                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">{selectedCampaign.talentQuantity ? `${selectedCampaign.talentQuantity} người` : "Không có"}</p>
               </div>
             </div>
 
             {/* Thành phố + Địa điểm */}
             <div className="grid grid-cols-2 gap-3 py-3.5">
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Thành phố</span>
-                <p className="mt-1 text-xs font-bold text-slate-200">{selectedCampaign.city || "Không có"}</p>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Thành phố</span>
+                <p className="mt-1 text-xs font-bold text-[#191116] dark:text-slate-200">{selectedCampaign.city || "Không có"}</p>
               </div>
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Địa điểm</span>
-                <p className="mt-1 text-xs text-slate-300">{selectedCampaign.address || "Không có"}</p>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Địa điểm</span>
+                <p className="mt-1 text-xs text-[#574D54] dark:text-slate-300">{selectedCampaign.address || "Không có"}</p>
               </div>
             </div>
 
             {/* 4 mốc thời gian */}
             <div className="grid grid-cols-2 gap-3 py-3.5">
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Bắt đầu job</span>
-                <p className="mt-1 text-xs font-black text-amber-300">{displayCampaignDate(selectedCampaign.startDate) || "Không có"}</p>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Bắt đầu job</span>
+                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">{displayCampaignDate(selectedCampaign.startDate) || "Không có"}</p>
               </div>
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kết thúc job</span>
-                <p className="mt-1 text-xs font-black text-amber-300">{displayCampaignDate(selectedCampaign.endDate) || "Không có"}</p>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Kết thúc job</span>
+                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">{displayCampaignDate(selectedCampaign.endDate) || "Không có"}</p>
               </div>
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Sự kiện chính</span>
-                <p className="mt-1 text-xs font-black text-amber-300">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Sự kiện chính</span>
+                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">
                   {selectedCampaign.eventDate
                     ? displayCampaignDate(selectedCampaign.eventDate)
                     : (selectedCampaign.startDate && selectedCampaign.endDate
@@ -1168,31 +1168,35 @@ export default function CampaignDetailPage() {
                 </p>
               </div>
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Hạn ứng tuyển</span>
-                <p className="mt-1 text-xs font-black text-amber-300">{displayCampaignDate(selectedCampaign.applicationDeadline || selectedCampaign.deadline) || "Không có"}</p>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Hạn ứng tuyển</span>
+                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">{displayCampaignDate(selectedCampaign.applicationDeadline || selectedCampaign.deadline) || "Không có"}</p>
+              </div>
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Thời gian onstage</span>
+                <p className="mt-1 text-xs font-black text-[#8F0709] dark:text-amber-300">{selectedCampaign.onstageTime || selectedCampaign.eventTime || "Không có"}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Quyền lợi</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Quyền lợi</span>
               {(() => {
                 const benefitItems = displayListText(selectedCampaign.benefits);
                 return benefitItems.length > 1 ? (
-                  <ul className="max-h-36 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin text-justify">
+                  <ul className="max-h-36 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-[#574D54] scrollbar-thin text-justify dark:text-slate-300">
                     {benefitItems.map((item, idx) => (
                       <li key={`${item}-${idx}`}>{item}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="max-h-36 overflow-y-auto pr-2 leading-relaxed text-slate-300 scrollbar-thin text-justify" title={selectedCampaign.benefits}>{benefitItems[0] || "-"}</p>
+                  <p className="max-h-36 overflow-y-auto pr-2 leading-relaxed text-[#574D54] scrollbar-thin text-justify dark:text-slate-300" title={selectedCampaign.benefits}>{benefitItems[0] || "-"}</p>
                 );
               })()}
             </div>
 
             {selectedCampaign.description && (
               <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Mô tả</span>
-                <p className="leading-relaxed text-slate-300 text-justify">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Mô tả</span>
+                <p className="leading-relaxed text-[#574D54] text-justify dark:text-slate-300">
                   {sentenceCaseText(selectedCampaign.description)}
                 </p>
               </div>
@@ -1200,8 +1204,8 @@ export default function CampaignDetailPage() {
 
             {selectedCampaign.responsibilities && selectedCampaign.responsibilities.length > 0 && (
               <div className="grid grid-cols-[70px_minmax(0,1fr)] gap-3 py-3.5 last:pb-0">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Đầu việc</span>
-                <ul className="max-h-36 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-slate-300 scrollbar-thin text-justify">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Đầu việc</span>
+                <ul className="max-h-36 list-disc space-y-1 overflow-y-auto pr-2 pl-4 leading-relaxed text-[#574D54] scrollbar-thin text-justify dark:text-slate-300">
                   {selectedCampaign.responsibilities.map((item, idx) => (
                     <li key={`${item}-${idx}`}>{sentenceCaseText(item)}</li>
                   ))}
@@ -1224,10 +1228,10 @@ export default function CampaignDetailPage() {
             selectedCampaign.deadline ||
             selectedCampaign.contactNote ||
             Boolean(selectedCampaign.sponsorships?.length)) && (
-              <div className="rounded-3xl border border-white/5 bg-slate-950/25 p-6 text-left h-full flex flex-col justify-between">
+              <div className="rounded-3xl border border-[#E8C8C2] bg-white p-6 text-left h-full flex flex-col justify-between shadow-[0_12px_32px_rgba(143,7,9,0.06)] dark:border-white/5 dark:bg-slate-950/25 dark:shadow-none">
                 <div>
-                  <div className="mb-5 flex items-center justify-between gap-3 border-b border-white/5 pb-3">
-                    <h2 className="text-xs font-black uppercase tracking-widest text-slate-350 flex items-center gap-1.5">
+                  <div className="mb-5 flex items-center justify-between gap-3 border-b border-[#F0D6D0] pb-3 dark:border-white/5">
+                    <h2 className="text-xs font-black uppercase tracking-widest text-[#191116] dark:text-slate-350 flex items-center gap-1.5">
                       <Calendar className="h-4 w-4 text-amber-400" /> Yêu cầu tuyển chọn
                     </h2>
                   </div>
@@ -1236,35 +1240,35 @@ export default function CampaignDetailPage() {
 
                     {/* Yêu cầu */}
                     <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Yêu cầu</span>
-                      <p className="text-xs leading-relaxed text-slate-300 text-justify">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Yêu cầu</span>
+                      <p className="text-xs leading-relaxed text-[#574D54] text-justify dark:text-slate-300">
                         {selectedCampaign.requirements ? sentenceCaseText(selectedCampaign.requirements) : "Không có"}
                       </p>
                     </div>
 
                     {/* Chiều cao / Cân nặng / Kinh nghiệm */}
                     <div className="space-y-1.5">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Chiều cao tối thiểu</span>
-                      <p className="text-xs font-bold leading-relaxed text-slate-200">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Chiều cao tối thiểu</span>
+                      <p className="text-xs font-bold leading-relaxed text-[#191116] dark:text-slate-200">
                         {selectedCampaign.heightMinCm ? `${selectedCampaign.heightMinCm} cm` : "Không có"}
                       </p>
                     </div>
                     <div className="space-y-1.5">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Cân nặng tối đa</span>
-                      <p className="text-xs font-bold leading-relaxed text-slate-200">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Cân nặng tối đa</span>
+                      <p className="text-xs font-bold leading-relaxed text-[#191116] dark:text-slate-200">
                         {selectedCampaign.weightMaxKg ? `${selectedCampaign.weightMaxKg} kg` : "Không có"}
                       </p>
                     </div>
                     <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Kinh nghiệm tối thiểu</span>
-                      <p className="text-xs font-bold leading-relaxed text-slate-200">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Kinh nghiệm tối thiểu</span>
+                      <p className="text-xs font-bold leading-relaxed text-[#191116] dark:text-slate-200">
                         {selectedCampaign.experienceMinYears ? `${selectedCampaign.experienceMinYears} năm` : "Không có"}
                       </p>
                     </div>
 
                     {/* Vị trí tuyển */}
                     <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Vị trí tuyển</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Vị trí tuyển</span>
                       {selectedCampaign.roles && selectedCampaign.roles.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {selectedCampaign.roles.map((role, idx) => (
@@ -1274,13 +1278,13 @@ export default function CampaignDetailPage() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-400">Không có</p>
+                        <p className="text-xs text-[#574D54] dark:text-slate-400">Không có</p>
                       )}
                     </div>
 
                     {/* Nhóm talent phù hợp */}
                     <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Nhóm talent phù hợp</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Nhóm talent phù hợp</span>
                       {selectedCampaign.targetProfiles && selectedCampaign.targetProfiles.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {selectedCampaign.targetProfiles.map((profile, idx) => (
@@ -1290,13 +1294,13 @@ export default function CampaignDetailPage() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-400">Không có</p>
+                        <p className="text-xs text-[#574D54] dark:text-slate-400">Không có</p>
                       )}
                     </div>
 
                     {/* Lĩnh vực */}
                     <div className="space-y-1.5 col-span-2">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Lĩnh vực công việc</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">Lĩnh vực công việc</span>
                       {selectedCampaign.industries && selectedCampaign.industries.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {selectedCampaign.industries.map((industry, idx) => (
@@ -1306,7 +1310,7 @@ export default function CampaignDetailPage() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-400">Không có</p>
+                        <p className="text-xs text-[#574D54] dark:text-slate-400">Không có</p>
                       )}
                     </div>
 
@@ -1320,20 +1324,20 @@ export default function CampaignDetailPage() {
       {/* 3. Bộ ảnh job */}
       <section className="space-y-5">
         {/* Bộ ảnh job (full width) */}
-        <div className="rounded-3xl border border-white/10 bg-slate-950/25 p-6 text-left">
-          <div className="mb-6 flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-start sm:justify-between text-left">
+        <div className="rounded-3xl border border-[#E8C8C2] bg-white p-6 text-left shadow-[0_12px_32px_rgba(143,7,9,0.06)] dark:border-white/10 dark:bg-slate-950/25 dark:shadow-none">
+          <div className="mb-6 flex flex-col gap-3 border-b border-[#F0D6D0] pb-4 sm:flex-row sm:items-start sm:justify-between text-left dark:border-white/10">
             <div className="flex items-start gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/20 bg-amber-400/10">
                 <ImagePlus className="h-4.5 w-4.5 text-amber-300" />
               </div>
               <div>
-                <h2 className="text-sm font-black uppercase tracking-wider text-white">Bộ ảnh job</h2>
+                <h2 className="text-sm font-black uppercase tracking-wider text-[#191116] dark:text-white">Bộ ảnh job</h2>
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                   Tải lên các hình ảnh bạn muốn dùng cho job (Tối đa 10 ảnh)
                 </p>
               </div>
             </div>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400 shrink-0">
+            <span className="rounded-full border border-[#E8C8C2] bg-[#FFF7F6] px-3 py-1 text-[9px] font-black uppercase tracking-wider text-[#8F0709] shrink-0 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
               {selectedCampaign.media?.length || 0}/10 ảnh
             </span>
           </div>
@@ -1341,7 +1345,7 @@ export default function CampaignDetailPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {/* Upload block (only show if < 10 images) */}
             {(selectedCampaign.media?.length || 0) < 10 && (
-              <label className="group relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/20 bg-slate-900/60 p-4 text-center transition-all hover:border-amber-400 hover:bg-slate-900">
+              <label className="group relative flex aspect-[4/5] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-[#E8C8C2] bg-[#FFF7F6] p-4 text-center transition-all hover:border-[#C72524]/50 hover:bg-[#FFF3F1] dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-amber-400 dark:hover:bg-slate-900">
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
@@ -1350,7 +1354,7 @@ export default function CampaignDetailPage() {
                   className="hidden"
                 />
                 <ImagePlus className="mb-3 h-8 w-8 text-slate-400 transition-colors group-hover:text-amber-300" />
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-100">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-slate-100">
                   {isUploadingMedia ? "Đang tải..." : "Tải ảnh lên"}
                 </span>
                 <span className="mt-1 text-[8.5px] font-medium leading-relaxed text-slate-500">
@@ -1361,7 +1365,7 @@ export default function CampaignDetailPage() {
 
             {(selectedCampaign.media || []).map((media, index) => (
               media.url ? (
-                <div key={`${media.id || media.url || index}`} className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 bg-slate-950">
+                <div key={`${media.id || media.url || index}`} className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-[#E8C8C2] bg-white dark:border-white/10 dark:bg-slate-950">
                   <img
                     src={media.url}
                     alt={media.caption || selectedCampaign.title}

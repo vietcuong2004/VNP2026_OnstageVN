@@ -17,6 +17,9 @@ export function requireTalentSession() {
 
 type BackendPhoto = {
   id: number;
+  user_id?: number | string | null;
+  is_owner?: boolean | number | null;
+  can_book?: boolean | number | null;
   url?: string | null;
   path?: string | null;
   caption?: string | null;
@@ -1173,6 +1176,7 @@ function dailyCompensation(value: number) {
 }
 
 function moneyRange(min?: number | null, max?: number | null) {
+  if (min && max && min === max) return dailyCompensation(min);
   if (min && max) {
     const pMin = parseCompensation(min);
     const pMax = parseCompensation(max);
@@ -1271,6 +1275,8 @@ export function mapCampaignToTalentJob(campaign: any) {
     endTime: campaign.end_time || campaign.endTime || "",
     onstageTime: campaign.onstage_time || campaign.event_time || campaign.onstageTime || campaign.eventTime || "",
     eventTime: campaign.event_time || campaign.onstage_time || campaign.eventTime || campaign.onstageTime || "",
+    isOwner: Boolean(campaign.is_owner),
+    canApply: campaign.can_apply !== false && campaign.can_apply !== 0,
     publishedAt: campaign.published_at || "",
     createdAt: campaign.created_at || "",
     created_at: campaign.created_at || "",

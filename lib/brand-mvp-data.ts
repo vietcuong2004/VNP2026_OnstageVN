@@ -22,6 +22,7 @@ export type TalentBadge = {
 
 export type TalentProfile = {
   id: string;
+  userId?: string;
   name: string;
   type: string;
   talentTypes?: string[];
@@ -40,6 +41,8 @@ export type TalentProfile = {
   tier: "S" | "A" | "B" | "C" | "Potential";
   badges?: TalentBadge[];
   active_badges?: TalentBadge[];
+  isOwner?: boolean;
+  canBook?: boolean;
   verified: boolean;
   rating: number;
   completedJobs: number;
@@ -141,6 +144,10 @@ export type Campaign = {
   endDate: string;
   applicationDeadline?: string;
   eventDate?: string;
+  onstageTime?: string;
+  eventTime?: string;
+  isOwner?: boolean;
+  canApply?: boolean;
   deadline: string;
   talentQuantity: number;
   budget: string;

@@ -66,6 +66,7 @@ export default function TalentCardMobile({
   const profilePills = [...socialHighlights, ...talentSkills];
   const bioText = talent?.experience || talent?.bio || talent?.summary || talent?.description || talent?.introduction || "";
   const hasActions = Boolean(onView || onToggleSaved || onMessage);
+  const isOwnTalent = Boolean(talent?.isOwner || talent?.is_owner || talent?.canBook === false || talent?.can_book === false);
   const talentBadgeSeed = talent?.id || talent?.slug || talent?.email || talent?.name;
   const primaryBadge = getTalentPrimaryBadge(talent);
   const tierBadge = getBackendBadgeConfig(primaryBadge, talent?.tier);
@@ -236,11 +237,13 @@ export default function TalentCardMobile({
             type="button"
             onClick={(e) => {
               stopCardClick(e);
+              if (isOwnTalent) return;
               const targetId = talent?.profileId || talent?.profile_id || talent?.id || talent?.slug;
               if (!targetId) return;
               router.push(`/booking?talentId=${encodeURIComponent(String(targetId))}`);
             }}
-            className="flex min-h-[38px] w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl border border-[#D8A8A3] bg-[#FFF7F6] px-3 text-center text-[#C72524] transition-all hover:border-[#C72524]/55 hover:bg-[#FFF1EF] active:scale-95 dark:border-amber-500/50 dark:bg-[#282110] dark:text-amber-300 dark:hover:brightness-125"
+            disabled={isOwnTalent}
+            className="flex min-h-[38px] w-full cursor-pointer items-center justify-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50 rounded-2xl border border-[#D8A8A3] bg-[#FFF7F6] px-3 text-center text-[#C72524] transition-all hover:border-[#C72524]/55 hover:bg-[#FFF1EF] active:scale-95 dark:border-amber-500/50 dark:bg-[#282110] dark:text-amber-300 dark:hover:brightness-125"
             title="Đặt ngay dịch vụ của Idol"
           >
             <CalendarCheck className="h-3.5 w-3.5 shrink-0 text-[#C72524] dark:text-amber-400" />
@@ -255,8 +258,10 @@ export default function TalentCardMobile({
               type="button"
               onClick={(event) => {
                 stopCardClick(event);
+                if (isOwnTalent) return;
                 onToggleSaved(talent);
               }}
+              disabled={isOwnTalent}
               className={cn(
                 "flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-2xl px-3 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer",
                 isSaved

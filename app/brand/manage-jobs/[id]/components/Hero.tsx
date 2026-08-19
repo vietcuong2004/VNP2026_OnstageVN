@@ -84,7 +84,7 @@ export default function Hero({
   return (
     <>
       {/* 1. HERO MỞ RỘNG (HERO + KPI) */}
-      <section className="relative rounded-3xl border border-white/5 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.08),transparent_40%),linear-gradient(135deg,rgba(15,23,42,0.92),rgba(2,6,23,0.97))] p-4 sm:py-5 sm:px-6 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+      <section className="relative rounded-3xl border border-[#E8C8C2] bg-white p-4 shadow-[0_18px_50px_rgba(143,7,9,0.08)] sm:py-5 sm:px-6 dark:border-white/5 dark:bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.08),transparent_40%),linear-gradient(135deg,rgba(15,23,42,0.92),rgba(2,6,23,0.97))] dark:shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
         {/* Ambient background glow inside clipped container */}
         <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl" />
@@ -98,9 +98,9 @@ export default function Hero({
               <button
                 type="button"
                 onClick={onBack}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-slate-900/90 px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-slate-200 hover:border-amber-400/50 hover:bg-amber-500/15 hover:text-amber-300 transition-all duration-200 cursor-pointer shadow-md hover:shadow-amber-500/10 active:scale-95 group"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#E8C8C2] bg-white px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-[#8F0709] shadow-sm transition-all duration-200 hover:border-[#C72524]/40 hover:bg-[#FFF3F1] active:scale-95 cursor-pointer group dark:border-white/15 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:border-amber-400/50 dark:hover:bg-amber-500/15 dark:hover:text-amber-300 dark:hover:shadow-amber-500/10"
               >
-                <ArrowLeft className="h-4 w-4 text-amber-400 group-hover:-translate-x-0.5 transition-transform" />
+                <ArrowLeft className="h-4 w-4 text-[#8F0709] transition-transform group-hover:-translate-x-0.5 dark:text-amber-400" />
                 <span>Quay lại</span>
               </button>
 
@@ -109,14 +109,14 @@ export default function Hero({
                 <button
                   type="button"
                   onClick={() => setShowMenu((prev) => !prev)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700/80 bg-slate-900/80 text-amber-300 hover:bg-amber-500/20 hover:border-amber-400 cursor-pointer transition-all shadow-md active:scale-95"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E8C8C2] bg-white text-[#8F0709] shadow-sm transition-all hover:border-[#C72524]/40 hover:bg-[#FFF3F1] active:scale-95 cursor-pointer dark:border-slate-700/80 dark:bg-slate-900/80 dark:text-amber-300 dark:hover:bg-amber-500/20 dark:hover:border-amber-400 dark:shadow-md"
                   title="Tùy chọn khác"
                 >
                   <MoreVertical className="h-4 w-4" />
                 </button>
 
                 {showMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-amber-500/30 bg-[#0d1226] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.95)] backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150 text-left">
+                  <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-[#E8C8C2] bg-white p-1.5 shadow-[0_20px_50px_rgba(143,7,9,0.16)] backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-150 text-left dark:border-amber-500/30 dark:bg-[#0d1226] dark:shadow-[0_20px_50px_rgba(0,0,0,0.95)]">
                     {onEditCampaign && (
                       <button
                         type="button"
@@ -124,7 +124,7 @@ export default function Hero({
                           setShowMenu(false);
                           onEditCampaign();
                         }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-[#574D54] transition-colors hover:bg-[#FFF3F1] hover:text-[#8F0709] cursor-pointer dark:text-slate-200 dark:hover:bg-amber-500/15 dark:hover:text-amber-300"
                       >
                         <Pencil className="h-4 w-4 text-amber-400" />
                         <span>Sửa job</span>
@@ -138,7 +138,7 @@ export default function Hero({
                           setShowMenu(false);
                           setShowCloseConfirm(true);
                         }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-[#574D54] transition-colors hover:bg-[#FFF3F1] hover:text-[#8F0709] cursor-pointer dark:text-slate-200 dark:hover:bg-amber-500/15 dark:hover:text-amber-300"
                       >
                         <Lock className="h-4 w-4 text-amber-400" />
                         <span>Đóng job</span>
@@ -150,7 +150,7 @@ export default function Hero({
                           setShowMenu(false);
                           onUpdateStatus("published");
                         }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-[#574D54] transition-colors hover:bg-[#FFF3F1] hover:text-[#8F0709] cursor-pointer dark:text-slate-200 dark:hover:bg-amber-500/15 dark:hover:text-amber-300"
                       >
                         <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                         <span>Mở lại job</span>
@@ -163,7 +163,7 @@ export default function Hero({
                         setShowMenu(false);
                         setShowDeleteConfirm(true);
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/15 hover:text-red-300 transition-colors cursor-pointer border-t border-slate-800/80 mt-1 pt-2"
+                      className="flex w-full items-center gap-2.5 rounded-xl border-t border-[#F0D6D0] px-3 py-2 pt-2 mt-1 text-xs font-bold text-[#B80F14] transition-colors hover:bg-[#FFF3F1] hover:text-[#8F0709] cursor-pointer dark:border-slate-800/80 dark:text-red-400 dark:hover:bg-red-500/15 dark:hover:text-red-300"
                     >
                       <Trash2 className="h-4 w-4 text-red-400" />
                       <span>Xóa job</span>
@@ -174,22 +174,22 @@ export default function Hero({
             </div>
 
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-cyan-300">
+              <span className="rounded-full border border-[#E8C8C2] bg-[#FFF3F1] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[#8F0709] dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-300">
                 {selectedCampaign.jobType}
               </span>
               <span className={cn(
                 "rounded-full border px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider",
                 selectedCampaign.status === "published"
-                  ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20"
                   : selectedCampaign.status === "closed"
-                    ? "bg-slate-500/10 text-slate-400 border-white/5"
-                    : "bg-amber-500/10 text-amber-300 border-amber-500/20"
+                    ? "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-white/5"
+                    : "bg-[#FFF7E7] text-[#8F0709] border-[#E8C8C2] dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20"
               )}>
                 {statusLabel(selectedCampaign.status)}
               </span>
             </div>
 
-            <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
+            <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-[#191116] leading-tight dark:text-white">
               {selectedCampaign.title}
             </h1>
           </div>
@@ -221,7 +221,7 @@ export default function Hero({
         </div>
 
         {/* Divider line inside Hero */}
-        <div className="my-3 border-t border-white/5 relative z-0" />
+        <div className="my-3 border-t border-[#F0D6D0] relative z-0 dark:border-white/5" />
 
         {/* Integrated KPI quick stats */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 relative z-0 text-left">
@@ -261,12 +261,12 @@ export default function Hero({
             const Icon = item.icon;
             return (
               <div key={idx} className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-slate-900/30">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#F0D6D0] bg-[#FFF7F6] dark:border-white/5 dark:bg-slate-900/30">
                   <Icon className={cn("h-4 w-4", item.color)} />
                 </div>
                 <div className="min-w-0">
-                  <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-500">{item.label}</span>
-                  <span className="block text-[10px] sm:text-[11px] font-extrabold text-white mt-0.5 leading-tight whitespace-normal sm:whitespace-nowrap sm:truncate" title={item.titleText}>
+                  <span className="block text-[8px] font-bold uppercase tracking-wider text-[#8F0709]/60 dark:text-slate-500">{item.label}</span>
+                  <span className="block text-[10px] sm:text-[11px] font-extrabold text-[#191116] mt-0.5 leading-tight whitespace-normal sm:whitespace-nowrap sm:truncate dark:text-white" title={item.titleText}>
                     {item.value}
                   </span>
                 </div>

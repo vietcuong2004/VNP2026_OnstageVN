@@ -327,6 +327,10 @@ export default function JobDetailPage() {
 
   const handleToggleBookmark = async () => {
     if (!job) return;
+    if (isOwnJob) {
+      addToast("Bạn không thể lưu job do chính mình tạo.", "error");
+      return;
+    }
     try {
       const res = await toggleSavedJobForSession(job);
       setIsSaved(res.isSaved);
@@ -339,6 +343,10 @@ export default function JobDetailPage() {
 
   const handleApply = async () => {
     if (!job) return;
+    if (isOwnJob) {
+      addToast("Bạn không thể ứng tuyển job do chính mình tạo.", "error");
+      return;
+    }
     if (isApplicationDeadlineExpired(job.applicationDeadline || job.deadline)) {
       addToast("Công việc đã hết hạn ứng tuyển.", "error");
       return;
@@ -402,6 +410,8 @@ export default function JobDetailPage() {
     : [];
   const deadline = job.applicationDeadline || job.deadline;
   const isExpired = isApplicationDeadlineExpired(deadline);
+  const isOwnJob = Boolean(job.isOwner || job.is_owner || job.canApply === false || job.can_apply === false);
+  const onstageTime = job.onstageTime || job.eventTime || job.onstage_time || job.event_time || "";
   const rawRecruitmentPositions =
     (Array.isArray(detail.recruitmentPositions) && detail.recruitmentPositions) ||
     (Array.isArray(detail.positions) && detail.positions) ||
@@ -468,6 +478,13 @@ export default function JobDetailPage() {
     : [];
 
   const renderFooterAction = () => {
+    if (isOwnJob) {
+      return (
+        <button disabled className="px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-bold bg-slate-500/15 border border-slate-500/25 text-slate-400 cursor-not-allowed uppercase tracking-wider">
+          Job của bạn
+        </button>
+      );
+    }
     if (!isApplied && isExpired) {
       return (
         <button disabled className="px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-bold bg-slate-500/15 border border-slate-500/25 text-slate-400 cursor-not-allowed uppercase tracking-wider">
@@ -506,8 +523,9 @@ export default function JobDetailPage() {
     <button
       type="button"
       onClick={handleToggleBookmark}
+      disabled={isOwnJob}
       className={cn(
-        "inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-black border shadow-[0_0_18px_rgba(0,0,0,0.25)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-wider",
+        "inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-display text-xs sm:text-sm font-black border shadow-[0_0_18px_rgba(0,0,0,0.25)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-50",
         isSaved
           ? "light-force-white border-[#C72524]/70 bg-[#C72524] text-white dark:border-emerald-400/40 dark:bg-emerald-500/15 dark:text-emerald-300"
           : "border-[#E8C8C2] bg-white text-[#8F0709] hover:border-[#C72524]/45 hover:bg-[#FFF3F1] dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100 dark:hover:border-amber-400/35 dark:hover:text-amber-200"
@@ -519,6 +537,14 @@ export default function JobDetailPage() {
   );
 
   const renderMobileFooterAction = () => {
+    if (isOwnJob) {
+      return (
+        <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-slate-500/15 border border-slate-500/25 text-slate-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
+          Job của bạn
+        </button>
+      );
+    }
+
     if (!isApplied && isExpired) {
       return (
         <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-slate-500/15 border border-slate-500/25 text-slate-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
@@ -637,7 +663,7 @@ export default function JobDetailPage() {
           </p>
 
           {/* Key Metrics Highlight Cards */}
-          <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)]">
+          <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2 lg:grid-cols-4">
             <div className="light-force-white relative overflow-hidden rounded-2xl border border-[#C72524]/20 bg-gradient-to-br from-[#8F0709] via-[#C72524] to-[#D85E5A] p-4 flex flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.14)] dark:border-amber-500/25 dark:bg-gradient-to-br dark:from-amber-500/10 dark:via-[#0e1322] dark:to-[#080a12]">
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-white dark:text-amber-400">
                 <DollarSign className="h-4 w-4 text-current shrink-0 dark:text-amber-400" />
@@ -665,6 +691,17 @@ export default function JobDetailPage() {
               </div>
               <div className="min-w-0 font-semibold text-xs sm:text-sm text-[#191116] break-words [overflow-wrap:anywhere] dark:text-slate-100" title={job.location || "Không có"}>
                 {job.location || "Không có"}
+              </div>
+            </div>
+
+
+            <div className="rounded-2xl border border-[#F0D6D0] bg-white p-4 flex flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.06)] dark:border-[#1b233a] dark:bg-[#0c101d] dark:shadow-none">
+              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#8F0709] dark:text-slate-400">
+                <Clock className="h-4 w-4 text-[#B9861B] shrink-0 dark:text-amber-400" />
+                Thời gian onstage
+              </div>
+              <div className="font-semibold text-xs sm:text-sm text-[#191116] dark:text-slate-100">
+                {onstageTime || "Không có"}
               </div>
             </div>
           </div>
