@@ -52,7 +52,7 @@ export default function JobInfoSection({
         {onstageTime ? (
           <div className="flex items-center gap-2 text-[#574D54] dark:text-slate-300">
             <Calendar className="h-4 w-4 text-[#B9861B] shrink-0 dark:text-slate-400" />
-            <span className="text-[#574D54] font-medium dark:text-slate-400">Th?i gian onstage:</span>
+            <span className="text-[#574D54] font-medium dark:text-slate-400">Thời gian onstage:</span>
             <span className="font-semibold text-[#191116] dark:text-slate-100">{onstageTime}</span>
           </div>
         ) : null}
