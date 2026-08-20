@@ -1,25 +1,18 @@
 import type { Metadata } from "next";
-import { getSiteUrl } from "@/lib/site-url";
-
-const SITE_URL = getSiteUrl();
-const ASSET_VERSION = "10";
-const SHARE_IMAGE_URL = `${SITE_URL}/logo_vuong.png?v=${ASSET_VERSION}`;
 
 export const metadata: Metadata = {
-  title: "Onstage VN",
-  description: "OnstageVN - Model Management System",
+  title: "Dành cho Model & Idol | Onstage VN",
+  description: "Bệ phóng tài năng, kết nối cơ hội việc làm, casting và hợp tác với các thương hiệu hàng đầu.",
   openGraph: {
     type: "website",
     siteName: "Onstage VN",
-    title: "Onstage VN",
-    description: "OnstageVN - Model Management System",
-    images: [{ url: SHARE_IMAGE_URL, secureUrl: SHARE_IMAGE_URL, type: "image/png", width: 180, height: 180, alt: "Onstage VN" }],
+    title: "Dành cho Model & Idol | Onstage VN",
+    description: "Bệ phóng tài năng, kết nối cơ hội việc làm, casting và hợp tác với các thương hiệu hàng đầu.",
   },
   twitter: {
-    card: "summary",
-    title: "Onstage VN",
-    description: "OnstageVN - Model Management System",
-    images: [SHARE_IMAGE_URL],
+    card: "summary_large_image",
+    title: "Dành cho Model & Idol | Onstage VN",
+    description: "Bệ phóng tài năng, kết nối cơ hội việc làm, casting và hợp tác với các thương hiệu hàng đầu.",
   },
 };
 
