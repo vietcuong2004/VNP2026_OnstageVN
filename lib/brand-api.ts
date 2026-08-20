@@ -279,6 +279,9 @@ type BackendBookingRequest = {
   package_id?: string | null;
   package_price?: number | string | null;
   client_budget_amount?: number | string | null;
+  total_amount?: number | string | null;
+  client_quoted_amount?: number | string | null;
+  total_actual_amount?: number | string | null;
   talent_payout_amount?: number | string | null;
   platform_fee_amount?: number | string | null;
   platform_fee_rate?: number | string | null;
@@ -1101,24 +1104,36 @@ export function mapBackendWishlist(wishlist: BackendWishlist, fallbackTalents: T
 }
 
 const BOOKING_STATUS_VALUES = [
+  "pending_confirmation",
+  "contacting_idols",
+  "need_replacement",
+  "idols_confirmed",
+  "waiting_payment",
+  "paid",
+  "waiting_payout",
+  "completed",
+  "cancelled",
   "deposit_pending",
   "submitted",
   "reviewing",
   "talent_confirming",
   "confirmed",
   "rejected",
-  "cancelled",
-  "completed",
 ] as const;
 
 type BookingStatusValue = (typeof BOOKING_STATUS_VALUES)[number];
 
 function mapBookingStatus(status?: string | null): BookingStatusValue {
-  const value = String(status || "").trim();
-  if ((BOOKING_STATUS_VALUES as readonly string[]).includes(value)) return value as BookingStatusValue;
-  if (value === "pending") return "deposit_pending";
-  if (value === "approved") return "confirmed";
-  return "deposit_pending";
+  const value = String(status || "").trim().toLowerCase();
+  if ((BOOKING_STATUS_VALUES as readonly string[]).includes(value)) {
+    if (value === "deposit_pending" || value === "submitted" || value === "reviewing") return "pending_confirmation";
+    if (value === "talent_confirming") return "contacting_idols";
+    if (value === "rejected") return "need_replacement";
+    return value as BookingStatusValue;
+  }
+  if (value === "pending" || value === "awaiting_transfer") return "pending_confirmation";
+  if (value === "approved") return "idols_confirmed";
+  return "pending_confirmation";
 }
 
 function formatBookingDate(value?: string | null) {
@@ -1173,6 +1188,8 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
   const bookedTalents = (booking.booked_talents ?? [])
     .map((item) => {
       const snapshot = mapBookingTalentSnapshot(item.talent ?? null, booking.job_type);
+      const rawPrice = item.talent?.profile?.price;
+      const parsedPrice = typeof rawPrice === "number" ? rawPrice : numberOrNull(String(rawPrice || "").replace(/\D/g, ""));
 
       return {
         id: String(item.id || item.talent_id || snapshot.talentId || ""),
@@ -1182,6 +1199,7 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
         talentRole: snapshot.talentRole,
         status: item.status || "pending",
         note: String(repairMojibake(item.talent_response_note || item.admin_note || "")).trim(),
+        price: parsedPrice ?? undefined,
       };
     })
     .filter((item) => item.id || item.talentId || item.talentName !== "Idol");
@@ -1189,7 +1207,10 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
   const isMultiple = bookingSelectionType === "multiple";
   const primaryTalent = bookedTalents[0] ?? mapBookingTalentSnapshot(booking.talent ?? null, booking.job_type);
   const bookingRole = normalizeBookingRoleLabel(booking);
-  const talentName = isMultiple
+  const hasSelectedTalent = Boolean(booking.talent_id || (bookedTalents.length > 0) || (booking.talent?.name && booking.talent?.name !== "Idol" && booking.talent?.name !== "0 Idol"));
+  const talentName = !hasSelectedTalent
+    ? "0 Idol"
+    : isMultiple
     ? `${bookedTalents.length || 0} Idol được chọn`
     : primaryTalent.talentName;
   const talentRole = bookingRole !== "Idol" ? bookingRole : primaryTalent.talentRole;
@@ -1197,11 +1218,37 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
   const talentAvatar = isMultiple
     ? createInitialAvatarDataUrl(talentName, requestCode)
     : primaryTalent.talentAvatar;
+  const isPaid = ["paid", "waiting_payout", "completed"].includes(String(booking.request_status || "").toLowerCase()) || booking.payment_status === "paid";
   const depositAmount = numberOrNull(booking.deposit_amount) ?? 200000;
+
+  let calculatedTalentQuote = 0;
+  if (bookedTalents && bookedTalents.length > 0) {
+    for (const bt of bookedTalents) {
+      if (bt.price && bt.price > 0) {
+        calculatedTalentQuote += Math.round(bt.price * 1.3);
+      }
+    }
+  } else if (booking.talent?.profile?.price) {
+    const rawP = String(booking.talent.profile.price).replace(/\D/g, "");
+    const p = Number(rawP);
+    if (p > 0) calculatedTalentQuote += Math.round(p * 1.3);
+  }
+
+  const rawTotalAmount = numberOrNull(booking.total_amount);
+  const rawClientQuoted = numberOrNull(booking.client_quoted_amount);
+  const clientQuotedAmount = (rawTotalAmount && rawTotalAmount > 0)
+    ? rawTotalAmount
+    : ((rawClientQuoted && rawClientQuoted > 0)
+      ? rawClientQuoted
+      : (calculatedTalentQuote > 0 ? calculatedTalentQuote : undefined));
+
   const clientBudgetAmount = numberOrNull(booking.client_budget_amount);
   const packagePrice = numberOrNull(booking.package_price);
-  const remainingAmount = numberOrNull(booking.remaining_amount);
-  const totalBudget = clientBudgetAmount ?? packagePrice ?? (remainingAmount !== null ? remainingAmount + depositAmount : undefined);
+  const backendRemaining = numberOrNull(booking.remaining_amount);
+  const totalBudget = (clientQuotedAmount && clientQuotedAmount > 0)
+    ? clientQuotedAmount
+    : (clientBudgetAmount ?? packagePrice ?? (backendRemaining !== null ? backendRemaining + depositAmount : depositAmount));
+  const remainingAmount = isPaid ? 0 : (backendRemaining !== null ? backendRemaining : Math.max(0, totalBudget - depositAmount));
 
   return {
     id: requestCode,
@@ -1218,7 +1265,10 @@ export function mapBackendBooking(booking: BackendBookingRequest) {
     endTime: formatBookingTime(booking.end_time),
     location: String(repairMojibake(booking.location || "")).trim(),
     depositAmount,
+    totalAmount: clientQuotedAmount ?? totalBudget,
     totalBudget,
+    clientQuotedAmount,
+    remainingAmount,
     contactName: String(repairMojibake(booking.contact_name || "")).trim(),
     contactPhone: booking.contact_phone || "",
     contactEmail: booking.contact_email || "",

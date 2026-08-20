@@ -24,32 +24,43 @@ type StoredBookingRecord = Omit<Partial<BookingRequest>, "status"> & {
 
 const STATUS_TABS: Array<{ value: "all" | BookingStatus; label: string }> = [
   { value: "all", label: "Tất cả" },
-  { value: "deposit_pending", label: "Chờ cọc" },
-  { value: "submitted", label: "Chờ kiểm tra" },
-  { value: "reviewing", label: "Đang xử lý" },
-  { value: "talent_confirming", label: "Chờ Idol" },
-  { value: "confirmed", label: "Đã xác nhận" },
-  { value: "rejected", label: "Từ chối" },
-  { value: "cancelled", label: "Đã hủy" },
+  { value: "pending_confirmation", label: "Chờ xác nhận" },
+  { value: "contacting_idols", label: "Đang liên hệ Idol" },
+  { value: "idols_confirmed", label: "Đã chốt Idol" },
+  { value: "waiting_payment", label: "Chờ thanh toán" },
+  { value: "paid", label: "Đã thanh toán" },
   { value: "completed", label: "Hoàn tất" },
+  { value: "cancelled", label: "Đã hủy" },
 ];
 
 function normalizeStoredBookingStatus(status?: string | null): BookingStatus {
-  switch (status) {
+  const value = String(status || "").trim().toLowerCase();
+  switch (value) {
+    case "pending_confirmation":
+    case "deposit_pending":
     case "submitted":
     case "reviewing":
+      return "pending_confirmation";
+    case "contacting_idols":
     case "talent_confirming":
-    case "confirmed":
+    case "need_replacement":
     case "rejected":
-    case "cancelled":
-    case "completed":
-      return status;
+      return "contacting_idols";
+    case "idols_confirmed":
+    case "confirmed":
     case "approved":
-    case "talent_accepted":
-      return "confirmed";
-    case "pending":
+      return "idols_confirmed";
+    case "waiting_payment":
+      return "waiting_payment";
+    case "paid":
+    case "waiting_payout":
+      return "paid";
+    case "completed":
+      return "completed";
+    case "cancelled":
+      return "cancelled";
     default:
-      return "deposit_pending";
+      return "pending_confirmation";
   }
 }
 
@@ -283,7 +294,7 @@ export default function MyBookingsPage() {
         </div>
 
         {/* Desktop Status Tabs */}
-        <div className="flex items-center gap-2 border-t border-[#F0D7D3] pt-3 dark:border-white/5">
+        <div className="flex items-center flex-wrap gap-2 border-t border-[#F0D7D3] pt-3 dark:border-white/5">
           {STATUS_TABS.map((tab) => {
             const isActive = activeTab === tab.value;
             return (

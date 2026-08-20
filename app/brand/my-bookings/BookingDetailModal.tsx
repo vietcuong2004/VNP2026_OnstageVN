@@ -14,6 +14,21 @@ interface BookingDetailModalProps {
 export default function BookingDetailModal({ booking, onClose }: BookingDetailModalProps) {
   if (!booking) return null;
 
+  const calculatedTalentsQuote = (booking.bookedTalents ?? []).reduce((sum, t) => {
+    return sum + (t.price && t.price > 0 ? Math.round(t.price * 1.3) : 0);
+  }, 0);
+
+  const totalPayable = (booking.totalAmount && booking.totalAmount > 0)
+    ? booking.totalAmount
+    : ((booking.clientQuotedAmount && booking.clientQuotedAmount > 0)
+      ? booking.clientQuotedAmount
+      : (calculatedTalentsQuote > 0
+        ? calculatedTalentsQuote
+        : (booking.totalBudget && booking.totalBudget > booking.depositAmount ? booking.totalBudget : (calculatedTalentsQuote || booking.totalBudget || booking.depositAmount))));
+
+  const isPaid = ["paid", "waiting_payout", "completed"].includes(String(booking.status || "").toLowerCase()) || booking.paymentStatus === "paid";
+  const remainingPayable = isPaid ? 0 : Math.max(0, totalPayable - booking.depositAmount);
+
   return (
     <div
       onClick={onClose}
@@ -57,8 +72,12 @@ export default function BookingDetailModal({ booking, onClose }: BookingDetailMo
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-medium text-[#574D54] pt-2 border-t border-[#F0D7D3] dark:text-slate-300 dark:border-white/5">
               <div>
-                <span className="text-[#9A8B88] dark:text-slate-500">Idol book:</span>{" "}
-                <strong className="text-[#8F0709] dark:text-amber-300">{booking.talentName}</strong>
+                <span className="text-[#9A8B88] dark:text-slate-500">
+                  {(!booking.talentId && (!booking.bookedTalents || booking.bookedTalents.length === 0)) ? "Loại đơn:" : "Idol book:"}
+                </span>{" "}
+                <strong className="text-[#8F0709] dark:text-amber-300">
+                  {(!booking.talentId && (!booking.bookedTalents || booking.bookedTalents.length === 0)) ? "0 Idol" : booking.talentName}
+                </strong>
               </div>
               <div>
                 <span className="text-[#9A8B88] dark:text-slate-500">Vai trò:</span>{" "}
@@ -128,21 +147,25 @@ export default function BookingDetailModal({ booking, onClose }: BookingDetailMo
           </div>
 
           {/* Financial Summary */}
-          <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] p-4 flex items-center justify-between shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#8F0709] dark:text-amber-400">Tiền đặt cọc</p>
-              <p className="text-base sm:text-xl font-black text-[#8F0709] font-mono mt-0.5 dark:text-amber-300">
+          <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] p-4 grid grid-cols-3 gap-2 sm:gap-4 items-center shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10">
+            <div className="text-left">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#8F0709] dark:text-amber-400">Đã cọc</p>
+              <p className="text-xs sm:text-base font-black text-[#8F0709] font-mono mt-0.5 dark:text-amber-300 truncate">
                 {booking.depositAmount.toLocaleString("vi-VN")} VND
               </p>
             </div>
-            {booking.totalBudget && (
-              <div className="text-right">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-400">Tổng dự kiến</p>
-                <p className="text-xs sm:text-sm font-bold text-[#191116] font-mono mt-0.5 dark:text-white">
-                  {booking.totalBudget.toLocaleString("vi-VN")} VND
-                </p>
-              </div>
-            )}
+            <div className="text-center">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#16a34a] dark:text-emerald-400">Tổng phải thanh toán</p>
+              <p className="text-xs sm:text-base font-black text-[#16a34a] font-mono mt-0.5 dark:text-emerald-400 truncate">
+                {totalPayable.toLocaleString("vi-VN")} VND
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#b91c1c] dark:text-rose-400">Còn phải thanh toán</p>
+              <p className="text-xs sm:text-base font-black text-[#b91c1c] font-mono mt-0.5 dark:text-rose-400 truncate">
+                {remainingPayable.toLocaleString("vi-VN")} VND
+              </p>
+            </div>
           </div>
         </main>
       </div>

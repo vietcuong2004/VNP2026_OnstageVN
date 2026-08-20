@@ -1,12 +1,19 @@
 export type BookingStatus =
+  | "pending_confirmation"
+  | "contacting_idols"
+  | "need_replacement"
+  | "idols_confirmed"
+  | "waiting_payment"
+  | "paid"
+  | "waiting_payout"
+  | "completed"
+  | "cancelled"
   | "deposit_pending"
   | "submitted"
   | "reviewing"
   | "talent_confirming"
   | "confirmed"
-  | "rejected"
-  | "cancelled"
-  | "completed";
+  | "rejected";
 
 export type BookedTalentSummary = {
   id: string;
@@ -16,6 +23,7 @@ export type BookedTalentSummary = {
   talentRole: string;
   status?: string;
   note?: string;
+  price?: number;
 };
 
 export type BookingRequest = {
@@ -33,7 +41,10 @@ export type BookingRequest = {
   endTime: string;
   location: string;
   depositAmount: number;
+  totalAmount?: number;
   totalBudget?: number;
+  clientQuotedAmount?: number;
+  remainingAmount?: number;
   contactName: string;
   contactPhone: string;
   contactEmail: string;

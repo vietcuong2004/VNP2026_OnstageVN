@@ -120,7 +120,8 @@ Bảng này giữ dữ liệu dạng snapshot tại thời điểm gửi yêu c�
 | `contact_phone` | `VARCHAR(30)` | No | - | Not empty | Số điện thoại liên hệ |
 | `contact_email` | `VARCHAR(255)` | Yes | `NULL` | Email format | Email liên hệ, không bắt buộc |
 | `deposit_amount` | `DECIMAL(12,2)` | No | `200000.00` | `>= 0` | Số tiền đặt cọc |
-| `remaining_amount` | `DECIMAL(12,2)` | Yes | `NULL` | `>= 0` | Số tiền còn lại sau đặt cọc, tính từ `package_price - deposit_amount` nếu có package |
+| `total_amount` | `DECIMAL(12,2)` | Yes | `NULL` | `>= 0` | Tổng số tiền khách phải thanh toán (báo giá khách = tổng giá Idol + phí nền tảng) |
+| `remaining_amount` | `DECIMAL(12,2)` | Yes | `NULL` | `>= 0` | Số tiền còn lại sau đặt cọc, tính từ `total_amount - deposit_amount` (0đ khi đã thanh toán) |
 | `payment_method` | `VARCHAR(32)` | No | `bank` | Enum app: `bank`, `wallet` | Phương thức thanh toán user chọn |
 | `payment_status` | `VARCHAR(32)` | No | `pending` | Enum app | Trạng thái thanh toán đặt cọc |
 | `request_status` | `VARCHAR(32)` | No | `deposit_pending` | Enum app | Trạng thái xử lý booking request |

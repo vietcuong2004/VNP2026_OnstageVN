@@ -121,6 +121,7 @@ function saveBookingToLocalHistory(bookingRequest: unknown, talent?: any) {
 
   try {
     const booking = mapBackendBooking(bookingRequest as Parameters<typeof mapBackendBooking>[0]);
+    booking.status = "pending_confirmation";
     const fallbackName = String(talent?.name || "").trim();
     const fallbackAvatar = String(talent?.avatar || talent?.avatar_url || "").trim();
     const fallbackRole = String(talent?.category || talent?.type || "").trim();

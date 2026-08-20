@@ -13,41 +13,49 @@ type StatusConfig = {
 
 function statusConfig(status: BookingStatus): StatusConfig {
   switch (status) {
+    case "pending_confirmation":
     case "deposit_pending":
+    case "submitted":
+    case "reviewing":
       return {
-        label: "Chờ đặt cọc",
+        label: "Chờ xác nhận",
         Icon: Clock,
         className: "border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-400",
       };
-    case "submitted":
+    case "contacting_idols":
+    case "talent_confirming":
+    case "need_replacement":
+    case "rejected":
       return {
-        label: "Chờ kiểm tra",
-        Icon: Clock,
+        label: "Đang liên hệ Idol",
+        Icon: UserCheck,
         className: "border-amber-200 bg-amber-50 text-amber-800 dark:border-yellow-500/40 dark:bg-yellow-500/10 dark:text-yellow-300",
       };
-    case "reviewing":
-      return {
-        label: "Đang xử lý",
-        Icon: Clock,
-        className: "border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-300",
-      };
-    case "talent_confirming":
-      return {
-        label: "Chờ Idol xác nhận",
-        Icon: UserCheck,
-        className: "border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-300",
-      };
+    case "idols_confirmed":
     case "confirmed":
       return {
-        label: "Đã xác nhận",
+        label: "Đã chốt Idol",
         Icon: UserCheck,
         className: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400",
       };
-    case "rejected":
+    case "waiting_payment":
       return {
-        label: "Idol từ chối",
-        Icon: XCircle,
-        className: "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-300",
+        label: "Chờ thanh toán",
+        Icon: Clock,
+        className: "border-amber-200 bg-amber-50 text-amber-800 dark:border-yellow-500/40 dark:bg-yellow-500/10 dark:text-yellow-300",
+      };
+    case "paid":
+    case "waiting_payout":
+      return {
+        label: "Đã thanh toán",
+        Icon: CheckCircle2,
+        className: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400",
+      };
+    case "completed":
+      return {
+        label: "Hoàn tất",
+        Icon: CheckCircle2,
+        className: "border-indigo-200 bg-indigo-50 text-indigo-800 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-400",
       };
     case "cancelled":
       return {
@@ -55,11 +63,11 @@ function statusConfig(status: BookingStatus): StatusConfig {
         Icon: XCircle,
         className: "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-500/40 dark:bg-slate-500/10 dark:text-slate-300",
       };
-    case "completed":
+    default:
       return {
-        label: "Hoàn tất",
-        Icon: CheckCircle2,
-        className: "border-indigo-200 bg-indigo-50 text-indigo-800 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-400",
+        label: "Chờ xác nhận",
+        Icon: Clock,
+        className: "border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-400",
       };
   }
 }
@@ -88,7 +96,8 @@ export default function BookingCard({ item, onSelect, onDelete, isDeleting = fal
     ? `${item.workDate || "Chưa cập nhật"} (${timeRange})`
     : item.workDate || "Chưa cập nhật";
   const bookedTalentCount = item.bookedTalents?.length ?? 0;
-  const isMultipleBooking = item.bookingType === "multiple" || bookedTalentCount > 1;
+  const isZeroTalents = (!item.talentId || item.talentId === "") && bookedTalentCount === 0 && (!item.talentName || item.talentName === "Idol" || item.talentName === "0 Idol" || item.talentName.includes("0 Idol"));
+  const isMultipleBooking = !isZeroTalents && (item.bookingType === "multiple" || bookedTalentCount > 1);
   return (
     <article
       onClick={() => onSelect(item)}
@@ -104,11 +113,11 @@ export default function BookingCard({ item, onSelect, onDelete, isDeleting = fal
       <div className="flex flex-row items-start gap-3 sm:gap-4">
         <div className="relative h-14 w-14 sm:h-16 sm:w-16 shrink-0 overflow-hidden rounded-2xl border border-[#F0D7D3] bg-slate-100 shadow-sm dark:border-white/10 dark:bg-slate-900">
           <img
-            src={item.talentAvatar || createInitialAvatarDataUrl(item.talentName, "")}
-            alt={item.talentName}
+            src={item.talentAvatar || createInitialAvatarDataUrl(isZeroTalents ? "0 Idol" : item.talentName, "")}
+            alt={isZeroTalents ? "0 Idol" : item.talentName}
             onError={(event) => {
               event.currentTarget.onerror = null;
-              event.currentTarget.src = createInitialAvatarDataUrl(item.talentName, "");
+              event.currentTarget.src = createInitialAvatarDataUrl(isZeroTalents ? "0 Idol" : item.talentName, "");
             }}
             className="h-full w-full object-cover"
           />
@@ -123,7 +132,11 @@ export default function BookingCard({ item, onSelect, onDelete, isDeleting = fal
           </h3>
 
           <p className="text-xs font-bold text-[#574D54] dark:text-slate-300">
-            {isMultipleBooking ? (
+            {isZeroTalents ? (
+              <>
+                Loại đơn: <span className="text-[#8F0709] font-extrabold dark:text-amber-300">0 Idol</span>
+              </>
+            ) : isMultipleBooking ? (
               <>
                 Loại đơn: <span className="text-[#8F0709] font-extrabold dark:text-amber-300">Booking nhiều Idol{bookedTalentCount ? ` (${bookedTalentCount})` : ""}</span>
               </>
@@ -150,7 +163,7 @@ export default function BookingCard({ item, onSelect, onDelete, isDeleting = fal
       <div className="mt-3.5 flex items-center justify-between gap-2 border-t border-[#F0D7D3] pt-3 dark:border-white/5">
         <div className="text-left">
           <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#574D54] block dark:text-slate-400">
-            Đã cọc trước
+            Đã cọc
           </span>
           <span className="text-sm sm:text-base font-black text-[#8F0709] font-mono dark:text-amber-400">
             {item.depositAmount.toLocaleString("vi-VN")} đ
