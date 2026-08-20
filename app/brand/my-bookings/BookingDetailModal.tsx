@@ -6,6 +6,48 @@ import { BookingRequest } from "./types";
 import { getStatusBadge } from "./BookingCard";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 
+function renderTalentStatusBadge(status?: string | null) {
+  const normalized = String(status || "").trim().toLowerCase();
+  switch (normalized) {
+    case "talent_confirming":
+    case "contacting":
+    case "pending":
+    case "pending_confirmation":
+      return (
+        <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10.5px] font-bold text-amber-800 dark:border-yellow-500/40 dark:bg-yellow-500/10 dark:text-yellow-300">
+          Chờ Idol xác nhận
+        </span>
+      );
+    case "confirmed":
+    case "accepted":
+    case "idols_confirmed":
+      return (
+        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10.5px] font-bold text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400">
+          Đã nhận đơn
+        </span>
+      );
+    case "rejected":
+    case "declined":
+      return (
+        <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[10.5px] font-bold text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-300">
+          Idol bận / Từ chối
+        </span>
+      );
+    case "need_replacement":
+      return (
+        <span className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-[10.5px] font-bold text-orange-800 dark:border-orange-500/40 dark:bg-orange-500/10 dark:text-orange-300">
+          Cần đổi Idol khác
+        </span>
+      );
+    default:
+      return status ? (
+        <span className="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[10.5px] font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+          {status}
+        </span>
+      ) : null;
+  }
+}
+
 interface BookingDetailModalProps {
   booking: BookingRequest | null;
   onClose: () => void;
@@ -104,13 +146,16 @@ export default function BookingDetailModal({ booking, onClose }: BookingDetailMo
 
 
           {booking.bookedTalents && booking.bookedTalents.length > 0 && (
-            <div className="rounded-2xl border border-white/5 bg-slate-950 p-4 space-y-3 shadow-md">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <div className="rounded-2xl border border-[#F0D7D3] bg-[#FAF7F6] p-4 space-y-3 shadow-sm dark:border-white/5 dark:bg-slate-950">
+              <p className="text-[10px] font-bold text-[#574D54] uppercase tracking-wider dark:text-slate-400">
                 Idol trong đơn ({booking.bookedTalents.length})
               </p>
               <div className="space-y-2">
                 {booking.bookedTalents.map((talent) => (
-                  <div key={talent.id || talent.talentId || talent.talentName} className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] p-2.5">
+                  <div
+                    key={talent.id || talent.talentId || talent.talentName}
+                    className="flex items-center gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-2.5 shadow-2xs dark:border-white/10 dark:bg-white/[0.03]"
+                  >
                     <img
                       src={talent.talentAvatar || createInitialAvatarDataUrl(talent.talentName, talent.talentId)}
                       alt={talent.talentName}
@@ -118,17 +163,13 @@ export default function BookingDetailModal({ booking, onClose }: BookingDetailMo
                         event.currentTarget.onerror = null;
                         event.currentTarget.src = createInitialAvatarDataUrl(talent.talentName, talent.talentId);
                       }}
-                      className="h-10 w-10 rounded-xl object-cover border border-white/10"
+                      className="h-10 w-10 rounded-full object-cover border border-[#F0D7D3] dark:border-white/10"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-black text-white">{talent.talentName}</p>
-                      <p className="truncate text-[11px] font-bold text-amber-300">{talent.talentRole}</p>
+                      <p className="truncate text-sm font-black text-[#191116] dark:text-white">{talent.talentName}</p>
+                      <p className="truncate text-[11px] font-bold text-[#8F0709] dark:text-amber-300">{talent.talentRole || "Idol"}</p>
                     </div>
-                    {talent.status && (
-                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] font-bold text-slate-300">
-                        {talent.status}
-                      </span>
-                    )}
+                    {renderTalentStatusBadge(talent.status)}
                   </div>
                 ))}
               </div>
@@ -147,24 +188,34 @@ export default function BookingDetailModal({ booking, onClose }: BookingDetailMo
           </div>
 
           {/* Financial Summary */}
-          <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] p-4 grid grid-cols-3 gap-2 sm:gap-4 items-center shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10">
-            <div className="text-left">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#8F0709] dark:text-amber-400">Đã cọc</p>
-              <p className="text-xs sm:text-base font-black text-[#8F0709] font-mono mt-0.5 dark:text-amber-300 truncate">
-                {booking.depositAmount.toLocaleString("vi-VN")} VND
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#16a34a] dark:text-emerald-400">Tổng phải thanh toán</p>
-              <p className="text-xs sm:text-base font-black text-[#16a34a] font-mono mt-0.5 dark:text-emerald-400 truncate">
-                {totalPayable.toLocaleString("vi-VN")} VND
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#b91c1c] dark:text-rose-400">Còn phải thanh toán</p>
-              <p className="text-xs sm:text-base font-black text-[#b91c1c] font-mono mt-0.5 dark:text-rose-400 truncate">
-                {remainingPayable.toLocaleString("vi-VN")} VND
-              </p>
+          <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] p-4 shadow-sm space-y-2.5 dark:border-amber-500/30 dark:bg-amber-500/10">
+            <p className="text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-400">
+              Tổng kết thanh toán
+            </p>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-[#574D54] font-semibold dark:text-slate-300">Đã đặt cọc:</span>
+                <span className="font-mono font-black text-[#8F0709] dark:text-amber-300">
+                  {booking.depositAmount.toLocaleString("vi-VN")} đ
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-[#574D54] font-semibold dark:text-slate-300">Tổng thanh toán dự kiến:</span>
+                <span className="font-mono font-black text-emerald-700 dark:text-emerald-400">
+                  {totalPayable.toLocaleString("vi-VN")} đ
+                </span>
+              </div>
+
+              <div className="pt-2 border-t border-[#F0D7D3]/80 dark:border-white/10 flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-[#8F0709] font-black dark:text-rose-300 uppercase tracking-wide">
+                  Còn phải thanh toán:
+                </span>
+                <span className="font-mono text-base sm:text-lg font-black text-[#8F0709] dark:text-rose-400">
+                  {remainingPayable.toLocaleString("vi-VN")} đ
+                </span>
+              </div>
             </div>
           </div>
         </main>

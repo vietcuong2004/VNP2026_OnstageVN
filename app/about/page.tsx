@@ -79,7 +79,7 @@ function AboutContent({
       {/* Immersive Mockup Background Image & Gradient Overlays */}
       <div className="absolute top-0 right-0 left-0 z-0 w-full h-[55vh] md:h-[80vh] overflow-hidden pointer-events-none bg-[#FAF7F6] dark:bg-[#02040a]">
         <img
-          src="/hero_bg.png"
+          src="/discovery-idols-light.jpg"
           alt="OnstageVN Background Graphics"
           className="w-full h-full object-cover object-right md:object-center absolute right-0 top-0 opacity-100"
         />
