@@ -145,7 +145,7 @@ export default function SurveyPage() {
                 Đăng ký hồ sơ <span className="block bg-gradient-to-r from-[#E01B1F] to-[#8F0709] bg-clip-text text-transparent dark:text-gradient-gold md:inline">Idol</span>
               </h1>
               <p className="mt-4 max-w-3xl text-balance text-sm leading-relaxed text-[#574D54] dark:text-slate-200 md:text-base">
-                Chỉ cần vài phút để làm khảo sát cung cấp thông tin cơ bản, chúng tôi sẽ tạo hồ sơ cho bạn.
+                Chỉ cần vài phút cung cấp thông tin cơ bản, chúng tôi sẽ tạo hồ sơ cho bạn.
                 <br className="hidden md:block" />
                 Hồ sơ càng đầy đủ, thương hiệu càng dễ tìm thấy và mời hợp tác.
               </p>

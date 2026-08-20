@@ -614,20 +614,17 @@ export default function PortfolioPage() {
             </div>
           ) : null}
 
-          <div className="mt-4">
+          <div className="mt-4 flex justify-center">
             <button
               type="button"
-              aria-disabled={portfolioLinks.length === 0}
+              style={{ color: "#ffffff" }}
               onClick={handleViewPortfolio}
-              className={cn(
-                "flex h-12 w-full items-center justify-center rounded-2xl border px-4 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-sm",
-                portfolioLinks.length > 0
-                  ? "cursor-pointer border-[#F0D7D3] bg-white text-[#191116] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
-                  : "cursor-not-allowed border-[#F0D7D3] bg-[#FFF7F6] text-[#9A8B88] dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-500"
-              )}
+              className="flex h-11 w-full max-w-xs items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-6 text-xs font-black uppercase tracking-wider !text-white text-white shadow-md transition active:scale-95 cursor-pointer hover:brightness-110"
             >
-              <Eye className="mr-2 h-4 w-4 shrink-0 text-current" />
-              Xem Portfolio
+              <Eye className="h-4 w-4 shrink-0 !text-white text-white" />
+              <span style={{ color: "#ffffff" }} className="!text-white text-white font-black tracking-wider">
+                Xem Portfolio
+              </span>
             </button>
           </div>
         </div>
@@ -783,20 +780,17 @@ export default function PortfolioPage() {
                 ) : null}
 
                 {/* Portfolio URL Button */}
-                <div className="pt-3 flex justify-center sm:justify-start">
+                <div className="pt-3 flex justify-center">
                   <button
                     type="button"
-                    aria-disabled={portfolioLinks.length === 0}
+                    style={{ color: "#ffffff" }}
                     onClick={handleViewPortfolio}
-                    className={cn(
-                      "light-force-white inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider active:scale-98 transition-all duration-300 shadow-sm",
-                      portfolioLinks.length > 0
-                        ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white hover:brightness-110 hover:scale-[1.02] cursor-pointer"
-                        : "border border-[#F0D7D3] bg-[#FFF7F6] text-[#9A8B88] cursor-not-allowed dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-500"
-                    )}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider !text-white text-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] hover:brightness-110 hover:scale-[1.02] active:scale-98 transition-all duration-300 shadow-md cursor-pointer"
                   >
-                    <Eye className="h-4 w-4 shrink-0 text-current" />
-                    Xem Portfolio
+                    <Eye className="h-4 w-4 shrink-0 !text-white text-white" />
+                    <span style={{ color: "#ffffff" }} className="!text-white text-white font-black tracking-wider">
+                      Xem Portfolio
+                    </span>
                   </button>
                 </div>
               </div>

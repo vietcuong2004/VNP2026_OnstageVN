@@ -44,7 +44,7 @@ export const unifiedManagementNavigation = [
 
 export const unifiedSystemNavigation = [
   { label: "Hồ sơ cá nhân", icon: User, href: "/talent/profile" },
-  { label: "Khảo sát", icon: Sparkles, href: "/talent/survey" },
+  { label: "Đăng ký nhanh", icon: Sparkles, href: "/talent/survey" },
   { label: "Về chúng tôi", icon: Info, href: "/about" },
   { label: "Cài đặt", icon: Settings, href: "/settings" },
 ];

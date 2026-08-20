@@ -243,28 +243,28 @@ function SurveyImageUploadBlock({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+        <span className="block text-[11px] text-[#8F0709] font-black uppercase tracking-wider dark:text-[#f4c430]">
           {label}
         </span>
         {previewUrl && (
           <button
             type="button"
             onClick={onRemove}
-            className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-slate-400 transition-colors hover:text-rose-300"
+            className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#9A8B88] transition-colors hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-300 cursor-pointer"
           >
             <Trash2 className="h-3.5 w-3.5" /> Xóa
           </button>
         )}
       </div>
       <div className={cn(
-        "relative rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors",
+        "relative rounded-xl overflow-hidden bg-[#FAF7F6] border border-dashed border-[#F0D7D3] hover:border-[#8F0709] transition-colors dark:bg-slate-950/70 dark:border-white/10 dark:hover:border-amber-400/70",
         aspectClassName
       )}>
-        <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
+        <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-[#9A8B88] hover:text-[#8F0709] transition-colors dark:text-slate-500 dark:hover:text-amber-400">
           {previewUrl ? (
             <>
               <img src={previewUrl} alt={`Xem trước ${label.toLowerCase()}`} className="absolute inset-0 h-full w-full object-cover" />
-              <span className="absolute bottom-3 right-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] text-slate-950 shadow-lg">
+              <span className="absolute bottom-3 right-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white shadow-lg dark:bg-[#F0C56B] dark:text-slate-950">
                 <Camera className="h-3.5 w-3.5" />
               </span>
             </>
@@ -321,32 +321,32 @@ function SurveyCityCombobox({ value, options, onChange }: SurveyCityComboboxProp
         type="button"
         onClick={() => setIsOpen((current) => !current)}
         className={cn(
-          "flex w-full items-center justify-between gap-2 rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-medium text-white outline-none transition-all hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b]",
-          isOpen && "border-amber-400 bg-[#0e122b]"
+          "flex w-full items-center justify-between gap-2 rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] outline-none transition-all hover:border-[#8F0709] focus:border-[#8F0709] dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]",
+          isOpen && "border-[#8F0709] dark:border-amber-400 dark:bg-[#0e122b]"
         )}
       >
-        <span className={cn("truncate text-left", selectedOption ? "text-white" : "text-slate-400")}>
+        <span className={cn("truncate text-left", selectedOption ? "text-[#191116] dark:text-white" : "text-[#9A8B88] dark:text-slate-400")}>
           {selectedOption?.label || "Chọn khu vực sinh sống"}
         </span>
-        <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-400 transition-transform", isOpen && "rotate-180 text-amber-400")} />
+        <ChevronDown className={cn("h-4 w-4 shrink-0 text-[#9A8B88] transition-transform dark:text-slate-400", isOpen && "rotate-180 text-[#8F0709] dark:text-amber-400")} />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-64 w-full overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-64 w-full overflow-hidden rounded-xl border border-[#F0D7D3] bg-white p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-150 dark:border-[#2B313D] dark:bg-[#12151C]">
           <div className="mb-1.5 px-1">
             <input
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Tìm tên tỉnh thành..."
-              className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-2.5 py-1.5 text-xs text-white outline-none placeholder:text-slate-500 focus:border-amber-400/60"
+              className="w-full rounded-lg border border-[#F0D7D3] bg-[#FAF7F6] px-2.5 py-1.5 text-xs text-[#191116] outline-none placeholder:text-[#9A8B88] focus:border-[#8F0709] dark:border-white/10 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-400/60"
               autoFocus
             />
           </div>
 
           <div className="max-h-48 space-y-0.5 overflow-y-auto pr-0.5 custom-scrollbar">
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-2 text-center text-xs text-slate-500">Không tìm thấy tỉnh thành</div>
+              <div className="px-3 py-2 text-center text-xs text-[#9A8B88] dark:text-slate-500">Không tìm thấy tỉnh thành</div>
             ) : (
               filteredOptions.map((option) => {
                 const isSelected = option.value === value;
@@ -360,14 +360,13 @@ function SurveyCityCombobox({ value, options, onChange }: SurveyCityComboboxProp
                       setSearch("");
                     }}
                     className={cn(
-                      "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-medium transition-colors",
+                      "flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors cursor-pointer",
                       isSelected
-                        ? "bg-amber-400/20 text-amber-300 font-bold"
-                        : "text-slate-300 hover:bg-white/5 hover:text-white"
+                        ? "bg-[#FFF0EE] text-[#8F0709] font-black dark:bg-amber-400/20 dark:text-amber-300"
+                        : "text-[#191116] hover:bg-[#FAF7F6] hover:text-[#8F0709] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                     )}
                   >
                     <span className="truncate">{option.label}</span>
-                    {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-amber-300" />}
                   </button>
                 );
               })
@@ -381,7 +380,7 @@ function SurveyCityCombobox({ value, options, onChange }: SurveyCityComboboxProp
 
 type SurveyOptionComboboxProps = {
   value?: string;
-  options: readonly string[];
+  options: string[];
   placeholder: string;
   onChange: (value: string) => void;
 };
@@ -408,21 +407,21 @@ function SurveyOptionCombobox({ value = "", options, placeholder, onChange }: Su
         type="button"
         onClick={() => setIsOpen((current) => !current)}
         className={cn(
-          "flex w-full items-center justify-between gap-2 rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-medium text-white outline-none transition-all hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b]",
-          isOpen && "border-amber-400 bg-[#0e122b]"
+          "flex w-full items-center justify-between gap-2 rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] outline-none transition-all hover:border-[#8F0709] focus:border-[#8F0709] dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]",
+          isOpen && "border-[#8F0709] dark:border-amber-400 dark:bg-[#0e122b]"
         )}
       >
-        <span className={cn("truncate text-left", selectedLabel ? "text-white" : "text-slate-400")}>
+        <span className={cn("truncate text-left", selectedLabel ? "text-[#191116] dark:text-white" : "text-[#9A8B88] dark:text-slate-400")}>
           {selectedLabel || placeholder}
         </span>
-        <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-400 transition-transform", isOpen && "rotate-180 text-amber-400")} />
+        <ChevronDown className={cn("h-4 w-4 shrink-0 text-[#9A8B88] transition-transform dark:text-slate-400", isOpen && "rotate-180 text-[#8F0709] dark:text-amber-400")} />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-64 w-full overflow-hidden rounded-xl border border-[#2B313D] bg-[#12151C] p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-64 w-full overflow-hidden rounded-xl border border-[#F0D7D3] bg-white p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-150 dark:border-[#2B313D] dark:bg-[#12151C]">
           <div className="max-h-56 space-y-0.5 overflow-y-auto pr-0.5 custom-scrollbar">
             {options.length === 0 ? (
-              <div className="px-3 py-2 text-center text-xs text-slate-500">Đã chọn tất cả loại hình</div>
+              <div className="px-3 py-2 text-center text-xs text-[#9A8B88] dark:text-slate-500">Đã chọn tất cả</div>
             ) : (
               options.map((option) => (
                 <button
@@ -432,7 +431,7 @@ function SurveyOptionCombobox({ value = "", options, placeholder, onChange }: Su
                     onChange(option);
                     setIsOpen(false);
                   }}
-                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-semibold text-[#191116] transition-colors hover:bg-[#FFF0EE] hover:text-[#8F0709] cursor-pointer dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
                 >
                   <span className="truncate">{option}</span>
                 </button>
@@ -2421,16 +2420,16 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         {step === 1 && (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start animate-in fade-in duration-300">
             {/* Left: Avatar Dropzone */}
-            <div className="md:col-span-4 flex flex-col items-center space-y-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-              <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider self-start">Ảnh Đại Diện</span>
+            <div className="md:col-span-4 flex flex-col items-center space-y-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+              <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider self-start dark:text-slate-300">Ảnh Đại Diện</span>
 
               <div
                 onClick={() => handleFileUploadClick("avatar")}
                 className={cn(
                   "w-full aspect-square max-w-[200px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative overflow-hidden group",
                   mediaUploads.avatar
-                    ? "border-emerald-400 bg-emerald-500/10"
-                    : "border-white/20 bg-slate-900/60 hover:border-amber-400 hover:bg-slate-900"
+                    ? "border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-500/10"
+                    : "border-[#F0D7D3] bg-[#FAF7F6] hover:border-[#8F0709] hover:bg-[#FFF0EE] dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-amber-400 dark:hover:bg-slate-900"
                 )}
               >
                 <input
@@ -2450,33 +2449,33 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 {avatarPreviewUrl && <div className="absolute inset-0 bg-black/20" />}
                 {!avatarPreviewUrl && (
                   <div className="relative z-10 text-center p-4">
-                    <Upload className="h-8 w-8 text-slate-400 group-hover:text-amber-300 transition-colors mx-auto mb-2" />
-                    <span className="block text-[11px] md:text-xs text-slate-100 font-extrabold">Tải ảnh lên</span>
-                    <span className="block text-[9px] md:text-[10px] text-slate-400 mt-1 leading-normal">PNG, JPG tối đa 5MB</span>
+                    <Upload className="h-8 w-8 text-[#9A8B88] group-hover:text-[#8F0709] transition-colors mx-auto mb-2 dark:text-slate-400 dark:group-hover:text-amber-300" />
+                    <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold dark:text-slate-100">Tải ảnh lên</span>
+                    <span className="block text-[9px] md:text-[10px] text-[#9A8B88] mt-1 leading-normal dark:text-slate-400">PNG, JPG tối đa 5MB</span>
                   </div>
                 )}
               </div>
-              <p className="text-[11px] md:text-xs text-slate-400 text-center font-medium">Chọn ảnh rõ mặt, biểu cảm tự nhiên</p>
+              <p className="text-[11px] md:text-xs text-[#574D54] text-center font-medium dark:text-slate-400">Chọn ảnh rõ mặt, biểu cảm tự nhiên</p>
             </div>
 
             {/* Right: Inputs */}
             <div className="md:col-span-8 space-y-4">
-              <div className="grid grid-cols-2 gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+              <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
                 <div className="col-span-2 space-y-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Họ và tên <span className="text-amber-300">*</span></label>
+                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Họ và tên <span className="text-[#8F0709] dark:text-amber-300">*</span></label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
                     placeholder="Nhập họ và tên"
                   />
                 </div>
 
                 <div className="col-span-2 space-y-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Email liên hệ <span className="text-amber-300">*</span></label>
+                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Email liên hệ <span className="text-[#8F0709] dark:text-amber-300">*</span></label>
                   <input
                     type="email"
                     name="email"
@@ -2485,31 +2484,31 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     disabled={isAuthenticated}
                     required
                     className={cn(
-                      "w-full rounded-xl border border-white/20 bg-slate-900/60 px-4 py-3 text-xs text-white transition-all placeholder-slate-400 font-medium",
+                      "w-full rounded-xl border border-[#F0D7D3] bg-white px-4 py-3 text-xs text-[#191116] font-semibold transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400",
                       isAuthenticated
-                        ? "cursor-not-allowed opacity-70"
-                        : "hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                        ? "cursor-not-allowed opacity-70 bg-slate-50 dark:bg-slate-900/30"
+                        : "hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                     )}
                     placeholder="onstagevn-idol@gmail.com"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Giới tính</label>
+                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Giới tính</label>
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-4 py-3 text-xs font-medium text-white transition-all hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white px-4 py-3 text-xs font-semibold text-[#191116] transition-all hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                   >
-                    <option value="Nữ" className="bg-[#0e142e]">Nữ</option>
-                    <option value="Nam" className="bg-[#0e142e]">Nam</option>
-                    <option value="Khác" className="bg-[#0e142e]">Khác</option>
+                    <option value="Nữ" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Nữ</option>
+                    <option value="Nam" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Nam</option>
+                    <option value="Khác" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Khác</option>
                   </select>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Khu vực sinh sống</label>
+                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Khu vực sinh sống</label>
                   <SurveyCityCombobox
                     value={formData.location}
                     options={cityOptions}
@@ -2518,79 +2517,79 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 </div>
 
                 <div className="col-span-2 space-y-1 md:col-span-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Số điện thoại</label>
+                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Số điện thoại</label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
                     placeholder="0912345678"
                   />
                 </div>
 
               </div>
 
-              <div className="grid grid-cols-2 gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+              <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
                 <div className="col-span-2">
-                  <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">
+                  <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
                     Ngoại hình
                   </span>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Chiều cao (cm)</label>
+                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Chiều cao (cm)</label>
                   <input
                     type="number"
                     name="height"
                     value={formData.height}
                     onChange={handleInputChange}
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Cân nặng (kg)</label>
+                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Cân nặng (kg)</label>
                   <input
                     type="number"
                     name="weight"
                     value={formData.weight}
                     onChange={handleInputChange}
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-4 py-3 text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
                   />
                 </div>
 
                 <div className="col-span-2 space-y-1.5">
-                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider block">Số đo 3 vòng (cm)</label>
+                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider block dark:text-slate-300">Số đo 3 vòng (cm)</label>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="relative">
-                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-slate-400">V1</span>
+                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V1</span>
                       <input
                         type="number"
                         name="bust"
                         value={formData.bust}
                         onChange={handleInputChange}
-                        className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                       />
                     </div>
                     <div className="relative">
-                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-slate-400">V2</span>
+                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V2</span>
                       <input
                         type="number"
                         name="waist"
                         value={formData.waist}
                         onChange={handleInputChange}
-                        className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                       />
                     </div>
                     <div className="relative">
-                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-slate-400">V3</span>
+                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V3</span>
                       <input
                         type="number"
                         name="hips"
                         value={formData.hips}
                         onChange={handleInputChange}
-                        className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-4 pr-8 py-3 text-xs text-white text-left focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                       />
                     </div>
                   </div>
@@ -2604,13 +2603,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         {step === 2 && (
           <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto">
             <div className="py-3 md:py-5 space-y-6">
-              <h3 className="font-display text-base font-black uppercase tracking-wider text-slate-300">
+              <h3 className="font-display text-base font-black uppercase tracking-wider text-[#191116] dark:text-slate-300">
                 Thông tin nghề nghiệp
               </h3>
 
               <div className="grid grid-cols-1 gap-5">
-                <div className="space-y-1.5 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                  <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                <div className="space-y-1.5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
                     Phí booking (VD: "5.000.000đ/ngày" hoặc "thỏa thuận")
                   </label>
                   <input
@@ -2619,13 +2618,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     value={formData.price}
                     onChange={(e) => handlePriceChange(e.target.value)}
                     placeholder="Nhập Phí booking dịch vụ của bạn..."
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:bg-[#0e122b] transition-all shadow-inner"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-semibold text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-all shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                   />
                 </div>
 
-                <div className="space-y-5 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                <div className="space-y-5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
                   <div className="space-y-3">
-                    <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                    <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
                       Loại hình Idol
                     </label>
                     <SurveyOptionCombobox
@@ -2634,19 +2633,19 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       options={talentTypeOptions.filter((type) => !formData.talentTypes.includes(type))}
                       onChange={handleAddTalentType}
                     />
-                    <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
+                    <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60">
                       {formData.talentTypes.length === 0 ? (
-                        <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-amber-300">
+                        <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
                           <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa chọn loại hình nào
                         </span>
                       ) : (
                         formData.talentTypes.map((type) => (
-                          <span key={type} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                          <span key={type} className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
                             {type}
                             <button
                               type="button"
                               onClick={() => handleRemoveTalentType(type)}
-                              className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                              className="text-[#9A8B88] hover:text-rose-600 cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
                             >
                               <X className="h-3.5 w-3.5" />
                             </button>
@@ -2656,8 +2655,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     </div>
                   </div>
 
-                  <div className="space-y-3 border-t border-white/10 pt-4">
-                    <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                  <div className="space-y-3 border-t border-[#F0D7D3] pt-4 dark:border-white/10">
+                    <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
                       Lĩnh vực nội dung / kỹ năng chuyên sâu
                     </label>
                     <SurveyOptionCombobox
@@ -2678,29 +2677,29 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                           }
                         }}
                         placeholder="Nhập lĩnh vực khác nếu chưa có trong danh sách"
-                        className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none md:col-span-9"
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none md:col-span-9 dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                       />
                       <button
                         type="button"
                         onClick={() => handleAddContentSkill(skillInput)}
-                        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all md:col-span-3"
+                        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all md:col-span-3 dark:bg-gradient-gold dark:text-slate-950"
                       >
                         <Plus className="h-4 w-4" /> Thêm
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-white/20 bg-slate-900/60 text-left shadow-inner">
+                    <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60">
                       {splitSkillValues(formData.skills).length === 0 ? (
-                        <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-amber-300">
+                        <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
                           <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm lĩnh vực nào
                         </span>
                       ) : (
                         splitSkillValues(formData.skills).map((skill) => (
-                          <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#F0C56B] shadow-sm">
+                          <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
                             {skill}
                             <button
                               type="button"
                               onClick={() => handleRemoveContentSkill(skill)}
-                              className="text-slate-400 hover:text-rose-400 cursor-pointer focus:outline-none flex items-center justify-center"
+                              className="text-[#9A8B88] hover:text-rose-600 cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
                             >
                               <X className="h-3.5 w-3.5" />
                             </button>
@@ -2711,8 +2710,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   </div>
                 </div>
 
-                <div className="space-y-1.5 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                  <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                <div className="space-y-1.5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
                     Số năm kinh nghiệm
                   </label>
                   <input
@@ -2722,12 +2721,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     name="experience"
                     value={formData.experience}
                     onChange={handleInputChange}
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 focus:bg-[#0e122b] transition-all shadow-inner"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-semibold text-[#191116] focus:outline-none focus:border-[#8F0709] transition-all shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                   />
                 </div>
 
-                <div className="space-y-1.5 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                  <label className="block font-bold text-slate-200 uppercase tracking-wider text-[9px] md:text-[10px]">
+                <div className="space-y-1.5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
                     Nhập một số kinh nghiệm của bạn
                   </label>
                   <textarea
@@ -2736,7 +2735,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     onChange={handleInputChange}
                     rows={5}
                     placeholder="Ví dụ: Đã từng tham gia chụp lookbook, livestream bán hàng, làm mẫu ảnh, tham dự sự kiện..."
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 px-3.5 py-3 text-xs font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-400 focus:bg-[#0e122b] transition-colors shadow-inner resize-none"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-medium text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-colors shadow-xs resize-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-500 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                   />
                 </div>
               </div>
@@ -2748,27 +2747,27 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         {step === 3 && (
           <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto">
             <div className="flex flex-col gap-6 py-3 text-left md:py-5">
-              <h4 className="font-display text-base font-black uppercase tracking-wider text-slate-300">
+              <h4 className="font-display text-base font-black uppercase tracking-wider text-[#191116] dark:text-slate-300">
                 Portfolio & Mạng xã hội
               </h4>
 
-              <div className="order-2 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                <label className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">
+              <div className="order-2 flex flex-col gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">
                   Chỉ số nổi bật
                 </label>
-                <div className="order-3 flex min-h-[52px] flex-wrap gap-2 rounded-xl border border-white/20 bg-slate-900/60 p-2.5 text-left shadow-inner">
+                <div className="order-3 flex min-h-[52px] flex-wrap gap-2 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] p-2.5 text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60">
                   {socialHighlights.length === 0 ? (
-                    <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-amber-300">
+                    <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
                       <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm chỉ số nổi bật nào
                     </span>
                   ) : (
                     socialHighlights.map((highlight) => (
-                      <span key={highlight} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300 shadow-sm">
+                      <span key={highlight} className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300">
                         {highlight}
                         <button
                           type="button"
                           onClick={() => setSocialHighlights((current) => current.filter((item) => item !== highlight))}
-                          className="flex cursor-pointer items-center justify-center text-slate-400 hover:text-rose-400 focus:outline-none"
+                          className="flex cursor-pointer items-center justify-center text-[#9A8B88] hover:text-rose-600 focus:outline-none dark:text-slate-400 dark:hover:text-rose-400"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
@@ -2796,46 +2795,41 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                         }
                       }}
                       placeholder="Nhập chỉ số hoặc thành tựu khác nếu chưa có trong danh sách"
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none md:col-span-9"
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none md:col-span-9 dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                     />
                     <button
                       type="button"
                       onClick={() => handleAddSocialHighlight(socialHighlightInput)}
-                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all md:col-span-3"
+                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all md:col-span-3 dark:bg-gradient-gold dark:text-slate-950"
                     >
                       <Plus className="h-4 w-4" /> Thêm
                     </button>
                   </div>
                 </div>
-
-
               </div>
 
-              <div className="hidden" />
-
-              <div className="order-1 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-
+              <div className="order-1 flex flex-col gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
                 {portfolioLinks.length === 0 ? (
-                  <div className="order-2 inline-flex items-center gap-2 py-1 text-xs italic text-amber-300">
+                  <div className="order-2 inline-flex items-center gap-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
                     <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa có portfolio nào được thêm.
                   </div>
                 ) : (
                   <div className="order-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                     {portfolioLinks.map((link, index) => (
-                      <div key={`${link}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-2.5 shadow-inner">
+                      <div key={`${link}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] px-3.5 py-2.5 shadow-xs dark:border-white/20 dark:bg-slate-900/60">
                         <div className="min-w-0 flex-1">
-                          <span className="block text-[10px] font-black uppercase tracking-wider text-amber-400">Portfolio {index + 1}</span>
-                          <a href={portfolioHref(link)} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-slate-200 hover:text-white" title={link}>
+                          <span className="block text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-400">Portfolio {index + 1}</span>
+                          <a href={portfolioHref(link)} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-[#191116] hover:text-[#8F0709] hover:underline dark:text-slate-200 dark:hover:text-white" title={link}>
                             {link.replace(/https?:\/\/(www\.)?/, "")}
                           </a>
                         </div>
                         <button
                           type="button"
                           onClick={() => setPortfolioLinks((current) => current.filter((item) => item !== link))}
-                          className="cursor-pointer p-1 text-slate-400 transition-colors hover:text-red-400"
+                          className="cursor-pointer p-1 text-[#9A8B88] transition-colors hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
                           title="Xóa portfolio"
                         >
-                          <Trash2 className="h-4.5 w-4.5" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     ))}
@@ -2844,7 +2838,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
                 <div className="order-1 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
                   <div className="space-y-1.5 md:col-span-9">
-                    <span className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">Đường dẫn Portfolio</span>
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Đường dẫn Portfolio</span>
                     <input
                       type="url"
                       value={portfolioLinkInput}
@@ -2856,15 +2850,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                         }
                       }}
                       placeholder="https://..."
-                      className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                     />
-
                   </div>
                   <div className="md:col-span-3">
                     <button
                       type="button"
                       onClick={handleAddPortfolioLink}
-                      className="flex w-full shrink-0 cursor-pointer items-center justify-center rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all hover:shadow-[0_0_15px_rgba(240,197,107,0.3)] active:scale-95"
+                      className="flex w-full shrink-0 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all dark:bg-gradient-gold dark:text-slate-950"
                     >
                       Thêm
                     </button>
@@ -2872,30 +2865,28 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 </div>
               </div>
 
-              <div className="hidden" />
-
-              <div className="order-4 space-y-2 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+              <div className="order-4 space-y-2 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
                 {socialAccounts.length === 0 ? (
-                  <div className="inline-flex items-center gap-2 py-1 text-xs italic text-amber-300">
+                  <div className="inline-flex items-center gap-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
                     <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa có liên kết mạng xã hội nào được thêm.
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                     {socialAccounts.map((account, index) => (
-                      <div key={`${account.platform}-${account.url}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-2.5 shadow-inner">
+                      <div key={`${account.platform}-${account.url}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] px-3.5 py-2.5 shadow-xs dark:border-white/20 dark:bg-slate-900/60">
                         <div className="min-w-0 flex-1">
-                          <span className="block text-[10px] font-black uppercase tracking-wider text-amber-400">{account.platform}</span>
-                          <a href={account.url} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-slate-200 hover:text-white" title={account.url}>
+                          <span className="block text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-400">{account.platform}</span>
+                          <a href={account.url} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-[#191116] hover:text-[#8F0709] hover:underline dark:text-slate-200 dark:hover:text-white" title={account.url}>
                             {account.url.replace(/https?:\/\/(www\.)?/, "")}
                           </a>
                         </div>
                         <button
                           type="button"
                           onClick={() => setSocialAccounts((current) => current.filter((_, idx) => idx !== index))}
-                          className="cursor-pointer p-1 text-slate-400 transition-colors hover:text-red-400"
+                          className="cursor-pointer p-1 text-[#9A8B88] transition-colors hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
                           title="Xóa liên kết"
                         >
-                          <Trash2 className="h-4.5 w-4.5" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     ))}
@@ -2903,23 +2894,23 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 )}
               </div>
 
-              <div className="order-3 grid grid-cols-1 items-end gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4 md:grid-cols-12">
+              <div className="order-3 grid grid-cols-1 items-end gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs md:grid-cols-12 dark:border-white/10 dark:bg-white/[0.02]">
                 <div className="space-y-1.5 md:col-span-3">
-                  <span className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">Chọn nền tảng</span>
+                  <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Chọn nền tảng</span>
                   <select
                     value={socialPlatform}
                     onChange={(event) => setSocialPlatform(event.target.value)}
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                   >
-                    <option value="Tiktok" className="bg-[#0e142e]">Tiktok</option>
-                    <option value="Facebook" className="bg-[#0e142e]">Facebook</option>
-                    <option value="Instagram" className="bg-[#0e142e]">Instagram</option>
-                    <option value="Thread" className="bg-[#0e142e]">Thread</option>
-                    <option value="Linkedin" className="bg-[#0e142e]">Linkedin</option>
+                    <option value="Tiktok" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Tiktok</option>
+                    <option value="Facebook" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Facebook</option>
+                    <option value="Instagram" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Instagram</option>
+                    <option value="Thread" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Thread</option>
+                    <option value="Linkedin" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Linkedin</option>
                   </select>
                 </div>
                 <div className="space-y-1.5 md:col-span-6">
-                  <span className="block text-[9px] font-black uppercase tracking-wider text-slate-200 md:text-[10px]">Đường dẫn (Link)</span>
+                  <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Đường dẫn (Link)</span>
                   <input
                     type="url"
                     value={socialLinkInput}
@@ -2931,14 +2922,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       }
                     }}
                     placeholder="https://..."
-                    className="w-full rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-3 text-xs font-semibold text-white shadow-inner transition-all placeholder:text-slate-400 hover:border-white/40 focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                   />
                 </div>
                 <div className="md:col-span-3">
                   <button
                     type="button"
                     onClick={handleAddSocialAccount}
-                    className="flex w-full shrink-0 cursor-pointer items-center justify-center rounded-xl bg-gradient-gold px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 shadow-sm transition-all hover:shadow-[0_0_15px_rgba(240,197,107,0.3)] active:scale-95"
+                    className="flex w-full shrink-0 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all dark:bg-gradient-gold dark:text-slate-950"
                   >
                     Thêm
                   </button>
@@ -2969,31 +2960,31 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               onRemove={() => handleRemoveSurveyImage("fullBody")}
             />
 
-            <div className="rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
-              <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
+            <div className="rounded-2xl border border-[#F0D7D3] bg-white p-6 space-y-6 shadow-xs dark:border-[#151b2d] dark:bg-[#08090f]">
+              <div className="border-b border-[#F0D7D3] pb-3 flex items-center justify-between flex-wrap gap-2 dark:border-[#151b2d]">
                 <div>
-                  <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                    <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> BỘ SƯU TẬP
+                  <h3 className="font-display font-black text-xs text-[#191116] uppercase tracking-wider flex items-center gap-2 dark:text-white">
+                    <ImageIcon className="h-4.5 w-4.5 text-[#8F0709] dark:text-[#f4c430]" /> BỘ SƯU TẬP
                   </h3>
-                  <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                  <span className="block text-[10px] text-[#9A8B88] font-bold uppercase mt-0.5 tracking-wider dark:text-slate-500">
                     HIỂN THỊ BỘ SƯU TẬP ẢNH, VIDEO CỦA IDOL
                   </span>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+                <span className="block text-[11px] text-[#8F0709] font-black uppercase tracking-wider dark:text-[#f4c430]">
                   ({portfolioPhotoFiles.length}/8 ẢNH)
                 </span>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                   {portfolioPhotoFiles.map((img) => (
-                    <div key={img.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950 border border-white/5 group shadow-md">
+                    <div key={img.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-100 border border-[#F0D7D3] group shadow-xs dark:bg-slate-950 dark:border-white/5">
                       <img
                         src={img.previewUrl}
                         alt={img.name}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
 
                       <button
                         type="button"
@@ -3001,14 +2992,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                           event.stopPropagation();
                           handleRemovePortfolioPhoto(img.id);
                         }}
-                        className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
+                        className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white shadow-lg transition-all hover:border-rose-400 hover:bg-rose-600 hover:text-white active:scale-95 cursor-pointer"
                         title="Xóa ảnh"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
 
                       <div className="absolute bottom-3 right-3 z-20">
-                        <label className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
+                        <label className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white hover:brightness-110 active:scale-95 cursor-pointer shadow-lg transition-all dark:bg-[#F0C56B] dark:text-slate-950">
                           <Camera className="h-3.5 w-3.5" />
                           <input
                             type="file"
@@ -3024,8 +3015,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                   ))}
 
                   {portfolioPhotoFiles.length < 8 && (
-                    <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-950/70 border border-dashed border-white/10 hover:border-amber-400/70 transition-colors">
-                      <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-slate-500 hover:text-amber-400 transition-colors">
+                    <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[#FAF7F6] border border-dashed border-[#F0D7D3] hover:border-[#8F0709] transition-colors dark:bg-slate-950/70 dark:border-white/10 dark:hover:border-amber-400/70">
+                      <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-[#9A8B88] hover:text-[#8F0709] transition-colors dark:text-slate-500 dark:hover:text-amber-400">
                         <Upload className="h-7 w-7" />
                         <span className="text-[10px] font-black uppercase tracking-wider">TẢI ẢNH LÊN</span>
                         <input
@@ -3041,12 +3032,12 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 </div>
               </div>
 
-              <div className="border-t border-[#151b2d] pt-5 space-y-3">
+              <div className="border-t border-[#F0D7D3] pt-5 space-y-3 dark:border-[#151b2d]">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <span className="block text-[11px] text-[#f4c430] font-black uppercase tracking-wider">
+                  <span className="block text-[11px] text-[#8F0709] font-black uppercase tracking-wider dark:text-[#f4c430]">
                     ({portfolioVideoFiles.length + portfolioVideoLinks.length}/4 VIDEO)
                   </span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#9A8B88] dark:text-slate-500">
                     GẮN LINK HOẶC TẢI TRỰC TIẾP TỪ THIẾT BỊ
                   </span>
                 </div>

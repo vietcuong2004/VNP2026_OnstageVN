@@ -27,7 +27,7 @@ const guestMoreNavigation: PublicNavigationItem[] = [
   { key: "my_bookings", label: "Yêu cầu của tôi", href: "/brand/my-bookings" },
   { key: "saved_idols", label: "Idol đã lưu", href: "/brand/shortlists" },
   { key: "saved_jobs", label: "Việc làm đã lưu", href: "/talent/jobs/saved-jobs" },
-  { key: "talent_survey", label: "Khảo sát", href: "/talent/survey" },
+  { key: "talent_survey", label: "Đăng ký nhanh", href: "/talent/survey" },
   { key: "about", label: "Về chúng tôi", href: "/about" },
   { key: "login", label: "Đăng nhập", href: "/auth/login" },
 ];
@@ -39,7 +39,7 @@ const guestDesktopNavigation: PublicNavigationItem[] = [
   { key: "jobs", label: "Cơ hội việc làm", href: "/talent/jobs" },
   { key: "saved_idols", label: "Idol đã lưu", href: "/brand/shortlists" },
   { key: "saved_jobs", label: "Việc làm đã lưu", href: "/talent/jobs/saved-jobs" },
-  { key: "talent_survey", label: "Khảo sát", href: "/talent/survey" },
+  { key: "talent_survey", label: "Đăng ký nhanh", href: "/talent/survey" },
   { key: "about", label: "Về chúng tôi", href: "/about" },
   { key: "login", label: "Đăng nhập", href: "/auth/login" },
 ];
