@@ -6,8 +6,6 @@ import { getSiteUrl } from "@/lib/site-url";
 const SITE_URL = getSiteUrl();
 const ASSET_VERSION = "10";
 const FAVICON_VERSION = "12";
-const SHARE_IMAGE = `/homepage.png?v=${ASSET_VERSION}`;
-const SHARE_IMAGE_URL = `${SITE_URL}${SHARE_IMAGE}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -25,22 +23,11 @@ export const metadata: Metadata = {
     siteName: "Onstage VN",
     title: "Onstage VN - Nền tảng kết nối & Booking Idol, Model hàng đầu",
     description: "Nền tảng kết nối và booking Idol, Model, MC, Livestreamer và KOLs chuyên nghiệp dành cho nhãn hàng và sự kiện tại Việt Nam.",
-    images: [
-      {
-        url: SHARE_IMAGE_URL,
-        secureUrl: SHARE_IMAGE_URL,
-        type: "image/png",
-        width: 1200,
-        height: 630,
-        alt: "Onstage VN",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Onstage VN - Nền tảng kết nối & Booking Idol, Model hàng đầu",
     description: "Nền tảng kết nối và booking Idol, Model, MC, Livestreamer và KOLs chuyên nghiệp dành cho nhãn hàng và sự kiện tại Việt Nam.",
-    images: [SHARE_IMAGE_URL],
   },
   icons: {
     icon: [

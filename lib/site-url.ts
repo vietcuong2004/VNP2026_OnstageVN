@@ -1,7 +1,8 @@
 const DEFAULT_SITE_URL = "https://onstage.vn";
 
 export function getSiteUrl() {
-  const rawUrl = (process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).trim().replace(/\/+$/, "");
+  const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL || process.env.VERCEL_URL;
+  const rawUrl = (process.env.NEXT_PUBLIC_SITE_URL || (vercelUrl ? `https://${vercelUrl}` : DEFAULT_SITE_URL)).trim().replace(/\/+$/, "");
   const urlWithProtocol = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
 
   try {
