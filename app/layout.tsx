@@ -14,12 +14,8 @@ export const metadata: Metadata = {
     template: "Onstage VN - %s",
   },
   description: "Nền tảng kết nối và booking Idol, Model, MC, Livestreamer và KOLs chuyên nghiệp dành cho nhãn hàng và sự kiện tại Việt Nam.",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     type: "website",
-    url: "/",
     siteName: "Onstage VN",
     title: "Onstage VN - Nền tảng kết nối & Booking Idol, Model hàng đầu",
     description: "Nền tảng kết nối và booking Idol, Model, MC, Livestreamer và KOLs chuyên nghiệp dành cho nhãn hàng và sự kiện tại Việt Nam.",
