@@ -77,8 +77,8 @@ export default function RootPage() {
                     </p>
                   </div>
 
-                  <div className="light-keep-white flex h-12 w-12 items-center justify-center rounded-full border border-[#E8CF91]/70 bg-[linear-gradient(135deg,#8F0709_0%,#A91416_50%,#C72524_100%)] text-white shadow-[0_10px_22px_rgba(25,17,22,0.12)] transition-all duration-300 group-hover:scale-105 dark:h-10 dark:w-10 dark:border-white/20 dark:bg-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.25)] dark:backdrop-blur-md dark:group-hover:bg-[#F5D76E] dark:group-hover:text-slate-950">
-                    <ArrowRight className="h-5 w-5 text-current" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#E8CF91]/70 bg-[linear-gradient(135deg,#8F0709_0%,#A91416_50%,#C72524_100%)] text-white shadow-[0_10px_22px_rgba(25,17,22,0.12)] transition-all duration-300 group-hover:scale-105 dark:h-10 dark:w-10 dark:border-white/20 dark:bg-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.25)] dark:backdrop-blur-md dark:group-hover:bg-[#F5D76E] dark:group-hover:text-slate-950">
+                    <ArrowRight className="h-5 w-5 !text-white" style={{ color: "#ffffff" }} />
                   </div>
                 </div>
               </Link>
@@ -119,12 +119,14 @@ export default function RootPage() {
               {/* Left Content Area */}
               <div className="relative z-10 p-8 lg:p-10 max-w-[50%] flex flex-col justify-between min-h-[220px]">
                 <div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF0EE] border border-[#F0D7D3] text-[#8F0709] shadow-sm mb-4 transition-transform duration-300 group-hover:scale-110 dark:bg-amber-400/10 dark:border-amber-400/20 dark:text-amber-300">
-                    <Icon className="h-5.5 w-5.5 stroke-[2.2]" />
+                  <div className="flex items-center gap-3.5">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFF0EE] border border-[#F0D7D3] text-[#8F0709] shadow-xs transition-transform duration-300 group-hover:scale-110 dark:bg-amber-400/10 dark:border-amber-400/20 dark:text-amber-300">
+                      <Icon className="h-5 w-5 stroke-[2.2]" />
+                    </div>
+                    <h2 className="font-serif text-2xl lg:text-3xl font-extrabold text-[#8F0709] tracking-tight leading-snug dark:text-white">
+                      {card.title}
+                    </h2>
                   </div>
-                  <h2 className="font-serif text-2xl lg:text-3xl font-extrabold text-[#8F0709] tracking-tight leading-snug dark:text-white">
-                    {card.title}
-                  </h2>
                   <p className="mt-3 text-xs lg:text-sm font-medium leading-relaxed text-[#574D54] dark:text-slate-400">
                     {card.subtitle}
                   </p>
@@ -134,8 +136,8 @@ export default function RootPage() {
                   href={card.href}
                   className="mt-6 inline-flex items-center gap-3 w-fit group/btn"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#8F0709] text-white shadow-md transition-transform duration-300 group-hover/btn:scale-110 dark:bg-amber-400 dark:text-slate-950">
-                    <ArrowRight className="h-4.5 w-4.5 stroke-[2.5]" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white shadow-md transition-transform duration-300 group-hover/btn:scale-110 dark:bg-amber-400 dark:text-slate-950">
+                    <ArrowRight className="h-4.5 w-4.5 stroke-[2.5] !text-white" style={{ color: "#ffffff" }} />
                   </div>
                   <span className="text-xs lg:text-sm font-black uppercase tracking-wider text-[#8F0709] transition-colors group-hover/btn:underline dark:text-white">
                     Khám phá ngay

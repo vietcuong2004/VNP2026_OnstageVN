@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
@@ -403,14 +404,8 @@ export default function Header() {
       )}
       <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-white/5 bg-[#070913] px-4 md:px-8 transform translate-z-0">
         <div className="flex w-auto md:w-72 shrink-0 items-center">
-          <button
-            onClick={() => {
-              if (typeof window !== "undefined" && window.innerWidth < 768) {
-                router.push("/");
-              } else {
-                router.push("/brand/search");
-              }
-            }}
+          <Link
+            href="/"
             className="flex items-center gap-1.5 hover:opacity-95 transition-opacity focus:outline-none cursor-pointer"
           >
             <img
@@ -423,7 +418,7 @@ export default function Header() {
               alt="OnstageVN Logo Text"
               className="h-6 w-auto sm:h-7 object-contain shrink-0"
             />
-          </button>
+          </Link>
         </div>
 
 

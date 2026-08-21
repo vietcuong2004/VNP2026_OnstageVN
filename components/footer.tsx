@@ -21,7 +21,7 @@ export default function Footer() {
       <div className="grid grid-cols-2 md:grid-cols-12 gap-3 sm:gap-4 md:gap-8 mb-8">
         {/* Left Column: Logo & Tagline */}
         <div className="col-span-2 md:col-span-4 flex flex-col items-center md:items-start gap-4">
-          <div className="flex items-center justify-center md:justify-start w-full gap-0">
+          <Link href="/" className="flex items-center justify-center md:justify-start w-full gap-0 hover:opacity-90 transition-opacity">
             <img
               src="/logo_icon.png?v=20260817"
               alt="OnstageVN Logo Icon"
@@ -32,7 +32,7 @@ export default function Footer() {
               alt="OnstageVN Logo Text"
               className="h-9 sm:h-10 object-contain shrink-0 p-0 m-0"
             />
-          </div>
+          </Link>
           <p className="text-xs sm:text-[13px] leading-relaxed text-[#574D54] dark:text-slate-400 max-w-sm font-medium text-justify w-full">
             Nền tảng công nghệ tối tân giúp kiến tạo hồ sơ sắc đẹp số chuyên nghiệp, định hướng AI và tự động khớp nối cơ hội hợp tác cho các thế hệ idol cùng nhãn hàng.
           </p>
