@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Về chúng tôi",
-  description: "Onstage VN - Hệ sinh thái kết nối và quản lý Idol, Model, KOL và doanh nghiệp hàng đầu Việt Nam.",
+  description: "Tìm hiểu tầm nhìn, sứ mệnh và hệ sinh thái Onstage VN — bệ phóng phát triển sự nghiệp và kết nối thương hiệu cho Idol, Model và Nhà sáng tạo nội dung.",
   openGraph: {
     title: "Về chúng tôi | Onstage VN",
-    description: "Onstage VN - Hệ sinh thái kết nối và quản lý Idol, Model, KOL và doanh nghiệp hàng đầu Việt Nam.",
+    description: "Tìm hiểu tầm nhìn, sứ mệnh và hệ sinh thái Onstage VN — bệ phóng phát triển sự nghiệp và kết nối thương hiệu cho Idol, Model và Nhà sáng tạo nội dung.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Về chúng tôi | Onstage VN",
-    description: "Onstage VN - Hệ sinh thái kết nối và quản lý Idol, Model, KOL và doanh nghiệp hàng đầu Việt Nam.",
+    description: "Tìm hiểu tầm nhìn, sứ mệnh và hệ sinh thái Onstage VN — bệ phóng phát triển sự nghiệp và kết nối thương hiệu cho Idol, Model và Nhà sáng tạo nội dung.",
   },
 };
 

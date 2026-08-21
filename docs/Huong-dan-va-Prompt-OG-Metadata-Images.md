@@ -127,10 +127,10 @@ A sleek, modern 3D widescreen banner (16:9) representing a Fast Talent & Model O
 ```
 
 #### 12. 📖 Về chúng tôi / Giới thiệu Onstage (`/about`)
-* **Ý nghĩa:** Tầm nhìn và sứ mệnh bệ phóng tài năng — cổng vòm Onstage trắng sứ lộng lẫy với dải lụa đỏ uốn lượn và cúp vinh danh nghệ thuật.
+* **Ý nghĩa:** Câu chuyện thương hiệu và hệ sinh thái Onstage — bệ phóng kết nối đa lĩnh vực cho Idol, Model, MC, Livestreamer và Nhà sáng tạo nội dung, giao diện banner split-screen với bố cục collage thực tế sống động.
 * **Prompt ChatGPT:**
 ```text
-An inspiring and artistic luxury gallery widescreen banner (16:9). A magnificent grand arch structure sculpted from pure white porcelain and frosted glass, accented by sweeping ruby-red silk ribbons flowing through the air. In the center, a warm, clean spotlight illuminates the Onstage trophy pedestal. Serene, visionary, and elegant high-fashion agency heritage, bright studio lighting, photorealistic 8k render, no text.
+A luxury high-fashion talent agency widescreen banner (16:9) with a dynamic split-screen collage layout. On the left (35-40%), a spacious and pristine porcelain-white minimalist studio background with soft ambient lighting and subtle lens flares, creating clean negative space. On the right (60-65%), a vibrant and seamlessly blended collage showcasing diverse Asian entertainment talents in action: a glamorous fashion model posing in a bright studio with softbox lights, a charismatic male MC in a tailored blazer holding a microphone, a stylish female creator livestreaming behind a ring light, and a glimpse of a fashion casting board with portrait comp-cards. Flowing light rays, delicate ruby-red silk ribbons, and subtle champagne-gold glowing accents seamlessly connect the scenes. Commercial editorial photography, ultra-realistic 8k resolution, warm and inspiring atmosphere, no text.
 ```
 
 #### 13. ⚙️ Cài đặt hệ thống (`/settings`)
@@ -158,7 +158,7 @@ Sau khi gen xong ảnh, bạn đổi tên thành `opengraph-image.png` và đặ
 | **Quản lý Idol** | `/brand/my-talents` | `frontend/app/brand/my-talents/opengraph-image.png` |
 | **Hợp tác** | `/talent/brands` | `frontend/app/talent/brands/opengraph-image.png` |
 | **Hồ sơ cá nhân** | `/talent/profile` | `frontend/app/talent/profile/opengraph-image.png` |
-| **Khảo sát** | `/talent/survey` | `frontend/app/talent/survey/opengraph-image.png` |
+| **Đăng ký nhanh** | `/talent/survey` | `frontend/app/talent/survey/opengraph-image.png` |
 | **Về chúng tôi** | `/about` | `frontend/app/about/opengraph-image.png` |
 | **Cài đặt** | `/settings` | `frontend/app/settings/opengraph-image.png` |
 | **Trang chủ** | `/` | `frontend/app/opengraph-image.png` |
