@@ -74,6 +74,7 @@ type BackendProfile = {
   education?: string | null;
   budget_min?: number | string | null;
   budget_max?: number | string | null;
+  budget_unit?: string | null;
   avatar_url?: string | null;
   price?: string | null;
   client_price?: string | null;
@@ -181,6 +182,7 @@ type BackendCampaign = {
   talent_quantity?: number | string | null;
   budget_min?: number | string | null;
   budget_max?: number | string | null;
+  budget_unit?: string | null;
   benefits?: string | null;
   requirements?: string | null;
   height_min_cm?: number | string | null;
@@ -467,6 +469,7 @@ type CampaignForm = {
   budget: string;
   budgetMin?: string;
   budgetMax?: string;
+  budgetUnit?: 'day' | 'hour' | 'job' | string;
   budgetNegotiable?: boolean;
   benefits: string;
   requirements: string;
@@ -511,30 +514,59 @@ function numberOrNull(value: unknown) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function formatDailyCompensation(value: number) {
+function formatDailyCompensation(value: number, unit: string = "day") {
+  const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : "/ngày";
   if (value >= 1_000_000) {
     const millions = value / 1_000_000;
     const formatted = Number.isInteger(millions)
       ? String(millions)
       : millions.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
-    return `${formatted} triệu/ngày`;
+    return `${formatted} triệu${suffix}`;
   }
 
   if (value >= 1_000) {
-    return `${Math.round(value / 1_000).toLocaleString("vi-VN")}k/ngày`;
+    const thousands = value / 1_000;
+    const formatted = Number.isInteger(thousands)
+      ? String(thousands)
+      : thousands.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
+    return `${formatted}k${suffix}`;
   }
 
-  return `${value.toLocaleString("vi-VN")}đ/ngày`;
+  return `${value.toLocaleString("vi-VN")}đ${suffix}`;
 }
 
-function formatBudget(min: unknown, max: unknown) {
+function formatBudget(min: unknown, max: unknown, unit: string = "day") {
   const budgetMin = numberOrNull(min);
   const budgetMax = numberOrNull(max);
 
-  if (budgetMin && budgetMax && budgetMin === budgetMax) return formatDailyCompensation(budgetMin);
-  if (budgetMin && budgetMax) return `${formatDailyCompensation(budgetMin)} - ${formatDailyCompensation(budgetMax)}`;
-  if (budgetMax) return formatDailyCompensation(budgetMax);
-  if (budgetMin) return formatDailyCompensation(budgetMin);
+  if (budgetMin && budgetMax && budgetMin === budgetMax) return formatDailyCompensation(budgetMin, unit);
+  if (budgetMin && budgetMax) {
+    const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : "/ngày";
+    const formatPart = (val: number) => {
+      if (val >= 1_000_000) {
+        const m = val / 1_000_000;
+        return { text: `${Number.isInteger(m) ? String(m) : m.toLocaleString("vi-VN", { maximumFractionDigits: 1 })} triệu`, isM: true };
+      }
+      if (val >= 1_000) {
+        const k = val / 1_000;
+        return { text: `${Number.isInteger(k) ? String(k) : k.toLocaleString("vi-VN", { maximumFractionDigits: 1 })}k`, isM: false };
+      }
+      return { text: `${val.toLocaleString("vi-VN")}đ`, isM: false };
+    };
+
+    const first = formatPart(budgetMin);
+    const second = formatPart(budgetMax);
+
+    if (first.isM && second.isM) {
+      return `${first.text.replace(/\s*triệu/i, "")} - ${second.text}${suffix}`;
+    }
+    if (!first.isM && !second.isM) {
+      return `${first.text.replace(/k$/i, "")} - ${second.text}${suffix}`;
+    }
+    return `${first.text} - ${second.text}${suffix}`;
+  }
+  if (budgetMax) return formatDailyCompensation(budgetMax, unit);
+  if (budgetMin) return formatDailyCompensation(budgetMin, unit);
   return "Thỏa thuận";
 }
 
@@ -923,7 +955,8 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     isOwner: Boolean(campaign.is_owner),
     canApply: campaign.can_apply !== false && campaign.can_apply !== 0,
     talentQuantity: Number(campaign.talent_quantity) || 1,
-    budget: formatBudget(campaign.budget_min, campaign.budget_max),
+    budget: formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day"),
+    budget_unit: campaign.budget_unit || "day",
     budgetValue: budgetMax ?? budgetMin ?? 0,
     benefits: campaign.benefits || "Thỏa thuận theo brief",
     status: mapCampaignStatus(campaign.status),
@@ -1318,6 +1351,7 @@ function buildCampaignPayload(form: CampaignForm) {
     talent_quantity: Number(form.talentQuantity) || 1,
     budget_min: budgetMin,
     budget_max: budgetMax,
+    budget_unit: form.budgetUnit || "day",
     benefits: form.benefits || null,
     requirements: form.requirements || "Chưa có yêu cầu chi tiết.",
     height_min_cm: numberOrNull(form.heightMin),

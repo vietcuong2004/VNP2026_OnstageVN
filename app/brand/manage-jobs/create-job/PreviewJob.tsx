@@ -27,6 +27,7 @@ type JobPreviewForm = {
   endDate: string;
   applicationDeadline: string;
   budget: string;
+  budgetUnit?: string;
   budgetNegotiable: boolean;
   benefits: string;
   description: string;
@@ -95,7 +96,7 @@ function buildRequirementList(form: JobPreviewForm) {
   return items.length > 0 ? items : ["Chưa có yêu cầu chi tiết"];
 }
 
-function formatBudgetPreview(value: string, isNegotiable: boolean) {
+function formatBudgetPreview(value: string, isNegotiable: boolean, unit: string = "day") {
   if (isNegotiable) return "Thỏa thuận";
 
   const numbers = String(value || "")
@@ -105,20 +106,45 @@ function formatBudgetPreview(value: string, isNegotiable: boolean) {
 
   if (numbers.length === 0) return "Chưa có";
 
-  const formatMillion = (amount: number) => {
-    const million = amount / 1_000_000;
-    const text = million.toLocaleString("vi-VN", {
-      minimumFractionDigits: million % 1 === 0 ? 0 : 1,
-      maximumFractionDigits: 1,
-    });
-    return text;
+  const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : "/ngày";
+
+  const formatAmount = (amount: number) => {
+    if (amount >= 1_000_000) {
+      const million = amount / 1_000_000;
+      const text = million.toLocaleString("vi-VN", {
+        minimumFractionDigits: million % 1 === 0 ? 0 : 1,
+        maximumFractionDigits: 1,
+      });
+      return { text: `${text} triệu`, isMillion: true };
+    }
+    if (amount >= 1_000) {
+      const thousands = amount / 1_000;
+      const text = Number.isInteger(thousands)
+        ? String(thousands)
+        : thousands.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
+      return { text: `${text}k`, isMillion: false };
+    }
+    return { text: `${amount.toLocaleString("vi-VN")}đ`, isMillion: false };
   };
 
   if (numbers.length === 1 || numbers[0] === numbers[1]) {
-    return `${formatMillion(numbers[0])} triệu/ngày`;
+    return `${formatAmount(numbers[0]).text}${suffix}`;
   }
 
-  return `${formatMillion(numbers[0])} - ${formatMillion(numbers[1])} triệu/ngày`;
+  const first = formatAmount(numbers[0]);
+  const second = formatAmount(numbers[1]);
+
+  if (first.isMillion && second.isMillion) {
+    const firstClean = first.text.replace(/\s*triệu/i, "");
+    return `${firstClean} - ${second.text}${suffix}`;
+  }
+
+  if (!first.isMillion && !second.isMillion) {
+    const firstClean = first.text.replace(/k$/i, "");
+    return `${firstClean} - ${second.text}${suffix}`;
+  }
+
+  return `${first.text} - ${second.text}${suffix}`;
 }
 
 export default function PreviewJob({
@@ -138,7 +164,7 @@ export default function PreviewJob({
   const currentActiveImageIndex = Math.min(activeImageIndex ?? internalActiveImageIndex, images.length - 1);
   const setCurrentActiveImageIndex = onActiveImageIndexChange ?? setInternalActiveImageIndex;
   const location = [form.address, form.city].filter(Boolean).join(", ") || "Chưa có";
-  const budget = formatBudgetPreview(form.budget, form.budgetNegotiable);
+  const budget = formatBudgetPreview(form.budget, form.budgetNegotiable, form.budgetUnit || "day");
   const positionCards = form.campaignPositions.length > 0
     ? form.campaignPositions
     : (roles.length > 0 ? roles : targetProfiles).map((position) => ({

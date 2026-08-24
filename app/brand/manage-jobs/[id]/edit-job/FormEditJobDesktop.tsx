@@ -240,6 +240,7 @@ const emptyForm = {
   budget: "",
   budgetMin: "",
   budgetMax: "",
+  budgetUnit: "day" as any,
   budgetNegotiable: false,
   benefits: "",
   requirements: "",
@@ -1069,13 +1070,15 @@ export default function FormEditJob({
                   />
                 </div>
                 <BudgetPaymentSection
-                  budgetFrom={budgetFrom}
-                  budgetTo={budgetTo}
-                  budgetNegotiable={budgetNegotiable}
-                  onNegotiableChange={handleBudgetNegotiableChange}
-                  onBudgetFromChange={(value) => handleBudgetChange(value, budgetFrom, setBudgetFrom, true)}
-                  onBudgetToChange={(value) => handleBudgetChange(value, budgetTo, setBudgetTo, false)}
-                />
+                budgetFrom={budgetFrom}
+                budgetTo={budgetTo}
+                budgetUnit={form.budgetUnit || "day"}
+                budgetNegotiable={budgetNegotiable}
+                onNegotiableChange={handleBudgetNegotiableChange}
+                onBudgetFromChange={(value) => handleBudgetChange(value, budgetFrom, setBudgetFrom, true)}
+                onBudgetToChange={(value) => handleBudgetChange(value, budgetTo, setBudgetTo, false)}
+                onBudgetUnitChange={(unit) => setForm((c: any) => ({ ...c, budgetUnit: unit }))}
+              />
                 <div className="space-y-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-sm sm:col-span-2">
                   <span className="text-xs font-black uppercase tracking-wider text-[#8F0709]">
                     Địa điểm làm việc

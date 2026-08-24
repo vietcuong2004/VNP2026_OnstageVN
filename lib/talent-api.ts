@@ -1153,40 +1153,47 @@ export async function loadTalentSurveyHistory() {
   }
 }
 
-function parseCompensation(value: number) {
+function parseCompensation(value: number, unitKey: string = "day") {
+  const unitLabel = unitKey === "hour" ? "triệu/giờ" : unitKey === "job" ? "triệu/job" : "triệu/ngày";
+  const thousandLabel = unitKey === "hour" ? "k/giờ" : unitKey === "job" ? "k/job" : "k/ngày";
+  const dongLabel = unitKey === "hour" ? "đ/giờ" : unitKey === "job" ? "đ/job" : "đ/ngày";
+
   if (value >= 1_000_000) {
     const millions = value / 1_000_000;
     const formatted = Number.isInteger(millions)
       ? String(millions)
       : millions.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
-    return { text: formatted, unit: "triệu/ngày" };
+    return { text: formatted, unit: unitLabel };
   }
 
   if (value >= 1_000) {
-    const thousands = Math.round(value / 1_000);
-    return { text: thousands.toLocaleString("vi-VN"), unit: "k/ngày" };
+    const thousands = value / 1_000;
+    const formatted = Number.isInteger(thousands)
+      ? String(thousands)
+      : thousands.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
+    return { text: formatted, unit: thousandLabel };
   }
 
-  return { text: value.toLocaleString("vi-VN"), unit: "đ/ngày" };
+  return { text: value.toLocaleString("vi-VN"), unit: dongLabel };
 }
 
-function dailyCompensation(value: number) {
-  const parsed = parseCompensation(value);
+function dailyCompensation(value: number, unitKey: string = "day") {
+  const parsed = parseCompensation(value, unitKey);
   return `${parsed.text} ${parsed.unit}`;
 }
 
-function moneyRange(min?: number | null, max?: number | null) {
-  if (min && max && min === max) return dailyCompensation(min);
+function moneyRange(min?: number | null, max?: number | null, unitKey: string = "day") {
+  if (min && max && min === max) return dailyCompensation(min, unitKey);
   if (min && max) {
-    const pMin = parseCompensation(min);
-    const pMax = parseCompensation(max);
+    const pMin = parseCompensation(min, unitKey);
+    const pMax = parseCompensation(max, unitKey);
     if (pMin.unit === pMax.unit) {
       return `${pMin.text} - ${pMax.text} ${pMax.unit}`;
     }
     return `${pMin.text} ${pMin.unit} - ${pMax.text} ${pMax.unit}`;
   }
-  if (max) return dailyCompensation(max);
-  if (min) return dailyCompensation(min);
+  if (max) return dailyCompensation(max, unitKey);
+  if (min) return dailyCompensation(min, unitKey);
   return "Thỏa thuận";
 }
 
@@ -1235,7 +1242,7 @@ function splitBackendText(value: unknown) {
 export function mapCampaignToTalentJob(campaign: any) {
   const color = campaignColor(campaign.job_type);
   const theme = campaignTheme(color);
-  const budget = moneyRange(campaign.budget_min, campaign.budget_max);
+  const budget = moneyRange(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day");
   const hasBudget = Boolean(budget);
   const media = Array.isArray(campaign.media)
     ? campaign.media
@@ -1296,6 +1303,8 @@ export function mapCampaignToTalentJob(campaign: any) {
     budget,
     budgetMin: campaign.budget_min ?? null,
     budgetMax: campaign.budget_max ?? null,
+    budget_unit: campaign.budget_unit || "day",
+    budgetUnit: campaign.budget_unit || "day",
     hasBudget,
     location: fullLocation,
     brief: campaign.description || "",
@@ -1322,3 +1331,4 @@ export function mapCampaignToTalentJob(campaign: any) {
     },
   };
 }
+

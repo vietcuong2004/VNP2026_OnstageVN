@@ -693,6 +693,12 @@ function JobsPageContent() {
     const number = Number(rawNumber.replace(",", "."));
     if (!Number.isFinite(number) || number <= 0) return "";
 
+    const suffix = budgetStr.includes("/giờ")
+      ? "/giờ"
+      : budgetStr.includes("/job")
+        ? "/job"
+        : "/ngày";
+
     const minVal = firstPart.includes("triệu") || firstPart.includes("trieu")
       ? number * 1_000_000
       : firstPart.includes("k")
@@ -705,12 +711,12 @@ function JobsPageContent() {
       const formatted = Number.isInteger(millions)
         ? String(millions)
         : millions.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
-      return `${formatted} triệu/ngày`;
+      return `${formatted} triệu${suffix}`;
     }
 
-    if (splitVal >= 1_000) return `${Math.round(splitVal / 1_000).toLocaleString("vi-VN")}k/ngày`;
+    if (splitVal >= 1_000) return `${Math.round(splitVal / 1_000).toLocaleString("vi-VN")}k${suffix}`;
 
-    if (splitVal > 0) return `${splitVal.toLocaleString("vi-VN")}đ/ngày`;
+    if (splitVal > 0) return `${splitVal.toLocaleString("vi-VN")}đ${suffix}`;
     return "";
   };
 

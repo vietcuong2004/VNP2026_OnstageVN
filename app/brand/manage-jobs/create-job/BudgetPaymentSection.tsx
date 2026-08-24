@@ -1,27 +1,39 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+
+export const BUDGET_UNIT_OPTIONS = [
+  { value: "day", label: "VNĐ/ngày", shortDesc: "1 ngày" },
+  { value: "hour", label: "VNĐ/giờ", shortDesc: "1 giờ" },
+  { value: "job", label: "VNĐ/job", shortDesc: "1 job" },
+] as const;
 
 type BudgetPaymentSectionProps = {
   budgetFrom: string;
   budgetTo: string;
+  budgetUnit?: string;
   budgetNegotiable: boolean;
   onNegotiableChange: (checked: boolean) => void;
   onBudgetFromChange: (value: string) => void;
   onBudgetToChange: (value: string) => void;
+  onBudgetUnitChange?: (unit: "day" | "hour" | "job") => void;
   className?: string;
 };
 
 export default function BudgetPaymentSection({
   budgetFrom,
   budgetTo,
+  budgetUnit = "day",
   budgetNegotiable,
   onNegotiableChange,
   onBudgetFromChange,
   onBudgetToChange,
+  onBudgetUnitChange,
   className,
 }: BudgetPaymentSectionProps) {
   const isRangeMode = !budgetNegotiable;
+  const currentUnit = BUDGET_UNIT_OPTIONS.find((u) => u.value === budgetUnit) || BUDGET_UNIT_OPTIONS[0];
 
   return (
     <section
@@ -35,7 +47,7 @@ export default function BudgetPaymentSection({
           CHI PHÍ CHO MỖI IDOL:
         </p>
         <p className="text-xs font-semibold leading-relaxed text-[#574D54]">
-          Bạn dự kiến trả bao nhiêu cho 1 Idol trong 1 ngày làm việc?
+          Bạn dự kiến trả bao nhiêu cho 1 Idol trong {currentUnit.shortDesc} làm việc?
         </p>
       </div>
 
@@ -53,7 +65,7 @@ export default function BudgetPaymentSection({
       </div>
 
       {isRangeMode && (
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end sm:gap-4">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_1.35fr] sm:items-end sm:gap-3">
           <BudgetAmountInput
             label="Từ"
             value={budgetFrom}
@@ -66,7 +78,20 @@ export default function BudgetPaymentSection({
             value={budgetTo}
             placeholder="1.000.000"
             onChange={onBudgetToChange}
-            suffix="VNĐ/người/ngày"
+            unitSelect={
+              <select
+                value={budgetUnit}
+                onChange={(e) => onBudgetUnitChange?.(e.target.value as any)}
+                className="bg-transparent text-xs font-bold text-[#8F0709] outline-none cursor-pointer"
+                aria-label="Đơn vị tính"
+              >
+                {BUDGET_UNIT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value} className="text-[#191116] bg-white font-semibold">
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            }
           />
         </div>
       )}
@@ -114,13 +139,13 @@ function BudgetAmountInput({
   value,
   placeholder,
   onChange,
-  suffix,
+  unitSelect,
 }: {
   label: string;
   value: string;
   placeholder: string;
   onChange: (value: string) => void;
-  suffix?: string;
+  unitSelect?: ReactNode;
 }) {
   return (
     <label className="min-w-0 space-y-1.5">
@@ -136,17 +161,12 @@ function BudgetAmountInput({
           placeholder={placeholder}
           inputMode="numeric"
         />
-        {suffix && (
-          <span className="ml-2 hidden shrink-0 text-[11px] font-bold uppercase tracking-wide text-[#8F0709] sm:inline">
-            {suffix}
-          </span>
+        {unitSelect && (
+          <div className="ml-2 shrink-0 border-l border-[#F0D7D3] pl-2.5">
+            {unitSelect}
+          </div>
         )}
       </div>
-      {suffix && (
-        <span className="block text-[10px] font-bold uppercase tracking-wide text-[#8F0709] sm:hidden">
-          {suffix}
-        </span>
-      )}
     </label>
   );
 }

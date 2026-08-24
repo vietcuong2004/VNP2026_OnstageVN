@@ -218,6 +218,7 @@ const emptyForm = {
   budget: "",
   budgetMin: "",
   budgetMax: "",
+  budgetUnit: "day" as any,
   budgetNegotiable: false,
   benefits: "",
   requirements: "",
@@ -992,10 +993,12 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
               <BudgetPaymentSection
                 budgetFrom={budgetFrom}
                 budgetTo={budgetTo}
+                budgetUnit={form.budgetUnit || "day"}
                 budgetNegotiable={budgetNegotiable}
                 onNegotiableChange={handleBudgetNegotiableChange}
                 onBudgetFromChange={(value) => handleBudgetChange(value, budgetFrom, setBudgetFrom, true)}
                 onBudgetToChange={(value) => handleBudgetChange(value, budgetTo, setBudgetTo, false)}
+                onBudgetUnitChange={(unit) => setForm((c: any) => ({ ...c, budgetUnit: unit }))}
               />
 
               <div className="space-y-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-sm text-[#191116]">

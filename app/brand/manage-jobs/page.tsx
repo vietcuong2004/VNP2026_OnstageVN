@@ -180,7 +180,7 @@ export default function CampaignsPage() {
               key={campaign.id}
               onClick={() => router.push(`/brand/manage-jobs/${campaign.id}`)}
               className={cn(
-                "flex flex-col justify-between rounded-3xl border p-5 transition-all duration-300 hover:-translate-y-0.5 flex-1 w-full text-left relative group min-h-[340px] cursor-pointer",
+                "flex flex-col justify-between gap-4 rounded-3xl border p-5 transition-all duration-300 hover:-translate-y-0.5 flex-1 w-full text-left relative group cursor-pointer",
                 isClosed
                   ? "border-[#F2DBD7] bg-[#FAF7F6]/60 dark:border-white/5 dark:bg-[#0b0c10]/40 hover:border-[#C72524]/30 dark:hover:border-white/15"
                   : "border-[#F2DBD7] bg-white hover:border-[#C72524]/40 hover:shadow-[0_12px_36px_rgba(199,37,36,0.08)] dark:border-[#151b2d] dark:bg-gradient-to-b dark:from-[#111421]/80 dark:to-[#070913]/95 dark:hover:border-amber-400/30 dark:hover:shadow-[0_12px_40px_rgba(245,158,11,0.08)]"
@@ -193,12 +193,23 @@ export default function CampaignsPage() {
                 </div>
               )}
 
-              <div className="relative z-10">
-                <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
+              <div className="relative z-10 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2.5">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="rounded bg-[#FFF0EE] border border-[#F2DBD7] text-[#C72524] dark:bg-white/5 dark:border-transparent dark:text-slate-400 px-2.5 py-1 text-[8.5px] font-black uppercase tracking-wider">
-                      {campaign.jobType}
-                    </span>
+                    {Array.isArray(campaign.industries) && campaign.industries.length > 0 ? (
+                      campaign.industries.map((ind, idx) => (
+                        <span
+                          key={idx}
+                          className="rounded bg-[#FFF0EE] border border-[#F2DBD7] text-[#C72524] dark:bg-white/5 dark:border-transparent dark:text-slate-400 px-2.5 py-1 text-[8.5px] font-black uppercase tracking-wider"
+                        >
+                          {ind}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="rounded bg-[#FFF0EE] border border-[#F2DBD7] text-[#C72524] dark:bg-white/5 dark:border-transparent dark:text-slate-400 px-2.5 py-1 text-[8.5px] font-black uppercase tracking-wider">
+                        {campaign.jobType || "Chưa phân loại"}
+                      </span>
+                    )}
                     {campaign.escrowed && (
                       <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[8.5px] text-emerald-600 dark:text-emerald-300 font-extrabold border border-emerald-500/20 uppercase tracking-wider">
                         🛡️ Đã Ký Quỹ
@@ -208,7 +219,7 @@ export default function CampaignsPage() {
 
                   <span
                     className={cn(
-                      "rounded-full px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider border",
+                      "rounded-full px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider border shrink-0",
                       isPublished
                         ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-300"
                         : isClosed
@@ -223,12 +234,12 @@ export default function CampaignsPage() {
                 <h3 className="line-clamp-1 text-base font-black text-[#191116] group-hover:text-[#C72524] dark:text-white dark:group-hover:text-amber-300 transition-colors duration-300 leading-snug">
                   {campaign.title}
                 </h3>
-                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[#574D54] dark:text-slate-400 font-medium min-h-[32px]">
+                <p className="line-clamp-2 text-xs leading-relaxed text-[#574D54] dark:text-slate-400 font-medium">
                   {campaign.description || "Chưa có mô tả chi tiết."}
                 </p>
 
                 {/* Info Metadata Grid */}
-                <div className="mt-3.5 grid grid-cols-2 gap-x-3 gap-y-2">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2 pt-1">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Briefcase className="h-3.5 w-3.5 text-[#C72524] dark:text-amber-400/80 shrink-0" />
                     <span className="text-[10px] font-bold text-[#191116] dark:text-slate-300 truncate" title={campaign.budget}>{campaign.budget || "Thỏa thuận"}</span>
@@ -248,18 +259,7 @@ export default function CampaignsPage() {
                 </div>
               </div>
 
-              <div className="mt-3 border-t border-[#F2DBD7] dark:border-white/5 pt-3 relative z-10">
-                <div className="mb-3 grid grid-cols-2 gap-2 text-center text-xs">
-                  <div>
-                    <span className="block text-[7.5px] font-black uppercase text-[#574D54] dark:text-slate-500 tracking-widest">Views</span>
-                    <span className="font-mono font-black text-[#C72524] dark:text-amber-300 mt-0.5 block">{campaign.views}</span>
-                  </div>
-                  <div className="border-l border-[#F2DBD7] dark:border-white/5">
-                    <span className="block text-[7.5px] font-black uppercase text-[#574D54] dark:text-slate-500 tracking-widest">Ứng viên</span>
-                    <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">{campaign.applicants.length}</span>
-                  </div>
-                </div>
-
+              <div className="border-t border-[#F2DBD7] dark:border-white/5 pt-3.5 relative z-10">
                 <div className="flex gap-2 items-center">
                   <button
                     onClick={(e) => {

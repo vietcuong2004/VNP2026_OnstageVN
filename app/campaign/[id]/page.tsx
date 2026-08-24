@@ -18,6 +18,7 @@ type ReferralCampaignPayload = {
   job_type?: string | null;
   budget_min?: number | string | null;
   budget_max?: number | string | null;
+  budget_unit?: string | null;
   city?: string | null;
   location?: string | null;
   start_date?: string | null;
@@ -37,32 +38,42 @@ function formatVND(value?: number | string | null) {
   return amount > 0 ? `${new Intl.NumberFormat("vi-VN").format(amount)}đ` : "Thỏa thuận";
 }
 
-function formatDailyCompensation(value?: number | string | null) {
+function formatDailyCompensation(value?: number | string | null, unit: string = "day") {
   const amount = Number(value || 0);
   if (!amount) return null;
+  const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : "/ngày";
 
   if (amount >= 1_000_000) {
     const millions = amount / 1_000_000;
     const formatted = Number.isInteger(millions)
       ? String(millions)
       : millions.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
-    return `${formatted} triệu/ngày`;
+    return `${formatted} triệu${suffix}`;
   }
 
   if (amount >= 1_000) {
-    return `${Math.round(amount / 1_000).toLocaleString("vi-VN")}k/ngày`;
+    const thousands = amount / 1_000;
+    const formatted = Number.isInteger(thousands)
+      ? String(thousands)
+      : thousands.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
+    return `${formatted}k${suffix}`;
   }
 
-  return `${amount.toLocaleString("vi-VN")}đ/ngày`;
+  return `${amount.toLocaleString("vi-VN")}đ${suffix}`;
 }
 
-function formatCompensationRange(min?: number | string | null, max?: number | string | null) {
-  const minText = formatDailyCompensation(min);
-  const maxText = formatDailyCompensation(max);
+function formatCompensationRange(min?: number | string | null, max?: number | string | null, unit: string = "day") {
+  const minAmount = Number(min || 0);
+  const maxAmount = Number(max || 0);
 
-  if (minText && maxText) return `${minText} - ${maxText}`;
-  if (maxText) return maxText;
-  if (minText) return `Từ ${minText}`;
+  if (minAmount && maxAmount) {
+    const minText = formatDailyCompensation(minAmount, unit);
+    const maxText = formatDailyCompensation(maxAmount, unit);
+    if (minAmount === maxAmount) return minText || "Thỏa thuận";
+    return `${minText} - ${maxText}`;
+  }
+  if (maxAmount) return formatDailyCompensation(maxAmount, unit);
+  if (minAmount) return `Từ ${formatDailyCompensation(minAmount, unit) || ""}`;
   return "Thỏa thuận";
 }
 
@@ -93,7 +104,7 @@ function mapReferralCampaign(raw?: ReferralCampaignPayload | null): Campaign | n
     id: String(raw.id),
     title: raw.title || "Chiến dịch",
     jobType: raw.job_type || "Campaign",
-    budget: formatCompensationRange(raw.budget_min, raw.budget_max),
+    budget: formatCompensationRange(raw.budget_min, raw.budget_max, raw.budget_unit || "day") || "Thỏa thuận",
     budgetValue: Number(raw.budget_max || raw.budget_min || 0),
     city: raw.city || raw.location || "Linh hoạt",
     address: raw.location || raw.city || "Linh hoạt",

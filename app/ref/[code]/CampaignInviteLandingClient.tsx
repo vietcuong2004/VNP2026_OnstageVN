@@ -53,6 +53,7 @@ type InviteCampaign = {
   benefits?: string | null;
   budget_min?: number | string | null;
   budget_max?: number | string | null;
+  budget_unit?: string | null;
   city?: string | null;
   location?: string | null;
   start_date?: string | null;
@@ -75,28 +76,29 @@ type CampaignInvitePayload = {
   referrer?: InviteReferrer | null;
 };
 
-function formatDailyCompensation(value?: number | string | null) {
+function formatDailyCompensation(value?: number | string | null, unit: string = "day") {
   const amount = Number(value || 0);
   if (!amount) return null;
+  const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : "/ngày";
 
   if (amount >= 1_000_000) {
     const millions = amount / 1_000_000;
     const formatted = Number.isInteger(millions)
       ? String(millions)
       : millions.toLocaleString("vi-VN", { maximumFractionDigits: 1 });
-    return `${formatted} triệu/ngày`;
+    return `${formatted} triệu${suffix}`;
   }
 
   if (amount >= 1_000) {
-    return `${Math.round(amount / 1_000).toLocaleString("vi-VN")}k/ngày`;
+    return `${Math.round(amount / 1_000).toLocaleString("vi-VN")}k${suffix}`;
   }
 
-  return `${amount.toLocaleString("vi-VN")}đ/ngày`;
+  return `${amount.toLocaleString("vi-VN")}đ${suffix}`;
 }
 
-function formatBudget(min?: number | string | null, max?: number | string | null) {
-  const minValue = formatDailyCompensation(min);
-  const maxValue = formatDailyCompensation(max);
+function formatBudget(min?: number | string | null, max?: number | string | null, unit: string = "day") {
+  const minValue = formatDailyCompensation(min, unit);
+  const maxValue = formatDailyCompensation(max, unit);
 
   if (minValue && maxValue) return `${minValue} - ${maxValue}`;
   if (maxValue) return maxValue;
@@ -215,7 +217,7 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
   const benefitItems = useMemo(() => {
     const items = [
       ...toBulletList(campaign.benefits),
-      campaign.budget_min || campaign.budget_max ? `Thù lao dự kiến ${formatBudget(campaign.budget_min, campaign.budget_max)}.` : null,
+      campaign.budget_min || campaign.budget_max ? `Thù lao dự kiến ${formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day")}.` : null,
       campaign.location || campaign.city ? `Làm việc tại ${campaign.location || campaign.city}.` : null,
     ].filter(Boolean) as string[];
 
@@ -223,7 +225,7 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
   }, [campaign]);
 
   const isCampaignOpen = campaign.status === "published";
-  const budget = formatBudget(campaign.budget_min, campaign.budget_max);
+  const budget = formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day");
   const eventDate = formatDate(campaign.event_date || campaign.start_date);
   const startDate = formatDate(campaign.start_date);
   const endDate = formatDate(campaign.end_date);
