@@ -233,6 +233,7 @@ const emptyForm = {
   address: "",
   startDate: "",
   endDate: "",
+  onstageTime: "",
   deadline: "",
   applicationDeadline: "",
   eventDate: "",
@@ -330,6 +331,7 @@ function campaignToFormState(campaign: Campaign) {
     address: campaign.address || "",
     startDate: start,
     endDate: end,
+    onstageTime: (campaign as any).onstageTime || (campaign as any).onstage_time || (campaign as any).eventTime || (campaign as any).event_time || "",
     deadline: dateFromDateTimeLocal(app),
     applicationDeadline: app,
     eventDate: event,
@@ -1052,7 +1054,7 @@ export default function FormEditJob({
                     onChange={(value) => setForm((c) => ({ ...c, title: value }))}
                   />
                 </div>
-                <div className="grid grid-cols-1 gap-4 sm:col-span-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
                   <DateTimeSplitInput
                     label="Thời gian bắt đầu"
                     value={form.startDate}
@@ -1067,6 +1069,12 @@ export default function FormEditJob({
                     label="Hạn ứng tuyển"
                     value={form.applicationDeadline}
                     onChange={(value) => setForm((c) => ({ ...c, applicationDeadline: value, deadline: value }))}
+                  />
+                  <FormInput
+                    label="Thời gian onstage"
+                    placeholder="Ví dụ: 60p, 1 tiếng..."
+                    value={form.onstageTime || ""}
+                    onChange={(value) => setForm((c) => ({ ...c, onstageTime: value }))}
                   />
                 </div>
                 <BudgetPaymentSection

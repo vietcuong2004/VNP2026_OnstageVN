@@ -211,6 +211,7 @@ const emptyForm = {
   address: "",
   startDate: "",
   endDate: "",
+  onstageTime: "",
   deadline: "",
   applicationDeadline: "",
   eventDate: "",
@@ -354,6 +355,7 @@ function createDefaultForm() {
     ...emptyForm,
     startDate: jobStart,
     endDate: jobEnd,
+    onstageTime: "",
     deadline: today,
     applicationDeadline: dateFromDateTimeLocal(jobStart),
     eventDate: today,
@@ -985,6 +987,12 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
                       label="Hạn ứng tuyển"
                       value={form.applicationDeadline}
                       onChange={(value) => setForm((c) => ({ ...c, applicationDeadline: value, deadline: value }))}
+                    />
+                    <FormInput
+                      label="Thời gian onstage"
+                      placeholder="Ví dụ: 60p, 1 tiếng..."
+                      value={form.onstageTime || ""}
+                      onChange={(value) => setForm((c) => ({ ...c, onstageTime: value }))}
                     />
                   </div>
                 </div>

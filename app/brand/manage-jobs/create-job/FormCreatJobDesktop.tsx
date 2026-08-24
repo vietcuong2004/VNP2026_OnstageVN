@@ -193,6 +193,7 @@ const emptyForm = {
   address: "",
   startDate: "",
   endDate: "",
+  onstageTime: "",
   deadline: "",
   applicationDeadline: "",
   eventDate: "",
@@ -336,6 +337,7 @@ function createDefaultForm() {
     ...emptyForm,
     startDate: jobStart,
     endDate: jobEnd,
+    onstageTime: "",
     deadline: today,
     applicationDeadline: dateFromDateTimeLocal(jobStart),
     eventDate: today,
@@ -919,7 +921,7 @@ export default function FormCreateJob({
                     onChange={(value) => setForm((c) => ({ ...c, title: value }))}
                   />
                 </div>
-                <div className="grid grid-cols-1 gap-4 sm:col-span-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
                   <DateTimeSplitInput
                     label="Thời gian bắt đầu"
                     value={form.startDate}
@@ -934,6 +936,12 @@ export default function FormCreateJob({
                     label="Hạn ứng tuyển"
                     value={form.applicationDeadline}
                     onChange={(value) => setForm((c) => ({ ...c, applicationDeadline: value, deadline: value }))}
+                  />
+                  <FormInput
+                    label="Thời gian onstage"
+                    placeholder="Ví dụ: 60p, 1 tiếng..."
+                    value={form.onstageTime || ""}
+                    onChange={(value) => setForm((c) => ({ ...c, onstageTime: value }))}
                   />
                 </div>
                 <BudgetPaymentSection

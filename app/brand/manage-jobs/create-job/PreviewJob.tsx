@@ -264,10 +264,11 @@ export default function PreviewJob({
               <span className="font-bold text-[#8F0709] dark:text-amber-300">OnstageVN Brand</span>
             </p>
 
-            <div className="grid grid-cols-1 gap-3 2xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4">
               <MetricCard icon={DollarSign} label="Thù lao" value={budget} highlight />
               <MetricCard icon={Clock} label="Hạn ứng tuyển" value={formatDateTime(form.applicationDeadline)} />
-              <MetricCard icon={MapPin} label="Địa điểm làm việc" value={location} cyan className="2xl:col-span-2" />
+              <MetricCard icon={MapPin} label="Địa điểm làm việc" value={location} cyan />
+              <MetricCard icon={Clock} label="Thời gian onstage" value={(form as any).onstageTime || "Chưa có"} />
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-4 pt-3">
@@ -296,6 +297,9 @@ export default function PreviewJob({
             <div className="grid grid-cols-1 gap-2 text-xs sm:text-sm">
               <InfoLine icon={Calendar} label="Bắt đầu" value={formatDateTime(form.startDate)} />
               <InfoLine icon={Calendar} label="Kết thúc" value={formatDateTime(form.endDate)} />
+              {(form as any).onstageTime && (
+                <InfoLine icon={Clock} label="Thời gian onstage" value={(form as any).onstageTime} />
+              )}
             </div>
             <ListBlock title="Đầu việc chính" items={responsibilities.length > 0 ? responsibilities : ["Chưa có"]} marker="check" />
             <ListBlock title="Quyền lợi & Đãi ngộ" items={benefits.length > 0 ? benefits : ["Chưa có"]} marker="dot" />
