@@ -21,11 +21,11 @@ export default function InviteLandingChildRouterClient({ code, talentSlug }: Pro
     resolveCampaignReferralLinkBySlug(code, talentSlug)
       .then((data) => {
         if (!isMounted) return;
-        setInviteType(data?.type === "campaign" ? "campaign" : "brand");
+        setInviteType(data?.type === "brand_roster" || data?.type === "brand" ? "brand" : "campaign");
       })
       .catch(() => {
         if (!isMounted) return;
-        setInviteType("brand");
+        setInviteType("campaign");
       });
 
     return () => {

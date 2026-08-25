@@ -290,15 +290,15 @@ export default function TalentCard({
             <span className="truncate">{locationText || "Chưa cập nhật"}</span>
           </div>
 
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap items-center gap-1.5">
             {talentTypes.length ? (
               talentTypes.map((type) => (
-                <span key={type} className="inline-flex w-fit rounded-md border border-[#F1D8D4] bg-[#FFF7F6] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#9B1215] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
+                <span key={type} className="inline-flex w-fit items-center justify-center rounded-md border border-[#F1D8D4] bg-[#FFF7F6] px-2.5 py-1 text-[10px] font-black uppercase leading-none tracking-wider text-[#9B1215] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                   {getTalentTypeLabel(type)}
                 </span>
               ))
             ) : (
-              <span className="inline-flex w-fit rounded-md border border-[#F1D8D4] bg-[#FFF7F6] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#9B1215] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
+              <span className="inline-flex w-fit items-center justify-center rounded-md border border-[#F1D8D4] bg-[#FFF7F6] px-2.5 py-1 text-[10px] font-black uppercase leading-none tracking-wider text-[#9B1215] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                 Chưa cập nhật
               </span>
             )}
@@ -307,11 +307,11 @@ export default function TalentCard({
 
         {/* Info Pills: Chiều cao > Cân nặng > Số đo 3 vòng (1 Hàng) */}
         {profilePills.length > 0 && (
-          <div className="my-3 flex flex-wrap gap-1">
+          <div className="my-3 flex flex-wrap items-center gap-1.5">
             {profilePills.map((pill) => (
               <span
                 key={pill}
-                className="inline-flex max-w-full items-center rounded-lg border border-[#F1D8D4] bg-[#FFF9F8] px-2 py-1 text-[9.5px] font-black uppercase tracking-wider text-[#9B1215] shadow-sm dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-100"
+                className="inline-flex max-w-full items-center justify-center rounded-lg border border-[#F1D8D4] bg-[#FFF9F8] px-2 py-1 text-[9.5px] font-black uppercase leading-none tracking-wider text-[#9B1215] shadow-sm dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-100"
                 title={pill}
               >
                 <span className="truncate">{pill}</span>
@@ -321,11 +321,11 @@ export default function TalentCard({
         )}
 
         {showLifestyleServices && Array.isArray(talent?.lifestyleServices) && talent.lifestyleServices.some((service: any) => service.enabled) && (
-          <div className="my-2.5 flex flex-wrap gap-1">
+          <div className="my-2.5 flex flex-wrap items-center gap-1.5">
             {talent.lifestyleServices.filter((service: any) => service.enabled).map((service: any) => (
               <span
                 key={service.id}
-                className="flex items-center gap-1 rounded border border-[#E9CFC5] bg-[#FFFDFB] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#A36C1D] dark:border-amber-500/20 dark:bg-amber-500/5 dark:text-amber-400"
+                className="inline-flex items-center justify-center gap-1 rounded border border-[#E9CFC5] bg-[#FFFDFB] px-2 py-1 text-[9px] font-bold uppercase leading-none tracking-wider text-[#A36C1D] dark:border-amber-500/20 dark:bg-amber-500/5 dark:text-amber-400"
                 title={service.title}
               >
                 <span className="max-w-[100px] truncate">

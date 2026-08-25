@@ -408,6 +408,7 @@ function JobsPageContent() {
   const searchParams = useSearchParams();
   const { requireAuthAction, GuestActionPrompt } = useGuestActionPrompt();
   const campaignIdParam = searchParams.get("campaignId");
+  const stageParam = searchParams.get("stage");
   const getSavedJobsState = () => {
     if (typeof window === "undefined") return null;
     try {
@@ -450,7 +451,7 @@ function JobsPageContent() {
   const [maxBudget, setMaxBudget] = useState(() => initialJobsState?.maxBudget || 0);
   const [appliedMaxBudget, setAppliedMaxBudget] = useState(() => initialJobsState?.appliedMaxBudget || 0);
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState(() => initialJobsState?.selectedSponsorshipFilter || "all");
-  const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>(() => normalizeStageFilter(initialJobsState?.selectedStageFilter));
+  const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>(() => stageParam ? normalizeStageFilter(stageParam) : normalizeStageFilter(initialJobsState?.selectedStageFilter));
   const [sortOrder, setSortOrder] = useState<SortOrder>(() => initialJobsState?.sortOrder || "deadline_asc");
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
@@ -495,6 +496,12 @@ function JobsPageContent() {
       window.removeEventListener("storage", syncSavedJobCount);
     };
   }, []);
+
+  useEffect(() => {
+    if (stageParam) {
+      setSelectedStageFilter(normalizeStageFilter(stageParam));
+    }
+  }, [stageParam]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

@@ -46,10 +46,33 @@ function getApiBaseUrl() {
 }
 
 function getRedirectPath() {
-  if (typeof window !== "undefined" && window.innerWidth < 768) {
-    return "/";
+  if (typeof window === "undefined") return "/talent/jobs";
+
+  // 1. Check pendingCampaignInvitePath (referral invite landing page)
+  const pendingCampaignPath = localStorage.getItem("pendingCampaignInvitePath");
+  if (pendingCampaignPath && pendingCampaignPath.startsWith("/")) {
+    return pendingCampaignPath;
   }
-  return "/brand/search";
+
+  // 2. Check pendingRedirect stored before social login redirect
+  const pendingRedirect = localStorage.getItem("pendingRedirect") || sessionStorage.getItem("pendingRedirect");
+  if (pendingRedirect && pendingRedirect.startsWith("/")) {
+    localStorage.removeItem("pendingRedirect");
+    sessionStorage.removeItem("pendingRedirect");
+    return pendingRedirect;
+  }
+
+  // 3. Check query param redirect if present
+  try {
+    const queryRedirect = new URLSearchParams(window.location.search).get("redirect");
+    if (queryRedirect && queryRedirect.startsWith("/")) {
+      return queryRedirect;
+    }
+  } catch {
+    // ignore
+  }
+
+  return "/talent/jobs";
 }
 
 function getMissingEmailPath() {

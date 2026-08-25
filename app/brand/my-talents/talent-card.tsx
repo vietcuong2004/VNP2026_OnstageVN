@@ -161,15 +161,15 @@ export default function TalentCard({ entry, talent, onDeleteClick, onActivateCli
             <span className="truncate">{locationText || "Chưa cập nhật"}</span>
           </div>
 
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap items-center gap-1.5">
             {talentTypes.length ? (
               talentTypes.map((type) => (
-                <span key={type} className="inline-flex w-fit rounded-md border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
+                <span key={type} className="inline-flex w-fit items-center justify-center rounded-md border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-1 text-[9px] font-black uppercase leading-none tracking-wider text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                   {type}
                 </span>
               ))
             ) : (
-              <span className="inline-flex w-fit rounded-md border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
+              <span className="inline-flex w-fit items-center justify-center rounded-md border border-[#F0D7D3] bg-[#FFF0EE] px-2 py-1 text-[9px] font-black uppercase leading-none tracking-wider text-[#8F0709] dark:border-[#C9A86A]/25 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
                 Chưa cập nhật
               </span>
             )}

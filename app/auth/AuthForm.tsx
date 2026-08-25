@@ -29,10 +29,21 @@ function getApiBaseUrl() {
 }
 
 function getRedirectPath() {
-  if (typeof window !== "undefined" && window.innerWidth < 768) {
-    return "/";
+  if (typeof window === "undefined") return "/talent/jobs";
+
+  const pendingCampaignPath = localStorage.getItem("pendingCampaignInvitePath");
+  if (pendingCampaignPath && pendingCampaignPath.startsWith("/")) {
+    return pendingCampaignPath;
   }
-  return "/brand/search";
+
+  const pendingRedirect = localStorage.getItem("pendingRedirect") || sessionStorage.getItem("pendingRedirect");
+  if (pendingRedirect && pendingRedirect.startsWith("/")) {
+    localStorage.removeItem("pendingRedirect");
+    sessionStorage.removeItem("pendingRedirect");
+    return pendingRedirect;
+  }
+
+  return "/talent/jobs";
 }
 
 function getStoredAuthUser() {
@@ -359,6 +370,14 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
           <div className="flex flex-col gap-3">
             <a
               href={`${apiUrl}/auth/social/google/redirect`}
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  const redirect = new URLSearchParams(window.location.search).get("redirect");
+                  if (redirect && redirect.startsWith("/")) {
+                    localStorage.setItem("pendingRedirect", redirect);
+                  }
+                }
+              }}
               className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-slate-950/40 text-xs font-bold uppercase tracking-wider text-slate-200 transition-colors hover:border-amber-400/40 hover:text-amber-300"
             >
               <span className="text-base font-black">G</span>
