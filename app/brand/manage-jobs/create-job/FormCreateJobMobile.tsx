@@ -808,7 +808,7 @@ export default function FormCreateJob({ isOpen, onClose, onCampaignCreated }: Fo
         applicants: [],
         contactRequests: 0,
         views: 0,
-        description: updatedForm.description || "Chưa có mô tả brief.",
+        description: updatedForm.description || "",
         requirements: updatedForm.requirements || "Chưa có yêu cầu chi tiết.",
         heightMinCm: Number(updatedForm.heightMin) || null,
         weightMaxKg: Number(updatedForm.weightMax) || null,

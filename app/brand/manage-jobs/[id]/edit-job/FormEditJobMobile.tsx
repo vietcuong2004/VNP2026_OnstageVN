@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
-import { X, ImagePlus, Briefcase, ChevronDown, Pencil, Calendar, Eye, Plus, Trash2 } from "lucide-react";
+import { X, ImagePlus, Briefcase, ChevronDown, ChevronLeft, ChevronRight, Save, Loader2, Pencil, Calendar, Eye, Plus, Trash2 } from "lucide-react";
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { updateBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
@@ -737,7 +737,7 @@ export default function FormEditJobMobile({
   }
 
   async function handleUpdateCampaign() {
-    if (!campaignToEdit || isSubmitting || formStep !== TOTAL_STEPS) return;
+    if (!campaignToEdit || isSubmitting) return;
 
     if (!syncJobTimelineBeforeNext()) {
       return;
@@ -901,7 +901,7 @@ export default function FormEditJobMobile({
         budgetValue: Number(updatedForm.budgetMax || updatedForm.budgetMin) || 0,
         benefits: updatedForm.benefits || "Thỏa thuận theo brief",
         status: campaignToEdit.status,
-        description: updatedForm.description || "Chưa có mô tả brief.",
+        description: updatedForm.description || "",
         requirements: updatedForm.requirements || "Chưa có yêu cầu chi tiết.",
         heightMinCm: Number(updatedForm.heightMin) || null,
         weightMaxKg: Number(updatedForm.weightMax) || null,
@@ -1172,43 +1172,44 @@ export default function FormEditJobMobile({
         {/* ── FOOTER navigation ── */}
         {!openDropdown && activeTab === "form" && (
           <div className="relative z-10 flex items-center justify-between gap-3 border-t border-[#F0D7D3] bg-white px-4 sm:px-6 py-3.5 sm:py-4 shrink-0">
-            <button
-              type="button"
-              onClick={() => formStep > 1 ? moveToStep(formStep - 1) : handleClose()}
-              className="flex h-12 items-center justify-center gap-2 rounded-full border border-[#F0D7D3] bg-white px-6 text-xs font-bold text-[#191116] hover:bg-[#FFF0EE] cursor-pointer transition-all shadow-sm"
-              disabled={isSubmitting}
-            >
-              {formStep > 1 ? "← Bước trước" : "Hủy"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => formStep > 1 ? moveToStep(formStep - 1) : handleClose()}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-xs font-bold text-[#191116] hover:bg-[#FFF0EE] hover:border-[#8F0709]/40 cursor-pointer transition-all shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={isSubmitting}
+                title={formStep > 1 ? "Bước trước" : "Đóng"}
+                aria-label={formStep > 1 ? "Bước trước" : "Đóng"}
+              >
+                <ChevronLeft className="h-5 w-5 text-[#191116]" />
+              </button>
+              <button
+                type="button"
+                onClick={() => moveToStep(formStep + 1)}
+                disabled={formStep >= TOTAL_STEPS || isSubmitting}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-xs font-bold text-[#191116] hover:bg-[#FFF0EE] hover:border-[#8F0709]/40 cursor-pointer transition-all shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+                title="Bước tiếp"
+                aria-label="Bước tiếp"
+              >
+                <ChevronRight className="h-5 w-5 text-[#191116]" />
+              </button>
+            </div>
 
             <div className="flex items-center gap-3">
-              {/* Progress bar */}
-              <div className="hidden sm:flex h-2 w-24 rounded-full bg-[#FFF7F6] overflow-hidden border border-[#F0D7D3] p-0.5">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#E01B1F] via-[#C72524] to-[#8F0709] transition-all duration-500 shadow-sm"
-                  style={{ width: `${(formStep / TOTAL_STEPS) * 100}%` }}
-                />
-              </div>
-
-              {formStep < TOTAL_STEPS ? (
-                <button
-                  type="button"
-                  onClick={() => moveToStep(formStep + 1)}
-                  className="light-force-white flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-8 text-xs font-black uppercase tracking-wider !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-md"
-                >
-                  TIẾP TỤC
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleUpdateCampaign}
-                  disabled={isSubmitting}
-                  className="light-force-white flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-8 text-xs font-black uppercase tracking-wider !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-md disabled:opacity-40"
-                >
-                  <Briefcase className="h-4 w-4" />
-                  {isSubmitting ? "Đang lưu..." : "LƯU THAY ĐỔI"}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleUpdateCampaign}
+                disabled={isSubmitting}
+                className="light-force-white flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-7 text-xs font-black uppercase tracking-wider !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer transition-all shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+                title="Lưu thay đổi"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                Lưu
+              </button>
             </div>
           </div>
         )}

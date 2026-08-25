@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
-import { X, ImagePlus, ChevronDown, Pencil, Calendar, Plus, Trash2 } from "lucide-react";
+import { X, ImagePlus, ChevronDown, ChevronLeft, ChevronRight, Save, Loader2, Pencil, Calendar, Plus, Trash2 } from "lucide-react";
 import { type Campaign } from "@/lib/brand-mvp-data";
 import { updateBrandCampaign, uploadBrandCampaignMedia } from "@/lib/brand-api";
 import { cn } from "@/lib/utils";
@@ -741,7 +741,7 @@ export default function FormEditJob({
   }
 
   async function handleUpdateCampaign() {
-    if (!campaignToEdit || isSubmitting || formStep !== TOTAL_STEPS) return;
+    if (!campaignToEdit || isSubmitting) return;
 
     if (!syncJobTimelineBeforeNext()) {
       return;
@@ -905,7 +905,7 @@ export default function FormEditJob({
         budgetValue: Number(updatedForm.budgetMax || updatedForm.budgetMin) || 0,
         benefits: updatedForm.benefits || "Thỏa thuận theo brief",
         status: campaignToEdit.status,
-        description: updatedForm.description || "Chưa có mô tả brief.",
+        description: updatedForm.description || "",
         requirements: updatedForm.requirements || "Chưa có yêu cầu chi tiết.",
         heightMinCm: Number(updatedForm.heightMin) || null,
         weightMaxKg: Number(updatedForm.weightMax) || null,
@@ -1025,16 +1025,35 @@ export default function FormEditJob({
                 type="button"
                 onClick={handlePreviousStep}
                 disabled={formStep <= 1}
-                className="rounded-full border border-[#F0D7D3] bg-white px-6 py-2.5 text-xs font-bold text-[#191116] hover:bg-[#FFF0EE] cursor-pointer transition disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-xs font-bold text-[#191116] hover:bg-[#FFF0EE] hover:border-[#8F0709]/40 cursor-pointer transition disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
+                title="Bước trước"
+                aria-label="Bước trước"
               >
-                ← Trước
+                <ChevronLeft className="h-4 w-4 text-[#191116]" />
               </button>
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="light-force-white rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-7 py-2.5 text-xs font-black uppercase tracking-wider !text-white text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer"
+                disabled={formStep >= TOTAL_STEPS}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-xs font-bold text-[#191116] hover:bg-[#FFF0EE] hover:border-[#8F0709]/40 cursor-pointer transition disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
+                title="Bước tiếp"
+                aria-label="Bước tiếp"
               >
-                {formStep === TOTAL_STEPS ? "LƯU THAY ĐỔI" : "TIẾP TỤC"}
+                <ChevronRight className="h-4 w-4 text-[#191116]" />
+              </button>
+              <button
+                type="button"
+                onClick={handleUpdateCampaign}
+                disabled={isSubmitting}
+                className="light-force-white flex h-9 items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-5 text-xs font-black uppercase tracking-wider !text-white text-white shadow-md hover:brightness-110 active:scale-95 transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                title="Lưu thay đổi"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Save className="h-3.5 w-3.5" />
+                )}
+                Lưu
               </button>
             </div>
           </div>

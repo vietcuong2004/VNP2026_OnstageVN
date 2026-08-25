@@ -62,7 +62,7 @@ export async function generateReferralMetadata(options: {
   referrerSlug?: string;
 }): Promise<Metadata> {
   const siteUrl = getSiteBaseUrl();
-  const defaultTitle = "Tuyển dụng Talent & Chiến dịch Biểu diễn | OnstageVN";
+  const defaultTitle = "Chiến dịch | Onstage VN";
   const defaultDescription = "Khám phá và tham gia các chiến dịch biểu diễn, livestream, đại sứ thương hiệu hấp dẫn dành cho Idol, KOL, KOC tại OnstageVN.";
   const defaultImage = `${siteUrl}/og_job_banner_default.png`;
 
@@ -93,11 +93,8 @@ export async function generateReferralMetadata(options: {
         if (data?.type === "campaign" && data.campaign) {
           const camp = data.campaign;
           const campTitle = camp.title || "Chiến dịch mới";
-          const referrerName = data.referrer?.profile?.display_name || data.referrer?.name;
 
-          title = referrerName
-            ? `${campTitle} - Lời mời từ ${referrerName} | OnstageVN`
-            : `${campTitle} - Tuyển dụng Talent | OnstageVN`;
+          title = `${campTitle} | Onstage VN`;
 
           const details: string[] = [];
           const location = camp.city || camp.location;
@@ -115,16 +112,19 @@ export async function generateReferralMetadata(options: {
           }
 
           const rawDesc = String(camp.description || "").replace(/\s+/g, " ").trim();
-          const cleanDesc = rawDesc ? (rawDesc.length > 130 ? `${rawDesc.slice(0, 127)}...` : rawDesc) : "";
+          const isPlaceholder = !rawDesc || /chưa có mô tả/i.test(rawDesc);
+          const cleanDesc = !isPlaceholder ? (rawDesc.length > 130 ? `${rawDesc.slice(0, 127)}...` : rawDesc) : "";
 
           const prefix = details.join(" | ");
-          description = prefix ? (cleanDesc ? `${prefix}. ${cleanDesc}` : prefix) : cleanDesc || defaultDescription;
+          description = prefix
+            ? (cleanDesc ? `${prefix}. ${cleanDesc}` : `${prefix}. Ứng tuyển ngay tại OnstageVN.`)
+            : cleanDesc || defaultDescription;
 
           const rawCover = camp.cover_media?.url || camp.cover_url || camp.cover || camp.media?.[0]?.url;
           imageUrl = normalizeAbsoluteImageUrl(rawCover);
         } else if (data?.type === "brand" && data.brand) {
           const brandName = data.brand.name || "Brand đối tác";
-          title = `${brandName} mời bạn gia nhập mạng lưới Talent | OnstageVN`;
+          title = `${brandName} | Onstage VN`;
           description = `Kết nối và hợp tác trực tiếp cùng ${brandName} trên nền tảng OnstageVN. Nhận các cơ hội booking, biểu diễn và tài trợ hấp dẫn.`;
           imageUrl = normalizeAbsoluteImageUrl(data.brand.avatar_url || data.brand.logo_url);
         }

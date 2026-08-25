@@ -477,7 +477,28 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
   }
 
   const detail = job.detail || {};
-  const requirements = toRequirementList(detail.requirements || job.requirements);
+  const rawReqList = detail.requirements || job.requirements || [];
+  const customRequirements = (Array.isArray(rawReqList) ? rawReqList : toRequirementList(rawReqList))
+    .map((s) => String(s || "").trim())
+    .filter(Boolean)
+    .filter((line) => {
+      const lower = line.toLowerCase();
+      if (lower.startsWith("chiều cao tối thiểu")) return false;
+      if (lower.startsWith("cân nặng tối đa")) return false;
+      if (lower.startsWith("kinh nghiệm tối thiểu")) return false;
+      if (lower.includes("chưa có yêu cầu chi tiết")) return false;
+      return true;
+    });
+
+  const requirements: string[] = [];
+  const heightMin = job.heightMinCm || job.height_min_cm || detail.heightMinCm || detail.height_min_cm;
+  const weightMax = job.weightMaxKg || job.weight_max_kg || detail.weightMaxKg || detail.weight_max_kg;
+  const expMin = job.experienceMinYears || job.experience_min_years || detail.experienceMinYears || detail.experience_min_years;
+
+  if (heightMin) requirements.push(`Chiều cao tối thiểu: ${heightMin} cm.`);
+  if (weightMax) requirements.push(`Cân nặng tối đa: ${weightMax} kg.`);
+  if (expMin) requirements.push(`Kinh nghiệm tối thiểu: ${expMin} năm.`);
+  requirements.push(...customRequirements);
   const benefits = detail.benefits || (Array.isArray(job.benefits) ? job.benefits : toRequirementList(job.benefits));
   const industryPills = Array.isArray(job.industries)
     ? job.industries.map((item: unknown) => String(item || "").trim()).filter(Boolean)

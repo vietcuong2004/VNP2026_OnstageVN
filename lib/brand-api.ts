@@ -963,7 +963,7 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     shortlistedTalentIds,
     applicants,
     contactRequests: 0,
-    description: campaign.description || "Chưa có mô tả brief.",
+    description: campaign.description || "",
     requirements: campaign.requirements || "Chưa có yêu cầu chi tiết.",
     heightMinCm: numberOrNull(campaign.height_min_cm),
     weightMaxKg: numberOrNull(campaign.weight_max_kg),
@@ -1339,7 +1339,7 @@ function buildCampaignPayload(form: CampaignForm) {
   return {
     title: form.title || "Campaign mới",
     job_type: form.jobType,
-    description: form.description || "Chưa có mô tả brief.",
+    description: form.description || "",
     event_name: form.eventName || null,
     city: form.city,
     location: form.address || form.city,
