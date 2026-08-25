@@ -33,6 +33,7 @@ import KeywordSuggestionsDropdown from "@/components/search/KeywordSuggestionsDr
 import { loadSavedJobsForSession, SAVED_JOBS_UPDATED_EVENT } from "@/lib/saved-jobs";
 import { buildJobSearchSuggestions } from "@/lib/search-suggestions.mjs";
 import { normalizeLocationName, useCityFilterOptions } from "@/hooks/use-location-options";
+import { getApplicationDeadlineEnd, isApplicationDeadlineExpired } from "@/lib/job-deadline";
 
 type StageFilter = "apply" | "pending" | "approved" | "all";
 type SortOrder = "newest" | "oldest" | "deadline_asc" | "near_me" | "selected_city" | string;
@@ -71,7 +72,14 @@ function readCurrentTalentLocation() {
     const storedProfile = window.localStorage.getItem("vnp_talent_profile");
     if (storedProfile) {
       const parsed = JSON.parse(storedProfile);
-      return parsed.city || parsed.hometown || "Hà Nội";
+      const loc = parsed.city || parsed.hometown || parsed.location;
+      if (loc && typeof loc === "string" && loc.trim()) return loc.trim();
+    }
+    const storedUser = window.localStorage.getItem("onstagevn_auth_user");
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      const loc = parsed.city || parsed.location || parsed.profile?.city || parsed.profile?.location;
+      if (loc && typeof loc === "string" && loc.trim()) return loc.trim();
     }
   } catch {
     // ignore
@@ -443,7 +451,7 @@ function JobsPageContent() {
   const [appliedMaxBudget, setAppliedMaxBudget] = useState(() => initialJobsState?.appliedMaxBudget || 0);
   const [selectedSponsorshipFilter, setSelectedSponsorshipFilter] = useState(() => initialJobsState?.selectedSponsorshipFilter || "all");
   const [selectedStageFilter, setSelectedStageFilter] = useState<StageFilter>(() => normalizeStageFilter(initialJobsState?.selectedStageFilter));
-  const [sortOrder, setSortOrder] = useState<SortOrder>(() => initialJobsState?.sortOrder || "newest");
+  const [sortOrder, setSortOrder] = useState<SortOrder>(() => initialJobsState?.sortOrder || "deadline_asc");
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
@@ -776,15 +784,24 @@ function JobsPageContent() {
     return undefined;
   }, [selectedStageFilter]);
 
+  const myCityLocation = readCurrentTalentLocation();
+  const effectiveSelectedCity = (appliedCity !== allValue && !isAllLocation(appliedCity))
+    ? appliedCity
+    : (selectedCity !== allValue && !isAllLocation(selectedCity))
+      ? selectedCity
+      : "";
+
   const jobQueryOptions = useMemo(() => ({
     q: searchQuery || undefined,
     type: appliedJobType !== allValue ? appliedJobType : undefined,
-    city: (appliedCity !== allValue && appliedCity !== "toàn quốc" && appliedCity !== "toan quoc") ? appliedCity : undefined,
+    city: (appliedCity !== allValue && !isAllLocation(appliedCity)) ? appliedCity : undefined,
     minBudget: appliedShowAdvancedFilters && appliedMinBudget > 0 ? appliedMinBudget : undefined,
     maxBudget: appliedShowAdvancedFilters && appliedMaxBudget > 0 ? appliedMaxBudget : undefined,
-    sortOrder: (sortOrder === "oldest" ? "oldest" : "newest") as "newest" | "oldest",
+    sortOrder: sortOrder || "deadline_asc",
+    nearCity: myCityLocation,
+    selectedCity: effectiveSelectedCity || undefined,
     stage: backendStageFilter,
-  }), [searchQuery, appliedJobType, appliedCity, appliedShowAdvancedFilters, appliedMinBudget, appliedMaxBudget, sortOrder, backendStageFilter]);
+  }), [searchQuery, appliedJobType, appliedCity, appliedShowAdvancedFilters, appliedMinBudget, appliedMaxBudget, sortOrder, myCityLocation, effectiveSelectedCity, backendStageFilter]);
 
   const loadJobsPage = useCallback(async (page: number, mode: "replace" | "append", resultPage: number) => {
     const requestId = ++jobRequestRef.current;
@@ -819,7 +836,7 @@ function JobsPageContent() {
       setJobTotal(response.meta.total);
       setJobStageCounts({
         all: response.meta.stage_counts?.all ?? response.meta.total,
-        apply: response.meta.stage_counts?.recruiting ?? response.meta.total,
+        apply: response.meta.stage_counts?.recruiting ?? 0,
         pending: response.meta.stage_counts?.pending ?? 0,
         approved:
           (response.meta.stage_counts?.approved ?? 0) +
@@ -1013,24 +1030,52 @@ function JobsPageContent() {
       );
     }
 
-    return matchesCity && matchesType && matchesMinBudget && matchesMaxBudget && matchesSponsorship;
+    let matchesStage = true;
+    if (selectedStageFilter === "apply") {
+      const isExpired = isApplicationDeadlineExpired(camp.applicationDeadline);
+      const isApplied = appliedJobs.includes(String(camp.id)) || hasTalentApplication(camp);
+      matchesStage = !isExpired && !isApplied;
+    } else if (selectedStageFilter === "pending") {
+      const stage = getTalentJobStage(camp);
+      const isApplied = appliedJobs.includes(String(camp.id)) || hasTalentApplication(camp);
+      matchesStage = stage === "pending" || (isApplied && stage !== "approved");
+    } else if (selectedStageFilter === "approved") {
+      const stage = getTalentJobStage(camp);
+      matchesStage = stage === "approved";
+    }
+
+    return matchesCity && matchesType && matchesMinBudget && matchesMaxBudget && matchesSponsorship && matchesStage;
   });
 
   const visibleCampaigns = [...filteredCampaigns].sort((a, b) => {
     if (sortOrder === "deadline_asc") {
-      const aDeadline = new Date(a.deadline || a.end_date || a.expires_at || "2099-12-31").getTime();
-      const bDeadline = new Date(b.deadline || b.end_date || b.expires_at || "2099-12-31").getTime();
-      if (aDeadline !== bDeadline) return aDeadline - bDeadline;
+      const aDate = a.applicationDeadline ? (getApplicationDeadlineEnd(a.applicationDeadline)?.getTime() ?? null) : null;
+      const bDate = b.applicationDeadline ? (getApplicationDeadlineEnd(b.applicationDeadline)?.getTime() ?? null) : null;
+      const nowTime = Date.now();
+
+      const getPriority = (d: number | null) => {
+        if (d === null) return 1;
+        if (d >= nowTime) return 0;
+        return 2;
+      };
+
+      const aPri = getPriority(aDate);
+      const bPri = getPriority(bDate);
+      if (aPri !== bPri) return aPri - bPri;
+
+      if (aDate !== null && bDate !== null && aDate !== bDate) {
+        return aDate - bDate;
+      }
     } else if (sortOrder === "near_me") {
       const myCity = normalizeFilterText(readCurrentTalentLocation());
-      const aMatch = normalizeFilterText(a.city || "").includes(myCity) ? 1 : 0;
-      const bMatch = normalizeFilterText(b.city || "").includes(myCity) ? 1 : 0;
+      const aMatch = (normalizeFilterText(a.city || "").includes(myCity) || normalizeFilterText(a.location || "").includes(myCity)) ? 1 : 0;
+      const bMatch = (normalizeFilterText(b.city || "").includes(myCity) || normalizeFilterText(b.location || "").includes(myCity)) ? 1 : 0;
       if (aMatch !== bMatch) return bMatch - aMatch;
     } else if (sortOrder === "selected_city") {
-      const targetCity = normalizeFilterText(appliedCity === allValue ? "" : appliedCity);
+      const targetCity = normalizeFilterText(effectiveSelectedCity || readCurrentTalentLocation());
       if (targetCity) {
-        const aMatch = normalizeFilterText(a.city || "").includes(targetCity) ? 1 : 0;
-        const bMatch = normalizeFilterText(b.city || "").includes(targetCity) ? 1 : 0;
+        const aMatch = (normalizeFilterText(a.city || "").includes(targetCity) || normalizeFilterText(a.location || "").includes(targetCity)) ? 1 : 0;
+        const bMatch = (normalizeFilterText(b.city || "").includes(targetCity) || normalizeFilterText(b.location || "").includes(targetCity)) ? 1 : 0;
         if (aMatch !== bMatch) return bMatch - aMatch;
       }
     }
@@ -1117,7 +1162,7 @@ function JobsPageContent() {
     selectedStageFilter !== "all" ||
     minBudget > 0 ||
     maxBudget > 0 ||
-    sortOrder !== "newest";
+    sortOrder !== "deadline_asc";
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -1448,11 +1493,7 @@ function JobsPageContent() {
           <div className="w-full xl:w-[180px] shrink-0">
             <FilterDropdown
               icon={<ArrowUpDown className="h-3.5 w-3.5 text-[#C9A86A] shrink-0" />}
-              value={
-                sortOrder === "newest" || sortOrder === "oldest"
-                  ? "deadline_asc"
-                  : sortOrder
-              }
+              value={sortOrder}
               onChange={(val) => setSortOrder(val as SortOrder)}
               options={SORT_DROPDOWN_OPTIONS}
               searchable={false}
@@ -1785,7 +1826,7 @@ function JobsPageContent() {
           setSelectedCity(allValue);
           setSelectedJobType(allValue);
           setSelectedStageFilter("all");
-          setSortOrder("newest");
+          setSortOrder("deadline_asc");
           setShowAdvancedFilters(false);
           setMinBudget(0);
           setMaxBudget(0);

@@ -798,7 +798,9 @@ export async function loadTalentCampaignsPage(options: {
   city?: string;
   minBudget?: number;
   maxBudget?: number;
-  sortOrder?: "newest" | "oldest";
+  sortOrder?: "newest" | "oldest" | "deadline_asc" | "near_me" | "selected_city" | string;
+  nearCity?: string;
+  selectedCity?: string;
   stage?: "executing" | "recruiting" | "pending" | "completed";
 } = {}) {
   try {
@@ -811,6 +813,8 @@ export async function loadTalentCampaignsPage(options: {
     if (options.minBudget) params.set("min_budget", String(options.minBudget));
     if (options.maxBudget) params.set("max_budget", String(options.maxBudget));
     if (options.sortOrder) params.set("sort", options.sortOrder);
+    if (options.nearCity) params.set("near_city", options.nearCity);
+    if (options.selectedCity) params.set("selected_city", options.selectedCity);
     if (options.stage) params.set("stage", options.stage);
 
     const route = getAuthToken() ? "/talent/campaigns" : "/public/talent-campaigns";
