@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, Bookmark, Briefcase, CalendarCheck, ChevronRight, Heart, HelpCircle, Home, Info, LogIn, Megaphone, Menu, Plus, Search, Settings, Sparkles, User, UserPlus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
+import { AUTH_USER_UPDATED_EVENT, getAuthToken, getStoredAuthUser, logoutCurrentSession } from "@/lib/api-client";
 import { resolveUnifiedSettingsHref, unifiedLoggedInNavigationSections } from "@/components/sidebar";
 import { getGuestMoreNavigation } from "@/lib/public-navigation";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
@@ -92,8 +92,14 @@ export default function BottomNavigation() {
     };
   }, []);
 
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const isAdmin = currentUser?.type === "admin" || currentUser?.type === "super_admin";
+
   useEffect(() => {
-    const syncToken = () => setIsLoggedIn(!!getAuthToken());
+    const syncToken = () => {
+      setIsLoggedIn(!!getAuthToken());
+      setCurrentUser(getStoredAuthUser());
+    };
     syncToken();
     window.addEventListener(AUTH_USER_UPDATED_EVENT, syncToken);
     window.addEventListener("storage", syncToken);
@@ -102,6 +108,15 @@ export default function BottomNavigation() {
       window.removeEventListener("storage", syncToken);
     };
   }, []);
+
+  const visibleLoggedInSections = React.useMemo(() => {
+    return unifiedLoggedInNavigationSections.filter((section) => {
+      if (section.title === "Dành cho Creator") {
+        return isAdmin;
+      }
+      return true;
+    });
+  }, [isAdmin]);
 
   async function handleLogout() {
     setShowMoreMenu(false);
@@ -178,6 +193,7 @@ export default function BottomNavigation() {
     booking: CalendarCheck,
     my_bookings: CalendarCheck,
     jobs: Briefcase,
+    creator_campaigns: Sparkles,
     about: Info,
     talent_profile: User,
     talent_survey: Sparkles,
@@ -255,6 +271,14 @@ export default function BottomNavigation() {
 
     if (href === "/about") {
       return activePathname === "/about";
+    }
+
+    if (href === "/creator/campaigns") {
+      return activePathname.startsWith("/creator/campaigns") && activePathname !== "/creator/campaigns/create";
+    }
+
+    if (href === "/creator/campaigns/create") {
+      return activePathname.startsWith("/creator/campaigns/create");
     }
 
     if (href === "/settings") {
@@ -346,7 +370,7 @@ export default function BottomNavigation() {
               </div>
             ) : (
               <div ref={scrollContainerRef} className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
-                {unifiedLoggedInNavigationSections.map((section) => (
+                {visibleLoggedInSections.map((section) => (
                   <div key={section.title} className="space-y-3.5">
                     {section.href ? (
                       <>

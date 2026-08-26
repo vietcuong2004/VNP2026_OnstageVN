@@ -62,6 +62,8 @@ function getPageTitle(pathname?: string | null) {
     "/talent/messages": "Tin nhắn",
     "/talent/wallet": "Ví",
     "/talent/calendar": "Lịch làm việc",
+    "/creator/campaigns": "Chiến dịch Creator",
+    "/creator/campaigns/create": "Tạo chiến dịch Creator",
     "/settings": "Cài đặt",
   };
 

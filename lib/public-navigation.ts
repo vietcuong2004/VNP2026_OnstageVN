@@ -5,6 +5,7 @@ export type PublicNavigationItem = {
     | "booking"
     | "my_bookings"
     | "jobs"
+    | "creator_campaigns"
     | "about"
     | "talent_profile"
     | "talent_survey"

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Award,
   Bookmark,
@@ -23,7 +23,7 @@ import {
   Users2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AUTH_USER_UPDATED_EVENT, getAuthToken, logoutCurrentSession } from "@/lib/api-client";
+import { AUTH_USER_UPDATED_EVENT, getAuthToken, getStoredAuthUser, logoutCurrentSession } from "@/lib/api-client";
 import { getGuestDesktopNavigation } from "@/lib/public-navigation";
 import ControlCenterExplanationDialog from "@/components/ui/ControlCenterExplanationDialog";
 
@@ -40,6 +40,11 @@ export const unifiedManagementNavigation = [
   { label: "Tạo Job", icon: Briefcase, href: "/brand/manage-jobs" },
   { label: "Quản lý Idol", icon: Users2, href: "/brand/my-talents" },
   { label: "Hợp tác", icon: Users2, href: "/talent/brands" },
+];
+
+export const unifiedCreatorNavigation = [
+  { label: "Chiến dịch Creator", icon: Sparkles, href: "/creator/campaigns" },
+  { label: "Tạo chiến dịch", icon: Briefcase, href: "/creator/campaigns/create" },
 ];
 
 export const unifiedSystemNavigation = [
@@ -61,6 +66,7 @@ export const unifiedTalentNavigation = [
 export const unifiedLoggedInNavigationSections = [
   { title: "Khám phá & Booking", icon: Search, helpIcon: CircleHelp, items: unifiedDiscoveryNavigation, href: undefined },
   { title: "Quản lý & Hợp tác", icon: Briefcase, helpIcon: CircleHelp, items: unifiedManagementNavigation, href: undefined },
+  { title: "Dành cho Creator", icon: Sparkles, helpIcon: CircleHelp, items: unifiedCreatorNavigation, href: undefined },
   { title: "Tài khoản & Hệ thống", icon: Settings, helpIcon: CircleHelp, items: unifiedSystemNavigation, href: undefined },
 ];
 
@@ -82,13 +88,14 @@ export default function Sidebar() {
   const [sourcePath, setSourcePath] = useState("");
   const [explanationTab, setExplanationTab] = useState<"talent" | "brand" | null>(null);
 
-  const isAppPath = pathname === "/" || pathname.startsWith("/talent") || pathname.startsWith("/brand") || pathname === "/about" || pathname === "/settings";
+  const isAppPath = pathname === "/" || pathname.startsWith("/talent") || pathname.startsWith("/brand") || pathname.startsWith("/creator") || pathname === "/about" || pathname === "/settings";
   const guestIconMap = {
     discover: Sparkles,
     talent: Search,
     booking: CalendarCheck,
     my_bookings: CalendarCheck,
     jobs: Briefcase,
+    creator_campaigns: Sparkles,
     about: Info,
     talent_survey: Sparkles,
     saved_idols: Heart,
@@ -111,8 +118,14 @@ export default function Sidebar() {
           ? "/talent/jobs"
           : pathname;
 
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const isAdmin = currentUser?.type === "admin" || currentUser?.type === "super_admin";
+
   useEffect(() => {
-    const syncToken = () => setIsLoggedIn(!!getAuthToken());
+    const syncToken = () => {
+      setIsLoggedIn(!!getAuthToken());
+      setCurrentUser(getStoredAuthUser());
+    };
     syncToken();
     window.addEventListener(AUTH_USER_UPDATED_EVENT, syncToken);
     window.addEventListener("storage", syncToken);
@@ -121,6 +134,15 @@ export default function Sidebar() {
       window.removeEventListener("storage", syncToken);
     };
   }, []);
+
+  const visibleLoggedInSections = useMemo(() => {
+    return unifiedLoggedInNavigationSections.filter((section) => {
+      if (section.title === "Dành cho Creator") {
+        return isAdmin;
+      }
+      return true;
+    });
+  }, [isAdmin]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -187,6 +209,14 @@ export default function Sidebar() {
       return activePathname === "/about";
     }
 
+    if (href === "/creator/campaigns") {
+      return activePathname.startsWith("/creator/campaigns") && activePathname !== "/creator/campaigns/create";
+    }
+
+    if (href === "/creator/campaigns/create") {
+      return activePathname.startsWith("/creator/campaigns/create");
+    }
+
     if (href === "/settings") {
       return activePathname.startsWith("/settings");
     }
@@ -243,7 +273,7 @@ export default function Sidebar() {
             </div>
           ) : (
             <>
-              {unifiedLoggedInNavigationSections.map((section) => (
+              {visibleLoggedInSections.map((section) => (
                 <section key={section.title} className="space-y-3">
                   {section.href ? (
                     <Link
