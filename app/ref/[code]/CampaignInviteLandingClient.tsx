@@ -863,22 +863,22 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
           <div
             key={t.id}
             className={cn(
-              "pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-full px-4.5 py-2.5 text-xs font-bold shadow-2xl flex items-center gap-2.5 border backdrop-blur-md",
+              "pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-full px-4.5 py-2.5 text-xs font-bold flex items-center gap-2.5 border backdrop-blur-md transition-all",
               t.tone === "error"
-                ? "bg-[#090b14]/95 border-rose-500/30 text-rose-200"
-                : "bg-[#090b14]/95 border-emerald-500/30 text-white"
+                ? "border-rose-300 bg-white/95 text-rose-700 shadow-[0_8px_24px_rgba(244,63,94,0.2)] dark:border-rose-500/30 dark:bg-[#090b14]/95 dark:text-rose-200"
+                : "border-emerald-300 bg-white/95 text-emerald-800 shadow-[0_8px_24px_rgba(16,185,129,0.2)] dark:border-emerald-500/30 dark:bg-[#090b14]/95 dark:text-white"
             )}
           >
             {t.tone === "error" ? (
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-400">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-400">
                 <X className="h-3.5 w-3.5 stroke-[2.5]" />
               </div>
             ) : (
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/10 text-emerald-400">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-400/40 dark:bg-emerald-500/10 dark:text-emerald-400">
                 <CheckCircle2 className="h-3.5 w-3.5 stroke-[2.5]" />
               </div>
             )}
-            <span>{t.msg}</span>
+            <span className="text-[#191116] dark:text-white">{t.msg}</span>
           </div>
         ))}
       </div>

@@ -11,12 +11,16 @@ import {
   Gift,
   Info,
   MapPin,
+  MoreHorizontal,
+  Share2,
   Sparkles,
   X,
 } from "lucide-react";
+import QRCodeContainer from "@/components/QR_Code";
 import { cn } from "@/lib/utils";
 import {
   applyTalentCampaign,
+  getCampaignReferralLink,
   loadTalentCampaignDetail,
   loadTalentCampaignsPage,
 } from "@/lib/talent-api";
@@ -106,6 +110,19 @@ function sentenceCase(text: string) {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }
 
+function slugify(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .replace(/([^0-9a-z-\s])/g, "")
+    .replace(/(\s+)/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
+}
+
 type RecruitmentPosition = {
   id: string;
   title: string;
@@ -140,10 +157,52 @@ export default function JobDetailPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [stage, setStage] = useState<string>("new");
   const [showAllBenefits, setShowAllBenefits] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [referralLink, setReferralLink] = useState<string>("");
   const [previewImageIndex, setPreviewImageIndex] = useState<number | null>(null);
   const [toasts, setToasts] = useState<{ id: string; msg: string; tone?: "success" | "error" }[]>([]);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const bannerCarouselRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showMenu]);
+
+  useEffect(() => {
+    if (!job) return;
+    let isMounted = true;
+
+    const jobSlug = slugify(job.title || "job");
+    const ownerSlug = slugify(job.brand || job.owner?.name || "onstage");
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://onstage.vn";
+    const defaultRefUrl = `${origin}/ref/${jobSlug}/${ownerSlug}`;
+    setReferralLink(defaultRefUrl);
+
+    if (job.id) {
+      getCampaignReferralLink(job.id)
+        .then((res) => {
+          if (!isMounted) return;
+          if (res && res.url) {
+            setReferralLink(res.url);
+          }
+        })
+        .catch(() => undefined);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [job]);
 
   const handleBannerScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
@@ -560,7 +619,7 @@ export default function JobDetailPage() {
   const renderMobileFooterAction = () => {
     if (isOwnJob) {
       return (
-        <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-slate-500/15 border border-slate-500/25 text-slate-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
+        <button disabled className="w-full py-3.5 rounded-2xl font-display text-xs font-bold bg-slate-500/15 border border-slate-500/25 text-slate-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
           Job của bạn
         </button>
       );
@@ -568,7 +627,7 @@ export default function JobDetailPage() {
 
     if (!isApplied && isExpired) {
       return (
-        <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-slate-500/15 border border-slate-500/25 text-slate-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
+        <button disabled className="w-full py-3.5 rounded-2xl font-display text-xs font-bold bg-slate-500/15 border border-slate-500/25 text-slate-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
           Đã hết hạn
         </button>
       );
@@ -578,7 +637,7 @@ export default function JobDetailPage() {
       return (
         <button
           onClick={handleApply}
-          className="light-force-white flex-1 py-3 rounded-xl font-display text-xs font-black bg-gradient-to-r from-[#8F0709] via-[#C72524] to-[#D85E5A] text-white shadow-[0_12px_26px_rgba(199,37,36,0.24)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-widest text-center justify-center items-center dark:from-amber-300 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950 dark:shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+          className="light-force-white w-full py-3.5 rounded-2xl font-display text-xs font-black bg-gradient-to-r from-[#8F0709] via-[#C72524] to-[#D85E5A] text-white shadow-[0_12px_26px_rgba(199,37,36,0.24)] active:scale-[0.98] cursor-pointer transition-all uppercase tracking-widest text-center justify-center items-center dark:from-amber-300 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950 dark:shadow-[0_0_20px_rgba(245,158,11,0.3)]"
         >
           Ứng tuyển ngay
         </button>
@@ -587,14 +646,14 @@ export default function JobDetailPage() {
 
     if (stage === "pending") {
       return (
-        <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
+        <button disabled className="w-full py-3.5 rounded-2xl font-display text-xs font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
           Chờ duyệt
         </button>
       );
     }
 
     return (
-      <button disabled className="flex-1 py-3 rounded-xl font-display text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
+      <button disabled className="w-full py-3.5 rounded-2xl font-display text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 cursor-not-allowed uppercase tracking-wider text-center justify-center">
         Đã duyệt
       </button>
     );
@@ -614,20 +673,54 @@ export default function JobDetailPage() {
           <ArrowLeft className="h-5 w-5 shrink-0" />
         </button>
 
-        <button
-          type="button"
-          onClick={handleToggleBookmark}
-          className={cn(
-            "pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E8C8C2] bg-white/90 backdrop-blur-md text-[#8F0709] shadow-[0_8px_22px_rgba(143,7,9,0.12)] transition-all duration-300 active:scale-95 cursor-pointer dark:border-amber-500/30 dark:bg-[#0c1120]/85 dark:shadow-[0_4px_15px_rgba(0,0,0,0.4)]",
-            isSaved
-              ? "light-force-white border-[#C72524]/60 bg-[#C72524] text-white shadow-[0_10px_24px_rgba(199,37,36,0.22)] dark:border-amber-400 dark:bg-amber-400/20 dark:text-amber-300 dark:shadow-[0_0_15px_rgba(245,158,11,0.3)]"
-              : "border-[#E8C8C2] text-[#8F0709] hover:text-[#C72524] hover:bg-[#FFF3F1] hover:border-[#C72524]/45 dark:border-amber-500/30 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-[#0c1120] dark:hover:border-amber-500/50"
+        <div className="relative pointer-events-auto" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setShowMenu((prev) => !prev)}
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E8C8C2] bg-white/90 backdrop-blur-md text-[#8F0709] shadow-[0_8px_22px_rgba(143,7,9,0.12)] transition-all duration-300 hover:border-[#C72524]/45 hover:bg-[#FFF3F1] active:scale-95 cursor-pointer dark:border-amber-500/30 dark:bg-[#0c1120]/85 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-[#0c1120] dark:hover:border-amber-500/50 dark:shadow-[0_4px_15px_rgba(0,0,0,0.4)]"
+            aria-label="Tùy chọn"
+            title="Tùy chọn"
+          >
+            <MoreHorizontal className="h-5 w-5 shrink-0" />
+          </button>
+
+          {showMenu && (
+            <div className="absolute right-0 top-12 z-50 w-48 overflow-hidden rounded-2xl border border-[#F0D7D3] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.14)] animate-in fade-in zoom-in-95 duration-150 py-1 dark:border-white/10 dark:bg-[#0c1120] dark:shadow-[0_12px_32px_rgba(0,0,0,0.7)]">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMenu(false);
+                  handleToggleBookmark();
+                }}
+                disabled={isOwnJob}
+                className={cn(
+                  "flex w-full items-center gap-3 px-4 py-3 text-xs font-bold transition-colors cursor-pointer text-left",
+                  isSaved
+                    ? "text-[#C72524] hover:bg-[#FFF5F4] dark:text-amber-300 dark:hover:bg-white/5"
+                    : "text-[#191116] hover:bg-[#FFF5F4] hover:text-[#8F0709] dark:text-slate-200 dark:hover:bg-white/5 dark:hover:text-white",
+                  isOwnJob && "cursor-not-allowed opacity-50"
+                )}
+              >
+                <Bookmark className={cn("h-4 w-4 shrink-0", isSaved ? "fill-[#C72524] text-[#C72524] dark:fill-amber-400 dark:text-amber-400" : "text-[#8F0709] dark:text-slate-400")} />
+                <span>{isSaved ? "Bỏ lưu công việc" : "Lưu công việc"}</span>
+              </button>
+
+              <div className="h-px w-full bg-[#F5E6E3] dark:bg-white/5" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMenu(false);
+                  setShowQrModal(true);
+                }}
+                className="flex w-full items-center gap-3 px-4 py-3 text-xs font-bold text-[#191116] hover:bg-[#FFF5F4] hover:text-[#8F0709] transition-colors cursor-pointer text-left dark:text-slate-200 dark:hover:bg-white/5 dark:hover:text-white"
+              >
+                <Share2 className="h-4 w-4 shrink-0 text-[#8F0709] dark:text-slate-400" />
+                <span>Chia sẻ job</span>
+              </button>
+            </div>
           )}
-          aria-label={isSaved ? "Bỏ lưu công việc" : "Lưu công việc"}
-          title={isSaved ? "Bỏ lưu công việc" : "Lưu công việc"}
-        >
-          <Bookmark className={cn("h-5 w-5 shrink-0", isSaved && "fill-white dark:fill-amber-400")} />
-        </button>
+        </div>
       </div>
 
       <JobImagesSection
@@ -648,7 +741,7 @@ export default function JobDetailPage() {
       />
 
       {/* Content Body Container */}
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 md:px-10 py-6 space-y-6 flex-1">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 md:px-10 py-6 pb-24 md:pb-6 space-y-6 flex-1">
 
         {/* Title & Brand Header */}
         <div className="space-y-3">
@@ -679,7 +772,7 @@ export default function JobDetailPage() {
           </h1>
 
           <p className="text-xs sm:text-sm text-[#574D54] font-semibold flex items-center gap-1.5 dark:text-slate-400">
-            <span className="text-[#8F0709] uppercase tracking-wider text-[10px] sm:text-xs font-bold dark:text-slate-500">Thương hiệu:</span>
+            <span className="text-[#8F0709] uppercase tracking-wider text-[10px] sm:text-xs font-bold dark:text-slate-500">Người đăng:</span>
             <span className="text-[#B31317] font-bold dark:text-amber-300">{job.brand || "Không có"}</span>
           </p>
 
@@ -794,35 +887,66 @@ export default function JobDetailPage() {
       </div>
 
       {/* Mobile Fixed Bottom Action Bar */}
-      <div className="mx-auto flex w-full max-w-7xl items-center px-4 pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] pt-1 md:hidden sm:px-8">
-        {renderMobileFooterAction()}
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden w-full border-t border-[#F0D7D3] bg-white/95 backdrop-blur-md px-4 py-3 shadow-[0_-8px_24px_rgba(143,7,9,0.08)] dark:border-[#1b233a] dark:bg-[#0c101d]/95 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] flex items-center justify-center">
+        <div className="w-full max-w-lg mx-auto flex items-center gap-3">
+          {renderMobileFooterAction()}
+        </div>
       </div>
 
       {/* Toast Notifications */}
-      <div className="fixed bottom-24 right-6 z-[70] flex flex-col gap-2 pointer-events-none">
+      <div className="fixed bottom-20 md:bottom-24 right-6 z-[70] flex flex-col gap-2 pointer-events-none">
         {toasts.map(t => (
           <div
             key={t.id}
             className={cn(
-              "pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-full px-4.5 py-2.5 text-xs font-bold shadow-2xl flex items-center gap-2.5 border backdrop-blur-md",
+              "pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-300 rounded-full px-4.5 py-2.5 text-xs font-bold flex items-center gap-2.5 border backdrop-blur-md transition-all",
               t.tone === "error"
-                ? "bg-[#090b14]/95 border-rose-500/30 text-rose-200"
-                : "bg-[#090b14]/95 border-emerald-500/30 text-white"
+                ? "border-rose-300 bg-white/95 text-rose-700 shadow-[0_8px_24px_rgba(244,63,94,0.2)] dark:border-rose-500/30 dark:bg-[#090b14]/95 dark:text-rose-200"
+                : "border-emerald-300 bg-white/95 text-emerald-800 shadow-[0_8px_24px_rgba(16,185,129,0.2)] dark:border-emerald-500/30 dark:bg-[#090b14]/95 dark:text-white"
             )}
           >
             {t.tone === "error" ? (
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-400">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-400">
                 <X className="h-3.5 w-3.5 stroke-[2.5]" />
               </div>
             ) : (
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/10 text-emerald-400">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-400/40 dark:bg-emerald-500/10 dark:text-emerald-400">
                 <CheckCircle2 className="h-3.5 w-3.5 stroke-[2.5]" />
               </div>
             )}
-            <span className="text-[12px] font-semibold">{t.msg}</span>
+            <span className="text-[12px] font-semibold text-[#191116] dark:text-white">{t.msg}</span>
           </div>
         ))}
       </div>
+
+      {/* QR Share Modal */}
+      {showQrModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowQrModal(false)}
+        >
+          <div
+            className="relative w-full max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowQrModal(false)}
+              className="absolute -top-3 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-[#F0D7D3] bg-white text-[#8F0709] hover:bg-[#FFF0EE] transition-all cursor-pointer shadow-md dark:border-amber-500/30 dark:bg-[#0c1120] dark:text-amber-300"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <QRCodeContainer
+              campaignLink={referralLink}
+              title="Mã QR Tuyển Dụng Job"
+              subtitle="Quét mã để ứng tuyển nhanh"
+              badgeText="OnStage Job Gateway"
+              shareButtonLabel="Chia sẻ"
+              className="border-[#F0D7D3] bg-white shadow-2xl overflow-hidden text-[#191116] dark:border-amber-500/30 dark:bg-[#0c101d] dark:text-slate-100"
+            />
+          </div>
+        </div>
+      )}
 
       <GuestActionPrompt />
     </div>

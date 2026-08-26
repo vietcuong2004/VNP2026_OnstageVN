@@ -45,7 +45,7 @@ function getPageTitle(pathname?: string | null) {
     "/brand/search": "Tìm kiếm Idol",
     "/brand/shortlists": "Idol đã lưu",
     "/brand/my-bookings": "Yêu cầu của tôi",
-    "/brand/manage-jobs": "Tạo Job",
+    "/brand/manage-jobs": "Tạo và quản lý job",
     "/brand/manage-jobs/create-job": "Tạo job mới",
     "/brand/my-talents": "Quản lý Idol",
     "/brand/informations": "Thông tin cá nhân",
@@ -180,7 +180,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {!isStandalonePublic && !hideChrome && (
-            <div className={cn((isTalentSurveyForm || isMobileOverlayOpen || isBooking) ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
+            <div className={cn((isTalentSurveyForm || isMobileOverlayOpen || isBooking || isTalentJobDetail) ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
               <BottomNavigation />
             </div>
           )}

@@ -103,7 +103,7 @@ export default function CampaignsPage() {
           <div className="max-w-2xl">
             <div className="mb-3 flex items-center gap-2">
               <span className="inline-flex items-center rounded-md border border-[#C72524]/30 bg-[#C72524]/10 text-[#C72524] dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-300 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider">
-                Tạo Job
+                Tạo và quản lý job
               </span>
             </div>
 

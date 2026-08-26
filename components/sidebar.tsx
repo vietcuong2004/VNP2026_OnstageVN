@@ -37,7 +37,7 @@ export const unifiedDiscoveryNavigation = [
 
 export const unifiedManagementNavigation = [
   { label: "Yêu cầu của tôi", icon: CalendarCheck, href: "/brand/my-bookings" },
-  { label: "Tạo Job", icon: Briefcase, href: "/brand/manage-jobs" },
+  { label: "Tạo và quản lý job", icon: Briefcase, href: "/brand/manage-jobs" },
   { label: "Quản lý Idol", icon: Users2, href: "/brand/my-talents" },
   { label: "Hợp tác", icon: Users2, href: "/talent/brands" },
 ];
