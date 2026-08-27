@@ -44,6 +44,7 @@ import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import { getStoredAuthUser } from "@/lib/api-client";
 import QRCodeContainer from "@/components/QR_Code";
+import { downloadJobPoster } from "@/lib/downloadJobPoster";
 
 interface StaffMember {
   id: string;
@@ -344,22 +345,27 @@ export default function CampaignDetailPage() {
     }, 2000);
   };
 
-  const handleDownloadQRCode = async () => {
-    if (!referralLink || !selectedCampaign) return;
+  const handleDownloadQRCode = async (canvasFromComponent?: HTMLCanvasElement | null) => {
+    if (!selectedCampaign) return;
     try {
-      const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(referralLink)}`);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `qr-code-${selectedCampaign.id}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
+      const camp = selectedCampaign as any;
+      const qrCanvas = canvasFromComponent || (document.querySelector(".fi-qr-canvas canvas, canvas") as HTMLCanvasElement | null);
+      await downloadJobPoster({
+        title: camp.title,
+        startDate: camp.startDate || camp.start_date || camp.schedule_text || camp.scheduleText,
+        endDate: camp.endDate || camp.end_date,
+        applicationDeadline: camp.applicationDeadline || camp.application_deadline,
+        budgetMin: camp.budgetMin ?? camp.budget_min,
+        budgetMax: camp.budgetMax ?? camp.budget_max,
+        budget: camp.budget,
+        budgetUnit: camp.budgetUnit ?? camp.budget_unit,
+        referralLink: referralLink,
+      }, qrCanvas);
     } catch (err) {
-      console.warn("Failed to download QR code directly, opening in new tab:", err);
-      window.open(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(referralLink)}`, "_blank");
+      console.warn("Failed to download styled QR poster:", err);
+      if (referralLink) {
+        window.open(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(referralLink)}`, "_blank");
+      }
     }
   };
 

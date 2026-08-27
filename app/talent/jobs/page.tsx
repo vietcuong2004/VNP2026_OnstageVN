@@ -24,6 +24,7 @@ import {
 import { getStoredAuthUser } from "@/lib/api-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import QRCodeContainer from "@/components/QR_Code";
+import { downloadJobPoster } from "@/lib/downloadJobPoster";
 import { useGuestActionPrompt } from "@/components/guest-action-prompt";
 import JobCard from "@/components/jobs/JobCard";
 import JobCardMobile from "@/components/jobs/JobCardMobile";
@@ -2002,6 +2003,27 @@ function JobsPageContent() {
               <div className="flex flex-col justify-center">
                 {(() => {
                   const url = activeReferralLink[showInviteModal.id]?.url || "";
+                  const handleDownloadModalQR = async (canvasFromComponent?: HTMLCanvasElement | null) => {
+                    try {
+                      const qrCanvas = canvasFromComponent || (document.querySelector(".fi-qr-canvas canvas, canvas") as HTMLCanvasElement | null);
+                      await downloadJobPoster({
+                        title: showInviteModal.title,
+                        startDate: showInviteModal.startDate,
+                        endDate: showInviteModal.endDate,
+                        applicationDeadline: showInviteModal.applicationDeadline || showInviteModal.deadline,
+                        budgetMin: showInviteModal.budgetMin,
+                        budgetMax: showInviteModal.budgetMax,
+                        budget: showInviteModal.budget,
+                        budgetUnit: showInviteModal.budgetUnit || showInviteModal.budget_unit,
+                        referralLink: url,
+                      }, qrCanvas);
+                    } catch (err) {
+                      console.warn("Failed to download styled QR poster:", err);
+                      if (url) {
+                        window.open(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}`, "_blank");
+                      }
+                    }
+                  };
                   return (
                     <QRCodeContainer
                       campaignLink={url}
@@ -2010,6 +2032,7 @@ function JobsPageContent() {
                       badgeText="Affiliate QR Code"
                       shareButtonLabel="Chia sẻ"
                       onCopyLink={() => handleCopyLink(url)}
+                      onDownloadQr={handleDownloadModalQR}
                       className="border-[#D4A64A]/20 bg-gradient-to-br from-[#1a1305]/40 via-[#070913]/80 to-[#070913]/90 shadow-[0_8px_30px_rgba(212,166,74,0.05)]"
                     />
                   );

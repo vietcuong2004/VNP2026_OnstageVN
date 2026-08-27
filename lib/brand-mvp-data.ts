@@ -151,6 +151,8 @@ export type Campaign = {
   deadline: string;
   talentQuantity: number;
   budget: string;
+  budgetMin?: number | null;
+  budgetMax?: number | null;
   budget_unit?: string | null;
   budgetValue: number;
   benefits: string;

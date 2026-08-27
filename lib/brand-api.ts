@@ -956,6 +956,8 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     canApply: campaign.can_apply !== false && campaign.can_apply !== 0,
     talentQuantity: Number(campaign.talent_quantity) || 1,
     budget: formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day"),
+    budgetMin: budgetMin,
+    budgetMax: budgetMax,
     budget_unit: campaign.budget_unit || "day",
     budgetValue: budgetMax ?? budgetMin ?? 0,
     benefits: campaign.benefits || "Thỏa thuận theo brief",

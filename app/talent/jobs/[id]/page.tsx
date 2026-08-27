@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import QRCodeContainer from "@/components/QR_Code";
+import { downloadJobPoster } from "@/lib/downloadJobPoster";
 import { cn } from "@/lib/utils";
 import {
   applyTalentCampaign,
@@ -203,6 +204,29 @@ export default function JobDetailPage() {
       isMounted = false;
     };
   }, [job]);
+
+  const handleDownloadQRCode = async (canvasFromComponent?: HTMLCanvasElement | null) => {
+    if (!job) return;
+    try {
+      const qrCanvas = canvasFromComponent || (document.querySelector(".fi-qr-canvas canvas, canvas") as HTMLCanvasElement | null);
+      await downloadJobPoster({
+        title: job.title,
+        startDate: job.startDate,
+        endDate: job.endDate,
+        applicationDeadline: job.applicationDeadline || job.deadline,
+        budgetMin: job.budgetMin,
+        budgetMax: job.budgetMax,
+        budget: job.budget,
+        budgetUnit: job.budgetUnit || job.budget_unit,
+        referralLink: referralLink,
+      }, qrCanvas);
+    } catch (err) {
+      console.warn("Failed to download styled QR poster:", err);
+      if (referralLink) {
+        window.open(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(referralLink)}`, "_blank");
+      }
+    }
+  };
 
   const handleBannerScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
@@ -942,6 +966,7 @@ export default function JobDetailPage() {
               subtitle="Quét mã để ứng tuyển nhanh"
               badgeText="OnStage Job Gateway"
               shareButtonLabel="Chia sẻ"
+              onDownloadQr={handleDownloadQRCode}
               className="border-[#F0D7D3] bg-white shadow-2xl overflow-hidden text-[#191116] dark:border-amber-500/30 dark:bg-[#0c101d] dark:text-slate-100"
             />
           </div>

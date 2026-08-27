@@ -15,7 +15,7 @@ interface QRCodeProps {
   badgeText?: string;
   shareButtonLabel?: string;
   onCopyLink?: () => void;
-  onDownloadQr?: () => void;
+  onDownloadQr?: (canvas?: HTMLCanvasElement | null) => void;
   onShareFacebook?: () => void;
   onShareInstagram?: () => void;
   onShareZalo?: () => void;
@@ -65,6 +65,11 @@ export default function QRCodeContainer({
   };
 
   const defaultDownloadQr = async () => {
+    if (onDownloadQr) {
+      onDownloadQr(qrCanvasRef.current);
+      return;
+    }
+
     if (!qrPayload) return;
 
     const canvas = qrCanvasRef.current;
@@ -75,11 +80,6 @@ export default function QRCodeContainer({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      return;
-    }
-
-    if (onDownloadQr) {
-      onDownloadQr();
       return;
     }
 
