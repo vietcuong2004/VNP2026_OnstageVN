@@ -44,7 +44,6 @@ export const unifiedManagementNavigation = [
 
 export const unifiedCreatorNavigation = [
   { label: "Chiến dịch Creator", icon: Sparkles, href: "/creator/campaigns" },
-  { label: "Tạo chiến dịch", icon: Briefcase, href: "/creator/campaigns/create" },
 ];
 
 export const unifiedSystemNavigation = [
@@ -119,7 +118,6 @@ export default function Sidebar() {
           : pathname;
 
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const isAdmin = currentUser?.type === "admin" || currentUser?.type === "super_admin";
 
   useEffect(() => {
     const syncToken = () => {
@@ -136,13 +134,8 @@ export default function Sidebar() {
   }, []);
 
   const visibleLoggedInSections = useMemo(() => {
-    return unifiedLoggedInNavigationSections.filter((section) => {
-      if (section.title === "Dành cho Creator") {
-        return isAdmin;
-      }
-      return true;
-    });
-  }, [isAdmin]);
+    return unifiedLoggedInNavigationSections;
+  }, []);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {

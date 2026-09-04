@@ -1,5 +1,5 @@
-const PUBLIC_PREFIXES = ["/auth", "/booking", "/campaign", "/ref", "/activate-talent", "/setup-talent-login", "/intro", "/landing", "/about", "/brand", "/talent"];
-const APP_SHELL_PREFIXES = ["/about", "/booking", "/brand", "/talent"];
+const PUBLIC_PREFIXES = ["/auth", "/booking", "/campaign", "/creator", "/ref", "/activate-talent", "/setup-talent-login", "/intro", "/landing", "/about", "/brand", "/talent"];
+const APP_SHELL_PREFIXES = ["/about", "/booking", "/brand", "/creator", "/talent"];
 
 export function normalizePath(path: string) {
   const [withoutQuery] = path.split(/[?#]/);

@@ -25,6 +25,7 @@ const guestPrimaryNavigation: PublicNavigationItem[] = [
 
 const guestMoreNavigation: PublicNavigationItem[] = [
   { key: "booking", label: "Booking", href: "/booking" },
+  { key: "creator_campaigns", label: "Chiến dịch Creator", href: "/creator/campaigns" },
   { key: "my_bookings", label: "Yêu cầu của tôi", href: "/brand/my-bookings" },
   { key: "saved_idols", label: "Idol đã lưu", href: "/brand/shortlists" },
   { key: "saved_jobs", label: "Việc làm đã lưu", href: "/talent/jobs/saved-jobs" },
@@ -36,6 +37,7 @@ const guestMoreNavigation: PublicNavigationItem[] = [
 const guestDesktopNavigation: PublicNavigationItem[] = [
   { key: "talent", label: "Tìm kiếm Idol", href: "/brand/search" },
   { key: "booking", label: "Booking", href: "/booking" },
+  { key: "creator_campaigns", label: "Chiến dịch Creator", href: "/creator/campaigns" },
   { key: "my_bookings", label: "Yêu cầu của tôi", href: "/brand/my-bookings" },
   { key: "jobs", label: "Cơ hội việc làm", href: "/talent/jobs" },
   { key: "saved_idols", label: "Idol đã lưu", href: "/brand/shortlists" },
@@ -67,6 +69,7 @@ export function isGuestMarketplacePath(path: string): boolean {
   return pathname === "/brand/search"
     || pathname.startsWith("/brand/talents/")
     || pathname === "/booking"
+    || pathname.startsWith("/creator")
     || pathname === "/brand/shortlists"
     || pathname === "/brand/my-bookings"
     || pathname === "/talent/jobs"

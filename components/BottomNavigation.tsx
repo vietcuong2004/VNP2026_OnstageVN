@@ -93,7 +93,6 @@ export default function BottomNavigation() {
   }, []);
 
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const isAdmin = currentUser?.type === "admin" || currentUser?.type === "super_admin";
 
   useEffect(() => {
     const syncToken = () => {
@@ -110,13 +109,8 @@ export default function BottomNavigation() {
   }, []);
 
   const visibleLoggedInSections = React.useMemo(() => {
-    return unifiedLoggedInNavigationSections.filter((section) => {
-      if (section.title === "Dành cho Creator") {
-        return isAdmin;
-      }
-      return true;
-    });
-  }, [isAdmin]);
+    return unifiedLoggedInNavigationSections;
+  }, []);
 
   async function handleLogout() {
     setShowMoreMenu(false);
