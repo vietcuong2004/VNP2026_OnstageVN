@@ -106,7 +106,7 @@ function formatBudgetPreview(value: string, isNegotiable: boolean, unit: string 
 
   if (numbers.length === 0) return "Chưa có";
 
-  const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : "/ngày";
+  const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : unit === "month" ? "/tháng" : unit === "video" ? "/video" : "/ngày";
 
   const formatAmount = (amount: number) => {
     if (amount >= 1_000_000) {
