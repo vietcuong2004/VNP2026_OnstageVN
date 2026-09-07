@@ -154,6 +154,7 @@ export type Campaign = {
   budgetMin?: number | null;
   budgetMax?: number | null;
   budget_unit?: string | null;
+  budgetNote?: string;
   budgetValue: number;
   benefits: string;
   roles?: string[];
