@@ -308,7 +308,7 @@ export default function TalentCard({
         {/* Info Pills: Chiều cao > Cân nặng > Số đo 3 vòng (1 Hàng) */}
         {profilePills.length > 0 && (
           <div className="my-3 flex flex-wrap items-center gap-1.5">
-            {profilePills.map((pill) => (
+            {profilePills.slice(0, 9).map((pill) => (
               <span
                 key={pill}
                 className="inline-flex max-w-full items-center justify-center rounded-lg border border-[#F1D8D4] bg-[#FFF9F8] px-2 py-1 text-[9.5px] font-black uppercase leading-none tracking-wider text-[#9B1215] shadow-sm dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-100"
@@ -317,6 +317,11 @@ export default function TalentCard({
                 <span className="truncate">{pill}</span>
               </span>
             ))}
+            {profilePills.length > 9 && (
+              <span className="inline-flex items-center justify-center rounded-lg border border-[#F1D8D4]/50 bg-[#FFF9F8] px-1.5 py-1 text-[8.5px] font-bold text-[#9B1215]/80">
+                +{profilePills.length - 9}
+              </span>
+            )}
           </div>
         )}
 

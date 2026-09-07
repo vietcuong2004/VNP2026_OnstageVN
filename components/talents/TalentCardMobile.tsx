@@ -206,8 +206,11 @@ export default function TalentCardMobile({
             {/* Talent Types */}
             <div className="flex flex-wrap items-center gap-1 pt-0.5">
               {talentTypes.length ? (
-                talentTypes.slice(0, 2).map((type) => (
-                  <span key={type} className="inline-flex w-fit items-center justify-center rounded-md border border-[#F1D8D4] bg-[#FFF7F6] px-1.5 py-0.5 text-[8.5px] font-black uppercase leading-none tracking-wider text-[#9B1215] dark:border-[#C9A86A]/30 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]">
+                talentTypes.map((type) => (
+                  <span
+                    key={type}
+                    className="inline-flex w-fit items-center justify-center rounded-md border border-[#F1D8D4] bg-[#FFF7F6] px-1.5 py-0.5 text-[8.5px] font-black uppercase leading-none tracking-wider text-[#9B1215] dark:border-[#C9A86A]/30 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A]"
+                  >
                     {getTalentTypeLabel(type)}
                   </span>
                 ))
@@ -218,18 +221,23 @@ export default function TalentCardMobile({
               )}
             </div>
 
-            {/* Skill Pills */}
+            {/* Skill / Profile Pills */}
             {profilePills.length > 0 && (
               <div className="flex flex-wrap items-center gap-1 pt-0.5">
-                {profilePills.slice(0, 2).map((pill) => (
+                {profilePills.slice(0, 9).map((pill) => (
                   <span
                     key={pill}
                     className="inline-flex items-center justify-center rounded-md border border-[#F1D8D4]/70 bg-[#FFF9F8] px-1.5 py-0.5 text-[8px] font-bold uppercase leading-none tracking-wider text-[#9B1215]/90 dark:border-white/10 dark:bg-[#222733] dark:text-slate-200"
                     title={pill}
                   >
-                    <span className="truncate max-w-[80px]">{pill}</span>
+                    <span className="truncate max-w-[130px]">{pill}</span>
                   </span>
                 ))}
+                {profilePills.length > 9 && (
+                  <span className="inline-flex items-center justify-center rounded-md border border-[#F1D8D4]/40 bg-[#FFF9F8] px-1 py-0.5 text-[7.5px] font-bold text-[#9B1215]/70">
+                    +{profilePills.length - 9}
+                  </span>
+                )}
               </div>
             )}
           </div>
