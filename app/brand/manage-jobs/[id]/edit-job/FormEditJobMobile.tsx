@@ -445,6 +445,17 @@ export default function FormEditJobMobile({
   }, [isOpen, campaignToEdit]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   const handleImagesAdd = (files: File[]) => {
     setCampaignImages((prev) => {
       const next = [...prev, ...files];
@@ -941,10 +952,10 @@ export default function FormEditJobMobile({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-0 backdrop-blur-md animate-in fade-in duration-200 md:relative md:inset-auto md:z-auto md:block md:bg-transparent md:p-0 md:backdrop-blur-0">
+    <div className="fixed inset-0 z-[100] flex h-screen w-screen flex-col overflow-hidden bg-[#FAF7F6] p-0 text-[#191116] animate-in fade-in duration-200">
       <form
         onSubmit={handleFormSubmit}
-        className="relative mx-auto flex h-full w-full max-w-2xl flex-col overflow-hidden border-0 border-[#F0D7D3] bg-[#FAF7F6] text-[#191116] shadow-2xl sm:rounded-3xl sm:border md:mx-0 md:h-auto md:min-h-[calc(100dvh-9rem)] md:max-w-none md:max-h-none"
+        className="relative mx-auto flex h-full w-full flex-col overflow-hidden border-0 bg-[#FAF7F6] text-[#191116]"
       >
         {/* Top accent glow line */}
         <div className="h-1.5 w-full bg-gradient-to-r from-[#E01B1F] via-[#C72524] to-[#8F0709] shrink-0 shadow-sm" />
