@@ -713,7 +713,11 @@ function JobsPageContent() {
       ? "/giờ"
       : budgetStr.includes("/job")
         ? "/job"
-        : "/ngày";
+        : budgetStr.includes("/tháng")
+          ? "/tháng"
+          : budgetStr.includes("/video")
+            ? "/video"
+            : "/ngày";
 
     const minVal = firstPart.includes("triệu") || firstPart.includes("trieu")
       ? number * 1_000_000

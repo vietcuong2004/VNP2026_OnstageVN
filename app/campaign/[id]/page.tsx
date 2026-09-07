@@ -41,7 +41,7 @@ function formatVND(value?: number | string | null) {
 function formatDailyCompensation(value?: number | string | null, unit: string = "day") {
   const amount = Number(value || 0);
   if (!amount) return null;
-  const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : "/ngày";
+  const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : unit === "month" ? "/tháng" : unit === "video" ? "/video" : "/ngày";
 
   if (amount >= 1_000_000) {
     const millions = amount / 1_000_000;
