@@ -75,6 +75,7 @@ type BackendProfile = {
   budget_min?: number | string | null;
   budget_max?: number | string | null;
   budget_unit?: string | null;
+  budget_note?: string | null;
   avatar_url?: string | null;
   price?: string | null;
   client_price?: string | null;
@@ -183,6 +184,7 @@ type BackendCampaign = {
   budget_min?: number | string | null;
   budget_max?: number | string | null;
   budget_unit?: string | null;
+  budget_note?: string | null;
   benefits?: string | null;
   requirements?: string | null;
   height_min_cm?: number | string | null;
@@ -469,7 +471,7 @@ type CampaignForm = {
   budget: string;
   budgetMin?: string;
   budgetMax?: string;
-  budgetUnit?: 'day' | 'hour' | 'job' | string;
+  budgetUnit?: 'day' | 'hour' | 'job' | 'month' | 'video' | string;
   budgetNegotiable?: boolean;
   benefits: string;
   requirements: string;
@@ -514,8 +516,22 @@ function numberOrNull(value: unknown) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function budgetUnitSuffix(unit: string = "day") {
+  if (unit === "hour") return "/giờ";
+  if (unit === "job") return "/job";
+  if (unit === "month") return "/tháng";
+  if (unit === "video") return "/video";
+  return "/ngày";
+}
+
+function appendBudgetNote(text: string, note?: string | null) {
+  const cleaned = String(note || "").trim();
+  if (!cleaned || text === "Thỏa thuận") return text;
+  return /^[,;]/.test(cleaned) ? `${text}${cleaned}` : `${text} ${cleaned}`;
+}
+
 function formatDailyCompensation(value: number, unit: string = "day") {
-  const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : "/ngày";
+  const suffix = budgetUnitSuffix(unit);
   if (value >= 1_000_000) {
     const millions = value / 1_000_000;
     const formatted = Number.isInteger(millions)
@@ -535,13 +551,13 @@ function formatDailyCompensation(value: number, unit: string = "day") {
   return `${value.toLocaleString("vi-VN")}đ${suffix}`;
 }
 
-function formatBudget(min: unknown, max: unknown, unit: string = "day") {
+function formatBudget(min: unknown, max: unknown, unit: string = "day", note?: string | null) {
   const budgetMin = numberOrNull(min);
   const budgetMax = numberOrNull(max);
 
-  if (budgetMin && budgetMax && budgetMin === budgetMax) return formatDailyCompensation(budgetMin, unit);
+  if (budgetMin && budgetMax && budgetMin === budgetMax) return appendBudgetNote(formatDailyCompensation(budgetMin, unit), note);
   if (budgetMin && budgetMax) {
-    const suffix = unit === "hour" ? "/giờ" : unit === "job" ? "/job" : "/ngày";
+    const suffix = budgetUnitSuffix(unit);
     const formatPart = (val: number) => {
       if (val >= 1_000_000) {
         const m = val / 1_000_000;
@@ -558,15 +574,15 @@ function formatBudget(min: unknown, max: unknown, unit: string = "day") {
     const second = formatPart(budgetMax);
 
     if (first.isM && second.isM) {
-      return `${first.text.replace(/\s*triệu/i, "")} - ${second.text}${suffix}`;
+      return appendBudgetNote(`${first.text.replace(/\s*triệu/i, "")} - ${second.text}${suffix}`, note);
     }
     if (!first.isM && !second.isM) {
-      return `${first.text.replace(/k$/i, "")} - ${second.text}${suffix}`;
+      return appendBudgetNote(`${first.text.replace(/k$/i, "")} - ${second.text}${suffix}`, note);
     }
-    return `${first.text} - ${second.text}${suffix}`;
+    return appendBudgetNote(`${first.text} - ${second.text}${suffix}`, note);
   }
-  if (budgetMax) return formatDailyCompensation(budgetMax, unit);
-  if (budgetMin) return formatDailyCompensation(budgetMin, unit);
+  if (budgetMax) return appendBudgetNote(formatDailyCompensation(budgetMax, unit), note);
+  if (budgetMin) return appendBudgetNote(formatDailyCompensation(budgetMin, unit), note);
   return "Thỏa thuận";
 }
 
@@ -955,10 +971,11 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     isOwner: Boolean(campaign.is_owner),
     canApply: campaign.can_apply !== false && campaign.can_apply !== 0,
     talentQuantity: Number(campaign.talent_quantity) || 1,
-    budget: formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day"),
+    budget: formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note),
     budgetMin: budgetMin,
     budgetMax: budgetMax,
     budget_unit: campaign.budget_unit || "day",
+    budgetNote: campaign.budget_note || "",
     budgetValue: budgetMax ?? budgetMin ?? 0,
     benefits: campaign.benefits || "Thỏa thuận theo brief",
     status: mapCampaignStatus(campaign.status),

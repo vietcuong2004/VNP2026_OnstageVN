@@ -515,7 +515,7 @@ export default function JobDetailPage() {
   const deadline = job.applicationDeadline || job.deadline;
   const isExpired = isApplicationDeadlineExpired(deadline);
   const isOwnJob = Boolean(job.isOwner || job.is_owner || job.canApply === false || job.can_apply === false);
-  const onstageTime = job.onstageTime || job.eventTime || job.onstage_time || job.event_time || "";
+  const hasBudgetNote = Boolean(String(job.budgetNote || job.budget_note || "").trim());
   const rawRecruitmentPositions =
     (Array.isArray(detail.recruitmentPositions) && detail.recruitmentPositions) ||
     (Array.isArray(detail.positions) && detail.positions) ||
@@ -801,18 +801,18 @@ export default function JobDetailPage() {
           </p>
 
           {/* Key Metrics Highlight Cards */}
-          <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="light-force-white relative overflow-hidden rounded-2xl border border-[#C72524]/20 bg-gradient-to-br from-[#8F0709] via-[#C72524] to-[#D85E5A] p-4 flex flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.14)] dark:border-amber-500/25 dark:bg-gradient-to-br dark:from-amber-500/10 dark:via-[#0e1322] dark:to-[#080a12]">
+          <div className={cn("grid grid-cols-1 gap-3 pt-2", hasBudgetNote ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3")}>
+            <div className={cn("light-force-white relative overflow-hidden rounded-2xl border border-[#C72524]/20 bg-gradient-to-br from-[#8F0709] via-[#C72524] to-[#D85E5A] p-4 flex min-w-0 flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.14)] dark:border-amber-500/25 dark:bg-gradient-to-br dark:from-amber-500/10 dark:via-[#0e1322] dark:to-[#080a12]", hasBudgetNote && "sm:col-span-2")}>
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-white dark:text-amber-400">
                 <DollarSign className="h-4 w-4 text-current shrink-0 dark:text-amber-400" />
                 Thù lao
               </div>
-              <div className="font-mono font-black text-sm sm:text-base text-white whitespace-nowrap dark:text-amber-300">
+              <div className="min-w-0 font-mono font-black text-sm sm:text-base text-white whitespace-normal break-words [overflow-wrap:anywhere] dark:text-amber-300">
                 {job.hasBudget && job.budget ? job.budget : "Không có"}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#F0D6D0] bg-white p-4 flex flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.06)] sm:col-span-2 lg:col-span-1 dark:border-[#1b233a] dark:bg-[#0c101d] dark:shadow-none">
+            <div className="rounded-2xl border border-[#F0D6D0] bg-white p-4 flex flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.06)] dark:border-[#1b233a] dark:bg-[#0c101d] dark:shadow-none">
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#8F0709] dark:text-slate-400">
                 <Clock className="h-4 w-4 text-[#B9861B] shrink-0 dark:text-amber-400" />
                 Hạn ứng tuyển
@@ -829,17 +829,6 @@ export default function JobDetailPage() {
               </div>
               <div className="min-w-0 font-semibold text-xs sm:text-sm text-[#191116] break-words [overflow-wrap:anywhere] dark:text-slate-100" title={job.location || "Không có"}>
                 {job.location || "Không có"}
-              </div>
-            </div>
-
-
-            <div className="rounded-2xl border border-[#F0D6D0] bg-white p-4 flex flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.06)] dark:border-[#1b233a] dark:bg-[#0c101d] dark:shadow-none">
-              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#8F0709] dark:text-slate-400">
-                <Clock className="h-4 w-4 text-[#B9861B] shrink-0 dark:text-amber-400" />
-                Thời gian onstage
-              </div>
-              <div className="font-semibold text-xs sm:text-sm text-[#191116] dark:text-slate-100">
-                {onstageTime || "Không có"}
               </div>
             </div>
           </div>

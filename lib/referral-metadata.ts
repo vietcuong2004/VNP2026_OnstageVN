@@ -34,6 +34,7 @@ function normalizeAbsoluteImageUrl(url?: string | null): string {
 function formatBudgetRange(min?: number | string | null, max?: number | string | null, unit: string = "ngày"): string {
   const minNum = Number(min || 0);
   const maxNum = Number(max || 0);
+  const unitLabel = unit === "day" ? "ngày" : unit === "hour" ? "giờ" : unit === "job" ? "job" : unit === "month" ? "tháng" : unit === "video" ? "video" : unit;
 
   const formatNum = (num: number) => {
     if (num >= 1_000_000) {
@@ -48,11 +49,11 @@ function formatBudgetRange(min?: number | string | null, max?: number | string |
   };
 
   if (minNum > 0 && maxNum > 0) {
-    if (minNum === maxNum) return `${formatNum(minNum)}/${unit}`;
-    return `${formatNum(minNum)} - ${formatNum(maxNum)}/${unit}`;
+    if (minNum === maxNum) return `${formatNum(minNum)}/${unitLabel}`;
+    return `${formatNum(minNum)} - ${formatNum(maxNum)}/${unitLabel}`;
   }
-  if (minNum > 0) return `Từ ${formatNum(minNum)}/${unit}`;
-  if (maxNum > 0) return `Tới ${formatNum(maxNum)}/${unit}`;
+  if (minNum > 0) return `Từ ${formatNum(minNum)}/${unitLabel}`;
+  if (maxNum > 0) return `Tới ${formatNum(maxNum)}/${unitLabel}`;
   return "Thỏa thuận";
 }
 

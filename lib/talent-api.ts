@@ -1158,9 +1158,9 @@ export async function loadTalentSurveyHistory() {
 }
 
 function parseCompensation(value: number, unitKey: string = "day") {
-  const unitLabel = unitKey === "hour" ? "triệu/giờ" : unitKey === "job" ? "triệu/job" : "triệu/ngày";
-  const thousandLabel = unitKey === "hour" ? "k/giờ" : unitKey === "job" ? "k/job" : "k/ngày";
-  const dongLabel = unitKey === "hour" ? "đ/giờ" : unitKey === "job" ? "đ/job" : "đ/ngày";
+  const unitLabel = unitKey === "hour" ? "triệu/giờ" : unitKey === "job" ? "triệu/job" : unitKey === "month" ? "triệu/tháng" : unitKey === "video" ? "triệu/video" : "triệu/ngày";
+  const thousandLabel = unitKey === "hour" ? "k/giờ" : unitKey === "job" ? "k/job" : unitKey === "month" ? "k/tháng" : unitKey === "video" ? "k/video" : "k/ngày";
+  const dongLabel = unitKey === "hour" ? "đ/giờ" : unitKey === "job" ? "đ/job" : unitKey === "month" ? "đ/tháng" : unitKey === "video" ? "đ/video" : "đ/ngày";
 
   if (value >= 1_000_000) {
     const millions = value / 1_000_000;
@@ -1186,18 +1186,24 @@ function dailyCompensation(value: number, unitKey: string = "day") {
   return `${parsed.text} ${parsed.unit}`;
 }
 
-function moneyRange(min?: number | null, max?: number | null, unitKey: string = "day") {
-  if (min && max && min === max) return dailyCompensation(min, unitKey);
+function appendBudgetNote(text: string, note?: string | null) {
+  const cleaned = String(note || "").trim();
+  if (!cleaned || text === "Thỏa thuận") return text;
+  return /^[,;]/.test(cleaned) ? `${text}${cleaned}` : `${text} ${cleaned}`;
+}
+
+function moneyRange(min?: number | null, max?: number | null, unitKey: string = "day", note?: string | null) {
+  if (min && max && min === max) return appendBudgetNote(dailyCompensation(min, unitKey), note);
   if (min && max) {
     const pMin = parseCompensation(min, unitKey);
     const pMax = parseCompensation(max, unitKey);
     if (pMin.unit === pMax.unit) {
-      return `${pMin.text} - ${pMax.text} ${pMax.unit}`;
+      return appendBudgetNote(`${pMin.text} - ${pMax.text} ${pMax.unit}`, note);
     }
-    return `${pMin.text} ${pMin.unit} - ${pMax.text} ${pMax.unit}`;
+    return appendBudgetNote(`${pMin.text} ${pMin.unit} - ${pMax.text} ${pMax.unit}`, note);
   }
-  if (max) return dailyCompensation(max, unitKey);
-  if (min) return dailyCompensation(min, unitKey);
+  if (max) return appendBudgetNote(dailyCompensation(max, unitKey), note);
+  if (min) return appendBudgetNote(dailyCompensation(min, unitKey), note);
   return "Thỏa thuận";
 }
 
@@ -1246,7 +1252,7 @@ function splitBackendText(value: unknown) {
 export function mapCampaignToTalentJob(campaign: any) {
   const color = campaignColor(campaign.job_type);
   const theme = campaignTheme(color);
-  const budget = moneyRange(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day");
+  const budget = moneyRange(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note || campaign.budgetNote);
   const hasBudget = Boolean(budget);
   const media = Array.isArray(campaign.media)
     ? campaign.media
@@ -1314,6 +1320,8 @@ export function mapCampaignToTalentJob(campaign: any) {
     budget,
     budgetMin: campaign.budget_min ?? null,
     budgetMax: campaign.budget_max ?? null,
+    budgetNote: campaign.budget_note || campaign.budgetNote || "",
+    budget_note: campaign.budget_note || campaign.budgetNote || "",
     budget_unit: campaign.budget_unit || "day",
     budgetUnit: campaign.budget_unit || "day",
     hasBudget,
