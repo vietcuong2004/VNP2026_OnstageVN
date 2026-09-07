@@ -235,7 +235,7 @@ export default function TalentCardMobile({
           </div>
 
           {/* Bio Description */}
-          <p className="line-clamp-2 text-[10px] sm:text-[10.5px] font-medium leading-snug text-[#5F5554] dark:text-slate-300 pt-1">
+          <p className="line-clamp-2 text-[10px] sm:text-[10.5px] font-medium leading-snug text-[#5F5554] dark:text-slate-300 pt-1" title={bioText || undefined}>
             {bioText || "Talent chuyên nghiệp. Rất mong được hợp tác"}
           </p>
         </div>
