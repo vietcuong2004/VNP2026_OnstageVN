@@ -724,5 +724,11 @@ export const contactRequests = [
 ];
 
 export function findTalentById(id: string) {
-  return talents.find((talent) => talent.id === id);
+  const found = talents.find((talent) => talent.id === id);
+  if (!found) return undefined;
+  const slug = found.name ? found.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : `talent-${found.id}`;
+  return {
+    ...found,
+    portfolio_url: found.portfolio_url || `https://portfolio.onstage.vn/${slug}/portfolio_main.pdf\nhttps://portfolio.onstage.vn/${slug}/lookbook_art.pdf`,
+  };
 }

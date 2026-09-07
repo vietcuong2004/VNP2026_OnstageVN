@@ -9,6 +9,10 @@ import {
   Briefcase,
   Building2,
   CalendarCheck,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   CircleHelp,
   HelpCircle,
   Heart,
@@ -17,6 +21,7 @@ import {
   LogOut,
   Search,
   Settings,
+  ShieldCheck,
   Sparkles,
   Trophy,
   User,
@@ -44,7 +49,12 @@ export const unifiedManagementNavigation = [
 
 export const unifiedCreatorNavigation = [
   { label: "Chiến dịch Creator", icon: Sparkles, href: "/creator/campaigns" },
-  { label: "Tạo chiến dịch", icon: Briefcase, href: "/creator/campaigns/create" },
+];
+
+export const unifiedAdminNavigation = [
+  { label: "Danh sách Đơn hàng", icon: Briefcase, href: "/admin/creator-campaigns" },
+  { label: "Creator", icon: Users2, href: "/admin/creators" },
+  { label: "Brand", icon: Building2, href: "/admin/brands" },
 ];
 
 export const unifiedSystemNavigation = [
@@ -66,7 +76,6 @@ export const unifiedTalentNavigation = [
 export const unifiedLoggedInNavigationSections = [
   { title: "Khám phá & Booking", icon: Search, helpIcon: CircleHelp, items: unifiedDiscoveryNavigation, href: undefined },
   { title: "Quản lý & Hợp tác", icon: Briefcase, helpIcon: CircleHelp, items: unifiedManagementNavigation, href: undefined },
-  { title: "Dành cho Creator", icon: Sparkles, helpIcon: CircleHelp, items: unifiedCreatorNavigation, href: undefined },
   { title: "Tài khoản & Hệ thống", icon: Settings, helpIcon: CircleHelp, items: unifiedSystemNavigation, href: undefined },
 ];
 
@@ -87,8 +96,32 @@ export default function Sidebar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [sourcePath, setSourcePath] = useState("");
   const [explanationTab, setExplanationTab] = useState<"talent" | "brand" | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const isAppPath = pathname === "/" || pathname.startsWith("/talent") || pathname.startsWith("/brand") || pathname.startsWith("/creator") || pathname === "/about" || pathname === "/settings";
+  useEffect(() => {
+    try {
+      const savedState = localStorage.getItem("onstage_sidebar_collapsed");
+      if (savedState !== null) {
+        setIsCollapsed(savedState === "true");
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("onstage_sidebar_collapsed", String(next));
+      } catch {
+        // Ignore localStorage errors
+      }
+      return next;
+    });
+  };
+
+  const isAppPath = pathname === "/" || pathname.startsWith("/talent") || pathname.startsWith("/brand") || pathname.startsWith("/creator") || pathname.startsWith("/admin") || pathname === "/about" || pathname === "/settings";
   const guestIconMap = {
     discover: Sparkles,
     talent: Search,
@@ -119,7 +152,6 @@ export default function Sidebar() {
           : pathname;
 
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const isAdmin = currentUser?.type === "admin" || currentUser?.type === "super_admin";
 
   useEffect(() => {
     const syncToken = () => {
@@ -136,13 +168,8 @@ export default function Sidebar() {
   }, []);
 
   const visibleLoggedInSections = useMemo(() => {
-    return unifiedLoggedInNavigationSections.filter((section) => {
-      if (section.title === "Dành cho Creator") {
-        return isAdmin;
-      }
-      return true;
-    });
-  }, [isAdmin]);
+    return unifiedLoggedInNavigationSections;
+  }, []);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -217,6 +244,18 @@ export default function Sidebar() {
       return activePathname.startsWith("/creator/campaigns/create");
     }
 
+    if (href === "/admin/creator-campaigns") {
+      return activePathname.startsWith("/admin/creator-campaigns");
+    }
+
+    if (href === "/admin/creators") {
+      return activePathname.startsWith("/admin/creators");
+    }
+
+    if (href === "/admin/brands") {
+      return activePathname.startsWith("/admin/brands");
+    }
+
     if (href === "/settings") {
       return activePathname.startsWith("/settings");
     }
@@ -235,13 +274,70 @@ export default function Sidebar() {
 
   return (
     <>
-      <aside className="hidden md:flex w-72 shrink-0 flex-col border-r border-[#F0D7D3] bg-white p-6 overflow-y-auto dark:border-white/5 dark:bg-[#050711]">
-        <nav className="flex-1 space-y-7 overflow-y-auto pr-1">
+      <aside
+        className={cn(
+          "hidden md:flex shrink-0 flex-col border-r border-[#F0D7D3] bg-white overflow-y-auto dark:border-white/5 dark:bg-[#050711] transition-all duration-300 relative select-none",
+          isCollapsed ? "w-[76px] p-2" : "w-72 p-6"
+        )}
+      >
+        {/* Nút Toggle Collapse/Expand */}
+        <button
+          type="button"
+          onClick={toggleCollapse}
+          className="absolute -right-3.5 top-1/2 -translate-y-1/2 z-30 flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-[#0D1126] border border-[#F0D7D3] dark:border-white/10 shadow-md text-slate-600 dark:text-slate-300 hover:text-[#C72524] hover:border-[#C72524] transition-all hover:scale-110 cursor-pointer"
+          title={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+          aria-label="Toggle sidebar collapse"
+        >
+          {isCollapsed ? (
+            <ChevronsRight className="h-4 w-4 text-[#C72524]" />
+          ) : (
+            <ChevronsLeft className="h-4 w-4 text-[#C72524]" />
+          )}
+        </button>
+
+        <nav className={cn("flex-1 overflow-y-auto", isCollapsed ? "space-y-4 px-0.5" : "space-y-7 pr-1")}>
           {!isLoggedIn ? (
-            <div className="space-y-2">
+            <div className={cn("space-y-2", isCollapsed && "space-y-3")}>
               {guestMenuItems.map((item) => {
                 const isActive = isActiveHref(item.href);
                 const Icon = item.icon;
+
+                if (isCollapsed) {
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      title={item.label}
+                      className={cn(
+                        "group flex flex-col items-center justify-center rounded-xl p-1.5 transition-all duration-300 relative w-full",
+                        isActive
+                          ? ""
+                          : "text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100"
+                      )}
+                    >
+                      {isActive ? (
+                        <>
+                          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md">
+                            <div className="absolute left-0 top-1/4 bottom-1/4 w-1 rounded-r-full bg-[#F0C56B] dark:bg-amber-400" />
+                            <Icon className="h-5 w-5 !text-white text-white" />
+                          </div>
+                          <span className="mt-1 text-[10px] font-bold text-[#C72524] dark:text-red-400 text-center leading-tight max-w-[62px] line-clamp-2">
+                            {item.label}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg group-hover:scale-110 transition-transform">
+                            <Icon className="h-5 w-5 text-[#574D54] group-hover:text-[#8F0709] dark:text-slate-400 dark:group-hover:text-slate-100" />
+                          </div>
+                          <span className="mt-0.5 text-[10px] font-medium text-[#574D54] group-hover:text-[#8F0709] dark:text-slate-400 dark:group-hover:text-slate-200 text-center leading-tight max-w-[62px] line-clamp-2">
+                            {item.label}
+                          </span>
+                        </>
+                      )}
+                    </Link>
+                  );
+                }
 
                 return (
                   <Link
@@ -265,45 +361,34 @@ export default function Sidebar() {
 
               <Link
                 href="/auth/login"
-                className="mt-4 flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-sm font-black tracking-wide text-slate-950 shadow-[0_10px_26px_rgba(201,168,106,0.18)] transition-all duration-300 hover:brightness-110 active:scale-95"
+                title="Đăng nhập"
+                className={cn(
+                  "flex items-center justify-center rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 text-slate-950 shadow-[0_10px_26px_rgba(201,168,106,0.18)] transition-all duration-300 hover:brightness-110 active:scale-95",
+                  isCollapsed ? "h-11 w-full mt-3 p-2 flex-col gap-1" : "mt-4 h-[54px] w-full gap-2 px-5 text-sm font-black tracking-wide"
+                )}
               >
-                <LogIn className="h-4.5 w-4.5" />
-                <span>Đăng nhập</span>
+                <LogIn className={cn(isCollapsed ? "h-5 w-5" : "h-4.5 w-4.5")} />
+                {!isCollapsed && <span>Đăng nhập</span>}
               </Link>
             </div>
           ) : (
             <>
-              {visibleLoggedInSections.map((section) => (
-                <section key={section.title} className="space-y-3">
-                  {section.href ? (
-                    <Link
-                      href={section.href}
-                      className={cn(
-                        "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
-                        isActiveHref(section.href)
-                          ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md border-transparent dark:border-amber-500/20 dark:bg-gradient-to-r dark:from-amber-400/10 dark:to-yellow-600/5 dark:text-amber-300"
-                          : "border-transparent text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/2 dark:hover:text-slate-100",
-                      )}
-                    >
-                      {isActiveHref(section.href) && (
-                        <div className="absolute left-0 top-1/3 bottom-1/3 w-1 rounded-r-full bg-[#F0C56B] dark:bg-amber-400" />
-                      )}
-                      <section.icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActiveHref(section.href) ? "!text-white text-white dark:text-amber-400" : "text-[#C72524] dark:text-amber-400")} />
-                      <span className={cn(isActiveHref(section.href) ? "!text-white text-white font-bold dark:text-amber-300" : "text-[#8F0709] dark:bg-gradient-to-r dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] dark:text-transparent")}>
-                        {section.title}
-                      </span>
-                    </Link>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-3 px-1 py-1 transition-all duration-300">
-                        <span className="text-[#C72524] dark:text-amber-400 transition-transform duration-300 hover:rotate-12">
-                          <section.icon className="h-4.5 w-4.5" />
-                        </span>
-                        <span className="text-[#8F0709] dark:bg-gradient-to-r dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] dark:text-transparent dark:drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
-                          {section.title}
-                        </span>
+              {visibleLoggedInSections.map((section, idx) => {
+                if (isCollapsed) {
+                  return (
+                    <div key={section.title} className="space-y-2">
+                      {idx > 0 && <div className="h-[1px] bg-[#F0D7D3]/60 dark:bg-white/10 my-2.5 mx-1" />}
+                      
+                      {/* Section Icon ở chế độ thu gọn */}
+                      <div
+                        className="flex items-center justify-center py-1 text-[#C72524] dark:text-amber-400"
+                        title={section.title}
+                      >
+                        <section.icon className="h-5 w-5" />
                       </div>
-                      <div className="space-y-2 px-0.5">
+
+                      {/* Items */}
+                      <div className="space-y-1">
                         {section.items?.map((item) => {
                           const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
                           const isActive = isActiveHref(itemHref);
@@ -313,34 +398,122 @@ export default function Sidebar() {
                             <Link
                               key={item.label}
                               href={itemHref}
+                              title={item.label}
                               className={cn(
-                                "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
+                                "group flex flex-col items-center justify-center rounded-xl p-1.5 transition-all duration-300 relative w-full",
                                 isActive
-                                  ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md border-transparent dark:border-amber-500/20 dark:bg-gradient-to-r dark:from-amber-400/10 dark:to-yellow-600/5 dark:text-amber-300"
-                                  : "border-transparent text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/2 dark:hover:text-slate-100",
+                                  ? ""
+                                  : "text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100"
                               )}
                             >
-                              {isActive && (
-                                <div className="absolute left-0 top-1/3 bottom-1/3 w-1 rounded-r-full bg-[#F0C56B] dark:bg-amber-400" />
+                              {isActive ? (
+                                <>
+                                  <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md">
+                                    <div className="absolute left-0 top-1/4 bottom-1/4 w-1 rounded-r-full bg-[#F0C56B] dark:bg-amber-400" />
+                                    <Icon className="h-5 w-5 !text-white text-white" />
+                                  </div>
+                                  <span className="mt-1 text-[10px] font-bold text-[#C72524] dark:text-red-400 text-center leading-tight max-w-[62px] line-clamp-2">
+                                    {item.label}
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-lg group-hover:scale-110 transition-transform">
+                                    <Icon className="h-5 w-5 text-[#574D54] group-hover:text-[#8F0709] dark:text-slate-400 dark:group-hover:text-slate-100" />
+                                  </div>
+                                  <span className="mt-0.5 text-[10px] font-medium text-[#574D54] group-hover:text-[#8F0709] dark:text-slate-400 dark:group-hover:text-slate-200 text-center leading-tight max-w-[62px] line-clamp-2">
+                                    {item.label}
+                                  </span>
+                                </>
                               )}
-                              <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "!text-white text-white dark:text-amber-400" : "text-[#574D54] group-hover:text-[#8F0709] dark:text-slate-400 dark:group-hover:text-slate-100")} />
-                              <span className={cn(isActive ? "!text-white text-white font-bold dark:text-amber-300" : "")}>{item.label}</span>
                             </Link>
                           );
                         })}
                       </div>
-                    </>
-                  )}
-                </section>
-              ))}
+                    </div>
+                  );
+                }
 
-              <button
-                onClick={handleLogout}
-                className="mt-4 flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-sm font-black tracking-wide text-slate-950 shadow-[0_10px_26px_rgba(201,168,106,0.18)] transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer"
-              >
-                <LogOut className="h-4.5 w-4.5" />
-                <span>Đăng xuất</span>
-              </button>
+                return (
+                  <section key={section.title} className="space-y-3">
+                    {section.href ? (
+                      <Link
+                        href={section.href}
+                        className={cn(
+                          "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
+                          isActiveHref(section.href)
+                            ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md border-transparent dark:border-amber-500/20 dark:bg-gradient-to-r dark:from-amber-400/10 dark:to-yellow-600/5 dark:text-amber-300"
+                            : "border-transparent text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/2 dark:hover:text-slate-100",
+                        )}
+                      >
+                        {isActiveHref(section.href) && (
+                          <div className="absolute left-0 top-1/3 bottom-1/3 w-1 rounded-r-full bg-[#F0C56B] dark:bg-amber-400" />
+                        )}
+                        <section.icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActiveHref(section.href) ? "!text-white text-white dark:text-amber-400" : "text-[#C72524] dark:text-amber-400")} />
+                        <span className={cn(isActiveHref(section.href) ? "!text-white text-white font-bold dark:text-amber-300" : "text-[#8F0709] dark:bg-gradient-to-r dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] dark:text-transparent")}>
+                          {section.title}
+                        </span>
+                      </Link>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-3 px-1 py-1 transition-all duration-300">
+                          <span className="text-[#C72524] dark:text-amber-400 transition-transform duration-300 hover:rotate-12">
+                            <section.icon className="h-4.5 w-4.5" />
+                          </span>
+                          <span className="text-[#8F0709] dark:bg-gradient-to-r dark:from-amber-200 dark:via-yellow-400 dark:to-amber-500 dark:bg-clip-text text-[10px] font-black uppercase tracking-[0.18em] dark:text-transparent dark:drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)]">
+                            {section.title}
+                          </span>
+                        </div>
+                        <div className="space-y-2 px-0.5">
+                          {section.items?.map((item) => {
+                            const itemHref = item.label === "Cài đặt" ? resolveUnifiedSettingsHref() : item.href;
+                            const isActive = isActiveHref(itemHref);
+                            const Icon = item.icon;
+
+                            return (
+                              <Link
+                                key={item.label}
+                                href={itemHref}
+                                className={cn(
+                                  "group relative flex items-center gap-3.5 rounded-xl border px-4 py-3 text-sm font-semibold tracking-wide transition-all duration-300",
+                                  isActive
+                                    ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md border-transparent dark:border-amber-500/20 dark:bg-gradient-to-r dark:from-amber-400/10 dark:to-yellow-600/5 dark:text-amber-300"
+                                    : "border-transparent text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:text-slate-400 dark:hover:bg-white/2 dark:hover:text-slate-100",
+                                )}
+                              >
+                                {isActive && (
+                                  <div className="absolute left-0 top-1/3 bottom-1/3 w-1 rounded-r-full bg-[#F0C56B] dark:bg-amber-400" />
+                                )}
+                                <Icon className={cn("h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110", isActive ? "!text-white text-white dark:text-amber-400" : "text-[#574D54] group-hover:text-[#8F0709] dark:text-slate-400 dark:group-hover:text-slate-100")} />
+                                <span className={cn(isActive ? "!text-white text-white font-bold dark:text-amber-300" : "")}>{item.label}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </section>
+                );
+              })}
+
+              {isCollapsed ? (
+                <button
+                  onClick={handleLogout}
+                  title="Đăng xuất"
+                  className="mt-4 flex flex-col items-center justify-center rounded-xl p-2 text-slate-500 hover:text-[#C72524] hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer w-full"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span className="text-[10px] mt-1 font-medium">Đăng xuất</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="mt-4 flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-100 via-[#C9A86A] to-yellow-600 px-5 text-sm font-black tracking-wide text-slate-950 shadow-[0_10px_26px_rgba(201,168,106,0.18)] transition-all duration-300 hover:brightness-110 active:scale-95 cursor-pointer"
+                >
+                  <LogOut className="h-4.5 w-4.5" />
+                  <span>Đăng xuất</span>
+                </button>
+              )}
             </>
           )}
         </nav>
@@ -356,4 +529,3 @@ export default function Sidebar() {
     </>
   );
 }
-

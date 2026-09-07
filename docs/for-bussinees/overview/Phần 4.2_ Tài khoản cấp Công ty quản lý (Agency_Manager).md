@@ -938,7 +938,7 @@ URL: platform.com/agency/abc-models
 - Nguồn traffic: Google Search (40%), Facebook (30%), Direct (20%), Khác (10%)
 
 **2. Khách Duy nhất (Unique Visitors) - 567:**
-- Số người thực tế ghé thăm (không tính người quay lại nhiều lần)
+- Số người thực tế Xem (không tính người quay lại nhiều lần)
 - 1,234 views / 567 visitors = 2.2 views/visitor
 - Nghĩa là mỗi người xem trung bình 2.2 trang → họ có quan tâm, không chỉ vào rồi thoát
 
