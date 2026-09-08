@@ -7,7 +7,7 @@ import {
   ChevronLeft, ChevronRight, Upload, ChevronDown, ChevronUp, Camera,
   Ruler, Scale, Globe, FileText, Video, Link as LinkIcon, ExternalLink, Trash2, Plus
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getSocialHandle } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { createTalentVideoLink, deleteTalentPhoto, deleteTalentPhotoCategory, deleteTalentVideo, ensureTalentProfile, persistTalentProfile, uploadTalentPhoto, uploadTalentVideo } from "@/lib/talent-api";
@@ -100,35 +100,25 @@ interface ContactInfoCardProps {
   profile: any;
 }
 
-const FacebookIcon = () => (
-  <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z" />
-  </svg>
+const FacebookLogo = ({ className = "h-5 w-5 shrink-0 object-contain" }: { className?: string }) => (
+  <img src="/social/facebook.png" alt="Facebook" className={className} />
 );
 
-const TiktokIcon = () => (
-  <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.24-.11-.47-.24-.7-.37v5.52c.03 2.16-.76 4.38-2.3 5.89-1.58 1.58-3.9 2.37-6.14 2.11-2.4-.21-4.73-1.74-5.69-3.97-.98-2.18-.73-4.9.72-6.79 1.34-1.79 3.63-2.73 5.85-2.5v4.03c-1.44-.19-3 .42-3.66 1.74-.53.97-.33 2.27.46 3.01.78.78 2.05.94 3.01.4 1-.53 1.54-1.67 1.53-2.84V.02z" />
-  </svg>
+const TiktokLogo = ({ className = "h-5 w-5 shrink-0 object-contain" }: { className?: string }) => (
+  <img src="/social/tiktok.png" alt="TikTok" className={className} />
 );
 
-const InstagramIcon = () => (
-  <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-  </svg>
+const InstagramLogo = ({ className = "h-5 w-5 shrink-0 object-contain" }: { className?: string }) => (
+  <img src="/social/instagram.png" alt="Instagram" className={className} />
+);
+
+const YoutubeLogo = ({ className = "h-5 w-5 shrink-0 object-contain" }: { className?: string }) => (
+  <img src="/social/youtube.png" alt="YouTube" className={className} />
 );
 
 const ThreadIcon = () => (
-  <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+  <svg className="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.48 13.9c-.83.09-1.58-.2-2-.84-.33-.51-.39-1.12-.39-2.22 0-1.89.87-2.92 2.32-2.92 1.41 0 2.22.99 2.22 2.76 0 1.94-.89 2.97-2.15 3.22zm2.09-6.3c-.63-.61-1.54-.95-2.57-.95-1.95 0-3.34 1.34-3.34 3.79s1.39 3.79 3.34 3.79c.8 0 1.51-.2 2.03-.59.18-.13.43-.1.58.07l.79.9c.28.32.18.84-.2 1.04-1 .55-2.14.78-3.2.78-3.33 0-5.74-2.17-5.74-5.99s2.41-5.99 5.74-5.99c1.67 0 3.2.53 4.31 1.49.27.23.31.63.09.91l-.88 1.13c-.15.2-.42.24-.62.08z" />
-  </svg>
-);
-
-const LinkedinIcon = () => (
-  <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
   </svg>
 );
 
@@ -139,21 +129,21 @@ const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
   if (p.includes("facebook") || p.includes("fb") || u.includes("facebook.com") || u.includes("fb.com")) {
     return {
       platformKey: "Facebook",
-      icon: <FacebookIcon />,
+      icon: <FacebookLogo className="h-5.5 w-5.5 shrink-0 object-contain" />,
       colorClass: "hover:text-[#1877F2] hover:border-[#1877F2]/50 hover:bg-[#1877F2]/10 text-[#1877F2]",
     };
   }
   if (p.includes("tiktok") || u.includes("tiktok.com")) {
     return {
       platformKey: "Tiktok",
-      icon: <TiktokIcon />,
+      icon: <TiktokLogo className="h-5.5 w-5.5 shrink-0 object-contain" />,
       colorClass: "hover:text-[#FE2C55] hover:border-[#FE2C55]/50 hover:bg-[#FE2C55]/10 text-[#FE2C55]",
     };
   }
   if (p.includes("instagram") || p.includes("insta") || u.includes("instagram.com") || u.includes("instagr.am")) {
     return {
       platformKey: "Instagram",
-      icon: <InstagramIcon />,
+      icon: <InstagramLogo className="h-5.5 w-5.5 shrink-0 object-contain" />,
       colorClass: "hover:text-[#E1306C] hover:border-[#E1306C]/50 hover:bg-[#E1306C]/10 text-[#E1306C]",
     };
   }
@@ -164,21 +154,10 @@ const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
       colorClass: "hover:text-[#ffffff] hover:border-[#ffffff]/50 hover:bg-[#ffffff]/10 text-white",
     };
   }
-  if (p.includes("linkedin") || u.includes("linkedin.com")) {
-    return {
-      platformKey: "Linkedin",
-      icon: <LinkedinIcon />,
-      colorClass: "hover:text-[#0A66C2] hover:border-[#0A66C2]/50 hover:bg-[#0A66C2]/10 text-[#0A66C2]",
-    };
-  }
-  if (p.includes("youtube") || u.includes("youtube.com") || u.includes("youtu.be")) {
+  if (p.includes("youtube") || p.includes("yt") || u.includes("youtube.com") || u.includes("youtu.be") || p.includes("linkedin") || u.includes("linkedin.com")) {
     return {
       platformKey: "Youtube",
-      icon: (
-        <svg className="h-4 w-4 shrink-0 fill-current text-[#FF0000]" viewBox="0 0 24 24">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-        </svg>
-      ),
+      icon: <YoutubeLogo className="h-5.5 w-5.5 shrink-0 object-contain" />,
       colorClass: "hover:text-[#FF0000] hover:border-[#FF0000]/50 hover:bg-[#FF0000]/10 text-[#FF0000]",
     };
   }
@@ -190,21 +169,7 @@ const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
   };
 };
 
-const getSocialHandle = (url: string, platform: string) => {
-  try {
-    const trimmed = url.trim().replace(/\/$/, "");
-    const parts = trimmed.split("/");
-    const lastPart = parts[parts.length - 1];
-    if (lastPart) {
-      if (lastPart.startsWith("@")) return lastPart;
-      if (platform === "Linkedin" && lastPart === "in" && parts.length > 2) {
-        return parts[parts.length - 2];
-      }
-      return platform === "Tiktok" ? `@${lastPart}` : lastPart;
-    }
-  } catch (e) { }
-  return url.replace(/https?:\/\/(www\.)?/, "");
-};
+
 
 function ContactInfoCard({ profile }: ContactInfoCardProps) {
   const parseSocialAccounts = (prof: any): { platform: string; url: string }[] => {
@@ -225,7 +190,6 @@ function ContactInfoCard({ profile }: ContactInfoCardProps) {
       { name: "Instagram", key: "instagram" },
       { name: "Thread", key: "thread" },
       { name: "Thread", key: "threads" },
-      { name: "Linkedin", key: "linkedin" },
       { name: "Youtube", key: "youtube" },
     ];
 
@@ -1156,9 +1120,9 @@ export default function PersonalInfoTab({
                 <button
                   type="button"
                   onClick={() => setIsFullBodyImageMenuOpen(!isFullBodyImageMenuOpen)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20"
+                  className="light-force-white flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer shadow-lg transition-all dark:bg-[#F0C56B] dark:!text-slate-950 dark:text-slate-950"
                 >
-                  <Camera className="h-4.5 w-4.5" />
+                  <Camera className="h-4.5 w-4.5 !text-white dark:!text-slate-950" />
                 </button>
                 {isFullBodyImageMenuOpen && (
                   <div className="absolute right-0 bottom-full mb-2 z-50 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#08090f] shadow-2xl">
@@ -1431,16 +1395,16 @@ export default function PersonalInfoTab({
                     e.stopPropagation();
                     handleRemoveLookbookPhoto(img.id, img.photoId);
                   }}
-                  className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
+                  className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
                   title="Xóa ảnh"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4 !text-white text-white" />
                 </button>
 
                 {/* Camera edit button in bottom-right corner */}
                 <div className="absolute bottom-3 right-3 z-20">
-                  <label className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F0C56B] hover:brightness-110 text-slate-950 active:scale-95 cursor-pointer shadow-lg transition-all border border-slate-950/20">
-                    <Camera className="h-3.5 w-3.5" />
+                  <label className="light-force-white flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer shadow-lg transition-all dark:bg-[#F0C56B] dark:!text-slate-950 dark:text-slate-950">
+                    <Camera className="h-3.5 w-3.5 !text-white dark:!text-slate-950" />
                     <input
                     type="file"
                     accept="image/*"
@@ -1540,10 +1504,10 @@ export default function PersonalInfoTab({
                       e.stopPropagation();
                       handleRemoveVideo(video.id, index);
                     }}
-                    className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
+                    className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
                     title="Xóa video"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 !text-white text-white" />
                   </button>
 
                 </div>
@@ -1748,19 +1712,26 @@ export default function PersonalInfoTab({
       </div>
 
       {/* SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
-      <div className="order-[40] lg:col-span-3 rounded-2xl border border-[#F0D7D3] bg-white p-6 space-y-4 shadow-sm dark:border-[#151b2d] dark:bg-[#08090f]">
-        <div className="flex items-center justify-between border-b border-[#151b2d] pb-3">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4.5 w-4.5 text-slate-400" />
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
-              LỊCH LÀM VIỆC (THÁNG {currentMonth < 10 ? `0${currentMonth}` : currentMonth}/{currentYear})
-            </h3>
+      <div className="order-[40] lg:col-span-3 rounded-2xl border border-[#F0D7D3] bg-white p-5 sm:p-6 space-y-5 shadow-xs dark:border-[#151b2d] dark:bg-[#08090f]">
+        <div className="flex items-center justify-between border-b border-[#F0D7D3] pb-3.5 dark:border-white/10">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FFF3F1] text-[#8F0709] border border-[#F0D7D3] dark:bg-white/5 dark:text-[#f4c430] dark:border-white/10">
+              <Calendar className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <h3 className="font-display font-black text-xs sm:text-sm text-[#191116] uppercase tracking-wider dark:text-white">
+                Lịch làm việc
+              </h3>
+              <span className="block text-[11px] font-bold text-[#8F0709] dark:text-[#f4c430] mt-0.5">
+                Tháng {currentMonth}/{currentYear}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 z-10">
+          <div className="flex items-center gap-1.5 z-10">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] text-[#8F0709] hover:bg-[#8F0709] hover:text-white transition-all cursor-pointer shadow-2xs dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
               title="Tháng trước"
             >
               <ChevronLeft className="h-4.5 w-4.5" />
@@ -1768,7 +1739,7 @@ export default function PersonalInfoTab({
             <button
               type="button"
               onClick={handleNextMonth}
-              className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/5 border border-amber-400/20 text-amber-400 hover:bg-amber-400 hover:text-slate-950 hover:border-transparent hover:shadow-[0_0_12px_rgba(244,196,48,0.3)] transition-all cursor-pointer"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] text-[#8F0709] hover:bg-[#8F0709] hover:text-white transition-all cursor-pointer shadow-2xs dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
               title="Tháng sau"
             >
               <ChevronRight className="h-4.5 w-4.5" />
@@ -1776,15 +1747,24 @@ export default function PersonalInfoTab({
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-slate-500 font-black uppercase">
-            <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+        <div className="max-w-xl mx-auto space-y-3 w-full">
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-2 text-center">
+            {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((dayName) => (
+              <div
+                key={dayName}
+                className="py-1 text-xs font-bold text-slate-400 dark:text-slate-500"
+              >
+                {dayName}
+              </div>
+            ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-1.5">
+          {/* Days Grid */}
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
             {/* Pad empty days */}
             {Array.from({ length: getFirstDayPad(currentYear, currentMonth) }).map((_, pIdx) => (
-              <div key={`pad-${pIdx}`} className="h-12 border border-transparent" />
+              <div key={`pad-${pIdx}`} className="aspect-square w-full opacity-0 pointer-events-none" />
             ))}
 
             {/* Real days */}
@@ -1794,29 +1774,42 @@ export default function PersonalInfoTab({
               const monthStr = currentMonth < 10 ? `0${currentMonth}` : `${currentMonth}`;
               const dateKey = `${currentYear}-${monthStr}-${dayStr}`;
               const status = getDayStatus(dateKey);
+              const isAvailable = status === "available";
 
               return (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => handleCalendarDayClick(dateKey)}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-0.5 p-1 h-16 rounded-xl border text-center transition-all cursor-pointer hover:scale-102 overflow-hidden",
-                    status === "available" && "border-emerald-500/80 bg-emerald-500/5 text-emerald-400 hover:border-emerald-400",
-                    status === "busy" && "border-red-500/80 bg-red-500/5 text-red-400 hover:border-red-400"
+                    "group relative aspect-square w-full rounded-xl sm:rounded-2xl border flex items-center justify-center transition-all duration-200 cursor-pointer shadow-2xs select-none active:scale-95",
+                    isAvailable
+                      ? "border-emerald-300/70 bg-[#ECFDF5] text-[#047857] hover:border-emerald-400 hover:bg-[#D1FAE5] dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                      : "border-rose-300/70 bg-[#FFF1F2] text-[#BE123C] hover:border-rose-400 hover:bg-[#FFE4E6] dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/50"
                   )}
+                  title={`Ngày ${dayStr}/${monthStr}: ${isAvailable ? "Rảnh (Nhấn để chuyển sang bận)" : "Bận (Nhấn để chuyển sang rảnh)"}`}
                 >
-                  <span className="text-[11px] font-mono font-bold leading-none">{dayStr}</span>
-                  <span className="text-[8px] font-black uppercase tracking-wide leading-tight text-center block w-full px-0.5">
-                    {status === "available" ? "RẢNH" : "BẬN"}
+                  <span className="text-xs sm:text-sm font-bold font-mono leading-none">
+                    {dayStr}
                   </span>
                 </button>
               );
             })}
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-slate-400 border-t border-white/5 pt-3 mt-1">
-            <span>🟢 Rảnh</span>
-            <span>🔴 Bận</span>
+          {/* Footer Legend */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#F0D7D3] pt-3 mt-3 dark:border-white/10">
+            <div className="flex items-center gap-4 text-xs font-bold">
+              <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Rảnh
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                <span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> Bận
+              </span>
+            </div>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 italic">
+              Nhấn vào ngày để đổi trạng thái
+            </span>
           </div>
         </div>
       </div>

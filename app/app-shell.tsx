@@ -64,6 +64,9 @@ function getPageTitle(pathname?: string | null) {
     "/talent/calendar": "Lịch làm việc",
     "/creator/campaigns": "Chiến dịch Creator",
     "/creator/campaigns/create": "Tạo chiến dịch Creator",
+    "/admin/creator-campaigns": "Quản lý Đơn hàng Chiến dịch",
+    "/admin/creators": "Quản lý Creator",
+    "/admin/brands": "Quản lý Brand",
     "/settings": "Cài đặt",
   };
 

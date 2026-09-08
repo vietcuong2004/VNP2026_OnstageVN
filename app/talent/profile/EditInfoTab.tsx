@@ -5,7 +5,7 @@ import {
   Edit3, ShieldCheck, CheckCircle, Upload, Video, Trash2, ChevronDown, ChevronUp,
   X, Plus
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getSocialHandle } from "@/lib/utils";
 import { getAuthToken } from "@/lib/api-client";
 import { persistTalentProfile, ensureTalentProfile, saveTalentProfile, submitTalentSurvey, uploadTalentPhoto } from "@/lib/talent-api";
 import { normalizeBackendAssetUrl } from "@/lib/avatar";
@@ -186,7 +186,7 @@ export default function EditInfoTab({
   const [isLifestyleExpanded, setIsLifestyleExpanded] = useState(false);
   const [selectedLangName, setSelectedLangName] = useState("");
   const [langProficiency, setLangProficiency] = useState("");
-  const [socialPlatform, setSocialPlatform] = useState<"Tiktok" | "Facebook" | "Instagram" | "Thread" | "Linkedin">("Tiktok");
+  const [socialPlatform, setSocialPlatform] = useState<"Tiktok" | "Facebook" | "Instagram" | "Thread" | "Youtube">("Tiktok");
   const [socialLink, setSocialLink] = useState("");
   const [socialAccounts, setSocialAccounts] = useState<{ platform: string; url: string }[]>([]);
   const [portfolioLink, setPortfolioLink] = useState("");
@@ -1274,7 +1274,7 @@ export default function EditInfoTab({
                           className="text-xs text-[#191116] hover:text-[#8F0709] truncate block font-semibold dark:text-slate-200 dark:hover:text-white"
                           title={account.url}
                         >
-                          {account.url.replace(/https?:\/\/(www\.)?/, '')}
+                          {getSocialHandle(account.url, account.platform)}
                         </a>
                       </div>
                       <button
@@ -1305,8 +1305,8 @@ export default function EditInfoTab({
                   <option value="Tiktok" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Tiktok</option>
                   <option value="Facebook" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Facebook</option>
                   <option value="Instagram" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Instagram</option>
+                  <option value="Youtube" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Youtube</option>
                   <option value="Thread" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Thread</option>
-                  <option value="Linkedin" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Linkedin</option>
                 </select>
               </div>
 

@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Clock3,
   Heart,
+  Image as ImageIcon,
   Info,
   Link2,
   Search,
@@ -110,7 +111,17 @@ export default function SurveyPage() {
       items: [
         "Link portfolio của bạn",
         "Chỉ số nổi bật như followers, viewers, likes",
-        "Facebook, TikTok, Instagram, LinkedIn",
+        "Facebook, TikTok, Instagram, YouTube",
+      ],
+    },
+    {
+      number: "04",
+      icon: ImageIcon,
+      title: "Hình ảnh & video",
+      items: [
+        "Ảnh bìa và ảnh toàn thân",
+        "Bộ sưu tập ảnh mẫu (Lookbook)",
+        "Video giới thiệu, catwalk hoặc viral clip",
       ],
     },
   ];
@@ -153,7 +164,8 @@ export default function SurveyPage() {
               <div className="mt-5 flex flex-col items-center justify-center gap-2.5 text-center text-xs font-semibold text-[#574D54] dark:text-slate-200 sm:flex-row md:text-sm">
                 <span className="inline-flex items-center gap-2 font-bold text-[#191116] dark:text-slate-200">
                   <Clock3 className="h-5 w-5 text-[#C72524] dark:text-[#F0C56B]" />
-                  Mất khoảng 3 phút
+                  Chỉ cần 3 phút
+
                 </span>
                 <span className="hidden h-5 w-px bg-[#F0D7D3] dark:bg-white/20 sm:block" />
                 <span className="inline-flex items-center gap-2 font-bold text-[#191116] dark:text-slate-200">
@@ -175,13 +187,12 @@ export default function SurveyPage() {
 
           {/* Intake Info Cards */}
           <section className="relative overflow-hidden rounded-[28px] border border-[#F0D7D3] bg-white p-5 text-[#191116] shadow-md dark:border-white/5 dark:bg-[#02040a]/80 dark:text-white md:p-8">
-            <div className="absolute inset-x-10 top-11 hidden h-px bg-gradient-to-r from-transparent via-[#C72524]/30 to-transparent dark:via-[#D4A64A]/40 md:block" />
             <h2 className="relative z-10 font-display text-lg font-black text-[#191116] dark:text-white md:text-2xl">
               Bạn sẽ cung cấp những thông tin sau
               <span className="ml-2 text-[#C72524] dark:text-[#F0C56B]">•</span>
             </h2>
 
-            <div className="relative z-10 mt-7 grid grid-cols-1 gap-5 md:grid-cols-3">
+            <div className="relative z-10 mt-7 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {intakeCards.map((card) => {
                 const Icon = card.icon;
 
@@ -245,7 +256,7 @@ export default function SurveyPage() {
                     className="group relative flex flex-row items-center gap-4 p-5 rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] hover:bg-[#FFF0EE] hover:border-[#C72524]/30 transition-all duration-300 shadow-sm cursor-default dark:border-white/5 dark:bg-[#071B42]/20 dark:hover:bg-[#0B245C]/35 dark:hover:border-[#D4A64A]/25"
                   >
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-gradient-to-r from-transparent via-[#C72524] to-transparent group-hover:w-1/2 transition-all duration-500 rounded-full dark:via-[#F0C56B]" />
-                    
+
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#F2DBD7] bg-[#FFF0EE] text-[#C72524] group-hover:scale-105 transition-all duration-300 shadow-sm dark:border-[#D4A64A]/20 dark:bg-[#D4A64A]/10 dark:text-[#F0C56B]">
                       <Icon className="h-6 w-6" />
                     </span>

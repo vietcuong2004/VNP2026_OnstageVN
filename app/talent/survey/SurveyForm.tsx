@@ -8,7 +8,7 @@ import {
   Globe, Shield, Upload, FileText, Video, Check, Crown, Loader2, X, ChevronDown, Plus, Trash2, Lock, AlertTriangle,
   Image as ImageIcon, Camera, Link as LinkIcon, ExternalLink
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getSocialHandle } from "@/lib/utils";
 import { safeSetLocalStorage } from "@/lib/storage-utils";
 import RadarChart from "@/components/ui/RadarChart";
 import { SURVEY_QUESTIONS } from "./SurveyQuestion";
@@ -42,32 +42,20 @@ import {
 } from "@/components/ui/ComboboxOptionValues";
 import { CityOption, useCityOptions } from "@/hooks/use-location-options";
 
-// Custom SVG Icons to avoid import errors from old lucide version
-const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-  </svg>
+const FacebookIcon = ({ className = "h-4 w-4 shrink-0 object-contain" }: { className?: string }) => (
+  <img src="/social/facebook.png" alt="Facebook" className={className} />
 );
 
-const YoutubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
-    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" />
-  </svg>
+const TiktokIcon = ({ className = "h-4 w-4 shrink-0 object-contain" }: { className?: string }) => (
+  <img src="/social/tiktok.png" alt="TikTok" className={className} />
 );
 
-const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-  </svg>
+const InstagramIcon = ({ className = "h-4 w-4 shrink-0 object-contain" }: { className?: string }) => (
+  <img src="/social/instagram.png" alt="Instagram" className={className} />
 );
 
-const TiktokIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
-  </svg>
+const YoutubeIcon = ({ className = "h-4 w-4 shrink-0 object-contain" }: { className?: string }) => (
+  <img src="/social/youtube.png" alt="YouTube" className={className} />
 );
 
 function clampSurveyStep(value: unknown) {
@@ -226,8 +214,10 @@ type SurveyPortfolioVideoLink = {
 type SurveyImageUploadBlockProps = {
   label: string;
   placeholder: string;
+  description?: string;
   previewUrl: string | null;
   aspectClassName: string;
+  containerClassName?: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: () => void;
 };
@@ -235,37 +225,51 @@ type SurveyImageUploadBlockProps = {
 function SurveyImageUploadBlock({
   label,
   placeholder,
+  description,
   previewUrl,
   aspectClassName,
+  containerClassName,
   onChange,
   onRemove,
 }: SurveyImageUploadBlockProps) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <span className="block text-[11px] text-[#8F0709] font-black uppercase tracking-wider dark:text-[#f4c430]">
-          {label}
-        </span>
-        {previewUrl && (
-          <button
-            type="button"
-            onClick={onRemove}
-            className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#9A8B88] transition-colors hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-300 cursor-pointer"
-          >
-            <Trash2 className="h-3.5 w-3.5" /> Xóa
-          </button>
-        )}
+    <div className={cn("rounded-2xl border border-[#F0D7D3] bg-white p-6 space-y-4 shadow-xs dark:border-[#151b2d] dark:bg-[#08090f]", containerClassName)}>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <span className="block text-[11px] text-[#8F0709] font-black uppercase tracking-wider dark:text-[#f4c430]">
+            {label}
+          </span>
+          {description && (
+            <span className="block text-[10px] text-[#9A8B88] font-bold uppercase mt-0.5 tracking-wider dark:text-slate-500">
+              {description}
+            </span>
+          )}
+        </div>
       </div>
       <div className={cn(
         "relative rounded-xl overflow-hidden bg-[#FAF7F6] border border-dashed border-[#F0D7D3] hover:border-[#8F0709] transition-colors dark:bg-slate-950/70 dark:border-white/10 dark:hover:border-amber-400/70",
         aspectClassName
       )}>
+        {previewUrl && (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onRemove();
+            }}
+            className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400 hover:bg-rose-600 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
+            title="Xóa ảnh"
+          >
+            <Trash2 className="h-4 w-4 !text-white text-white" />
+          </button>
+        )}
         <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-[#9A8B88] hover:text-[#8F0709] transition-colors dark:text-slate-500 dark:hover:text-amber-400">
           {previewUrl ? (
             <>
               <img src={previewUrl} alt={`Xem trước ${label.toLowerCase()}`} className="absolute inset-0 h-full w-full object-cover" />
-              <span className="absolute bottom-3 right-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white shadow-lg dark:bg-[#F0C56B] dark:text-slate-950">
-                <Camera className="h-3.5 w-3.5" />
+              <span className="light-force-white absolute bottom-3 right-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-lg dark:bg-[#F0C56B] dark:!text-slate-950 dark:text-slate-950">
+                <Camera className="h-3.5 w-3.5 !text-white text-white" />
               </span>
             </>
           ) : (
@@ -1744,6 +1748,11 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     const currentPortfolioLinks = getCurrentPortfolioLinks();
     const bodyMeasurements = [formData.bust, formData.waist, formData.hips].filter(Boolean).join(" - ");
     const hasAvatar = Boolean(avatarPreviewUrl || avatarFile || mediaUploads.avatar);
+    const hasCover = Boolean(coverPreviewUrl || coverFile || mediaUploads.cover);
+    const hasFullBody = Boolean(fullBodyPreviewUrl || fullBodyFile || mediaUploads.fullBody);
+    const hasPhotos = Boolean(portfolioPhotoFiles.length || mediaUploads.portfolioPhotos);
+    const hasVideos = Boolean(portfolioVideoFiles.length || portfolioVideoLinks.length || mediaUploads.portfolioVideos);
+
     const missingBasicFields = [
       !formData.name && "Họ và tên",
       !formData.email && "Email liên hệ",
@@ -1768,6 +1777,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       !socialHighlights.length && "Chỉ số nổi bật",
       !socialAccounts.length && "Liên kết mạng xã hội",
     ].filter(Boolean) as string[];
+    const missingMediaFields = [
+      !hasCover && "Ảnh bìa",
+      !hasFullBody && "Ảnh toàn thân",
+      !hasPhotos && "Bộ sưu tập ảnh",
+      !hasVideos && "Video biểu diễn / catwalk",
+    ].filter(Boolean) as string[];
+
     const summaryRows = [
       { label: "Họ và tên", value: formData.name },
       { label: "Email liên hệ", value: formData.email },
@@ -1788,9 +1804,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         content: (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {summaryRows.slice(0, 7).map((row) => (
-              <div key={row.label} className="rounded-xl border border-white/5 bg-[#03050c]/70 p-3.5">
-                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">{row.label}</span>
-                <span className="mt-1 block text-sm font-bold text-slate-100">{row.value}</span>
+              <div key={row.label} className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5 dark:border-white/5 dark:bg-[#03050c]/70">
+                <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">{row.label}</span>
+                <span className="mt-1 block text-sm font-bold text-[#191116] dark:text-slate-100">{row.value}</span>
               </div>
             ))}
           </div>
@@ -1804,43 +1820,43 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {summaryRows.slice(7).map((row) => (
-                <div key={row.label} className="rounded-xl border border-white/5 bg-[#03050c]/70 p-3.5">
-                  <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">{row.label}</span>
-                  <span className="mt-1 block text-sm font-bold text-slate-100">{row.value}</span>
+                <div key={row.label} className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5 dark:border-white/5 dark:bg-[#03050c]/70">
+                  <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">{row.label}</span>
+                  <span className="mt-1 block text-sm font-bold text-[#191116] dark:text-slate-100">{row.value}</span>
                 </div>
               ))}
             </div>
             <div>
-              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Loại hình Idol</span>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Loại hình Idol</span>
               {formData.talentTypes.length ? (
                 <div className="flex flex-wrap gap-2">
                   {formData.talentTypes.map((type) => (
-                    <span key={type} className="rounded-full border border-[#D4A64A]/25 bg-[#D4A64A]/10 px-3 py-1 text-xs font-black uppercase text-[#F0C56B]">
+                    <span key={type} className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-black uppercase text-[#8F0709] dark:border-[#D4A64A]/25 dark:bg-[#D4A64A]/10 dark:text-[#F0C56B]">
                       {type}
                     </span>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm italic text-slate-500">Chưa chọn loại hình nào</p>
+                <p className="text-sm italic text-[#9A8B88] dark:text-slate-500">Chưa chọn loại hình nào</p>
               )}
             </div>
             <div>
-              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Lĩnh vực nội dung / kỹ năng</span>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Lĩnh vực nội dung / kỹ năng</span>
               {selectedSkills.length ? (
                 <div className="flex flex-wrap gap-2">
                   {selectedSkills.map((skill) => (
-                    <span key={skill} className="rounded-full border border-white/10 bg-[#071B42]/55 px-3 py-1 text-xs font-bold text-slate-100">
+                    <span key={skill} className="rounded-full border border-[#F0D7D3] bg-[#FFF3F1] px-3 py-1 text-xs font-bold text-[#8F0709] dark:border-white/10 dark:bg-[#071B42]/55 dark:text-slate-100">
                       {skill}
                     </span>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm italic text-slate-500">Chưa thêm lĩnh vực nào</p>
+                <p className="text-sm italic text-[#9A8B88] dark:text-slate-500">Chưa thêm lĩnh vực nào</p>
               )}
             </div>
-            <div className="rounded-xl border border-white/5 bg-[#03050c]/70 p-3.5">
-              <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Kinh nghiệm làm việc</span>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">
+            <div className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5 dark:border-white/5 dark:bg-[#03050c]/70">
+              <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Kinh nghiệm làm việc</span>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#191116] dark:text-slate-200">
                 {formData.professionalExperience || "Chưa nhập kinh nghiệm làm việc"}
               </p>
             </div>
@@ -1854,7 +1870,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         content: (
           <div className="space-y-4">
             <div>
-              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Portfolio</span>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Portfolio</span>
               {currentPortfolioLinks.length ? (
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                   {currentPortfolioLinks.map((link, index) => (
@@ -1863,32 +1879,32 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       href={portfolioHref(link)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="truncate rounded-xl border border-white/5 bg-[#03050c]/70 p-3 text-sm font-bold text-[#F0C56B] transition-colors hover:border-[#D4A64A]/30 hover:text-white"
+                      className="truncate rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3 text-sm font-bold text-[#8F0709] transition-colors hover:border-[#8F0709]/40 hover:bg-[#FFF0EE] dark:border-white/5 dark:bg-[#03050c]/70 dark:text-[#F0C56B] dark:hover:border-[#D4A64A]/30 dark:hover:text-white"
                     >
                       Portfolio {index + 1}
                     </a>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm italic text-slate-500">Chưa có portfolio nào được thêm</p>
+                <p className="text-sm italic text-[#9A8B88] dark:text-slate-500">Chưa có portfolio nào được thêm</p>
               )}
             </div>
             <div>
-              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Chỉ số nổi bật</span>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Chỉ số nổi bật</span>
               {socialHighlights.length ? (
                 <div className="flex flex-wrap gap-2">
                   {socialHighlights.map((highlight) => (
-                    <span key={highlight} className="rounded-full border border-[#D4A64A]/25 bg-[#D4A64A]/10 px-3 py-1 text-xs font-black uppercase text-[#F0C56B]">
+                    <span key={highlight} className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-black uppercase text-[#8F0709] dark:border-[#D4A64A]/25 dark:bg-[#D4A64A]/10 dark:text-[#F0C56B]">
                       {highlight}
                     </span>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm italic text-slate-500">Chưa thêm chỉ số nổi bật nào</p>
+                <p className="text-sm italic text-[#9A8B88] dark:text-slate-500">Chưa thêm chỉ số nổi bật nào</p>
               )}
             </div>
             <div>
-              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Liên kết mạng xã hội</span>
+              <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Liên kết mạng xã hội</span>
               {socialAccounts.length ? (
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                   {socialAccounts.map((account, index) => (
@@ -1897,16 +1913,59 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       href={portfolioHref(account.url)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-xl border border-white/5 bg-[#03050c]/70 p-3 transition-colors hover:border-[#D4A64A]/30"
+                      className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3 transition-colors hover:border-[#8F0709]/40 hover:bg-[#FFF0EE] dark:border-white/5 dark:bg-[#03050c]/70 dark:hover:border-[#D4A64A]/30"
                     >
-                      <span className="block text-[10px] font-black uppercase tracking-widest text-[#F0C56B]">{account.platform}</span>
-                      <span className="mt-1 block truncate text-sm font-semibold text-slate-200">{account.url}</span>
+                      <span className="block text-[10px] font-black uppercase tracking-widest text-[#8F0709] dark:text-[#F0C56B]">{account.platform}</span>
+                      <span className="mt-1 block truncate text-sm font-semibold text-[#191116] dark:text-slate-200">{account.url}</span>
                     </a>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm italic text-slate-500">Chưa có liên kết mạng xã hội nào được thêm</p>
+                <p className="text-sm italic text-[#9A8B88] dark:text-slate-500">Chưa có liên kết mạng xã hội nào được thêm</p>
               )}
+            </div>
+          </div>
+        ),
+      },
+      {
+        title: "Hình ảnh & video",
+        icon: ImageIcon,
+        missing: missingMediaFields,
+        content: (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5 dark:border-white/5 dark:bg-[#03050c]/70">
+                <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Ảnh đại diện</span>
+                <span className="mt-1 block text-sm font-bold text-[#191116] dark:text-slate-100">
+                  {hasAvatar ? "Đã cập nhật" : "Chưa có"}
+                </span>
+              </div>
+              <div className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5 dark:border-white/5 dark:bg-[#03050c]/70">
+                <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Ảnh bìa</span>
+                <span className="mt-1 block text-sm font-bold text-[#191116] dark:text-slate-100">
+                  {hasCover ? "Đã cập nhật" : "Chưa có"}
+                </span>
+              </div>
+              <div className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5 dark:border-white/5 dark:bg-[#03050c]/70">
+                <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Ảnh toàn thân</span>
+                <span className="mt-1 block text-sm font-bold text-[#191116] dark:text-slate-100">
+                  {hasFullBody ? "Đã cập nhật" : "Chưa có"}
+                </span>
+              </div>
+              <div className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5 dark:border-white/5 dark:bg-[#03050c]/70">
+                <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Bộ sưu tập ảnh</span>
+                <span className="mt-1 block text-sm font-bold text-[#191116] dark:text-slate-100">
+                  {portfolioPhotoFiles.length ? `${portfolioPhotoFiles.length} ảnh đã chọn` : (mediaUploads.portfolioPhotos || "Chưa có")}
+                </span>
+              </div>
+            </div>
+            <div className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5 dark:border-white/5 dark:bg-[#03050c]/70">
+              <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Video biểu diễn / Catwalk</span>
+              <span className="mt-1 block text-sm font-bold text-[#191116] dark:text-slate-100">
+                {(portfolioVideoFiles.length + portfolioVideoLinks.length) > 0
+                  ? `${portfolioVideoFiles.length + portfolioVideoLinks.length} video`
+                  : (mediaUploads.portfolioVideos || "Chưa có")}
+              </span>
             </div>
           </div>
         ),
@@ -1914,21 +1973,21 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     ];
 
     return (
-      <div className="relative w-full animate-in rounded-3xl border border-[#D4A64A]/20 bg-[#02040a]/95 p-5 shadow-[0_0_30px_rgba(212,166,74,0.08)] fade-in slide-in-from-bottom-8 duration-700 md:p-8">
-        <div className="pointer-events-none absolute right-0 top-0 -z-10 h-56 w-56 rounded-full bg-[#D4A64A]/5 blur-[90px]" />
-        <div className="pointer-events-none absolute bottom-0 left-0 -z-10 h-56 w-56 rounded-full bg-[#071B42]/50 blur-[90px]" />
+      <div className="relative w-full animate-in rounded-3xl border border-[#F0D7D3] bg-white p-5 shadow-xs fade-in slide-in-from-bottom-8 duration-700 dark:border-[#D4A64A]/20 dark:bg-[#02040a]/95 dark:shadow-[0_0_30px_rgba(212,166,74,0.08)] md:p-8">
+        <div className="pointer-events-none absolute right-0 top-0 -z-10 h-56 w-56 rounded-full bg-rose-50/70 blur-[90px] dark:bg-[#D4A64A]/5" />
+        <div className="pointer-events-none absolute bottom-0 left-0 -z-10 h-56 w-56 rounded-full bg-[#FFF3F1]/70 blur-[90px] dark:bg-[#071B42]/50" />
 
-        <div className="mb-6 flex flex-col gap-4 border-b border-white/5 pb-5 md:flex-row md:items-center md:justify-between">
+        <div className="mb-6 flex flex-col gap-4 border-b border-[#F0D7D3] pb-5 dark:border-white/5 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#D4A64A]/25 bg-[#D4A64A]/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#F0C56B]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#F0D7D3] bg-[#FFF3F1] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#8F0709] dark:border-[#D4A64A]/25 dark:bg-[#D4A64A]/10 dark:text-[#F0C56B]">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Hồ sơ đã được cập nhật
             </div>
-            <h2 className="mt-3 font-display text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+            <h2 className="mt-3 font-display text-2xl font-black uppercase tracking-tight text-[#191116] dark:text-white md:text-3xl">
               Tóm tắt hồ sơ Idol
             </h2>
-            <p className="mt-1 text-sm leading-relaxed text-slate-400">
-              Thời gian: <span className="font-bold text-slate-200">{results.date || "Vừa thực hiện"}</span>
+            <p className="mt-1 text-sm leading-relaxed text-[#9A8B88] dark:text-slate-400">
+              Thời gian: <span className="font-bold text-[#191116] dark:text-slate-200">{results.date || "Vừa thực hiện"}</span>
             </p>
           </div>
 
@@ -1942,9 +2001,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 }
                 router.back();
               }}
-              className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-[#D4A64A]/30 bg-gradient-gold px-5 text-[11px] font-black uppercase tracking-wider text-slate-950 shadow-[0_0_15px_rgba(240,197,107,0.18)] transition-all hover:brightness-105 active:scale-98 md:text-xs"
+              className="light-force-white flex h-11 items-center justify-center gap-1.5 rounded-xl border border-[#8F0709]/20 bg-[#8F0709] px-5 text-[11px] font-black uppercase tracking-wider !text-white text-white shadow-xs transition-all hover:bg-[#A8080A] active:scale-98 dark:border-[#D4A64A]/30 dark:bg-gradient-gold dark:!text-slate-950 dark:text-slate-950 md:text-xs cursor-pointer"
             >
-              <X className="h-3.5 w-3.5 stroke-[3]" /> Hủy
+              <X className="h-3.5 w-3.5 stroke-[3] !text-white" /> Hủy
             </button>
             <button
               type="button"
@@ -1956,63 +2015,65 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                 setActiveSurveyQIdx(0);
                 setSurveyAnswers({});
               }}
-              className="flex h-11 items-center justify-center rounded-xl border border-white/10 bg-transparent px-5 font-display text-[11px] font-bold text-slate-300 transition-all hover:bg-white/5 hover:text-white md:text-xs"
+              className="flex h-11 items-center justify-center rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] px-5 font-display text-[11px] font-bold text-[#191116] transition-all hover:bg-[#F0D7D3]/40 dark:border-white/10 dark:bg-transparent dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white md:text-xs cursor-pointer"
             >
               Làm lại bài khảo sát
             </button>
             <button
               type="button"
               onClick={handleResultPrimaryAction}
-              className="flex h-11 items-center justify-center rounded-xl bg-gradient-gold px-5 font-display text-[11px] font-bold text-slate-950 shadow-lg transition-all hover:brightness-105 active:scale-98 md:text-xs"
+              className="light-force-white flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-5 font-display text-[11px] font-bold !text-white text-white shadow-md transition-all hover:brightness-110 active:scale-98 dark:bg-gradient-gold dark:!text-slate-950 dark:text-slate-950 md:text-xs cursor-pointer"
             >
-              {isAuthenticated ? "Chuyển đến hồ sơ cá nhân" : "Đăng nhập ngay"} <ArrowRight className="ml-1.5 h-4 w-4" />
+              <span className="!text-white">{isAuthenticated ? "Chuyển đến hồ sơ cá nhân" : "Đăng nhập ngay"}</span> <ArrowRight className="ml-1.5 h-4 w-4 !text-white stroke-[2.5]" />
             </button>
           </div>
         </div>
 
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/5 bg-[#03050c]/70 p-4 text-center">
-            <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Độ hoàn thiện</span>
-            <span className="mt-1 block font-display text-3xl font-black text-[#F0C56B]">{results.profileScore}/100</span>
+          <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] p-4 text-center dark:border-white/5 dark:bg-[#03050c]/70">
+            <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Độ hoàn thiện</span>
+            <span className="mt-1 block font-display text-3xl font-black text-[#8F0709] dark:text-[#F0C56B]">{results.profileScore}/100</span>
           </div>
-          <div className="rounded-2xl border border-white/5 bg-[#03050c]/70 p-4 text-center">
-            <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Số bước đã hoàn thành</span>
-            <span className="mt-1 block font-display text-3xl font-black text-white">{SURVEY_STEP_COUNT}/{SURVEY_STEP_COUNT}</span>
+          <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] p-4 text-center dark:border-white/5 dark:bg-[#03050c]/70">
+            <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Số bước đã hoàn thành</span>
+            <span className="mt-1 block font-display text-3xl font-black text-[#191116] dark:text-white">{SURVEY_STEP_COUNT}/{SURVEY_STEP_COUNT}</span>
           </div>
-          <div className="rounded-2xl border border-white/5 bg-[#03050c]/70 p-4 text-center">
-            <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Trạng thái</span>
-            <span className="mt-2 inline-flex rounded-full border border-[#D4A64A]/25 bg-[#D4A64A]/10 px-3 py-1 text-xs font-black uppercase text-[#F0C56B]">
+          <div className="rounded-2xl border border-[#F0D7D3] bg-[#FFF7F6] p-4 text-center dark:border-white/5 dark:bg-[#03050c]/70">
+            <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Trạng thái</span>
+            <span className="mt-2 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black uppercase text-emerald-700 dark:border-[#D4A64A]/25 dark:bg-[#D4A64A]/10 dark:text-[#F0C56B]">
               Sẵn sàng hiển thị
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {summaryGroups.map((group) => {
             const Icon = group.icon;
             return (
-              <section key={group.title} className="rounded-2xl border border-white/5 bg-[#071B42]/25 p-5">
-                <h3 className="mb-4 flex items-center gap-2 font-display text-sm font-black uppercase tracking-wider text-white">
-                  <Icon className="h-4.5 w-4.5 text-[#F0C56B]" />
-                  {group.title}
-                </h3>
-                {group.content}
-                <div className="mt-5 border-t border-white/5 pt-4">
-                  <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500">Còn thiếu</span>
+              <section key={group.title} className="flex flex-col justify-between rounded-2xl border border-[#F0D7D3] bg-white p-5 shadow-2xs dark:border-white/10 dark:bg-[#071B42]/25">
+                <div>
+                  <h3 className="mb-4 flex items-center gap-2 font-display text-sm font-black uppercase tracking-wider text-[#191116] dark:text-white">
+                    <Icon className="h-4.5 w-4.5 text-[#8F0709] dark:text-[#F0C56B]" />
+                    {group.title}
+                  </h3>
+                  {group.content}
+                </div>
+                <div className="mt-5 border-t border-[#F0D7D3] pt-4 dark:border-white/5">
+                  <span className="mb-2 block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">Còn thiếu</span>
                   {group.missing.length ? (
                     <div className="flex flex-wrap gap-2">
                       {group.missing.map((field) => (
                         <span
                           key={field}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-[#D4A64A]/25 bg-[#D4A64A]/10 px-3 py-1 text-[11px] font-bold text-[#F0C56B]"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[11px] font-bold text-[#8F0709] dark:border-[#D4A64A]/25 dark:bg-[#D4A64A]/10 dark:text-[#F0C56B]"
                         >
-                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-[#8F0709] dark:text-[#F0C56B]" />
                           {field}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold text-emerald-300">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
                       <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                       Đã đủ thông tin
                     </span>
@@ -2877,7 +2938,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                         <div className="min-w-0 flex-1">
                           <span className="block text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-400">{account.platform}</span>
                           <a href={account.url} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-[#191116] hover:text-[#8F0709] hover:underline dark:text-slate-200 dark:hover:text-white" title={account.url}>
-                            {account.url.replace(/https?:\/\/(www\.)?/, "")}
+                            {getSocialHandle(account.url, account.platform)}
                           </a>
                         </div>
                         <button
@@ -2905,8 +2966,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     <option value="Tiktok" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Tiktok</option>
                     <option value="Facebook" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Facebook</option>
                     <option value="Instagram" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Instagram</option>
+                    <option value="Youtube" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Youtube</option>
                     <option value="Thread" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Thread</option>
-                    <option value="Linkedin" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Linkedin</option>
                   </select>
                 </div>
                 <div className="space-y-1.5 md:col-span-6">
@@ -2945,8 +3006,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             <SurveyImageUploadBlock
               label="ẢNH BÌA"
               placeholder="TẢI ẢNH BÌA"
+              description="Ảnh banner ngang trang trí đầu hồ sơ cá nhân"
               previewUrl={coverPreviewUrl}
-              aspectClassName="aspect-[16/9] w-full"
+              aspectClassName="h-44 sm:h-56 md:h-64 w-full"
               onChange={(event) => handleSurveyImageSelection("cover", event)}
               onRemove={() => handleRemoveSurveyImage("cover")}
             />
@@ -2954,8 +3016,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             <SurveyImageUploadBlock
               label="ẢNH TOÀN THÂN"
               placeholder="TẢI ẢNH LÊN"
+              description="Ảnh chụp toàn thân tỷ lệ 3:4 giúp thể hiện vóc dáng và chiều cao"
               previewUrl={fullBodyPreviewUrl}
-              aspectClassName="aspect-[3/4] w-full"
+              aspectClassName="aspect-[3/4] w-full max-w-[280px] sm:max-w-[320px] mx-auto md:mx-0"
               onChange={(event) => handleSurveyImageSelection("fullBody", event)}
               onRemove={() => handleRemoveSurveyImage("fullBody")}
             />
@@ -2992,15 +3055,15 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                           event.stopPropagation();
                           handleRemovePortfolioPhoto(img.id);
                         }}
-                        className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white shadow-lg transition-all hover:border-rose-400 hover:bg-rose-600 hover:text-white active:scale-95 cursor-pointer"
+                        className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400 hover:bg-rose-600 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
                         title="Xóa ảnh"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 !text-white text-white" />
                       </button>
 
                       <div className="absolute bottom-3 right-3 z-20">
-                        <label className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white hover:brightness-110 active:scale-95 cursor-pointer shadow-lg transition-all dark:bg-[#F0C56B] dark:text-slate-950">
-                          <Camera className="h-3.5 w-3.5" />
+                        <label className="light-force-white flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer shadow-lg transition-all dark:bg-[#F0C56B] dark:!text-slate-950 dark:text-slate-950">
+                          <Camera className="h-3.5 w-3.5 !text-white text-white" />
                           <input
                             type="file"
                             accept="image/*"
@@ -3058,10 +3121,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                           event.stopPropagation();
                           handleRemovePortfolioVideo(video.id);
                         }}
-                        className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
+                        className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
                         title="Xóa video"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 !text-white text-white" />
                       </button>
                     </div>
                   ))}
@@ -3101,10 +3164,10 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                           event.stopPropagation();
                           handleRemovePortfolioVideoLink(video.id);
                         }}
-                        className="absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:text-white active:scale-95"
+                        className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
                         title="Xóa video"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 !text-white text-white" />
                       </button>
                     </div>
                   ))}

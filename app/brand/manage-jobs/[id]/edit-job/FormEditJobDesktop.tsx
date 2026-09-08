@@ -443,6 +443,17 @@ export default function FormEditJob({
   }, [isOpen, campaignToEdit]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   const handleImagesAdd = (files: File[]) => {
     setCampaignImages((prev) => {
       const next = [...prev, ...files];
@@ -944,11 +955,12 @@ export default function FormEditJob({
   if (!isOpen) return null;
 
   return (
-    <div className="flex h-full min-h-0 w-full gap-4 bg-[#FAF7F6] text-[#191116] p-3 animate-in fade-in duration-200">
-      <form
-        onSubmit={handleFormSubmit}
-        className="relative flex h-full min-w-0 flex-1 basis-1/2 flex-col overflow-hidden rounded-2xl border border-[#F0D7D3] bg-white shadow-md"
-      >
+    <div className="fixed inset-0 z-[100] flex h-screen w-screen flex-col overflow-hidden bg-[#FAF7F6] p-2 sm:p-3 text-[#191116] animate-in fade-in duration-200">
+      <div className="relative flex h-full w-full gap-3 sm:gap-4 overflow-hidden">
+        <form
+          onSubmit={handleFormSubmit}
+          className="relative flex h-full min-w-0 flex-1 basis-1/2 flex-col overflow-hidden rounded-2xl border border-[#F0D7D3] bg-white shadow-sm"
+        >
         {/* Top accent glow line */}
         <div className="h-1.5 w-full bg-gradient-to-r from-[#E01B1F] via-[#C72524] to-[#8F0709] shrink-0 shadow-sm" />
 
@@ -1241,12 +1253,13 @@ export default function FormEditJob({
         {isSubmitting && <EditJobLoadingOverlay />}
 
       </form>
-      <PreviewJob
-        form={form}
-        imageUrls={allPreviewUrls}
-        activeImageIndex={activePreviewImageIndex}
-        onActiveImageIndexChange={setActivePreviewImageIndex}
-      />
+        <PreviewJob
+          form={form}
+          imageUrls={allPreviewUrls}
+          activeImageIndex={activePreviewImageIndex}
+          onActiveImageIndexChange={setActivePreviewImageIndex}
+        />
+      </div>
     </div>
   );
 }

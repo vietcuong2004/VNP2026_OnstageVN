@@ -349,7 +349,7 @@ export default function TalentCard({
           </div>
         )}
 
-        <p className="mt-2 whitespace-pre-line text-[11px] font-semibold leading-relaxed text-[#5F5554] dark:text-slate-300">
+        <p className="mt-2 line-clamp-2 text-[11px] font-medium leading-relaxed text-[#5F5554] dark:text-slate-300" title={bioText || undefined}>
           {bioText || "Talent chuyên nghiệp. Rất mong được hợp tác"}
         </p>
       </div>

@@ -161,6 +161,7 @@
 .light [class*="bg-[#060914]"],
 .light [class*="bg-[#070913]"],
 .light [class*="bg-[#08090f]"],
+.light [class*="bg-[#080914]"],
 .light [class*="bg-[#080b16]"],
 .light [class*="bg-[#090a14]"],
 .light [class*="bg-[#0e122b]"],
@@ -221,7 +222,16 @@ input:-webkit-autofill:active {
   box-shadow: 0 18px 45px rgba(212, 175, 55, 0.12);
 }
 
-.light .light-keep-white {
+.light .light-keep-white,
+.light .light-keep-white *,
+.light .light-force-white,
+.light .light-force-white * {
+  color: #ffffff !important;
+}
+
+.light .light-keep-white svg,
+.light .light-force-white svg {
+  stroke: #ffffff !important;
   color: #ffffff !important;
 }
 
@@ -633,6 +643,7 @@ input[type="date"].bg-slate-900::-webkit-date-and-time-value {
 
 .light .light-force-white svg {
   color: #fff !important;
+  stroke: #fff !important;
 }
 /* Booking flow light-mode readability */
 .light .booking-flow {
