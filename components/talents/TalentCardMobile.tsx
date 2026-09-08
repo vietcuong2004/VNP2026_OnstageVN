@@ -221,10 +221,10 @@ export default function TalentCardMobile({
               )}
             </div>
 
-            {/* Skill / Profile Pills */}
+            {/* Skill / Profile Pills (Tối đa 3 hàng) */}
             {profilePills.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1 pt-0.5">
-                {profilePills.slice(0, 9).map((pill) => (
+              <div className="flex max-h-[56px] flex-wrap items-center gap-1 overflow-hidden pt-0.5">
+                {profilePills.map((pill) => (
                   <span
                     key={pill}
                     className="inline-flex items-center justify-center rounded-md border border-[#F1D8D4]/70 bg-[#FFF9F8] px-1.5 py-0.5 text-[8px] font-bold uppercase leading-none tracking-wider text-[#9B1215]/90 dark:border-white/10 dark:bg-[#222733] dark:text-slate-200"
@@ -233,11 +233,6 @@ export default function TalentCardMobile({
                     <span className="truncate max-w-[130px]">{pill}</span>
                   </span>
                 ))}
-                {profilePills.length > 9 && (
-                  <span className="inline-flex items-center justify-center rounded-md border border-[#F1D8D4]/40 bg-[#FFF9F8] px-1 py-0.5 text-[7.5px] font-bold text-[#9B1215]/70">
-                    +{profilePills.length - 9}
-                  </span>
-                )}
               </div>
             )}
           </div>

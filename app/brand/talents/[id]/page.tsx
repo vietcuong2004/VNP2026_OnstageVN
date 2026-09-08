@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -39,12 +40,25 @@ import {
   BookmarkCheck,
   ExternalLink,
   CalendarCheck,
+  ShoppingBag,
+  Flame,
+  Zap,
+  PackageCheck,
+  Clock,
+  Trophy,
+  ShoppingCart,
+  Coins,
+  Info,
+  Store,
+  BarChart2,
+  PlayCircle,
 } from "lucide-react";
 import BookingFlow from "@/app/brand/talents/[id]/booking-talent/BookingFlow";
 import { findTalentById } from "@/lib/brand-mvp-data";
 import { cn, getSocialHandle } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
+import OnstagePerformanceExplanationDialog from "@/components/ui/OnstagePerformanceExplanationDialog";
 import BadgeTier, { getPrimaryAchievementBadge } from "@/components/ui/BadgeTier";
 import { addBrandRosterTalent, loadBrandRosterTalents, loadBrandTalent, loadBrandWishlists, addTalentToWishlist, removeTalentFromWishlist, createBrandWishlist } from "@/lib/brand-api";
 import { createInitialAvatarDataUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
@@ -139,21 +153,21 @@ const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
   if (p.includes("facebook") || p.includes("fb") || u.includes("facebook.com") || u.includes("fb.com")) {
     return {
       platformKey: "Facebook",
-      icon: <FacebookLogo className="h-5.5 w-5.5 shrink-0 object-contain" />,
+      icon: <FacebookLogo className="h-9 w-9 shrink-0 object-contain" />,
       colorClass: "hover:text-[#1877F2] hover:border-[#1877F2]/50 hover:bg-[#1877F2]/10 text-[#1877F2]",
     };
   }
   if (p.includes("tiktok") || u.includes("tiktok.com")) {
     return {
       platformKey: "Tiktok",
-      icon: <TiktokLogo className="h-5.5 w-5.5 shrink-0 object-contain" />,
+      icon: <TiktokLogo className="h-9 w-9 shrink-0 object-contain" />,
       colorClass: "hover:text-[#FE2C55] hover:border-[#FE2C55]/50 hover:bg-[#FE2C55]/10 text-[#FE2C55]",
     };
   }
   if (p.includes("instagram") || p.includes("insta") || u.includes("instagram.com") || u.includes("instagr.am")) {
     return {
       platformKey: "Instagram",
-      icon: <InstagramLogo className="h-5.5 w-5.5 shrink-0 object-contain" />,
+      icon: <InstagramLogo className="h-9 w-9 shrink-0 object-contain" />,
       colorClass: "hover:text-[#E1306C] hover:border-[#E1306C]/50 hover:bg-[#E1306C]/10 text-[#E1306C]",
     };
   }
@@ -167,30 +181,128 @@ const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
   if (p.includes("youtube") || p.includes("yt") || u.includes("youtube.com") || u.includes("youtu.be") || p.includes("linkedin") || u.includes("linkedin.com")) {
     return {
       platformKey: "Youtube",
-      icon: <YoutubeLogo className="h-5.5 w-5.5 shrink-0 object-contain" />,
+      icon: <YoutubeLogo className="h-9 w-9 shrink-0 object-contain" />,
       colorClass: "hover:text-[#FF0000] hover:border-[#FF0000]/50 hover:bg-[#FF0000]/10 text-[#FF0000]",
     };
   }
 
   return {
     platformKey: rawPlatform || "Globe",
-    icon: <Globe className="h-4 w-4 shrink-0 text-amber-400" />,
+    icon: <Globe className="h-5 w-5 shrink-0 text-amber-400" />,
     colorClass: "hover:text-amber-300 hover:border-amber-400/50 hover:bg-amber-400/10 text-amber-400",
   };
 };
 
 
 
-interface SocialStatItem {
-  label: string;
-  value: string;
-  icon?: string;
+function OnstagePerformanceCard({
+  profile,
+  onOpenExplanation,
+}: {
+  profile: any;
+  onOpenExplanation?: () => void;
+}) {
+  const seedString = String(profile?.id || profile?.slug || profile?.name || "idol");
+  let hash = 0;
+  for (let i = 0; i < seedString.length; i++) {
+    hash = (hash * 31 + seedString.charCodeAt(i)) >>> 0;
+  }
+
+  const campaignsCount = (1200 + (hash % 1600)).toLocaleString("vi-VN") + "+";
+  const ordersCount = (5 + ((hash % 80) / 10)).toFixed(1) + "K";
+  const netGmv = `₫${(0.8 + ((hash % 120) / 100)).toFixed(1)}B`;
+  const brandRating = (4.7 + ((hash % 3) / 10)).toFixed(1) + "/5";
+  const brandReviewCount = 180 + (hash % 240);
+
+  return (
+    <div className="rounded-2xl border border-[#F0D7D3] bg-white p-3 sm:p-4 shadow-[0_8px_24px_rgba(143,7,9,0.04)] dark:border-[#151b2d] dark:bg-[#08090f] dark:shadow-xl space-y-2.5 text-left">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-[#F0D7D3]/80 pb-2 dark:border-white/10">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20 shrink-0">
+            <Trophy className="h-4.5 w-4.5" />
+          </div>
+          <h3 className="font-display font-black text-sm text-[#191116] uppercase tracking-wider dark:text-white leading-none">
+            Hiệu suất trên Onstage
+          </h3>
+        </div>
+        <button
+          type="button"
+          onClick={onOpenExplanation}
+          className="text-[#7B6866] hover:text-[#8F0709] dark:text-slate-400 dark:hover:text-white transition cursor-pointer p-0.5"
+          title="Xem giải thích chi tiết các chỉ số hiệu suất"
+        >
+          <Info className="h-4.5 w-4.5" />
+        </button>
+      </div>
+
+      {/* 4 Cards Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+        {/* Card 1: Chiến dịch/đơn đã thực hiện */}
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+          <FileText className="h-4 w-4 text-[#C72524] dark:text-rose-400 mb-0.5" />
+          <span className="text-sm sm:text-base font-black text-[#8F0709] dark:text-white leading-tight">
+            {campaignsCount}
+          </span>
+          <span className="mt-0.5 text-[9.5px] sm:text-[10px] font-medium text-[#574D54] dark:text-slate-400 leading-snug">
+            Chiến dịch/đơn đã thực hiện
+          </span>
+        </div>
+
+        {/* Card 2: Đơn hàng tạo ra */}
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+          <ShoppingCart className="h-4 w-4 text-[#C72524] dark:text-rose-400 mb-0.5" />
+          <span className="text-sm sm:text-base font-black text-[#8F0709] dark:text-white leading-tight">
+            {ordersCount}
+          </span>
+          <span className="mt-0.5 text-[9.5px] sm:text-[10px] font-medium text-[#574D54] dark:text-slate-400 leading-snug">
+            Đơn hàng tạo ra
+          </span>
+        </div>
+
+        {/* Card 3: Tổng doanh thu */}
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+          <Coins className="h-4 w-4 text-[#C72524] dark:text-rose-400 mb-0.5" />
+          <span className="text-sm sm:text-base font-black text-[#8F0709] dark:text-white leading-tight">
+            {netGmv}
+          </span>
+          <span className="mt-0.5 text-[9.5px] sm:text-[10px] font-medium text-[#574D54] dark:text-slate-400 leading-snug">
+            Tổng doanh thu
+          </span>
+        </div>
+
+        {/* Card 4: Đánh giá từ Brand */}
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+          <Star className="h-4 w-4 text-[#C72524] fill-[#C72524] dark:text-amber-400 dark:fill-amber-400 mb-0.5" />
+          <span className="text-sm sm:text-base font-black text-[#8F0709] dark:text-white leading-tight">
+            {brandRating}
+          </span>
+          <span className="mt-0.5 text-[9.5px] sm:text-[10px] font-medium text-[#574D54] dark:text-slate-400 leading-snug">
+            Đánh giá từ Brand ({brandReviewCount}+)
+          </span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function getPlatformStats(platformKey: string, account: any, seed: string) {
+interface SocialMetricItem {
+  icon: React.ReactNode;
+  value: string;
+  unit?: string;
+  label: string;
+}
+
+interface PlatformData {
+  platformName: string;
+  metrics: SocialMetricItem[];
+  shopTitle: string;
+  buttonLabel: string;
+}
+
+function getPlatformStats(platformKey: string, account: any, seed: string): PlatformData {
   const realFollowers = account?.followers_count || account?.followers;
   const realLikes = account?.likes_count || account?.likes;
-  const realEngage = account?.engagement_rate;
 
   let hash = 0;
   const key = `${seed}-${platformKey}-${account?.url || ""}`;
@@ -205,88 +317,86 @@ function getPlatformStats(platformKey: string, account: any, seed: string) {
   };
 
   const p = platformKey.toLowerCase();
-  if (p.includes("tiktok")) {
-    const followers = realFollowers ? Number(realFollowers) : 85000 + (hash % 380000);
-    const likes = realLikes ? Number(realLikes) : followers * (8 + (hash % 12));
-    const videos = account?.videos_count ? Number(account.videos_count) : 45 + (hash % 210);
-    return {
-      primaryStat: { label: "Followers", value: formatK(followers) },
-      secondaryStat: { label: "Tổng lượt thích", value: formatK(likes) },
-      extraStat: { label: "Số video", value: formatK(videos) },
-      badgeLabel: "Video Viral",
-      brandGradient: "from-[#FE2C55]/15 via-[#25F4EE]/10 to-transparent",
-      brandBorder: "border-[#FE2C55]/30 hover:border-[#FE2C55]/60",
-      accentColor: "text-[#FE2C55]",
-    };
-  }
-  if (p.includes("youtube")) {
-    const subs = realFollowers ? Number(realFollowers) : 15000 + (hash % 75000);
-    const views = account?.views_count ? Number(account.views_count) : subs * (25 + (hash % 40));
-    const videos = account?.videos_count ? Number(account.videos_count) : 24 + (hash % 120);
-    return {
-      primaryStat: { label: "Subscribers", value: formatK(subs) },
-      secondaryStat: { label: "Tổng lượt xem", value: formatK(views) },
-      extraStat: { label: "Số video", value: formatK(videos) },
-      badgeLabel: "Official Channel",
-      brandGradient: "from-[#FF0000]/15 via-[#CC0000]/10 to-transparent",
-      brandBorder: "border-[#FF0000]/30 hover:border-[#FF0000]/60",
-      accentColor: "text-[#FF0000]",
-    };
-  }
-  if (p.includes("instagram") || p.includes("insta")) {
-    const followers = realFollowers ? Number(realFollowers) : 45000 + (hash % 195000);
-    const reach = account?.reach_count ? Number(account.reach_count) : Math.round(followers * (1.6 + ((hash % 15) / 10)));
-    const totalEngage = realLikes ? Number(realLikes) : Math.round(followers * (0.12 + ((hash % 8) / 100)));
-    return {
-      primaryStat: { label: "Followers", value: formatK(followers) },
-      secondaryStat: { label: "Reach", value: formatK(reach) },
-      extraStat: { label: "Tổng tương tác", value: formatK(totalEngage) },
-      badgeLabel: "Fashion & Lifestyle",
-      brandGradient: "from-[#E1306C]/15 via-[#FCAF45]/10 to-transparent",
-      brandBorder: "border-[#E1306C]/30 hover:border-[#E1306C]/60",
-      accentColor: "text-[#E1306C]",
-    };
-  }
   if (p.includes("facebook") || p.includes("fb")) {
-    const followers = realFollowers ? Number(realFollowers) : 28000 + (hash % 120000);
-    const videoViews = account?.video_views ? Number(account.video_views) : Math.round(followers * (2.2 + ((hash % 18) / 10)));
-    const totalEngage = realLikes ? Number(realLikes) : Math.round(followers * (0.15 + ((hash % 10) / 100)));
+    const followers = realFollowers ? Number(realFollowers) : 128000 + (hash % 15000);
+    const latestReelView = Math.round(34600 + (hash % 1200));
+    const latestEngage = Math.round(2600 + (hash % 300));
+
     return {
-      primaryStat: { label: "Followers", value: formatK(followers) },
-      secondaryStat: { label: "Tổng lượt xem video", value: formatK(videoViews) },
-      extraStat: { label: "Tổng tương tác", value: formatK(totalEngage) },
-      badgeLabel: "Fanpage & Profile",
-      brandGradient: "from-[#1877F2]/15 via-[#00C6FF]/10 to-transparent",
-      brandBorder: "border-[#1877F2]/30 hover:border-[#1877F2]/60",
-      accentColor: "text-[#1877F2]",
+      platformName: "Facebook",
+      buttonLabel: "Xem trang",
+      shopTitle: "Có kênh bán hàng",
+      metrics: [
+        { icon: <Users className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(followers), label: "Followers" },
+        { icon: <Eye className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(latestReelView), unit: "view/vid", label: "10 video gần đây" },
+        { icon: <Heart className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(latestEngage), label: "Tương tác gần nhất" },
+      ],
     };
   }
-  if (p.includes("thread")) {
-    const followers = 12000 + (hash % 65000);
+
+  if (p.includes("tiktok")) {
+    const followers = realFollowers ? Number(realFollowers) : 143600 + (hash % 20000);
+    const totalLikes = realLikes ? Number(realLikes) : 2600000 + (hash % 300000);
+    const latestView = Math.round(34500 + (hash % 1500));
+
     return {
-      primaryStat: { label: "Followers", value: formatK(followers) },
-      secondaryStat: { label: "Thảo luận", value: formatK(followers * 0.2) },
-      extraStat: { label: "Tương tác", value: "Hàng ngày" },
-      badgeLabel: "Micro-blog",
-      brandGradient: "from-slate-400/15 via-slate-500/10 to-transparent",
-      brandBorder: "border-slate-400/30 hover:border-slate-400/60",
-      accentColor: "text-slate-800 dark:text-white",
+      platformName: "TikTok",
+      buttonLabel: "Xem kênh",
+      shopTitle: "Đã liên kết TikTok Shop",
+      metrics: [
+        { icon: <Users className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(followers), label: "Followers" },
+        { icon: <Eye className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(latestView), unit: "view/vid", label: "10 video gần đây" },
+        { icon: <Heart className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(totalLikes), label: "Tổng lượt thích" },
+      ],
+    };
+  }
+
+  if (p.includes("instagram") || p.includes("insta")) {
+    const followers = realFollowers ? Number(realFollowers) : 145000 + (hash % 25000);
+    const reach30d = Math.round(507400 + (hash % 30000));
+    const latestReelView = Math.round(18800 + (hash % 1200));
+
+    return {
+      platformName: "Instagram",
+      buttonLabel: "Xem trang",
+      shopTitle: "Đã liên kết Instagram Shop",
+      metrics: [
+        { icon: <Users className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(followers), label: "Followers" },
+        { icon: <Eye className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(latestReelView), unit: "view/vid", label: "10 video gần đây" },
+        { icon: <BarChart2 className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(reach30d), label: "Reach 30 ngày" },
+      ],
+    };
+  }
+
+  if (p.includes("youtube")) {
+    const subs = realFollowers ? Number(realFollowers) : 65000 + (hash % 15000);
+    const avgShortsViews = Math.round(48100 + (hash % 2500));
+    const totalViews = Math.round(1000000 + (hash % 200000));
+
+    return {
+      platformName: "YouTube",
+      buttonLabel: "Xem kênh",
+      shopTitle: "Có YouTube Shopping",
+      metrics: [
+        { icon: <Users className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(subs), label: "Subscribers" },
+        { icon: <Eye className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(avgShortsViews), unit: "view/vid", label: "10 video gần đây" },
+        { icon: <PlayCircle className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(totalViews), label: "Tổng lượt xem" },
+      ],
     };
   }
 
   const followers = realFollowers ? Number(realFollowers) : 10000 + (hash % 50000);
   return {
-    primaryStat: { label: "Followers", value: formatK(followers) },
-    secondaryStat: { label: "Lượt xem", value: formatK(followers * 2) },
-    extraStat: { label: "Độ phủ", value: "Tốt" },
-    badgeLabel: "Mạng xã hội",
-    brandGradient: "from-amber-400/15 via-amber-500/10 to-transparent",
-    brandBorder: "border-amber-400/30 hover:border-amber-400/60",
-    accentColor: "text-amber-500",
+    platformName: platformKey || "Mạng xã hội",
+    buttonLabel: "Xem trang",
+    shopTitle: "Có kênh bán hàng",
+    metrics: [
+      { icon: <Users className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(followers), label: "Followers" },
+      { icon: <Eye className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(Math.round(followers * 0.25)), unit: "view/vid", label: "10 video gần đây" },
+      { icon: <Heart className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: "Tốt", label: "Tương tác" },
+    ],
   };
 }
-
-
 
 function SocialMediaStatsCard({ profile }: { profile: any }) {
   const parseSocialAccounts = (prof: any): { platform: string; url: string; followers_count?: number; likes_count?: number }[] => {
@@ -304,12 +414,12 @@ function SocialMediaStatsCard({ profile }: { profile: any }) {
     }
 
     const legacyFields: { name: string; key: string }[] = [
-      { name: "Tiktok", key: "tiktok" },
       { name: "Facebook", key: "facebook" },
+      { name: "Tiktok", key: "tiktok" },
       { name: "Instagram", key: "instagram" },
+      { name: "Youtube", key: "youtube" },
       { name: "Thread", key: "thread" },
       { name: "Thread", key: "threads" },
-      { name: "Youtube", key: "youtube" },
     ];
 
     legacyFields.forEach(({ name, key }) => {
@@ -329,21 +439,22 @@ function SocialMediaStatsCard({ profile }: { profile: any }) {
   const seedString = String(profile?.id || profile?.slug || profile?.name || "idol");
 
   return (
-    <div className="rounded-3xl border border-[#F0D7D3] bg-white p-5 sm:p-7 shadow-[0_12px_36px_rgba(143,7,9,0.06)] dark:border-[#151b2d] dark:bg-[#08090f] dark:shadow-xl space-y-5 text-left">
-      {/* ── HEADER ── */}
-      <div className="flex items-center justify-between border-b border-[#F0D7D3] pb-3.5 dark:border-white/10 flex-wrap gap-2">
+    <div className="rounded-3xl border border-[#F0D7D3] bg-white p-4 sm:p-6 shadow-[0_12px_36px_rgba(143,7,9,0.06)] dark:border-[#151b2d] dark:bg-[#08090f] dark:shadow-xl space-y-4 text-left">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-[#F0D7D3]/80 pb-3 dark:border-white/10">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20 shrink-0">
             <Globe className="h-4.5 w-4.5" />
           </div>
-          <h3 className="font-display font-black text-xs sm:text-sm text-[#191116] uppercase tracking-wider dark:text-white flex items-center gap-1.5">
+          <h3 className="font-display font-black text-sm text-[#191116] uppercase tracking-wider dark:text-white leading-none">
             Mạng xã hội
           </h3>
         </div>
       </div>
 
+      {/* Platform Cards List */}
       {socialAccounts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div className="space-y-3.5">
           {socialAccounts.map((account, idx) => {
             const info = getSocialPlatformInfo(account.platform, account.url);
             const handle = getSocialHandle(account.url, info.platformKey);
@@ -352,98 +463,77 @@ function SocialMediaStatsCard({ profile }: { profile: any }) {
             return (
               <div
                 key={`${account.platform}-${idx}`}
-                className={cn(
-                  "group relative overflow-hidden rounded-2xl border bg-white p-4 shadow-xs transition-all duration-300 hover:shadow-md dark:bg-slate-950/70",
-                  "border-[#F1DBD7] hover:border-[#C72524]/40 dark:border-white/10 dark:hover:border-amber-400/40",
-                  stats.brandBorder
-                )}
+                className="rounded-2xl border border-[#F1DBD7] bg-white p-4 transition hover:border-[#C72524]/40 dark:border-white/10 dark:bg-slate-950/70 shadow-2xs space-y-3.5"
               >
-                {/* Subtle platform gradient backdrop */}
-                <div
-                  className={cn(
-                    "pointer-events-none absolute inset-0 bg-gradient-to-br opacity-40 transition-opacity duration-300 group-hover:opacity-80",
-                    stats.brandGradient
-                  )}
-                />
-
-                <div className="relative z-10 flex flex-col justify-between h-full space-y-3">
-                  {/* Top Row: Icon, Channel Name Only (No platform name text), Badge & Link */}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className={cn(
-                          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs border border-neutral-200/80 dark:bg-slate-900 dark:border-white/10",
-                          stats.accentColor
-                        )}
-                        title={info.platformKey}
-                      >
-                        {info.icon}
-                      </div>
-                      <div className="min-w-0 text-left">
-                        {/* Channel Name only */}
-                        <h4 className="text-xs sm:text-sm font-black text-[#191116] dark:text-white truncate max-w-[170px] sm:max-w-[220px]">
-                          {handle}
-                        </h4>
-                      </div>
+                {/* Top Row: Logo, Handle, Button */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full overflow-hidden shadow-2xs">
+                      {info.icon}
                     </div>
-
-                    <a
-                      href={account.url.startsWith("http") ? account.url : `https://${account.url}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] px-2.5 py-1.5 text-[9.5px] font-black uppercase tracking-wider text-[#8F0709] transition-all hover:bg-[#8F0709] hover:text-white active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-amber-400/40 dark:hover:bg-amber-400/10 dark:hover:text-amber-300 shrink-0 cursor-pointer shadow-2xs"
-                      title={`Mở trang cá nhân`}
-                    >
-                      <span>Xem</span>
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
+                    <h4 className="text-sm font-black text-[#191116] dark:text-white truncate leading-tight min-w-0">
+                      {handle.startsWith("@") || stats.platformName === "Facebook" ? handle : `@${handle}`}
+                    </h4>
                   </div>
 
-                  {/* Stats Metric Chips */}
-                  <div className="grid grid-cols-3 gap-2 pt-1">
-                    {/* Metric 1: Followers */}
-                    <div className="rounded-xl border border-[#F4E1DE] bg-[#FFFDFB] p-2 text-center dark:border-white/5 dark:bg-slate-900/80">
-                      <span className="block text-[8px] font-bold uppercase tracking-wider text-[#7B6866] dark:text-slate-400">
-                        {stats.primaryStat.label}
-                      </span>
-                      <span className="mt-0.5 block text-xs sm:text-sm font-black text-[#8F0709] dark:text-amber-300">
-                        {stats.primaryStat.value}
-                      </span>
-                    </div>
-
-                    {/* Metric 2: Likes / Engagement */}
-                    <div className="rounded-xl border border-[#F4E1DE] bg-[#FFFDFB] p-2 text-center dark:border-white/5 dark:bg-slate-900/80">
-                      <span className="block text-[8px] font-bold uppercase tracking-wider text-[#7B6866] dark:text-slate-400">
-                        {stats.secondaryStat.label}
-                      </span>
-                      <span className="mt-0.5 block text-xs sm:text-sm font-black text-[#8F0709] dark:text-amber-300">
-                        {stats.secondaryStat.value}
-                      </span>
-                    </div>
-
-                    {/* Metric 3: Extra stat / Engagement Rate */}
-                    <div className="rounded-xl border border-[#F4E1DE] bg-[#FFFDFB] p-2 text-center dark:border-white/5 dark:bg-slate-900/80">
-                      <span className="block text-[8px] font-bold uppercase tracking-wider text-[#7B6866] dark:text-slate-400">
-                        {stats.extraStat.label}
-                      </span>
-                      <span className="mt-0.5 block text-xs sm:text-sm font-black text-[#8F0709] dark:text-emerald-400">
-                        {stats.extraStat.value}
-                      </span>
-                    </div>
-                  </div>
+                  <a
+                    href={account.url.startsWith("http") ? account.url : `https://${account.url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#E9CFC5] bg-white px-3.5 py-1.5 text-xs font-bold text-[#191116] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 shrink-0 shadow-2xs"
+                  >
+                    <span>{stats.buttonLabel}</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
                 </div>
+
+                {/* Middle Row: 3 Stat Columns with vertical centering & dividers */}
+                <div className="grid grid-cols-3 divide-x divide-[#F4E1DE]/70 border-t border-[#F4E1DE]/70 pt-3 dark:divide-white/10 dark:border-white/5">
+                  {stats.metrics.map((m, mIdx) => (
+                    <div key={mIdx} className="flex items-center gap-2.5 min-w-0 px-2 first:pl-0 last:pr-0">
+                      <div className="shrink-0 text-[#191116] dark:text-white flex items-center justify-center">
+                        {m.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="block text-sm sm:text-base font-black text-[#C72524] leading-tight">
+                          {m.value}
+                        </span>
+                        {m.unit && (
+                          <span className="block text-[11px] font-bold text-[#191116] dark:text-white leading-tight">
+                            {m.unit}
+                          </span>
+                        )}
+                        <span className="block text-[10px] font-medium text-[#7B6866] dark:text-slate-400 leading-tight mt-0.5">
+                          {m.label}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bottom Row: Shopping cart bar */}
+                <a
+                  href={account.url.startsWith("http") ? account.url : `https://${account.url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between rounded-xl border border-[#F6E1DC]/80 bg-[#FFF7F5] px-3.5 py-2.5 transition hover:bg-[#FFF0EE] dark:border-white/5 dark:bg-slate-900/80 group cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <ShoppingCart className="h-4 w-4 text-[#C72524] shrink-0" />
+                    <span className="text-xs font-bold text-[#8F0709] dark:text-rose-300 truncate">
+                      {stats.shopTitle}
+                    </span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-[#C72524] dark:text-rose-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                </a>
               </div>
             );
           })}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-[#F0D7D3] bg-[#FFFDFB] p-6 text-center dark:border-white/10 dark:bg-slate-950/40">
-          <Globe className="mx-auto mb-2 h-7 w-7 text-[#A36C1D] dark:text-amber-400/50" />
+        <div className="rounded-2xl border border-dashed border-[#F0D7D3] bg-[#FFFDFB] p-4 text-center dark:border-white/10 dark:bg-slate-950/40">
           <p className="text-xs font-bold text-[#574D54] dark:text-slate-400">
             Idol chưa liên kết tài khoản mạng xã hội.
-          </p>
-          <p className="text-[10px] text-[#7B6866] dark:text-slate-500 mt-0.5">
-            Hệ thống sẽ tự động cập nhật số liệu tương tác khi Idol bổ sung link TikTok, Instagram, Facebook,...
           </p>
         </div>
       )}
@@ -536,8 +626,10 @@ export default function BrandTalentProfilePage() {
   const staticTalent = useMemo(() => findTalentById(params.id), [params.id]);
   const [talent, setTalent] = useState<any>(staticTalent);
   const [loading, setLoading] = useState(!staticTalent);
+  const [mounted, setMounted] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isTierDialogOpen, setIsTierDialogOpen] = useState(false);
+  const [isPerformanceDialogOpen, setIsPerformanceDialogOpen] = useState(false);
   const [isAddingToBrand, setIsAddingToBrand] = useState(false);
   const [isAddedToBrand, setIsAddedToBrand] = useState(false);
   const [wishlists, setWishlists] = useState<any[]>([]);
@@ -546,6 +638,19 @@ export default function BrandTalentProfilePage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isPortfolioDialogOpen, setIsPortfolioDialogOpen] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; message: string; tone: "success" | "error" }[]>([]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (previewImage) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+  }, [previewImage]);
 
   function pushToast(message: string, tone: "success" | "error" = "success") {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -692,7 +797,7 @@ export default function BrandTalentProfilePage() {
       reviews: [
         { brand: "L'Oréal Paris Vietnam", rating: 5, date: "15/05/2026", comment: `${talent.name} làm việc vô cùng chuyên nghiệp, đúng giờ và hoàn thành tốt KPI chiến dịch truyền thông của nhãn hàng. Rất mong tiếp tục hợp tác.` },
         { brand: "Gucci Beauty Event", rating: 5, date: "29/04/2026", comment: "Thần thái xuất sắc, hình ảnh high-fashion phù hợp tiêu chuẩn quốc tế. Cảm ơn vì sự hỗ trợ nhiệt tình." },
-        { brand: "Vogue Vietnam Editorial", rating: 5, date: "12/04/2026", comment: "Thái độ làm việc nghiêm túc, tạo dáng xuất sắc và có kiến thức chuyên môn cao. Rất khuyên dùng." }
+        { brand: "Vogue Vietnam Editorial", rating: 5, date: "12/04/2026", comment: "Thái độ làm việc nghiêm túc, tạo dáng xuất sắc và có kiến thức chuyên môn cao. Rất nên hợp tác." }
       ] as any[]
     };
   }, [talent]);
@@ -1307,16 +1412,29 @@ export default function BrandTalentProfilePage() {
       {/* Main Grid Portfolio */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
 
-        {/* MẠNG XÃ HỘI & CHỈ SỐ TƯƠNG TÁC */}
+        {/* 1. HIỆU SUẤT TRÊN ONSTAGE (Cho lên đầu) */}
         <div className="order-[1] lg:col-span-3">
+          <OnstagePerformanceCard
+            profile={profile}
+            onOpenExplanation={() => setIsPerformanceDialogOpen(true)}
+          />
+        </div>
+
+        {/* 2. MẠNG XÃ HỘI */}
+        <div className="order-[2] lg:col-span-3">
           <SocialMediaStatsCard profile={profile} />
         </div>
 
         {/* 1. Model Full-Body Photo Card */}
         <div className="order-[10] col-span-1 h-full rounded-2xl border border-[#151b2d] bg-[#08090f] p-5 space-y-4">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-            <Award className="h-4.5 w-4.5 text-amber-400" /> Ảnh Toàn Thân (Full-body)
-          </h3>
+          <div className="border-b border-[#151b2d] pb-3 flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20 shrink-0">
+              <Award className="h-4.5 w-4.5" />
+            </div>
+            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
+              Ảnh Toàn Thân (Full-body)
+            </h3>
+          </div>
 
           <div
             onClick={() => {
@@ -1347,13 +1465,18 @@ export default function BrandTalentProfilePage() {
         {/* 2. SECTION D: LOOKBOOK PHOTOS & DISPLAY */}
         <div className="order-[30] lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
           <div className="border-b border-[#151b2d] pb-3 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2">
-                <ImageIcon className="h-4.5 w-4.5 text-[#f4c430]" /> Bộ sưu tập
-              </h3>
-              <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
-                Bộ sưu tập hình ảnh, video tốt nhất của idol
-              </span>
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20 shrink-0">
+                <ImageIcon className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
+                  Bộ sưu tập
+                </h3>
+                <span className="block text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                  Bộ sưu tập hình ảnh, video tốt nhất của idol
+                </span>
+              </div>
             </div>
           </div>
 
@@ -1445,9 +1568,14 @@ export default function BrandTalentProfilePage() {
 
         {/* 3. Physical Measurements Card */}
         <div className="order-[10] lg:col-span-2 h-full rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-5">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-            <User className="h-4.5 w-4.5 text-slate-400" /> Thông tin cơ bản
-          </h3>
+          <div className="border-b border-[#151b2d] pb-3 flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20 shrink-0">
+              <User className="h-4.5 w-4.5" />
+            </div>
+            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
+              Thông tin cơ bản
+            </h3>
+          </div>
 
           <div className="space-y-2">
             <div className="grid grid-cols-2 gap-2">
@@ -1670,12 +1798,11 @@ export default function BrandTalentProfilePage() {
           </div>
         </div>
 
-
         {/* 5. SECTION C: INTERACTIVE AVAILABILITY CALENDAR */}
         <div className="order-[40] lg:col-span-3 rounded-2xl border border-[#F0D7D3] bg-white p-5 sm:p-6 space-y-5 shadow-xs dark:border-[#151b2d] dark:bg-[#08090f]">
           <div className="flex items-center justify-between border-b border-[#F0D7D3] pb-3.5 dark:border-white/10">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FFF3F1] text-[#8F0709] border border-[#F0D7D3] dark:bg-white/5 dark:text-[#f4c430] dark:border-white/10">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20 shrink-0">
                 <Calendar className="h-4.5 w-4.5" />
               </div>
               <div>
@@ -1768,87 +1895,30 @@ export default function BrandTalentProfilePage() {
           </div>
         </div>
 
-        {/* 6. Lifestyle Co-Space Companion Services Card */}
-        {profile.lifestyleServices && profile.lifestyleServices.some((s: any) => s.enabled) && (
-          <div className="order-[60] lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 transition-all duration-300">
-            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider border-b border-[#151b2d] pb-3 flex items-center gap-2">
-              <Sparkles className="h-4.5 w-4.5 text-amber-400" /> Dịch Vụ Đồng Hành (VIP)
-            </h3>
-            <div className="space-y-5 mt-5">
-              <div className="space-y-3.5 text-left">
-                {profile.lifestyleServices.filter((s: any) => s.enabled).map((service: any) => {
-                  let icon = "💼";
-                  if (service.id === "golf") icon = "⛳";
-                  else if (service.id === "pickleball") icon = "🎾";
-                  else if (service.id === "dining") icon = "ðŸ·";
-                  else if (service.id === "cafe") icon = "☕";
-                  else if (service.id === "travel") icon = "💼";
-                  else if (service.id === "redcarpet") icon = "✨";
-                  else if (service.id === "shopping") icon = "ðŸ›ï¸";
-                  else if (service.id === "art") icon = "🎨";
-                  else if (service.id === "escort") icon = "ðŸ›¥ï¸";
-                  else if (service.id === "content") icon = "📱";
 
-                  return (
-                    <div key={service.id} className="rounded-xl border border-white/5 bg-slate-950/40 p-3.5 space-y-2 hover:border-amber-400/30 transition-all text-left">
-                      <div className="flex justify-between items-start flex-wrap gap-1">
-                        <span className="font-bold text-xs text-white flex items-center gap-1.5">
-                          <span>{icon}</span> {service.title}
-                        </span>
-                        <span className="font-black text-[10px] text-amber-400 font-mono bg-amber-400/10 px-2 py-0.5 rounded">
-                          {(service.rate || 0).toLocaleString()}đ/{service.unit}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-relaxed font-medium">{service.description}</p>
-                    </div>
-                  );
-                })}
-              </div>
 
-              {/* Safety Guarantees Area */}
-              <div className="border-t border-[#151b2d] pt-4 space-y-3">
-                <span className="block text-[10px] text-slate-500 font-black uppercase tracking-wider text-left">🔒 Cam Kết Bảo Mật & An Toàn Giao Dịch</span>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="rounded-lg bg-slate-950/80 p-2 text-center border border-white/2">
-                    <span className="block text-[14px] mb-1">✍️</span>
-                    <span className="block text-[10px] font-black text-slate-300 uppercase tracking-wide">Smart Contract</span>
-                    <span className="block text-[10px] text-slate-500 mt-0.5 font-medium leading-none">Ký số lịch trình</span>
-                  </div>
-                  <div className="rounded-lg bg-slate-950/80 p-2 text-center border border-white/2">
-                    <span className="block text-[14px] mb-1">ðŸ“</span>
-                    <span className="block text-[10px] font-black text-slate-300 uppercase tracking-wide">Real-time GPS</span>
-                    <span className="block text-[10px] text-slate-500 mt-0.5 font-medium leading-none">Check-in điểm hẹn</span>
-                  </div>
-                  <div className="rounded-lg bg-slate-950/80 p-2 text-center border border-white/2">
-                    <span className="block text-[14px] mb-1">💰</span>
-                    <span className="block text-[10px] font-black text-slate-300 uppercase tracking-wide">Escrow Payment</span>
-                    <span className="block text-[10px] text-slate-500 mt-0.5 font-medium leading-none">Đặt cọc hệ thống</span>
-                  </div>
-                </div>
-              </div>
+        {/* 7. SECTION F: REPUTATION REVIEWS (Chuyển xuống cuối cùng) */}
+        <div className="order-[99] lg:col-span-3 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
+          <div className="border-b border-[#151b2d] pb-3 flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20 shrink-0">
+              <ShieldCheck className="h-4.5 w-4.5" />
             </div>
+            <h3 className="font-display font-black text-xs text-white uppercase tracking-wider">
+              Đánh Giá Từ Thương Hiệu
+            </h3>
           </div>
-        )}
-
-        {/* 7. SECTION F: REPUTATION REVIEWS (Commented out) */}
-        {/* 
-        <div className="lg:col-span-2 rounded-2xl border border-[#151b2d] bg-[#08090f] p-6 space-y-6">
-          <h3 className="font-display font-black text-xs text-white uppercase tracking-wider flex items-center gap-2 border-b border-[#151b2d] pb-3">
-            <ShieldCheck className="h-4.5 w-4.5 text-cyan-400" /> Đánh Giá
-          </h3>
-          {profile.reviews.length > 0 ? (
-            <div className="space-y-4">
-              {profile.reviews.map((rev, idx) => (
-                <div key={rev.id || idx} className="rounded-xl bg-slate-950 p-4 border border-white/2 space-y-2">
+          {profile.reviews && profile.reviews.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {profile.reviews.map((rev: any, idx: number) => (
+                <div key={rev.id || idx} className="rounded-xl bg-slate-950/80 p-4 border border-white/5 space-y-2.5">
                   <div className="flex justify-between items-start">
                     <div>
                       <span className="font-bold text-white text-xs block">{rev.brand || rev.brandName || "Thương hiệu"}</span>
-                      <span className="text-[8px] text-slate-500 font-semibold block mt-0.5">Ngày hợp tác: {rev.date || rev.reviewedAt || "Chưa cập nhật"}</span>
+                      <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Ngày hợp tác: {rev.date || rev.reviewedAt || "Chưa cập nhật"}</span>
                     </div>
-                    <span className="text-[10px] font-black text-amber-400">{Number(rev.rating || 0).toFixed(1)}/5</span>
+                    <span className="text-[11px] font-black text-amber-400">★ {Number(rev.rating || 0).toFixed(1)}/5</span>
                   </div>
-                  <p className="text-[10px] sm:text-xs text-slate-300 leading-relaxed italic">
+                  <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed italic">
                     &quot;{rev.comment || rev.content || "Chưa có nội dung đánh giá."}&quot;
                   </p>
                 </div>
@@ -1860,42 +1930,71 @@ export default function BrandTalentProfilePage() {
             </div>
           )}
         </div>
-        */}
+
 
 
       </div>
 
       <GuestActionPrompt />
       {/* Full Image Preview Modal */}
-      {previewImage && (
+      {mounted && previewImage && typeof document !== "undefined" && createPortal(
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#020408]/90 backdrop-blur-md transition-all duration-300 animate-in fade-in cursor-zoom-out"
+          id="talent-image-preview-modal"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: "100vw",
+            height: "100dvh",
+            backgroundColor: "rgba(0, 0, 0, 0.95)",
+            zIndex: 999999,
+          }}
+          className="fixed inset-0 z-[999999] flex h-[100dvh] w-screen items-center justify-center p-3 sm:p-4 backdrop-blur-md transition-all duration-300 animate-in fade-in cursor-zoom-out"
           onClick={() => setPreviewImage(null)}
         >
-          <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl animate-in zoom-in-95 duration-300">
+          <div
+            className="relative max-h-[92vh] max-w-[95vw] overflow-hidden rounded-2xl border border-white/20 bg-black shadow-2xl animate-in zoom-in-95 duration-300"
+            style={{ backgroundColor: "#000000" }}
+          >
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setPreviewImage(null);
               }}
-              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-xl bg-black/60 border border-white/10 text-white hover:bg-black/80 hover:text-[#f4c430] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer shadow-lg"
+              style={{
+                backgroundColor: "rgba(18, 18, 22, 0.85)",
+                borderColor: "rgba(255, 255, 255, 0.35)",
+                color: "#ffffff",
+              }}
+              className="light-keep-white light-force-white absolute right-3 top-3 z-30 flex h-9 w-9 items-center justify-center rounded-full border shadow-xl transition-all duration-200 hover:bg-black hover:scale-110 active:scale-95 cursor-pointer"
+              title="Đóng ảnh"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5 !text-white text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} strokeWidth={2.5} />
             </button>
             <img
               src={previewImage}
               alt="Talent Photo Preview"
-              className="max-h-[85vh] max-w-full object-contain select-none"
+              className="max-h-[88vh] max-w-full object-contain select-none"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Tier Explanation Dialog */}
       <TierExplanationDialog
         isOpen={isTierDialogOpen}
         onClose={() => setIsTierDialogOpen(false)}
+      />
+
+      {/* Onstage Performance Explanation Dialog */}
+      <OnstagePerformanceExplanationDialog
+        isOpen={isPerformanceDialogOpen}
+        onClose={() => setIsPerformanceDialogOpen(false)}
       />
 
       {isPortfolioDialogOpen && (
@@ -1908,8 +2007,10 @@ export default function BrandTalentProfilePage() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between border-b border-[#151b2d] pb-3">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4.5 w-4.5 text-[#f4c430]" />
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20 shrink-0">
+                  <FileText className="h-4.5 w-4.5" />
+                </div>
                 <h3 className="font-display text-xs font-black uppercase tracking-wider text-white">Chọn portfolio</h3>
               </div>
               <button
