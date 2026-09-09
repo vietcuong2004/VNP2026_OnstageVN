@@ -52,6 +52,10 @@ import {
   Store,
   BarChart2,
   PlayCircle,
+  Play,
+  Film,
+  Layers,
+  Copy,
 } from "lucide-react";
 import BookingFlow from "@/app/brand/talents/[id]/booking-talent/BookingFlow";
 import { findTalentById } from "@/lib/brand-mvp-data";
@@ -317,12 +321,14 @@ function getPlatformStats(platformKey: string, account: any, seed: string): Plat
   };
 
   const p = platformKey.toLowerCase();
+  let baseStats: PlatformData;
+
   if (p.includes("facebook") || p.includes("fb")) {
     const followers = realFollowers ? Number(realFollowers) : 128000 + (hash % 15000);
     const latestReelView = Math.round(34600 + (hash % 1200));
     const latestEngage = Math.round(2600 + (hash % 300));
 
-    return {
+    baseStats = {
       platformName: "Facebook",
       buttonLabel: "Xem trang",
       shopTitle: "Có kênh bán hàng",
@@ -332,14 +338,12 @@ function getPlatformStats(platformKey: string, account: any, seed: string): Plat
         { icon: <Heart className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(latestEngage), label: "Tương tác gần nhất" },
       ],
     };
-  }
-
-  if (p.includes("tiktok")) {
+  } else if (p.includes("tiktok")) {
     const followers = realFollowers ? Number(realFollowers) : 143600 + (hash % 20000);
     const totalLikes = realLikes ? Number(realLikes) : 2600000 + (hash % 300000);
     const latestView = Math.round(34500 + (hash % 1500));
 
-    return {
+    baseStats = {
       platformName: "TikTok",
       buttonLabel: "Xem kênh",
       shopTitle: "Đã liên kết TikTok Shop",
@@ -349,14 +353,12 @@ function getPlatformStats(platformKey: string, account: any, seed: string): Plat
         { icon: <Heart className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(totalLikes), label: "Tổng lượt thích" },
       ],
     };
-  }
-
-  if (p.includes("instagram") || p.includes("insta")) {
+  } else if (p.includes("instagram") || p.includes("insta")) {
     const followers = realFollowers ? Number(realFollowers) : 145000 + (hash % 25000);
     const reach30d = Math.round(507400 + (hash % 30000));
     const latestReelView = Math.round(18800 + (hash % 1200));
 
-    return {
+    baseStats = {
       platformName: "Instagram",
       buttonLabel: "Xem trang",
       shopTitle: "Đã liên kết Instagram Shop",
@@ -366,14 +368,12 @@ function getPlatformStats(platformKey: string, account: any, seed: string): Plat
         { icon: <BarChart2 className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(reach30d), label: "Reach 30 ngày" },
       ],
     };
-  }
-
-  if (p.includes("youtube")) {
+  } else if (p.includes("youtube")) {
     const subs = realFollowers ? Number(realFollowers) : 65000 + (hash % 15000);
     const avgShortsViews = Math.round(48100 + (hash % 2500));
     const totalViews = Math.round(1000000 + (hash % 200000));
 
-    return {
+    baseStats = {
       platformName: "YouTube",
       buttonLabel: "Xem kênh",
       shopTitle: "Có YouTube Shopping",
@@ -383,32 +383,602 @@ function getPlatformStats(platformKey: string, account: any, seed: string): Plat
         { icon: <PlayCircle className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(totalViews), label: "Tổng lượt xem" },
       ],
     };
+  } else {
+    const followers = realFollowers ? Number(realFollowers) : 10000 + (hash % 50000);
+    baseStats = {
+      platformName: platformKey || "Mạng xã hội",
+      buttonLabel: "Xem trang",
+      shopTitle: "Có kênh bán hàng",
+      metrics: [
+        { icon: <Users className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(followers), label: "Followers" },
+        { icon: <Eye className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(Math.round(followers * 0.25)), unit: "view/vid", label: "10 video gần đây" },
+        { icon: <Heart className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: "Tốt", label: "Tương tác" },
+      ],
+    };
   }
 
-  const followers = realFollowers ? Number(realFollowers) : 10000 + (hash % 50000);
+  // Override with custom metrics from backend if set
+  if (account?.metrics?.followers_text) {
+    baseStats.metrics[0].value = account.metrics.followers_text;
+  }
+  if (account?.metrics?.avg_views) {
+    baseStats.metrics[1].value = account.metrics.avg_views;
+  }
+  if (account?.metrics?.interaction) {
+    baseStats.metrics[2].value = account.metrics.interaction;
+  }
+
+  return baseStats;
+}
+
+interface SocialVideoItem {
+  id: string;
+  title?: string;
+  views: string;
+  isPinned?: boolean;
+  duration?: string;
+  overlayText?: string;
+  topRightIcon?: React.ReactNode;
+  thumbnail: string;
+  url?: string;
+}
+
+interface PlatformVideosData {
+  recent: SocialVideoItem[];
+  featured: SocialVideoItem[];
+}
+
+function generateVideoViews(seedKey: string, idx: number): string {
+  let hash = 0;
+  const str = `${seedKey}-video-${idx}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  }
+  const tier = hash % 10;
+  if (tier === 0 || tier === 1) {
+    const base = 1.1 + ((hash % 28) / 10);
+    return `${base.toFixed(1)}M`;
+  } else if (tier >= 2 && tier <= 5) {
+    const val = 100 + (hash % 790);
+    const decimal = (hash >> 3) % 10;
+    return decimal > 0 ? `${val}.${decimal}K` : `${val}K`;
+  } else {
+    const val = 15 + (hash % 84);
+    const decimal = ((hash >> 2) % 9) + 1;
+    return `${val}.${decimal}K`;
+  }
+}
+
+function getPlatformVideos(platformKey: string, account: any, seed: string, profile: any): PlatformVideosData {
+  const hasCustomRecent = Array.isArray(account?.recent_videos) && account.recent_videos.length > 0;
+  const hasCustomFeatured = Array.isArray(account?.featured_videos) && account.featured_videos.length > 0;
+
+  // If custom recent_videos or featured_videos exist in backend data, use them directly
+  if (hasCustomRecent || hasCustomFeatured) {
+    const mapVideo = (v: any, idx: number, prefix: string): SocialVideoItem => {
+      let viewCount = String(v.views || v.views_count || "").trim();
+      if (!viewCount || viewCount.toUpperCase() === "10K" || viewCount === "0") {
+        viewCount = generateVideoViews(`${seed}-${platformKey}-${prefix}`, idx);
+      }
+      return {
+        id: String(v.id || `custom-${prefix}-${idx}`),
+        views: viewCount,
+        thumbnail: v.thumbnail || v.thumbnail_url || (isDirectVideoUrl(v.url) ? v.url : "/video_thumb.png"),
+        url: v.url,
+        title: v.title,
+        topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+      };
+    };
+
+    const customRecent = hasCustomRecent
+      ? account.recent_videos.map((v: any, idx: number) => mapVideo(v, idx, "recent"))
+      : (hasCustomFeatured ? account.featured_videos.map((v: any, idx: number) => mapVideo(v, idx, "featured")) : []);
+
+    const customFeatured = hasCustomFeatured
+      ? account.featured_videos.map((v: any, idx: number) => mapVideo(v, idx, "featured"))
+      : customRecent;
+
+    return {
+      recent: customRecent,
+      featured: customFeatured,
+    };
+  }
+  const p = platformKey.toLowerCase();
+  let hash = 0;
+  const key = `${seed}-${platformKey}-${account?.url || ""}`;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  }
+
+  // Curated vertical and horizontal images matching the reference screenshot
+  const imgGlasses = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80";
+  const imgCloseUp = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80";
+  const imgGarden = "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=80";
+  const imgMirror = "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=500&auto=format&fit=crop&q=80";
+  const imgPeace = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80";
+  const imgHat = "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=500&auto=format&fit=crop&q=80";
+  const imgSunset = "https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=500&auto=format&fit=crop&q=80";
+  const imgCat = "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80";
+
+  if (p.includes("facebook") || p.includes("fb")) {
+    return {
+      recent: [
+        {
+          id: "fb-1",
+          views: "31.7K",
+          thumbnail: imgGlasses,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "fb-2",
+          views: "468.9K",
+          thumbnail: imgCloseUp,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "fb-3",
+          views: "2.6M",
+          thumbnail: imgGarden,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "fb-4",
+          views: "125.4K",
+          thumbnail: imgMirror,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+      ],
+      featured: [
+        {
+          id: "fb-f1",
+          isPinned: true,
+          views: "2.6M",
+          thumbnail: imgGarden,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "fb-f2",
+          isPinned: true,
+          views: "1.2M",
+          thumbnail: imgCloseUp,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "fb-f3",
+          views: "890K",
+          thumbnail: imgGlasses,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "fb-f4",
+          views: "540K",
+          thumbnail: imgMirror,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+      ],
+    };
+  }
+
+  if (p.includes("tiktok")) {
+    return {
+      recent: [
+        {
+          id: "tt-1",
+          isPinned: true,
+          views: "120.4K",
+          thumbnail: imgGlasses,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "tt-2",
+          isPinned: true,
+          views: "1.2M",
+          thumbnail: imgCloseUp,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "tt-3",
+          views: "532.7K",
+          thumbnail: imgPeace,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "tt-4",
+          views: "96.3K",
+          thumbnail: imgMirror,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+      ],
+      featured: [
+        {
+          id: "tt-f1",
+          isPinned: true,
+          views: "2.8M",
+          thumbnail: imgCloseUp,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "tt-f2",
+          isPinned: true,
+          views: "1.9M",
+          thumbnail: imgPeace,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "tt-f3",
+          views: "1.2M",
+          thumbnail: imgGlasses,
+          topRightIcon: <Copy className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "tt-f4",
+          views: "850K",
+          thumbnail: imgMirror,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+      ],
+    };
+  }
+
+  if (p.includes("instagram") || p.includes("insta")) {
+    return {
+      recent: [
+        {
+          id: "ig-1",
+          views: "28.4K",
+          thumbnail: imgMirror,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "ig-2",
+          views: "93.1K",
+          thumbnail: imgHat,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "ig-3",
+          views: "412.6K",
+          thumbnail: imgSunset,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "ig-4",
+          views: "67.8K",
+          thumbnail: imgCloseUp,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+      ],
+      featured: [
+        {
+          id: "ig-f1",
+          isPinned: true,
+          views: "890.5K",
+          thumbnail: imgSunset,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "ig-f2",
+          isPinned: true,
+          views: "640.2K",
+          thumbnail: imgHat,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "ig-f3",
+          views: "520K",
+          thumbnail: imgCloseUp,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+        {
+          id: "ig-f4",
+          views: "380K",
+          thumbnail: imgMirror,
+          topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+        },
+      ],
+    };
+  }
+
+  // YouTube / Other
   return {
-    platformName: platformKey || "Mạng xã hội",
-    buttonLabel: "Xem trang",
-    shopTitle: "Có kênh bán hàng",
-    metrics: [
-      { icon: <Users className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(followers), label: "Followers" },
-      { icon: <Eye className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(Math.round(followers * 0.25)), unit: "view/vid", label: "10 video gần đây" },
-      { icon: <Heart className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: "Tốt", label: "Tương tác" },
+    recent: [
+      {
+        id: "yt-1",
+        views: "215.4K",
+        duration: "12:34",
+        thumbnail: imgCloseUp,
+        topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+      },
+      {
+        id: "yt-2",
+        views: "84.7K",
+        duration: "8:21",
+        thumbnail: imgHat,
+        topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+      },
+      {
+        id: "yt-3",
+        views: "1.2M",
+        duration: "15:06",
+        overlayText: "ĐÀ NẴNG VLOG",
+        thumbnail: imgSunset,
+        topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+      },
+      {
+        id: "yt-4",
+        views: "320.6K",
+        duration: "10:18",
+        thumbnail: imgCat,
+        topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+      },
+    ],
+    featured: [
+      {
+        id: "yt-f1",
+        isPinned: true,
+        views: "2.4M",
+        duration: "18:22",
+        overlayText: "SUMMER TRIP",
+        thumbnail: imgSunset,
+        topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+      },
+      {
+        id: "yt-f2",
+        isPinned: true,
+        views: "1.8M",
+        duration: "14:15",
+        thumbnail: imgCloseUp,
+        topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+      },
+      {
+        id: "yt-f3",
+        views: "950K",
+        duration: "11:05",
+        thumbnail: imgHat,
+        topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+      },
+      {
+        id: "yt-f4",
+        views: "780K",
+        duration: "09:40",
+        thumbnail: imgCat,
+        topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
+      },
     ],
   };
 }
 
-function SocialMediaStatsCard({ profile }: { profile: any }) {
-  const parseSocialAccounts = (prof: any): { platform: string; url: string; followers_count?: number; likes_count?: number }[] => {
-    let list: { platform: string; url: string; followers_count?: number; likes_count?: number }[] = [];
+function SocialPlatformCardItem({
+  account,
+  info,
+  handle,
+  stats,
+  videos,
+  onPreviewImage,
+}: {
+  account: any;
+  info: any;
+  handle: string;
+  stats: PlatformData;
+  videos: PlatformVideosData;
+  onPreviewImage?: (url: string) => void;
+}) {
+  const [activeTab, setActiveTab] = useState<"recent" | "featured">("recent");
+  const currentVideos = (activeTab === "recent" ? videos.recent : videos.featured).slice(0, 3);
+  const displayHandle = handle.startsWith("@") || stats.platformName === "Facebook" ? handle : `@${handle}`;
+
+  return (
+    <div className="flex flex-col justify-between rounded-3xl border border-[#F1DBD7] bg-white p-4 sm:p-5 transition hover:border-[#C72524]/40 dark:border-white/10 dark:bg-slate-950/70 shadow-xs space-y-4 text-left">
+      {/* Top Row: Logo, Full Handle (No Truncation), Action Buttons (Right) */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full overflow-hidden shadow-2xs">
+            {info.icon}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h4
+              className="text-sm sm:text-base font-black text-[#191116] dark:text-white break-words leading-tight"
+              title={displayHandle}
+            >
+              {displayHandle}
+            </h4>
+          </div>
+        </div>
+
+        {/* Top Right Action Buttons: Icon only for [↗] and [🛒] */}
+        <div className="flex items-center gap-2 shrink-0">
+          <a
+            href={account.url.startsWith("http") ? account.url : `https://${account.url}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#191116] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 shadow-2xs cursor-pointer"
+            title={stats.buttonLabel}
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
+
+          {account.shop_url && account.shop_url.trim() ? (
+            <a
+              href={account.shop_url.trim().startsWith("http") ? account.shop_url.trim() : `https://${account.shop_url.trim()}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[#F6E1DC] bg-[#FFF8F7] text-[#C72524] hover:bg-[#C72524] hover:text-white transition active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-rose-400 shadow-2xs cursor-pointer"
+              title={stats.shopTitle}
+            >
+              <ShoppingCart className="h-4.5 w-4.5" />
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200/60 bg-slate-100/50 text-slate-400 dark:border-white/5 dark:bg-white/5 dark:text-slate-600 opacity-35 grayscale cursor-not-allowed select-none shadow-none"
+              title="Chưa gắn link giỏ hàng"
+            >
+              <ShoppingCart className="h-4 w-4 stroke-[1.8]" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Middle Row: 3 Stat Columns - Clean, Centered, No 3-dot Truncation */}
+      <div className="grid grid-cols-3 divide-x divide-[#F4E1DE]/70 border-t border-[#F4E1DE]/70 pt-3 dark:divide-white/10 dark:border-white/5">
+        {stats.metrics.map((m, mIdx) => (
+          <div
+            key={mIdx}
+            className="flex flex-col items-center justify-center text-center px-1.5 first:pl-0 last:pr-0"
+          >
+            <div className="flex items-baseline justify-center gap-1 flex-wrap">
+              <span className="text-sm sm:text-base font-black text-[#C72524] dark:text-rose-400 leading-tight">
+                {m.value}
+              </span>
+              {m.unit && (
+                <span className="text-[10px] sm:text-xs font-bold text-[#191116] dark:text-slate-200 leading-tight">
+                  {m.unit}
+                </span>
+              )}
+            </div>
+            <span className="text-[10.5px] sm:text-[11.5px] font-medium text-slate-500 dark:text-slate-400 leading-tight mt-0.5 break-words">
+              {m.label}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Video Tabs Row (No Wrapping on Tabs or Link) */}
+      <div className="flex items-center justify-between border-b border-[#F4E1DE]/60 dark:border-white/10 pb-1.5 pt-1 gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setActiveTab("recent")}
+            className={cn(
+              "px-2.5 sm:px-3.5 py-1 text-xs sm:text-sm transition cursor-pointer rounded-t-md font-bold whitespace-nowrap",
+              activeTab === "recent"
+                ? "bg-[#FFF0EE]/90 text-[#C72524] dark:bg-rose-500/10 dark:text-rose-400 border-b-2 border-[#C72524]"
+                : "text-slate-500 hover:text-[#191116] dark:text-slate-400 dark:hover:text-white font-medium"
+            )}
+          >
+            <span>Video gần đây</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("featured")}
+            className={cn(
+              "px-2.5 sm:px-3.5 py-1 text-xs sm:text-sm transition cursor-pointer rounded-t-md font-bold whitespace-nowrap",
+              activeTab === "featured"
+                ? "bg-[#FFF0EE]/90 text-[#C72524] dark:bg-rose-500/10 dark:text-rose-400 border-b-2 border-[#C72524]"
+                : "text-slate-500 hover:text-[#191116] dark:text-slate-400 dark:hover:text-white font-medium"
+            )}
+          >
+            <span>Video nổi bật</span>
+          </button>
+        </div>
+
+        <a
+          href={account.url.startsWith("http") ? account.url : `https://${account.url}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs sm:text-sm font-bold text-[#C72524] dark:text-rose-400 flex items-center gap-0.5 hover:underline cursor-pointer whitespace-nowrap shrink-0"
+        >
+          <span>Xem tất cả</span>
+          <ChevronRight className="h-4 w-4 shrink-0" />
+        </a>
+      </div>
+
+      {/* Video Grid (Enlarged vertical aspect-[9/16], clean without top tags/badges) */}
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        {currentVideos.map((video) => (
+          <div
+            key={video.id}
+            data-overlay-white="true"
+            onClick={() => {
+              const targetUrl = video.url || account.url;
+              if (targetUrl) {
+                window.open(targetUrl.startsWith("http") ? targetUrl : `https://${targetUrl}`, "_blank");
+              } else if (onPreviewImage) {
+                onPreviewImage(video.thumbnail);
+              }
+            }}
+            className="group relative w-full aspect-[9/16] rounded-2xl overflow-hidden bg-slate-900 border border-[#F0D7D3]/70 dark:border-white/10 shadow-sm hover:shadow-md transition cursor-pointer select-none"
+          >
+            {/* Thumbnail image or video */}
+            {isDirectVideoUrl(video.url || video.thumbnail) ? (
+              <video
+                src={video.url || video.thumbnail}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                preload="metadata"
+                controls
+              />
+            ) : (
+              <img
+                src={video.thumbnail}
+                alt={video.title || "Video"}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              />
+            )}
+
+            {/* Clean bottom gradient vignette */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent pointer-events-none" />
+
+            {/* Center Media Player Button - No border, subtle blurred glass */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+              <div
+                className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-black/35 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-black/50"
+              >
+                <Play
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 translate-x-0.5 opacity-90"
+                  style={{ fill: "#ffffff", color: "#ffffff", stroke: "none" }}
+                />
+              </div>
+            </div>
+
+            {/* View count at bottom-right */}
+            {video.views && (
+              <div
+                className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 flex items-center gap-1 text-[9.5px] sm:text-[10.5px] font-black z-20 bg-black/65 backdrop-blur-[2px] px-1.5 py-0.5 rounded-full drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]"
+                style={{ color: "#ffffff" }}
+              >
+                <Play
+                  className="h-2.5 w-2.5 shrink-0"
+                  style={{ fill: "#ffffff", color: "#ffffff", stroke: "none" }}
+                />
+                <span
+                  style={{ color: "#ffffff", fontSize: "10px", fontWeight: 800 }}
+                  className="leading-none"
+                >
+                  {video.views}
+                </span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SocialMediaStatsCard({
+  profile,
+  onPreviewImage,
+}: {
+  profile: any;
+  onPreviewImage?: (url: string) => void;
+}) {
+  const parseSocialAccounts = (prof: any): { platform: string; url: string; handle?: string; shop_url?: string; followers_count?: number; likes_count?: number; metrics?: any; recent_videos?: any[]; featured_videos?: any[] }[] => {
+    let list: { platform: string; url: string; handle?: string; shop_url?: string; followers_count?: number; likes_count?: number; metrics?: any; recent_videos?: any[]; featured_videos?: any[] }[] = [];
 
     if (Array.isArray(prof?.socialAccounts) && prof.socialAccounts.length > 0) {
       list = prof.socialAccounts
         .map((account: any) => ({
           platform: String(account.platform || "").trim(),
+          handle: account.handle || account.username || "",
           url: String(account.url || "").trim(),
+          shop_url: String(account.shop_url || "").trim(),
           followers_count: account.followers_count || account.followers,
           likes_count: account.likes_count || account.likes,
+          metrics: account.metrics || null,
+          recent_videos: account.recent_videos || null,
+          featured_videos: account.featured_videos || null,
         }))
         .filter((account: { platform: string; url: string }) => account.url);
     }
@@ -432,7 +1002,31 @@ function SocialMediaStatsCard({ profile }: { profile: any }) {
       }
     });
 
-    return list;
+    // Ensure all 4 main platforms exist so the UI is fully complete as designed
+    const defaultPlatforms = ["Facebook", "TikTok", "Instagram", "YouTube"];
+    const baseSlug = String(prof?.slug || prof?.id || "ngo-thao-nhi-1028");
+    defaultPlatforms.forEach((pName) => {
+      const pKey = pName.toLowerCase();
+      if (!list.some((item) => getSocialPlatformInfo(item.platform, item.url).platformKey.toLowerCase() === pKey)) {
+        list.push({
+          platform: pName,
+          url: `https://${pKey === 'youtube' ? 'youtube.com/@' : pKey + '.com/'}${baseSlug}`,
+        });
+      }
+    });
+
+    // Strictly deduplicate by platformKey so each platform only appears ONCE
+    const seen = new Set<string>();
+    const uniqueList: typeof list = [];
+    for (const item of list) {
+      const pKey = getSocialPlatformInfo(item.platform, item.url).platformKey.toLowerCase();
+      if (!seen.has(pKey)) {
+        seen.add(pKey);
+        uniqueList.push(item);
+      }
+    }
+
+    return uniqueList;
   };
 
   const socialAccounts = parseSocialAccounts(profile);
@@ -446,97 +1040,46 @@ function SocialMediaStatsCard({ profile }: { profile: any }) {
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20 shrink-0">
             <Globe className="h-4.5 w-4.5" />
           </div>
-          <h3 className="font-display font-black text-sm text-[#191116] uppercase tracking-wider dark:text-white leading-none">
-            Mạng xã hội
-          </h3>
+          <div>
+            <h3 className="font-display font-black text-sm text-[#191116] uppercase tracking-wider dark:text-white leading-none">
+              Mạng xã hội
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-normal mt-1 leading-none">
+              Kết nối các nền tảng để cập nhật số liệu mới nhất
+            </p>
+          </div>
         </div>
+
+        <button
+          type="button"
+          className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer p-1"
+          title="Thông tin về số liệu mạng xã hội"
+        >
+          <Info className="h-5 w-5" />
+        </button>
       </div>
 
-      {/* Platform Cards List */}
-      {socialAccounts.length > 0 ? (
-        <div className="space-y-3.5">
-          {socialAccounts.map((account, idx) => {
-            const info = getSocialPlatformInfo(account.platform, account.url);
-            const handle = getSocialHandle(account.url, info.platformKey);
-            const stats = getPlatformStats(info.platformKey, account, seedString);
+      {/* Platform Cards Grid: 1 column on mobile, 2 columns on desktop to save vertical space */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
+        {socialAccounts.map((account, idx) => {
+          const info = getSocialPlatformInfo(account.platform, account.url);
+          const handle = getSocialHandle(account.url, info.platformKey);
+          const stats = getPlatformStats(info.platformKey, account, seedString);
+          const videos = getPlatformVideos(info.platformKey, account, seedString, profile);
 
-            return (
-              <div
-                key={`${account.platform}-${idx}`}
-                className="rounded-2xl border border-[#F1DBD7] bg-white p-4 transition hover:border-[#C72524]/40 dark:border-white/10 dark:bg-slate-950/70 shadow-2xs space-y-3.5"
-              >
-                {/* Top Row: Logo, Handle, Button */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full overflow-hidden shadow-2xs">
-                      {info.icon}
-                    </div>
-                    <h4 className="text-sm font-black text-[#191116] dark:text-white truncate leading-tight min-w-0">
-                      {handle.startsWith("@") || stats.platformName === "Facebook" ? handle : `@${handle}`}
-                    </h4>
-                  </div>
-
-                  <a
-                    href={account.url.startsWith("http") ? account.url : `https://${account.url}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[#E9CFC5] bg-white px-3.5 py-1.5 text-xs font-bold text-[#191116] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 shrink-0 shadow-2xs"
-                  >
-                    <span>{stats.buttonLabel}</span>
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </div>
-
-                {/* Middle Row: 3 Stat Columns with vertical centering & dividers */}
-                <div className="grid grid-cols-3 divide-x divide-[#F4E1DE]/70 border-t border-[#F4E1DE]/70 pt-3 dark:divide-white/10 dark:border-white/5">
-                  {stats.metrics.map((m, mIdx) => (
-                    <div key={mIdx} className="flex items-center gap-2.5 min-w-0 px-2 first:pl-0 last:pr-0">
-                      <div className="shrink-0 text-[#191116] dark:text-white flex items-center justify-center">
-                        {m.icon}
-                      </div>
-                      <div className="min-w-0">
-                        <span className="block text-sm sm:text-base font-black text-[#C72524] leading-tight">
-                          {m.value}
-                        </span>
-                        {m.unit && (
-                          <span className="block text-[11px] font-bold text-[#191116] dark:text-white leading-tight">
-                            {m.unit}
-                          </span>
-                        )}
-                        <span className="block text-[10px] font-medium text-[#7B6866] dark:text-slate-400 leading-tight mt-0.5">
-                          {m.label}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Bottom Row: Shopping cart bar */}
-                <a
-                  href={account.url.startsWith("http") ? account.url : `https://${account.url}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between rounded-xl border border-[#F6E1DC]/80 bg-[#FFF7F5] px-3.5 py-2.5 transition hover:bg-[#FFF0EE] dark:border-white/5 dark:bg-slate-900/80 group cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <ShoppingCart className="h-4 w-4 text-[#C72524] shrink-0" />
-                    <span className="text-xs font-bold text-[#8F0709] dark:text-rose-300 truncate">
-                      {stats.shopTitle}
-                    </span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-[#C72524] dark:text-rose-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                </a>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-[#F0D7D3] bg-[#FFFDFB] p-4 text-center dark:border-white/10 dark:bg-slate-950/40">
-          <p className="text-xs font-bold text-[#574D54] dark:text-slate-400">
-            Idol chưa liên kết tài khoản mạng xã hội.
-          </p>
-        </div>
-      )}
+          return (
+            <SocialPlatformCardItem
+              key={`${account.platform}-${idx}`}
+              account={account}
+              info={info}
+              handle={handle}
+              stats={stats}
+              videos={videos}
+              onPreviewImage={onPreviewImage}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1422,7 +1965,7 @@ export default function BrandTalentProfilePage() {
 
         {/* 2. MẠNG XÃ HỘI */}
         <div className="order-[2] lg:col-span-3">
-          <SocialMediaStatsCard profile={profile} />
+          <SocialMediaStatsCard profile={profile} onPreviewImage={setPreviewImage} />
         </div>
 
         {/* 1. Model Full-Body Photo Card */}

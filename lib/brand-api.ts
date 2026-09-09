@@ -115,6 +115,37 @@ type BackendVideo = {
   sort_order?: number | string | null;
 };
 
+export type BackendSocialAccount = {
+  id?: number | string;
+  platform?: string | null;
+  handle?: string | null;
+  username?: string | null;
+  url?: string | null;
+  shop_url?: string | null;
+  followers_count?: number | string | null;
+  likes_count?: number | string | null;
+  engagement_rate?: number | string | null;
+  metrics?: {
+    followers_text?: string | null;
+    avg_views?: string | null;
+    interaction?: string | null;
+  } | null;
+  recent_videos?: Array<{
+    id?: string | number;
+    url?: string;
+    thumbnail?: string;
+    views?: string;
+    title?: string;
+  }> | null;
+  featured_videos?: Array<{
+    id?: string | number;
+    url?: string;
+    thumbnail?: string;
+    views?: string;
+    title?: string;
+  }> | null;
+};
+
 export type PaginationMeta = {
   current_page: number;
   per_page: number;
@@ -142,13 +173,6 @@ export type LoadBrandTalentsOptions = {
 export type LoadBrandTalentsResult = {
   data: TalentProfile[];
   meta: PaginationMeta;
-};
-
-type BackendSocialAccount = {
-  platform?: string | null;
-  url?: string | null;
-  followers_count?: number | string | null;
-  engagement_rate?: number | string | null;
 };
 
 type BackendCampaignTalent = {
@@ -820,8 +844,19 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
     phone: profile.user?.phone || fallback?.phone || "",
     portfolio_url: profile.portfolio_url || fallback?.portfolio_url || "",
     socialAccounts: (profile.social_accounts ?? [])
-      .map((account) => ({ platform: account.platform || "", url: account.url || "" }))
-      .filter((account) => account.platform && account.url),
+      .map((account) => ({
+        id: account.id,
+        platform: account.platform || "",
+        handle: account.handle || account.username || "",
+        url: account.url || "",
+        shop_url: account.shop_url || "",
+        followers_count: Number(account.followers_count) || null,
+        likes_count: Number(account.likes_count) || null,
+        metrics: account.metrics || null,
+        recent_videos: Array.isArray(account.recent_videos) ? account.recent_videos : [],
+        featured_videos: Array.isArray(account.featured_videos) ? account.featured_videos : [],
+      }))
+      .filter((account) => account.platform && (account.url || account.recent_videos?.length || account.handle)),
     createdAt: profile.created_at || fallback?.createdAt || "",
     created_at: profile.created_at || fallback?.created_at || "",
     surveyScores: profile.latest_survey

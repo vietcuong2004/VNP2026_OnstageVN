@@ -712,3 +712,26 @@ input[type="date"].bg-slate-900::-webkit-date-and-time-value {
   border-color: rgba(232, 200, 194, 0.95) !important;
   color: #191116 !important;
 }
+
+/* Force pure white for video overlay text, badges, icons in both Light and Dark mode */
+html.light .video-overlay-white,
+html.light .video-overlay-white *,
+html.light [data-overlay-white="true"],
+html.light [data-overlay-white="true"] *,
+.light .video-overlay-white,
+.light .video-overlay-white *,
+.light [data-overlay-white="true"],
+.light [data-overlay-white="true"] * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html.light .video-overlay-white svg,
+html.light [data-overlay-white="true"] svg,
+.light .video-overlay-white svg,
+.light [data-overlay-white="true"] svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
+}
+
