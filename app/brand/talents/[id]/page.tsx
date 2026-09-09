@@ -1047,19 +1047,6 @@ function SocialMediaStatsCard({
       }
     });
 
-    // Ensure all 4 main platforms exist so the UI is fully complete as designed
-    const defaultPlatforms = ["Facebook", "TikTok", "Instagram", "YouTube"];
-    const baseSlug = String(prof?.slug || prof?.id || "ngo-thao-nhi-1028");
-    defaultPlatforms.forEach((pName) => {
-      const pKey = pName.toLowerCase();
-      if (!list.some((item) => getSocialPlatformInfo(item.platform, item.url).platformKey.toLowerCase() === pKey)) {
-        list.push({
-          platform: pName,
-          url: `https://${pKey === 'youtube' ? 'youtube.com/@' : pKey + '.com/'}${baseSlug}`,
-        });
-      }
-    });
-
     // Strictly deduplicate by platformKey so each platform only appears ONCE
     const seen = new Set<string>();
     const uniqueList: typeof list = [];
@@ -1075,6 +1062,10 @@ function SocialMediaStatsCard({
   };
 
   const socialAccounts = parseSocialAccounts(profile);
+  if (!socialAccounts || socialAccounts.length === 0) {
+    return null;
+  }
+
   const seedString = String(profile?.id || profile?.slug || profile?.name || "idol");
 
   return (
