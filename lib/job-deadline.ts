@@ -34,8 +34,7 @@ export function getApplicationDeadlineEnd(value?: string | null): Date | null {
     );
   }
 
-  const parsed = new Date(text);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  return null;
 }
 
 export function isApplicationDeadlineExpired(value?: string | null, now = new Date()): boolean {

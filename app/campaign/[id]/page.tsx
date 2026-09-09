@@ -19,12 +19,17 @@ type ReferralCampaignPayload = {
   budget_min?: number | string | null;
   budget_max?: number | string | null;
   budget_unit?: string | null;
+  budget_raw?: string | null;
   city?: string | null;
   location?: string | null;
   start_date?: string | null;
   end_date?: string | null;
   application_deadline?: string | null;
   event_date?: string | null;
+  start_date_raw?: string | null;
+  end_date_raw?: string | null;
+  application_deadline_raw?: string | null;
+  event_date_raw?: string | null;
   max_talents?: number | string | null;
   talent_quantity?: number | string | null;
   benefits?: string | null;
@@ -77,18 +82,33 @@ function formatCompensationRange(min?: number | string | null, max?: number | st
   return "Thỏa thuận";
 }
 
+function firstNonEmptyText(...values: unknown[]) {
+  for (const value of values) {
+    const text = String(value ?? "").trim();
+    if (text) return text;
+  }
+  return "";
+}
+
+function hasBudgetAmount(...values: unknown[]) {
+  return values.some((value) => Number(value || 0) > 0);
+}
+
 function formatCampaignDate(value?: string | null) {
   if (!value) return "-";
 
-  const raw = String(value);
+  const raw = String(value).trim();
+  const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+
+  const vietnameseDate = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (vietnameseDate) return raw;
+
+  if (!raw.includes("T") && !raw.includes(" ")) return raw;
+
   const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
   const date = new Date(normalized);
-
-  if (Number.isNaN(date.getTime())) {
-    const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
-    return raw;
-  }
+  if (Number.isNaN(date.getTime())) return raw;
 
   return new Intl.DateTimeFormat("vi-VN", {
     day: "2-digit",
@@ -99,20 +119,29 @@ function formatCampaignDate(value?: string | null) {
 
 function mapReferralCampaign(raw?: ReferralCampaignPayload | null): Campaign | null {
   if (!raw?.id) return null;
+  const budgetRaw = firstNonEmptyText(raw.budget_raw);
+  const budget = hasBudgetAmount(raw.budget_min, raw.budget_max)
+    ? formatCompensationRange(raw.budget_min, raw.budget_max, raw.budget_unit || "day")
+    : budgetRaw || formatCompensationRange(raw.budget_min, raw.budget_max, raw.budget_unit || "day");
 
   return {
     id: String(raw.id),
     title: raw.title || "Chiến dịch",
     jobType: raw.job_type || "Campaign",
-    budget: formatCompensationRange(raw.budget_min, raw.budget_max, raw.budget_unit || "day") || "Thỏa thuận",
+    budget: budget || "Thỏa thuận",
+    budgetRaw,
+    budget_raw: budgetRaw,
     budgetValue: Number(raw.budget_max || raw.budget_min || 0),
     city: raw.city || raw.location || "Linh hoạt",
     address: raw.location || raw.city || "Linh hoạt",
-    startDate: raw.start_date || "",
-    endDate: raw.end_date || "",
-    applicationDeadline: raw.application_deadline || "",
-    eventDate: raw.event_date || "",
-    deadline: raw.application_deadline || raw.end_date || raw.start_date || "Theo lịch Brand",
+    startDate: firstNonEmptyText(raw.start_date, raw.start_date_raw, raw.event_date_raw),
+    endDate: firstNonEmptyText(raw.end_date, raw.end_date_raw),
+    startDateRaw: firstNonEmptyText(raw.start_date_raw, raw.event_date_raw),
+    endDateRaw: firstNonEmptyText(raw.end_date_raw),
+    applicationDeadline: firstNonEmptyText(raw.application_deadline, raw.application_deadline_raw),
+    applicationDeadlineRaw: firstNonEmptyText(raw.application_deadline_raw),
+    eventDate: firstNonEmptyText(raw.event_date, raw.event_date_raw, raw.start_date_raw),
+    deadline: firstNonEmptyText(raw.application_deadline, raw.application_deadline_raw, raw.end_date, raw.end_date_raw, raw.start_date, raw.start_date_raw) || "Theo lịch Brand",
     talentQuantity: Number(raw.max_talents || raw.talent_quantity || 1),
     benefits: raw.benefits || "Thù lao và quyền lợi theo brief của Brand.",
     description: raw.description || "Brand sẽ cập nhật mô tả chi tiết.",

@@ -355,14 +355,18 @@ function sentenceCaseText(value: string) {
 function displayCampaignDate(value?: string | null) {
   if (!value) return "-";
 
-  const raw = String(value);
+  const raw = String(value).trim();
+  const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+
+  const vietnameseDate = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (vietnameseDate) return raw;
+
+  if (!raw.includes("T") && !raw.includes(" ")) return raw;
+
   const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
   const date = new Date(normalized);
-  if (Number.isNaN(date.getTime())) {
-    const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
-    return raw;
-  }
+  if (Number.isNaN(date.getTime())) return raw;
 
   return new Intl.DateTimeFormat("vi-VN", {
     day: "2-digit",

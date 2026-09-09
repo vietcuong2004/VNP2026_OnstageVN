@@ -142,16 +142,18 @@ function displayCampaignDateTime(value?: string | null, explicitTime?: string | 
       dateStr = `${dateOnly[1]}/${dateOnly[2]}/${dateOnly[3]}`;
     }
   } else if (raw) {
-    const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
-    const date = new Date(normalized);
-    if (!Number.isNaN(date.getTime())) {
-      dateStr = new Intl.DateTimeFormat("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).format(date);
-    } else {
+    if (!raw.includes("T") && !raw.includes(" ")) {
       dateStr = raw;
+    } else {
+      const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
+      const date = new Date(normalized);
+      dateStr = Number.isNaN(date.getTime())
+        ? raw
+        : new Intl.DateTimeFormat("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(date);
     }
   }
 
@@ -182,14 +184,18 @@ function formatEventScheduleTimeText(evt: any, fallbackDate?: string | null) {
         dateStr = `${dateMatch[1]}/${dateMatch[2]}/${dateMatch[3]}`;
       }
     } else if (raw) {
-      const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
-      const date = new Date(normalized);
-      if (!Number.isNaN(date.getTime())) {
-        dateStr = new Intl.DateTimeFormat("vi-VN", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }).format(date);
+      if (!raw.includes("T") && !raw.includes(" ")) {
+        dateStr = raw;
+      } else {
+        const normalized = raw.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})?$/, ".$1$2");
+        const date = new Date(normalized);
+        dateStr = Number.isNaN(date.getTime())
+          ? raw
+          : new Intl.DateTimeFormat("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          }).format(date);
       }
     }
 

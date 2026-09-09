@@ -142,7 +142,10 @@ export type Campaign = {
   address: string;
   startDate: string;
   endDate: string;
+  startDateRaw?: string;
+  endDateRaw?: string;
   applicationDeadline?: string;
+  applicationDeadlineRaw?: string;
   eventDate?: string;
   onstageTime?: string;
   eventTime?: string;
@@ -153,6 +156,8 @@ export type Campaign = {
   budget: string;
   budgetMin?: number | null;
   budgetMax?: number | null;
+  budgetRaw?: string;
+  budget_raw?: string;
   budget_unit?: string | null;
   budgetNote?: string;
   budgetValue: number;

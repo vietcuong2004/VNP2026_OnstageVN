@@ -199,6 +199,10 @@ type BackendCampaign = {
   end_date?: string | null;
   application_deadline?: string | null;
   event_date?: string | null;
+  start_date_raw?: string | null;
+  end_date_raw?: string | null;
+  application_deadline_raw?: string | null;
+  event_date_raw?: string | null;
   onstage_time?: string | null;
   event_time?: string | null;
   is_owner?: boolean | number | null;
@@ -209,6 +213,7 @@ type BackendCampaign = {
   budget_max?: number | string | null;
   budget_unit?: string | null;
   budget_note?: string | null;
+  budget_raw?: string | null;
   benefits?: string | null;
   requirements?: string | null;
   height_min_cm?: number | string | null;
@@ -610,6 +615,22 @@ function formatBudget(min: unknown, max: unknown, unit: string = "day", note?: s
   return "Thỏa thuận";
 }
 
+function nonEmptyText(value: unknown) {
+  return String(value ?? "").trim();
+}
+
+function firstNonEmptyText(...values: unknown[]) {
+  for (const value of values) {
+    const text = nonEmptyText(value);
+    if (text) return text;
+  }
+  return "";
+}
+
+function hasBudgetAmount(...values: unknown[]) {
+  return values.some((value) => Number(value || 0) > 0);
+}
+
 function formatFollowers(value: number) {
   if (value >= 1000000) return `${Number((value / 1000000).toFixed(1))}M`;
   if (value >= 1000) return `${Number((value / 1000).toFixed(0))}K`;
@@ -981,6 +1002,10 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     .map((item) => item.talentId);
   const budgetMax = numberOrNull(campaign.budget_max);
   const budgetMin = numberOrNull(campaign.budget_min);
+  const budgetRaw = firstNonEmptyText(campaign.budget_raw);
+  const budget = hasBudgetAmount(campaign.budget_min, campaign.budget_max)
+    ? formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note)
+    : budgetRaw || formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note);
   const media = (campaign.media ?? []).map(mapCampaignMedia).filter(Boolean) as CampaignMedia[];
   const coverMedia = mapCampaignMedia(campaign.cover_media ?? campaign.coverMedia ?? null)
     ?? media.find((item) => item.category === "cover" && item.is_primary)
@@ -996,21 +1021,26 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
     campaignType: campaign.campaign_type || campaign.job_type || "Campaign",
     city: campaign.city || "",
     address: campaign.location || campaign.city || "",
-    startDate: campaign.start_date || "",
-    endDate: campaign.end_date || "",
-    deadline: campaign.application_deadline || campaign.deadline || "",
-    applicationDeadline: campaign.application_deadline || campaign.deadline || "",
-    eventDate: campaign.event_date || "",
+    startDate: firstNonEmptyText(campaign.start_date, campaign.start_date_raw, campaign.event_date_raw),
+    endDate: firstNonEmptyText(campaign.end_date, campaign.end_date_raw),
+    startDateRaw: firstNonEmptyText(campaign.start_date_raw, campaign.event_date_raw),
+    endDateRaw: firstNonEmptyText(campaign.end_date_raw),
+    deadline: firstNonEmptyText(campaign.application_deadline, campaign.application_deadline_raw, campaign.deadline),
+    applicationDeadline: firstNonEmptyText(campaign.application_deadline, campaign.application_deadline_raw, campaign.deadline),
+    applicationDeadlineRaw: firstNonEmptyText(campaign.application_deadline_raw),
+    eventDate: firstNonEmptyText(campaign.event_date, campaign.event_date_raw, campaign.start_date_raw),
     onstageTime: campaign.onstage_time || campaign.event_time || "",
     eventTime: campaign.event_time || campaign.onstage_time || "",
     isOwner: Boolean(campaign.is_owner),
     canApply: campaign.can_apply !== false && campaign.can_apply !== 0,
     talentQuantity: Number(campaign.talent_quantity) || 1,
-    budget: formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note),
+    budget,
     budgetMin: budgetMin,
     budgetMax: budgetMax,
     budget_unit: campaign.budget_unit || "day",
     budgetNote: campaign.budget_note || "",
+    budgetRaw,
+    budget_raw: budgetRaw,
     budgetValue: budgetMax ?? budgetMin ?? 0,
     benefits: campaign.benefits || "Thỏa thuận theo brief",
     status: mapCampaignStatus(campaign.status),
