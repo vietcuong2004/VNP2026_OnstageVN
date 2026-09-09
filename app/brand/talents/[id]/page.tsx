@@ -502,7 +502,7 @@ function getPlatformVideos(platformKey: string, account: any, seed: string, prof
   if (hasCustomRecent || hasCustomFeatured) {
     const mapVideo = (v: any, idx: number, prefix: string): SocialVideoItem => {
       let viewCount = String(v.views || v.views_count || "").trim();
-      if (!viewCount || viewCount.toUpperCase() === "10K" || viewCount === "0") {
+      if (!viewCount) {
         viewCount = generateVideoViews(`${seed}-${platformKey}-${prefix}`, idx);
       }
       return {
