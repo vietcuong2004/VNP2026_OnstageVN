@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Briefcase, CalendarCheck, Check, CheckCircle2, Heart, Loader2, MapPin, Star, Trash2, UserPlus } from "lucide-react";
+import { Briefcase, Check, CheckCircle2, Coins, FileText, Heart, Loader2, MapPin, ShoppingCart, Star, Trash2, UserPlus } from "lucide-react";
 import { createInitialAvatarDataUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import BadgeTier, { getBackendBadgeConfig } from "@/components/ui/BadgeTier";
@@ -17,16 +17,61 @@ import {
 } from "./TalentCard";
 
 function getMockTalentStats(talent: any) {
-  const key = String(talent?.id || talent?.slug || talent?.email || talent?.name || "idol");
+  const key = String(talent?.profileId || talent?.profile_id || talent?.id || talent?.slug || talent?.email || talent?.name || "idol");
   let hash = 0;
 
   for (let index = 0; index < key.length; index += 1) {
     hash = (hash * 31 + key.charCodeAt(index)) >>> 0;
   }
 
+  const reviewCount = 820 + ((hash >> 3) % 1380);
+
   return {
     bookings: 72 + (hash % 164),
-    goodReviews: 820 + ((hash >> 3) % 1380),
+    goodReviews: reviewCount,
+  };
+}
+
+function getTalentPerformanceStats(talent: any) {
+  const key = String(talent?.profileId || talent?.profile_id || talent?.id || talent?.slug || talent?.email || talent?.name || "idol");
+  let hash = 0;
+
+  for (let index = 0; index < key.length; index += 1) {
+    hash = (hash * 31 + key.charCodeAt(index)) >>> 0;
+  }
+
+  const totalReviews = 820 + ((hash >> 3) % 1380);
+
+  // All time metrics
+  const allCampaigns = (1200 + (hash % 1600)).toLocaleString("vi-VN") + "+";
+  const allOrders = (5 + ((hash % 80) / 10)).toFixed(1) + "K";
+  const allGmv = `₫${(0.8 + ((hash % 120) / 100)).toFixed(1)}B`;
+  const allRating = (4.7 + ((hash % 3) / 10)).toFixed(1) + "/5";
+
+  // Recent 3 months metrics
+  const recentCampaigns = (140 + ((hash * 7) % 220)).toLocaleString("vi-VN") + "+";
+  const recentOrders = (1.2 + (((hash * 13) % 25) / 10)).toFixed(1) + "K";
+  const recentGmv = `₫${(160 + ((hash * 17) % 280)).toLocaleString("vi-VN")}M`;
+  const recentRating = (4.8 + (((hash * 3) % 3) / 10)).toFixed(1) + "/5";
+  const recentReviews = Math.max(35, Math.round(totalReviews * 0.22));
+
+  return {
+    all: {
+      campaigns: allCampaigns,
+      orders: allOrders,
+      gmv: allGmv,
+      gmvLabel: "Tổng doanh thu",
+      rating: allRating,
+      reviews: totalReviews,
+    },
+    recent_3m: {
+      campaigns: recentCampaigns,
+      orders: recentOrders,
+      gmv: recentGmv,
+      gmvLabel: "Doanh thu 3 tháng",
+      rating: recentRating,
+      reviews: recentReviews,
+    },
   };
 }
 
@@ -52,6 +97,7 @@ export default function TalentCardMobile({
 }: TalentCardProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [periodTab, setPeriodTab] = useState<"all" | "recent_3m">("all");
   const [showAddConfirm, setShowAddConfirm] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
@@ -72,6 +118,8 @@ export default function TalentCardMobile({
   const primaryBadge = getTalentPrimaryBadge(talent);
   const tierBadge = getBackendBadgeConfig(primaryBadge, talent?.tier);
   const mockStats = useMemo(() => getMockTalentStats(talent), [talent]);
+  const perfStats = useMemo(() => getTalentPerformanceStats(talent), [talent]);
+  const currentStats = perfStats[periodTab];
 
   const stopCardClick = (event: MouseEvent) => {
     event.stopPropagation();
@@ -113,7 +161,7 @@ export default function TalentCardMobile({
         className
       )}
     >
-      {/* ── ROW 1: TOP BAR (Badge Tier + Stats) ── */}
+      {/* ── ROW 1: TOP BAR (Badge Tier + Stats + Save Heart Icon) ── */}
       <div className="mb-2.5 flex items-center justify-between gap-1.5 border-b border-[#F4E1DE] pb-2 dark:border-white/5">
         {/* Left: Badge Tier */}
         <div className="min-w-0 flex-shrink">
@@ -127,7 +175,7 @@ export default function TalentCardMobile({
           />
         </div>
 
-        {/* Right: 2 Stat Pills */}
+        {/* Right: 2 Stat Pills + Heart (Lưu) Icon */}
         <div className="flex items-center gap-1 shrink-0">
           {/* 1. Lượt booking pill */}
           <div className="flex items-center gap-1 rounded-full border border-[#E9CFC5] bg-[#FFFDFB] px-1.5 py-0.5 text-[#A36C1D] dark:border-amber-500/40 dark:bg-[#16140e] dark:text-amber-300">
@@ -144,6 +192,49 @@ export default function TalentCardMobile({
               {mockStats.goodReviews} đánh giá
             </span>
           </div>
+
+          {/* 3. Nút Lưu (Icon Tim) ở góc trên cùng bên phải */}
+          {onToggleSaved ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                stopCardClick(event);
+                if (isOwnTalent) return;
+                onToggleSaved(talent);
+              }}
+              disabled={isOwnTalent}
+              className={cn(
+                "flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border shadow-2xs transition active:scale-90 ml-0.5",
+                isSaved
+                  ? "light-force-white border-[#C72524] bg-[#C72524] text-white dark:border-emerald-500 dark:bg-emerald-500 dark:text-white"
+                  : "border-[#F1D8D4] bg-[#FFF7F6] text-[#9B1215] hover:border-[#C72524]/45 hover:text-[#C72524] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-white"
+              )}
+              title={isSaved ? "Bỏ lưu Idol" : "Lưu Idol"}
+            >
+              <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} />
+            </button>
+          ) : onMessage ? (
+            <button
+              type="button"
+              disabled={messageLoading}
+              onClick={handleBrandButtonClick}
+              className={cn(
+                "flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border shadow-2xs transition active:scale-90 ml-0.5",
+                messageDisabled
+                  ? "border-[#C72524]/45 bg-[#FFF7F6] text-[#C72524] dark:border-[#C9A86A]/40 dark:bg-[#0F1115]/80 dark:text-[#C9A86A]"
+                  : "border-[#F1D8D4] bg-[#FFF7F6] text-[#9B1215] hover:border-[#C72524]/45 hover:text-[#C72524] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-white"
+              )}
+              title={messageDisabled ? "Bấm để xóa khỏi danh sách quản lý" : "Thêm vào danh sách quản lý"}
+            >
+              {messageLoading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : messageDisabled ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : (
+                <UserPlus className="h-3.5 w-3.5" />
+              )}
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -244,74 +335,60 @@ export default function TalentCardMobile({
         </div>
       </div>
 
-      {/* ── ROW 3: BOTTOM ACTIONS (Đặt ngay & Lưu) ── */}
-      {hasActions && (
-        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[#F4E1DE] pt-2.5 dark:border-white/5">
-          {/* Đặt ngay */}
-          <button
-            type="button"
-            onClick={(e) => {
-              stopCardClick(e);
-              if (isOwnTalent) return;
-              const targetId = talent?.profileId || talent?.profile_id || talent?.id || talent?.slug;
-              if (!targetId) return;
-              router.push(`/booking?talentId=${encodeURIComponent(String(targetId))}`);
-            }}
-            disabled={isOwnTalent}
-            className="flex min-h-[38px] w-full cursor-pointer items-center justify-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50 rounded-2xl border border-[#D8A8A3] bg-[#FFF7F6] px-3 text-center text-[#C72524] transition-all hover:border-[#C72524]/55 hover:bg-[#FFF1EF] active:scale-95 dark:border-amber-500/50 dark:bg-[#282110] dark:text-amber-300 dark:hover:brightness-125"
-            title="Đặt ngay dịch vụ của Idol"
-          >
-            <CalendarCheck className="h-3.5 w-3.5 shrink-0 text-[#C72524] dark:text-amber-400" />
-            <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-wider text-[#C72524] dark:text-amber-300">
-              ĐẶT NGAY
+      {/* ── ROW 3: ONSTAGE PERFORMANCE STATS (4 Ô thông số rõ ràng, đầy đủ chữ) ── */}
+      <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 border-t border-[#F4E1DE] pt-2.5 dark:border-white/5" onClick={stopCardClick}>
+        {/* 1. Chiến dịch đã thực hiện */}
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F1D8D4] bg-[#FFF8F7] py-1.5 px-2 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+          <div className="flex items-center gap-1">
+            <FileText className="h-3 w-3 shrink-0 text-[#C72524] dark:text-rose-400" />
+            <span className="text-xs sm:text-[13px] font-black text-[#8F0709] dark:text-white leading-tight">
+              {currentStats.campaigns}
             </span>
-          </button>
-
-          {/* Lưu / Đã lưu */}
-          {onToggleSaved ? (
-            <button
-              type="button"
-              onClick={(event) => {
-                stopCardClick(event);
-                if (isOwnTalent) return;
-                onToggleSaved(talent);
-              }}
-              disabled={isOwnTalent}
-              className={cn(
-                "flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-2xl px-3 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer",
-                isSaved
-                  ? "light-force-white border border-[#C72524]/55 bg-[#C72524] text-white hover:bg-[#A40E10] dark:border-emerald-500/50 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30"
-                  : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white hover:brightness-110 dark:from-yellow-200 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950"
-              )}
-              title={isSaved ? "Bỏ lưu Idol" : "Lưu Idol"}
-            >
-              <Heart className={cn("h-3.5 w-3.5", isSaved && "fill-current")} />
-              <span className="whitespace-nowrap">{saveLabel === "Lưu thông tin" ? "LƯU" : saveLabel?.toUpperCase() || (isSaved ? "ĐÃ LƯU" : "LƯU")}</span>
-            </button>
-          ) : onMessage ? (
-            <button
-              type="button"
-              disabled={messageLoading}
-              onClick={handleBrandButtonClick}
-              className={cn(
-                "flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-2xl px-3 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer",
-                messageDisabled
-                  ? "border border-[#D8A8A3] bg-[#FFF7F6] text-[#C72524] hover:border-[#C72524]/55 hover:bg-[#FFF1EF] dark:border-[#C9A86A]/30 dark:bg-[#C9A86A]/10 dark:text-[#C9A86A] dark:hover:border-rose-500/40 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
-                  : "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white hover:brightness-110 dark:from-yellow-200 dark:via-amber-400 dark:to-yellow-500 dark:text-slate-950"
-              )}
-            >
-              {messageLoading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : messageDisabled ? (
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#C9A86A]" />
-              ) : (
-                showMessageIcon && <UserPlus className="h-3.5 w-3.5" />
-              )}
-              <span className="truncate">{messageLabel?.toUpperCase()}</span>
-            </button>
-          ) : null}
+          </div>
+          <span className="mt-0.5 text-[8.5px] sm:text-[9px] font-medium text-[#7B6866] dark:text-slate-400 leading-tight">
+            Chiến dịch đã làm
+          </span>
         </div>
-      )}
+
+        {/* 2. Đơn hàng tạo ra */}
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F1D8D4] bg-[#FFF8F7] py-1.5 px-2 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+          <div className="flex items-center gap-1">
+            <ShoppingCart className="h-3 w-3 shrink-0 text-[#C72524] dark:text-rose-400" />
+            <span className="text-xs sm:text-[13px] font-black text-[#8F0709] dark:text-white leading-tight">
+              {currentStats.orders}
+            </span>
+          </div>
+          <span className="mt-0.5 text-[8.5px] sm:text-[9px] font-medium text-[#7B6866] dark:text-slate-400 leading-tight">
+            Đơn hàng tạo ra
+          </span>
+        </div>
+
+        {/* 3. Doanh thu */}
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F1D8D4] bg-[#FFF8F7] py-1.5 px-2 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+          <div className="flex items-center gap-1">
+            <Coins className="h-3 w-3 shrink-0 text-[#C72524] dark:text-rose-400" />
+            <span className="text-xs sm:text-[13px] font-black text-[#8F0709] dark:text-white leading-tight">
+              {currentStats.gmv}
+            </span>
+          </div>
+          <span className="mt-0.5 text-[8.5px] sm:text-[9px] font-medium text-[#7B6866] dark:text-slate-400 leading-tight">
+            Tổng doanh thu
+          </span>
+        </div>
+
+        {/* 4. Đánh giá Brand */}
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F1D8D4] bg-[#FFF8F7] py-1.5 px-2 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+          <div className="flex items-center gap-1">
+            <Star className="h-3 w-3 shrink-0 fill-[#C72524] text-[#C72524] dark:fill-amber-400 dark:text-amber-400" />
+            <span className="text-xs sm:text-[13px] font-black text-[#8F0709] dark:text-white leading-tight">
+              {currentStats.rating}
+            </span>
+          </div>
+          <span className="mt-0.5 text-[8.5px] sm:text-[9px] font-medium text-[#7B6866] dark:text-slate-400 leading-tight">
+            Đánh giá ({currentStats.reviews}+)
+          </span>
+        </div>
+      </div>
 
       {/* Dialog Modals */}
       {mounted && showAddConfirm && createPortal(

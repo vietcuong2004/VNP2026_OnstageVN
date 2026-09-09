@@ -206,22 +206,40 @@ function OnstagePerformanceCard({
   profile: any;
   onOpenExplanation?: () => void;
 }) {
+  const [periodTab, setPeriodTab] = useState<"all" | "recent_3m">("all");
+
   const seedString = String(profile?.id || profile?.slug || profile?.name || "idol");
   let hash = 0;
   for (let i = 0; i < seedString.length; i++) {
     hash = (hash * 31 + seedString.charCodeAt(i)) >>> 0;
   }
 
-  const campaignsCount = (1200 + (hash % 1600)).toLocaleString("vi-VN") + "+";
-  const ordersCount = (5 + ((hash % 80) / 10)).toFixed(1) + "K";
-  const netGmv = `₫${(0.8 + ((hash % 120) / 100)).toFixed(1)}B`;
-  const brandRating = (4.7 + ((hash % 3) / 10)).toFixed(1) + "/5";
-  const brandReviewCount = 180 + (hash % 240);
+  // All time metrics
+  const allCampaigns = (1200 + (hash % 1600)).toLocaleString("vi-VN") + "+";
+  const allOrders = (5 + ((hash % 80) / 10)).toFixed(1) + "K";
+  const allGmv = `₫${(0.8 + ((hash % 120) / 100)).toFixed(1)}B`;
+  const allRating = (4.7 + ((hash % 3) / 10)).toFixed(1) + "/5";
+  const allReviews = 180 + (hash % 240);
+
+  // Recent 3 months metrics
+  const recentCampaigns = (140 + ((hash * 7) % 220)).toLocaleString("vi-VN") + "+";
+  const recentOrders = (1.2 + (((hash * 13) % 25) / 10)).toFixed(1) + "K";
+  const recentGmv = `₫${(160 + ((hash * 17) % 280)).toLocaleString("vi-VN")}M`;
+  const recentRating = (4.8 + (((hash * 3) % 3) / 10)).toFixed(1) + "/5";
+  const recentReviews = 35 + ((hash * 5) % 45);
+
+  const isRecent = periodTab === "recent_3m";
+  const campaignsCount = isRecent ? recentCampaigns : allCampaigns;
+  const ordersCount = isRecent ? recentOrders : allOrders;
+  const netGmv = isRecent ? recentGmv : allGmv;
+  const gmvLabel = isRecent ? "Doanh thu 3 tháng" : "Tổng doanh thu";
+  const brandRating = isRecent ? recentRating : allRating;
+  const brandReviewCount = isRecent ? recentReviews : allReviews;
 
   return (
-    <div className="rounded-2xl border border-[#F0D7D3] bg-white p-3 sm:p-4 shadow-[0_8px_24px_rgba(143,7,9,0.04)] dark:border-[#151b2d] dark:bg-[#08090f] dark:shadow-xl space-y-2.5 text-left">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#F0D7D3]/80 pb-2 dark:border-white/10">
+    <div className="rounded-2xl border border-[#F0D7D3] bg-white p-3 sm:p-4 shadow-[0_8px_24px_rgba(143,7,9,0.04)] dark:border-[#151b2d] dark:bg-[#08090f] dark:shadow-xl space-y-3 text-left">
+      {/* Header with Title (Left) & Info Icon (Right) */}
+      <div className="flex items-center justify-between border-b border-[#F0D7D3]/80 pb-2.5 dark:border-white/10">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF0EE] text-[#8F0709] border border-[#F0D7D3] dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20 shrink-0">
             <Trophy className="h-4.5 w-4.5" />
@@ -230,20 +248,47 @@ function OnstagePerformanceCard({
             Hiệu suất trên Onstage
           </h3>
         </div>
+
         <button
           type="button"
           onClick={onOpenExplanation}
-          className="text-[#7B6866] hover:text-[#8F0709] dark:text-slate-400 dark:hover:text-white transition cursor-pointer p-0.5"
+          className="flex h-7 w-7 items-center justify-center rounded-full text-[#7B6866] hover:text-[#8F0709] hover:bg-[#FFF0EE] dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5 transition cursor-pointer"
           title="Xem giải thích chi tiết các chỉ số hiệu suất"
         >
           <Info className="h-4.5 w-4.5" />
         </button>
       </div>
 
+      {/* Full-width Underline Tab Switcher: "Tổng quan" & "3 tháng gần đây" */}
+      <div className="grid grid-cols-2 border-b border-[#F0D7D3]/70 dark:border-white/10 w-full pt-0.5">
+        <button
+          type="button"
+          onClick={() => setPeriodTab("all")}
+          className={`flex items-center justify-center pb-2 text-xs sm:text-sm font-black transition-all cursor-pointer border-b-2 -mb-[1px] ${
+            periodTab === "all"
+              ? "text-[#C72524] border-[#C72524] dark:text-rose-400 dark:border-rose-400"
+              : "text-slate-500 hover:text-[#191116] border-transparent dark:text-slate-400 dark:hover:text-white"
+          }`}
+        >
+          <span>Tổng quan</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setPeriodTab("recent_3m")}
+          className={`flex items-center justify-center pb-2 text-xs sm:text-sm font-black transition-all cursor-pointer border-b-2 -mb-[1px] ${
+            periodTab === "recent_3m"
+              ? "text-[#C72524] border-[#C72524] dark:text-rose-400 dark:border-rose-400"
+              : "text-slate-500 hover:text-[#191116] border-transparent dark:text-slate-400 dark:hover:text-white"
+          }`}
+        >
+          <span>3 tháng gần đây</span>
+        </button>
+      </div>
+
       {/* 4 Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
         {/* Card 1: Chiến dịch/đơn đã thực hiện */}
-        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs transition-all duration-200">
           <FileText className="h-4 w-4 text-[#C72524] dark:text-rose-400 mb-0.5" />
           <span className="text-sm sm:text-base font-black text-[#8F0709] dark:text-white leading-tight">
             {campaignsCount}
@@ -254,7 +299,7 @@ function OnstagePerformanceCard({
         </div>
 
         {/* Card 2: Đơn hàng tạo ra */}
-        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs transition-all duration-200">
           <ShoppingCart className="h-4 w-4 text-[#C72524] dark:text-rose-400 mb-0.5" />
           <span className="text-sm sm:text-base font-black text-[#8F0709] dark:text-white leading-tight">
             {ordersCount}
@@ -264,19 +309,19 @@ function OnstagePerformanceCard({
           </span>
         </div>
 
-        {/* Card 3: Tổng doanh thu */}
-        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+        {/* Card 3: Doanh thu */}
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs transition-all duration-200">
           <Coins className="h-4 w-4 text-[#C72524] dark:text-rose-400 mb-0.5" />
           <span className="text-sm sm:text-base font-black text-[#8F0709] dark:text-white leading-tight">
             {netGmv}
           </span>
           <span className="mt-0.5 text-[9.5px] sm:text-[10px] font-medium text-[#574D54] dark:text-slate-400 leading-snug">
-            Tổng doanh thu
+            {gmvLabel}
           </span>
         </div>
 
         {/* Card 4: Đánh giá từ Brand */}
-        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[#F0D7D3]/70 bg-[#FFFDFB] p-2 sm:p-2.5 text-center dark:border-white/5 dark:bg-slate-900/80 shadow-2xs transition-all duration-200">
           <Star className="h-4 w-4 text-[#C72524] fill-[#C72524] dark:text-amber-400 dark:fill-amber-400 mb-0.5" />
           <span className="text-sm sm:text-base font-black text-[#8F0709] dark:text-white leading-tight">
             {brandRating}

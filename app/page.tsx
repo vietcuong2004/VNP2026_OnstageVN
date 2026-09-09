@@ -54,14 +54,14 @@ export default function RootPage() {
                   alt={card.title}
                   fill
                   priority
-                  sizes="100vw"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                   className="object-cover opacity-[0.92] transition duration-700 group-hover:scale-105 dark:hidden"
                 />
                 <Image
                   src={card.image}
                   alt={card.title}
                   fill
-                  sizes="100vw"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                   className="hidden object-cover opacity-100 transition duration-700 group-hover:scale-105 dark:block"
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.9)_38%,rgba(255,255,255,0.18)_74%,rgba(255,255,255,0)_100%)] dark:bg-gradient-to-t dark:from-black/90 dark:via-black/50 dark:to-black/20" />
@@ -103,6 +103,7 @@ export default function RootPage() {
                   src={card.lightImage}
                   alt={card.title}
                   fill
+                  sizes="(max-width: 1024px) 58vw, 650px"
                   priority={card.id === "idols"}
                   className="object-cover object-right transition-transform duration-700 group-hover:scale-105 dark:hidden"
                 />
@@ -110,6 +111,7 @@ export default function RootPage() {
                   src={card.image}
                   alt={card.title}
                   fill
+                  sizes="(max-width: 1024px) 58vw, 650px"
                   className="hidden object-cover object-right transition-transform duration-700 group-hover:scale-105 dark:block"
                 />
                 {/* Gradient overlay to blend left white card into image */}
