@@ -1207,6 +1207,22 @@ function moneyRange(min?: number | null, max?: number | null, unitKey: string = 
   return "Thỏa thuận";
 }
 
+function nonEmptyText(value: unknown) {
+  return String(value ?? "").trim();
+}
+
+function firstNonEmptyText(...values: unknown[]) {
+  for (const value of values) {
+    const text = nonEmptyText(value);
+    if (text) return text;
+  }
+  return "";
+}
+
+function hasBudgetAmount(...values: unknown[]) {
+  return values.some((value) => Number(value || 0) > 0);
+}
+
 function campaignColor(jobType?: string | null) {
   const normalized = String(jobType || "").toLowerCase();
   if (normalized.includes("live")) return "cyan";
@@ -1252,7 +1268,10 @@ function splitBackendText(value: unknown) {
 export function mapCampaignToTalentJob(campaign: any) {
   const color = campaignColor(campaign.job_type);
   const theme = campaignTheme(color);
-  const budget = moneyRange(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note || campaign.budgetNote);
+  const budgetRaw = firstNonEmptyText(campaign.budget_raw, campaign.budgetRaw);
+  const budget = hasBudgetAmount(campaign.budget_min, campaign.budget_max)
+    ? moneyRange(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note || campaign.budgetNote)
+    : budgetRaw || moneyRange(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note || campaign.budgetNote);
   const hasBudget = Boolean(budget);
   const media = Array.isArray(campaign.media)
     ? campaign.media
@@ -1286,8 +1305,10 @@ export function mapCampaignToTalentJob(campaign: any) {
     brand: campaign.brand || partnerProfile.organization_name || owner.name || "",
     brandLogo,
     type: campaign.campaign_type || campaign.job_type || "",
-    startDate: campaign.start_date || "",
-    endDate: campaign.end_date || "",
+    startDate: firstNonEmptyText(campaign.start_date, campaign.startDate, campaign.start_date_raw, campaign.startDateRaw, campaign.event_date_raw, campaign.eventDateRaw),
+    endDate: firstNonEmptyText(campaign.end_date, campaign.endDate, campaign.end_date_raw, campaign.endDateRaw),
+    startDateRaw: firstNonEmptyText(campaign.start_date_raw, campaign.startDateRaw, campaign.event_date_raw, campaign.eventDateRaw),
+    endDateRaw: firstNonEmptyText(campaign.end_date_raw, campaign.endDateRaw),
     startTime: campaign.start_time || campaign.startTime || "",
     endTime: campaign.end_time || campaign.endTime || "",
     onstageTime: campaign.onstage_time || campaign.event_time || campaign.onstageTime || campaign.eventTime || "",
@@ -1298,9 +1319,10 @@ export function mapCampaignToTalentJob(campaign: any) {
     createdAt: campaign.created_at || "",
     created_at: campaign.created_at || "",
     eventName: campaign.event_name || "",
-    eventDate: campaign.event_date || "",
-    deadline: campaign.application_deadline || campaign.deadline || "",
-    applicationDeadline: campaign.application_deadline || "",
+    eventDate: firstNonEmptyText(campaign.event_date, campaign.eventDate, campaign.event_date_raw, campaign.eventDateRaw, campaign.start_date_raw, campaign.startDateRaw),
+    deadline: firstNonEmptyText(campaign.application_deadline, campaign.applicationDeadline, campaign.application_deadline_raw, campaign.applicationDeadlineRaw, campaign.deadline),
+    applicationDeadline: firstNonEmptyText(campaign.application_deadline, campaign.applicationDeadline, campaign.application_deadline_raw, campaign.applicationDeadlineRaw),
+    applicationDeadlineRaw: firstNonEmptyText(campaign.application_deadline_raw, campaign.applicationDeadlineRaw),
     city: campaign.city || "",
     roles: campaign.roles || [],
     events,
@@ -1320,6 +1342,8 @@ export function mapCampaignToTalentJob(campaign: any) {
     budget,
     budgetMin: campaign.budget_min ?? null,
     budgetMax: campaign.budget_max ?? null,
+    budgetRaw,
+    budget_raw: budgetRaw,
     budgetNote: campaign.budget_note || campaign.budgetNote || "",
     budget_note: campaign.budget_note || campaign.budgetNote || "",
     budget_unit: campaign.budget_unit || "day",
