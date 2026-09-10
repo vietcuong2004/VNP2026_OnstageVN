@@ -1047,13 +1047,15 @@ function SocialMediaStatsCard({
       }
     });
 
-    // Strictly deduplicate by platformKey so each platform only appears ONCE
+    // Deduplicate by URL/handle so distinct channels per platform are displayed
     const seen = new Set<string>();
     const uniqueList: typeof list = [];
     for (const item of list) {
-      const pKey = getSocialPlatformInfo(item.platform, item.url).platformKey.toLowerCase();
-      if (!seen.has(pKey)) {
-        seen.add(pKey);
+      const key = (item.url || item.handle || '').toLowerCase().trim();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        uniqueList.push(item);
+      } else if (!key) {
         uniqueList.push(item);
       }
     }
