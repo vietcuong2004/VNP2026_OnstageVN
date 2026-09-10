@@ -2478,7 +2478,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   }
 
   return (
-    <div className="relative min-h-dvh w-full max-w-5xl mx-auto overflow-visible rounded-none border-0 border-white/5 bg-white p-4 shadow-2xl transition-all duration-500 dark:bg-[#070913]/95 md:min-h-0 md:my-8 md:rounded-3xl md:border md:border-[#F0D7D3] dark:md:border-white/10 md:p-8">
+    <div className="relative min-h-screen w-full overflow-visible rounded-none border-0 bg-white p-4 transition-all duration-500 dark:bg-[#070913]/95 md:p-8 md:px-12">
+      <div className="mx-auto w-full max-w-7xl">
 
       {/* Top ambient glow light */}
       <div className="absolute top-0 right-0 -z-10 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
@@ -2594,7 +2595,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       <form onSubmit={handleSubmit} className="space-y-6 pb-28 text-left md:pb-24">
 
         {step === 1 && (
-          <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto">
+          <div className="animate-in fade-in duration-300 w-full">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
               {/* Left: Avatar & Cover Dropzones */}
               <div className="md:col-span-4 space-y-4">
@@ -2796,7 +2797,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
         {/* STEP 2: PROFESSIONAL INFO & MEASUREMENTS */}
         {step === 2 && (
-          <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto">
+          <div className="animate-in fade-in duration-300 w-full">
             <div className="py-3 md:py-5 space-y-6">
               <h3 className="font-display text-base font-black uppercase tracking-wider text-[#191116] dark:text-slate-300">
                 Thông tin nghề nghiệp & Ngoại hình
@@ -2954,7 +2955,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
         {/* STEP 3: PORTFOLIO & SOCIAL LINKS */}
         {step === 3 && (
-          <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto">
+          <div className="animate-in fade-in duration-300 w-full">
             <div className="flex flex-col gap-6 py-3 text-left md:py-5">
               <h4 className="font-display text-base font-black uppercase tracking-wider text-[#191116] dark:text-slate-300">
                 Portfolio & Mạng xã hội
@@ -3176,7 +3177,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
         {/* STEP 4: PHOTOS & VIDEOS */}
         {step === MEDIA_SURVEY_STEP && (
-          <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto space-y-6">
+          <div className="animate-in fade-in duration-300 w-full space-y-6">
             <SurveyImageUploadBlock
               label="ẢNH TOÀN THÂN"
               placeholder="TẢI ẢNH LÊN"
@@ -3539,7 +3540,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
         {/* STEP 4: ORIENTATION SURVEY (Single Question Card UI, zero scroll) */}
         {ORIENTATION_SURVEY_ENABLED && step === 4 && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-5xl mx-auto py-2 animate-in fade-in duration-300">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full py-2 animate-in fade-in duration-300">
             {/* Left Column: The Question Block */}
             <div className="lg:col-span-8 space-y-6 w-full">
               {/* Header: Question indicator & Inner survey progress */}
@@ -3731,7 +3732,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         {/* Global Navigation Action Bar */}
         {step <= SURVEY_STEP_COUNT && (
           <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#F0D7D3] bg-white/95 px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-3.5 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#070913]/95 dark:shadow-[0_-14px_30px_rgba(0,0,0,0.55)] md:py-4">
-            <div className="mx-auto flex w-full max-w-5xl items-center gap-3">
+            <div className="mx-auto flex w-full max-w-7xl items-center gap-3">
               {step > 1 && (
                 <button
                   type="button"
@@ -3770,6 +3771,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         {/* Step 4 orientation survey is currently disabled by ORIENTATION_SURVEY_ENABLED. */}
 
       </form>
+      </div>
 
       {showGuestAccountDialog && (
         <Step3Dialog

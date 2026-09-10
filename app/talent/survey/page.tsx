@@ -137,7 +137,7 @@ export default function SurveyPage() {
       className={cn(
         "flex min-h-dvh w-full max-w-full flex-col items-stretch justify-start overflow-x-hidden",
         isSurveyActive
-          ? "py-0 md:min-h-[85vh] md:py-6"
+          ? "py-0 min-h-screen"
           : "space-y-6 px-4 pb-8 pt-8 md:min-h-[85vh] md:space-y-8 md:px-0 md:py-6",
       )}
     >
