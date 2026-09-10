@@ -1417,7 +1417,7 @@ export default function BrandTalentProfilePage() {
     }).filter(Boolean) as Array<{ id: number; label: string; url: string }>;
   }, [profile]);
 
-  const portfolioVideos = useMemo<Array<{ id: string | number; title: string; url: string; path?: string | null; disk?: string | null }>>(() => {
+  const portfolioVideos = useMemo<Array<{ id: string | number; title: string; url: string; thumbnailUrl?: string; path?: string | null; disk?: string | null }>>(() => {
     if (!profile || !Array.isArray((profile as any).videos)) return [];
 
     return (profile as any).videos
@@ -1425,6 +1425,7 @@ export default function BrandTalentProfilePage() {
         id: video?.id ?? `video-${index + 1}`,
         title: String(video?.title || `Video ${index + 1}`),
         url: normalizeBackendAssetUrl(video?.url || ""),
+        thumbnailUrl: normalizeBackendAssetUrl(video?.thumbnailUrl || video?.thumbnail_url || video?.thumbnail || ""),
         path: video?.path ?? null,
         disk: video?.disk ?? null,
       }))
@@ -2111,29 +2112,55 @@ export default function BrandTalentProfilePage() {
                         preload="metadata"
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
+                    ) : video.thumbnailUrl ? (
+                      <a
+                        href={video.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block h-full w-full bg-slate-950 relative"
+                      >
+                        <img
+                          src={video.thumbnailUrl}
+                          alt={video.title || "Video thumbnail"}
+                          onError={(event) => {
+                            event.currentTarget.src = "/video_thumb.png";
+                          }}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </a>
                     ) : (
                       <a
                         href={video.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="block h-full w-full bg-slate-950"
+                        className="flex h-full w-full flex-col items-center justify-center bg-slate-950 p-3 text-center"
                       >
-                        <img
-                          src="/video_thumb.png"
-                          alt="Video thumbnail"
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
+                        <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10">
+                          <Play className="h-4 w-4 translate-x-0.5" style={{ fill: "#ffffff", color: "#ffffff", stroke: "none" }} />
+                        </div>
+                        <span className="line-clamp-2 text-[10px] font-semibold leading-tight text-slate-400">
+                          {video.title || "Video Link"}
+                        </span>
                       </a>
                     )}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
+                    {!isDirectVideoUrl(video.url) && video.thumbnailUrl ? (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/35 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-black/50">
+                          <Play className="h-4 w-4 translate-x-0.5 opacity-90" style={{ fill: "#ffffff", color: "#ffffff", stroke: "none" }} />
+                        </div>
+                      </div>
+                    ) : null}
                     <a
                       href={video.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="absolute left-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-amber-400/50 hover:text-amber-300 active:scale-95"
-                      title="Mở video"
+                      className="absolute left-2 top-2 z-20 flex items-center gap-1 rounded-md border border-white/20 bg-black/75 px-2 py-1 text-[10px] font-bold text-white shadow-lg transition-all hover:bg-[#2563eb] active:scale-95"
+                      title="Mở link video"
+                      style={{ color: "#ffffff" }}
                     >
-                      <ExternalLink className="h-4 w-4" />
+                      <ExternalLink className="h-3 w-3" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+                      <span style={{ color: "#ffffff" }}>Mở link</span>
                     </a>
                   </div>
                 ))}
