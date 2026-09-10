@@ -570,7 +570,11 @@ export function buildBackendProfilePayload(profile: any) {
     portfolio_links: portfolioLinks,
     social_accounts: Array.isArray(profile.socialAccounts)
       ? profile.socialAccounts
-        .map((a: any) => ({ platform: a.platform, url: a.url }))
+        .map((a: any) => ({
+          platform: a.platform,
+          url: a.url,
+          followers_count: Number(a.followers_count || a.followers || 0),
+        }))
         .filter((a: any) => a.platform && a.url)
       : undefined,
     is_public: true,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   User, ShieldAlert, Award, Sparkles, ArrowRight, ArrowLeft,
@@ -330,7 +330,7 @@ function SurveyCityCombobox({ value, options, onChange }: SurveyCityComboboxProp
         )}
       >
         <span className={cn("truncate text-left", selectedOption ? "text-[#191116] dark:text-white" : "text-[#9A8B88] dark:text-slate-400")}>
-          {selectedOption?.label || "Chọn khu vực sinh sống"}
+          {selectedOption?.label || "Chọn Khu vực làm việc"}
         </span>
         <ChevronDown className={cn("h-4 w-4 shrink-0 text-[#9A8B88] transition-transform dark:text-slate-400", isOpen && "rotate-180 text-[#8F0709] dark:text-amber-400")} />
       </button>
@@ -448,6 +448,62 @@ function SurveyOptionCombobox({ value = "", options, placeholder, onChange }: Su
   );
 }
 
+type TalentTypeSelectorProps = {
+  selectedTypes: string[];
+  options: readonly string[];
+  onAddType: (type: string) => void;
+  onRemoveType: (type: string) => void;
+};
+
+function TalentTypeSelector({
+  selectedTypes,
+  options,
+  onAddType,
+  onRemoveType,
+}: TalentTypeSelectorProps) {
+  const availableOptions = useMemo(
+    () => options.filter((type) => !selectedTypes.includes(type)),
+    [options, selectedTypes]
+  );
+
+  return (
+    <div className="space-y-2 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+      <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
+        Loại hình Idol
+      </label>
+      <SurveyOptionCombobox
+        value=""
+        placeholder="Thêm loại hình Idol..."
+        options={availableOptions}
+        onChange={onAddType}
+      />
+      <div className="flex flex-wrap gap-2 min-h-[46px] p-2 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60 mt-2">
+        {selectedTypes.length === 0 ? (
+          <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
+            <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa chọn loại hình nào
+          </span>
+        ) : (
+          selectedTypes.map((type) => (
+            <span
+              key={type}
+              className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]"
+            >
+              {type}
+              <button
+                type="button"
+                onClick={() => onRemoveType(type)}
+                className="text-[#9A8B88] hover:text-rose-600 cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </span>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 const JOBS_LIST = [
   { id: 1, title: "Đại sứ thương hiệu", desc: "Gương mặt đại diện thương hiệu luxury", weights: { pageant: 0.4, runway: 0.2, kol: 0.4 } },
   { id: 2, title: "KOLs/Influencer quảng cáo", desc: "Sáng tạo nội dung video ngắn", weights: { pageant: 0.1, runway: 0.1, kol: 0.8 } },
@@ -538,6 +594,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
             .map((account: any) => ({
               platform: String(account.platform || ""),
               url: String(account.url || ""),
+              followers_count: Number(account.followers_count || account.followers || 0),
             }))
             .filter((account: { platform: string; url: string }) => account.platform && account.url)
         );
@@ -634,10 +691,47 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   const [socialHighlightInput, setSocialHighlightInput] = useState("");
   const [portfolioLinks, setPortfolioLinks] = useState<string[]>([]);
   const [portfolioLinkInput, setPortfolioLinkInput] = useState("");
-  const [socialAccounts, setSocialAccounts] = useState<{ platform: string; url: string }[]>([]);
+  const [socialAccounts, setSocialAccounts] = useState<{ platform: string; url: string; followers_count?: number }[]>([]);
   const [socialPlatform, setSocialPlatform] = useState("Tiktok");
   const [socialLinkInput, setSocialLinkInput] = useState("");
+  const [socialFollowersInput, setSocialFollowersInput] = useState("");
   const [skillInput, setSkillInput] = useState("");
+  const experienceTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const autoResizeExperienceTextarea = useCallback(() => {
+    const el = experienceTextareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    const newHeight = Math.max(100, el.scrollHeight + 8);
+    el.style.height = `${newHeight}px`;
+  }, []);
+
+  useEffect(() => {
+    if (step === 1) {
+      const timer = setTimeout(() => {
+        autoResizeExperienceTextarea();
+      }, 10);
+      const timer2 = setTimeout(() => {
+        autoResizeExperienceTextarea();
+      }, 150);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(timer2);
+      };
+    }
+  }, [step, formData.professionalExperience, autoResizeExperienceTextarea]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      autoResizeExperienceTextarea();
+    };
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
+    };
+  }, [autoResizeExperienceTextarea]);
 
   const getCurrentPortfolioLinks = () => {
     const pendingLink = portfolioLinkInput.trim();
@@ -823,8 +917,13 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     let nextUrl = socialLinkInput.trim();
     if (!nextUrl) return;
     if (!/^https?:\/\//i.test(nextUrl)) nextUrl = `https://${nextUrl}`;
-    setSocialAccounts((current) => [...current, { platform: socialPlatform, url: nextUrl }]);
+    const followers = parseInt(socialFollowersInput.replace(/\D/g, ""), 10) || 0;
+    setSocialAccounts((current) => [
+      ...current,
+      { platform: socialPlatform, url: nextUrl, followers_count: followers },
+    ]);
     setSocialLinkInput("");
+    setSocialFollowersInput("");
   };
 
   const handlePriceChange = (val: string) => {
@@ -913,7 +1012,8 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
 
   const isStepValid = () => {
     if (step === 1) {
-      return formData.name.trim().length > 0 && formData.email.trim().length > 0;
+      const hasAvatar = Boolean(avatarPreviewUrl || avatarFile || mediaUploads.avatar);
+      return formData.name.trim().length > 0 && formData.email.trim().length > 0 && hasAvatar;
     }
     if (step === 2) {
       return true;
@@ -1234,6 +1334,9 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       setAvatarPreviewUrl(null);
       setAvatarFile(null);
       setAvatarDataUrl("");
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = "";
+      }
     }
 
     if (field === "portfolio") {
@@ -1758,17 +1861,18 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       !formData.email && "Email liên hệ",
       !hasAvatar && "Ảnh đại diện",
       !formData.gender && "Giới tính",
-      !formData.location && "Khu vực sinh sống",
+      !formData.location && "Khu vực làm việc",
+      !formData.phone && "Số điện thoại",
+      !formData.price && "Phí booking",
+    ].filter(Boolean) as string[];
+    const missingCareerFields = [
+      !formData.talentTypes.length && "Loại hình Idol",
+      !selectedSkills.length && "Lĩnh vực nội dung / kỹ năng",
       !formData.height && "Chiều cao",
       !formData.weight && "Cân nặng",
       !formData.bust && "Số đo vòng 1",
       !formData.waist && "Số đo vòng 2",
       !formData.hips && "Số đo vòng 3",
-    ].filter(Boolean) as string[];
-    const missingCareerFields = [
-      !formData.price && "Phí booking",
-      !formData.talentTypes.length && "Loại hình Idol",
-      !selectedSkills.length && "Lĩnh vực nội dung / kỹ năng",
       !formData.experience && "Số năm kinh nghiệm",
       !formData.professionalExperience && "Kinh nghiệm làm việc",
     ].filter(Boolean) as string[];
@@ -1784,15 +1888,19 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       !hasVideos && "Video biểu diễn / catwalk",
     ].filter(Boolean) as string[];
 
-    const summaryRows = [
+    const basicSummaryRows = [
       { label: "Họ và tên", value: formData.name },
       { label: "Email liên hệ", value: formData.email },
       { label: "Giới tính", value: formData.gender },
-      { label: "Khu vực sinh sống", value: formData.location },
+      { label: "Khu vực làm việc", value: formData.location },
+      { label: "Số điện thoại", value: formData.phone },
+      { label: "Phí booking", value: formData.price },
+    ].filter((row) => row.value);
+
+    const careerSummaryRows = [
       { label: "Chiều cao", value: formData.height ? `${formData.height} cm` : "" },
       { label: "Cân nặng", value: formData.weight ? `${formData.weight} kg` : "" },
       { label: "Số đo 3 vòng", value: bodyMeasurements ? `${bodyMeasurements} cm` : "" },
-      { label: "Phí booking", value: formData.price },
       { label: "Số năm kinh nghiệm", value: formData.experience },
     ].filter((row) => row.value);
 
@@ -1803,7 +1911,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         missing: missingBasicFields,
         content: (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {summaryRows.slice(0, 7).map((row) => (
+            {basicSummaryRows.map((row) => (
               <div key={row.label} className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5 dark:border-white/5 dark:bg-[#03050c]/70">
                 <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">{row.label}</span>
                 <span className="mt-1 block text-sm font-bold text-[#191116] dark:text-slate-100">{row.value}</span>
@@ -1819,7 +1927,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         content: (
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {summaryRows.slice(7).map((row) => (
+              {careerSummaryRows.map((row) => (
                 <div key={row.label} className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3.5 dark:border-white/5 dark:bg-[#03050c]/70">
                   <span className="block text-[10px] font-black uppercase tracking-widest text-[#9A8B88] dark:text-slate-500">{row.label}</span>
                   <span className="mt-1 block text-sm font-bold text-[#191116] dark:text-slate-100">{row.value}</span>
@@ -1915,7 +2023,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       rel="noopener noreferrer"
                       className="rounded-xl border border-[#F0D7D3] bg-[#FFF7F6] p-3 transition-colors hover:border-[#8F0709]/40 hover:bg-[#FFF0EE] dark:border-white/5 dark:bg-[#03050c]/70 dark:hover:border-[#D4A64A]/30"
                     >
-                      <span className="block text-[10px] font-black uppercase tracking-widest text-[#8F0709] dark:text-[#F0C56B]">{account.platform}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="block text-[10px] font-black uppercase tracking-widest text-[#8F0709] dark:text-[#F0C56B]">{account.platform}</span>
+                        {typeof account.followers_count === "number" && account.followers_count > 0 && (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded-full">
+                            {account.followers_count.toLocaleString("vi-VN")} followers
+                          </span>
+                        )}
+                      </div>
                       <span className="mt-1 block truncate text-sm font-semibold text-[#191116] dark:text-slate-200">{account.url}</span>
                     </a>
                   ))}
@@ -2363,7 +2478,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
   }
 
   return (
-    <div className="relative min-h-dvh w-full overflow-visible rounded-none border-0 border-white/5 bg-[#070913]/95 p-4 shadow-2xl transition-all duration-500 md:min-h-0 md:overflow-hidden md:rounded-3xl md:border md:p-8">
+    <div className="relative min-h-dvh w-full max-w-5xl mx-auto overflow-visible rounded-none border-0 border-white/5 bg-white p-4 shadow-2xl transition-all duration-500 dark:bg-[#070913]/95 md:min-h-0 md:my-8 md:rounded-3xl md:border md:border-[#F0D7D3] dark:md:border-white/10 md:p-8">
 
       {/* Top ambient glow light */}
       <div className="absolute top-0 right-0 -z-10 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
@@ -2383,7 +2498,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               </span>
               <span className="min-w-0 text-xs font-black leading-snug text-white">
                 {step === 1 && "Thông tin cơ bản"}
-                {step === 2 && "Nghề nghiệp"}
+                {step === 2 && "Nghề nghiệp & Ngoại hình"}
                 {step === 3 && "Social & Portfolio"}
                 {step === MEDIA_SURVEY_STEP && "Hình ảnh & Video"}
                 {ORIENTATION_SURVEY_ENABLED && step === AI_SURVEY_STEP && "Khảo sát định hướng"}
@@ -2476,298 +2591,345 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 pb-24 text-left md:pb-0">
+      <form onSubmit={handleSubmit} className="space-y-6 pb-28 text-left md:pb-24">
 
         {step === 1 && (
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start animate-in fade-in duration-300">
-            {/* Left: Avatar Dropzone */}
-            <div className="md:col-span-4 flex flex-col items-center space-y-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-              <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider self-start dark:text-slate-300">Ảnh Đại Diện</span>
-
-              <div
-                onClick={() => handleFileUploadClick("avatar")}
-                className={cn(
-                  "w-full aspect-square max-w-[200px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative overflow-hidden group",
-                  mediaUploads.avatar
-                    ? "border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-500/10"
-                    : "border-[#F0D7D3] bg-[#FAF7F6] hover:border-[#8F0709] hover:bg-[#FFF0EE] dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-amber-400 dark:hover:bg-slate-900"
-                )}
-              >
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(event) => handleFileSelection("avatar", event)}
-                />
-                {avatarPreviewUrl && (
-                  <img
-                    src={avatarPreviewUrl}
-                    alt="Xem trước ảnh đại diện"
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                )}
-                {avatarPreviewUrl && <div className="absolute inset-0 bg-black/20" />}
-                {!avatarPreviewUrl && (
-                  <div className="relative z-10 text-center p-4">
-                    <Upload className="h-8 w-8 text-[#9A8B88] group-hover:text-[#8F0709] transition-colors mx-auto mb-2 dark:text-slate-400 dark:group-hover:text-amber-300" />
-                    <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold dark:text-slate-100">Tải ảnh lên</span>
-                    <span className="block text-[9px] md:text-[10px] text-[#9A8B88] mt-1 leading-normal dark:text-slate-400">PNG, JPG tối đa 5MB</span>
-                  </div>
-                )}
-              </div>
-              <p className="text-[11px] md:text-xs text-[#574D54] text-center font-medium dark:text-slate-400">Chọn ảnh rõ mặt, biểu cảm tự nhiên</p>
-            </div>
-
-            {/* Right: Inputs */}
-            <div className="md:col-span-8 space-y-4">
-              <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                <div className="col-span-2 space-y-1">
-                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Họ và tên <span className="text-[#8F0709] dark:text-amber-300">*</span></label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
-                    placeholder="Nhập họ và tên"
-                  />
-                </div>
-
-                <div className="col-span-2 space-y-1">
-                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Email liên hệ <span className="text-[#8F0709] dark:text-amber-300">*</span></label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    disabled={isAuthenticated}
-                    required
-                    className={cn(
-                      "w-full rounded-xl border border-[#F0D7D3] bg-white px-4 py-3 text-xs text-[#191116] font-semibold transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400",
-                      isAuthenticated
-                        ? "cursor-not-allowed opacity-70 bg-slate-50 dark:bg-slate-900/30"
-                        : "hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+          <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+              {/* Left: Avatar & Cover Dropzones */}
+              <div className="md:col-span-4 space-y-4">
+                {/* Avatar */}
+                <div className="flex flex-col items-center space-y-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  <div className="flex items-center justify-between w-full">
+                    <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
+                      Ảnh Đại Diện <span className="text-[#8F0709] dark:text-amber-300">*</span>
+                    </span>
+                    {!avatarPreviewUrl && !avatarFile && !mediaUploads.avatar && (
+                      <span className="text-[10px] font-bold text-[#8F0709] bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
+                        Bắt buộc
+                      </span>
                     )}
-                    placeholder="onstagevn-idol@gmail.com"
-                  />
-                </div>
+                  </div>
 
-                <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Giới tính</label>
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white px-4 py-3 text-xs font-semibold text-[#191116] transition-all hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                  <div
+                    onClick={() => handleFileUploadClick("avatar")}
+                    className={cn(
+                      "w-full aspect-square max-w-[200px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative overflow-hidden group",
+                      (avatarPreviewUrl || avatarFile || mediaUploads.avatar)
+                        ? "border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-500/10"
+                        : "border-[#F0D7D3] bg-[#FAF7F6] hover:border-[#8F0709] hover:bg-[#FFF0EE] dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-amber-400 dark:hover:bg-slate-900"
+                    )}
                   >
-                    <option value="Nữ" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Nữ</option>
-                    <option value="Nam" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Nam</option>
-                    <option value="Khác" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Khác</option>
-                  </select>
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => handleFileSelection("avatar", event)}
+                    />
+                    {avatarPreviewUrl ? (
+                      <>
+                        <img
+                          src={avatarPreviewUrl}
+                          alt="Xem trước ảnh đại diện"
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleClearUploadedFile("avatar");
+                          }}
+                          className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400 hover:bg-rose-600 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
+                          title="Xóa ảnh đại diện"
+                        >
+                          <Trash2 className="h-4 w-4 !text-white text-white" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleFileUploadClick("avatar");
+                          }}
+                          className="light-force-white absolute bottom-3 right-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-lg transition-all hover:brightness-110 active:scale-95 cursor-pointer dark:bg-[#F0C56B] dark:!text-slate-950 dark:text-slate-950"
+                          title="Đổi ảnh đại diện"
+                        >
+                          <Camera className="h-3.5 w-3.5 !text-white text-white dark:!text-slate-950 dark:text-slate-950" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="relative z-10 text-center p-4">
+                        <Upload className="h-8 w-8 text-[#9A8B88] group-hover:text-[#8F0709] transition-colors mx-auto mb-2 dark:text-slate-400 dark:group-hover:text-amber-300" />
+                        <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold dark:text-slate-100">Tải ảnh lên</span>
+                        <span className="block text-[9px] md:text-[10px] text-[#9A8B88] mt-1 leading-normal dark:text-slate-400">PNG, JPG tối đa 5MB</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[11px] md:text-xs text-[#574D54] text-center font-medium dark:text-slate-400">Chọn ảnh rõ mặt, biểu cảm tự nhiên</p>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Khu vực sinh sống</label>
-                  <SurveyCityCombobox
-                    value={formData.location}
-                    options={cityOptions}
-                    onChange={(location) => setFormData((prev) => ({ ...prev, location }))}
-                  />
-                </div>
-
-                <div className="col-span-2 space-y-1 md:col-span-1">
-                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Số điện thoại</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
-                    placeholder="0912345678"
-                  />
-                </div>
-
+                {/* Cover Image (Compact underneath avatar) */}
+                <SurveyImageUploadBlock
+                  label="ẢNH BÌA"
+                  placeholder="TẢI ẢNH BÌA"
+                  description="Ảnh banner ngang trang trí hồ sơ"
+                  previewUrl={coverPreviewUrl}
+                  containerClassName="p-4 space-y-3"
+                  aspectClassName="aspect-[21/9] w-full"
+                  onChange={(event) => handleSurveyImageSelection("cover", event)}
+                  onRemove={() => handleRemoveSurveyImage("cover")}
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                <div className="col-span-2">
-                  <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
-                    Ngoại hình
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Chiều cao (cm)</label>
-                  <input
-                    type="number"
-                    name="height"
-                    value={formData.height}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Cân nặng (kg)</label>
-                  <input
-                    type="number"
-                    name="weight"
-                    value={formData.weight}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
-                  />
-                </div>
-
-                <div className="col-span-2 space-y-1.5">
-                  <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider block dark:text-slate-300">Số đo 3 vòng (cm)</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="relative">
-                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V1</span>
-                      <input
-                        type="number"
-                        name="bust"
-                        value={formData.bust}
-                        onChange={handleInputChange}
-                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                      />
-                    </div>
-                    <div className="relative">
-                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V2</span>
-                      <input
-                        type="number"
-                        name="waist"
-                        value={formData.waist}
-                        onChange={handleInputChange}
-                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                      />
-                    </div>
-                    <div className="relative">
-                      <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V3</span>
-                      <input
-                        type="number"
-                        name="hips"
-                        value={formData.hips}
-                        onChange={handleInputChange}
-                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                      />
-                    </div>
+              {/* Right: Inputs */}
+              <div className="md:col-span-8 space-y-4">
+                <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  <div className="col-span-2 space-y-1">
+                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Họ và tên <span className="text-[#8F0709] dark:text-amber-300">*</span></label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
+                      placeholder="Nhập họ và tên"
+                    />
                   </div>
+
+                  <div className="col-span-2 space-y-1">
+                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Email liên hệ <span className="text-[#8F0709] dark:text-amber-300">*</span></label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      disabled={isAuthenticated}
+                      required
+                      className={cn(
+                        "w-full rounded-xl border border-[#F0D7D3] bg-white px-4 py-3 text-xs text-[#191116] font-semibold transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400",
+                        isAuthenticated
+                          ? "cursor-not-allowed opacity-70 bg-slate-50 dark:bg-slate-900/30"
+                          : "hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                      )}
+                      placeholder="onstagevn-idol@gmail.com"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Giới tính</label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white px-4 py-3 text-xs font-semibold text-[#191116] transition-all hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                    >
+                      <option value="Nữ" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Nữ</option>
+                      <option value="Nam" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Nam</option>
+                      <option value="Khác" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Khác</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Khu vực làm việc</label>
+                    <SurveyCityCombobox
+                      value={formData.location}
+                      options={cityOptions}
+                      onChange={(location) => setFormData((prev) => ({ ...prev, location }))}
+                    />
+                  </div>
+
+                  <div className="col-span-2 space-y-1 md:col-span-1">
+                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Số điện thoại</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
+                      placeholder="0912345678"
+                    />
+                  </div>
+
+                  <div className="col-span-2 space-y-1 md:col-span-1">
+                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
+                      Phí booking (VD: "5.000.000đ/ngày" hoặc "thỏa thuận")
+                    </label>
+                    <input
+                      type="text"
+                      name="price"
+                      value={formData.price}
+                      onChange={(e) => handlePriceChange(e.target.value)}
+                      placeholder="Nhập Phí booking dịch vụ của bạn..."
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
+                    />
+                  </div>
+
+                </div>
+
+                <div className="space-y-1.5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
+                    Nhập mô tả ngắn, một số kinh nghiệm của bạn
+
+                  </label>
+                  <textarea
+                    ref={experienceTextareaRef}
+                    name="professionalExperience"
+                    value={formData.professionalExperience}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                      autoResizeExperienceTextarea();
+                    }}
+                    onInput={autoResizeExperienceTextarea}
+                    onFocus={autoResizeExperienceTextarea}
+                    onKeyUp={autoResizeExperienceTextarea}
+                    placeholder="Ví dụ: Đã từng tham gia chụp lookbook, livestream bán hàng, làm mẫu ảnh, tham dự sự kiện..."
+                    className="w-full min-h-[100px] [field-sizing:content] overflow-hidden rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-medium text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-colors shadow-xs resize-none break-words whitespace-pre-wrap leading-relaxed dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-500 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                  />
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* STEP 2: PROFESSIONAL INFO */}
+        {/* STEP 2: PROFESSIONAL INFO & MEASUREMENTS */}
         {step === 2 && (
           <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto">
             <div className="py-3 md:py-5 space-y-6">
               <h3 className="font-display text-base font-black uppercase tracking-wider text-[#191116] dark:text-slate-300">
-                Thông tin nghề nghiệp
+                Thông tin nghề nghiệp & Ngoại hình
               </h3>
 
               <div className="grid grid-cols-1 gap-5">
-                <div className="space-y-1.5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                  <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
-                    Phí booking (VD: "5.000.000đ/ngày" hoặc "thỏa thuận")
-                  </label>
-                  <input
-                    type="text"
-                    name="price"
-                    value={formData.price}
-                    onChange={(e) => handlePriceChange(e.target.value)}
-                    placeholder="Nhập Phí booking dịch vụ của bạn..."
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-semibold text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-all shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                  />
-                </div>
+                {/* Row 1: Loại hình Idol */}
+                <TalentTypeSelector
+                  selectedTypes={formData.talentTypes}
+                  options={talentTypeOptions}
+                  onAddType={handleAddTalentType}
+                  onRemoveType={handleRemoveTalentType}
+                />
 
-                <div className="space-y-5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                  <div className="space-y-3">
-                    <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
-                      Loại hình Idol
-                    </label>
-                    <SurveyOptionCombobox
-                      value=""
-                      placeholder="Thêm loại hình Idol..."
-                      options={talentTypeOptions.filter((type) => !formData.talentTypes.includes(type))}
-                      onChange={handleAddTalentType}
-                    />
-                    <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60">
-                      {formData.talentTypes.length === 0 ? (
-                        <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
-                          <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa chọn loại hình nào
-                        </span>
-                      ) : (
-                        formData.talentTypes.map((type) => (
-                          <span key={type} className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
-                            {type}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTalentType(type)}
-                              className="text-[#9A8B88] hover:text-rose-600 cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </span>
-                        ))
-                      )}
-                    </div>
+                {/* Row 2: Ngoại hình */}
+                <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  <div className="col-span-2">
+                    <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
+                      Ngoại hình
+                    </span>
                   </div>
 
-                  <div className="space-y-3 border-t border-[#F0D7D3] pt-4 dark:border-white/10">
-                    <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
-                      Lĩnh vực nội dung / kỹ năng chuyên sâu
-                    </label>
-                    <SurveyOptionCombobox
-                      value=""
-                      placeholder="Thêm lĩnh vực / kỹ năng..."
-                      options={flattenTalentPresetOptions(SPECIALTY_PRESET_GROUPS, formData.talentTypes).filter((skill) => !splitSkillValues(formData.skills).includes(skill))}
-                      onChange={handleAddContentSkill}
+                  <div className="space-y-1">
+                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Chiều cao (cm)</label>
+                    <input
+                      type="number"
+                      name="height"
+                      value={formData.height}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
                     />
-                    <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
-                      <input
-                        type="text"
-                        value={skillInput}
-                        onChange={(event) => setSkillInput(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            event.preventDefault();
-                            handleAddContentSkill(skillInput);
-                          }
-                        }}
-                        placeholder="Nhập lĩnh vực khác nếu chưa có trong danh sách"
-                        className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none md:col-span-9 dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleAddContentSkill(skillInput)}
-                        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all md:col-span-3 dark:bg-gradient-gold dark:text-slate-950"
-                      >
-                        <Plus className="h-4 w-4" /> Thêm
-                      </button>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Cân nặng (kg)</label>
+                    <input
+                      type="number"
+                      name="weight"
+                      value={formData.weight}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
+                    />
+                  </div>
+
+                  <div className="col-span-2 space-y-1.5">
+                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider block dark:text-slate-300">Số đo 3 vòng (cm)</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="relative">
+                        <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V1</span>
+                        <input
+                          type="number"
+                          name="bust"
+                          value={formData.bust}
+                          onChange={handleInputChange}
+                          className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                        />
+                      </div>
+                      <div className="relative">
+                        <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V2</span>
+                        <input
+                          type="number"
+                          name="waist"
+                          value={formData.waist}
+                          onChange={handleInputChange}
+                          className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                        />
+                      </div>
+                      <div className="relative">
+                        <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V3</span>
+                        <input
+                          type="number"
+                          name="hips"
+                          value={formData.hips}
+                          onChange={handleInputChange}
+                          className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                        />
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60">
-                      {splitSkillValues(formData.skills).length === 0 ? (
-                        <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
-                          <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm lĩnh vực nào
+                  </div>
+                </div>
+
+                {/* Row 3: Lĩnh vực chuyên sâu */}
+                <div className="space-y-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
+                    Lĩnh vực nội dung / kỹ năng chuyên sâu
+                  </label>
+                  <SurveyOptionCombobox
+                    value=""
+                    placeholder="Thêm lĩnh vực / kỹ năng..."
+                    options={flattenTalentPresetOptions(SPECIALTY_PRESET_GROUPS, formData.talentTypes).filter((skill) => !splitSkillValues(formData.skills).includes(skill))}
+                    onChange={handleAddContentSkill}
+                  />
+                  <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                    <input
+                      type="text"
+                      value={skillInput}
+                      onChange={(event) => setSkillInput(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          handleAddContentSkill(skillInput);
+                        }
+                      }}
+                      placeholder="Nhập lĩnh vực khác nếu chưa có trong danh sách"
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none md:col-span-9 dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAddContentSkill(skillInput)}
+                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all md:col-span-3 dark:bg-gradient-gold dark:text-slate-950"
+                    >
+                      <Plus className="h-4 w-4" /> Thêm
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60">
+                    {splitSkillValues(formData.skills).length === 0 ? (
+                      <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
+                        <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm lĩnh vực nào
+                      </span>
+                    ) : (
+                      splitSkillValues(formData.skills).map((skill) => (
+                        <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveContentSkill(skill)}
+                            className="text-[#9A8B88] hover:text-rose-600 cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </span>
-                      ) : (
-                        splitSkillValues(formData.skills).map((skill) => (
-                          <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
-                            {skill}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveContentSkill(skill)}
-                              className="text-[#9A8B88] hover:text-rose-600 cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </span>
-                        ))
-                      )}
-                    </div>
+                      ))
+                    )}
                   </div>
                 </div>
 
@@ -2783,20 +2945,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     value={formData.experience}
                     onChange={handleInputChange}
                     className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-semibold text-[#191116] focus:outline-none focus:border-[#8F0709] transition-all shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                  />
-                </div>
-
-                <div className="space-y-1.5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                  <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
-                    Nhập một số kinh nghiệm của bạn
-                  </label>
-                  <textarea
-                    name="professionalExperience"
-                    value={formData.professionalExperience}
-                    onChange={handleInputChange}
-                    rows={5}
-                    placeholder="Ví dụ: Đã từng tham gia chụp lookbook, livestream bán hàng, làm mẫu ảnh, tham dự sự kiện..."
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-medium text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-colors shadow-xs resize-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-500 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                   />
                 </div>
               </div>
@@ -2936,8 +3084,15 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     {socialAccounts.map((account, index) => (
                       <div key={`${account.platform}-${account.url}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] px-3.5 py-2.5 shadow-xs dark:border-white/20 dark:bg-slate-900/60">
                         <div className="min-w-0 flex-1">
-                          <span className="block text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-400">{account.platform}</span>
-                          <a href={account.url} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-[#191116] hover:text-[#8F0709] hover:underline dark:text-slate-200 dark:hover:text-white" title={account.url}>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="block text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-400">{account.platform}</span>
+                            {typeof account.followers_count === "number" && account.followers_count > 0 && (
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded-full">
+                                {account.followers_count.toLocaleString("vi-VN")} followers
+                              </span>
+                            )}
+                          </div>
+                          <a href={account.url} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-[#191116] hover:text-[#8F0709] hover:underline dark:text-slate-200 dark:hover:text-white mt-0.5" title={account.url}>
                             {getSocialHandle(account.url, account.platform)}
                           </a>
                         </div>
@@ -2970,7 +3125,7 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     <option value="Thread" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Thread</option>
                   </select>
                 </div>
-                <div className="space-y-1.5 md:col-span-6">
+                <div className="space-y-1.5 md:col-span-4">
                   <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Đường dẫn (Link)</span>
                   <input
                     type="url"
@@ -2986,13 +3141,32 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                     className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                   />
                 </div>
-                <div className="md:col-span-3">
+                <div className="space-y-1.5 md:col-span-3">
+                  <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Số followers</span>
+                  <input
+                    type="text"
+                    value={socialFollowersInput}
+                    onChange={(event) => {
+                      const val = event.target.value.replace(/\D/g, "");
+                      setSocialFollowersInput(val ? Number(val).toLocaleString("vi-VN") : "");
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleAddSocialAccount();
+                      }
+                    }}
+                    placeholder="VD: 50.000"
+                    className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                  />
+                </div>
+                <div className="md:col-span-2">
                   <button
                     type="button"
                     onClick={handleAddSocialAccount}
-                    className="flex w-full shrink-0 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all dark:bg-gradient-gold dark:text-slate-950"
+                    className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all dark:bg-gradient-gold dark:text-slate-950"
                   >
-                    Thêm
+                    <Plus className="h-4 w-4" /> Thêm
                   </button>
                 </div>
               </div>
@@ -3003,16 +3177,6 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
         {/* STEP 4: PHOTOS & VIDEOS */}
         {step === MEDIA_SURVEY_STEP && (
           <div className="animate-in fade-in duration-300 w-full max-w-5xl mx-auto space-y-6">
-            <SurveyImageUploadBlock
-              label="ẢNH BÌA"
-              placeholder="TẢI ẢNH BÌA"
-              description="Ảnh banner ngang trang trí đầu hồ sơ cá nhân"
-              previewUrl={coverPreviewUrl}
-              aspectClassName="h-44 sm:h-56 md:h-64 w-full"
-              onChange={(event) => handleSurveyImageSelection("cover", event)}
-              onRemove={() => handleRemoveSurveyImage("cover")}
-            />
-
             <SurveyImageUploadBlock
               label="ẢNH TOÀN THÂN"
               placeholder="TẢI ẢNH LÊN"
@@ -3564,40 +3728,42 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
           </div>
         )}
 
-        {/* Global Navigation Action Bar (Except Step 4 which has its own) */}
+        {/* Global Navigation Action Bar */}
         {step <= SURVEY_STEP_COUNT && (
-          <div className="fixed inset-x-0 bottom-0 z-40 flex gap-3 border-t border-white/10 bg-[#070913]/98 px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-4 shadow-[0_-14px_30px_rgba(0,0,0,0.55)] backdrop-blur-xl md:static md:border-t md:bg-transparent md:px-0 md:pb-0 md:pt-5 md:shadow-none md:backdrop-blur-none">
-            {step > 1 && (
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#F0D7D3] bg-white/95 px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-3.5 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#070913]/95 dark:shadow-[0_-14px_30px_rgba(0,0,0,0.55)] md:py-4">
+            <div className="mx-auto flex w-full max-w-5xl items-center gap-3">
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  className="flex h-11 flex-1 cursor-pointer items-center justify-center rounded-xl border border-[#F0D7D3] bg-white font-display text-xs font-bold text-[#574D54] transition-all hover:border-[#8F0709]/40 hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:border-white/20 dark:bg-white/5 dark:text-slate-200 dark:hover:border-amber-400/50 dark:hover:text-amber-300 md:text-[13px]"
+                >
+                  <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> Quay Lại
+                </button>
+              )}
+
               <button
                 type="button"
-                onClick={prevStep}
-                className="flex h-11 flex-1 items-center justify-center rounded-xl border border-white/20 bg-transparent font-display text-xs md:text-[13px] font-bold text-slate-200 hover:text-amber-300 hover:border-amber-400/50 hover:bg-white/5 transition-all cursor-pointer"
+                onClick={nextStep}
+                disabled={!isStepValid() || isCreatingGuestAccount}
+                className={cn(
+                  "flex h-11 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl font-display text-xs font-black transition-all shadow-md md:text-[13px]",
+                  isStepValid() && !isCreatingGuestAccount
+                    ? "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white !text-white hover:brightness-110 dark:from-amber-300 dark:to-yellow-500 dark:!text-slate-950"
+                    : "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400 dark:border-white/10 dark:bg-[#131936] dark:text-slate-500"
+                )}
               >
-                <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> Quay Lại
+                {isCreatingGuestAccount ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tạo tài khoản...
+                  </>
+                ) : (
+                  <>
+                    {step === SURVEY_STEP_COUNT ? "Hoàn tất" : "Tiếp tục"} <ArrowRight className="h-3.5 w-3.5" />
+                  </>
+                )}
               </button>
-            )}
-
-            <button
-              type="button"
-              onClick={nextStep}
-              disabled={!isStepValid() || isCreatingGuestAccount}
-              className={cn(
-                "flex h-11 flex-1 items-center justify-center rounded-xl font-display text-xs md:text-[13px] font-black transition-all gap-1.5 cursor-pointer shadow-md",
-                isStepValid() && !isCreatingGuestAccount
-                  ? "bg-gradient-to-r from-amber-300 to-yellow-500 text-slate-950 hover:brightness-110"
-                  : "bg-[#131936] text-slate-450 border border-white/10 cursor-not-allowed"
-              )}
-            >
-              {isCreatingGuestAccount ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tạo tài khoản...
-                </>
-              ) : (
-                <>
-                  {step === SURVEY_STEP_COUNT ? "Hoàn tất" : "Tiếp tục"} <ArrowRight className="h-3.5 w-3.5" />
-                </>
-              )}
-            </button>
+            </div>
           </div>
         )}
 
@@ -3618,17 +3784,17 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
       )}
 
       {showCancelSurveyDialog && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 px-4 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-sm rounded-3xl border border-amber-400/30 bg-[#090a14] p-6 text-left shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-in fade-in duration-200 dark:bg-black/80">
+          <div className="w-full max-w-sm rounded-3xl border border-[#F0D7D3] bg-white p-6 text-left shadow-2xl dark:border-amber-400/30 dark:bg-[#090a14] dark:shadow-[0_0_50px_rgba(0,0,0,0.8)]">
             <div className="mb-6 flex items-start gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-400/40 bg-amber-400/10 text-amber-300">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-300">
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div className="pt-0.5">
-                <h3 className="font-display text-base font-black uppercase tracking-wider text-white">
+                <h3 className="font-display text-base font-black uppercase tracking-wider text-[#191116] dark:text-white">
                   Dừng hoàn thiện hồ sơ?
                 </h3>
-                <p className="mt-1.5 text-xs font-medium leading-relaxed text-slate-300">
+                <p className="mt-1.5 text-xs font-medium leading-relaxed text-[#574D54] dark:text-slate-300">
                   Các thông tin hồ sơ chưa hoàn tất sẽ không được lưu. Bạn có muốn dừng lại không?
                 </p>
               </div>
@@ -3638,14 +3804,14 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
               <button
                 type="button"
                 onClick={() => setShowCancelSurveyDialog(false)}
-                className="flex h-12 w-full items-center justify-center rounded-full border border-white/20 bg-transparent text-xs font-black uppercase tracking-wider text-slate-100 transition-all hover:bg-white/10 active:scale-98 cursor-pointer"
+                className="flex h-12 w-full items-center justify-center rounded-full border border-[#F0D7D3] bg-transparent text-xs font-black uppercase tracking-wider text-[#574D54] transition-all hover:bg-[#FAECEA] hover:text-[#191116] active:scale-98 cursor-pointer dark:border-white/20 dark:text-slate-100 dark:hover:bg-white/10"
               >
                 Tiếp tục điền hồ sơ
               </button>
               <button
                 type="button"
                 onClick={handleStopSurvey}
-                className="flex h-12 w-full items-center justify-center rounded-full bg-[#F5C400] text-xs font-black uppercase tracking-wider text-slate-950 transition-all hover:brightness-110 active:scale-98 cursor-pointer shadow-md"
+                className="flex h-12 w-full items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-xs font-black uppercase tracking-wider text-white !text-white light-force-white transition-all hover:brightness-110 active:scale-98 cursor-pointer shadow-md dark:from-amber-400 dark:to-yellow-500 dark:!text-slate-950"
               >
                 Dừng lại
               </button>

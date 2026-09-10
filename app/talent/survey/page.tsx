@@ -89,19 +89,19 @@ export default function SurveyPage() {
       icon: User,
       title: "Thông tin cơ bản",
       items: [
-        "Họ tên, email liên hệ, ảnh đại diện",
-        "Giới tính, khu vực sinh sống",
-        "Các chỉ số ngoại hình",
+        "Ảnh đại diện (bắt buộc) & ảnh bìa",
+        "Họ tên, email, giới tính, khu vực",
+        "Số điện thoại, phí booking & kinh nghiệm",
       ],
     },
     {
       number: "02",
       icon: BriefcaseBusiness,
-      title: "Nghề nghiệp",
+      title: "Nghề nghiệp & Ngoại hình",
       items: [
-        "Phí booking và loại hình Idol",
-        "Lĩnh vực nội dung / kỹ năng chuyên sâu",
-        "Số năm kinh nghiệm và mô tả kinh nghiệm",
+        "Loại hình Idol & kỹ năng chuyên sâu",
+        "Số năm kinh nghiệm làm việc",
+        "Chiều cao, cân nặng & số đo 3 vòng",
       ],
     },
     {
@@ -119,7 +119,7 @@ export default function SurveyPage() {
       icon: ImageIcon,
       title: "Hình ảnh & video",
       items: [
-        "Ảnh bìa và ảnh toàn thân",
+        "Ảnh chụp toàn thân tỷ lệ 3:4",
         "Bộ sưu tập ảnh mẫu (Lookbook)",
         "Video giới thiệu, catwalk hoặc viral clip",
       ],

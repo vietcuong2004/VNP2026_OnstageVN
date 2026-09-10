@@ -144,7 +144,7 @@ Các trường:
 
 - Họ tên.
 - Năm sinh.
-- Khu vực sinh sống.
+- Khu vực làm việc.
 - Quê quán.
 - Số điện thoại.
 - Email.

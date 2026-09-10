@@ -61,7 +61,7 @@ type Step3ProfileSaveInput = {
   mediaUploads: Step3MediaUploads;
   socialHighlights: string[];
   portfolioLinks: string[];
-  socialAccounts: { platform: string; url: string }[];
+  socialAccounts: { platform: string; url: string; followers_count?: number }[];
   guestAccountReady: boolean;
 };
 

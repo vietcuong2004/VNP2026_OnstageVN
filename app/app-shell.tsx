@@ -96,7 +96,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isBookingTalent = pathname ? pathname.endsWith("/booking-talent") : false;
   const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
   const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs || isBooking;
-  const hideChrome = isBrandJobEditor || isBooking;
+  const hideChrome = isBrandJobEditor || isBooking || isTalentSurveyForm;
 
   useEffect(() => {
     if (isBrandTalentDetail) {
@@ -158,13 +158,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex-1",
                   isMessages || isBrandJobEditor || isBooking ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden",
-                  isStandalonePublic || isMessages || isDiscoverHome || isAbout || isTalentSurvey || isBrandJobEditor || isBooking
+                  isStandalonePublic || isMessages || isDiscoverHome || isAbout || (isTalentSurvey && isTalentSurveyForm) || isBrandJobEditor || isBooking
                     ? "p-0"
                     : cn(
                       "px-4 py-5 md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 pb-20 md:pb-8",
                       (isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs) && "pt-0 md:pt-7"
                     ),
-                  isTalentSurvey && "md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 md:pb-8"
+                  isTalentSurvey && !isTalentSurveyForm && "md:px-8 md:py-7 lg:px-10 lg:py-8 2xl:px-12 md:pb-8"
                 )}
               >
                 <div
