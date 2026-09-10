@@ -1384,9 +1384,9 @@ export default function BrandTalentProfilePage() {
   useEffect(() => {
     const talentName = profile?.name || talent?.name;
     if (talentName) {
-      document.title = `Onstage VN - ${talentName}`;
+      document.title = `${talentName} - OnstageVN`;
     } else {
-      document.title = "Onstage VN - Chi tiết Idol";
+      document.title = "OnstageVN - Chi tiết Idol";
     }
   }, [profile?.name, talent?.name]);
 

@@ -137,8 +137,10 @@ export async function generateTalentProfileMetadata(id: string): Promise<Metadat
     || "Idol";
   const talentName = repairMojibake(rawName).trim() || "Idol";
 
-  // 2. Metadata Title: "Hồ sơ idol <tên idol> | OnstageVN"
-  const title = `Hồ sơ idol ${talentName} | OnstageVN`;
+  // 2. Metadata Title: "<tên idol> - OnstageVN" (Ví dụ: "Trần Ngọc Diệp - OnstageVN")
+  const title = talentName && talentName !== "Idol"
+    ? `${talentName} - OnstageVN`
+    : "Idol - OnstageVN";
 
   // 3. Meta Description: bio của profile
   const rawBio = profile?.bio || profile?.experience || staticFallback?.experience || "";

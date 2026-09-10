@@ -21,7 +21,7 @@ export default function TalentBookingPage() {
         if (loaded) {
           setTalent(loaded);
           if (loaded.name) {
-            document.title = `Onstage VN - ${loaded.name}`;
+            document.title = `${loaded.name} - OnstageVN`;
           }
         }
         setLoading(false);
