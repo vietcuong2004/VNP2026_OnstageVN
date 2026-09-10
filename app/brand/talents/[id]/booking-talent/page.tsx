@@ -20,7 +20,8 @@ export default function TalentBookingPage() {
       if (!cancelled) {
         if (loaded) {
           setTalent(loaded);
-          if (loaded.name) {
+          const isPlaceholder = !loaded.name || ["idol", "talent"].includes(loaded.name.trim().toLowerCase());
+          if (loaded.name && !isPlaceholder) {
             document.title = `${loaded.name} - OnstageVN`;
           }
         }

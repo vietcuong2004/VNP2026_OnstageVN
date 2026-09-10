@@ -81,7 +81,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isMessages = pathname?.endsWith("/messages") ?? false;
   const isDiscoverHome = pathname === "/";
   const isAbout = pathname === "/about";
-  const isBrandTalentDetail = pathname ? /^\/brand\/talents\/[^/]+$/.test(pathname) : false;
+  const isBrandTalentDetail = pathname ? /^\/brand\/talents\/[^/]+/.test(pathname) : false;
   const isTalentJobDetail = pathname ? /^\/talent\/jobs\/[^/]+$/.test(pathname) && pathname !== "/talent/jobs/saved-jobs" : false;
   const isTalentSurvey = pathname === "/talent/survey";
   const isBrandSearch = pathname === "/brand/search";

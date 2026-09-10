@@ -40,6 +40,7 @@ import {
   BookmarkCheck,
   ExternalLink,
   CalendarCheck,
+  Share2,
   ShoppingBag,
   Flame,
   Zap,
@@ -1384,11 +1385,10 @@ export default function BrandTalentProfilePage() {
   }, [talent]);
 
   useEffect(() => {
-    const talentName = profile?.name || talent?.name;
-    if (talentName) {
-      document.title = `${talentName} - OnstageVN`;
-    } else {
-      document.title = "OnstageVN - Chi tiết Idol";
+    const rawTalentName = profile?.name || talent?.name;
+    const isPlaceholder = !rawTalentName || ["idol", "talent"].includes(rawTalentName.trim().toLowerCase());
+    if (rawTalentName && !isPlaceholder) {
+      document.title = `${rawTalentName} - OnstageVN`;
     }
   }, [profile?.name, talent?.name]);
 
@@ -1572,6 +1572,35 @@ export default function BrandTalentProfilePage() {
     }
   }
 
+  async function handleShare() {
+    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : "";
+    const shareData = {
+      title: talent?.name ? `${talent.name} - Onstage` : "Hồ sơ Idol - Onstage",
+      text: `Xem hồ sơ của ${talent?.name || "Idol"} trên Onstage`,
+      url: shareUrl,
+    };
+
+    if (typeof navigator !== "undefined" && navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+      }
+    }
+
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(shareUrl);
+        pushToast("Đã sao chép liên kết chia sẻ vào bộ nhớ tạm!", "success");
+      } else {
+        pushToast("Không thể sao chép liên kết", "error");
+      }
+    } catch {
+      pushToast("Không thể sao chép liên kết", "error");
+    }
+  }
+
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-500">
 
@@ -1607,16 +1636,16 @@ export default function BrandTalentProfilePage() {
           {isDropdownOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-              <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-[#E8C8C2] bg-white/95 backdrop-blur-md p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200 dark:border-white/5 dark:bg-[#0c1120]/95">
+              <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-[#E8C8C2] bg-white p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200 dark:border-white/10 dark:bg-[#171A21]">
                 <button
                   onClick={() => {
                     setIsDropdownOpen(false);
                     handleAddToBrand();
                   }}
                   disabled={isAddingToBrand || isAddedToBrand || isOwnProfile}
-                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white cursor-pointer"
                 >
-                  <Users className="h-4 w-4 text-amber-400" />
+                  <Users className="h-4 w-4 shrink-0 text-[#8F0709] dark:text-[#C9A86A]" />
                   <span>{isAddedToBrand ? "Đã thêm vào danh sách quản lý" : "Thêm vào danh sách quản lý"}</span>
                 </button>
 
@@ -1627,9 +1656,9 @@ export default function BrandTalentProfilePage() {
                     router.push(`/booking?talentId=${encodeURIComponent(String(params.id))}`);
                   }}
                   disabled={isOwnProfile}
-                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white cursor-pointer"
                 >
-                  <CalendarCheck className="h-4 w-4 text-amber-400" />
+                  <CalendarCheck className="h-4 w-4 shrink-0 text-[#8F0709] dark:text-[#C9A86A]" />
                   <span>Đặt ngay</span>
                 </button>
 
@@ -1639,19 +1668,30 @@ export default function BrandTalentProfilePage() {
                     handleAddToWishlist();
                   }}
                   disabled={isOwnProfile}
-                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white"
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white cursor-pointer"
                 >
                   {isInWishlist ? (
                     <>
-                      <BookmarkCheck className="h-4 w-4 text-amber-400" />
+                      <BookmarkCheck className="h-4 w-4 shrink-0 text-[#8F0709] dark:text-[#C9A86A]" />
                       <span>Xóa khỏi "Idol đã lưu"</span>
                     </>
                   ) : (
                     <>
-                      <Heart className="h-4 w-4 text-amber-400" />
+                      <Heart className="h-4 w-4 shrink-0 text-[#8F0709] dark:text-[#C9A86A]" />
                       <span>Lưu thông tin</span>
                     </>
                   )}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    handleShare();
+                  }}
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#574D54] hover:bg-[#FFF3F1] hover:text-[#8F0709] transition duration-200 text-left dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white cursor-pointer"
+                >
+                  <Share2 className="h-4 w-4 shrink-0 text-[#8F0709] dark:text-[#C9A86A]" />
+                  <span>Chia sẻ</span>
                 </button>
               </div>
             </>
@@ -2040,7 +2080,6 @@ export default function BrandTalentProfilePage() {
                 </div>
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#08090f] via-transparent to-transparent opacity-80 pointer-events-none" />
           </div>
         </div>
 
@@ -2079,7 +2118,6 @@ export default function BrandTalentProfilePage() {
                       alt={img.label}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85" />
                   </div>
                 </div>
               ))}

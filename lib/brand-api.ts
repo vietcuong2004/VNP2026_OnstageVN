@@ -773,7 +773,20 @@ function mapBackendTalent(profile: BackendProfile, fallback?: TalentProfile): Ta
   const measurements = parseMeasurements(profile.measurements);
   const followersCount = sumFollowers(profile) || fallback?.followersCount || 0;
   const engagementRate = avgEngagement(profile) || fallback?.engagementRate || 0;
-  const displayName = String(repairMojibake(profile.user?.name || profile.display_name || profile.full_name || fallback?.name || "Talent"));
+  const isPlaceholderName = (val?: string | null) => {
+    const n = String(val || "").trim().toLowerCase();
+    return !n || n === "talent" || n === "idol" || n === "nguyễn mai anh";
+  };
+  const rawDisplayName = (!isPlaceholderName(profile.display_name) ? profile.display_name : null)
+    || (!isPlaceholderName(profile.user?.name) ? profile.user?.name : null)
+    || (!isPlaceholderName(profile.full_name) ? profile.full_name : null)
+    || (!isPlaceholderName(fallback?.name) ? fallback?.name : null)
+    || profile.display_name
+    || profile.user?.name
+    || profile.full_name
+    || fallback?.name
+    || "Idol";
+  const displayName = String(repairMojibake(rawDisplayName));
   const rawAvatar = profileAvatarFromBackend(profile)
     || normalizeBackendAssetUrl(profile.avatar_url)
     || normalizeBackendAssetUrl(profile.user?.external_avatar_url)

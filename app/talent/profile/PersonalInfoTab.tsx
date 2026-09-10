@@ -2221,7 +2221,6 @@ export default function PersonalInfoTab({
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
                   onClick={() => onPreviewImage?.(normalizeBackendAssetUrl(img.url))}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent pointer-events-none" />
 
                 <button
                   type="button"
