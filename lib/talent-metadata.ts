@@ -130,17 +130,25 @@ export async function generateTalentProfileMetadata(id: string): Promise<Metadat
   }
 
   // 1. Tên idol (profiles.display_name prioritized)
-  const rawName = profile?.display_name
+  const isPlaceholder = (val?: string | null) => {
+    const n = String(val || "").trim().toLowerCase();
+    return !n || n === "talent" || n === "idol" || n === "nguyễn mai anh";
+  };
+  const rawName = (!isPlaceholder(profile?.display_name) ? profile?.display_name : null)
+    || (!isPlaceholder(profile?.user?.name) ? profile?.user?.name : null)
+    || (!isPlaceholder(profile?.full_name) ? profile?.full_name : null)
+    || (!isPlaceholder(staticFallback?.name) ? staticFallback?.name : null)
+    || profile?.display_name
     || profile?.user?.name
     || profile?.full_name
     || staticFallback?.name
-    || "Idol";
-  const talentName = repairMojibake(rawName).trim() || "Idol";
+    || "";
+  const talentName = repairMojibake(rawName).trim();
 
   // 2. Metadata Title: "<tên idol> - OnstageVN" (Ví dụ: "Trần Ngọc Diệp - OnstageVN")
-  const title = talentName && talentName !== "Idol"
+  const title = talentName && !isPlaceholder(talentName)
     ? `${talentName} - OnstageVN`
-    : "Idol - OnstageVN";
+    : "OnstageVN - Chi tiết Idol";
 
   // 3. Meta Description: bio của profile
   const rawBio = profile?.bio || profile?.experience || staticFallback?.experience || "";
