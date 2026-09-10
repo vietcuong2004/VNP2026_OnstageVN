@@ -21,9 +21,9 @@ export default function TalentBookingPage() {
         if (loaded) {
           setTalent(loaded);
           const isPlaceholder = !loaded.name || ["idol", "talent"].includes(loaded.name.trim().toLowerCase());
-          document.title = (loaded.name && !isPlaceholder)
-            ? `${loaded.name} - OnstageVN`
-            : "OnstageVN - Đặt dịch vụ Idol";
+          if (loaded.name && !isPlaceholder) {
+            document.title = `${loaded.name} - OnstageVN`;
+          }
         }
         setLoading(false);
       }

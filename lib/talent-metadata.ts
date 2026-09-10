@@ -13,30 +13,36 @@ function getApiEndpoints(id: string): string[] {
   const internalApi = process.env.INTERNAL_API_URL || process.env.BACKEND_API_URL;
   if (internalApi && internalApi.startsWith("http")) {
     urls.push(`${internalApi.replace(/\/$/, "")}/talents/${cleanId}`);
+    urls.push(`${internalApi.replace(/\/$/, "")}/api/talents/${cleanId}`);
   }
 
   const proxyTarget = process.env.API_PROXY_TARGET;
   if (proxyTarget && proxyTarget.startsWith("http")) {
     urls.push(`${proxyTarget.replace(/\/$/, "")}/api/talents/${cleanId}`);
+    urls.push(`${proxyTarget.replace(/\/$/, "")}/talents/${cleanId}`);
   }
 
   const publicApi = process.env.NEXT_PUBLIC_API_URL;
   if (publicApi && publicApi.startsWith("http")) {
     urls.push(`${publicApi.replace(/\/$/, "")}/talents/${cleanId}`);
+    urls.push(`${publicApi.replace(/\/$/, "")}/api/talents/${cleanId}`);
   }
 
   const siteUrl = getSiteBaseUrl();
   urls.push(`${siteUrl}/api/talents/${cleanId}`);
   urls.push(`https://api.onstage.vn/api/talents/${cleanId}`);
   urls.push(`https://onstage.vn/api/talents/${cleanId}`);
+  urls.push(`http://127.0.0.1:8000/api/talents/${cleanId}`);
   urls.push(`http://127.0.0.1:8080/api/talents/${cleanId}`);
+  urls.push(`http://localhost:8000/api/talents/${cleanId}`);
+  urls.push(`http://localhost:8080/api/talents/${cleanId}`);
 
   return Array.from(new Set(urls));
 }
 
 function normalizeAbsoluteImageUrl(url?: string | null): string {
   const siteUrl = getSiteBaseUrl();
-  const defaultFallback = `${siteUrl}/og_job_banner_default.png`;
+  const defaultFallback = `${siteUrl}/discovery-idols-light.jpg`;
   if (!url || typeof url !== "string") return defaultFallback;
 
   let trimmed = url.trim();
@@ -153,44 +159,47 @@ export async function generateTalentProfileMetadata(id: string): Promise<Metadat
   // 3. Meta Description: bio của profile
   const rawBio = profile?.bio || profile?.experience || staticFallback?.experience || "";
   const cleanBio = repairMojibake(rawBio).replace(/\s+/g, " ").trim();
+  const nameForDesc = talentName && !isPlaceholder(talentName) ? talentName : "Idol";
   const description = cleanBio && cleanBio.length > 0
     ? (cleanBio.length > 250 ? `${cleanBio.slice(0, 247)}...` : cleanBio)
-    : `Xem thông tin chi tiết hồ sơ, hình ảnh, video và đặt lịch biểu diễn cùng ${talentName} trên OnstageVN.`;
+    : `Xem thông tin chi tiết hồ sơ, hình ảnh, video và đặt lịch biểu diễn cùng ${nameForDesc} trên OnstageVN.`;
 
   // 4. Meta Image: cover image từ bảng photos
   const photos = Array.isArray(profile?.photos) ? profile.photos : [];
   
+  const getPhotoUrl = (p: any): string => {
+    if (!p) return "";
+    if (typeof p === "string") return p;
+    return p?.url || p?.path || p?.thumbnail_url || "";
+  };
+
   // Ưu tiên ảnh category cover hoặc có cờ is_cover
-  const coverPhotoObj = [...photos].reverse().find((p: any) => 
-    p?.category === "cover" || p?.is_cover === true || p?.is_cover === 1 || p?.is_cover === "1"
+  const coverPhotoObj = photos.find((p: any) => 
+    typeof p === "object" && (p?.category === "cover" || p?.is_cover === true || p?.is_cover === 1 || p?.is_cover === "1")
   );
   
   // Fallback sang lookbook / full_body
-  const lookbookPhotoObj = [...photos].reverse().find((p: any) => 
-    p?.category === "lookbook" || p?.category === "full_body"
-  );
-
-  // Fallback sang ảnh khác bất kỳ (không phải avatar nếu có nhiều ảnh)
-  const nonAvatarPhotoObj = [...photos].reverse().find((p: any) => 
-    p?.category !== "avatar"
+  const lookbookPhotoObj = photos.find((p: any) => 
+    typeof p === "object" && (p?.category === "lookbook" || p?.category === "full_body")
   );
 
   // Fallback sang avatar hoặc ảnh đầu tiên
-  const primaryPhotoObj = photos.find((p: any) => p?.is_primary) || photos[0];
+  const primaryPhotoObj = photos.find((p: any) => typeof p === "object" && p?.is_primary) || photos[0];
 
-  const selectedPhotoObj = coverPhotoObj || lookbookPhotoObj || nonAvatarPhotoObj || primaryPhotoObj;
-
-  const rawCoverUrl = selectedPhotoObj?.url
-    || selectedPhotoObj?.path
+  const rawCoverUrl = getPhotoUrl(coverPhotoObj)
+    || getPhotoUrl(lookbookPhotoObj)
+    || getPhotoUrl(primaryPhotoObj)
     || profile?.cover_photo_url
     || profile?.cover_photo
     || profile?.cover_url
     || profile?.cover
     || profile?.avatar_url
+    || profile?.avatar
     || profile?.user?.external_avatar_url
+    || profile?.user?.avatar
     || staticFallback?.cover
     || staticFallback?.avatar
-    || "/og_job_banner_default.png";
+    || "/discovery-idols-light.jpg";
 
   const imageUrl = normalizeAbsoluteImageUrl(rawCoverUrl);
 

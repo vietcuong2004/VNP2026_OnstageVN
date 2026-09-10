@@ -1389,8 +1389,6 @@ export default function BrandTalentProfilePage() {
     const isPlaceholder = !rawTalentName || ["idol", "talent"].includes(rawTalentName.trim().toLowerCase());
     if (rawTalentName && !isPlaceholder) {
       document.title = `${rawTalentName} - OnstageVN`;
-    } else {
-      document.title = "OnstageVN - Chi tiết Idol";
     }
   }, [profile?.name, talent?.name]);
 
