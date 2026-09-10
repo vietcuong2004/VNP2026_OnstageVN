@@ -102,6 +102,10 @@ function repairMojibake(value: unknown): string {
   }
 }
 
+function isTruthyFlag(value: unknown): boolean {
+  return value === true || value === 1 || value === "1" || value === "true";
+}
+
 export async function generateTalentProfileMetadata(id: string): Promise<Metadata> {
   const siteUrl = getSiteBaseUrl();
   const pageUrl = `${siteUrl}/brand/talents/${id}`;
@@ -186,20 +190,22 @@ export async function generateTalentProfileMetadata(id: string): Promise<Metadat
   // Fallback sang avatar hoặc ảnh đầu tiên
   const primaryPhotoObj = photos.find((p: any) => typeof p === "object" && p?.is_primary) || photos[0];
 
-  const rawCoverUrl = getPhotoUrl(coverPhotoObj)
-    || getPhotoUrl(lookbookPhotoObj)
-    || getPhotoUrl(primaryPhotoObj)
-    || profile?.cover_photo_url
-    || profile?.cover_photo
-    || profile?.cover_url
-    || profile?.cover
-    || profile?.avatar_url
-    || profile?.avatar
-    || profile?.user?.external_avatar_url
-    || profile?.user?.avatar
-    || staticFallback?.cover
-    || staticFallback?.avatar
-    || "/discovery-idols-light.jpg";
+  const rawCoverUrl = isTruthyFlag(profile?.is_premium_only)
+    ? "/discovery-idols-light.jpg"
+    : getPhotoUrl(coverPhotoObj)
+      || getPhotoUrl(lookbookPhotoObj)
+      || getPhotoUrl(primaryPhotoObj)
+      || profile?.cover_photo_url
+      || profile?.cover_photo
+      || profile?.cover_url
+      || profile?.cover
+      || profile?.avatar_url
+      || profile?.avatar
+      || profile?.user?.external_avatar_url
+      || profile?.user?.avatar
+      || staticFallback?.cover
+      || staticFallback?.avatar
+      || "/discovery-idols-light.jpg";
 
   const imageUrl = normalizeAbsoluteImageUrl(rawCoverUrl);
 
