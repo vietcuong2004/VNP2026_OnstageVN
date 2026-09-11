@@ -325,7 +325,14 @@ export default function TalentCardMobile({
                     index >= 3 && "max-[330px]:hidden"
                   )}
                 >
-                  <img src={acc.icon} alt={acc.name} className="h-3 w-3 sm:h-3.5 sm:w-3.5 object-contain shrink-0 opacity-85" />
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden">
+                    <img
+                      src={acc.icon}
+                      alt={acc.name}
+                      className="h-3.5 w-3.5 object-contain opacity-100"
+                      loading="lazy"
+                    />
+                  </span>
                   {acc.formatted && (
                     <span
                       className="talent-card-mobile-white font-['Inter',sans-serif] text-[8px] min-[350px]:text-[8.5px] sm:text-[9px] font-normal tracking-tight leading-none"
