@@ -145,10 +145,8 @@ const YoutubeLogo = ({ className = "h-5 w-5 shrink-0 object-contain" }: { classN
   <img src="/social/youtube.png" alt="YouTube" className={className} />
 );
 
-const ThreadIcon = () => (
-  <svg className="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.48 13.9c-.83.09-1.58-.2-2-.84-.33-.51-.39-1.12-.39-2.22 0-1.89.87-2.92 2.32-2.92 1.41 0 2.22.99 2.22 2.76 0 1.94-.89 2.97-2.15 3.22zm2.09-6.3c-.63-.61-1.54-.95-2.57-.95-1.95 0-3.34 1.34-3.34 3.79s1.39 3.79 3.34 3.79c.8 0 1.51-.2 2.03-.59.18-.13.43-.1.58.07l.79.9c.28.32.18.84-.2 1.04-1 .55-2.14.78-3.2.78-3.33 0-5.74-2.17-5.74-5.99s2.41-5.99 5.74-5.99c1.67 0 3.2.53 4.31 1.49.27.23.31.63.09.91l-.88 1.13c-.15.2-.42.24-.62.08z" />
-  </svg>
+const ThreadsLogo = ({ className = "h-5 w-5 shrink-0 object-contain" }: { className?: string }) => (
+  <img src="/social/threads.png" alt="Threads" className={className} />
 );
 
 const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
@@ -178,8 +176,8 @@ const getSocialPlatformInfo = (rawPlatform: string, url: string) => {
   }
   if (p.includes("thread") || u.includes("threads.net")) {
     return {
-      platformKey: "Thread",
-      icon: <ThreadIcon />,
+      platformKey: "Threads",
+      icon: <ThreadsLogo className="h-9 w-9 shrink-0 object-contain" />,
       colorClass: "hover:text-[#ffffff] hover:border-[#ffffff]/50 hover:bg-[#ffffff]/10 text-white",
     };
   }
@@ -412,6 +410,21 @@ function getPlatformStats(platformKey: string, account: any, seed: string): Plat
         { icon: <Users className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(followers), label: "Followers" },
         { icon: <Eye className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(latestReelView), unit: "view/vid", label: "10 video gần đây" },
         { icon: <BarChart2 className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(reach30d), label: "Reach 30 ngày" },
+      ],
+    };
+  } else if (p.includes("thread")) {
+    const followers = realFollowers ? Number(realFollowers) : 82000 + (hash % 18000);
+    const latestViews = Math.round(16200 + (hash % 1800));
+    const latestEngage = Math.round(1800 + (hash % 500));
+
+    baseStats = {
+      platformName: "Threads",
+      buttonLabel: "Xem trang",
+      shopTitle: "Có liên kết Threads",
+      metrics: [
+        { icon: <Users className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(followers), label: "Followers" },
+        { icon: <Eye className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(latestViews), unit: "view/post", label: "Lượt xem gần đây" },
+        { icon: <Heart className="h-5 w-5 text-[#191116] dark:text-white shrink-0" />, value: formatK(latestEngage), label: "Tương tác gần đây" },
       ],
     };
   } else if (p.includes("youtube")) {
@@ -1034,8 +1047,8 @@ function SocialMediaStatsCard({
       { name: "Tiktok", key: "tiktok" },
       { name: "Instagram", key: "instagram" },
       { name: "Youtube", key: "youtube" },
-      { name: "Thread", key: "thread" },
-      { name: "Thread", key: "threads" },
+      { name: "Threads", key: "thread" },
+      { name: "Threads", key: "threads" },
     ];
 
     legacyFields.forEach(({ name, key }) => {
