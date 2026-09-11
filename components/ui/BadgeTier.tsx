@@ -87,32 +87,34 @@ export function getBackendBadgeConfig(badge: TalentAchievementBadge | null | und
 export default function BadgeTier({
   tier,
   badge,
+  seed,
   variant = "subtle",
   size = "sm",
   className,
 }: BadgeTierProps) {
-  const config = getBackendBadgeConfig(badge, tier);
+  const config = getBackendBadgeConfig(badge, tier) || getTierBadgeConfig(tier, seed);
   if (!config) return null;
 
-  const iconFromBadge = "iconKey" in config ? BACKEND_BADGE_ICONS[String(config.iconKey)] : null;
+  const iconFromBadge = "iconKey" in config && config.iconKey ? BACKEND_BADGE_ICONS[String(config.iconKey)] : null;
   const Icon = iconFromBadge || ACHIEVEMENT_ICONS[config.level as keyof typeof ACHIEVEMENT_ICONS] || Award;
   const toneClass = variant === "gradient" ? config.gradientClass : config.subtleClass;
+  const displayText = ("displayText" in config && config.displayText) ? config.displayText : config.label || config.level;
 
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-full border font-black uppercase tracking-wider",
+        "inline-flex shrink-0 items-center justify-center rounded-full border font-black uppercase tracking-tight whitespace-nowrap",
         variant === "gradient" ? "gap-1" : "gap-1 bg-[#0F1115]/80 backdrop-blur-sm",
         size === "xs"
-          ? "h-5 px-2 text-[8px]"
+          ? "h-5 px-1.5 text-[7.5px] min-[350px]:text-[8px] sm:text-[8.5px]"
           : "px-2 py-0.5 text-[8.5px]",
         toneClass,
         className
       )}
       title={config.title}
     >
-      <Icon className={cn(size === "xs" ? "h-2.5 w-2.5" : "h-3 w-3")} />
-      {config.displayText}
+      <Icon className={cn("shrink-0", size === "xs" ? "h-2.5 w-2.5" : "h-3 w-3")} />
+      <span className="whitespace-nowrap leading-none">{displayText}</span>
     </span>
   );
 }

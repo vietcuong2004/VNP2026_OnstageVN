@@ -735,3 +735,53 @@ html.light [data-overlay-white="true"] svg,
   fill: #ffffff !important;
 }
 
+/* Mobile Talent Card Overlay Styling - High specificity for Light & Dark mode */
+.talent-card-mobile-overlay {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  font-family: 'Inter', 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.talent-card-mobile-white,
+.light .talent-card-mobile-white,
+html.light .talent-card-mobile-white {
+  color: rgba(255, 255, 255, 0.88) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.talent-card-mobile-muted,
+.light .talent-card-mobile-muted,
+html.light .talent-card-mobile-muted {
+  color: rgba(255, 255, 255, 0.60) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.60) !important;
+}
+
+.talent-card-mobile-subtle,
+.light .talent-card-mobile-subtle,
+html.light .talent-card-mobile-subtle {
+  color: rgba(255, 255, 255, 0.48) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.48) !important;
+}
+
+.talent-card-mobile-star,
+.light .talent-card-mobile-star,
+html.light .talent-card-mobile-star {
+  color: #facc15 !important;
+  fill: #facc15 !important;
+  stroke: #facc15 !important;
+}
+
+.talent-card-mobile-verified,
+.light .talent-card-mobile-verified,
+html.light .talent-card-mobile-verified {
+  background-color: #eab308 !important;
+}
+
+.talent-card-mobile-verified svg,
+.light .talent-card-mobile-verified svg,
+html.light .talent-card-mobile-verified svg {
+  color: #09090b !important;
+  stroke: #09090b !important;
+  fill: none !important;
+}
+
+

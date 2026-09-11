@@ -1666,7 +1666,7 @@ export default function DiscoverTalentsPage() {
               <p className="mt-2 text-xs text-slate-500">Thử chỉnh lại từ khóa hoặc xóa bớt bộ lọc xem sao.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
               {filteredTalents.map((talent) => {
                 const isSaved = savedIds.includes(String(talent.id));
                 const isInBrand = brandTalentIds.includes(String(talent.id));

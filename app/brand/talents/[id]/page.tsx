@@ -263,22 +263,20 @@ function OnstagePerformanceCard({
         <button
           type="button"
           onClick={() => setPeriodTab("all")}
-          className={`flex items-center justify-center pb-2 text-xs sm:text-sm font-black transition-all cursor-pointer border-b-2 -mb-[1px] ${
-            periodTab === "all"
+          className={`flex items-center justify-center pb-2 text-xs sm:text-sm font-black transition-all cursor-pointer border-b-2 -mb-[1px] ${periodTab === "all"
               ? "text-[#C72524] border-[#C72524] dark:text-rose-400 dark:border-rose-400"
               : "text-slate-500 hover:text-[#191116] border-transparent dark:text-slate-400 dark:hover:text-white"
-          }`}
+            }`}
         >
           <span>Tổng quan</span>
         </button>
         <button
           type="button"
           onClick={() => setPeriodTab("recent_3m")}
-          className={`flex items-center justify-center pb-2 text-xs sm:text-sm font-black transition-all cursor-pointer border-b-2 -mb-[1px] ${
-            periodTab === "recent_3m"
+          className={`flex items-center justify-center pb-2 text-xs sm:text-sm font-black transition-all cursor-pointer border-b-2 -mb-[1px] ${periodTab === "recent_3m"
               ? "text-[#C72524] border-[#C72524] dark:text-rose-400 dark:border-rose-400"
               : "text-slate-500 hover:text-[#191116] border-transparent dark:text-slate-400 dark:hover:text-white"
-          }`}
+            }`}
         >
           <span>3 tháng gần đây</span>
         </button>
@@ -1241,6 +1239,7 @@ export default function BrandTalentProfilePage() {
   const [isPortfolioDialogOpen, setIsPortfolioDialogOpen] = useState(false);
   const [mobileHeroIndex, setMobileHeroIndex] = useState(0);
   const [mobileTab, setMobileTab] = useState<"photos" | "videos" | "about" | "reviews">("photos");
+  const [mobileVideoSubTab, setMobileVideoSubTab] = useState<"recent" | "featured">("recent");
   const [toasts, setToasts] = useState<{ id: string; message: string; tone: "success" | "error" }[]>([]);
 
   useEffect(() => {
@@ -1452,9 +1451,38 @@ export default function BrandTalentProfilePage() {
     return Array.from(new Set(urls));
   }, [lookbookPhotos, profile, talent]);
 
+  // Extended slides with first slide cloned at end for infinite rightward slide
+  const extendedHeroPhotos = useMemo(() => {
+    if (mobileHeroPhotos.length <= 1) return mobileHeroPhotos;
+    return [...mobileHeroPhotos, mobileHeroPhotos[0]];
+  }, [mobileHeroPhotos]);
+
+  const [isHeroSliding, setIsHeroSliding] = useState(true);
+
   useEffect(() => {
     setMobileHeroIndex(0);
+    setIsHeroSliding(true);
   }, [mobileHeroPhotos.length]);
+
+  useEffect(() => {
+    if (mobileHeroPhotos.length <= 1) return;
+    // Don't schedule timer if currently on the reset clone
+    if (mobileHeroIndex >= mobileHeroPhotos.length) return;
+
+    const timer = setTimeout(() => {
+      setIsHeroSliding(true);
+      setMobileHeroIndex((prev) => prev + 1);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [mobileHeroIndex, mobileHeroPhotos.length]);
+
+  const handleHeroTransitionEnd = () => {
+    if (mobileHeroIndex >= mobileHeroPhotos.length) {
+      setIsHeroSliding(false);
+      setMobileHeroIndex(0);
+    }
+  };
 
   const portfolioVideos = useMemo<Array<{ id: string | number; title: string; url: string; thumbnailUrl?: string; path?: string | null; disk?: string | null }>>(() => {
     if (!profile || !Array.isArray((profile as any).videos)) return [];
@@ -1471,6 +1499,67 @@ export default function BrandTalentProfilePage() {
       .filter((video: { url: string }) => Boolean(video.url))
       .slice(0, 4);
   }, [profile]);
+
+  const mobileRecentVideos = useMemo(() => {
+    const list: Array<{ id: string | number; title: string; url: string; thumbnailUrl: string; views: string }> = [];
+    if (Array.isArray(profile?.socialAccounts)) {
+      profile.socialAccounts.forEach((acc: any) => {
+        if (Array.isArray(acc.recent_videos)) {
+          acc.recent_videos.forEach((v: any, idx: number) => {
+            list.push({
+              id: v.id || `recent-${idx}`,
+              title: v.title || "Video gần đây",
+              url: v.url || acc.url,
+              thumbnailUrl: v.thumbnail || v.thumbnailUrl || "",
+              views: v.views || `${120 + (idx * 45)}K`,
+            });
+          });
+        }
+      });
+    }
+    if (list.length === 0) {
+      return (portfolioVideos.length > 0 ? portfolioVideos : [
+        { id: "v1", title: "Video gần đây 1", url: talent?.cover || "", thumbnailUrl: talent?.cover || "", path: null, disk: null },
+        { id: "v2", title: "Video gần đây 2", url: lookbookPhotos[0]?.url || "", thumbnailUrl: lookbookPhotos[0]?.url || "", path: null, disk: null },
+        { id: "v3", title: "Video gần đây 3", url: lookbookPhotos[1]?.url || "", thumbnailUrl: lookbookPhotos[1]?.url || "", path: null, disk: null },
+      ]).map((v, i) => ({
+        id: v.id,
+        title: v.title,
+        url: v.url,
+        thumbnailUrl: v.thumbnailUrl || lookbookPhotos[i % Math.max(lookbookPhotos.length, 1)]?.url || "",
+        views: i % 3 === 0 ? "468.9K" : i % 3 === 1 ? "31.1K" : "2.6M",
+      }));
+    }
+    return list.slice(0, 6);
+  }, [profile, portfolioVideos, talent, lookbookPhotos]);
+
+  const mobileFeaturedVideos = useMemo(() => {
+    const list: Array<{ id: string | number; title: string; url: string; thumbnailUrl: string; views: string }> = [];
+    if (Array.isArray(profile?.socialAccounts)) {
+      profile.socialAccounts.forEach((acc: any) => {
+        if (Array.isArray(acc.featured_videos)) {
+          acc.featured_videos.forEach((v: any, idx: number) => {
+            list.push({
+              id: v.id || `featured-${idx}`,
+              title: v.title || "Video nổi bật",
+              url: v.url || acc.url,
+              thumbnailUrl: v.thumbnail || v.thumbnailUrl || "",
+              views: v.views || `${1.2 + (idx * 0.7)}M`,
+            });
+          });
+        }
+      });
+    }
+    if (list.length === 0) {
+      return [...mobileRecentVideos].reverse().map((v, i) => ({
+        ...v,
+        id: `feat-${v.id}`,
+        title: `Video nổi bật ${i + 1}`,
+        views: i % 2 === 0 ? "3.2M" : "1.8M",
+      }));
+    }
+    return list.slice(0, 6);
+  }, [profile, mobileRecentVideos]);
 
   // State for Month-switching Calendar
   const [currentYear, setCurrentYear] = useState(2026);
@@ -1685,110 +1774,123 @@ export default function BrandTalentProfilePage() {
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-500">
       <div className="md:hidden -mx-4 -mt-6 bg-white text-[#10122f]">
+        {/* Sticky/Fixed Mobile Top Action Bar */}
+        <div className="fixed top-3 left-4 right-4 z-40 flex items-start justify-between pointer-events-none">
+          <button
+            type="button"
+            onClick={() => {
+              const from = searchParams.get("from");
+              if (from) {
+                router.push(from);
+              } else {
+                router.back();
+              }
+            }}
+            className="light-force-white pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white shadow-lg backdrop-blur-md active:scale-95 transition"
+            style={{ color: "#ffffff" }}
+            aria-label="Quay lại"
+          >
+            <ArrowLeft className="h-6 w-6" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+          </button>
+
+          <div className="relative pointer-events-auto flex flex-col items-end gap-2">
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="light-force-white flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white shadow-lg backdrop-blur-md active:scale-95 transition"
+              style={{ color: "#ffffff" }}
+              aria-label="Thao tác"
+            >
+              <MoreVertical className="h-6 w-6" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+            </button>
+
+            {isDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-[#F0D7D3] bg-white p-2 text-left shadow-2xl ring-1 ring-black/10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      handleAddToBrand();
+                    }}
+                    disabled={isAddingToBrand || isAddedToBrand || isOwnProfile}
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#10122f] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition disabled:opacity-45"
+                  >
+                    <Users className="h-4 w-4 text-[#8F0709]" />
+                    <span>{isAddedToBrand ? "Đã thêm vào Brand" : "Thêm vào Brand"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      handleShare();
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#10122f] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition"
+                  >
+                    <Share2 className="h-4 w-4 text-[#8F0709]" />
+                    <span>Chia sẻ</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
         <section className="relative min-h-[100dvh] bg-white pb-20">
           <div className="relative h-[54vh] min-h-[360px] max-h-[470px] overflow-hidden bg-slate-950">
-            <img
-              src={mobileHeroImage}
-              alt={`${talent.name} cover`}
-              className="h-full w-full object-cover"
-              onClick={() => setPreviewImage(mobileHeroImage)}
-              onError={(event) => {
-                event.currentTarget.src = "/brand_cover_default.png";
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/15 to-black/15" />
-
-            <div className="absolute left-4 right-4 top-7 z-20 flex items-start justify-between">
-              <button
-                type="button"
-                onClick={() => {
-                  const from = searchParams.get("from");
-                  if (from) {
-                    router.push(from);
-                  } else {
-                    router.back();
-                  }
-                }}
-                className="light-force-white flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white shadow-lg backdrop-blur-md active:scale-95"
-                style={{ color: "#ffffff" }}
-                aria-label="Quay lại"
-              >
-                <ArrowLeft className="h-6 w-6" style={{ color: "#ffffff", stroke: "#ffffff" }} />
-              </button>
-
-              <div className="relative flex flex-col items-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="light-force-white flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white shadow-lg backdrop-blur-md active:scale-95"
-                  style={{ color: "#ffffff" }}
-                  aria-label="Thao tác"
-                >
-                  <MoreVertical className="h-6 w-6" style={{ color: "#ffffff", stroke: "#ffffff" }} />
-                </button>
-                <span className="light-force-white rounded-full bg-black/60 px-2.5 py-1 text-xs font-black text-white shadow-md backdrop-blur-md" style={{ color: "#ffffff" }}>
-                  {mobileHeroIndex + 1}/{mobileHeroTotal}
-                </span>
-
-                {isDropdownOpen && (
-                  <>
-                    <div className="fixed inset-0 z-30" onClick={() => setIsDropdownOpen(false)} />
-                    <div className="absolute right-0 top-14 z-40 w-56 rounded-2xl bg-white p-2 text-left shadow-2xl ring-1 ring-black/5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsDropdownOpen(false);
-                          handleAddToBrand();
-                        }}
-                        disabled={isAddingToBrand || isAddedToBrand || isOwnProfile}
-                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#10122f] disabled:opacity-45"
-                      >
-                        <Users className="h-4 w-4 text-[#d71920]" />
-                        <span>{isAddedToBrand ? "Đã thêm vào Brand" : "Thêm vào Brand"}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsDropdownOpen(false);
-                          handleShare();
-                        }}
-                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#10122f]"
-                      >
-                        <Share2 className="h-4 w-4 text-[#d71920]" />
-                        <span>Chia sẻ</span>
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+            {/* Smooth Infinite Horizontal Sliding Carousel Track */}
+            <div
+              onTransitionEnd={handleHeroTransitionEnd}
+              className={cn(
+                "flex h-full w-full",
+                isHeroSliding ? "transition-transform duration-700 ease-out" : "transition-none"
+              )}
+              style={{ transform: `translateX(-${mobileHeroIndex * 100}%)` }}
+            >
+              {extendedHeroPhotos.length > 0 ? (
+                extendedHeroPhotos.map((photoUrl, idx) => (
+                  <div key={`${photoUrl}-${idx}`} className="h-full w-full shrink-0">
+                    <img
+                      src={photoUrl}
+                      alt={`${talent.name} photo ${idx + 1}`}
+                      className="h-full w-full object-cover cursor-pointer select-none"
+                      onClick={() => setPreviewImage(photoUrl)}
+                      onError={(event) => {
+                        event.currentTarget.src = "/brand_cover_default.png";
+                      }}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="h-full w-full shrink-0">
+                  <img
+                    src={mobileHeroImage}
+                    alt={`${talent.name} cover`}
+                    className="h-full w-full object-cover cursor-pointer select-none"
+                    onClick={() => setPreviewImage(mobileHeroImage)}
+                    onError={(event) => {
+                      event.currentTarget.src = "/brand_cover_default.png";
+                    }}
+                  />
+                </div>
+              )}
             </div>
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/15 to-black/15 pointer-events-none"
+            />
 
-            {mobileHeroPhotos.length > 1 && (
-              <div className="absolute inset-y-0 left-0 right-0 z-10 flex items-center justify-between px-2 pointer-events-none">
-                <button
-                  type="button"
-                  onClick={() => setMobileHeroIndex((current) => (current - 1 + mobileHeroTotal) % mobileHeroTotal)}
-                  className="light-force-white pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm active:scale-95"
-                  style={{ color: "#ffffff" }}
-                  aria-label="Ảnh trước"
-                >
-                  <ChevronLeft className="h-5 w-5" style={{ color: "#ffffff", stroke: "#ffffff" }} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMobileHeroIndex((current) => (current + 1) % mobileHeroTotal)}
-                  className="light-force-white pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm active:scale-95"
-                  style={{ color: "#ffffff" }}
-                  aria-label="Ảnh sau"
-                >
-                  <ChevronRight className="h-5 w-5" style={{ color: "#ffffff", stroke: "#ffffff" }} />
-                </button>
-              </div>
-            )}
+            {/* Photo Counter inside Hero */}
+            <span
+              className="light-force-white absolute right-4 top-16 z-20 rounded-full bg-black/60 px-2.5 py-1 text-xs font-black text-white shadow-md backdrop-blur-md"
+              style={{ color: "#ffffff" }}
+            >
+              {(mobileHeroIndex % mobileHeroTotal) + 1}/{mobileHeroTotal}
+            </span>
 
-            <div className="absolute bottom-7 left-4 right-4 z-20">
+            <div className="absolute bottom-7 left-4 right-4 z-20 pointer-events-none">
               <div className="flex items-end justify-between gap-3">
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 pointer-events-auto">
                   <h1 className="light-force-white flex items-center gap-1.5 text-[26px] font-black leading-none tracking-tight text-white drop-shadow-lg" style={{ color: "#ffffff" }}>
                     <span className="truncate">{formatDisplayName(talent.name)}</span>
                     {talent.verified && (
@@ -1802,9 +1904,9 @@ export default function BrandTalentProfilePage() {
                   </p>
                   <div className="light-force-white mt-1.5 flex min-w-0 items-center gap-2 text-sm font-bold text-white" style={{ color: "#ffffff" }}>
                     <span className="inline-flex min-w-0 items-center gap-1">
-                      <MapPin className="h-4 w-4 shrink-0 fill-white text-white" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+                      <MapPin className="h-4 w-4 shrink-0 text-white" style={{ color: "#ffffff", stroke: "#ffffff" }} />
                       <span className="truncate" style={{ color: "#ffffff" }}>
-                      {profile?.location || "Chưa cập nhật"}
+                        {profile?.location || "Chưa cập nhật"}
                       </span>
                     </span>
                     <span className="inline-flex shrink-0 items-center gap-1 text-emerald-400" style={{ color: "#34d399" }}>
@@ -1818,9 +1920,9 @@ export default function BrandTalentProfilePage() {
                   type="button"
                   onClick={handleAddToWishlist}
                   disabled={isOwnProfile}
-                  className="mb-0.5 flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-white px-5 text-base font-black text-[#e41017] shadow-xl active:scale-95 disabled:opacity-50"
+                  className="pointer-events-auto mb-0.5 flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-white px-5 text-base font-black text-[#8F0709] shadow-xl active:scale-95 disabled:opacity-50 cursor-pointer"
                 >
-                  <Heart className={cn("h-5 w-5", isInWishlist ? "fill-[#e41017]" : "fill-[#e41017]")} />
+                  <Heart className={cn("h-5 w-5", isInWishlist ? "fill-[#C72524] text-[#C72524]" : "text-[#8F0709]")} />
                   {isInWishlist ? "Đã lưu" : "Lưu"}
                 </button>
               </div>
@@ -1906,11 +2008,11 @@ export default function BrandTalentProfilePage() {
                   onClick={() => setMobileTab(tab.id as typeof mobileTab)}
                   className={cn(
                     "relative w-full pb-3 pt-2 text-center transition",
-                    mobileTab === tab.id ? "font-black text-[#e41017]" : "text-[#85879f]"
+                    mobileTab === tab.id ? "font-black text-[#8F0709]" : "text-[#85879f]"
                   )}
                 >
                   {tab.label}
-                  {mobileTab === tab.id && <span className="absolute bottom-0 left-1/2 h-1 w-16 -translate-x-1/2 rounded-full bg-[#e41017]" />}
+                  {mobileTab === tab.id && <span className="absolute bottom-0 left-1/2 h-1 w-16 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709]" />}
                 </button>
               ))}
             </div>
@@ -1937,20 +2039,46 @@ export default function BrandTalentProfilePage() {
 
             {mobileTab === "videos" && (
               <div className="mt-4 space-y-4">
-                <div className="grid grid-cols-2 gap-2 rounded-full bg-[#fbf7f7] p-1 text-center text-base font-semibold">
-                  <span className="rounded-full bg-white py-3 text-[#e41017] shadow-sm">Video gần đây</span>
-                  <span className="py-3 text-[#10122f]">Video nổi bật</span>
+                {/* Interactive Sub-tab Toggle */}
+                <div className="grid grid-cols-2 gap-2 rounded-full bg-[#fbf7f7] p-1 text-center text-sm sm:text-base font-semibold dark:bg-white/5">
+                  <button
+                    type="button"
+                    onClick={() => setMobileVideoSubTab("recent")}
+                    className={cn(
+                      "rounded-full py-2.5 transition-all cursor-pointer select-none",
+                      mobileVideoSubTab === "recent"
+                        ? "bg-white text-[#8F0709] shadow-sm font-bold dark:bg-slate-800 dark:text-rose-400"
+                        : "text-[#10122f] hover:text-[#8F0709] dark:text-slate-300"
+                    )}
+                  >
+                    Video gần đây
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileVideoSubTab("featured")}
+                    className={cn(
+                      "rounded-full py-2.5 transition-all cursor-pointer select-none",
+                      mobileVideoSubTab === "featured"
+                        ? "bg-white text-[#8F0709] shadow-sm font-bold dark:bg-slate-800 dark:text-rose-400"
+                        : "text-[#10122f] hover:text-[#8F0709] dark:text-slate-300"
+                    )}
+                  >
+                    Video nổi bật
+                  </button>
                 </div>
+
+                {/* Video Grid */}
                 <div className="grid grid-cols-3 gap-2">
-                  {portfolioVideos.map((video, index) => {
+                  {(mobileVideoSubTab === "recent" ? mobileRecentVideos : mobileFeaturedVideos).map((video, index) => {
                     const thumb = video.thumbnailUrl || lookbookPhotos[index % Math.max(lookbookPhotos.length, 1)]?.url || "";
+                    const views = video.views || (mobileVideoSubTab === "featured" ? (index % 2 === 0 ? "3.2M" : "1.8M") : (index % 3 === 0 ? "468.9K" : index % 3 === 1 ? "31.1K" : "2.6M"));
                     return (
                       <a
-                        key={`${video.id}-${index}`}
+                        key={`${video.id || index}-${index}`}
                         href={video.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-950"
+                        className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-950 block select-none"
                       >
                         {isDirectVideoUrl(video.url) ? (
                           <video src={video.url} className="h-full w-full object-cover" preload="metadata" />
@@ -1959,23 +2087,29 @@ export default function BrandTalentProfilePage() {
                         ) : (
                           <div className="h-full w-full bg-slate-950" />
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/45">
-                            <Play className="h-6 w-6 translate-x-0.5 fill-white text-white" style={{ stroke: "none" }} />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                          <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/45 backdrop-blur-xs group-hover:scale-110 transition-transform">
+                            <Play className="h-5 w-5 sm:h-6 sm:w-6 translate-x-0.5" style={{ fill: "#ffffff", color: "#ffffff", stroke: "none" }} />
                           </span>
                         </div>
-                        <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 text-sm font-black text-white">
-                          <Play className="h-3.5 w-3.5 fill-white text-white" style={{ stroke: "none" }} />
-                          {index % 3 === 0 ? "468.9K" : index % 3 === 1 ? "31.1K" : "2.6M"}
+                        <span
+                          className="light-force-white absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 z-20 inline-flex items-center gap-1 text-[10.5px] sm:text-xs font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
+                          style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+                        >
+                          <Play className="h-3 w-3 shrink-0" style={{ fill: "#ffffff", color: "#ffffff", stroke: "none" }} />
+                          <span style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+                            {views}
+                          </span>
                         </span>
                       </a>
                     );
                   })}
                 </div>
-                <button type="button" className="flex w-full items-center justify-between py-1 text-left text-xl font-medium text-[#10122f]">
+
+                <button type="button" className="flex w-full items-center justify-between py-1 text-left text-xl font-medium text-[#10122f] hover:text-[#8F0709] transition">
                   <span>Xem tất cả video</span>
-                  <ChevronRight className="h-7 w-7 text-[#e41017]" />
+                  <ChevronRight className="h-7 w-7 text-[#8F0709]" />
                 </button>
               </div>
             )}
@@ -2025,9 +2159,9 @@ export default function BrandTalentProfilePage() {
                     </p>
                   </div>
                 ))}
-                <button type="button" className="flex w-full items-center justify-between py-1 text-left text-xl font-medium text-[#10122f]">
+                <button type="button" className="flex w-full items-center justify-between py-1 text-left text-xl font-medium text-[#10122f] hover:text-[#8F0709] transition">
                   <span>Xem tất cả đánh giá</span>
-                  <ChevronRight className="h-7 w-7 text-[#e41017]" />
+                  <ChevronRight className="h-7 w-7 text-[#8F0709]" />
                 </button>
               </div>
             )}
@@ -2041,7 +2175,7 @@ export default function BrandTalentProfilePage() {
                 router.push(`/booking?talentId=${encodeURIComponent(String(params.id))}`);
               }}
               disabled={isOwnProfile}
-              className="light-force-white flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full bg-[#e41017] text-xl font-bold text-white shadow-[0_10px_24px_rgba(228,16,23,0.35)] active:scale-[0.99] disabled:opacity-50"
+              className="light-force-white flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-xl font-bold text-white shadow-[0_10px_24px_rgba(143,7,9,0.35)] active:scale-[0.99] disabled:opacity-50"
               style={{ color: "#ffffff" }}
             >
               <Calendar className="h-6 w-6" style={{ color: "#ffffff", stroke: "#ffffff" }} />

@@ -37,7 +37,7 @@ export default function SavedIdols({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
       {talents.map((talent) => {
         const talentId = String(talent.id);
         const isSaved = savedIds.includes(talentId);
