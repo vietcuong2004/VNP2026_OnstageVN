@@ -43,13 +43,16 @@ interface SocialItem {
   formatted: string | null;
 }
 
+const SOCIAL_ICON_VERSION = "20260911";
+const withSocialIconVersion = (path: string) => `${path}?v=${SOCIAL_ICON_VERSION}`;
+
 function getSocialAccountsList(talent: any): SocialItem[] {
   const validPlatforms = [
-    { key: "tiktok", name: "TikTok", icon: "/social/tiktok.png" },
-    { key: "instagram", name: "Instagram", icon: "/social/instagram.png" },
-    { key: "youtube", name: "YouTube", icon: "/social/youtube.png" },
-    { key: "facebook", name: "Facebook", icon: "/social/facebook.png" },
-    { key: "threads", name: "Threads", icon: "/social/threads.png" },
+    { key: "tiktok", name: "TikTok", icon: withSocialIconVersion("/social/tiktok.png") },
+    { key: "instagram", name: "Instagram", icon: withSocialIconVersion("/social/instagram.png") },
+    { key: "youtube", name: "YouTube", icon: withSocialIconVersion("/social/youtube.png") },
+    { key: "facebook", name: "Facebook", icon: withSocialIconVersion("/social/facebook.png") },
+    { key: "threads", name: "Threads", icon: withSocialIconVersion("/social/threads.png") },
   ];
 
   const rawList: any[] = [];
@@ -312,38 +315,45 @@ export default function TalentCardMobile({
         </p>
 
         {/* ROW 3: Social Media Followers list OR "Chưa cập nhật MXH" */}
-        {socialList.length > 0 ? (
-          <div className="flex items-center justify-start gap-1.5 sm:gap-2 overflow-hidden py-0.5 w-full">
-            {socialList.map((acc, index) => (
-              <div
-                key={`${acc.key}-${index}`}
-                className={cn(
-                  "flex items-center gap-0.5 shrink-0",
-                  index >= 3 && "max-[330px]:hidden"
-                )}
-              >
-                <img src={acc.icon} alt={acc.name} className="h-3 w-3 sm:h-3.5 sm:w-3.5 object-contain shrink-0 opacity-85" />
-                {acc.formatted && (
-                  <span
-                    className="talent-card-mobile-white font-['Inter',sans-serif] text-[8px] min-[350px]:text-[8.5px] sm:text-[9px] font-normal tracking-tight leading-none"
-                    style={{ color: "rgba(255, 255, 255, 0.65)", WebkitTextFillColor: "rgba(255, 255, 255, 0.65)" }}
-                  >
-                    {acc.formatted}
+        <div className="flex items-center justify-start min-w-0 h-4.5 w-full">
+          {socialList.length > 0 ? (
+            <div className="flex items-center justify-start gap-1.5 sm:gap-2 overflow-hidden w-full">
+              {socialList.map((acc, index) => (
+                <div
+                  key={`${acc.key}-${index}`}
+                  className={cn(
+                    "flex items-center gap-0.5 shrink-0",
+                    index >= 3 && "max-[330px]:hidden"
+                  )}
+                >
+                  <span className="flex h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 items-center justify-center overflow-hidden">
+                    <img
+                      src={acc.icon}
+                      alt={acc.name}
+                      className="h-3 w-3 sm:h-3.5 sm:w-3.5 object-contain opacity-90"
+                      loading="lazy"
+                    />
                   </span>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center py-0.5 w-full">
+                  {acc.formatted && (
+                    <span
+                      className="talent-card-mobile-white font-['Inter',sans-serif] text-[8px] min-[350px]:text-[8.5px] sm:text-[9px] font-normal tracking-tight leading-none"
+                      style={{ color: "rgba(255, 255, 255, 0.65)", WebkitTextFillColor: "rgba(255, 255, 255, 0.65)" }}
+                    >
+                      {acc.formatted}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
             <span
               className="talent-card-mobile-subtle font-['Inter',sans-serif] text-[8.5px] sm:text-[9.5px] font-normal tracking-tight leading-none italic"
               style={{ color: "rgba(255, 255, 255, 0.48)", WebkitTextFillColor: "rgba(255, 255, 255, 0.48)" }}
             >
               Chưa cập nhật MXH
             </span>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* ROW 4: Rating + Location */}
         <div className="flex items-center justify-between gap-1 min-w-0 pt-0.5">
