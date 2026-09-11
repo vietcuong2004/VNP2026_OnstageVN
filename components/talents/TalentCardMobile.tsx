@@ -43,13 +43,16 @@ interface SocialItem {
   formatted: string | null;
 }
 
+const SOCIAL_ICON_VERSION = "20260911";
+const withSocialIconVersion = (path: string) => `${path}?v=${SOCIAL_ICON_VERSION}`;
+
 function getSocialAccountsList(talent: any): SocialItem[] {
   const validPlatforms = [
-    { key: "tiktok", name: "TikTok", icon: "/social/tiktok.png" },
-    { key: "instagram", name: "Instagram", icon: "/social/instagram.png" },
-    { key: "youtube", name: "YouTube", icon: "/social/youtube.png" },
-    { key: "facebook", name: "Facebook", icon: "/social/facebook.png" },
-    { key: "threads", name: "Threads", icon: "/social/threads.png" },
+    { key: "tiktok", name: "TikTok", icon: withSocialIconVersion("/social/tiktok.png") },
+    { key: "instagram", name: "Instagram", icon: withSocialIconVersion("/social/instagram.png") },
+    { key: "youtube", name: "YouTube", icon: withSocialIconVersion("/social/youtube.png") },
+    { key: "facebook", name: "Facebook", icon: withSocialIconVersion("/social/facebook.png") },
+    { key: "threads", name: "Threads", icon: withSocialIconVersion("/social/threads.png") },
   ];
 
   const rawList: any[] = [];
