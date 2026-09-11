@@ -183,7 +183,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {!isStandalonePublic && !hideChrome && (
-            <div className={cn((isTalentSurveyForm || isMobileOverlayOpen || isBooking || isTalentJobDetail) ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
+            <div className={cn((isTalentSurveyForm || isMobileOverlayOpen || isBooking || isTalentJobDetail || isBrandTalentDetail) ? "hidden md:block" : "block", "bottom-nav-wrapper")}>
               <BottomNavigation />
             </div>
           )}

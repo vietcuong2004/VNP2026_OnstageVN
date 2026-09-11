@@ -1141,6 +1141,13 @@ const formatNumber = (num: number) => {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
+const formatShortCount = (num: number) => {
+  if (!Number.isFinite(num) || num <= 0) return "0";
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (num >= 1_000) return `${(num / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  return num.toLocaleString("vi-VN");
+};
+
 function formatDisplayName(name: string) {
   return name
     .toLocaleLowerCase("vi-VN")
@@ -1219,6 +1226,8 @@ export default function BrandTalentProfilePage() {
   const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isPortfolioDialogOpen, setIsPortfolioDialogOpen] = useState(false);
+  const [mobileHeroIndex, setMobileHeroIndex] = useState(0);
+  const [mobileTab, setMobileTab] = useState<"photos" | "videos" | "about" | "reviews">("photos");
   const [toasts, setToasts] = useState<{ id: string; message: string; tone: "success" | "error" }[]>([]);
 
   useEffect(() => {
@@ -1417,6 +1426,23 @@ export default function BrandTalentProfilePage() {
     }).filter(Boolean) as Array<{ id: number; label: string; url: string }>;
   }, [profile]);
 
+  const mobileHeroPhotos = useMemo(() => {
+    if (!profile || !talent) return [];
+
+    const urls = [
+      ...lookbookPhotos.map((photo) => photo.url),
+      normalizeBackendAssetUrl(talent.cover || ""),
+      normalizeBackendAssetUrl(talent.avatar || ""),
+      normalizeBackendAssetUrl(profile.fullBody || ""),
+    ].filter(Boolean);
+
+    return Array.from(new Set(urls));
+  }, [lookbookPhotos, profile, talent]);
+
+  useEffect(() => {
+    setMobileHeroIndex(0);
+  }, [mobileHeroPhotos.length]);
+
   const portfolioVideos = useMemo<Array<{ id: string | number; title: string; url: string; thumbnailUrl?: string; path?: string | null; disk?: string | null }>>(() => {
     if (!profile || !Array.isArray((profile as any).videos)) return [];
 
@@ -1497,6 +1523,48 @@ export default function BrandTalentProfilePage() {
   const portfolioLinks = portfolioLinksFromProfile(profile);
   const portfolioOwnerName = String(profile?.name || "Idol").trim().replace(/\s+/g, "_");
   const primaryBadge = getPrimaryAchievementBadge(profile);
+  const mobileHeroTotal = Math.max(mobileHeroPhotos.length, 1);
+  const mobileHeroImage = mobileHeroPhotos[mobileHeroIndex] || normalizeBackendAssetUrl(talent.cover || talent.avatar || "") || "/brand_cover_default.png";
+  const mobileSocialAccounts = Array.isArray(profile.socialAccounts) ? profile.socialAccounts : [];
+  const mobileDisplayStats = [
+    { platform: "TikTok", match: /tiktok/i, label: "Followers" },
+    { platform: "Instagram", match: /instagram|insta/i, label: "Followers" },
+    { platform: "YouTube", match: /youtube|youtu\.be|yt/i, label: "Subscribers" },
+    { platform: "Facebook", match: /facebook|fb\.com/i, label: "Followers" },
+  ].map((config) => {
+    const account = mobileSocialAccounts.find((item: any) => {
+      const haystack = `${item?.platform || ""} ${item?.name || ""} ${item?.url || ""}`.toLowerCase();
+      return config.match.test(haystack);
+    });
+    const rawUrl = String(account?.url || "").trim();
+    const href = rawUrl ? (rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`) : "";
+
+    return {
+      platform: config.platform,
+      href,
+      value: account?.followers_count ? formatShortCount(Number(account.followers_count)) : href ? (talent.followers || "0") : "0",
+      label: href ? config.label : "Chưa cập nhật",
+      disabled: !href,
+    };
+  });
+  const mobileReviewItems = (profile.reviews && profile.reviews.length > 0 ? profile.reviews : [
+    { brand: "L'Oréal Paris Vietnam", rating: 5, date: "15/05/2026", comment: `${talent.name} làm việc vô cùng chuyên nghiệp, đúng giờ và hoàn thành tốt KPI chiến dịch truyền thông của nhãn hàng. Rất mong tiếp tục hợp tác.` },
+    { brand: "Gucci Beauty Event", rating: 5, date: "29/04/2026", comment: "Thần thái xuất sắc, hình ảnh high-fashion phù hợp tiêu chuẩn quốc tế. Cảm ơn vì sự hỗ trợ nhiệt tình." },
+    { brand: "Vogue Vietnam Editorial", rating: 5, date: "12/04/2026", comment: "Thái độ làm việc nghiêm túc, tạo dáng xuất sắc và có kiến thức chuyên môn cao. Rất nên hợp tác." },
+  ]).slice(0, 3);
+  const mobileAboutRows = [
+    { icon: <Ruler className="h-5 w-5" />, label: "Chiều cao", value: profile?.height ? formatHeight(profile.height) : "Chưa cập nhật" },
+    { icon: <Scale className="h-5 w-5" />, label: "Cân nặng", value: profile?.weight ? `${profile.weight} kg` : "Chưa cập nhật" },
+    { icon: <User className="h-5 w-5" />, label: "Số đo 3 vòng (cm)", value: formatMeasurements(profile) },
+    { icon: <User className="h-5 w-5" />, label: "Nghệ danh", value: formatDisplayName(talent.name) },
+    { icon: <Users className="h-5 w-5" />, label: "Giới tính", value: talent.gender || "Chưa cập nhật" },
+    { icon: <Wallet className="h-5 w-5" />, label: "Phí booking", value: talent.rate || talent.price || "Chưa cập nhật" },
+    { icon: <MapPin className="h-5 w-5" />, label: "Địa chỉ", value: profile?.location || "Chưa cập nhật" },
+    { icon: <PackageCheck className="h-5 w-5" />, label: "Kinh nghiệm", value: profile?.experience ? `${profile.experience} năm` : "Chưa cập nhật" },
+    { icon: <Layers className="h-5 w-5" />, label: "Loại hình Idol", value: talentTypes.join(", ") || talent.type || "Chưa cập nhật" },
+    { icon: <BookOpen className="h-5 w-5" />, label: "Lĩnh vực chuyên sâu", value: profileSkills.slice(0, 2).join(", ") || profileSocialHighlights.slice(0, 2).join(", ") || "Chưa cập nhật" },
+    { icon: <Languages className="h-5 w-5" />, label: "Ngôn ngữ", value: getStringList(profile.languages).join(", ") || "Chưa cập nhật" },
+  ];
 
   function openPortfolioLink(link: string) {
     window.open(portfolioHref(link), "_blank", "noopener,noreferrer");
@@ -1603,9 +1671,375 @@ export default function BrandTalentProfilePage() {
 
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+      <div className="md:hidden -mx-4 -mt-6 bg-white text-[#10122f]">
+        <section className="relative min-h-[100dvh] bg-white pb-20">
+          <div className="relative h-[54vh] min-h-[360px] max-h-[470px] overflow-hidden bg-slate-950">
+            <img
+              src={mobileHeroImage}
+              alt={`${talent.name} cover`}
+              className="h-full w-full object-cover"
+              onClick={() => setPreviewImage(mobileHeroImage)}
+              onError={(event) => {
+                event.currentTarget.src = "/brand_cover_default.png";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/15 to-black/15" />
+
+            <div className="absolute left-4 right-4 top-7 z-20 flex items-start justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  const from = searchParams.get("from");
+                  if (from) {
+                    router.push(from);
+                  } else {
+                    router.back();
+                  }
+                }}
+                className="light-force-white flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white shadow-lg backdrop-blur-md active:scale-95"
+                style={{ color: "#ffffff" }}
+                aria-label="Quay lại"
+              >
+                <ArrowLeft className="h-6 w-6" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+              </button>
+
+              <div className="relative flex flex-col items-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="light-force-white flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white shadow-lg backdrop-blur-md active:scale-95"
+                  style={{ color: "#ffffff" }}
+                  aria-label="Thao tác"
+                >
+                  <MoreVertical className="h-6 w-6" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+                </button>
+                <span className="light-force-white rounded-full bg-black/60 px-2.5 py-1 text-xs font-black text-white shadow-md backdrop-blur-md" style={{ color: "#ffffff" }}>
+                  {mobileHeroIndex + 1}/{mobileHeroTotal}
+                </span>
+
+                {isDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-30" onClick={() => setIsDropdownOpen(false)} />
+                    <div className="absolute right-0 top-14 z-40 w-56 rounded-2xl bg-white p-2 text-left shadow-2xl ring-1 ring-black/5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          handleAddToBrand();
+                        }}
+                        disabled={isAddingToBrand || isAddedToBrand || isOwnProfile}
+                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#10122f] disabled:opacity-45"
+                      >
+                        <Users className="h-4 w-4 text-[#d71920]" />
+                        <span>{isAddedToBrand ? "Đã thêm vào Brand" : "Thêm vào Brand"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          handleShare();
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#10122f]"
+                      >
+                        <Share2 className="h-4 w-4 text-[#d71920]" />
+                        <span>Chia sẻ</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {mobileHeroPhotos.length > 1 && (
+              <div className="absolute inset-y-0 left-0 right-0 z-10 flex items-center justify-between px-2 pointer-events-none">
+                <button
+                  type="button"
+                  onClick={() => setMobileHeroIndex((current) => (current - 1 + mobileHeroTotal) % mobileHeroTotal)}
+                  className="light-force-white pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm active:scale-95"
+                  style={{ color: "#ffffff" }}
+                  aria-label="Ảnh trước"
+                >
+                  <ChevronLeft className="h-5 w-5" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileHeroIndex((current) => (current + 1) % mobileHeroTotal)}
+                  className="light-force-white pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm active:scale-95"
+                  style={{ color: "#ffffff" }}
+                  aria-label="Ảnh sau"
+                >
+                  <ChevronRight className="h-5 w-5" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+                </button>
+              </div>
+            )}
+
+            <div className="absolute bottom-7 left-4 right-4 z-20">
+              <div className="flex items-end justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h1 className="light-force-white flex items-center gap-1.5 text-[26px] font-black leading-none tracking-tight text-white drop-shadow-lg" style={{ color: "#ffffff" }}>
+                    <span className="truncate">{formatDisplayName(talent.name)}</span>
+                    {talent.verified && (
+                      <span className="light-force-white flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#ffb13b] text-sm font-black text-white" style={{ color: "#ffffff" }}>
+                        ✓
+                      </span>
+                    )}
+                  </h1>
+                  <p className="light-force-white mt-1.5 truncate text-sm font-semibold text-white/90" style={{ color: "#ffffff" }}>
+                    {[...talentTypes, ...profileSkills].slice(0, 3).join(" · ") || "Creator · Lifestyle · Review"}
+                  </p>
+                  <div className="light-force-white mt-1.5 flex min-w-0 items-center gap-2 text-sm font-bold text-white" style={{ color: "#ffffff" }}>
+                    <span className="inline-flex min-w-0 items-center gap-1">
+                      <MapPin className="h-4 w-4 shrink-0 fill-white text-white" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+                      <span className="truncate" style={{ color: "#ffffff" }}>
+                      {profile?.location || "Chưa cập nhật"}
+                      </span>
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1 text-emerald-400" style={{ color: "#34d399" }}>
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      Đang hoạt động
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddToWishlist}
+                  disabled={isOwnProfile}
+                  className="mb-0.5 flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-white px-5 text-base font-black text-[#e41017] shadow-xl active:scale-95 disabled:opacity-50"
+                >
+                  <Heart className={cn("h-5 w-5", isInWishlist ? "fill-[#e41017]" : "fill-[#e41017]")} />
+                  {isInWishlist ? "Đã lưu" : "Lưu"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative z-20 -mt-6 rounded-t-[28px] bg-white px-4 pb-6 pt-5 shadow-[0_-12px_28px_rgba(16,18,47,0.08)]">
+            <div className="grid grid-cols-4 divide-x divide-slate-200 rounded-3xl bg-white py-2 shadow-sm">
+              {mobileDisplayStats.map((item: { platform: string; href: string; value: string; label: string; disabled: boolean }) => {
+                const info = getSocialPlatformInfo(item.platform, "");
+                const content = (
+                  <>
+                    <div className="mb-1 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
+                      {info.icon}
+                    </div>
+                    <strong className="text-sm font-black leading-tight text-[#10122f]">{item.value}</strong>
+                    <span className="text-[10px] font-semibold leading-tight text-[#888aa5]">{item.label}</span>
+                  </>
+                );
+
+                if (item.disabled) {
+                  return (
+                    <button
+                      key={item.platform}
+                      type="button"
+                      disabled
+                      className="flex min-w-0 flex-col items-center justify-center px-1 text-center opacity-35 grayscale"
+                      title={`${item.platform} chưa cập nhật`}
+                    >
+                      {content}
+                    </button>
+                  );
+                }
+
+                return (
+                  <a
+                    key={item.platform}
+                    href={item.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex min-w-0 flex-col items-center justify-center px-1 text-center transition active:scale-95"
+                    title={`Mở ${item.platform}`}
+                  >
+                    {content}
+                  </a>
+                );
+              })}
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-2 text-sm">
+              <div className="flex min-w-0 items-center gap-1.5 whitespace-nowrap font-black text-[#10122f]">
+                <Star className="h-5 w-5 shrink-0 fill-[#ffb13b] text-[#ffb13b]" />
+                <span>4.8 <span className="font-medium text-[#888aa5]">(98 đánh giá)</span></span>
+              </div>
+              <div className="flex min-w-0 items-center justify-end gap-1.5 whitespace-nowrap font-black text-[#10122f]">
+                <ShieldCheck className="h-5 w-5 shrink-0 fill-[#ffb13b] text-[#ffb13b]" />
+                <span>412 <span className="font-medium text-[#888aa5]">giao dịch</span></span>
+              </div>
+            </div>
+
+            <p className="mt-3 text-[17px] font-medium leading-relaxed text-[#85879f]">
+              “{talent.experience || "Sáng tạo nội dung chuyên nghiệp, phù hợp các chiến dịch thương hiệu và sự kiện."}”
+            </p>
+
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {[...talentTypes, ...profileSkills, ...profileSocialHighlights].slice(0, 6).map((tag) => (
+                <span key={tag} className="shrink-0 rounded-full bg-[#f5f5f7] px-4 py-2 text-sm font-black text-[#10122f]">
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-5 grid grid-cols-4 border-b border-slate-100 text-center text-base font-semibold text-[#85879f]">
+              {[
+                { id: "photos", label: "Hình ảnh" },
+                { id: "videos", label: "Video" },
+                { id: "about", label: "Giới thiệu" },
+                { id: "reviews", label: "Đánh giá" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setMobileTab(tab.id as typeof mobileTab)}
+                  className={cn(
+                    "relative w-full pb-3 pt-2 text-center transition",
+                    mobileTab === tab.id ? "font-black text-[#e41017]" : "text-[#85879f]"
+                  )}
+                >
+                  {tab.label}
+                  {mobileTab === tab.id && <span className="absolute bottom-0 left-1/2 h-1 w-16 -translate-x-1/2 rounded-full bg-[#e41017]" />}
+                </button>
+              ))}
+            </div>
+
+            {mobileTab === "photos" && (
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {lookbookPhotos.map((img) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => setPreviewImage(normalizeBackendAssetUrl(img.url))}
+                    className="aspect-[3/4] overflow-hidden rounded-xl bg-slate-100"
+                  >
+                    <img src={normalizeBackendAssetUrl(img.url)} alt={img.label} className="h-full w-full object-cover" loading="lazy" />
+                  </button>
+                ))}
+                {lookbookPhotos.length === 0 && (
+                  <div className="col-span-3 rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm font-semibold text-slate-500">
+                    Chưa có ảnh trong bộ sưu tập.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {mobileTab === "videos" && (
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-2 gap-2 rounded-full bg-[#fbf7f7] p-1 text-center text-base font-semibold">
+                  <span className="rounded-full bg-white py-3 text-[#e41017] shadow-sm">Video gần đây</span>
+                  <span className="py-3 text-[#10122f]">Video nổi bật</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {portfolioVideos.map((video, index) => {
+                    const thumb = video.thumbnailUrl || lookbookPhotos[index % Math.max(lookbookPhotos.length, 1)]?.url || "";
+                    return (
+                      <a
+                        key={`${video.id}-${index}`}
+                        href={video.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-950"
+                      >
+                        {isDirectVideoUrl(video.url) ? (
+                          <video src={video.url} className="h-full w-full object-cover" preload="metadata" />
+                        ) : thumb ? (
+                          <img src={normalizeBackendAssetUrl(thumb)} alt={video.title} className="h-full w-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="h-full w-full bg-slate-950" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/45">
+                            <Play className="h-6 w-6 translate-x-0.5 fill-white text-white" style={{ stroke: "none" }} />
+                          </span>
+                        </div>
+                        <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 text-sm font-black text-white">
+                          <Play className="h-3.5 w-3.5 fill-white text-white" style={{ stroke: "none" }} />
+                          {index % 3 === 0 ? "468.9K" : index % 3 === 1 ? "31.1K" : "2.6M"}
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
+                <button type="button" className="flex w-full items-center justify-between py-1 text-left text-xl font-medium text-[#10122f]">
+                  <span>Xem tất cả video</span>
+                  <ChevronRight className="h-7 w-7 text-[#e41017]" />
+                </button>
+              </div>
+            )}
+
+            {mobileTab === "about" && (
+              <div className="mt-3 divide-y divide-slate-100 border-y border-slate-100">
+                {mobileAboutRows.map((row) => (
+                  <div key={row.label} className="grid grid-cols-[42px_1fr_1.15fr] items-center gap-2 py-3 text-[17px]">
+                    <span className="text-[#10122f]">{row.icon}</span>
+                    <span className="font-medium text-[#85879f]">{row.label}</span>
+                    <span className="text-right font-semibold text-[#10122f]">{row.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {mobileTab === "reviews" && (
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center justify-between text-[#10122f]">
+                  <h2 className="text-xl font-black">Đánh giá từ đối tác <span className="font-medium">(98)</span></h2>
+                  <div className="flex items-center gap-2 text-2xl font-black">
+                    <Star className="h-8 w-8 fill-[#ffb13b] text-[#ffb13b]" />
+                    4.8/5
+                  </div>
+                </div>
+                {mobileReviewItems.map((review: any, index: number) => (
+                  <div key={`${review.brand}-${index}`} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-slate-100 bg-black text-xs font-black text-white">
+                        {String(review.brand || "Brand").slice(0, 6)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h3 className="text-lg font-semibold leading-tight text-[#10122f]">{review.brand || "Thương hiệu"}</h3>
+                            <p className="text-sm font-medium text-[#85879f]">Ngày hợp tác: {review.date || "Chưa cập nhật"}</p>
+                          </div>
+                          <span className="flex shrink-0 items-center gap-1 text-lg font-black text-[#10122f]">
+                            <Star className="h-6 w-6 fill-[#ffb13b] text-[#ffb13b]" />
+                            {Number(review.rating || 5).toFixed(1)}/5
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-[16px] font-medium leading-relaxed text-[#85879f]">
+                      “{review.comment || "Talent làm việc chuyên nghiệp và phối hợp tốt trong suốt chiến dịch."}”
+                    </p>
+                  </div>
+                ))}
+                <button type="button" className="flex w-full items-center justify-between py-1 text-left text-xl font-medium text-[#10122f]">
+                  <span>Xem tất cả đánh giá</span>
+                  <ChevronRight className="h-7 w-7 text-[#e41017]" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="fixed inset-x-0 bottom-0 z-30 bg-white/92 px-4 pb-4 pt-2 backdrop-blur md:hidden">
+            <button
+              type="button"
+              onClick={() => {
+                if (isOwnProfile) return;
+                router.push(`/booking?talentId=${encodeURIComponent(String(params.id))}`);
+              }}
+              disabled={isOwnProfile}
+              className="light-force-white flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full bg-[#e41017] text-xl font-bold text-white shadow-[0_10px_24px_rgba(228,16,23,0.35)] active:scale-[0.99] disabled:opacity-50"
+              style={{ color: "#ffffff" }}
+            >
+              <Calendar className="h-6 w-6" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+              <span style={{ color: "#ffffff" }}>Đặt ngay</span>
+            </button>
+          </div>
+        </section>
+      </div>
 
       {/* Sticky Header */}
-      <div className="sticky top-0 z-30 -mt-5 md:-mt-7 lg:-mt-8 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 pt-3 bg-transparent pointer-events-none flex items-center justify-between h-0 overflow-visible">
+      <div className="hidden sticky top-0 z-30 -mt-5 md:-mt-7 lg:-mt-8 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 pt-3 bg-transparent pointer-events-none md:flex items-center justify-between h-0 overflow-visible">
         <button
           onClick={() => {
             const from = searchParams.get("from");
@@ -1700,7 +2134,7 @@ export default function BrandTalentProfilePage() {
       </div>
 
       {/* Cover Header */}
-      <section className="relative overflow-hidden rounded-[24px] border border-white/5 bg-[#08090f] p-0 shadow-xl md:rounded-[32px] md:p-6">
+      <section className="hidden md:block relative overflow-hidden rounded-[24px] border border-white/5 bg-[#08090f] p-0 shadow-xl md:rounded-[32px] md:p-6">
         <div className="group relative h-44 w-full overflow-hidden rounded-t-[24px] border-b border-white/5 bg-[#05070e] shadow-inner sm:h-56 md:h-72 md:rounded-2xl md:border">
           <img
             src={talent.cover || "/brand_cover_default.png"}
@@ -2032,7 +2466,7 @@ export default function BrandTalentProfilePage() {
       </section>
 
       {/* Main Grid Portfolio */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+      <div className="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
 
         {/* 1. HIỆU SUẤT TRÊN ONSTAGE (Cho lên đầu) */}
         <div className="order-[1] lg:col-span-3">
