@@ -35,7 +35,7 @@ export function getSocialHandle(rawUrl: string, rawPlatform?: string): string {
   if (!url.includes("/") && !url.includes(".")) {
     if (url.startsWith("@")) return url;
     const p = (rawPlatform || "").toLowerCase();
-    if (p.includes("tiktok") || p.includes("instagram") || p.includes("youtube")) {
+    if (p.includes("tiktok") || p.includes("instagram") || p.includes("youtube") || p.includes("thread")) {
       return `@${url}`;
     }
     return url;
@@ -95,7 +95,17 @@ export function getSocialHandle(rawUrl: string, rawPlatform?: string): string {
       return "Instagram";
     }
 
-    // 4. YouTube
+    // 4. Threads
+    if (hostname.includes("threads.net") || platform.includes("thread")) {
+      const segments = pathname.split("/").filter(Boolean);
+      if (segments.length > 0) {
+        const username = segments[0];
+        return username.startsWith("@") ? username : `@${username}`;
+      }
+      return "Threads";
+    }
+
+    // 5. YouTube
     if (hostname.includes("youtube.com") || hostname.includes("youtu.be") || platform.includes("youtube")) {
       const match = pathname.match(/@([^/?#]+)/);
       if (match && match[1]) {
