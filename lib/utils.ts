@@ -135,3 +135,22 @@ export function getSocialHandle(rawUrl: string, rawPlatform?: string): string {
   }
 }
 
+export function extractYouTubeVideoId(url?: string): string | null {
+  if (!url || typeof url !== "string") return null;
+  const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([\w-]{11})/i);
+  return match ? match[1] : null;
+}
+
+export function getVideoThumbnail(url?: string, explicitThumb?: string): string {
+  if (explicitThumb && explicitThumb.trim()) {
+    return explicitThumb.trim();
+  }
+  if (!url) return "";
+  const ytId = extractYouTubeVideoId(url);
+  if (ytId) {
+    return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+  }
+  return "";
+}
+
+

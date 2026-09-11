@@ -8,7 +8,7 @@ import {
   Ruler, Scale, Globe, FileText, Video, Link as LinkIcon, ExternalLink, Trash2, Plus,
   Trophy, ShoppingCart, Coins, Star, Info, Users, Eye, Heart, BarChart2, PlayCircle, Film, Copy
 } from "lucide-react";
-import { cn, getSocialHandle } from "@/lib/utils";
+import { cn, getSocialHandle, getVideoThumbnail } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import ProgressBar from "@/components/ui/ProgressBar";
 import OnstagePerformanceExplanationDialog from "@/components/ui/OnstagePerformanceExplanationDialog";
@@ -478,7 +478,7 @@ function getPlatformVideos(platformKey: string, account: any, seed: string, prof
       return {
         id: String(v.id || `custom-${prefix}-${idx}`),
         views: viewCount,
-        thumbnail: v.thumbnail || v.thumbnail_url || (isDirectVideoUrl(v.url) ? v.url : "/video_thumb.png"),
+        thumbnail: v.thumbnail || v.thumbnail_url || getVideoThumbnail(v.url) || (isDirectVideoUrl(v.url) ? v.url : "/video_thumb.png"),
         url: v.url,
         title: v.title,
         topRightIcon: <Film className="h-3.5 w-3.5 text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} />,
@@ -2313,7 +2313,7 @@ export default function PersonalInfoTab({
                       className="block h-full w-full bg-slate-950"
                     >
                       <img
-                        src="/video_thumb.png"
+                        src={normalizeBackendAssetUrl((video as any).thumbnailUrl || (video as any).thumbnail_url || getVideoThumbnail(video.url) || "/video_thumb.png")}
                         alt="Video thumbnail"
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />

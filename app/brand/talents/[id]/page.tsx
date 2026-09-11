@@ -60,7 +60,7 @@ import {
 } from "lucide-react";
 import BookingFlow from "@/app/brand/talents/[id]/booking-talent/BookingFlow";
 import { findTalentById } from "@/lib/brand-mvp-data";
-import { cn, getSocialHandle } from "@/lib/utils";
+import { cn, getSocialHandle, getVideoThumbnail } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
 import OnstagePerformanceExplanationDialog from "@/components/ui/OnstagePerformanceExplanationDialog";
@@ -1488,14 +1488,19 @@ export default function BrandTalentProfilePage() {
     if (!profile || !Array.isArray((profile as any).videos)) return [];
 
     return (profile as any).videos
-      .map((video: any, index: number) => ({
-        id: video?.id ?? `video-${index + 1}`,
-        title: String(video?.title || `Video ${index + 1}`),
-        url: normalizeBackendAssetUrl(video?.url || ""),
-        thumbnailUrl: normalizeBackendAssetUrl(video?.thumbnailUrl || video?.thumbnail_url || video?.thumbnail || ""),
-        path: video?.path ?? null,
-        disk: video?.disk ?? null,
-      }))
+      .map((video: any, index: number) => {
+        const rawUrl = video?.url || "";
+        const rawThumb = video?.thumbnailUrl || video?.thumbnail_url || video?.thumbnail || "";
+        const resolvedThumb = rawThumb ? normalizeBackendAssetUrl(rawThumb) : getVideoThumbnail(rawUrl);
+        return {
+          id: video?.id ?? `video-${index + 1}`,
+          title: String(video?.title || `Video ${index + 1}`),
+          url: normalizeBackendAssetUrl(rawUrl),
+          thumbnailUrl: resolvedThumb,
+          path: video?.path ?? null,
+          disk: video?.disk ?? null,
+        };
+      })
       .filter((video: { url: string }) => Boolean(video.url))
       .slice(0, 4);
   }, [profile]);
@@ -1508,11 +1513,12 @@ export default function BrandTalentProfilePage() {
           acc.recent_videos.forEach((v: any, idx: number) => {
             const rawUrl = String(v.url || acc.url || "").trim();
             if (rawUrl) {
+              const rawThumb = v.thumbnail || v.thumbnailUrl || v.thumbnail_url || "";
               list.push({
                 id: v.id || `recent-${idx}`,
                 title: v.title || "Video gần đây",
                 url: rawUrl,
-                thumbnailUrl: v.thumbnail || v.thumbnailUrl || "",
+                thumbnailUrl: rawThumb ? normalizeBackendAssetUrl(rawThumb) : getVideoThumbnail(rawUrl),
                 views: v.views || "10K",
               });
             }
@@ -1527,7 +1533,7 @@ export default function BrandTalentProfilePage() {
             id: v.id,
             title: v.title,
             url: v.url,
-            thumbnailUrl: v.thumbnailUrl || "",
+            thumbnailUrl: v.thumbnailUrl || getVideoThumbnail(v.url),
             views: "10K",
           });
         }
@@ -1544,11 +1550,12 @@ export default function BrandTalentProfilePage() {
           acc.featured_videos.forEach((v: any, idx: number) => {
             const rawUrl = String(v.url || acc.url || "").trim();
             if (rawUrl) {
+              const rawThumb = v.thumbnail || v.thumbnailUrl || v.thumbnail_url || "";
               list.push({
                 id: v.id || `featured-${idx}`,
                 title: v.title || "Video nổi bật",
                 url: rawUrl,
-                thumbnailUrl: v.thumbnail || v.thumbnailUrl || "",
+                thumbnailUrl: rawThumb ? normalizeBackendAssetUrl(rawThumb) : getVideoThumbnail(rawUrl),
                 views: v.views || "10K",
               });
             }
@@ -2014,7 +2021,7 @@ export default function BrandTalentProfilePage() {
               </div>
               <div className="flex min-w-0 items-center justify-end gap-1.5 whitespace-nowrap font-bold text-xs sm:text-sm text-[#10122f] dark:text-white">
                 <ShieldCheck className="h-4 w-4 shrink-0 fill-[#ffb13b] text-[#ffb13b]" />
-                <span>412 <span className="font-normal text-slate-500 text-[11px] sm:text-xs">dự án</span></span>
+                <span>412 <span className="font-normal text-slate-500 text-[11px] sm:text-xs">chiến dịch</span></span>
               </div>
             </div>
 
