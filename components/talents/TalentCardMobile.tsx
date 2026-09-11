@@ -290,11 +290,11 @@ export default function TalentCardMobile({
       </div>
 
       {/* ── BOTTOM OVERLAY CONTENT ── */}
-      <div className="talent-card-mobile-overlay absolute inset-x-0 bottom-0 z-10 p-2 sm:p-2.5 flex flex-col justify-end gap-0.5 sm:gap-1 text-left min-w-0">
+      <div className="talent-card-mobile-overlay absolute inset-x-0 bottom-0 z-10 p-2 sm:p-2.5 space-y-0.5 text-left min-w-0">
         {/* ROW 1: Name + Yellow Verified Badge */}
-        <div className="flex items-center gap-1 min-w-0 h-5">
+        <div className="flex items-center gap-1 min-w-0">
           <h3
-            className="talent-card-mobile-white font-['Inter','Be_Vietnam_Pro',sans-serif] text-[13px] sm:text-[14px] font-medium leading-none tracking-normal truncate"
+            className="talent-card-mobile-white font-['Inter','Be_Vietnam_Pro',sans-serif] text-[13px] sm:text-[14px] font-medium leading-tight tracking-normal truncate"
             style={{ color: "rgba(255, 255, 255, 0.88)", WebkitTextFillColor: "rgba(255, 255, 255, 0.88)" }}
             title={talent?.name || "Idol"}
           >
@@ -306,15 +306,13 @@ export default function TalentCardMobile({
         </div>
 
         {/* ROW 2: Categories / Tags (Lifestyle · Travel · Review) */}
-        <div className="flex items-center min-w-0 h-3.5 sm:h-4">
-          <p
-            className="talent-card-mobile-muted font-['Inter','Be_Vietnam_Pro',sans-serif] text-[9px] sm:text-[10px] font-normal leading-none truncate w-full"
-            style={{ color: "rgba(255, 255, 255, 0.60)", WebkitTextFillColor: "rgba(255, 255, 255, 0.60)" }}
-            title={categoryTags}
-          >
-            {categoryTags}
-          </p>
-        </div>
+        <p
+          className="talent-card-mobile-muted font-['Inter','Be_Vietnam_Pro',sans-serif] text-[9px] sm:text-[10px] font-normal leading-tight truncate w-full"
+          style={{ color: "rgba(255, 255, 255, 0.60)", WebkitTextFillColor: "rgba(255, 255, 255, 0.60)" }}
+          title={categoryTags}
+        >
+          {categoryTags}
+        </p>
 
         {/* ROW 3: Social Media Followers list OR "Chưa cập nhật MXH" */}
         <div className="flex items-center justify-start min-w-0 h-4.5 w-full">
@@ -358,7 +356,7 @@ export default function TalentCardMobile({
         </div>
 
         {/* ROW 4: Rating + Location */}
-        <div className="flex items-center justify-between gap-1 min-w-0 h-4.5 pt-0.5">
+        <div className="flex items-center justify-between gap-1 min-w-0 pt-0.5">
           {/* Rating */}
           <div className="flex items-center gap-1 shrink-0">
             <Star

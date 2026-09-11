@@ -264,8 +264,8 @@ function OnstagePerformanceCard({
           type="button"
           onClick={() => setPeriodTab("all")}
           className={`flex items-center justify-center pb-2 text-xs sm:text-sm font-black transition-all cursor-pointer border-b-2 -mb-[1px] ${periodTab === "all"
-              ? "text-[#C72524] border-[#C72524] dark:text-rose-400 dark:border-rose-400"
-              : "text-slate-500 hover:text-[#191116] border-transparent dark:text-slate-400 dark:hover:text-white"
+            ? "text-[#C72524] border-[#C72524] dark:text-rose-400 dark:border-rose-400"
+            : "text-slate-500 hover:text-[#191116] border-transparent dark:text-slate-400 dark:hover:text-white"
             }`}
         >
           <span>Tổng quan</span>
@@ -274,8 +274,8 @@ function OnstagePerformanceCard({
           type="button"
           onClick={() => setPeriodTab("recent_3m")}
           className={`flex items-center justify-center pb-2 text-xs sm:text-sm font-black transition-all cursor-pointer border-b-2 -mb-[1px] ${periodTab === "recent_3m"
-              ? "text-[#C72524] border-[#C72524] dark:text-rose-400 dark:border-rose-400"
-              : "text-slate-500 hover:text-[#191116] border-transparent dark:text-slate-400 dark:hover:text-white"
+            ? "text-[#C72524] border-[#C72524] dark:text-rose-400 dark:border-rose-400"
+            : "text-slate-500 hover:text-[#191116] border-transparent dark:text-slate-400 dark:hover:text-white"
             }`}
         >
           <span>3 tháng gần đây</span>
@@ -1506,32 +1506,35 @@ export default function BrandTalentProfilePage() {
       profile.socialAccounts.forEach((acc: any) => {
         if (Array.isArray(acc.recent_videos)) {
           acc.recent_videos.forEach((v: any, idx: number) => {
-            list.push({
-              id: v.id || `recent-${idx}`,
-              title: v.title || "Video gần đây",
-              url: v.url || acc.url,
-              thumbnailUrl: v.thumbnail || v.thumbnailUrl || "",
-              views: v.views || `${120 + (idx * 45)}K`,
-            });
+            const rawUrl = String(v.url || acc.url || "").trim();
+            if (rawUrl) {
+              list.push({
+                id: v.id || `recent-${idx}`,
+                title: v.title || "Video gần đây",
+                url: rawUrl,
+                thumbnailUrl: v.thumbnail || v.thumbnailUrl || "",
+                views: v.views || "10K",
+              });
+            }
           });
         }
       });
     }
-    if (list.length === 0) {
-      return (portfolioVideos.length > 0 ? portfolioVideos : [
-        { id: "v1", title: "Video gần đây 1", url: talent?.cover || "", thumbnailUrl: talent?.cover || "", path: null, disk: null },
-        { id: "v2", title: "Video gần đây 2", url: lookbookPhotos[0]?.url || "", thumbnailUrl: lookbookPhotos[0]?.url || "", path: null, disk: null },
-        { id: "v3", title: "Video gần đây 3", url: lookbookPhotos[1]?.url || "", thumbnailUrl: lookbookPhotos[1]?.url || "", path: null, disk: null },
-      ]).map((v, i) => ({
-        id: v.id,
-        title: v.title,
-        url: v.url,
-        thumbnailUrl: v.thumbnailUrl || lookbookPhotos[i % Math.max(lookbookPhotos.length, 1)]?.url || "",
-        views: i % 3 === 0 ? "468.9K" : i % 3 === 1 ? "31.1K" : "2.6M",
-      }));
+    if (list.length === 0 && portfolioVideos.length > 0) {
+      portfolioVideos.forEach((v) => {
+        if (v.url) {
+          list.push({
+            id: v.id,
+            title: v.title,
+            url: v.url,
+            thumbnailUrl: v.thumbnailUrl || "",
+            views: "10K",
+          });
+        }
+      });
     }
-    return list.slice(0, 6);
-  }, [profile, portfolioVideos, talent, lookbookPhotos]);
+    return list;
+  }, [profile, portfolioVideos]);
 
   const mobileFeaturedVideos = useMemo(() => {
     const list: Array<{ id: string | number; title: string; url: string; thumbnailUrl: string; views: string }> = [];
@@ -1539,27 +1542,22 @@ export default function BrandTalentProfilePage() {
       profile.socialAccounts.forEach((acc: any) => {
         if (Array.isArray(acc.featured_videos)) {
           acc.featured_videos.forEach((v: any, idx: number) => {
-            list.push({
-              id: v.id || `featured-${idx}`,
-              title: v.title || "Video nổi bật",
-              url: v.url || acc.url,
-              thumbnailUrl: v.thumbnail || v.thumbnailUrl || "",
-              views: v.views || `${1.2 + (idx * 0.7)}M`,
-            });
+            const rawUrl = String(v.url || acc.url || "").trim();
+            if (rawUrl) {
+              list.push({
+                id: v.id || `featured-${idx}`,
+                title: v.title || "Video nổi bật",
+                url: rawUrl,
+                thumbnailUrl: v.thumbnail || v.thumbnailUrl || "",
+                views: v.views || "10K",
+              });
+            }
           });
         }
       });
     }
-    if (list.length === 0) {
-      return [...mobileRecentVideos].reverse().map((v, i) => ({
-        ...v,
-        id: `feat-${v.id}`,
-        title: `Video nổi bật ${i + 1}`,
-        views: i % 2 === 0 ? "3.2M" : "1.8M",
-      }));
-    }
-    return list.slice(0, 6);
-  }, [profile, mobileRecentVideos]);
+    return list;
+  }, [profile]);
 
   // State for Month-switching Calendar
   const [currentYear, setCurrentYear] = useState(2026);
@@ -1807,7 +1805,7 @@ export default function BrandTalentProfilePage() {
             {isDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-[#F0D7D3] bg-white p-2 text-left shadow-2xl ring-1 ring-black/10">
+                <div className="absolute right-0 top-12 z-50 w-44 rounded-2xl border border-[#F0D7D3] bg-white p-1.5 text-left shadow-2xl ring-1 ring-black/10 animate-in fade-in slide-in-from-top-2 duration-150">
                   <button
                     type="button"
                     onClick={() => {
@@ -1815,10 +1813,44 @@ export default function BrandTalentProfilePage() {
                       handleAddToBrand();
                     }}
                     disabled={isAddingToBrand || isAddedToBrand || isOwnProfile}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#10122f] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition disabled:opacity-45"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-[#10122f] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition disabled:opacity-45 cursor-pointer whitespace-nowrap"
                   >
-                    <Users className="h-4 w-4 text-[#8F0709]" />
-                    <span>{isAddedToBrand ? "Đã thêm vào Brand" : "Thêm vào Brand"}</span>
+                    <Users className="h-4 w-4 text-[#8F0709] shrink-0" />
+                    <span>{isAddedToBrand ? "Đã thêm" : "Thêm vào Brand"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      if (isOwnProfile) return;
+                      router.push(`/booking?talentId=${encodeURIComponent(String(params.id))}`);
+                    }}
+                    disabled={isOwnProfile}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-[#10122f] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition disabled:opacity-45 cursor-pointer whitespace-nowrap"
+                  >
+                    <CalendarCheck className="h-4 w-4 text-[#8F0709] shrink-0" />
+                    <span>Đặt ngay</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      handleAddToWishlist();
+                    }}
+                    disabled={isOwnProfile}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-[#10122f] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition disabled:opacity-45 cursor-pointer whitespace-nowrap"
+                  >
+                    {isInWishlist ? (
+                      <>
+                        <BookmarkCheck className="h-4 w-4 text-[#8F0709] shrink-0" />
+                        <span>Bỏ lưu</span>
+                      </>
+                    ) : (
+                      <>
+                        <Heart className="h-4 w-4 text-[#8F0709] shrink-0" />
+                        <span>Lưu</span>
+                      </>
+                    )}
                   </button>
                   <button
                     type="button"
@@ -1826,9 +1858,9 @@ export default function BrandTalentProfilePage() {
                       setIsDropdownOpen(false);
                       handleShare();
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-[#10122f] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-[#10122f] hover:bg-[#FFF0EE] hover:text-[#8F0709] transition cursor-pointer whitespace-nowrap"
                   >
-                    <Share2 className="h-4 w-4 text-[#8F0709]" />
+                    <Share2 className="h-4 w-4 text-[#8F0709] shrink-0" />
                     <span>Chia sẻ</span>
                   </button>
                 </div>
@@ -1888,41 +1920,44 @@ export default function BrandTalentProfilePage() {
               {(mobileHeroIndex % mobileHeroTotal) + 1}/{mobileHeroTotal}
             </span>
 
-            <div className="absolute bottom-7 left-4 right-4 z-20 pointer-events-none">
-              <div className="flex items-end justify-between gap-3">
-                <div className="min-w-0 flex-1 pointer-events-auto">
-                  <h1 className="light-force-white flex items-center gap-1.5 text-[26px] font-black leading-none tracking-tight text-white drop-shadow-lg" style={{ color: "#ffffff" }}>
-                    <span className="truncate">{formatDisplayName(talent.name)}</span>
-                    {talent.verified && (
-                      <span className="light-force-white flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#ffb13b] text-sm font-black text-white" style={{ color: "#ffffff" }}>
-                        ✓
-                      </span>
-                    )}
-                  </h1>
-                  <p className="light-force-white mt-1.5 truncate text-sm font-semibold text-white/90" style={{ color: "#ffffff" }}>
-                    {[...talentTypes, ...profileSkills].slice(0, 3).join(" · ") || "Creator · Lifestyle · Review"}
-                  </p>
-                  <div className="light-force-white mt-1.5 flex min-w-0 items-center gap-2 text-sm font-bold text-white" style={{ color: "#ffffff" }}>
-                    <span className="inline-flex min-w-0 items-center gap-1">
-                      <MapPin className="h-4 w-4 shrink-0 text-white" style={{ color: "#ffffff", stroke: "#ffffff" }} />
-                      <span className="truncate" style={{ color: "#ffffff" }}>
-                        {profile?.location || "Chưa cập nhật"}
-                      </span>
+            <div className="absolute bottom-7 left-4 right-4 z-20 pointer-events-none space-y-1.5">
+              {/* Row 1: Full-width Name + Verified Badge */}
+              <div className="pointer-events-auto w-full">
+                <h1 className="light-force-white flex flex-wrap items-center gap-1.5 text-[22px] min-[380px]:text-2xl sm:text-[26px] font-black leading-tight tracking-tight text-white drop-shadow-lg" style={{ color: "#ffffff" }}>
+                  <span>{formatDisplayName(talent.name)}</span>
+                  {talent.verified && (
+                    <span className="light-force-white inline-flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-full bg-[#ffb13b] text-xs sm:text-sm font-black text-white shadow-md" style={{ color: "#ffffff" }}>
+                      ✓
                     </span>
-                    <span className="inline-flex shrink-0 items-center gap-1 text-emerald-400" style={{ color: "#34d399" }}>
-                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                      Đang hoạt động
+                  )}
+                </h1>
+                <p className="light-force-white mt-1 break-words text-xs sm:text-sm font-semibold text-white/90" style={{ color: "#ffffff" }}>
+                  {[...talentTypes, ...profileSkills].slice(0, 3).join(" · ") || "Creator · Lifestyle · Review"}
+                </p>
+              </div>
+
+              {/* Row 2: Location + Active Status (Left) & Save Button (Right) */}
+              <div className="flex items-center justify-between gap-2.5 pt-0.5 pointer-events-auto">
+                <div className="light-force-white flex flex-wrap items-center gap-2.5 text-xs sm:text-sm font-bold text-white" style={{ color: "#ffffff" }}>
+                  <span className="inline-flex min-w-0 items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-white" style={{ color: "#ffffff", stroke: "#ffffff" }} />
+                    <span className="break-words" style={{ color: "#ffffff" }}>
+                      {profile?.location || "Chưa cập nhật"}
                     </span>
-                  </div>
+                  </span>
+                  <span className="inline-flex shrink-0 items-center gap-1 text-emerald-400" style={{ color: "#34d399" }}>
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    Đang hoạt động
+                  </span>
                 </div>
 
                 <button
                   type="button"
                   onClick={handleAddToWishlist}
                   disabled={isOwnProfile}
-                  className="pointer-events-auto mb-0.5 flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-white px-5 text-base font-black text-[#8F0709] shadow-xl active:scale-95 disabled:opacity-50 cursor-pointer"
+                  className="pointer-events-auto flex h-9 sm:h-10 shrink-0 items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-white px-3.5 sm:px-4 text-xs sm:text-sm font-black text-[#8F0709] shadow-xl active:scale-95 disabled:opacity-50 cursor-pointer"
                 >
-                  <Heart className={cn("h-5 w-5", isInWishlist ? "fill-[#C72524] text-[#C72524]" : "text-[#8F0709]")} />
+                  <Heart className={cn("h-4 w-4", isInWishlist ? "fill-[#C72524] text-[#C72524]" : "text-[#8F0709]")} />
                   {isInWishlist ? "Đã lưu" : "Lưu"}
                 </button>
               </div>
@@ -1973,29 +2008,51 @@ export default function BrandTalentProfilePage() {
             </div>
 
             <div className="mt-3 flex items-center justify-between gap-2 text-sm">
-              <div className="flex min-w-0 items-center gap-1.5 whitespace-nowrap font-black text-[#10122f]">
-                <Star className="h-5 w-5 shrink-0 fill-[#ffb13b] text-[#ffb13b]" />
-                <span>4.8 <span className="font-medium text-[#888aa5]">(98 đánh giá)</span></span>
+              <div className="flex min-w-0 items-center gap-1.5 whitespace-nowrap font-bold text-xs sm:text-sm text-[#10122f] dark:text-white">
+                <Star className="h-4 w-4 shrink-0 fill-[#ffb13b] text-[#ffb13b]" />
+                <span>4.8 <span className="font-normal text-slate-500 text-[11px] sm:text-xs">(98 đánh giá)</span></span>
               </div>
-              <div className="flex min-w-0 items-center justify-end gap-1.5 whitespace-nowrap font-black text-[#10122f]">
-                <ShieldCheck className="h-5 w-5 shrink-0 fill-[#ffb13b] text-[#ffb13b]" />
-                <span>412 <span className="font-medium text-[#888aa5]">giao dịch</span></span>
+              <div className="flex min-w-0 items-center justify-end gap-1.5 whitespace-nowrap font-bold text-xs sm:text-sm text-[#10122f] dark:text-white">
+                <ShieldCheck className="h-4 w-4 shrink-0 fill-[#ffb13b] text-[#ffb13b]" />
+                <span>412 <span className="font-normal text-slate-500 text-[11px] sm:text-xs">dự án</span></span>
               </div>
             </div>
 
-            <p className="mt-3 text-[17px] font-medium leading-relaxed text-[#85879f]">
+            <p className="mt-2.5 text-xs sm:text-[13px] font-normal leading-relaxed text-slate-600 dark:text-slate-300">
               “{talent.experience || "Sáng tạo nội dung chuyên nghiệp, phù hợp các chiến dịch thương hiệu và sự kiện."}”
             </p>
 
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {[...talentTypes, ...profileSkills, ...profileSocialHighlights].slice(0, 6).map((tag) => (
-                <span key={tag} className="shrink-0 rounded-full bg-[#f5f5f7] px-4 py-2 text-sm font-black text-[#10122f]">
-                  {tag}
-                </span>
-              ))}
+            {/* Scrollable Quick Tag Pills with visual scroll indicator (Same as brand/search) */}
+            <div className="relative mt-3.5 flex-1 min-w-0">
+              <div className="flex items-center gap-2 overflow-x-auto pb-0.5 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {(() => {
+                  const combined = [
+                    ...talentTypes,
+                    ...profileSkills,
+                    ...profileSocialHighlights,
+                  ].filter(Boolean);
+
+                  const defaultFallbackTags = ["Food", "Lifestyle", "Review", "Café", "Ẩm thực đường phố"];
+                  const tagsToRender = combined.length > 0
+                    ? Array.from(new Set(combined)).slice(0, 8)
+                    : defaultFallbackTags;
+
+                  return tagsToRender.map((tag) => (
+                    <span
+                      key={tag}
+                      className="h-8 shrink-0 inline-flex items-center rounded-full border border-[#F1D8D4] bg-white px-3.5 text-[11px] font-bold text-[#191116] shadow-2xs dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
+                    >
+                      {tag}
+                    </span>
+                  ));
+                })()}
+              </div>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-white via-white/90 to-transparent pl-4 pr-0 dark:from-[#08090f] dark:via-[#08090f]/90">
+                <ChevronRight className="h-4 w-4 animate-pulse text-[#C72524]/80 dark:text-[#C9A86A]/80" />
+              </div>
             </div>
 
-            <div className="mt-5 grid grid-cols-4 border-b border-slate-100 text-center text-base font-semibold text-[#85879f]">
+            <div className="mt-4 grid grid-cols-4 border-b border-slate-100 text-center text-xs sm:text-sm font-semibold text-[#85879f] dark:border-white/10">
               {[
                 { id: "photos", label: "Hình ảnh" },
                 { id: "videos", label: "Video" },
@@ -2007,12 +2064,12 @@ export default function BrandTalentProfilePage() {
                   type="button"
                   onClick={() => setMobileTab(tab.id as typeof mobileTab)}
                   className={cn(
-                    "relative w-full pb-3 pt-2 text-center transition",
-                    mobileTab === tab.id ? "font-black text-[#8F0709]" : "text-[#85879f]"
+                    "relative w-full pb-2.5 pt-2 text-center transition cursor-pointer select-none",
+                    mobileTab === tab.id ? "font-bold text-[#8F0709] dark:text-rose-400" : "text-[#85879f] hover:text-[#10122f] dark:hover:text-white"
                   )}
                 >
                   {tab.label}
-                  {mobileTab === tab.id && <span className="absolute bottom-0 left-1/2 h-1 w-16 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709]" />}
+                  {mobileTab === tab.id && <span className="absolute bottom-0 left-1/2 h-0.5 w-12 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709]" />}
                 </button>
               ))}
             </div>
@@ -2040,87 +2097,104 @@ export default function BrandTalentProfilePage() {
             {mobileTab === "videos" && (
               <div className="mt-4 space-y-4">
                 {/* Interactive Sub-tab Toggle */}
-                <div className="grid grid-cols-2 gap-2 rounded-full bg-[#fbf7f7] p-1 text-center text-sm sm:text-base font-semibold dark:bg-white/5">
+                <div className="grid grid-cols-2 gap-2 rounded-full bg-[#fbf7f7] p-1 text-center text-xs sm:text-sm font-semibold dark:bg-white/5">
                   <button
                     type="button"
                     onClick={() => setMobileVideoSubTab("recent")}
                     className={cn(
-                      "rounded-full py-2.5 transition-all cursor-pointer select-none",
+                      "rounded-full py-2 transition-all cursor-pointer select-none",
                       mobileVideoSubTab === "recent"
                         ? "bg-white text-[#8F0709] shadow-sm font-bold dark:bg-slate-800 dark:text-rose-400"
                         : "text-[#10122f] hover:text-[#8F0709] dark:text-slate-300"
                     )}
                   >
-                    Video gần đây
+                    Video gần đây {mobileRecentVideos.length > 0 && `(${mobileRecentVideos.length})`}
                   </button>
                   <button
                     type="button"
                     onClick={() => setMobileVideoSubTab("featured")}
                     className={cn(
-                      "rounded-full py-2.5 transition-all cursor-pointer select-none",
+                      "rounded-full py-2 transition-all cursor-pointer select-none",
                       mobileVideoSubTab === "featured"
                         ? "bg-white text-[#8F0709] shadow-sm font-bold dark:bg-slate-800 dark:text-rose-400"
                         : "text-[#10122f] hover:text-[#8F0709] dark:text-slate-300"
                     )}
                   >
-                    Video nổi bật
+                    Video nổi bật {mobileFeaturedVideos.length > 0 && `(${mobileFeaturedVideos.length})`}
                   </button>
                 </div>
 
-                {/* Video Grid */}
-                <div className="grid grid-cols-3 gap-2">
-                  {(mobileVideoSubTab === "recent" ? mobileRecentVideos : mobileFeaturedVideos).map((video, index) => {
-                    const thumb = video.thumbnailUrl || lookbookPhotos[index % Math.max(lookbookPhotos.length, 1)]?.url || "";
-                    const views = video.views || (mobileVideoSubTab === "featured" ? (index % 2 === 0 ? "3.2M" : "1.8M") : (index % 3 === 0 ? "468.9K" : index % 3 === 1 ? "31.1K" : "2.6M"));
+                {/* Video Grid / Empty State */}
+                {(() => {
+                  const currentVideos = mobileVideoSubTab === "recent" ? mobileRecentVideos : mobileFeaturedVideos;
+                  if (currentVideos.length === 0) {
                     return (
-                      <a
-                        key={`${video.id || index}-${index}`}
-                        href={video.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-950 block select-none"
-                      >
-                        {isDirectVideoUrl(video.url) ? (
-                          <video src={video.url} className="h-full w-full object-cover" preload="metadata" />
-                        ) : thumb ? (
-                          <img src={normalizeBackendAssetUrl(thumb)} alt={video.title} className="h-full w-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="h-full w-full bg-slate-950" />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent pointer-events-none" />
-                        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                          <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/45 backdrop-blur-xs group-hover:scale-110 transition-transform">
-                            <Play className="h-5 w-5 sm:h-6 sm:w-6 translate-x-0.5" style={{ fill: "#ffffff", color: "#ffffff", stroke: "none" }} />
-                          </span>
-                        </div>
-                        <span
-                          className="light-force-white absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 z-20 inline-flex items-center gap-1 text-[10.5px] sm:text-xs font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
-                          style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
-                        >
-                          <Play className="h-3 w-3 shrink-0" style={{ fill: "#ffffff", color: "#ffffff", stroke: "none" }} />
-                          <span style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
-                            {views}
-                          </span>
-                        </span>
-                      </a>
+                      <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-xs sm:text-sm font-semibold text-slate-400 dark:border-white/10 dark:text-slate-500">
+                        {mobileVideoSubTab === "recent" ? "Chưa có video gần đây." : "Chưa có video nổi bật."}
+                      </div>
                     );
-                  })}
-                </div>
+                  }
 
-                <button type="button" className="flex w-full items-center justify-between py-1 text-left text-xl font-medium text-[#10122f] hover:text-[#8F0709] transition">
-                  <span>Xem tất cả video</span>
-                  <ChevronRight className="h-7 w-7 text-[#8F0709]" />
-                </button>
+                  return (
+                    <>
+                      <div className="grid grid-cols-3 gap-2">
+                        {currentVideos.map((video, index) => {
+                          const thumb = video.thumbnailUrl || "";
+                          const views = video.views || "10K";
+                          return (
+                            <a
+                              key={`${video.id || index}-${index}`}
+                              href={video.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-950 block select-none"
+                            >
+                              {isDirectVideoUrl(video.url) ? (
+                                <video src={video.url} className="h-full w-full object-cover" preload="metadata" />
+                              ) : thumb ? (
+                                <img src={normalizeBackendAssetUrl(thumb)} alt={video.title} className="h-full w-full object-cover" loading="lazy" />
+                              ) : (
+                                <div className="h-full w-full bg-slate-950 flex items-center justify-center p-2 text-center text-[10px] text-slate-400 font-semibold">
+                                  {video.title}
+                                </div>
+                              )}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent pointer-events-none" />
+                              <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                                <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/45 backdrop-blur-xs group-hover:scale-110 transition-transform">
+                                  <Play className="h-5 w-5 sm:h-6 sm:w-6 translate-x-0.5" style={{ fill: "#ffffff", color: "#ffffff", stroke: "none" }} />
+                                </span>
+                              </div>
+                              <span
+                                className="light-force-white absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 z-20 inline-flex items-center gap-1 text-[10.5px] sm:text-xs font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
+                                style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+                              >
+                                <Play className="h-3 w-3 shrink-0" style={{ fill: "#ffffff", color: "#ffffff", stroke: "none" }} />
+                                <span style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+                                  {views}
+                                </span>
+                              </span>
+                            </a>
+                          );
+                        })}
+                      </div>
+
+                      <button type="button" className="flex w-full items-center justify-between py-1.5 text-left text-xs sm:text-sm font-semibold text-[#8F0709] hover:underline transition">
+                        <span>Xem tất cả video</span>
+                        <ChevronRight className="h-4 w-4 text-[#8F0709]" />
+                      </button>
+                    </>
+                  );
+                })()}
               </div>
             )}
 
             {mobileTab === "about" && (
-              <div className="mt-3 divide-y divide-slate-100 border-y border-slate-100">
+              <div className="mt-3 divide-y divide-slate-100 border-y border-slate-100 dark:divide-white/10 dark:border-white/10">
                 {mobileAboutRows.map((row) => (
-                  <div key={row.label} className="grid grid-cols-[42px_1fr_1.15fr] items-center gap-2 py-3 text-[17px]">
-                    <span className="text-[#10122f]">{row.icon}</span>
-                    <span className="font-medium text-[#85879f]">{row.label}</span>
-                    <span className="text-right font-semibold text-[#10122f]">{row.value}</span>
+                  <div key={row.label} className="grid grid-cols-[36px_1fr_1.15fr] items-center gap-2 py-2.5 text-xs sm:text-sm">
+                    <span className="text-[#10122f] dark:text-slate-300">{row.icon}</span>
+                    <span className="font-medium text-[#85879f] dark:text-slate-400">{row.label}</span>
+                    <span className="text-right font-semibold text-[#10122f] dark:text-white">{row.value}</span>
                   </div>
                 ))}
               </div>
@@ -2128,40 +2202,42 @@ export default function BrandTalentProfilePage() {
 
             {mobileTab === "reviews" && (
               <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-between text-[#10122f]">
-                  <h2 className="text-xl font-black">Đánh giá từ đối tác <span className="font-medium">(98)</span></h2>
-                  <div className="flex items-center gap-2 text-2xl font-black">
-                    <Star className="h-8 w-8 fill-[#ffb13b] text-[#ffb13b]" />
+                <div className="flex items-center justify-between text-[#10122f] dark:text-white">
+                  <h2 className="text-sm sm:text-base font-bold">
+                    Đánh giá từ đối tác <span className="font-normal text-slate-500 text-xs">({profile?.reviews?.length || 98})</span>
+                  </h2>
+                  <div className="flex items-center gap-1.5 text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                    <Star className="h-4 w-4 fill-[#ffb13b] text-[#ffb13b]" />
                     4.8/5
                   </div>
                 </div>
                 {mobileReviewItems.map((review: any, index: number) => (
-                  <div key={`${review.brand}-${index}`} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-slate-100 bg-black text-xs font-black text-white">
-                        {String(review.brand || "Brand").slice(0, 6)}
+                  <div key={`${review.brand}-${index}`} className="rounded-xl border border-slate-100 bg-white p-3.5 shadow-xs dark:border-white/10 dark:bg-[#121827]">
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-900 text-[10px] font-bold text-white uppercase dark:border-white/10">
+                        {String(review.brand || "Brand").slice(0, 3)}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <h3 className="text-lg font-semibold leading-tight text-[#10122f]">{review.brand || "Thương hiệu"}</h3>
-                            <p className="text-sm font-medium text-[#85879f]">Ngày hợp tác: {review.date || "Chưa cập nhật"}</p>
+                            <h3 className="text-xs sm:text-sm font-bold leading-tight text-[#10122f] dark:text-white">{review.brand || "Thương hiệu"}</h3>
+                            <p className="text-[10.5px] sm:text-[11px] font-normal text-slate-400 mt-0.5">Ngày hợp tác: {review.date || "Chưa cập nhật"}</p>
                           </div>
-                          <span className="flex shrink-0 items-center gap-1 text-lg font-black text-[#10122f]">
-                            <Star className="h-6 w-6 fill-[#ffb13b] text-[#ffb13b]" />
+                          <span className="flex shrink-0 items-center gap-1 text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                            <Star className="h-3.5 w-3.5 fill-[#ffb13b] text-[#ffb13b]" />
                             {Number(review.rating || 5).toFixed(1)}/5
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="mt-3 text-[16px] font-medium leading-relaxed text-[#85879f]">
+                    <p className="mt-2.5 text-xs sm:text-[13px] font-normal leading-relaxed text-slate-600 dark:text-slate-300">
                       “{review.comment || "Talent làm việc chuyên nghiệp và phối hợp tốt trong suốt chiến dịch."}”
                     </p>
                   </div>
                 ))}
-                <button type="button" className="flex w-full items-center justify-between py-1 text-left text-xl font-medium text-[#10122f] hover:text-[#8F0709] transition">
+                <button type="button" className="flex w-full items-center justify-between py-1.5 text-left text-xs sm:text-sm font-semibold text-[#8F0709] hover:underline transition dark:text-rose-400">
                   <span>Xem tất cả đánh giá</span>
-                  <ChevronRight className="h-7 w-7 text-[#8F0709]" />
+                  <ChevronRight className="h-4 w-4 text-[#8F0709] dark:text-rose-400" />
                 </button>
               </div>
             )}
@@ -2254,7 +2330,7 @@ export default function BrandTalentProfilePage() {
                   {isInWishlist ? (
                     <>
                       <BookmarkCheck className="h-4 w-4 shrink-0 text-[#8F0709] dark:text-[#C9A86A]" />
-                      <span>Xóa khỏi "Idol đã lưu"</span>
+                      <span>Bỏ lưu</span>
                     </>
                   ) : (
                     <>
