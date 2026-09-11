@@ -1597,6 +1597,30 @@ export default function BrandTalentProfilePage() {
     return firstDayIndex === 0 ? 6 : firstDayIndex - 1;
   };
 
+  const handleNavigateBack = () => {
+    const from = searchParams.get("from");
+    if (from) {
+      router.push(from);
+      return;
+    }
+
+    if (typeof window !== "undefined") {
+      // If accessed via external app (Zalo, Facebook, etc.), direct link, or first page in session
+      const isInternalReferrer = Boolean(
+        document.referrer &&
+        (document.referrer.includes(window.location.host) || document.referrer.includes("localhost"))
+      );
+      const isFirstHistoryEntry = !window.history.state || window.history.state?.idx === 0 || window.history.length <= 1;
+
+      if (!isInternalReferrer || isFirstHistoryEntry) {
+        router.push("/brand/search");
+        return;
+      }
+    }
+
+    router.back();
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-[65vh] items-center justify-center">
@@ -1613,7 +1637,7 @@ export default function BrandTalentProfilePage() {
       <div className="flex min-h-[65vh] items-center justify-center">
         <div className="rounded-2xl border border-white/5 bg-slate-950/30 p-8 text-center">
           <h1 className="text-xl font-black text-white">Idol chưa kích hoạt hồ sơ</h1>
-          <button onClick={() => router.back()} className="mt-5 rounded-xl bg-white/10 px-4 py-2 text-xs font-bold text-white">
+          <button onClick={handleNavigateBack} className="mt-5 rounded-xl bg-white/10 px-4 py-2 text-xs font-bold text-white">
             Quay lại
           </button>
         </div>
@@ -1783,14 +1807,7 @@ export default function BrandTalentProfilePage() {
         <div className="fixed top-3 left-4 right-4 z-40 flex items-start justify-between pointer-events-none">
           <button
             type="button"
-            onClick={() => {
-              const from = searchParams.get("from");
-              if (from) {
-                router.push(from);
-              } else {
-                router.back();
-              }
-            }}
+            onClick={handleNavigateBack}
             className="light-force-white pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white shadow-lg backdrop-blur-md active:scale-95 transition"
             style={{ color: "#ffffff" }}
             aria-label="Quay lại"
@@ -2271,14 +2288,7 @@ export default function BrandTalentProfilePage() {
       {/* Sticky Header */}
       <div className="hidden sticky top-0 z-30 -mt-5 md:-mt-7 lg:-mt-8 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 pt-3 bg-transparent pointer-events-none md:flex items-center justify-between h-0 overflow-visible">
         <button
-          onClick={() => {
-            const from = searchParams.get("from");
-            if (from) {
-              router.push(from);
-            } else {
-              router.back();
-            }
-          }}
+          onClick={handleNavigateBack}
           className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-2xl border border-[#E8C8C2] bg-white/90 backdrop-blur-md text-[#8F0709] shadow-[0_8px_22px_rgba(143,7,9,0.12)] transition-all duration-300 hover:border-[#C72524]/45 hover:bg-[#FFF3F1] active:scale-95 cursor-pointer dark:border-amber-500/30 dark:bg-[#0c1120]/85 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-[#0c1120] dark:hover:border-amber-500/50 dark:shadow-[0_4px_15px_rgba(0,0,0,0.4)]"
           aria-label="Quay lại"
           title="Quay lại"
