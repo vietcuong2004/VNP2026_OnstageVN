@@ -2481,450 +2481,503 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
     <div className="relative min-h-screen w-full overflow-visible rounded-none border-0 bg-white p-4 transition-all duration-500 dark:bg-[#070913]/95 md:p-8 md:px-12">
       <div className="mx-auto w-full max-w-7xl">
 
-      {/* Top ambient glow light */}
-      <div className="absolute top-0 right-0 -z-10 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 -z-10 h-32 w-32 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
+        {/* Top ambient glow light */}
+        <div className="absolute top-0 right-0 -z-10 h-32 w-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -z-10 h-32 w-32 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
 
-      {/* Modern Stepper Header Progress */}
-      <div className="mb-6 space-y-4 border-b border-white/10 pb-4 md:mb-8 md:space-y-6 md:pb-6">
-        <div className="flex items-start justify-between gap-3 w-full min-w-0">
-          {/* Left: step badge + step name + progress text – single row on all screens */}
-          <div className="flex flex-col min-w-0">
-            <h2 className="mb-2 font-display text-base font-black uppercase tracking-wider text-white md:text-lg">
-              Tham gia hệ thống
-            </h2>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="shrink-0 text-[11px] md:text-xs font-black text-amber-300 uppercase tracking-widest bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 whitespace-nowrap">
-                Bước {step} / {SURVEY_STEP_COUNT}
-              </span>
-              <span className="min-w-0 text-xs font-black leading-snug text-white">
-                {step === 1 && "Thông tin cơ bản"}
-                {step === 2 && "Nghề nghiệp & Ngoại hình"}
-                {step === 3 && "Social & Portfolio"}
-                {step === MEDIA_SURVEY_STEP && "Hình ảnh & Video"}
-                {ORIENTATION_SURVEY_ENABLED && step === AI_SURVEY_STEP && "Khảo sát định hướng"}
-              </span>
+        {/* Modern Stepper Header Progress */}
+        <div className="mb-6 space-y-4 border-b border-white/10 pb-4 md:mb-8 md:space-y-6 md:pb-6">
+          <div className="flex items-start justify-between gap-3 w-full min-w-0">
+            {/* Left: step badge + step name + progress text – single row on all screens */}
+            <div className="flex flex-col min-w-0">
+              <h2 className="mb-2 font-display text-base font-black uppercase tracking-wider text-white md:text-lg">
+                Tham gia hệ thống
+              </h2>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="shrink-0 text-[11px] md:text-xs font-black text-amber-300 uppercase tracking-widest bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 whitespace-nowrap">
+                  Bước {step} / {SURVEY_STEP_COUNT}
+                </span>
+                <span className="min-w-0 text-xs font-black leading-snug text-white">
+                  {step === 1 && "Thông tin cơ bản"}
+                  {step === 2 && "Nghề nghiệp & Ngoại hình"}
+                  {step === 3 && "Social & Portfolio"}
+                  {step === MEDIA_SURVEY_STEP && "Hình ảnh & Video"}
+                  {ORIENTATION_SURVEY_ENABLED && step === AI_SURVEY_STEP && "Khảo sát định hướng"}
+                </span>
+              </div>
+            </div>
+
+            {onBackToDashboard && (
+              <button
+                type="button"
+                onClick={() => setShowCancelSurveyDialog(true)}
+                className="shrink-0 flex items-center gap-1 text-[11px] md:text-xs font-black uppercase tracking-wider text-[#070913] bg-gradient-to-r from-amber-200 via-amber-300 to-amber-500 hover:brightness-105 hover:scale-[1.02] active:scale-98 transition-all cursor-pointer px-3 py-2 rounded-xl border border-amber-400/30 shadow-[0_0_15px_rgba(245,158,11,0.2)] whitespace-nowrap"
+              >
+                <X className="h-3 w-3 stroke-[3]" /> Hủy
+              </button>
+            )}
+          </div>
+
+          {/* The New Interactive Stepper */}
+          <div className="w-full relative px-1 py-3 md:px-4 md:py-4">
+            {/* Progress bar container (aligned to bubble centers) */}
+            <div className="absolute top-7 left-7 right-7 h-[2px] bg-white/10 -translate-y-1/2 rounded-full overflow-hidden md:top-8 md:left-8 md:right-8">
+              <div
+                className="h-full bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 transition-all duration-500"
+                style={{ width: `${((step - 1) / Math.max(1, SURVEY_STEP_COUNT - 1)) * 100}%` }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between w-full relative z-10">
+              {SURVEY_STEPS.map((s) => {
+                const isCurrent = s === step;
+                const isPast = s < step;
+                const isLockedGuestSurveyStep = ORIENTATION_SURVEY_ENABLED && !isAuthenticated && !guestSurveyUnlocked && s === 4;
+                const isClickable = !isLockedGuestSurveyStep;
+
+                const stepNames = [
+                  "Thông tin",
+                  "Nghề nghiệp",
+                  "Portfolio",
+                  "Hình ảnh & Video",
+                  "Khảo sát AI"
+                ];
+
+                return (
+                  <button
+                    type="button"
+                    key={s}
+                    disabled={!isClickable}
+                    onClick={() => goToStep(s)}
+                    className={cn(
+                      "flex flex-col items-center transition-all duration-300 relative group focus:outline-none",
+                      isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-60"
+                    )}
+                    style={{ width: `${100 / SURVEY_STEP_COUNT}%` }}
+                  >
+                    {/* Step Bubble */}
+                    <div className={cn(
+                      "h-8 w-8 rounded-full border-2 flex items-center justify-center text-xs font-black transition-all duration-500 relative",
+                      isCurrent
+                        ? "bg-[#070913] border-amber-400 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)] scale-110"
+                        : isPast
+                          ? "bg-amber-400 border-amber-400 text-[#070913]"
+                          : isClickable
+                            ? "bg-[#070913] border-amber-400/50 text-amber-300/80 hover:border-amber-400 hover:text-amber-300 hover:scale-105 hover:shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+                            : "bg-[#070913] border-white/10 text-slate-500"
+                    )}>
+                      {isLockedGuestSurveyStep ? <Lock className="h-3.5 w-3.5 stroke-[3]" /> : isPast ? <Check className="h-4 w-4 stroke-[3.5]" /> : s}
+
+                      {/* Ring highlight animation on active step */}
+                      {isCurrent && (
+                        <span className="absolute -inset-1 rounded-full border border-amber-400/30 animate-pulse pointer-events-none" />
+                      )}
+                    </div>
+
+                    {/* Step Labels */}
+                    <span className={cn(
+                      "mt-2 block w-full px-0.5 text-center text-[9px] font-bold uppercase leading-tight tracking-wider transition-all duration-300 md:text-[11px]",
+                      isCurrent
+                        ? "text-amber-300 scale-105 font-extrabold"
+                        : isClickable
+                          ? "text-slate-300 group-hover:text-amber-300"
+                          : "text-slate-500"
+                    )}>
+                      {stepNames[s - 1]}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-
-          {onBackToDashboard && (
-            <button
-              type="button"
-              onClick={() => setShowCancelSurveyDialog(true)}
-              className="shrink-0 flex items-center gap-1 text-[11px] md:text-xs font-black uppercase tracking-wider text-[#070913] bg-gradient-to-r from-amber-200 via-amber-300 to-amber-500 hover:brightness-105 hover:scale-[1.02] active:scale-98 transition-all cursor-pointer px-3 py-2 rounded-xl border border-amber-400/30 shadow-[0_0_15px_rgba(245,158,11,0.2)] whitespace-nowrap"
-            >
-              <X className="h-3 w-3 stroke-[3]" /> Hủy
-            </button>
-          )}
         </div>
 
-        {/* The New Interactive Stepper */}
-        <div className="w-full relative px-1 py-3 md:px-4 md:py-4">
-          {/* Progress bar container (aligned to bubble centers) */}
-          <div className="absolute top-7 left-7 right-7 h-[2px] bg-white/10 -translate-y-1/2 rounded-full overflow-hidden md:top-8 md:left-8 md:right-8">
-            <div
-              className="h-full bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 transition-all duration-500"
-              style={{ width: `${((step - 1) / Math.max(1, SURVEY_STEP_COUNT - 1)) * 100}%` }}
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6 pb-28 text-left md:pb-24">
 
-          <div className="flex items-center justify-between w-full relative z-10">
-            {SURVEY_STEPS.map((s) => {
-              const isCurrent = s === step;
-              const isPast = s < step;
-              const isLockedGuestSurveyStep = ORIENTATION_SURVEY_ENABLED && !isAuthenticated && !guestSurveyUnlocked && s === 4;
-              const isClickable = !isLockedGuestSurveyStep;
-
-              const stepNames = [
-                "Thông tin",
-                "Nghề nghiệp",
-                "Portfolio",
-                "Hình ảnh & Video",
-                "Khảo sát AI"
-              ];
-
-              return (
-                <button
-                  type="button"
-                  key={s}
-                  disabled={!isClickable}
-                  onClick={() => goToStep(s)}
-                  className={cn(
-                    "flex flex-col items-center transition-all duration-300 relative group focus:outline-none",
-                    isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-60"
-                  )}
-                  style={{ width: `${100 / SURVEY_STEP_COUNT}%` }}
-                >
-                  {/* Step Bubble */}
-                  <div className={cn(
-                    "h-8 w-8 rounded-full border-2 flex items-center justify-center text-xs font-black transition-all duration-500 relative",
-                    isCurrent
-                      ? "bg-[#070913] border-amber-400 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)] scale-110"
-                      : isPast
-                        ? "bg-amber-400 border-amber-400 text-[#070913]"
-                        : isClickable
-                          ? "bg-[#070913] border-amber-400/50 text-amber-300/80 hover:border-amber-400 hover:text-amber-300 hover:scale-105 hover:shadow-[0_0_10px_rgba(245,158,11,0.2)]"
-                          : "bg-[#070913] border-white/10 text-slate-500"
-                  )}>
-                    {isLockedGuestSurveyStep ? <Lock className="h-3.5 w-3.5 stroke-[3]" /> : isPast ? <Check className="h-4 w-4 stroke-[3.5]" /> : s}
-
-                    {/* Ring highlight animation on active step */}
-                    {isCurrent && (
-                      <span className="absolute -inset-1 rounded-full border border-amber-400/30 animate-pulse pointer-events-none" />
-                    )}
-                  </div>
-
-                  {/* Step Labels */}
-                  <span className={cn(
-                    "mt-2 block w-full px-0.5 text-center text-[9px] font-bold uppercase leading-tight tracking-wider transition-all duration-300 md:text-[11px]",
-                    isCurrent
-                      ? "text-amber-300 scale-105 font-extrabold"
-                      : isClickable
-                        ? "text-slate-300 group-hover:text-amber-300"
-                        : "text-slate-500"
-                  )}>
-                    {stepNames[s - 1]}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6 pb-28 text-left md:pb-24">
-
-        {step === 1 && (
-          <div className="animate-in fade-in duration-300 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-              {/* Left: Avatar & Cover Dropzones */}
-              <div className="md:col-span-4 space-y-4">
-                {/* Avatar */}
-                <div className="flex flex-col items-center space-y-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                  <div className="flex items-center justify-between w-full">
-                    <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
-                      Ảnh Đại Diện <span className="text-[#8F0709] dark:text-amber-300">*</span>
-                    </span>
-                    {!avatarPreviewUrl && !avatarFile && !mediaUploads.avatar && (
-                      <span className="text-[10px] font-bold text-[#8F0709] bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
-                        Bắt buộc
+          {step === 1 && (
+            <div className="animate-in fade-in duration-300 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                {/* Left: Avatar & Cover Dropzones */}
+                <div className="md:col-span-4 space-y-4">
+                  {/* Avatar */}
+                  <div className="flex flex-col items-center space-y-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
+                        Ảnh Đại Diện <span className="text-[#8F0709] dark:text-amber-300">*</span>
                       </span>
-                    )}
-                  </div>
-
-                  <div
-                    onClick={() => handleFileUploadClick("avatar")}
-                    className={cn(
-                      "w-full aspect-square max-w-[200px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative overflow-hidden group",
-                      (avatarPreviewUrl || avatarFile || mediaUploads.avatar)
-                        ? "border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-500/10"
-                        : "border-[#F0D7D3] bg-[#FAF7F6] hover:border-[#8F0709] hover:bg-[#FFF0EE] dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-amber-400 dark:hover:bg-slate-900"
-                    )}
-                  >
-                    <input
-                      ref={avatarInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(event) => handleFileSelection("avatar", event)}
-                    />
-                    {avatarPreviewUrl ? (
-                      <>
-                        <img
-                          src={avatarPreviewUrl}
-                          alt="Xem trước ảnh đại diện"
-                          className="absolute inset-0 h-full w-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            handleClearUploadedFile("avatar");
-                          }}
-                          className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400 hover:bg-rose-600 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
-                          title="Xóa ảnh đại diện"
-                        >
-                          <Trash2 className="h-4 w-4 !text-white text-white" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            handleFileUploadClick("avatar");
-                          }}
-                          className="light-force-white absolute bottom-3 right-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-lg transition-all hover:brightness-110 active:scale-95 cursor-pointer dark:bg-[#F0C56B] dark:!text-slate-950 dark:text-slate-950"
-                          title="Đổi ảnh đại diện"
-                        >
-                          <Camera className="h-3.5 w-3.5 !text-white text-white dark:!text-slate-950 dark:text-slate-950" />
-                        </button>
-                      </>
-                    ) : (
-                      <div className="relative z-10 text-center p-4">
-                        <Upload className="h-8 w-8 text-[#9A8B88] group-hover:text-[#8F0709] transition-colors mx-auto mb-2 dark:text-slate-400 dark:group-hover:text-amber-300" />
-                        <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold dark:text-slate-100">Tải ảnh lên</span>
-                        <span className="block text-[9px] md:text-[10px] text-[#9A8B88] mt-1 leading-normal dark:text-slate-400">PNG, JPG tối đa 5MB</span>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[11px] md:text-xs text-[#574D54] text-center font-medium dark:text-slate-400">Chọn ảnh rõ mặt, biểu cảm tự nhiên</p>
-                </div>
-
-                {/* Cover Image (Compact underneath avatar) */}
-                <SurveyImageUploadBlock
-                  label="ẢNH BÌA"
-                  placeholder="TẢI ẢNH BÌA"
-                  description="Ảnh banner ngang trang trí hồ sơ"
-                  previewUrl={coverPreviewUrl}
-                  containerClassName="p-4 space-y-3"
-                  aspectClassName="aspect-[21/9] w-full"
-                  onChange={(event) => handleSurveyImageSelection("cover", event)}
-                  onRemove={() => handleRemoveSurveyImage("cover")}
-                />
-              </div>
-
-              {/* Right: Inputs */}
-              <div className="md:col-span-8 space-y-4">
-                <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                  <div className="col-span-2 space-y-1">
-                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Họ và tên <span className="text-[#8F0709] dark:text-amber-300">*</span></label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
-                      placeholder="Nhập họ và tên"
-                    />
-                  </div>
-
-                  <div className="col-span-2 space-y-1">
-                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Email liên hệ <span className="text-[#8F0709] dark:text-amber-300">*</span></label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      disabled={isAuthenticated}
-                      required
-                      className={cn(
-                        "w-full rounded-xl border border-[#F0D7D3] bg-white px-4 py-3 text-xs text-[#191116] font-semibold transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400",
-                        isAuthenticated
-                          ? "cursor-not-allowed opacity-70 bg-slate-50 dark:bg-slate-900/30"
-                          : "hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                      {!avatarPreviewUrl && !avatarFile && !mediaUploads.avatar && (
+                        <span className="text-[10px] font-bold text-[#8F0709] bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
+                          Bắt buộc
+                        </span>
                       )}
-                      placeholder="onstagevn-idol@gmail.com"
-                    />
-                  </div>
+                    </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Giới tính</label>
-                    <select
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleInputChange}
-                      className="w-full rounded-xl border border-[#F0D7D3] bg-white px-4 py-3 text-xs font-semibold text-[#191116] transition-all hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                    <div
+                      onClick={() => handleFileUploadClick("avatar")}
+                      className={cn(
+                        "w-full aspect-square max-w-[200px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative overflow-hidden group",
+                        (avatarPreviewUrl || avatarFile || mediaUploads.avatar)
+                          ? "border-emerald-500 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-500/10"
+                          : "border-[#F0D7D3] bg-[#FAF7F6] hover:border-[#8F0709] hover:bg-[#FFF0EE] dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-amber-400 dark:hover:bg-slate-900"
+                      )}
                     >
-                      <option value="Nữ" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Nữ</option>
-                      <option value="Nam" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Nam</option>
-                      <option value="Khác" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Khác</option>
-                    </select>
+                      <input
+                        ref={avatarInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(event) => handleFileSelection("avatar", event)}
+                      />
+                      {avatarPreviewUrl ? (
+                        <>
+                          <img
+                            src={avatarPreviewUrl}
+                            alt="Xem trước ảnh đại diện"
+                            className="absolute inset-0 h-full w-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              handleClearUploadedFile("avatar");
+                            }}
+                            className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400 hover:bg-rose-600 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
+                            title="Xóa ảnh đại diện"
+                          >
+                            <Trash2 className="h-4 w-4 !text-white text-white" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              handleFileUploadClick("avatar");
+                            }}
+                            className="light-force-white absolute bottom-3 right-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-lg transition-all hover:brightness-110 active:scale-95 cursor-pointer dark:bg-[#F0C56B] dark:!text-slate-950 dark:text-slate-950"
+                            title="Đổi ảnh đại diện"
+                          >
+                            <Camera className="h-3.5 w-3.5 !text-white text-white dark:!text-slate-950 dark:text-slate-950" />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="relative z-10 text-center p-4">
+                          <Upload className="h-8 w-8 text-[#9A8B88] group-hover:text-[#8F0709] transition-colors mx-auto mb-2 dark:text-slate-400 dark:group-hover:text-amber-300" />
+                          <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold dark:text-slate-100">Tải ảnh lên</span>
+                          <span className="block text-[9px] md:text-[10px] text-[#9A8B88] mt-1 leading-normal dark:text-slate-400">PNG, JPG tối đa 5MB</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[11px] md:text-xs text-[#574D54] text-center font-medium dark:text-slate-400">Chọn ảnh rõ mặt, biểu cảm tự nhiên</p>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Khu vực làm việc</label>
-                    <SurveyCityCombobox
-                      value={formData.location}
-                      options={cityOptions}
-                      onChange={(location) => setFormData((prev) => ({ ...prev, location }))}
-                    />
-                  </div>
-
-                  <div className="col-span-2 space-y-1 md:col-span-1">
-                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Số điện thoại</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
-                      placeholder="0912345678"
-                    />
-                  </div>
-
-                  <div className="col-span-2 space-y-1 md:col-span-1">
-                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
-                      Phí booking (VD: "5.000.000đ/ngày" hoặc "thỏa thuận")
-                    </label>
-                    <input
-                      type="text"
-                      name="price"
-                      value={formData.price}
-                      onChange={(e) => handlePriceChange(e.target.value)}
-                      placeholder="Nhập Phí booking dịch vụ của bạn..."
-                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
-                    />
-                  </div>
-
-                </div>
-
-                <div className="space-y-1.5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                  <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
-                    Nhập mô tả ngắn, một số kinh nghiệm của bạn
-
-                  </label>
-                  <textarea
-                    ref={experienceTextareaRef}
-                    name="professionalExperience"
-                    value={formData.professionalExperience}
-                    onChange={(e) => {
-                      handleInputChange(e);
-                      autoResizeExperienceTextarea();
-                    }}
-                    onInput={autoResizeExperienceTextarea}
-                    onFocus={autoResizeExperienceTextarea}
-                    onKeyUp={autoResizeExperienceTextarea}
-                    placeholder="Ví dụ: Đã từng tham gia chụp lookbook, livestream bán hàng, làm mẫu ảnh, tham dự sự kiện..."
-                    className="w-full min-h-[100px] [field-sizing:content] overflow-hidden rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-medium text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-colors shadow-xs resize-none break-words whitespace-pre-wrap leading-relaxed dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-500 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                  {/* Cover Image (Compact underneath avatar) */}
+                  <SurveyImageUploadBlock
+                    label="ẢNH BÌA"
+                    placeholder="TẢI ẢNH BÌA"
+                    description="Ảnh banner ngang trang trí hồ sơ"
+                    previewUrl={coverPreviewUrl}
+                    containerClassName="p-4 space-y-3"
+                    aspectClassName="aspect-[21/9] w-full"
+                    onChange={(event) => handleSurveyImageSelection("cover", event)}
+                    onRemove={() => handleRemoveSurveyImage("cover")}
                   />
                 </div>
+
+                {/* Right: Inputs */}
+                <div className="md:col-span-8 space-y-4">
+                  <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                    <div className="col-span-2 space-y-1">
+                      <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Họ và tên <span className="text-[#8F0709] dark:text-amber-300">*</span></label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
+                        placeholder="Nhập họ và tên"
+                      />
+                    </div>
+
+                    <div className="col-span-2 space-y-1">
+                      <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Email liên hệ <span className="text-[#8F0709] dark:text-amber-300">*</span></label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        disabled={isAuthenticated}
+                        required
+                        className={cn(
+                          "w-full rounded-xl border border-[#F0D7D3] bg-white px-4 py-3 text-xs text-[#191116] font-semibold transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400",
+                          isAuthenticated
+                            ? "cursor-not-allowed opacity-70 bg-slate-50 dark:bg-slate-900/30"
+                            : "hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                        )}
+                        placeholder="onstagevn-idol@gmail.com"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Giới tính</label>
+                      <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white px-4 py-3 text-xs font-semibold text-[#191116] transition-all hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                      >
+                        <option value="Nữ" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Nữ</option>
+                        <option value="Nam" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Nam</option>
+                        <option value="Khác" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Khác</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Khu vực làm việc</label>
+                      <SurveyCityCombobox
+                        value={formData.location}
+                        options={cityOptions}
+                        onChange={(location) => setFormData((prev) => ({ ...prev, location }))}
+                      />
+                    </div>
+
+                    <div className="col-span-2 space-y-1 md:col-span-1">
+                      <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Số điện thoại</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
+                        placeholder="0912345678"
+                      />
+                    </div>
+
+                    <div className="col-span-2 space-y-1 md:col-span-1">
+                      <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
+                        Phí booking (VD: "5.000.000đ/ngày" hoặc "thỏa thuận")
+                      </label>
+                      <input
+                        type="text"
+                        name="price"
+                        value={formData.price}
+                        onChange={(e) => handlePriceChange(e.target.value)}
+                        placeholder="Nhập Phí booking dịch vụ của bạn..."
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
+                      />
+                    </div>
+
+                  </div>
+
+                  <div className="space-y-1.5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                    <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
+                      Nhập mô tả ngắn, một số kinh nghiệm của bạn
+
+                    </label>
+                    <textarea
+                      ref={experienceTextareaRef}
+                      name="professionalExperience"
+                      value={formData.professionalExperience}
+                      onChange={(e) => {
+                        handleInputChange(e);
+                        autoResizeExperienceTextarea();
+                      }}
+                      onInput={autoResizeExperienceTextarea}
+                      onFocus={autoResizeExperienceTextarea}
+                      onKeyUp={autoResizeExperienceTextarea}
+                      placeholder="Ví dụ: Đã từng tham gia chụp lookbook, livestream bán hàng, làm mẫu ảnh, tham dự sự kiện..."
+                      className="w-full min-h-[100px] [field-sizing:content] overflow-hidden rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-medium text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-colors shadow-xs resize-none break-words whitespace-pre-wrap leading-relaxed dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-500 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* STEP 2: PROFESSIONAL INFO & MEASUREMENTS */}
-        {step === 2 && (
-          <div className="animate-in fade-in duration-300 w-full">
-            <div className="py-3 md:py-5 space-y-6">
-              <h3 className="font-display text-base font-black uppercase tracking-wider text-[#191116] dark:text-slate-300">
-                Thông tin nghề nghiệp & Ngoại hình
-              </h3>
+          {/* STEP 2: PROFESSIONAL INFO & MEASUREMENTS */}
+          {step === 2 && (
+            <div className="animate-in fade-in duration-300 w-full">
+              <div className="py-3 md:py-5 space-y-6">
+                <h3 className="font-display text-base font-black uppercase tracking-wider text-[#191116] dark:text-slate-300">
+                  Thông tin nghề nghiệp & Ngoại hình
+                </h3>
 
-              <div className="grid grid-cols-1 gap-5">
-                {/* Row 1: Loại hình Idol */}
-                <TalentTypeSelector
-                  selectedTypes={formData.talentTypes}
-                  options={talentTypeOptions}
-                  onAddType={handleAddTalentType}
-                  onRemoveType={handleRemoveTalentType}
-                />
+                <div className="grid grid-cols-1 gap-5">
+                  {/* Row 1: Loại hình Idol */}
+                  <TalentTypeSelector
+                    selectedTypes={formData.talentTypes}
+                    options={talentTypeOptions}
+                    onAddType={handleAddTalentType}
+                    onRemoveType={handleRemoveTalentType}
+                  />
 
-                {/* Row 2: Ngoại hình */}
-                <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                  <div className="col-span-2">
-                    <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
-                      Ngoại hình
-                    </span>
-                  </div>
+                  {/* Row 2: Ngoại hình */}
+                  <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                    <div className="col-span-2">
+                      <span className="block text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">
+                        Ngoại hình
+                      </span>
+                    </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Chiều cao (cm)</label>
-                    <input
-                      type="number"
-                      name="height"
-                      value={formData.height}
-                      onChange={handleInputChange}
-                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
-                    />
-                  </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Chiều cao (cm)</label>
+                      <input
+                        type="number"
+                        name="height"
+                        value={formData.height}
+                        onChange={handleInputChange}
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
+                      />
+                    </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Cân nặng (kg)</label>
-                    <input
-                      type="number"
-                      name="weight"
-                      value={formData.weight}
-                      onChange={handleInputChange}
-                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
-                    />
-                  </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider dark:text-slate-300">Cân nặng (kg)</label>
+                      <input
+                        type="number"
+                        name="weight"
+                        value={formData.weight}
+                        onChange={handleInputChange}
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-4 py-3 text-xs text-[#191116] font-semibold focus:border-[#8F0709] focus:outline-none transition-all placeholder-[#9A8B88] shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b] dark:placeholder-slate-400"
+                      />
+                    </div>
 
-                  <div className="col-span-2 space-y-1.5">
-                    <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider block dark:text-slate-300">Số đo 3 vòng (cm)</label>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="relative">
-                        <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V1</span>
-                        <input
-                          type="number"
-                          name="bust"
-                          value={formData.bust}
-                          onChange={handleInputChange}
-                          className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                        />
-                      </div>
-                      <div className="relative">
-                        <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V2</span>
-                        <input
-                          type="number"
-                          name="waist"
-                          value={formData.waist}
-                          onChange={handleInputChange}
-                          className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                        />
-                      </div>
-                      <div className="relative">
-                        <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V3</span>
-                        <input
-                          type="number"
-                          name="hips"
-                          value={formData.hips}
-                          onChange={handleInputChange}
-                          className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                        />
+                    <div className="col-span-2 space-y-1.5">
+                      <label className="text-[11px] md:text-xs text-[#191116] font-extrabold uppercase tracking-wider block dark:text-slate-300">Số đo 3 vòng (cm)</label>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="relative">
+                          <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V1</span>
+                          <input
+                            type="number"
+                            name="bust"
+                            value={formData.bust}
+                            onChange={handleInputChange}
+                            className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                          />
+                        </div>
+                        <div className="relative">
+                          <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V2</span>
+                          <input
+                            type="number"
+                            name="waist"
+                            value={formData.waist}
+                            onChange={handleInputChange}
+                            className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                          />
+                        </div>
+                        <div className="relative">
+                          <span className="absolute right-3 top-3 text-[11px] md:text-xs font-extrabold text-[#9A8B88] dark:text-slate-400">V3</span>
+                          <input
+                            type="number"
+                            name="hips"
+                            value={formData.hips}
+                            onChange={handleInputChange}
+                            className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] pl-4 pr-8 py-3 text-xs text-[#191116] text-left focus:border-[#8F0709] focus:outline-none transition-all font-bold shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:hover:border-white/40 dark:text-white dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Row 3: Lĩnh vực chuyên sâu */}
-                <div className="space-y-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                  <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
-                    Lĩnh vực nội dung / kỹ năng chuyên sâu
-                  </label>
-                  <SurveyOptionCombobox
-                    value=""
-                    placeholder="Thêm lĩnh vực / kỹ năng..."
-                    options={flattenTalentPresetOptions(SPECIALTY_PRESET_GROUPS, formData.talentTypes).filter((skill) => !splitSkillValues(formData.skills).includes(skill))}
-                    onChange={handleAddContentSkill}
-                  />
-                  <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
-                    <input
-                      type="text"
-                      value={skillInput}
-                      onChange={(event) => setSkillInput(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          event.preventDefault();
-                          handleAddContentSkill(skillInput);
-                        }
-                      }}
-                      placeholder="Nhập lĩnh vực khác nếu chưa có trong danh sách"
-                      className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none md:col-span-9 dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                  {/* Row 3: Lĩnh vực chuyên sâu */}
+                  <div className="space-y-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                    <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
+                      Lĩnh vực nội dung / kỹ năng chuyên sâu
+                    </label>
+                    <SurveyOptionCombobox
+                      value=""
+                      placeholder="Thêm lĩnh vực / kỹ năng..."
+                      options={flattenTalentPresetOptions(SPECIALTY_PRESET_GROUPS, formData.talentTypes).filter((skill) => !splitSkillValues(formData.skills).includes(skill))}
+                      onChange={handleAddContentSkill}
                     />
-                    <button
-                      type="button"
-                      onClick={() => handleAddContentSkill(skillInput)}
-                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all md:col-span-3 dark:bg-gradient-gold dark:text-slate-950"
-                    >
-                      <Plus className="h-4 w-4" /> Thêm
-                    </button>
+                    <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                      <input
+                        type="text"
+                        value={skillInput}
+                        onChange={(event) => setSkillInput(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            handleAddContentSkill(skillInput);
+                          }
+                        }}
+                        placeholder="Nhập lĩnh vực khác nếu chưa có trong danh sách"
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none md:col-span-9 dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddContentSkill(skillInput)}
+                        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all md:col-span-3 dark:bg-gradient-gold dark:text-slate-950"
+                      >
+                        <Plus className="h-4 w-4" /> Thêm
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60">
+                      {splitSkillValues(formData.skills).length === 0 ? (
+                        <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
+                          <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm lĩnh vực nào
+                        </span>
+                      ) : (
+                        splitSkillValues(formData.skills).map((skill) => (
+                          <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
+                            {skill}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveContentSkill(skill)}
+                              className="text-[#9A8B88] hover:text-rose-600 cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </span>
+                        ))
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 min-h-[52px] p-2.5 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60">
-                    {splitSkillValues(formData.skills).length === 0 ? (
+
+                  <div className="space-y-1.5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                    <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
+                      Số năm kinh nghiệm
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={80}
+                      name="experience"
+                      value={formData.experience}
+                      onChange={handleInputChange}
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-semibold text-[#191116] focus:outline-none focus:border-[#8F0709] transition-all shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: PORTFOLIO & SOCIAL LINKS */}
+          {step === 3 && (
+            <div className="animate-in fade-in duration-300 w-full">
+              <div className="flex flex-col gap-6 py-3 text-left md:py-5">
+                <h4 className="font-display text-base font-black uppercase tracking-wider text-[#191116] dark:text-slate-300">
+                  Portfolio & Mạng xã hội
+                </h4>
+
+                <div className="order-2 flex flex-col gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">
+                    Chỉ số nổi bật
+                  </label>
+                  <div className="order-3 flex min-h-[52px] flex-wrap gap-2 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] p-2.5 text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60">
+                    {socialHighlights.length === 0 ? (
                       <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
-                        <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm lĩnh vực nào
+                        <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm chỉ số nổi bật nào
                       </span>
                     ) : (
-                      splitSkillValues(formData.skills).map((skill) => (
-                        <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
-                          {skill}
+                      socialHighlights.map((highlight) => (
+                        <span key={highlight} className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300">
+                          {highlight}
                           <button
                             type="button"
-                            onClick={() => handleRemoveContentSkill(skill)}
-                            className="text-[#9A8B88] hover:text-rose-600 cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
+                            onClick={() => setSocialHighlights((current) => current.filter((item) => item !== highlight))}
+                            className="flex cursor-pointer items-center justify-center text-[#9A8B88] hover:text-rose-600 focus:outline-none dark:text-slate-400 dark:hover:text-rose-400"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
@@ -2932,845 +2985,792 @@ export default function SurveyForm({ initialHistoryEntry, onBackToDashboard }: S
                       ))
                     )}
                   </div>
+
+                  <div className="order-1">
+                    <SurveyOptionCombobox
+                      value=""
+                      placeholder="Thêm chỉ số"
+                      options={flattenTalentPresetOptions(SOCIAL_HIGHLIGHT_PRESET_GROUPS, formData.talentTypes).filter((item) => !socialHighlights.includes(item))}
+                      onChange={handleAddSocialHighlight}
+                    />
+                    <div className="mt-3 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                      <input
+                        type="text"
+                        value={socialHighlightInput}
+                        onChange={(event) => setSocialHighlightInput(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            handleAddSocialHighlight(socialHighlightInput);
+                          }
+                        }}
+                        placeholder="Nhập chỉ số hoặc thành tựu khác nếu chưa có trong danh sách"
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none md:col-span-9 dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddSocialHighlight(socialHighlightInput)}
+                        className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all md:col-span-3 dark:bg-gradient-gold dark:text-slate-950"
+                      >
+                        <Plus className="h-4 w-4" /> Thêm
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-1.5 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                  <label className="block font-black text-[#191116] uppercase tracking-wider text-[10px] md:text-[11px] dark:text-slate-200">
-                    Số năm kinh nghiệm
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={80}
-                    name="experience"
-                    value={formData.experience}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white hover:border-[#8F0709] px-3.5 py-3 text-xs font-semibold text-[#191116] focus:outline-none focus:border-[#8F0709] transition-all shadow-xs dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: PORTFOLIO & SOCIAL LINKS */}
-        {step === 3 && (
-          <div className="animate-in fade-in duration-300 w-full">
-            <div className="flex flex-col gap-6 py-3 text-left md:py-5">
-              <h4 className="font-display text-base font-black uppercase tracking-wider text-[#191116] dark:text-slate-300">
-                Portfolio & Mạng xã hội
-              </h4>
-
-              <div className="order-2 flex flex-col gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">
-                  Chỉ số nổi bật
-                </label>
-                <div className="order-3 flex min-h-[52px] flex-wrap gap-2 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] p-2.5 text-left shadow-xs dark:border-white/20 dark:bg-slate-900/60">
-                  {socialHighlights.length === 0 ? (
-                    <span className="inline-flex items-center gap-2 px-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
-                      <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa thêm chỉ số nổi bật nào
-                    </span>
+                <div className="order-1 flex flex-col gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  {portfolioLinks.length === 0 ? (
+                    <div className="order-2 inline-flex items-center gap-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
+                      <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa có portfolio nào được thêm.
+                    </div>
                   ) : (
-                    socialHighlights.map((highlight) => (
-                      <span key={highlight} className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-2xs dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300">
-                        {highlight}
-                        <button
-                          type="button"
-                          onClick={() => setSocialHighlights((current) => current.filter((item) => item !== highlight))}
-                          className="flex cursor-pointer items-center justify-center text-[#9A8B88] hover:text-rose-600 focus:outline-none dark:text-slate-400 dark:hover:text-rose-400"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </span>
-                    ))
+                    <div className="order-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                      {portfolioLinks.map((link, index) => (
+                        <div key={`${link}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] px-3.5 py-2.5 shadow-xs dark:border-white/20 dark:bg-slate-900/60">
+                          <div className="min-w-0 flex-1">
+                            <span className="block text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-400">Portfolio {index + 1}</span>
+                            <a href={portfolioHref(link)} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-[#191116] hover:text-[#8F0709] hover:underline dark:text-slate-200 dark:hover:text-white" title={link}>
+                              {link.replace(/https?:\/\/(www\.)?/, "")}
+                            </a>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setPortfolioLinks((current) => current.filter((item) => item !== link))}
+                            className="cursor-pointer p-1 text-[#9A8B88] transition-colors hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
+                            title="Xóa portfolio"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="order-1 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                    <div className="space-y-1.5 md:col-span-9">
+                      <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Đường dẫn Portfolio</span>
+                      <input
+                        type="url"
+                        value={portfolioLinkInput}
+                        onChange={(event) => setPortfolioLinkInput(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            handleAddPortfolioLink();
+                          }
+                        }}
+                        placeholder="https://..."
+                        className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                      />
+                    </div>
+                    <div className="md:col-span-3">
+                      <button
+                        type="button"
+                        onClick={handleAddPortfolioLink}
+                        className="flex w-full shrink-0 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all dark:bg-gradient-gold dark:text-slate-950"
+                      >
+                        Thêm
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="order-4 space-y-2 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
+                  {socialAccounts.length === 0 ? (
+                    <div className="inline-flex items-center gap-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
+                      <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa có liên kết mạng xã hội nào được thêm.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                      {socialAccounts.map((account, index) => (
+                        <div key={`${account.platform}-${account.url}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] px-3.5 py-2.5 shadow-xs dark:border-white/20 dark:bg-slate-900/60">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="block text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-400">{account.platform}</span>
+                              {typeof account.followers_count === "number" && account.followers_count > 0 && (
+                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded-full">
+                                  {account.followers_count.toLocaleString("vi-VN")} followers
+                                </span>
+                              )}
+                            </div>
+                            <a href={account.url} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-[#191116] hover:text-[#8F0709] hover:underline dark:text-slate-200 dark:hover:text-white mt-0.5" title={account.url}>
+                              {getSocialHandle(account.url, account.platform)}
+                            </a>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSocialAccounts((current) => current.filter((_, idx) => idx !== index))}
+                            className="cursor-pointer p-1 text-[#9A8B88] transition-colors hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
+                            title="Xóa liên kết"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
 
-                <div className="order-1">
-                  <SurveyOptionCombobox
-                    value=""
-                    placeholder="Thêm chỉ số / thành tựu nổi bật..."
-                    options={flattenTalentPresetOptions(SOCIAL_HIGHLIGHT_PRESET_GROUPS, formData.talentTypes).filter((item) => !socialHighlights.includes(item))}
-                    onChange={handleAddSocialHighlight}
-                  />
-                  <div className="mt-3 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
-                    <input
-                      type="text"
-                      value={socialHighlightInput}
-                      onChange={(event) => setSocialHighlightInput(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          event.preventDefault();
-                          handleAddSocialHighlight(socialHighlightInput);
-                        }
-                      }}
-                      placeholder="Nhập chỉ số hoặc thành tựu khác nếu chưa có trong danh sách"
-                      className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none md:col-span-9 dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleAddSocialHighlight(socialHighlightInput)}
-                      className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all md:col-span-3 dark:bg-gradient-gold dark:text-slate-950"
+                <div className="order-3 grid grid-cols-1 items-end gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs md:grid-cols-12 dark:border-white/10 dark:bg-white/[0.02]">
+                  <div className="space-y-1.5 md:col-span-3">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Chọn nền tảng</span>
+                    <select
+                      value={socialPlatform}
+                      onChange={(event) => setSocialPlatform(event.target.value)}
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                     >
-                      <Plus className="h-4 w-4" /> Thêm
-                    </button>
+                      <option value="Tiktok" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Tiktok</option>
+                      <option value="Facebook" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Facebook</option>
+                      <option value="Instagram" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Instagram</option>
+                      <option value="Youtube" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Youtube</option>
+                      <option value="Thread" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Thread</option>
+                    </select>
                   </div>
-                </div>
-              </div>
-
-              <div className="order-1 flex flex-col gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                {portfolioLinks.length === 0 ? (
-                  <div className="order-2 inline-flex items-center gap-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
-                    <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa có portfolio nào được thêm.
-                  </div>
-                ) : (
-                  <div className="order-2 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                    {portfolioLinks.map((link, index) => (
-                      <div key={`${link}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] px-3.5 py-2.5 shadow-xs dark:border-white/20 dark:bg-slate-900/60">
-                        <div className="min-w-0 flex-1">
-                          <span className="block text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-400">Portfolio {index + 1}</span>
-                          <a href={portfolioHref(link)} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-[#191116] hover:text-[#8F0709] hover:underline dark:text-slate-200 dark:hover:text-white" title={link}>
-                            {link.replace(/https?:\/\/(www\.)?/, "")}
-                          </a>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setPortfolioLinks((current) => current.filter((item) => item !== link))}
-                          className="cursor-pointer p-1 text-[#9A8B88] transition-colors hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
-                          title="Xóa portfolio"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="order-1 grid grid-cols-1 items-end gap-3 md:grid-cols-12">
-                  <div className="space-y-1.5 md:col-span-9">
-                    <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Đường dẫn Portfolio</span>
+                  <div className="space-y-1.5 md:col-span-4">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Đường dẫn (Link)</span>
                     <input
                       type="url"
-                      value={portfolioLinkInput}
-                      onChange={(event) => setPortfolioLinkInput(event.target.value)}
+                      value={socialLinkInput}
+                      onChange={(event) => setSocialLinkInput(event.target.value)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter") {
                           event.preventDefault();
-                          handleAddPortfolioLink();
+                          handleAddSocialAccount();
                         }
                       }}
                       placeholder="https://..."
                       className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
                     />
                   </div>
-                  <div className="md:col-span-3">
+                  <div className="space-y-1.5 md:col-span-3">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Số followers</span>
+                    <input
+                      type="text"
+                      value={socialFollowersInput}
+                      onChange={(event) => {
+                        const val = event.target.value.replace(/\D/g, "");
+                        setSocialFollowersInput(val ? Number(val).toLocaleString("vi-VN") : "");
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          handleAddSocialAccount();
+                        }
+                      }}
+                      placeholder="VD: 50.000"
+                      className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
                     <button
                       type="button"
-                      onClick={handleAddPortfolioLink}
-                      className="flex w-full shrink-0 cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all dark:bg-gradient-gold dark:text-slate-950"
+                      onClick={handleAddSocialAccount}
+                      className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all dark:bg-gradient-gold dark:text-slate-950"
                     >
-                      Thêm
+                      <Plus className="h-4 w-4" /> Thêm
                     </button>
                   </div>
                 </div>
               </div>
+            </div>
+          )}
 
-              <div className="order-4 space-y-2 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-white/[0.02]">
-                {socialAccounts.length === 0 ? (
-                  <div className="inline-flex items-center gap-2 py-1 text-xs italic text-[#8F0709] dark:text-amber-300">
-                    <AlertTriangle className="h-4 w-4 shrink-0" /> Chưa có liên kết mạng xã hội nào được thêm.
+          {/* STEP 4: PHOTOS & VIDEOS */}
+          {step === MEDIA_SURVEY_STEP && (
+            <div className="animate-in fade-in duration-300 w-full space-y-6">
+              <SurveyImageUploadBlock
+                label="ẢNH TOÀN THÂN"
+                placeholder="TẢI ẢNH LÊN"
+                description="Ảnh chụp toàn thân tỷ lệ 3:4 giúp thể hiện vóc dáng và chiều cao"
+                previewUrl={fullBodyPreviewUrl}
+                aspectClassName="aspect-[3/4] w-full max-w-[280px] sm:max-w-[320px] mx-auto md:mx-0"
+                onChange={(event) => handleSurveyImageSelection("fullBody", event)}
+                onRemove={() => handleRemoveSurveyImage("fullBody")}
+              />
+
+              <div className="rounded-2xl border border-[#F0D7D3] bg-white p-6 space-y-6 shadow-xs dark:border-[#151b2d] dark:bg-[#08090f]">
+                <div className="border-b border-[#F0D7D3] pb-3 flex items-center justify-between flex-wrap gap-2 dark:border-[#151b2d]">
+                  <div>
+                    <h3 className="font-display font-black text-xs text-[#191116] uppercase tracking-wider flex items-center gap-2 dark:text-white">
+                      <ImageIcon className="h-4.5 w-4.5 text-[#8F0709] dark:text-[#f4c430]" /> BỘ SƯU TẬP
+                    </h3>
+                    <span className="block text-[10px] text-[#9A8B88] font-bold uppercase mt-0.5 tracking-wider dark:text-slate-500">
+                      HIỂN THỊ BỘ SƯU TẬP ẢNH, VIDEO CỦA IDOL
+                    </span>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                    {socialAccounts.map((account, index) => (
-                      <div key={`${account.platform}-${account.url}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-[#F0D7D3] bg-[#FAF7F6] px-3.5 py-2.5 shadow-xs dark:border-white/20 dark:bg-slate-900/60">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="block text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-amber-400">{account.platform}</span>
-                            {typeof account.followers_count === "number" && account.followers_count > 0 && (
-                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded-full">
-                                {account.followers_count.toLocaleString("vi-VN")} followers
-                              </span>
-                            )}
-                          </div>
-                          <a href={account.url} target="_blank" rel="noopener noreferrer" className="block truncate text-xs font-semibold text-[#191116] hover:text-[#8F0709] hover:underline dark:text-slate-200 dark:hover:text-white mt-0.5" title={account.url}>
-                            {getSocialHandle(account.url, account.platform)}
-                          </a>
-                        </div>
+                </div>
+
+                <div className="space-y-3">
+                  <span className="block text-[11px] text-[#8F0709] font-black uppercase tracking-wider dark:text-[#f4c430]">
+                    ({portfolioPhotoFiles.length}/8 ẢNH)
+                  </span>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    {portfolioPhotoFiles.map((img) => (
+                      <div key={img.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-100 border border-[#F0D7D3] group shadow-xs dark:bg-slate-950 dark:border-white/5">
+                        <img
+                          src={img.previewUrl}
+                          alt={img.name}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+
                         <button
                           type="button"
-                          onClick={() => setSocialAccounts((current) => current.filter((_, idx) => idx !== index))}
-                          className="cursor-pointer p-1 text-[#9A8B88] transition-colors hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
-                          title="Xóa liên kết"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleRemovePortfolioPhoto(img.id);
+                          }}
+                          className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400 hover:bg-rose-600 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
+                          title="Xóa ảnh"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 !text-white text-white" />
                         </button>
+
+                        <div className="absolute bottom-3 right-3 z-20">
+                          <label className="light-force-white flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer shadow-lg transition-all dark:bg-[#F0C56B] dark:!text-slate-950 dark:text-slate-950">
+                            <Camera className="h-3.5 w-3.5 !text-white text-white" />
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="hidden"
+                              disabled={portfolioPhotoFiles.length >= 8}
+                              onChange={handlePortfolioPhotoSelection}
+                            />
+                          </label>
+                        </div>
                       </div>
                     ))}
-                  </div>
-                )}
-              </div>
 
-              <div className="order-3 grid grid-cols-1 items-end gap-3 rounded-2xl border border-[#F0D7D3] bg-white p-4 shadow-xs md:grid-cols-12 dark:border-white/10 dark:bg-white/[0.02]">
-                <div className="space-y-1.5 md:col-span-3">
-                  <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Chọn nền tảng</span>
-                  <select
-                    value={socialPlatform}
-                    onChange={(event) => setSocialPlatform(event.target.value)}
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                  >
-                    <option value="Tiktok" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Tiktok</option>
-                    <option value="Facebook" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Facebook</option>
-                    <option value="Instagram" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Instagram</option>
-                    <option value="Youtube" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Youtube</option>
-                    <option value="Thread" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Thread</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5 md:col-span-4">
-                  <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Đường dẫn (Link)</span>
-                  <input
-                    type="url"
-                    value={socialLinkInput}
-                    onChange={(event) => setSocialLinkInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        handleAddSocialAccount();
-                      }
-                    }}
-                    placeholder="https://..."
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                  />
-                </div>
-                <div className="space-y-1.5 md:col-span-3">
-                  <span className="block text-[10px] font-black uppercase tracking-wider text-[#191116] md:text-[11px] dark:text-slate-200">Số followers</span>
-                  <input
-                    type="text"
-                    value={socialFollowersInput}
-                    onChange={(event) => {
-                      const val = event.target.value.replace(/\D/g, "");
-                      setSocialFollowersInput(val ? Number(val).toLocaleString("vi-VN") : "");
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        handleAddSocialAccount();
-                      }
-                    }}
-                    placeholder="VD: 50.000"
-                    className="w-full rounded-xl border border-[#F0D7D3] bg-white px-3.5 py-3 text-xs font-semibold text-[#191116] shadow-xs transition-all placeholder:text-[#9A8B88] hover:border-[#8F0709] focus:border-[#8F0709] focus:outline-none dark:border-white/20 dark:bg-slate-900/60 dark:text-white dark:placeholder-slate-400 dark:hover:border-white/40 dark:focus:border-amber-400 dark:focus:bg-[#0e122b]"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <button
-                    type="button"
-                    onClick={handleAddSocialAccount}
-                    className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] px-4 py-3 text-xs font-black uppercase tracking-wider !text-white text-white shadow-xs hover:brightness-110 active:scale-95 transition-all dark:bg-gradient-gold dark:text-slate-950"
-                  >
-                    <Plus className="h-4 w-4" /> Thêm
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4: PHOTOS & VIDEOS */}
-        {step === MEDIA_SURVEY_STEP && (
-          <div className="animate-in fade-in duration-300 w-full space-y-6">
-            <SurveyImageUploadBlock
-              label="ẢNH TOÀN THÂN"
-              placeholder="TẢI ẢNH LÊN"
-              description="Ảnh chụp toàn thân tỷ lệ 3:4 giúp thể hiện vóc dáng và chiều cao"
-              previewUrl={fullBodyPreviewUrl}
-              aspectClassName="aspect-[3/4] w-full max-w-[280px] sm:max-w-[320px] mx-auto md:mx-0"
-              onChange={(event) => handleSurveyImageSelection("fullBody", event)}
-              onRemove={() => handleRemoveSurveyImage("fullBody")}
-            />
-
-            <div className="rounded-2xl border border-[#F0D7D3] bg-white p-6 space-y-6 shadow-xs dark:border-[#151b2d] dark:bg-[#08090f]">
-              <div className="border-b border-[#F0D7D3] pb-3 flex items-center justify-between flex-wrap gap-2 dark:border-[#151b2d]">
-                <div>
-                  <h3 className="font-display font-black text-xs text-[#191116] uppercase tracking-wider flex items-center gap-2 dark:text-white">
-                    <ImageIcon className="h-4.5 w-4.5 text-[#8F0709] dark:text-[#f4c430]" /> BỘ SƯU TẬP
-                  </h3>
-                  <span className="block text-[10px] text-[#9A8B88] font-bold uppercase mt-0.5 tracking-wider dark:text-slate-500">
-                    HIỂN THỊ BỘ SƯU TẬP ẢNH, VIDEO CỦA IDOL
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <span className="block text-[11px] text-[#8F0709] font-black uppercase tracking-wider dark:text-[#f4c430]">
-                  ({portfolioPhotoFiles.length}/8 ẢNH)
-                </span>
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  {portfolioPhotoFiles.map((img) => (
-                    <div key={img.id} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-100 border border-[#F0D7D3] group shadow-xs dark:bg-slate-950 dark:border-white/5">
-                      <img
-                        src={img.previewUrl}
-                        alt={img.name}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleRemovePortfolioPhoto(img.id);
-                        }}
-                        className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400 hover:bg-rose-600 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
-                        title="Xóa ảnh"
-                      >
-                        <Trash2 className="h-4 w-4 !text-white text-white" />
-                      </button>
-
-                      <div className="absolute bottom-3 right-3 z-20">
-                        <label className="light-force-white flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer shadow-lg transition-all dark:bg-[#F0C56B] dark:!text-slate-950 dark:text-slate-950">
-                          <Camera className="h-3.5 w-3.5 !text-white text-white" />
+                    {portfolioPhotoFiles.length < 8 && (
+                      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[#FAF7F6] border border-dashed border-[#F0D7D3] hover:border-[#8F0709] transition-colors dark:bg-slate-950/70 dark:border-white/10 dark:hover:border-amber-400/70">
+                        <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-[#9A8B88] hover:text-[#8F0709] transition-colors dark:text-slate-500 dark:hover:text-amber-400">
+                          <Upload className="h-7 w-7" />
+                          <span className="text-[10px] font-black uppercase tracking-wider">TẢI ẢNH LÊN</span>
                           <input
                             type="file"
                             accept="image/*"
                             multiple
                             className="hidden"
-                            disabled={portfolioPhotoFiles.length >= 8}
                             onChange={handlePortfolioPhotoSelection}
                           />
                         </label>
                       </div>
-                    </div>
-                  ))}
-
-                  {portfolioPhotoFiles.length < 8 && (
-                    <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[#FAF7F6] border border-dashed border-[#F0D7D3] hover:border-[#8F0709] transition-colors dark:bg-slate-950/70 dark:border-white/10 dark:hover:border-amber-400/70">
-                      <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-[#9A8B88] hover:text-[#8F0709] transition-colors dark:text-slate-500 dark:hover:text-amber-400">
-                        <Upload className="h-7 w-7" />
-                        <span className="text-[10px] font-black uppercase tracking-wider">TẢI ẢNH LÊN</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          className="hidden"
-                          onChange={handlePortfolioPhotoSelection}
-                        />
-                      </label>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="border-t border-[#F0D7D3] pt-5 space-y-3 dark:border-[#151b2d]">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <span className="block text-[11px] text-[#8F0709] font-black uppercase tracking-wider dark:text-[#f4c430]">
-                    ({portfolioVideoFiles.length + portfolioVideoLinks.length}/4 VIDEO)
-                  </span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#9A8B88] dark:text-slate-500">
-                    GẮN LINK HOẶC TẢI TRỰC TIẾP TỪ THIẾT BỊ
-                  </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  {portfolioVideoFiles.map((video) => (
-                    <div key={video.id} className="relative aspect-[9/16] overflow-hidden rounded-xl border border-white/5 bg-slate-950 shadow-md group">
-                      <video
-                        src={video.previewUrl}
-                        controls
-                        preload="metadata"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleRemovePortfolioVideo(video.id);
-                        }}
-                        className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
-                        title="Xóa video"
-                      >
-                        <Trash2 className="h-4 w-4 !text-white text-white" />
-                      </button>
-                    </div>
-                  ))}
+                <div className="border-t border-[#F0D7D3] pt-5 space-y-3 dark:border-[#151b2d]">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <span className="block text-[11px] text-[#8F0709] font-black uppercase tracking-wider dark:text-[#f4c430]">
+                      ({portfolioVideoFiles.length + portfolioVideoLinks.length}/4 VIDEO)
+                    </span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#9A8B88] dark:text-slate-500">
+                      GẮN LINK HOẶC TẢI TRỰC TIẾP TỪ THIẾT BỊ
+                    </span>
+                  </div>
 
-                  {portfolioVideoLinks.map((video) => (
-                    <div key={video.id} className="relative aspect-[9/16] overflow-hidden rounded-xl border border-white/5 bg-slate-950 shadow-md group">
-                      {isDirectVideoUrl(video.url) ? (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    {portfolioVideoFiles.map((video) => (
+                      <div key={video.id} className="relative aspect-[9/16] overflow-hidden rounded-xl border border-white/5 bg-slate-950 shadow-md group">
                         <video
-                          src={video.url}
+                          src={video.previewUrl}
                           controls
                           preload="metadata"
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
-                      ) : (
-                        <a href={video.url} target="_blank" rel="noreferrer" className="block h-full w-full bg-slate-950">
-                          <img
-                            src="/video_thumb.png"
-                            alt="Video thumbnail"
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleRemovePortfolioVideo(video.id);
+                          }}
+                          className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
+                          title="Xóa video"
+                        >
+                          <Trash2 className="h-4 w-4 !text-white text-white" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {portfolioVideoLinks.map((video) => (
+                      <div key={video.id} className="relative aspect-[9/16] overflow-hidden rounded-xl border border-white/5 bg-slate-950 shadow-md group">
+                        {isDirectVideoUrl(video.url) ? (
+                          <video
+                            src={video.url}
+                            controls
+                            preload="metadata"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
+                        ) : (
+                          <a href={video.url} target="_blank" rel="noreferrer" className="block h-full w-full bg-slate-950">
+                            <img
+                              src="/video_thumb.png"
+                              alt="Video thumbnail"
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                          </a>
+                        )}
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
+                        <a
+                          href={video.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(event) => event.stopPropagation()}
+                          className="absolute left-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-amber-400/50 hover:text-amber-300 active:scale-95"
+                          title="Mở video"
+                        >
+                          <ExternalLink className="h-4 w-4" />
                         </a>
-                      )}
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090f]/70 via-transparent to-transparent" />
-                      <a
-                        href={video.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(event) => event.stopPropagation()}
-                        className="absolute left-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-slate-950/80 text-white shadow-lg transition-all hover:border-amber-400/50 hover:text-amber-300 active:scale-95"
-                        title="Mở video"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleRemovePortfolioVideoLink(video.id);
-                        }}
-                        className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
-                        title="Xóa video"
-                      >
-                        <Trash2 className="h-4 w-4 !text-white text-white" />
-                      </button>
-                    </div>
-                  ))}
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleRemovePortfolioVideoLink(video.id);
+                          }}
+                          className="light-force-white absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 !text-white text-white shadow-lg transition-all hover:border-rose-400/50 hover:bg-rose-500 hover:!text-white hover:text-white active:scale-95 cursor-pointer"
+                          title="Xóa video"
+                        >
+                          <Trash2 className="h-4 w-4 !text-white text-white" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {portfolioVideoFiles.length + portfolioVideoLinks.length < 4 && (
+                      <label className="flex aspect-[9/16] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition-colors hover:border-[#8F0709] dark:border-dashed dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-500 dark:hover:border-amber-400/70 dark:hover:text-amber-400">
+                        <Upload className="h-7 w-7 text-[#8F0709] dark:text-slate-500" />
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-slate-500">TẢI VIDEO</span>
+                        <input
+                          type="file"
+                          accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,video/x-matroska"
+                          multiple
+                          className="hidden"
+                          onChange={handlePortfolioVideoSelection}
+                        />
+                      </label>
+                    )}
+                  </div>
 
                   {portfolioVideoFiles.length + portfolioVideoLinks.length < 4 && (
-                    <label className="flex aspect-[9/16] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#F0D7D3] bg-[#FFF0EE] text-[#8F0709] transition-colors hover:border-[#8F0709] dark:border-dashed dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-500 dark:hover:border-amber-400/70 dark:hover:text-amber-400">
-                      <Upload className="h-7 w-7 text-[#8F0709] dark:text-slate-500" />
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#8F0709] dark:text-slate-500">TẢI VIDEO</span>
-                      <input
-                        type="file"
-                        accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,video/x-matroska"
-                        multiple
-                        className="hidden"
-                        onChange={handlePortfolioVideoSelection}
-                      />
-                    </label>
-                  )}
-                </div>
+                    <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
+                      <div className="space-y-1.5 md:col-span-10">
+                        <label className="block text-[9px] font-black uppercase tracking-wider text-[#574D54] dark:text-slate-400">
+                          ĐƯỜNG DẪN VIDEO
+                        </label>
+                        <div className="relative">
+                          <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8F0709] dark:text-slate-500" />
+                          <input
+                            type="url"
+                            value={videoLinkInput}
+                            onChange={(event) => setVideoLinkInput(event.target.value)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                event.preventDefault();
+                                handleAddSurveyVideoLink();
+                              }
+                            }}
+                            placeholder="https://..."
+                            className="h-10 w-full rounded-xl border border-[#F0D7D3] bg-white pl-9 pr-3.5 text-xs font-semibold text-[#191116] shadow-sm outline-none transition-colors placeholder:text-[#9A8B88] focus:border-[#8F0709] dark:border-white/20 dark:bg-[#060918] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-400"
+                          />
+                        </div>
+                      </div>
 
-                {portfolioVideoFiles.length + portfolioVideoLinks.length < 4 && (
-                  <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-12">
-                    <div className="space-y-1.5 md:col-span-10">
-                      <label className="block text-[9px] font-black uppercase tracking-wider text-[#574D54] dark:text-slate-400">
-                        ĐƯỜNG DẪN VIDEO
-                      </label>
-                      <div className="relative">
-                        <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8F0709] dark:text-slate-500" />
-                        <input
-                          type="url"
-                          value={videoLinkInput}
-                          onChange={(event) => setVideoLinkInput(event.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter") {
-                              event.preventDefault();
-                              handleAddSurveyVideoLink();
-                            }
-                          }}
-                          placeholder="https://..."
-                          className="h-10 w-full rounded-xl border border-[#F0D7D3] bg-white pl-9 pr-3.5 text-xs font-semibold text-[#191116] shadow-sm outline-none transition-colors placeholder:text-[#9A8B88] focus:border-[#8F0709] dark:border-white/20 dark:bg-[#060918] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-400"
-                        />
+                      <div className="md:col-span-2">
+                        <button
+                          type="button"
+                          onClick={handleAddSurveyVideoLink}
+                          className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white px-4 text-[10px] font-black uppercase tracking-wider text-white shadow-md transition-all hover:brightness-110 active:scale-95 dark:bg-gradient-gold dark:!text-slate-950 dark:text-slate-950"
+                        >
+                          <Plus className="h-4 w-4" />
+                          THÊM LINK
+                        </button>
                       </div>
                     </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
-                    <div className="md:col-span-2">
-                      <button
-                        type="button"
-                        onClick={handleAddSurveyVideoLink}
-                        className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white px-4 text-[10px] font-black uppercase tracking-wider text-white shadow-md transition-all hover:brightness-110 active:scale-95 dark:bg-gradient-gold dark:!text-slate-950 dark:text-slate-950"
-                      >
-                        <Plus className="h-4 w-4" />
-                        THÊM LINK
-                      </button>
+          {/* STEP 3: SOCIAL & PORTFOLIO (Left Socials, Right Upload Zone) */}
+          {false && step === 3 && (
+            <div className="animate-in fade-in duration-300">
+              {/* Left: Social Media Profiles and Followers */}
+              <div className="space-y-4 w-full max-w-xl mx-auto">
+                <div className="space-y-1">
+                  <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Tổng số lượng Followers</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={getTotalFollowers().toLocaleString("vi-VN")}
+                      disabled
+                      className="w-full rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-400 font-black focus:outline-none cursor-not-allowed opacity-95"
+                    />
+                    <span className="absolute right-3.5 top-3 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Liên kết nền tảng & Số lượng Followers</span>
+
+                  {/* TikTok Row */}
+                  <div className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-7 relative min-w-0">
+                      <span className="absolute left-3 top-3 text-slate-400">
+                        <TiktokIcon className="h-3.5 w-3.5 text-slate-300" />
+                      </span>
+                      <input
+                        type="url"
+                        name="tiktokUrl"
+                        value={formData.tiktokUrl}
+                        onChange={handleInputChange}
+                        className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                        placeholder="TikTok Profile URL"
+                      />
+                    </div>
+                    <div className="col-span-5 relative min-w-0">
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
+                      <input
+                        type="number"
+                        name="tiktokFollowers"
+                        value={formData.tiktokFollowers}
+                        onChange={handleInputChange}
+                        className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                        placeholder="Điền số nguyên"
+                        min="0"
+                      />
                     </div>
                   </div>
-                )}
+
+                  {/* Instagram Row */}
+                  <div className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-7 relative min-w-0">
+                      <span className="absolute left-3 top-3 text-slate-400">
+                        <InstagramIcon className="h-3.5 w-3.5 text-slate-300" />
+                      </span>
+                      <input
+                        type="url"
+                        name="instagramUrl"
+                        value={formData.instagramUrl}
+                        onChange={handleInputChange}
+                        className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                        placeholder="Instagram Profile URL"
+                      />
+                    </div>
+                    <div className="col-span-5 relative min-w-0">
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
+                      <input
+                        type="number"
+                        name="instagramFollowers"
+                        value={formData.instagramFollowers}
+                        onChange={handleInputChange}
+                        className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                        placeholder="Điền số nguyên"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Facebook Row */}
+                  <div className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-7 relative min-w-0">
+                      <span className="absolute left-3 top-3 text-slate-400">
+                        <FacebookIcon className="h-3.5 w-3.5 text-slate-300" />
+                      </span>
+                      <input
+                        type="url"
+                        name="facebookUrl"
+                        value={formData.facebookUrl}
+                        onChange={handleInputChange}
+                        className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                        placeholder="Facebook Profile URL"
+                      />
+                    </div>
+                    <div className="col-span-5 relative min-w-0">
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
+                      <input
+                        type="number"
+                        name="facebookFollowers"
+                        value={formData.facebookFollowers}
+                        onChange={handleInputChange}
+                        className="w-full min-w-0 rounded-xl border border-white/20 bg-[#070913]/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                        placeholder="Điền số nguyên"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* YouTube Row */}
+                  <div className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-7 relative min-w-0">
+                      <span className="absolute left-3 top-3 text-slate-400">
+                        <YoutubeIcon className="h-3.5 w-3.5 text-slate-300" />
+                      </span>
+                      <input
+                        type="url"
+                        name="youtubeUrl"
+                        value={formData.youtubeUrl}
+                        onChange={handleInputChange}
+                        className="w-full min-w-0 rounded-xl border border-white/20 bg-[#070913]/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
+                        placeholder="YouTube Channel URL"
+                      />
+                    </div>
+                    <div className="col-span-5 relative min-w-0">
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
+                      <input
+                        type="number"
+                        name="youtubeFollowers"
+                        value={formData.youtubeFollowers}
+                        onChange={handleInputChange}
+                        className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
+
             </div>
-          </div>
-        )}
+          )}
 
-        {/* STEP 3: SOCIAL & PORTFOLIO (Left Socials, Right Upload Zone) */}
-        {false && step === 3 && (
-          <div className="animate-in fade-in duration-300">
-            {/* Left: Social Media Profiles and Followers */}
-            <div className="space-y-4 w-full max-w-xl mx-auto">
-              <div className="space-y-1">
-                <label className="text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Tổng số lượng Followers</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={getTotalFollowers().toLocaleString("vi-VN")}
-                    disabled
-                    className="w-full rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-400 font-black focus:outline-none cursor-not-allowed opacity-95"
-                  />
-                  <span className="absolute right-3.5 top-3 flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                  </span>
+          {/* STEP 4: ORIENTATION SURVEY (Single Question Card UI, zero scroll) */}
+          {ORIENTATION_SURVEY_ENABLED && step === 4 && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full py-2 animate-in fade-in duration-300">
+              {/* Left Column: The Question Block */}
+              <div className="lg:col-span-8 space-y-6 w-full">
+                {/* Header: Question indicator & Inner survey progress */}
+                <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                  <div>
+                    <span className="text-[11px] md:text-xs font-black text-amber-300 uppercase tracking-widest">
+                      Định Hướng AI
+                    </span>
+                    <h4 className="text-[13px] font-black text-white mt-0.5">
+                      Câu hỏi {activeSurveyQIdx + 1} / {SURVEY_QUESTIONS.length}
+                    </h4>
+                  </div>
+                  <div className="text-[11px] md:text-xs font-extrabold text-slate-200 bg-white/10 border border-white/10 px-2.5 py-0.5 rounded-full">
+                    Đã trả lời: {Object.keys(surveyAnswers).length} / {SURVEY_QUESTIONS.length}
+                  </div>
+                </div>
+
+                {/* Centered Question Box */}
+                <div className="rounded-2xl border border-white/10 bg-[#0c0f24]/50 p-6 space-y-5 text-center">
+                  <span className="inline-block text-[11px] md:text-xs font-extrabold text-amber-300/80 uppercase tracking-wider">Năng lực ứng xử & Định hướng</span>
+                  <h3 className="font-display font-extrabold text-base md:text-lg text-white leading-relaxed max-w-xl mx-auto">
+                    {activeQuestion.question}
+                  </h3>
+
+                  {/* Stacked Options */}
+                  <div className="grid grid-cols-1 gap-2.5 max-w-xl mx-auto pt-2">
+                    {activeQuestion.options.map((opt, oIdx) => {
+                      const isSelected = surveyAnswers[activeQuestion.id] === oIdx;
+                      return (
+                        <button
+                          type="button"
+                          key={oIdx}
+                          onClick={() => handleSurveySelect(activeQuestion.id, oIdx)}
+                          className={cn(
+                            "flex items-center gap-3.5 rounded-xl border px-5 py-3.5 text-xs text-left cursor-pointer transition-all duration-300 w-full",
+                            isSelected
+                              ? "border-amber-400 bg-amber-400/20 text-amber-200 font-extrabold shadow-[0_0_20px_rgba(245,158,11,0.15)]"
+                              : "border-white/10 bg-[#070913]/60 hover:bg-white/5 hover:border-white/20 text-slate-200 hover:text-white"
+                          )}
+                        >
+                          <div className={cn(
+                            "h-4 w-4 rounded-full border flex items-center justify-center shrink-0",
+                            isSelected ? "border-amber-400 bg-amber-400/10" : "border-slate-500"
+                          )}>
+                            {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
+                          </div>
+                          <span className="leading-tight">{opt.text}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Inner survey navigation */}
+                <div className="flex justify-between items-center pt-2">
+                  <button
+                    type="button"
+                    disabled={isAnalyzing}
+                    onClick={() => {
+                      if (activeSurveyQIdx > 0) {
+                        setActiveSurveyQIdx(prev => prev - 1);
+                        scrollSurveyToTop();
+                      } else {
+                        // Go back to Step 3
+                        goToStep(3);
+                      }
+                    }}
+                    className={cn(
+                      "flex h-9 items-center justify-center rounded-lg border border-white/20 px-4 text-[11px] md:text-xs font-bold text-slate-200 hover:text-amber-300 hover:border-amber-400/50 hover:bg-white/5 transition-all gap-1 cursor-pointer",
+                      isAnalyzing && "cursor-not-allowed opacity-40"
+                    )}
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" /> Quay Lại
+                  </button>
+
+                  {activeSurveyQIdx === SURVEY_QUESTIONS.length - 1 ? (
+                    // Câu cuối – nút "Hoàn Thành"
+                    <button
+                      type="submit"
+                      disabled={surveyAnswers[activeQuestion.id] === undefined || !isStepValid() || isAnalyzing}
+                      className={cn(
+                        "flex h-9 items-center justify-center rounded-lg px-5 text-[11px] md:text-xs font-black transition-all gap-1.5 cursor-pointer",
+                        (surveyAnswers[activeQuestion.id] !== undefined && isStepValid() && !isAnalyzing)
+                          ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 hover:brightness-110 shadow-[0_0_14px_rgba(52,211,153,0.35)] animate-pulse"
+                          : "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40"
+                      )}
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang phân tích...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Hoàn Thành
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    // Các câu khác – nút "Tiếp Theo"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveSurveyQIdx(prev => prev + 1);
+                        scrollSurveyToTop();
+                      }}
+                      disabled={surveyAnswers[activeQuestion.id] === undefined || isAnalyzing}
+                      className={cn(
+                        "flex h-9 items-center justify-center rounded-lg px-4 text-[11px] md:text-xs font-black transition-all gap-1 cursor-pointer",
+                        (surveyAnswers[activeQuestion.id] !== undefined && !isAnalyzing)
+                          ? "bg-gradient-to-r from-amber-300 to-yellow-500 text-slate-950 hover:brightness-110 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+                          : "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40"
+                      )}
+                    >
+                      Tiếp Theo <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
 
-              <div className="space-y-2.5">
-                <span className="block text-[11px] md:text-xs text-slate-300 font-extrabold uppercase tracking-wider">Liên kết nền tảng & Số lượng Followers</span>
-
-                {/* TikTok Row */}
-                <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-7 relative min-w-0">
-                    <span className="absolute left-3 top-3 text-slate-400">
-                      <TiktokIcon className="h-3.5 w-3.5 text-slate-300" />
-                    </span>
-                    <input
-                      type="url"
-                      name="tiktokUrl"
-                      value={formData.tiktokUrl}
-                      onChange={handleInputChange}
-                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                      placeholder="TikTok Profile URL"
-                    />
-                  </div>
-                  <div className="col-span-5 relative min-w-0">
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
-                    <input
-                      type="number"
-                      name="tiktokFollowers"
-                      value={formData.tiktokFollowers}
-                      onChange={handleInputChange}
-                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                      placeholder="Điền số nguyên"
-                      min="0"
-                    />
-                  </div>
-                </div>
-
-                {/* Instagram Row */}
-                <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-7 relative min-w-0">
-                    <span className="absolute left-3 top-3 text-slate-400">
-                      <InstagramIcon className="h-3.5 w-3.5 text-slate-300" />
-                    </span>
-                    <input
-                      type="url"
-                      name="instagramUrl"
-                      value={formData.instagramUrl}
-                      onChange={handleInputChange}
-                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                      placeholder="Instagram Profile URL"
-                    />
-                  </div>
-                  <div className="col-span-5 relative min-w-0">
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
-                    <input
-                      type="number"
-                      name="instagramFollowers"
-                      value={formData.instagramFollowers}
-                      onChange={handleInputChange}
-                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                      placeholder="Điền số nguyên"
-                      min="0"
-                    />
-                  </div>
-                </div>
-
-                {/* Facebook Row */}
-                <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-7 relative min-w-0">
-                    <span className="absolute left-3 top-3 text-slate-400">
-                      <FacebookIcon className="h-3.5 w-3.5 text-slate-300" />
-                    </span>
-                    <input
-                      type="url"
-                      name="facebookUrl"
-                      value={formData.facebookUrl}
-                      onChange={handleInputChange}
-                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                      placeholder="Facebook Profile URL"
-                    />
-                  </div>
-                  <div className="col-span-5 relative min-w-0">
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
-                    <input
-                      type="number"
-                      name="facebookFollowers"
-                      value={formData.facebookFollowers}
-                      onChange={handleInputChange}
-                      className="w-full min-w-0 rounded-xl border border-white/20 bg-[#070913]/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                      placeholder="Điền số nguyên"
-                      min="0"
-                    />
-                  </div>
-                </div>
-
-                {/* YouTube Row */}
-                <div className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-7 relative min-w-0">
-                    <span className="absolute left-3 top-3 text-slate-400">
-                      <YoutubeIcon className="h-3.5 w-3.5 text-slate-300" />
-                    </span>
-                    <input
-                      type="url"
-                      name="youtubeUrl"
-                      value={formData.youtubeUrl}
-                      onChange={handleInputChange}
-                      className="w-full min-w-0 rounded-xl border border-white/20 bg-[#070913]/60 hover:border-white/40 pl-8 pr-3 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all placeholder-slate-400 font-medium"
-                      placeholder="YouTube Channel URL"
-                    />
-                  </div>
-                  <div className="col-span-5 relative min-w-0">
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-slate-400 uppercase hidden md:inline-block">Followers</span>
-                    <input
-                      type="number"
-                      name="youtubeFollowers"
-                      value={formData.youtubeFollowers}
-                      onChange={handleInputChange}
-                      className="w-full min-w-0 rounded-xl border border-white/20 bg-slate-900/60 hover:border-white/40 pl-2.5 pr-3 md:pr-14 py-2.5 text-[11px] md:text-xs text-white focus:border-amber-400 focus:bg-[#0e122b] focus:outline-none transition-all font-bold"
-                      placeholder="0"
-                      min="0"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        )}
-
-        {/* STEP 4: ORIENTATION SURVEY (Single Question Card UI, zero scroll) */}
-        {ORIENTATION_SURVEY_ENABLED && step === 4 && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full py-2 animate-in fade-in duration-300">
-            {/* Left Column: The Question Block */}
-            <div className="lg:col-span-8 space-y-6 w-full">
-              {/* Header: Question indicator & Inner survey progress */}
-              <div className="flex justify-between items-center pb-2 border-b border-white/10">
-                <div>
-                  <span className="text-[11px] md:text-xs font-black text-amber-300 uppercase tracking-widest">
-                    Định Hướng AI
-                  </span>
-                  <h4 className="text-[13px] font-black text-white mt-0.5">
-                    Câu hỏi {activeSurveyQIdx + 1} / {SURVEY_QUESTIONS.length}
+              {/* Right Column: Progress Grid (Tiến độ trả lời) */}
+              <div className="lg:col-span-4 w-full rounded-2xl border border-white/10 bg-[#0c0f24]/60 p-5 space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b border-white/10 text-left">
+                  <h4 className="text-xs md:text-[13px] font-black text-slate-200 uppercase tracking-wider">
+                    Tiến độ trả lời
                   </h4>
+                  <span className="text-[11px] md:text-xs font-black text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
+                    {Object.keys(surveyAnswers).length}/{SURVEY_QUESTIONS.length}
+                  </span>
                 </div>
-                <div className="text-[11px] md:text-xs font-extrabold text-slate-200 bg-white/10 border border-white/10 px-2.5 py-0.5 rounded-full">
-                  Đã trả lời: {Object.keys(surveyAnswers).length} / {SURVEY_QUESTIONS.length}
-                </div>
-              </div>
 
-              {/* Centered Question Box */}
-              <div className="rounded-2xl border border-white/10 bg-[#0c0f24]/50 p-6 space-y-5 text-center">
-                <span className="inline-block text-[11px] md:text-xs font-extrabold text-amber-300/80 uppercase tracking-wider">Năng lực ứng xử & Định hướng</span>
-                <h3 className="font-display font-extrabold text-base md:text-lg text-white leading-relaxed max-w-xl mx-auto">
-                  {activeQuestion.question}
-                </h3>
+                {/* Progress Grid */}
+                <div className="grid grid-cols-5 gap-2 pt-2">
+                  {SURVEY_QUESTIONS.map((q, qIdx) => {
+                    const isAnswered = surveyAnswers[q.id] !== undefined;
+                    const isActive = qIdx === activeSurveyQIdx;
 
-                {/* Stacked Options */}
-                <div className="grid grid-cols-1 gap-2.5 max-w-xl mx-auto pt-2">
-                  {activeQuestion.options.map((opt, oIdx) => {
-                    const isSelected = surveyAnswers[activeQuestion.id] === oIdx;
                     return (
                       <button
                         type="button"
-                        key={oIdx}
-                        onClick={() => handleSurveySelect(activeQuestion.id, oIdx)}
+                        key={q.id}
+                        disabled={isAnalyzing}
+                        onClick={() => {
+                          setActiveSurveyQIdx(qIdx);
+                          scrollSurveyToTop();
+                        }}
                         className={cn(
-                          "flex items-center gap-3.5 rounded-xl border px-5 py-3.5 text-xs text-left cursor-pointer transition-all duration-300 w-full",
-                          isSelected
-                            ? "border-amber-400 bg-amber-400/20 text-amber-200 font-extrabold shadow-[0_0_20px_rgba(245,158,11,0.15)]"
-                            : "border-white/10 bg-[#070913]/60 hover:bg-white/5 hover:border-white/20 text-slate-200 hover:text-white"
+                          "aspect-square rounded-xl text-xs md:text-[13px] font-bold flex items-center justify-center border transition-all duration-300 cursor-pointer",
+                          isActive
+                            ? "border-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.35)] scale-105"
+                            : isAnswered
+                              ? "border-emerald-500/40 bg-emerald-500/20 text-emerald-200 font-extrabold hover:border-emerald-400 hover:bg-emerald-500/30"
+                              : "border-white/10 bg-[#070913]/40 text-slate-300 hover:border-white/20 hover:text-white",
+                          isAnalyzing && "cursor-not-allowed opacity-40 pointer-events-none"
                         )}
                       >
-                        <div className={cn(
-                          "h-4 w-4 rounded-full border flex items-center justify-center shrink-0",
-                          isSelected ? "border-amber-400 bg-amber-400/10" : "border-slate-500"
-                        )}>
-                          {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
-                        </div>
-                        <span className="leading-tight">{opt.text}</span>
+                        {qIdx + 1}
                       </button>
                     );
                   })}
                 </div>
+
+                <div className="pt-2 border-t border-white/10 text-[11px] md:text-xs text-slate-300 leading-normal space-y-2 text-left font-medium">
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded bg-emerald-500/20 border border-emerald-500/40 inline-block shrink-0" />
+                    <span>Đã trả lời</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded bg-gradient-to-r from-amber-300 to-yellow-500 inline-block shrink-0" />
+                    <span>Đang trả lời</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded bg-[#070913]/40 border border-white/10 inline-block shrink-0" />
+                    <span>Chưa trả lời</span>
+                  </div>
+                  <div className="text-[10px] md:text-[11px] italic text-slate-400 mt-2 block leading-relaxed">
+                    * Bạn có thể bấm vào số câu bất kỳ để quay lại hoặc chuyển nhanh tới câu hỏi đó.
+                  </div>
+                </div>
               </div>
+            </div>
+          )}
 
-              {/* Inner survey navigation */}
-              <div className="flex justify-between items-center pt-2">
-                <button
-                  type="button"
-                  disabled={isAnalyzing}
-                  onClick={() => {
-                    if (activeSurveyQIdx > 0) {
-                      setActiveSurveyQIdx(prev => prev - 1);
-                      scrollSurveyToTop();
-                    } else {
-                      // Go back to Step 3
-                      goToStep(3);
-                    }
-                  }}
-                  className={cn(
-                    "flex h-9 items-center justify-center rounded-lg border border-white/20 px-4 text-[11px] md:text-xs font-bold text-slate-200 hover:text-amber-300 hover:border-amber-400/50 hover:bg-white/5 transition-all gap-1 cursor-pointer",
-                    isAnalyzing && "cursor-not-allowed opacity-40"
-                  )}
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" /> Quay Lại
-                </button>
+          {submitError && (
+            <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-xs font-bold leading-relaxed text-rose-100">
+              {submitError}
+            </div>
+          )}
 
-                {activeSurveyQIdx === SURVEY_QUESTIONS.length - 1 ? (
-                  // Câu cuối – nút "Hoàn Thành"
-                  <button
-                    type="submit"
-                    disabled={surveyAnswers[activeQuestion.id] === undefined || !isStepValid() || isAnalyzing}
-                    className={cn(
-                      "flex h-9 items-center justify-center rounded-lg px-5 text-[11px] md:text-xs font-black transition-all gap-1.5 cursor-pointer",
-                      (surveyAnswers[activeQuestion.id] !== undefined && isStepValid() && !isAnalyzing)
-                        ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 hover:brightness-110 shadow-[0_0_14px_rgba(52,211,153,0.35)] animate-pulse"
-                        : "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40"
-                    )}
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang phân tích...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Hoàn Thành
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  // Các câu khác – nút "Tiếp Theo"
+          {/* Global Navigation Action Bar */}
+          {step <= SURVEY_STEP_COUNT && (
+            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#F0D7D3] bg-white/95 px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-3.5 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#070913]/95 dark:shadow-[0_-14px_30px_rgba(0,0,0,0.55)] md:py-4">
+              <div className="mx-auto flex w-full max-w-7xl items-center gap-3">
+                {step > 1 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setActiveSurveyQIdx(prev => prev + 1);
-                      scrollSurveyToTop();
-                    }}
-                    disabled={surveyAnswers[activeQuestion.id] === undefined || isAnalyzing}
-                    className={cn(
-                      "flex h-9 items-center justify-center rounded-lg px-4 text-[11px] md:text-xs font-black transition-all gap-1 cursor-pointer",
-                      (surveyAnswers[activeQuestion.id] !== undefined && !isAnalyzing)
-                        ? "bg-gradient-to-r from-amber-300 to-yellow-500 text-slate-950 hover:brightness-110 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
-                        : "bg-slate-800 text-slate-500 cursor-not-allowed opacity-40"
-                    )}
+                    onClick={prevStep}
+                    className="flex h-11 flex-1 cursor-pointer items-center justify-center rounded-xl border border-[#F0D7D3] bg-white font-display text-xs font-bold text-[#574D54] transition-all hover:border-[#8F0709]/40 hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:border-white/20 dark:bg-white/5 dark:text-slate-200 dark:hover:border-amber-400/50 dark:hover:text-amber-300 md:text-[13px]"
                   >
-                    Tiếp Theo <ArrowRight className="h-3.5 w-3.5" />
+                    <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> Quay Lại
                   </button>
                 )}
-              </div>
-            </div>
 
-            {/* Right Column: Progress Grid (Tiến độ trả lời) */}
-            <div className="lg:col-span-4 w-full rounded-2xl border border-white/10 bg-[#0c0f24]/60 p-5 space-y-4">
-              <div className="flex justify-between items-center pb-2 border-b border-white/10 text-left">
-                <h4 className="text-xs md:text-[13px] font-black text-slate-200 uppercase tracking-wider">
-                  Tiến độ trả lời
-                </h4>
-                <span className="text-[11px] md:text-xs font-black text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
-                  {Object.keys(surveyAnswers).length}/{SURVEY_QUESTIONS.length}
-                </span>
-              </div>
-
-              {/* Progress Grid */}
-              <div className="grid grid-cols-5 gap-2 pt-2">
-                {SURVEY_QUESTIONS.map((q, qIdx) => {
-                  const isAnswered = surveyAnswers[q.id] !== undefined;
-                  const isActive = qIdx === activeSurveyQIdx;
-
-                  return (
-                    <button
-                      type="button"
-                      key={q.id}
-                      disabled={isAnalyzing}
-                      onClick={() => {
-                        setActiveSurveyQIdx(qIdx);
-                        scrollSurveyToTop();
-                      }}
-                      className={cn(
-                        "aspect-square rounded-xl text-xs md:text-[13px] font-bold flex items-center justify-center border transition-all duration-300 cursor-pointer",
-                        isActive
-                          ? "border-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.35)] scale-105"
-                          : isAnswered
-                            ? "border-emerald-500/40 bg-emerald-500/20 text-emerald-200 font-extrabold hover:border-emerald-400 hover:bg-emerald-500/30"
-                            : "border-white/10 bg-[#070913]/40 text-slate-300 hover:border-white/20 hover:text-white",
-                        isAnalyzing && "cursor-not-allowed opacity-40 pointer-events-none"
-                      )}
-                    >
-                      {qIdx + 1}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="pt-2 border-t border-white/10 text-[11px] md:text-xs text-slate-300 leading-normal space-y-2 text-left font-medium">
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded bg-emerald-500/20 border border-emerald-500/40 inline-block shrink-0" />
-                  <span>Đã trả lời</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded bg-gradient-to-r from-amber-300 to-yellow-500 inline-block shrink-0" />
-                  <span>Đang trả lời</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded bg-[#070913]/40 border border-white/10 inline-block shrink-0" />
-                  <span>Chưa trả lời</span>
-                </div>
-                <div className="text-[10px] md:text-[11px] italic text-slate-400 mt-2 block leading-relaxed">
-                  * Bạn có thể bấm vào số câu bất kỳ để quay lại hoặc chuyển nhanh tới câu hỏi đó.
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {submitError && (
-          <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-xs font-bold leading-relaxed text-rose-100">
-            {submitError}
-          </div>
-        )}
-
-        {/* Global Navigation Action Bar */}
-        {step <= SURVEY_STEP_COUNT && (
-          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#F0D7D3] bg-white/95 px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-3.5 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#070913]/95 dark:shadow-[0_-14px_30px_rgba(0,0,0,0.55)] md:py-4">
-            <div className="mx-auto flex w-full max-w-7xl items-center gap-3">
-              {step > 1 && (
                 <button
                   type="button"
-                  onClick={prevStep}
-                  className="flex h-11 flex-1 cursor-pointer items-center justify-center rounded-xl border border-[#F0D7D3] bg-white font-display text-xs font-bold text-[#574D54] transition-all hover:border-[#8F0709]/40 hover:bg-[#FFF0EE] hover:text-[#8F0709] dark:border-white/20 dark:bg-white/5 dark:text-slate-200 dark:hover:border-amber-400/50 dark:hover:text-amber-300 md:text-[13px]"
+                  onClick={nextStep}
+                  disabled={!isStepValid() || isCreatingGuestAccount}
+                  className={cn(
+                    "flex h-11 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl font-display text-xs font-black transition-all shadow-md md:text-[13px]",
+                    isStepValid() && !isCreatingGuestAccount
+                      ? "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white !text-white hover:brightness-110 dark:from-amber-300 dark:to-yellow-500 dark:!text-slate-950"
+                      : "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400 dark:border-white/10 dark:bg-[#131936] dark:text-slate-500"
+                  )}
                 >
-                  <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> Quay Lại
+                  {isCreatingGuestAccount ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tạo tài khoản...
+                    </>
+                  ) : (
+                    <>
+                      {step === SURVEY_STEP_COUNT ? "Hoàn tất" : "Tiếp tục"} <ArrowRight className="h-3.5 w-3.5" />
+                    </>
+                  )}
                 </button>
-              )}
-
-              <button
-                type="button"
-                onClick={nextStep}
-                disabled={!isStepValid() || isCreatingGuestAccount}
-                className={cn(
-                  "flex h-11 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl font-display text-xs font-black transition-all shadow-md md:text-[13px]",
-                  isStepValid() && !isCreatingGuestAccount
-                    ? "light-force-white bg-gradient-to-r from-[#E01B1F] to-[#8F0709] text-white !text-white hover:brightness-110 dark:from-amber-300 dark:to-yellow-500 dark:!text-slate-950"
-                    : "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400 dark:border-white/10 dark:bg-[#131936] dark:text-slate-500"
-                )}
-              >
-                {isCreatingGuestAccount ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tạo tài khoản...
-                  </>
-                ) : (
-                  <>
-                    {step === SURVEY_STEP_COUNT ? "Hoàn tất" : "Tiếp tục"} <ArrowRight className="h-3.5 w-3.5" />
-                  </>
-                )}
-              </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Step 4 orientation survey is currently disabled by ORIENTATION_SURVEY_ENABLED. */}
+          {/* Step 4 orientation survey is currently disabled by ORIENTATION_SURVEY_ENABLED. */}
 
-      </form>
+        </form>
       </div>
 
       {showGuestAccountDialog && (

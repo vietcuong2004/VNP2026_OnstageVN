@@ -82,6 +82,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isDiscoverHome = pathname === "/";
   const isAbout = pathname === "/about";
   const isBrandTalentDetail = pathname ? /^\/brand\/talents\/[^/]+/.test(pathname) : false;
+  const isTalentProfile = pathname === "/talent/profile";
   const isTalentJobDetail = pathname ? /^\/talent\/jobs\/[^/]+$/.test(pathname) && pathname !== "/talent/jobs/saved-jobs" : false;
   const isTalentSurvey = pathname === "/talent/survey";
   const isBrandSearch = pathname === "/brand/search";
@@ -94,7 +95,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isTalentSavedJobs = pathname === "/talent/jobs/saved-jobs";
   const isBooking = pathname ? (pathname === "/booking" || pathname.endsWith("/booking") || pathname.endsWith("/booking-talent")) : false;
   const isBookingTalent = pathname ? pathname.endsWith("/booking-talent") : false;
-  const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail;
+  const isSpecialDetail = isBrandTalentDetail || isTalentJobDetail || isTalentProfile;
   const hideHeaderOnMobile = isTalentSurveyForm || isSpecialDetail || isBrandSearch || isBrandShortlists || isBrandMyBookings || isTalentJobs || isTalentSavedJobs || isBooking;
   const hideChrome = isBrandJobEditor || isBooking || isTalentSurveyForm;
 

@@ -60,7 +60,7 @@ import {
 } from "lucide-react";
 import BookingFlow from "@/app/brand/talents/[id]/booking-talent/BookingFlow";
 import { findTalentById } from "@/lib/brand-mvp-data";
-import { cn, getSocialHandle, getVideoThumbnail } from "@/lib/utils";
+import { cn, formatOrGenerateViews, getSocialHandle, getVideoThumbnail } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
 import TierExplanationDialog from "@/components/ui/TierExplanationDialog";
 import OnstagePerformanceExplanationDialog from "@/components/ui/OnstagePerformanceExplanationDialog";
@@ -1239,7 +1239,7 @@ export default function BrandTalentProfilePage() {
   const [isPortfolioDialogOpen, setIsPortfolioDialogOpen] = useState(false);
   const [mobileHeroIndex, setMobileHeroIndex] = useState(0);
   const [mobileTab, setMobileTab] = useState<"photos" | "videos" | "about" | "reviews">("photos");
-  const [mobileVideoSubTab, setMobileVideoSubTab] = useState<"recent" | "featured">("recent");
+  const [mobileVideoSubTab, setMobileVideoSubTab] = useState<"recent" | "featured">("featured");
   const [toasts, setToasts] = useState<{ id: string; message: string; tone: "success" | "error" }[]>([]);
 
   useEffect(() => {
@@ -1484,7 +1484,9 @@ export default function BrandTalentProfilePage() {
     }
   };
 
-  const portfolioVideos = useMemo<Array<{ id: string | number; title: string; url: string; thumbnailUrl?: string; path?: string | null; disk?: string | null }>>(() => {
+  const talentKey = String(params?.id || "talent");
+
+  const portfolioVideos = useMemo<Array<{ id: string | number; title: string; url: string; thumbnailUrl?: string; path?: string | null; disk?: string | null; views?: string }>>(() => {
     if (!profile || !Array.isArray((profile as any).videos)) return [];
 
     return (profile as any).videos
@@ -1492,6 +1494,7 @@ export default function BrandTalentProfilePage() {
         const rawUrl = video?.url || "";
         const rawThumb = video?.thumbnailUrl || video?.thumbnail_url || video?.thumbnail || "";
         const resolvedThumb = rawThumb ? normalizeBackendAssetUrl(rawThumb) : getVideoThumbnail(rawUrl);
+        const resolvedViews = formatOrGenerateViews(video?.views || video?.views_count, `${talentKey}-portfolio-${rawUrl}`, index);
         return {
           id: video?.id ?? `video-${index + 1}`,
           title: String(video?.title || `Video ${index + 1}`),
@@ -1499,72 +1502,86 @@ export default function BrandTalentProfilePage() {
           thumbnailUrl: resolvedThumb,
           path: video?.path ?? null,
           disk: video?.disk ?? null,
+          views: resolvedViews,
         };
       })
       .filter((video: { url: string }) => Boolean(video.url))
       .slice(0, 4);
-  }, [profile]);
+  }, [profile, talentKey]);
 
   const mobileRecentVideos = useMemo(() => {
     const list: Array<{ id: string | number; title: string; url: string; thumbnailUrl: string; views: string }> = [];
+    const seenUrls = new Set<string>();
+
     if (Array.isArray(profile?.socialAccounts)) {
       profile.socialAccounts.forEach((acc: any) => {
         if (Array.isArray(acc.recent_videos)) {
           acc.recent_videos.forEach((v: any, idx: number) => {
             const rawUrl = String(v.url || acc.url || "").trim();
-            if (rawUrl) {
+            if (rawUrl && !seenUrls.has(rawUrl)) {
+              seenUrls.add(rawUrl);
               const rawThumb = v.thumbnail || v.thumbnailUrl || v.thumbnail_url || "";
+              const resolvedViews = formatOrGenerateViews(v.views || v.views_count, `${talentKey}-recent-${rawUrl}`, idx);
               list.push({
                 id: v.id || `recent-${idx}`,
                 title: v.title || "Video gần đây",
                 url: rawUrl,
                 thumbnailUrl: rawThumb ? normalizeBackendAssetUrl(rawThumb) : getVideoThumbnail(rawUrl),
-                views: v.views || "10K",
+                views: resolvedViews,
               });
             }
           });
         }
       });
     }
-    if (list.length === 0 && portfolioVideos.length > 0) {
-      portfolioVideos.forEach((v) => {
-        if (v.url) {
-          list.push({
-            id: v.id,
-            title: v.title,
-            url: v.url,
-            thumbnailUrl: v.thumbnailUrl || getVideoThumbnail(v.url),
-            views: "10K",
-          });
-        }
-      });
-    }
+
     return list;
-  }, [profile, portfolioVideos]);
+  }, [profile, talentKey]);
 
   const mobileFeaturedVideos = useMemo(() => {
     const list: Array<{ id: string | number; title: string; url: string; thumbnailUrl: string; views: string }> = [];
+    const seenUrls = new Set<string>();
+
     if (Array.isArray(profile?.socialAccounts)) {
       profile.socialAccounts.forEach((acc: any) => {
         if (Array.isArray(acc.featured_videos)) {
           acc.featured_videos.forEach((v: any, idx: number) => {
             const rawUrl = String(v.url || acc.url || "").trim();
-            if (rawUrl) {
+            if (rawUrl && !seenUrls.has(rawUrl)) {
+              seenUrls.add(rawUrl);
               const rawThumb = v.thumbnail || v.thumbnailUrl || v.thumbnail_url || "";
+              const resolvedViews = formatOrGenerateViews(v.views || v.views_count, `${talentKey}-feat-${rawUrl}`, idx);
               list.push({
                 id: v.id || `featured-${idx}`,
                 title: v.title || "Video nổi bật",
                 url: rawUrl,
                 thumbnailUrl: rawThumb ? normalizeBackendAssetUrl(rawThumb) : getVideoThumbnail(rawUrl),
-                views: v.views || "10K",
+                views: resolvedViews,
               });
             }
           });
         }
       });
     }
+
+    if (portfolioVideos.length > 0) {
+      portfolioVideos.forEach((v, idx) => {
+        if (v.url && !seenUrls.has(v.url)) {
+          seenUrls.add(v.url);
+          const resolvedViews = formatOrGenerateViews(v.views, `${talentKey}-feat-port-${v.url}`, idx);
+          list.push({
+            id: v.id,
+            title: v.title || "Video nổi bật",
+            url: v.url,
+            thumbnailUrl: v.thumbnailUrl || getVideoThumbnail(v.url),
+            views: resolvedViews,
+          });
+        }
+      });
+    }
+
     return list;
-  }, [profile]);
+  }, [profile, portfolioVideos, talentKey]);
 
   // State for Month-switching Calendar
   const [currentYear, setCurrentYear] = useState(2026);
@@ -2124,18 +2141,6 @@ export default function BrandTalentProfilePage() {
                 <div className="grid grid-cols-2 gap-2 rounded-full bg-[#fbf7f7] p-1 text-center text-xs sm:text-sm font-semibold dark:bg-white/5">
                   <button
                     type="button"
-                    onClick={() => setMobileVideoSubTab("recent")}
-                    className={cn(
-                      "rounded-full py-2 transition-all cursor-pointer select-none",
-                      mobileVideoSubTab === "recent"
-                        ? "bg-white text-[#8F0709] shadow-sm font-bold dark:bg-slate-800 dark:text-rose-400"
-                        : "text-[#10122f] hover:text-[#8F0709] dark:text-slate-300"
-                    )}
-                  >
-                    Video gần đây {mobileRecentVideos.length > 0 && `(${mobileRecentVideos.length})`}
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => setMobileVideoSubTab("featured")}
                     className={cn(
                       "rounded-full py-2 transition-all cursor-pointer select-none",
@@ -2145,6 +2150,18 @@ export default function BrandTalentProfilePage() {
                     )}
                   >
                     Video nổi bật {mobileFeaturedVideos.length > 0 && `(${mobileFeaturedVideos.length})`}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileVideoSubTab("recent")}
+                    className={cn(
+                      "rounded-full py-2 transition-all cursor-pointer select-none",
+                      mobileVideoSubTab === "recent"
+                        ? "bg-white text-[#8F0709] shadow-sm font-bold dark:bg-slate-800 dark:text-rose-400"
+                        : "text-[#10122f] hover:text-[#8F0709] dark:text-slate-300"
+                    )}
+                  >
+                    Video gần đây {mobileRecentVideos.length > 0 && `(${mobileRecentVideos.length})`}
                   </button>
                 </div>
 

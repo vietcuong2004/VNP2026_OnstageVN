@@ -162,6 +162,116 @@ function CitySelect({ label, value, options, onChange }: CitySelectProps) {
   );
 }
 
+interface SocialAccountsSectionProps {
+  socialAccounts: Array<{ platform: string; url: string; followers_count?: number }>;
+  socialPlatform: string;
+  setSocialPlatform: (val: any) => void;
+  socialLink: string;
+  setSocialLink: (val: string) => void;
+  onAddAccount: () => void;
+  onRemoveAccount: (index: number) => void;
+}
+
+export function SocialAccountsSection({
+  socialAccounts,
+  socialPlatform,
+  setSocialPlatform,
+  socialLink,
+  setSocialLink,
+  onAddAccount,
+  onRemoveAccount,
+}: SocialAccountsSectionProps) {
+  return (
+    <div className="bg-white p-5 md:p-6 rounded-2xl border border-[#F0D7D3] hover:border-[#8F0709]/30 transition-all space-y-4 text-left shadow-sm dark:bg-[#0e142e]/80 dark:border-white/10">
+      <h4 className="font-bold text-xs md:text-sm text-[#8F0709] uppercase tracking-widest border-b border-[#F0D7D3] pb-2.5 mb-3 flex items-center gap-2 dark:text-[#F0C56B] dark:border-white/10">
+        Mạng xã hội
+      </h4>
+
+      {/* Input to add new account */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+        <div className="space-y-1.5 md:col-span-3">
+          <span className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">Chọn nền tảng</span>
+          <select
+            value={socialPlatform}
+            onChange={(e) => setSocialPlatform(e.target.value)}
+            className="w-full h-[40px] bg-white border border-[#F0D7D3] rounded-xl px-3 text-[#191116] focus:outline-none focus:border-[#8F0709] transition-colors shadow-sm dark:bg-[#060918] dark:border-white/20 dark:text-white dark:focus:border-amber-400 cursor-pointer"
+          >
+            <option value="Tiktok" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Tiktok</option>
+            <option value="Facebook" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Facebook</option>
+            <option value="Instagram" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Instagram</option>
+            <option value="Youtube" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Youtube</option>
+            <option value="Thread" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Thread</option>
+          </select>
+        </div>
+
+        <div className="space-y-1.5 md:col-span-7">
+          <span className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">Đường dẫn (Link)</span>
+          <input
+            type="url"
+            value={socialLink}
+            onChange={(e) => setSocialLink(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onAddAccount();
+              }
+            }}
+            placeholder="https://..."
+            className="w-full h-[40px] bg-white border border-[#F0D7D3] rounded-xl px-3.5 text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-colors shadow-sm dark:bg-[#060918] dark:border-white/20 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-amber-400"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <button
+            type="button"
+            onClick={onAddAccount}
+            style={{ color: "#ffffff" }}
+            className="light-force-white w-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider h-[40px] flex items-center justify-center cursor-pointer transition-all shadow-md shrink-0"
+          >
+            Thêm
+          </button>
+        </div>
+      </div>
+
+      {/* List of added accounts */}
+      <div className="space-y-2">
+        {socialAccounts.length === 0 ? (
+          <div className="text-[#9A8B88] italic text-xs py-1 dark:text-slate-400">Chưa có liên kết mạng xã hội nào được thêm.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {socialAccounts.map((account, index) => (
+              <div key={index} className="flex items-center justify-between gap-3 bg-white border border-[#F0D7D3] rounded-xl px-3.5 py-2.5 shadow-sm dark:bg-[#060918] dark:border-white/15">
+                <div className="min-w-0 flex-1">
+                  <span className="text-[10px] font-black text-[#8F0709] uppercase tracking-wider block dark:text-amber-400">
+                    {account.platform}
+                  </span>
+                  <a
+                    href={account.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-[#191116] hover:text-[#8F0709] truncate block font-semibold dark:text-slate-200 dark:hover:text-white"
+                    title={account.url}
+                  >
+                    {getSocialHandle(account.url, account.platform)}
+                  </a>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onRemoveAccount(index)}
+                  className="text-[#9A8B88] hover:text-red-600 p-1 cursor-pointer transition-colors dark:text-slate-400 dark:hover:text-red-400"
+                  title="Xóa liên kết"
+                >
+                  <Trash2 className="h-4.5 w-4.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface EditInfoTabProps {
   profile: any;
   setProfile: (profile: any) => void;
@@ -184,8 +294,7 @@ export default function EditInfoTab({
   const [verificationStatus, setVerificationStatus] = useState<"unverified" | "pending" | "verified">("unverified");
   const [lifestyleServices, setLifestyleServices] = useState<any[]>([]);
   const [isLifestyleExpanded, setIsLifestyleExpanded] = useState(false);
-  const [selectedLangName, setSelectedLangName] = useState("");
-  const [langProficiency, setLangProficiency] = useState("");
+  const [languageInput, setLanguageInput] = useState("");
   const [socialPlatform, setSocialPlatform] = useState<"Tiktok" | "Facebook" | "Instagram" | "Thread" | "Youtube">("Tiktok");
   const [socialLink, setSocialLink] = useState("");
   const [socialAccounts, setSocialAccounts] = useState<{ platform: string; url: string }[]>([]);
@@ -281,21 +390,15 @@ export default function EditInfoTab({
     }));
   };
 
-  const handleAddLanguage = () => {
-    if (selectedLangName) {
-      const fullLangString = langProficiency.trim()
-        ? `${selectedLangName} (${langProficiency.trim()})`
-        : selectedLangName;
+  const handleAddLanguage = (lang: string) => {
+    const nextLang = lang.trim();
+    if (!nextLang || editForm.languages.includes(nextLang)) return;
 
-      if (!editForm.languages.includes(fullLangString)) {
-        setEditForm((prev: any) => ({
-          ...prev,
-          languages: [...prev.languages, fullLangString]
-        }));
-      }
-      setSelectedLangName("");
-      setLangProficiency("");
-    }
+    setEditForm((prev: any) => ({
+      ...prev,
+      languages: [...prev.languages, nextLang]
+    }));
+    setLanguageInput("");
   };
 
   const handleRemoveLanguage = (langToRemove: string) => {
@@ -664,6 +767,18 @@ export default function EditInfoTab({
     }
   };
 
+  const handleCancel = () => {
+    if (setActiveTab) {
+      setActiveTab("personal-info");
+      const scrollRoot = document.querySelector("[data-app-scroll-root]");
+      if (scrollRoot) {
+        scrollRoot.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-300 pb-24 md:pb-8">
 
@@ -677,14 +792,23 @@ export default function EditInfoTab({
             </h3>
 
           </div>
-          <button
-            type="button"
-            onClick={() => handleSave()}
-            style={{ color: "#ffffff" }}
-            className="light-force-white hidden md:block shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-md hover:scale-103 active:scale-95"
-          >
-            Lưu
-          </button>
+          <div className="hidden md:flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="shrink-0 px-5 py-2.5 rounded-xl border border-[#F0D7D3] bg-white text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm active:scale-95 dark:border-white/10 dark:bg-[#121827] dark:text-slate-300 dark:hover:bg-white/10"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSave()}
+              style={{ color: "#ffffff" }}
+              className="light-force-white shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-md hover:scale-103 active:scale-95"
+            >
+              Lưu thông tin
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSave} className="flex flex-col gap-6 text-xs">
@@ -886,24 +1010,6 @@ export default function EditInfoTab({
                 <label className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">
                   Lĩnh vực nội dung / kỹ năng chuyên sâu
                 </label>
-                <div className="flex flex-wrap gap-2 min-h-[42px] p-2.5 bg-white border border-[#F0D7D3] rounded-xl text-left shadow-sm dark:bg-[#060918] dark:border-white/15">
-                  {editForm.specialSkills.length === 0 ? (
-                    <span className="text-xs text-[#9A8B88] italic px-2 py-1 dark:text-slate-400">Chưa thêm lĩnh vực nào</span>
-                  ) : (
-                    editForm.specialSkills.map((skill: string) => (
-                      <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-sm dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
-                        {skill}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveContentSkill(skill)}
-                          className="text-[#9A8B88] hover:text-[#8F0709] cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </span>
-                    ))
-                  )}
-                </div>
                 <select
                   value=""
                   onChange={(e) => {
@@ -950,21 +1056,16 @@ export default function EditInfoTab({
                     <Plus className="h-4 w-4 stroke-[3] !text-white text-white" /> <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Thêm</span>
                   </button>
                 </div>
-              </div>
-
-              {/* Loại hình Idol */}
-              <div className="space-y-3">
-                <label className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">Loại hình Idol</label>
                 <div className="flex flex-wrap gap-2 min-h-[42px] p-2.5 bg-white border border-[#F0D7D3] rounded-xl text-left shadow-sm dark:bg-[#060918] dark:border-white/15">
-                  {editForm.talentTypes.length === 0 ? (
-                    <span className="text-xs text-[#9A8B88] italic px-2 py-1 dark:text-slate-400">Chưa chọn loại hình nào</span>
+                  {editForm.specialSkills.length === 0 ? (
+                    <span className="text-xs text-[#9A8B88] italic px-2 py-1 dark:text-slate-400">Chưa thêm lĩnh vực nào</span>
                   ) : (
-                    normalizeTalentTypeList(editForm.talentTypes).map((skill: string) => (
+                    editForm.specialSkills.map((skill: string) => (
                       <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-sm dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
                         {skill}
                         <button
                           type="button"
-                          onClick={() => handleRemoveSkill(skill)}
+                          onClick={() => handleRemoveContentSkill(skill)}
                           className="text-[#9A8B88] hover:text-[#8F0709] cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -973,6 +1074,11 @@ export default function EditInfoTab({
                     ))
                   )}
                 </div>
+              </div>
+
+              {/* Loại hình Idol */}
+              <div className="space-y-3">
+                <label className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">Loại hình Idol</label>
                 <select
                   value=""
                   onChange={(e) => {
@@ -996,16 +1102,107 @@ export default function EditInfoTab({
                     ))
                   }
                 </select>
+                <div className="flex flex-wrap gap-2 min-h-[42px] p-2.5 bg-white border border-[#F0D7D3] rounded-xl text-left shadow-sm dark:bg-[#060918] dark:border-white/15">
+                  {editForm.talentTypes.length === 0 ? (
+                    <span className="text-xs text-[#9A8B88] italic px-2 py-1 dark:text-slate-400">Chưa chọn loại hình nào</span>
+                  ) : (
+                    normalizeTalentTypeList(editForm.talentTypes).map((skill: string) => (
+                      <span key={skill} className="inline-flex items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-sm dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
+                        {skill}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSkill(skill)}
+                          className="text-[#9A8B88] hover:text-[#8F0709] cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
               </div>
 
               {/* Ngôn ngữ */}
               <div className="space-y-3">
                 <label className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">Trình độ ngoại ngữ</label>
 
+                {/* Dropdown to add quick preset */}
+                <select
+                  value=""
+                  onChange={(e) => {
+                    handleAddLanguage(e.target.value);
+                    e.target.value = "";
+                  }}
+                  className="w-full bg-white border border-[#F0D7D3] rounded-xl px-3 py-2.5 text-[#191116] text-xs font-semibold focus:outline-none focus:border-[#8F0709] cursor-pointer appearance-none shadow-sm dark:bg-[#060918] dark:border-white/20 dark:text-slate-200 dark:focus:border-amber-400"
+                  style={{
+                    backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%238F0709%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 0.75rem center",
+                    backgroundSize: "0.85em",
+                    paddingRight: "2rem"
+                  }}
+                >
+                  <option value="" disabled hidden>Thêm ngoại ngữ</option>
+                  {availableLanguages
+                    .filter((l: string) => !editForm.languages.includes(l))
+                    .map((l: string) => (
+                      <option key={l} value={l} className="bg-white text-[#191116] py-1 dark:bg-[#0e142e] dark:text-white">{l}</option>
+                    ))
+                  }
+                </select>
+
+                {/* Quick Add Suggestions */}
+                <div className="space-y-1.5">
+                  <span className="text-[9px] text-[#574D54] font-semibold block dark:text-slate-400">Gợi ý chọn nhanh:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableLanguages.slice(0, 6).map((lang) => {
+                      const isAdded = editForm.languages.some((l: string) => l === lang || l.startsWith(`${lang} `) || l.startsWith(`${lang}(`));
+                      if (isAdded) return null;
+                      return (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => handleAddLanguage(lang)}
+                          className="px-2.5 py-1 rounded-lg border border-[#F0D7D3] bg-white hover:bg-[#FFF0EE] text-[#574D54] hover:text-[#8F0709] text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer dark:bg-white/5 dark:hover:bg-amber-400/20 dark:border-white/10 dark:text-slate-300 dark:hover:text-amber-300 shadow-2xs"
+                        >
+                          <Plus className="h-3 w-3" /> {lang}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom language/level input */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                  <input
+                    type="text"
+                    value={languageInput}
+                    onChange={(e) => setLanguageInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddLanguage(languageInput);
+                      }
+                    }}
+                    placeholder="Ví dụ: Tiếng Anh (IELTS 7.5), Tiếng Trung (HSK 5)..."
+                    className="md:col-span-9 w-full bg-white border border-[#F0D7D3] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] shadow-sm transition-all dark:bg-[#060918] dark:border-white/20 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-amber-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddLanguage(languageInput)}
+                    style={{ color: "#ffffff" }}
+                    className="light-force-white md:col-span-3 w-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-md"
+                  >
+                    <Plus className="h-4 w-4 stroke-[3] !text-white text-white" /> <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Thêm</span>
+                  </button>
+                </div>
+
                 {/* Active languages list */}
-                {editForm.languages.length > 0 && (
-                  <div className="flex flex-wrap gap-2 p-2.5 bg-white border border-[#F0D7D3] rounded-xl text-left shadow-sm dark:bg-[#060918] dark:border-white/15">
-                    {editForm.languages.map((lang: string) => (
+                <div className="flex flex-wrap gap-2 min-h-[42px] p-2.5 bg-white border border-[#F0D7D3] rounded-xl text-left shadow-sm dark:bg-[#060918] dark:border-white/15">
+                  {editForm.languages.length === 0 ? (
+                    <span className="text-xs text-[#9A8B88] italic px-2 py-1 dark:text-slate-400">Chưa thêm ngoại ngữ nào</span>
+                  ) : (
+                    editForm.languages.map((lang: string) => (
                       <span key={lang} className="inline-flex items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-sm dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
                         {lang}
                         <button
@@ -1016,127 +1213,23 @@ export default function EditInfoTab({
                           <X className="h-3.5 w-3.5" />
                         </button>
                       </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Quick Add Suggestions */}
-                <div className="space-y-1.5">
-                  <span className="text-[9px] text-[#574D54] font-semibold block dark:text-slate-400">Gợi ý chọn nhanh:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {["Tiếng Việt", "Tiếng Anh", "Tiếng Trung", "Tiếng Hàn", "Tiếng Nhật", "Tiếng Pháp"].map((lang) => {
-                      const isAdded = editForm.languages.some((l: string) => l.includes(lang));
-                      if (isAdded) return null;
-                      return (
-                        <button
-                          key={lang}
-                          type="button"
-                          onClick={() => {
-                            setSelectedLangName(lang);
-                          }}
-                          className={`px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer ${selectedLangName === lang
-                            ? "bg-[#FFF0EE] border-[#E5C178] text-[#8F0709] shadow-sm dark:bg-amber-400/20 dark:border-amber-400 dark:text-amber-300"
-                            : "bg-white hover:bg-[#FFF0EE] border-[#F0D7D3] text-[#574D54] hover:text-[#8F0709] dark:bg-white/5 dark:hover:bg-amber-400/20 dark:border-white/10 dark:text-slate-300 dark:hover:text-amber-300"
-                            }`}
-                        >
-                          <Plus className="h-3 w-3" /> {lang}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Inputs with explicit labels */}
-                <div className="space-y-3 pt-1">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Field 1: Chọn ngôn ngữ */}
-                    <div className="space-y-1.5 text-left">
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-300">
-                        Chọn ngôn ngữ <span className="text-[#8F0709] dark:text-amber-400">*</span>
-                      </label>
-                      <select
-                        value={selectedLangName}
-                        onChange={(e) => setSelectedLangName(e.target.value)}
-                        className="w-full bg-white border border-[#F0D7D3] rounded-xl px-3.5 py-2.5 text-[#191116] text-xs font-semibold focus:outline-none focus:border-[#8F0709] cursor-pointer appearance-none shadow-sm dark:bg-[#060918] dark:border-white/20 dark:text-slate-200 dark:focus:border-amber-400"
-                        style={{
-                          backgroundImage: "url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%238F0709%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e')",
-                          backgroundRepeat: "no-repeat",
-                          backgroundPosition: "right 0.75rem center",
-                          backgroundSize: "0.85em",
-                          paddingRight: "2rem"
-                        }}
-                      >
-                        <option value="" disabled hidden>-- Chọn ngôn ngữ --</option>
-                        {availableLanguages
-                          .filter((l: string) => !editForm.languages.some((added: string) => added.includes(l)))
-                          .map((l: string) => (
-                            <option key={l} value={l} className="bg-white text-[#191116] py-1 dark:bg-[#0e142e] dark:text-white">{l}</option>
-                          ))
-                        }
-                      </select>
-                    </div>
-
-                    {/* Field 2: Trình độ */}
-                    <div className="space-y-1.5 text-left">
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-[#574D54] dark:text-slate-300">
-                        Trình độ <span className="text-[#9A8B88] text-[8px] uppercase font-normal dark:text-slate-400">(tùy chọn)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={langProficiency}
-                        onChange={(e) => setLangProficiency(e.target.value)}
-                        placeholder="Ví dụ: Bản xứ, IELTS 7.5..."
-                        className="w-full bg-white border border-[#F0D7D3] rounded-xl px-3.5 py-2.5 text-[#191116] text-xs font-semibold placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-colors shadow-sm dark:bg-[#060918] dark:border-white/20 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-amber-400"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Add language button */}
-                  <button
-                    type="button"
-                    onClick={handleAddLanguage}
-                    disabled={!selectedLangName}
-                    style={selectedLangName ? { color: "#ffffff" } : {}}
-                    className={`light-force-white w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${selectedLangName
-                      ? "bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white hover:brightness-110 active:scale-95 cursor-pointer shadow-md"
-                      : "bg-[#FFF7F6] border border-[#F0D7D3] text-[#9A8B88] cursor-not-allowed dark:bg-slate-800 dark:text-slate-500"
-                      }`}
-                  >
-                    <Plus className="h-4 w-4 stroke-[3] !text-white text-white" /> <span style={selectedLangName ? { color: "#ffffff" } : {}} className="!text-white text-white font-black">Thêm ngoại ngữ</span>
-                  </button>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* PHÂN NHÓM 4: PORTFOLIO & MẠNG XÃ HỘI */}
+          {/* PHÂN NHÓM 5: PORTFOLIO */}
           <div className="bg-white p-5 md:p-6 rounded-2xl border border-[#F0D7D3] hover:border-[#8F0709]/30 transition-all space-y-4 text-left shadow-sm dark:bg-[#0e142e]/80 dark:border-white/10">
             <h4 className="font-bold text-xs md:text-sm text-[#8F0709] uppercase tracking-widest border-b border-[#F0D7D3] pb-2.5 mb-3 flex items-center gap-2 dark:text-[#F0C56B] dark:border-white/10">
-              Portfolio & Mạng xã hội
+              Portfolio
             </h4>
 
             <div className="space-y-3">
               <label className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">
                 Chỉ số nổi bật
               </label>
-              <div className="flex flex-wrap gap-2 min-h-[42px] p-2.5 bg-white border border-[#F0D7D3] rounded-xl text-left shadow-sm dark:bg-[#060918] dark:border-white/15">
-                {editForm.socialHighlights.length === 0 ? (
-                  <span className="text-xs text-[#9A8B88] italic px-2 py-1 dark:text-slate-400">Chưa thêm chỉ số nổi bật nào</span>
-                ) : (
-                  editForm.socialHighlights.map((highlight: string) => (
-                    <span key={highlight} className="inline-flex items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-sm dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
-                      {highlight}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSocialHighlight(highlight)}
-                        className="text-[#9A8B88] hover:text-[#8F0709] cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </span>
-                  ))
-                )}
-              </div>
               <select
                 value=""
                 onChange={(e) => {
@@ -1152,7 +1245,7 @@ export default function EditInfoTab({
                   paddingRight: "2rem"
                 }}
               >
-                <option value="" disabled hidden>Thêm chỉ số / thành tựu nổi bật...</option>
+                <option value="" disabled hidden>Thêm chỉ số</option>
                 {flattenTalentPresetOptions(SOCIAL_HIGHLIGHT_PRESET_GROUPS, editForm.talentTypes)
                   .filter((item) => !editForm.socialHighlights.includes(item))
                   .map((item) => (
@@ -1183,12 +1276,61 @@ export default function EditInfoTab({
                   <Plus className="h-4 w-4 stroke-[3] !text-white text-white" /> <span style={{ color: "#ffffff" }} className="!text-white text-white font-black">Thêm</span>
                 </button>
               </div>
+              <div className="flex flex-wrap gap-2 min-h-[42px] p-2.5 bg-white border border-[#F0D7D3] rounded-xl text-left shadow-sm dark:bg-[#060918] dark:border-white/15">
+                {editForm.socialHighlights.length === 0 ? (
+                  <span className="text-xs text-[#9A8B88] italic px-2 py-1 dark:text-slate-400">Chưa thêm chỉ số nổi bật nào</span>
+                ) : (
+                  editForm.socialHighlights.map((highlight: string) => (
+                    <span key={highlight} className="inline-flex items-center gap-1.5 rounded-full border border-[#F0D7D3] bg-[#FFF0EE] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#8F0709] shadow-sm dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-[#F0C56B]">
+                      {highlight}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSocialHighlight(highlight)}
+                        className="text-[#9A8B88] hover:text-[#8F0709] cursor-pointer focus:outline-none flex items-center justify-center dark:text-slate-400 dark:hover:text-rose-400"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  ))
+                )}
+              </div>
             </div>
 
             <div className="border-t border-[#F0D7D3] dark:border-white/10" />
 
             <div className="space-y-3">
               <label className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">Portfolio URL</label>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div className="space-y-1.5 md:col-span-9">
+                  <span className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">Đường dẫn Portfolio</span>
+                  <input
+                    type="url"
+                    value={portfolioLink}
+                    onChange={(e) => setPortfolioLink(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddPortfolioLink();
+                      }
+                    }}
+                    placeholder="https://..."
+                    className="w-full h-[40px] bg-white border border-[#F0D7D3] rounded-xl px-3.5 text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-colors shadow-sm dark:bg-[#060918] dark:border-white/20 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-amber-400"
+                  />
+                </div>
+
+                <div className="md:col-span-3">
+                  <button
+                    type="button"
+                    onClick={handleAddPortfolioLink}
+                    style={{ color: "#ffffff" }}
+                    className="light-force-white w-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider h-[40px] flex items-center justify-center cursor-pointer transition-all shadow-md shrink-0"
+                  >
+                    Thêm
+                  </button>
+                </div>
+              </div>
+
               {portfolioLinks.length === 0 ? (
                 <div className="text-[#9A8B88] italic text-xs py-1 dark:text-slate-400">Chưa có portfolio nào được thêm.</div>
               ) : (
@@ -1221,126 +1363,29 @@ export default function EditInfoTab({
                   ))}
                 </div>
               )}
-
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                <div className="space-y-1.5 md:col-span-9">
-                  <span className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">Đường dẫn Portfolio</span>
-                  <input
-                    type="url"
-                    value={portfolioLink}
-                    onChange={(e) => setPortfolioLink(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddPortfolioLink();
-                      }
-                    }}
-                    placeholder="https://..."
-                    className="w-full h-[40px] bg-white border border-[#F0D7D3] rounded-xl px-3.5 text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-colors shadow-sm dark:bg-[#060918] dark:border-white/20 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-amber-400"
-                  />
-                </div>
-
-                <div className="md:col-span-3">
-                  <button
-                    type="button"
-                    onClick={handleAddPortfolioLink}
-                    style={{ color: "#ffffff" }}
-                    className="light-force-white w-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider h-[40px] flex items-center justify-center cursor-pointer transition-all shadow-md shrink-0"
-                  >
-                    Thêm
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-[#F0D7D3] dark:border-white/10" />
-
-            {/* List of added accounts */}
-            <div className="space-y-2">
-              {socialAccounts.length === 0 ? (
-                <div className="text-[#9A8B88] italic text-xs py-1 dark:text-slate-400">Chưa có liên kết mạng xã hội nào được thêm.</div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {socialAccounts.map((account, index) => (
-                    <div key={index} className="flex items-center justify-between gap-3 bg-white border border-[#F0D7D3] rounded-xl px-3.5 py-2.5 shadow-sm dark:bg-[#060918] dark:border-white/15">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[10px] font-black text-[#8F0709] uppercase tracking-wider block dark:text-amber-400">
-                          {account.platform}
-                        </span>
-                        <a
-                          href={account.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-[#191116] hover:text-[#8F0709] truncate block font-semibold dark:text-slate-200 dark:hover:text-white"
-                          title={account.url}
-                        >
-                          {getSocialHandle(account.url, account.platform)}
-                        </a>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSocialAccounts(prev => prev.filter((_, idx) => idx !== index));
-                        }}
-                        className="text-[#9A8B88] hover:text-red-600 p-1 cursor-pointer transition-colors dark:text-slate-400 dark:hover:text-red-400"
-                        title="Xóa liên kết"
-                      >
-                        <Trash2 className="h-4.5 w-4.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Input to add new account */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end pt-3 border-t border-[#F0D7D3] dark:border-white/10">
-              <div className="space-y-1.5 md:col-span-3">
-                <span className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">Chọn nền tảng</span>
-                <select
-                  value={socialPlatform}
-                  onChange={(e) => setSocialPlatform(e.target.value as any)}
-                  className="w-full h-[40px] bg-white border border-[#F0D7D3] rounded-xl px-3 text-[#191116] focus:outline-none focus:border-[#8F0709] transition-colors shadow-sm dark:bg-[#060918] dark:border-white/20 dark:text-white dark:focus:border-amber-400"
-                >
-                  <option value="Tiktok" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Tiktok</option>
-                  <option value="Facebook" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Facebook</option>
-                  <option value="Instagram" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Instagram</option>
-                  <option value="Youtube" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Youtube</option>
-                  <option value="Thread" className="bg-white text-[#191116] dark:bg-[#0e142e] dark:text-white">Thread</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5 md:col-span-7">
-                <span className="block font-bold text-[#574D54] uppercase tracking-wider text-[9px] md:text-[10px] dark:text-slate-200">Đường dẫn (Link)</span>
-                <input
-                  type="url"
-                  value={socialLink}
-                  onChange={(e) => setSocialLink(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full h-[40px] bg-white border border-[#F0D7D3] rounded-xl px-3.5 text-[#191116] placeholder:text-[#9A8B88] focus:outline-none focus:border-[#8F0709] transition-colors shadow-sm dark:bg-[#060918] dark:border-white/20 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-amber-400"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!socialLink.trim()) return;
-                    let targetUrl = socialLink.trim();
-                    if (!/^https?:\/\//i.test(targetUrl)) {
-                      targetUrl = `https://${targetUrl}`;
-                    }
-                    setSocialAccounts(prev => [...prev, { platform: socialPlatform, url: targetUrl }]);
-                    setSocialLink("");
-                  }}
-                  style={{ color: "#ffffff" }}
-                  className="light-force-white w-full bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider h-[40px] flex items-center justify-center cursor-pointer transition-all shadow-md shrink-0"
-                >
-                  Thêm
-                </button>
-              </div>
             </div>
           </div>
+
+          {/* PHÂN NHÓM 6: MẠNG XÃ HỘI */}
+          <SocialAccountsSection
+            socialAccounts={socialAccounts}
+            socialPlatform={socialPlatform}
+            setSocialPlatform={setSocialPlatform}
+            socialLink={socialLink}
+            setSocialLink={setSocialLink}
+            onAddAccount={() => {
+              if (!socialLink.trim()) return;
+              let targetUrl = socialLink.trim();
+              if (!/^https?:\/\//i.test(targetUrl)) {
+                targetUrl = `https://${targetUrl}`;
+              }
+              setSocialAccounts(prev => [...prev, { platform: socialPlatform, url: targetUrl }]);
+              setSocialLink("");
+            }}
+            onRemoveAccount={(index) => {
+              setSocialAccounts(prev => prev.filter((_, idx) => idx !== index));
+            }}
+          />
 
           {/* Lifestyle Companion services config editing */}
           {lifestyleServices && lifestyleServices.length > 0 && (
@@ -1656,12 +1701,19 @@ export default function EditInfoTab({
       */}
 
       {/* Mobile Fixed Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/90 backdrop-blur-md border-t border-[#F0D7D3] px-6 py-4 flex items-center shadow-lg dark:bg-[#0c101d]/90 dark:border-white/5">
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 backdrop-blur-md border-t border-[#F0D7D3] px-4 py-3.5 flex items-center gap-3 shadow-lg dark:bg-[#0c101d]/95 dark:border-white/5">
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="w-1/3 py-3.5 rounded-xl font-display text-xs font-black border border-[#F0D7D3] bg-white text-[#574D54] hover:bg-[#FFF0EE] hover:text-[#8F0709] active:scale-[0.97] cursor-pointer transition-all uppercase tracking-widest text-center justify-center items-center shadow-xs dark:border-white/10 dark:bg-[#171A21] dark:text-slate-300"
+        >
+          Hủy
+        </button>
         <button
           type="button"
           onClick={() => handleSave()}
           style={{ color: "#ffffff" }}
-          className="light-force-white w-full py-3.5 rounded-xl font-display text-xs font-black bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md active:scale-[0.97] cursor-pointer transition-all uppercase tracking-widest text-center justify-center items-center"
+          className="light-force-white flex-1 py-3.5 rounded-xl font-display text-xs font-black bg-gradient-to-r from-[#E01B1F] to-[#8F0709] !text-white text-white shadow-md active:scale-[0.97] cursor-pointer transition-all uppercase tracking-widest text-center justify-center items-center"
         >
           Lưu thông tin
         </button>

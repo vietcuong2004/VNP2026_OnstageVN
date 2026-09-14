@@ -108,9 +108,15 @@ export default function JobImagesSection({
           <button
             type="button"
             onClick={onClosePreview}
-            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all cursor-pointer animate-in fade-in duration-200"
+            style={{
+              backgroundColor: "rgba(18, 18, 22, 0.85)",
+              borderColor: "rgba(255, 255, 255, 0.35)",
+              color: "#ffffff",
+            }}
+            className="light-keep-white light-force-white absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border shadow-xl transition-all duration-200 hover:bg-black hover:scale-110 active:scale-95 cursor-pointer animate-in fade-in duration-200"
+            title="Đóng ảnh"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 !text-white text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} strokeWidth={2.5} />
           </button>
 
           <div className="relative max-h-[70vh] max-w-full flex items-center justify-center">

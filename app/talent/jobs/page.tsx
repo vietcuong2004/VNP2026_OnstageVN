@@ -2064,17 +2064,22 @@ function JobsPageContent() {
       )}
 
       <GuestActionPrompt />
-
       {previewImageUrl && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-3">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-3" onClick={() => setPreviewImageUrl(null)}>
           <button
             type="button"
             onClick={() => setPreviewImageUrl(null)}
-            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white"
+            style={{
+              backgroundColor: "rgba(18, 18, 22, 0.85)",
+              borderColor: "rgba(255, 255, 255, 0.35)",
+              color: "#ffffff",
+            }}
+            className="light-keep-white light-force-white absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border shadow-xl transition-all duration-200 hover:bg-black hover:scale-110 active:scale-95 cursor-pointer"
+            title="Đóng ảnh"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 !text-white text-white" style={{ stroke: "#ffffff", color: "#ffffff" }} strokeWidth={2.5} />
           </button>
-          <img src={previewImageUrl} alt="Campaign preview" className="max-h-full max-w-full object-contain" />
+          <img src={previewImageUrl} alt="Campaign preview" className="max-h-full max-w-full object-contain" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
 

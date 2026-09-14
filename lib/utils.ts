@@ -153,4 +153,39 @@ export function getVideoThumbnail(url?: string, explicitThumb?: string): string 
   return "";
 }
 
+export function generateVideoViews(seedKey: string, idx = 0): string {
+  let hash = 0;
+  const str = `${seedKey || "video"}-${idx}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  }
+  const tier = hash % 10;
+  if (tier === 0 || tier === 1) {
+    const base = 1.1 + ((hash % 28) / 10);
+    return `${base.toFixed(1)}M`;
+  } else if (tier >= 2 && tier <= 5) {
+    const val = 100 + (hash % 790);
+    const decimal = (hash >> 3) % 10;
+    return decimal > 0 ? `${val}.${decimal}K` : `${val}K`;
+  } else {
+    const val = 12 + (hash % 87);
+    const decimal = ((hash >> 2) % 9) + 1;
+    return `${val}.${decimal}K`;
+  }
+}
+
+export function formatOrGenerateViews(rawViews?: unknown, seedKey = "", idx = 0): string {
+  if (typeof rawViews === "number" && rawViews > 0) {
+    if (rawViews >= 1_000_000_000) return `${(rawViews / 1_000_000_000).toFixed(1)}B`;
+    if (rawViews >= 1_000_000) return `${(rawViews / 1_000_000).toFixed(1)}M`;
+    if (rawViews >= 1_000) return `${(rawViews / 1_000).toFixed(1)}K`;
+    return String(rawViews);
+  }
+  if (typeof rawViews === "string" && rawViews.trim() && rawViews.trim() !== "10K") {
+    return rawViews.trim();
+  }
+  return generateVideoViews(seedKey || "onstage", idx);
+}
+
+
 
