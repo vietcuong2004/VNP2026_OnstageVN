@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, User, X } from "lucide-react";
 import { storeAuthSession } from "@/lib/api-client";
+import { authenticateDemo, DEMO_EMAIL, DEMO_PASSWORD, isDemoEnabled } from "@/lib/demo-auth";
 import { hasGuestDraftsToSync, syncGuestDraftsAfterNewRegistration } from "@/lib/guest-draft";
 
 type AuthMode = "login" | "register";
@@ -88,6 +89,7 @@ async function parseError(response: Response) {
 export default function AuthForm({ mode }: { mode: AuthMode }) {
   const router = useRouter();
   const isRegister = mode === "register";
+  const showDemoAccount = !isRegister && isDemoEnabled();
   const pendingLogin = useMemo(() => {
     if (typeof window === "undefined" || isRegister) {
       return { email: "", password: "", syncGuestDraft: false };
@@ -206,6 +208,17 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
       };
 
     try {
+      if (showDemoAccount && normalizedEmail === DEMO_EMAIL) {
+        const demoSession = authenticateDemo(normalizedEmail, password);
+        if (!demoSession) {
+          setError("Mật khẩu tài khoản trải nghiệm không đúng.");
+          return;
+        }
+        storeAuthSession(demoSession.token, demoSession.user);
+        router.replace("/talent/jobs");
+        return;
+      }
+
       const response = await fetch(`${apiUrl}/auth/${isRegister ? "register" : "login"}`, {
         method: "POST",
         headers: {
@@ -347,6 +360,14 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
             {error && (
               <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                 {error}
+              </div>
+            )}
+
+            {showDemoAccount && (
+              <div className="space-y-1 border-t border-amber-400/30 pt-3 text-sm text-slate-300 light:text-[#8F0709]">
+                <p className="font-bold">Tài khoản trải nghiệm</p>
+                <p className="break-words">Email: <span className="font-semibold">{DEMO_EMAIL}</span></p>
+                <p className="break-words">Mật khẩu: <span className="font-semibold">{DEMO_PASSWORD}</span></p>
               </div>
             )}
 

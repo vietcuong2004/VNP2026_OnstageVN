@@ -1,5 +1,7 @@
 "use client";
 
+import { DEMO_READ_ONLY_MESSAGE, isDemoToken } from "./demo-auth";
+
 export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8080/api").replace(/\/$/, "");
 export const AUTH_USER_UPDATED_EVENT = "onstagevn_auth_user_updated";
 const TALENT_PROFILE_UPDATED_EVENT = "vnp_talent_profile_updated";
@@ -54,7 +56,7 @@ export function clearAuthSession() {
 export async function logoutCurrentSession() {
   const token = getAuthToken();
 
-  if (token) {
+  if (token && !isDemoToken(token)) {
     try {
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
@@ -153,6 +155,7 @@ type ApiRequestInit = RequestInit & {
 };
 
 export async function apiJson<T>(path: string, init: ApiRequestInit = {}) {
+  if (isDemoToken(getAuthToken())) throw new Error(DEMO_READ_ONLY_MESSAGE);
   const { clearAuthOnUnauthorized = true, ...requestInit } = init;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...requestInit,
@@ -272,6 +275,7 @@ export function getSocialLinkUrl(provider: SocialConnection["provider"]) {
 }
 
 export async function apiForm<T>(path: string, formData: FormData, init: ApiRequestInit = {}) {
+  if (isDemoToken(getAuthToken())) throw new Error(DEMO_READ_ONLY_MESSAGE);
   const { clearAuthOnUnauthorized = true, ...requestInit } = init;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...requestInit,
