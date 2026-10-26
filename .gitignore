@@ -55,6 +55,7 @@ ngrok.exe
 # Publish only curated sample profiles and their display images.
 /public/mock_data/*
 !/public/mock_data/profiles.json
+!/public/mock_data/jobs/
 !/public/mock_data/Talent_Image/
 /public/mock_data/Talent_Image/*
 !/public/mock_data/Talent_Image/[0-9]*/

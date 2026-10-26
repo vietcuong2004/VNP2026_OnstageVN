@@ -13,6 +13,9 @@ The talent jobs list and detail also use published sample campaigns from
 `lib/brand-mvp-data.ts` in mock mode. Demo recruitment dates are relative to the
 current date so the recruiting tab stays populated. Job filters, pagination and
 detail use the same sample catalogue; private application history is not mocked.
+Full job information and original generated cover images are stored in
+`public/mock_data/jobs/`. The source prompts are recorded in
+`docs/job-image-prompts.md`. Contacts in this catalogue are fictional examples.
 
 To rebuild the catalogue locally from the supplied CSV templates:
 

@@ -1,4 +1,5 @@
 import type { Campaign } from './brand-mvp-data';
+import jobDetails from '../public/mock_data/jobs/details.json' with { type: 'json' };
 
 type Options = {
   page?: number; perPage?: number; q?: string; type?: string; city?: string;
@@ -17,36 +18,46 @@ export function buildMockCampaigns(seeds: Campaign[], now = new Date()) {
     return date.toISOString().slice(0, 10);
   };
   return seeds.filter((seed) => seed.status === 'published').map((seed, index) => {
-    const amounts = [...seed.budget.matchAll(/([\d.,]+)\s*(k|triệu)/gi)]
-      .map((match) => Number(match[1].replace(',', '.')) * (match[2].toLowerCase() === 'k' ? 1000 : 1000000));
+    const detail = jobDetails.find((item) => item.id === seed.id);
+    if (!detail) throw new Error(`Missing sample campaign details: ${seed.id}`);
+    const startOffset = 14 + index * 3;
+    const imageUrl = `/mock_data/jobs/${detail.image}`;
     return {
+      ...detail,
       id: seed.id,
       slug: seed.id,
-      title: seed.title,
-      brand: 'OnstageVN',
+      title: detail.title,
       job_type: seed.jobType,
       city: seed.city,
-      location: seed.address,
-      description: seed.description,
-      requirements: seed.requirements,
-      benefits: seed.benefits,
-      budget_raw: seed.budget,
-      budget_min: seed.budgetMin ?? amounts[0] ?? null,
-      budget_max: seed.budgetMax ?? amounts[1] ?? amounts[0] ?? null,
+      requirements: detail.requirements.join('\n'),
+      benefits: detail.benefits.join('\n'),
+      roles: detail.positions.map((position) => position.talent_type),
+      budget_raw: `${detail.budget_min.toLocaleString('vi-VN')}–${detail.budget_max.toLocaleString('vi-VN')} VND/ngày`,
       budget_unit: 'day',
-      talent_quantity: seed.talentQuantity,
+      talent_quantity: detail.positions.reduce((total, position) => total + position.quantity, 0),
       status: 'published',
       application_deadline: dateAfter(7 + index * 3),
-      start_date: dateAfter(14 + index * 3),
-      end_date: dateAfter(16 + index * 3),
+      start_date: dateAfter(startOffset),
+      end_date: dateAfter(startOffset + 2),
+      event_date: dateAfter(startOffset),
       created_at: dateAfter(-index),
       published_at: dateAfter(-index),
       has_applied: false,
       application: null,
       can_apply: true,
-      media: [{ url: '/og_job_banner_default.jpg', category: 'cover', is_primary: true }],
+      media: [{ id: `${seed.id}-cover`, url: imageUrl, category: 'cover', is_primary: true, caption: detail.image_caption }],
       brand_logo: '/logo_icon.png',
-      positions: [{ id: `${seed.id}-position`, talent_type: seed.jobType, quantity: seed.talentQuantity, requirements: seed.requirements }],
+      positions: detail.positions.map((position, i) => ({ ...position, id: `${seed.id}-position-${i + 1}` })),
+      events: detail.events.map((event, i) => ({
+        id: `${seed.id}-event-${i + 1}`,
+        name: event.name,
+        start_date: dateAfter(startOffset + event.day_offset),
+        end_date: dateAfter(startOffset + (event.end_day_offset ?? event.day_offset)),
+        start_time: event.start_time,
+        end_time: event.end_time,
+        location: detail.location,
+        content: event.content,
+      })),
     };
   });
 }

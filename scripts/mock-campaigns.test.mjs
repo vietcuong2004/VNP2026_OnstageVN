@@ -23,6 +23,28 @@ test('published sample jobs have readable details, future dates and local cover 
   }
 });
 
+test('every job has complete recruitment, employer, benefits, sponsorship and event information', () => {
+  assert.equal(new Set(jobs.map((job) => job.media[0].url)).size, 5);
+  for (const job of jobs) {
+    for (const key of ['brand', 'event_name', 'campaign_type', 'description', 'requirements', 'benefits',
+      'budget_note', 'location', 'start_time', 'end_time', 'onstage_time', 'contact_name',
+      'contact_phone', 'contact_email', 'website_url', 'contact_note', 'event_note']) {
+      assert.ok(typeof job[key] === 'string' && job[key].trim(), `${job.id}: ${key}`);
+    }
+    for (const key of ['industries', 'target_profiles', 'responsibilities', 'roles', 'positions', 'sponsorships', 'events']) {
+      assert.ok(Array.isArray(job[key]) && job[key].length > 0, `${job.id}: ${key}`);
+    }
+    assert.equal(job.positions.reduce((sum, position) => sum + position.quantity, 0), job.talent_quantity);
+    assert.ok(job.positions.every((position) => position.quantity > 0 && position.requirements.length > 0));
+    for (const event of job.events) {
+      assert.ok(event.start_date >= job.application_deadline && event.end_date <= job.end_date);
+      assert.ok(event.start_date <= event.end_date && event.start_time < event.end_time);
+      assert.ok(event.location && event.content.length > 0);
+    }
+    assert.ok(job.media[0].url.startsWith('/mock_data/jobs/'));
+  }
+});
+
 test('job pagination terminates and recruitment counts are consistent', () => {
   const first = selectMockCampaigns(jobs, { page: 1, perPage: 2, stage: 'recruiting' });
   const next = selectMockCampaigns(jobs, { page: 2, perPage: 2 });

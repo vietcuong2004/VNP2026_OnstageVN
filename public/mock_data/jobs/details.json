@@ -1,0 +1,219 @@
+[
+  {
+    "id": "camp-1",
+    "title": "Beauty Mega Live - Chăm sóc da cùng chuyên gia",
+    "brand": "Glow Beauty Studio",
+    "event_name": "Beauty Mega Live - Ra mắt bộ sản phẩm chăm sóc da",
+    "campaign_type": "KOL livestream",
+    "image": "beauty-livestream.png",
+    "image_caption": "Minh họa host giới thiệu mỹ phẩm tại studio livestream",
+    "industries": ["Làm đẹp", "Mỹ phẩm", "Thương mại điện tử"],
+    "target_profiles": ["Beauty creator", "Host livestream", "MC thương mại"],
+    "description": "Tuyển 5 host/KOL tham gia chuỗi livestream giới thiệu bộ sản phẩm chăm sóc da tại studio Ba Đình, Hà Nội. Mỗi người đảm nhận một phiên 2 giờ/ngày trong 3 ngày, có producer và chuyên viên sản phẩm đồng hành. Nội dung tập trung trải nghiệm kết cấu sản phẩm, hướng dẫn quy trình skincare và giải đáp câu hỏi của người xem. Đây là chiến dịch mẫu phục vụ trải nghiệm giao diện.",
+    "responsibilities": ["Đọc brief và tham gia buổi training sản phẩm trước lịch phát sóng", "Chuẩn bị dàn ý giới thiệu, thử sản phẩm và kiểm tra đạo cụ", "Dẫn phiên livestream 2 giờ theo rundown đã thống nhất", "Trả lời câu hỏi trong phạm vi tài liệu sản phẩm được duyệt", "Phối hợp producer tổng kết số liệu và bàn giao đoạn video nổi bật"],
+    "requirements": ["Có portfolio/video livestream về beauty hoặc lifestyle", "Giao tiếp rõ ràng, tự nhiên trước máy quay, làm việc đúng giờ", "Có thể tham gia đủ 3 ngày và buổi training", "Không tự đưa ra công dụng điều trị hoặc cam kết ngoài brief", "Gửi 2 video gần nhất, lịch trống và mức phí trong hồ sơ ứng tuyển"],
+    "benefits": ["Thù lao 500.000–800.000 VND/ngày tùy vai trò và kinh nghiệm", "Hỗ trợ makeup và trang phục theo concept", "Có producer, kỹ thuật và chuyên viên sản phẩm tại trường quay", "Cung cấp bữa nhẹ, nước uống và chỗ nghỉ giữa ca", "Nhận video highlight để bổ sung portfolio sau khi được duyệt", "Thanh toán trong 7 ngày làm việc sau nghiệm thu"],
+    "budget_min": 500000,
+    "budget_max": 800000,
+    "budget_note": "Mức phí theo người/ngày cho phiên phát sóng 2 giờ; thời gian training đã bao gồm. Thuế và quyền sử dụng hình ảnh thống nhất trong hợp đồng mẫu.",
+    "location": "Studio mẫu Glow Beauty, khu vực Ngọc Khánh, Ba Đình, Hà Nội",
+    "start_time": "13:00",
+    "end_time": "20:00",
+    "onstage_time": "14:00–16:00 hoặc 18:00–20:00; phân ca trước ngày quay",
+    "experience_min_years": 1,
+    "height_min_cm": null,
+    "weight_max_kg": null,
+    "contact_name": "Mai Anh - Điều phối chiến dịch mẫu",
+    "contact_phone": "0000 000 001",
+    "contact_email": "beauty-live@example.com",
+    "website_url": "https://example.com/beauty-mega-live",
+    "contact_note": "Thông tin liên hệ minh họa, không dùng để nhận ứng tuyển thật. Hồ sơ mẫu gồm portfolio, 2 video livestream và lịch trống.",
+    "event_note": "Có mặt trước ca 60 phút; mang trang phục dự phòng màu trung tính, không logo lớn.",
+    "positions": [
+      {"talent_type": "Host livestream chính", "quantity": 2, "requirements": ["Có kinh nghiệm dẫn phiên livestream độc lập", "Biết điều tiết nhịp chương trình và xử lý bình luận"]},
+      {"talent_type": "KOL trải nghiệm sản phẩm", "quantity": 3, "requirements": ["Có nội dung beauty trên kênh cá nhân", "Diễn đạt trải nghiệm sản phẩm trung thực, dễ hiểu"]}
+    ],
+    "sponsorships": [
+      {"category": "Tài trợ mỹ phẩm", "details": "Bộ sản phẩm dùng trong buổi quay và quà trải nghiệm sau chiến dịch mẫu."},
+      {"category": "Tài trợ trang điểm", "details": "Makeup và dặm lại lớp trang điểm tại studio theo lịch phân ca."}
+    ],
+    "events": [
+      {"name": "Training và thử máy", "day_offset": -1, "start_time": "14:00", "end_time": "16:00", "content": ["Giới thiệu sản phẩm và quy tắc phát ngôn", "Thử ánh sáng, âm thanh, chốt rundown"]},
+      {"name": "Beauty Mega Live", "day_offset": 0, "end_day_offset": 2, "start_time": "13:00", "end_time": "20:00", "content": ["Check-in và makeup trước ca", "Phát sóng theo lịch host", "Tổng kết và bàn giao highlight cuối ngày"]}
+    ]
+  },
+  {
+    "id": "camp-4",
+    "title": "Sport Companion Golf - Kết nối doanh nghiệp",
+    "brand": "Green Fairway Events",
+    "event_name": "Business Golf Networking - Giải giao hữu doanh nghiệp",
+    "campaign_type": "Sport Companion (Golf)",
+    "image": "golf-event.png",
+    "image_caption": "Minh họa nhân sự đón tiếp khách tại sự kiện golf doanh nghiệp",
+    "industries": ["Thể thao", "Sự kiện", "Dịch vụ khách hàng"],
+    "target_profiles": ["Event ambassador", "MC sự kiện", "Talent thể thao"],
+    "description": "Tuyển 4 nhân sự hình ảnh và đón tiếp cho chương trình golf kết nối doanh nghiệp tại khu vực Đông Anh, Hà Nội. Công việc diễn ra ở bàn đăng ký, khu vực xuất phát và lễ trao giải, có trưởng nhóm điều phối. Đây là vai trò sự kiện chuyên nghiệp, không bao gồm dịch vụ cá nhân ngoài chương trình. Toàn bộ nội dung và thông tin liên hệ là dữ liệu mẫu.",
+    "responsibilities": ["Đón khách và đối chiếu danh sách đăng ký tại clubhouse", "Hướng dẫn lịch trình, khu vực xuất phát và vị trí sự kiện", "Hỗ trợ phát bộ quà, thẻ tên và vật dụng chương trình", "Phối hợp chụp ảnh tập thể và nghi thức trao giải", "Báo cáo tình huống phát sinh cho trưởng nhóm điều phối"],
+    "requirements": ["Tác phong lịch sự, giao tiếp chủ động và tôn trọng khách mời", "Nắm quy tắc an toàn cơ bản trên sân golf; được briefing trước ca", "Có thể làm việc ngoài trời, tuân thủ thời gian nghỉ theo điều phối", "Có kinh nghiệm lễ tân sự kiện hoặc hoạt động thể thao", "Ưu tiên giao tiếp tiếng Anh cơ bản; không bắt buộc biết chơi golf"],
+    "benefits": ["Thù lao 600.000–900.000 VND/người/ngày", "Xe đưa đón từ điểm tập kết nội thành Hà Nội", "Đồng phục polo, mũ và nước uống được chuẩn bị", "Bữa trưa tại clubhouse và nghỉ giữa ca theo lịch", "Có trưởng nhóm và nhân sự hỗ trợ tại tất cả khu vực", "Thanh toán trong 5 ngày làm việc sau xác nhận công"],
+    "budget_min": 600000,
+    "budget_max": 900000,
+    "budget_note": "Mức phí cho ca tối đa 8 giờ/ngày, đã gồm briefing. Chi phí đi lại theo xe đoàn và ăn trưa do đơn vị tổ chức chi trả.",
+    "location": "Khu vực clubhouse và sân golf Vân Trì, Đông Anh, Hà Nội",
+    "start_time": "06:30",
+    "end_time": "15:30",
+    "onstage_time": "Đón khách 07:00–09:00; trao giải 14:00–15:00",
+    "experience_min_years": 1,
+    "height_min_cm": null,
+    "weight_max_kg": null,
+    "contact_name": "Quốc Huy - Điều phối sự kiện mẫu",
+    "contact_phone": "0000 000 004",
+    "contact_email": "golf-events@example.com",
+    "website_url": "https://example.com/business-golf",
+    "contact_note": "Liên hệ minh họa. Hồ sơ mẫu cần ảnh chân dung, kinh nghiệm sự kiện và xác nhận tham gia trọn ca.",
+    "event_note": "Mang giày thể thao đế mềm; không đi vào khu vực đánh bóng khi chưa được điều phối cho phép.",
+    "positions": [
+      {"talent_type": "Lễ tân và đón tiếp", "quantity": 2, "requirements": ["Quản lý danh sách check-in cẩn thận", "Giao tiếp lịch sự, hướng dẫn khách rõ ràng"]},
+      {"talent_type": "Event ambassador", "quantity": 2, "requirements": ["Hỗ trợ nghi thức và chụp hình sự kiện", "Tuân thủ quy tắc an toàn sân golf"]}
+    ],
+    "sponsorships": [
+      {"category": "Tài trợ trang phục thể thao", "details": "Polo, mũ và phụ kiện đồng phục dùng trong chương trình mẫu."},
+      {"category": "Tài trợ đi lại", "details": "Xe chung đưa đón nhân sự từ nội thành Hà Nội theo khung giờ thống nhất."}
+    ],
+    "events": [
+      {"name": "Briefing và khảo sát địa điểm", "day_offset": -1, "start_time": "15:00", "end_time": "16:30", "content": ["Phân khu phụ trách và hướng dẫn quy tắc an toàn", "Nhận đồng phục và kiểm tra danh sách khách"]},
+      {"name": "Đón tiếp và vận hành giải giao hữu", "day_offset": 0, "end_day_offset": 2, "start_time": "06:30", "end_time": "15:30", "content": ["Đón khách tại clubhouse", "Điều phối các khu vực chương trình", "Hỗ trợ trao giải và bàn giao cuối ca"]}
+    ]
+  },
+  {
+    "id": "camp-5",
+    "title": "Skin Diary - Beauty Product Review Campaign",
+    "brand": "Dew Lab Beauty",
+    "event_name": "Skin Diary - Chuỗi nội dung trải nghiệm skincare",
+    "campaign_type": "KOC review",
+    "image": "skincare-review.png",
+    "image_caption": "Minh họa nhà sáng tạo quay video review skincare tại studio cá nhân",
+    "industries": ["Chăm sóc da", "Sáng tạo nội dung", "Social media"],
+    "target_profiles": ["KOC beauty", "UGC creator", "Reviewer skincare"],
+    "description": "Tuyển 6 KOC/UGC creator thực hiện nội dung trải nghiệm sản phẩm chăm sóc da. Mỗi creator bàn giao 2 video dọc 45–60 giây và 5 ảnh sản phẩm theo brief; có một buổi nhận sản phẩm, sau đó chủ động quay tại nhà. Nội dung phản ánh trải nghiệm thật, không yêu cầu đánh giá tích cực hoặc tuyên bố công dụng điều trị. Chiến dịch và liên hệ dưới đây là thông tin mẫu.",
+    "responsibilities": ["Tham gia briefing online và xác nhận sản phẩm phù hợp trước khi quay", "Viết dàn ý 2 video, gửi duyệt trước khi sản xuất", "Quay video dọc rõ hình, rõ tiếng và 5 ảnh có ánh sáng tự nhiên", "Chỉnh sửa tối đa 1 vòng theo brief đã thống nhất", "Bàn giao file gốc và bản hoàn thiện đúng lịch; đăng bài khi có xác nhận"],
+    "requirements": ["Có tối thiểu 3 video review hoặc UGC trong portfolio", "Có điện thoại/máy quay chất lượng tốt và góc quay gọn gàng", "Thể hiện ý kiến trung thực, không dùng bộ lọc làm sai lệch kết quả", "Nội dung tự sản xuất, không dùng nhạc/hình ảnh thiếu quyền sử dụng", "Cung cấp thống kê kênh nếu đăng trên kênh cá nhân; không bắt buộc số follower với UGC"],
+    "benefits": ["Thù lao mẫu 400.000–650.000 VND/ngày sản xuất theo khối lượng được chốt", "Nhận sản phẩm mẫu và hỗ trợ vận chuyển", "Được cung cấp tài liệu sản phẩm, moodboard và checklist quay", "Làm việc linh hoạt tại nhà, trao đổi online", "Tối đa 1 vòng chỉnh sửa trong phạm vi brief", "Thanh toán trong 7 ngày làm việc sau nghiệm thu toàn bộ nội dung"],
+    "budget_min": 400000,
+    "budget_max": 650000,
+    "budget_note": "Phí theo ngày sản xuất quy đổi; tổng phí cho 2 video và 5 ảnh được chốt trước khi nhận việc. Quyền chạy quảng cáo và độc quyền không nằm trong mức phí cơ bản.",
+    "location": "Nhận sản phẩm tại studio mẫu Quận 3, TP. Hồ Chí Minh; quay tại nhà",
+    "start_time": "09:00",
+    "end_time": "18:00",
+    "onstage_time": "Briefing online 10:00–11:00; lịch quay linh hoạt theo creator",
+    "experience_min_years": 1,
+    "height_min_cm": null,
+    "weight_max_kg": null,
+    "contact_name": "Thảo Nguyên - Content producer mẫu",
+    "contact_phone": "0000 000 005",
+    "contact_email": "skin-diary@example.com",
+    "website_url": "https://example.com/skin-diary",
+    "contact_note": "Địa chỉ liên hệ mẫu. Hồ sơ cần 3 video portfolio, thiết bị quay dự kiến, lịch bàn giao và báo giá nội dung.",
+    "event_note": "Chỉ bắt đầu trải nghiệm sau khi kiểm tra hướng dẫn và độ phù hợp của sản phẩm; có quyền từ chối nếu không phù hợp.",
+    "positions": [
+      {"talent_type": "KOC review trên kênh cá nhân", "quantity": 3, "requirements": ["Có kênh beauty/lifestyle đang hoạt động", "Cung cấp số liệu kênh và lịch đăng bài"]},
+      {"talent_type": "UGC creator", "quantity": 3, "requirements": ["Có kỹ năng quay và dựng video dọc", "Bàn giao 2 video và 5 ảnh đúng checklist"]}
+    ],
+    "sponsorships": [
+      {"category": "Tài trợ mỹ phẩm dưỡng da", "details": "Bộ sản phẩm trải nghiệm và chi phí vận chuyển theo brief mẫu."},
+      {"category": "Hỗ trợ sản xuất nội dung", "details": "Tài liệu sản phẩm, moodboard và buổi góp ý dàn ý trực tuyến."}
+    ],
+    "events": [
+      {"name": "Briefing online và nhận sản phẩm", "day_offset": -1, "start_time": "10:00", "end_time": "11:00", "content": ["Thống nhất thông điệp, quyền sử dụng nội dung và báo giá", "Chốt dàn ý và lịch sản xuất"]},
+      {"name": "Sản xuất nội dung tại nhà", "day_offset": 0, "end_day_offset": 1, "start_time": "09:00", "end_time": "18:00", "content": ["Quay 2 video dọc và 5 ảnh", "Gửi bản dựng đầu tiên trước 18:00 ngày thứ hai"]},
+      {"name": "Duyệt và bàn giao", "day_offset": 2, "start_time": "10:00", "end_time": "17:00", "content": ["Nhận tối đa 1 vòng góp ý", "Bàn giao file hoàn thiện và xác nhận lịch đăng"]}
+    ]
+  },
+  {
+    "id": "camp-6",
+    "title": "L'Oréal Paris Livestream Marathon - Chiến dịch mẫu",
+    "brand": "L'Oréal Paris - Chiến dịch mẫu",
+    "event_name": "Beauty Live Marathon - Chuỗi phát sóng 3 ngày",
+    "campaign_type": "KOL livestream",
+    "image": "livestream-marathon.png",
+    "image_caption": "Minh họa ê-kíp và host vận hành trường quay livestream mỹ phẩm",
+    "industries": ["Mỹ phẩm", "Livestream", "Thương mại điện tử"],
+    "target_profiles": ["Host thương mại", "MC livestream", "KOL beauty"],
+    "description": "Tuyển 4 host/KOL cho chương trình livestream mỹ phẩm vận hành theo nhiều ca trong 3 ngày. Mỗi talent lên hình tối đa 2 phiên, tổng 4 giờ/ngày; có nghỉ giữa ca và đội kỹ thuật riêng. Nội dung gồm trình diễn makeup, phỏng vấn chuyên viên và tương tác sản phẩm theo kịch bản. Đây là nội dung demo, không phải thông báo tuyển dụng chính thức của thương hiệu.",
+    "responsibilities": ["Tham gia rehearsal, đọc kỹ thông tin sản phẩm và rundown", "Dẫn phiên livestream, giới thiệu ưu đãi theo nội dung được duyệt", "Thực hiện demo makeup hoặc phối hợp với chuyên viên", "Giữ nhịp tương tác và bàn giao ca rõ ràng cho host tiếp theo", "Phối hợp producer báo cáo hiệu quả phiên và rút kinh nghiệm cuối ngày"],
+    "requirements": ["Có ít nhất 1 năm kinh nghiệm livestream hoặc dẫn chương trình", "Có video thể hiện khả năng giới thiệu sản phẩm và tương tác trực tiếp", "Đảm bảo giọng nói rõ, sức bền làm việc theo ca và tác phong chuyên nghiệp", "Có mặt đủ ngày rehearsal và 3 ngày chương trình", "Không phát ngôn hoặc cam kết công dụng ngoài tài liệu đã duyệt"],
+    "benefits": ["Thù lao 1.000.000–1.500.000 VND/người/ngày", "Có makeup artist và stylist tại trường quay", "Cung cấp bữa ăn và nước uống theo ca", "Có producer, người nhắc kịch bản và kỹ thuật xuyên suốt chương trình", "Bố trí phòng nghỉ giữa các phiên", "Thanh toán trong 7 ngày làm việc sau nghiệm thu; chi phí phát sinh phải được duyệt trước"],
+    "budget_min": 1000000,
+    "budget_max": 1500000,
+    "budget_note": "Mức phí tối đa 4 giờ lên hình/ngày, chia 2 phiên; không có yêu cầu phát sóng liên tục 72 giờ với một talent. Thời gian tăng ca phải được thống nhất riêng.",
+    "location": "Trường quay thương mại mẫu, khu vực Duy Tân, Cầu Giấy, Hà Nội",
+    "start_time": "12:00",
+    "end_time": "22:00",
+    "onstage_time": "Ca chiều 14:00–16:00; ca tối 19:00–21:00",
+    "experience_min_years": 1,
+    "height_min_cm": null,
+    "weight_max_kg": null,
+    "contact_name": "Minh Trang - Producer chiến dịch mẫu",
+    "contact_phone": "0000 000 006",
+    "contact_email": "live-marathon@example.com",
+    "website_url": "https://example.com/live-marathon",
+    "contact_note": "Liên hệ minh họa, không đại diện bộ phận tuyển dụng thương hiệu. Hồ sơ mẫu gồm showreel, lịch trống và mức phí theo ca.",
+    "event_note": "Lịch ca cuối cùng được gửi trước 48 giờ; có mặt trước phiên đầu 90 phút để makeup và thử âm thanh.",
+    "positions": [
+      {"talent_type": "MC/Host dẫn chính", "quantity": 2, "requirements": ["Có kinh nghiệm quản lý nhịp phiên thương mại", "Tương tác với chuyên viên và xử lý chuyển cảnh"]},
+      {"talent_type": "KOL demo mỹ phẩm", "quantity": 2, "requirements": ["Tự tin demo sản phẩm trước máy quay", "Có portfolio beauty và giao tiếp tự nhiên"]}
+    ],
+    "sponsorships": [
+      {"category": "Tài trợ trang điểm", "details": "Ê-kíp makeup hỗ trợ theo ca và kiểm tra hình ảnh trước khi phát sóng."},
+      {"category": "Tài trợ ăn uống", "details": "Bữa ăn theo ca, nước uống và khu vực nghỉ cho talent."}
+    ],
+    "events": [
+      {"name": "Rehearsal và thử sản phẩm", "day_offset": -1, "start_time": "14:00", "end_time": "17:00", "content": ["Thử mic, camera và chuyển cảnh", "Duyệt nội dung demo, cue và bàn giao ca"]},
+      {"name": "Livestream Marathon", "day_offset": 0, "end_day_offset": 2, "start_time": "12:00", "end_time": "22:00", "content": ["Phát sóng theo 2 ca talent/ngày", "Nghỉ và makeup giữa phiên", "Tổng kết số liệu với producer cuối ngày"]}
+    ]
+  },
+  {
+    "id": "camp-7",
+    "title": "Luxury Lookbook - Autumn Glow",
+    "brand": "Maison Autumn Studio",
+    "event_name": "Autumn Glow - Fashion Lookbook Launch",
+    "campaign_type": "Model lookbook",
+    "image": "autumn-lookbook.png",
+    "image_caption": "Minh họa người mẫu và ê-kíp thực hiện bộ ảnh lookbook thời trang",
+    "industries": ["Thời trang", "Nhiếp ảnh", "Quảng cáo"],
+    "target_profiles": ["Người mẫu ảnh", "Fashion creator", "Model lookbook"],
+    "description": "Tuyển 4 người mẫu cho bộ ảnh lookbook Autumn Glow tại studio và khu kiến trúc hiện đại ở Quận 7, TP. Hồ Chí Minh. Mỗi model thực hiện 6–8 outfit, ảnh toàn thân và chi tiết chất liệu, kèm clip chuyển động ngắn. Ê-kíp gồm nhiếp ảnh, stylist và makeup; concept thanh lịch, tối giản. Đây là dự án tuyển dụng mẫu dùng để trình diễn hệ thống.",
+    "responsibilities": ["Tham gia casting online và fitting trước ngày chụp", "Làm việc với stylist để chuẩn bị trang phục và phụ kiện", "Thực hiện các pose theo moodboard và chỉ đạo nhiếp ảnh", "Quay clip chuyển động ngắn cho mỗi nhóm outfit", "Tuân thủ thời gian đổi đồ, bảo quản trang phục và xác nhận biên bản công việc"],
+    "requirements": ["Có portfolio tối thiểu 6 ảnh lookbook hoặc thời trang", "Biết posing toàn thân, góc nghiêng và phối hợp với nhiếp ảnh", "Thông số chiều cao, số đo cung cấp chính xác để bố trí trang phục", "Sẵn sàng fitting, chụp trong studio và ngoại cảnh theo lịch", "Không tự đăng ảnh hậu trường hoặc ảnh chưa được duyệt"],
+    "benefits": ["Thù lao 800.000–1.200.000 VND/người/ngày", "Makeup, làm tóc, trang phục và phụ kiện do ê-kíp chuẩn bị", "Hỗ trợ ăn trưa và nước uống tại địa điểm chụp", "Xe đoàn đưa đón giữa studio và ngoại cảnh", "Nhận bộ ảnh portfolio được thương hiệu duyệt sau khi phát hành", "Thanh toán trong 7 ngày làm việc sau buổi chụp cuối và ký nghiệm thu"],
+    "budget_min": 800000,
+    "budget_max": 1200000,
+    "budget_note": "Phí cho ngày chụp tối đa 8 giờ, 6–8 outfit/model; chưa gồm quyền chạy quảng cáo trả phí hoặc độc quyền dài hạn. Fitting và tăng ca cần thỏa thuận trước.",
+    "location": "Studio mẫu và khu ngoại cảnh Phú Mỹ Hưng, Quận 7, TP. Hồ Chí Minh",
+    "start_time": "08:00",
+    "end_time": "17:00",
+    "onstage_time": "Chụp studio 09:00–12:00; ngoại cảnh 14:00–16:30",
+    "experience_min_years": 1,
+    "height_min_cm": 170,
+    "weight_max_kg": null,
+    "contact_name": "Khánh Linh - Casting coordinator mẫu",
+    "contact_phone": "0000 000 007",
+    "contact_email": "autumn-lookbook@example.com",
+    "website_url": "https://example.com/autumn-lookbook",
+    "contact_note": "Thông tin mẫu. Hồ sơ gồm comp card, 6 ảnh portfolio, số đo hiện tại, lịch trống và báo giá quyền sử dụng hình ảnh.",
+    "event_note": "Mang giày basic và đồ lót phù hợp trang phục; không thay đổi tóc trước buổi chụp nếu chưa trao đổi với stylist.",
+    "positions": [
+      {"talent_type": "Model lookbook studio", "quantity": 2, "requirements": ["Có khả năng posing đa dạng", "Phối hợp tốt với stylist và nhiếp ảnh trong studio"]},
+      {"talent_type": "Model lookbook ngoại cảnh", "quantity": 2, "requirements": ["Có kỹ năng di chuyển và tạo dáng tự nhiên", "Sẵn sàng lịch ngoại cảnh theo điều kiện thời tiết"]}
+    ],
+    "sponsorships": [
+      {"category": "Tài trợ trang phục", "details": "Toàn bộ outfit và phụ kiện dùng trong bộ ảnh mẫu được ê-kíp chuẩn bị."},
+      {"category": "Tài trợ đi lại", "details": "Xe đoàn di chuyển giữa studio và địa điểm ngoại cảnh trong lịch chụp."}
+    ],
+    "events": [
+      {"name": "Fitting và chốt concept", "day_offset": -1, "start_time": "14:00", "end_time": "16:00", "content": ["Thử trang phục và kiểm tra số đo", "Duyệt moodboard, pose và checklist cá nhân"]},
+      {"name": "Chụp studio", "day_offset": 0, "end_day_offset": 1, "start_time": "08:00", "end_time": "17:00", "content": ["Makeup, làm tóc và thử ánh sáng", "Chụp outfit và clip chuyển động theo concept"]},
+      {"name": "Chụp ngoại cảnh và kết thúc", "day_offset": 2, "start_time": "08:00", "end_time": "17:00", "content": ["Di chuyển theo đoàn đến ngoại cảnh", "Chụp bổ sung và xác nhận hoàn thành công việc"]}
+    ]
+  }
+]

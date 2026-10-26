@@ -38,6 +38,21 @@ export default function JobInfoSection({
         className="border-amber-400/20 bg-amber-400/10 text-amber-300"
       />
 
+      {job.eventName && (
+        <div className="space-y-1 text-xs sm:text-sm">
+          <p className="font-medium text-[#574D54] dark:text-slate-400">Tên sự kiện / chương trình</p>
+          <p className="font-semibold text-[#191116] break-words dark:text-slate-100">{job.eventName}</p>
+        </div>
+      )}
+
+      {job.targetProfiles?.length > 0 && (
+        <PillSection
+          title="Đối tượng tuyển dụng"
+          items={job.targetProfiles}
+          className="border-[#F0D6D0] bg-[#FFF8F6] text-[#8F0709] dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+        />
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
         <div className="flex items-center gap-2 text-[#574D54] dark:text-slate-300">
           <Calendar className="h-4 w-4 text-[#B9861B] shrink-0 dark:text-slate-400" />
@@ -106,6 +121,33 @@ export default function JobInfoSection({
           <p className="text-xs sm:text-sm text-[#8D8088] font-normal dark:text-slate-400">Không có</p>
         )}
       </div>
+
+      {job.eventNote && (
+        <div className="space-y-1 border-t border-[#F0D6D0] pt-3 dark:border-[#151b2d]">
+          <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#8F0709] dark:text-slate-400">Lưu ý công việc</p>
+          <p className="text-xs sm:text-sm leading-relaxed text-[#574D54] dark:text-slate-200">{job.eventNote}</p>
+        </div>
+      )}
+
+      {(job.detail?.contactName || job.detail?.phone || job.detail?.email || job.detail?.website) && (
+        <div className="space-y-3 border-t border-[#F0D6D0] pt-3 dark:border-[#151b2d]">
+          <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#8F0709] dark:text-slate-400">Thông tin liên hệ</p>
+          <dl className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2 sm:text-sm">
+            {[
+              ['Người phụ trách', job.detail?.contactName],
+              ['Điện thoại', job.detail?.phone],
+              ['Email', job.detail?.email],
+              ['Website', job.detail?.website],
+            ].filter(([, value]) => Boolean(value)).map(([label, value]) => (
+              <div key={label} className="min-w-0 space-y-1">
+                <dt className="font-medium text-[#574D54] dark:text-slate-400">{label}</dt>
+                <dd className="font-semibold text-[#191116] [overflow-wrap:anywhere] dark:text-slate-100">{value}</dd>
+              </div>
+            ))}
+          </dl>
+          {job.contactNote && <p className="text-xs leading-relaxed text-[#574D54] dark:text-slate-300">{job.contactNote}</p>}
+        </div>
+      )}
     </div>
   );
 }
