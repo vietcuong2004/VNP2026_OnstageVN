@@ -1283,8 +1283,8 @@ export function mapCampaignToTalentJob(campaign: any) {
   const theme = campaignTheme(color);
   const budgetRaw = firstNonEmptyText(campaign.budget_raw, campaign.budgetRaw);
   const budget = hasBudgetAmount(campaign.budget_min, campaign.budget_max)
-    ? moneyRange(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note || campaign.budgetNote)
-    : budgetRaw || moneyRange(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note || campaign.budgetNote);
+    ? moneyRange(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day")
+    : budgetRaw || moneyRange(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day");
   const hasBudget = Boolean(budget);
   const media = Array.isArray(campaign.media)
     ? campaign.media

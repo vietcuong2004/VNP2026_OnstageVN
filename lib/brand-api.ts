@@ -1018,8 +1018,8 @@ export function mapBackendCampaign(campaign: BackendCampaign): Campaign {
   const budgetMin = numberOrNull(campaign.budget_min);
   const budgetRaw = firstNonEmptyText(campaign.budget_raw);
   const budget = hasBudgetAmount(campaign.budget_min, campaign.budget_max)
-    ? formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note)
-    : budgetRaw || formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day", campaign.budget_note);
+    ? formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day")
+    : budgetRaw || formatBudget(campaign.budget_min, campaign.budget_max, campaign.budget_unit || "day");
   const media = (campaign.media ?? []).map(mapCampaignMedia).filter(Boolean) as CampaignMedia[];
   const coverMedia = mapCampaignMedia(campaign.cover_media ?? campaign.coverMedia ?? null)
     ?? media.find((item) => item.category === "cover" && item.is_primary)

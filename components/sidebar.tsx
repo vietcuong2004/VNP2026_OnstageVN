@@ -47,10 +47,6 @@ export const unifiedManagementNavigation = [
   { label: "Hợp tác", icon: Users2, href: "/talent/brands" },
 ];
 
-export const unifiedCreatorNavigation = [
-  { label: "Chiến dịch Creator", icon: Sparkles, href: "/creator/campaigns" },
-];
-
 export const unifiedAdminNavigation = [
   { label: "Danh sách Đơn hàng", icon: Briefcase, href: "/admin/creator-campaigns" },
   { label: "Creator", icon: Users2, href: "/admin/creators" },

@@ -505,7 +505,6 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
     : [];
   const deadline = job.applicationDeadline || job.deadline;
   const isExpired = isApplicationDeadlineExpired(deadline);
-  const hasBudgetNote = Boolean(String(job.budgetNote || job.budget_note || "").trim());
   const rawRecruitmentPositions =
     (Array.isArray(detail.recruitmentPositions) && detail.recruitmentPositions) ||
     (Array.isArray(detail.positions) && detail.positions) ||
@@ -692,8 +691,8 @@ export default function CampaignInviteLandingClient({ code, campaignSlug, referr
             </p>
 
             {/* Key Metrics Highlight Cards */}
-            <div className={cn("grid grid-cols-1 gap-3 pt-2", hasBudgetNote ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3")}>
-              <div className={cn("light-force-white relative overflow-hidden rounded-2xl border border-[#C72524]/20 bg-gradient-to-br from-[#8F0709] via-[#C72524] to-[#D85E5A] p-4 flex min-w-0 flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.14)] dark:border-amber-500/25 dark:bg-gradient-to-br dark:from-amber-500/10 dark:via-[#0e1322] dark:to-[#080a12]", hasBudgetNote && "sm:col-span-2")}>
+            <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-3">
+              <div className="light-force-white relative overflow-hidden rounded-2xl border border-[#C72524]/20 bg-gradient-to-br from-[#8F0709] via-[#C72524] to-[#D85E5A] p-4 flex min-w-0 flex-col justify-between space-y-1.5 shadow-[0_12px_28px_rgba(143,7,9,0.14)] dark:border-amber-500/25 dark:bg-gradient-to-br dark:from-amber-500/10 dark:via-[#0e1322] dark:to-[#080a12]">
                 <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-white dark:text-amber-400">
                   <DollarSign className="h-4 w-4 text-current shrink-0 dark:text-amber-400" />
                   Thù lao
