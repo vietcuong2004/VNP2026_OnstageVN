@@ -3,6 +3,7 @@
 import { apiForm, apiJson, getAuthToken } from "@/lib/api-client";
 import { createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl, profileAvatarFromBackend } from "@/lib/avatar";
 import type { Campaign, CampaignMedia, CampaignStage, TalentProfile } from "@/lib/brand-mvp-data";
+import { loadMockProfiles, selectMockProfiles, usesMockProfiles } from "@/lib/mock-talents";
 
 const BRAND_PROFILE_DRAFT_KEY = "onstagevn_guest_brand_profile";
 
@@ -42,7 +43,7 @@ export function requireBrandSession() {
   }
 }
 
-type BackendProfile = {
+export type BackendProfile = {
   id?: number | string;
   user_id?: number | string | null;
   is_owner?: boolean | number | null;
@@ -1616,6 +1617,10 @@ export async function loadBrandTalentsPage(
   options: LoadBrandTalentsOptions = {},
   fallback: TalentProfile[] = [],
 ): Promise<LoadBrandTalentsResult> {
+  if (usesMockProfiles()) {
+    const result = selectMockProfiles(await loadMockProfiles(), options);
+    return { data: result.data.map((profile) => mapBackendTalent(profile)), meta: result.meta };
+  }
   try {
     const params = buildTalentSearchParams(options);
     const response = await apiJson<{ data: BackendProfile[]; meta?: PaginationMeta }>(`/talents?${params.toString()}`);
@@ -1770,6 +1775,10 @@ export async function createBrandTalentInviteLink() {
 }
 
 export async function loadBrandTalent(id: string, fallback?: TalentProfile | null) {
+  if (usesMockProfiles()) {
+    const profile = (await loadMockProfiles()).find((item) => String(item.id) === id);
+    return profile ? mapBackendTalent(profile) : null;
+  }
   try {
     const response = await apiJson<{ data: BackendProfile }>(`/talents/${id}`);
     return mapBackendTalent(response.data, fallback ?? undefined);

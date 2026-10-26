@@ -6,6 +6,10 @@ const staticProxyTarget = process.env.STATIC_PROXY_TARGET
   ?? (publicApiUrl.startsWith("http") ? `${apiProxyTarget}/api-manager-kols` : "http://127.0.0.1:9000/api-manager-kols");
 
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_PROFILE_SOURCE: process.env.NEXT_PUBLIC_PROFILE_SOURCE
+      ?? (process.env.VERCEL === "1" ? "mock" : "api"),
+  },
   devIndicators: {
     buildActivity: false,
     appIsrStatus: false,

@@ -51,3 +51,15 @@ next-env.d.ts
 # local tunnel executables
 cloudflared.exe
 ngrok.exe
+
+# Publish only curated sample profiles and their display images.
+/public/mock_data/*
+!/public/mock_data/profiles.json
+!/public/mock_data/Talent_Image/
+/public/mock_data/Talent_Image/*
+!/public/mock_data/Talent_Image/[0-9]*/
+/public/mock_data/Talent_Image/[0-9]*/*
+!/public/mock_data/Talent_Image/[0-9]*/avatar.jpg
+!/public/mock_data/Talent_Image/[0-9]*/avatar.png
+!/public/mock_data/Talent_Image/[0-9]*/cover.jpg
+!/public/mock_data/Talent_Image/[0-9]*/lookbook_*.jpg
