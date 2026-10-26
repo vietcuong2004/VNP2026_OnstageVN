@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   Clock,
   DollarSign,
-  Gift,
   Info,
   MapPin,
   MoreHorizontal,
@@ -103,12 +102,6 @@ function formatDateTimeRangeLabel(startValue: string, endValue: string) {
   if (!startValue || startValue === "Có thể cập nhật sau") return endValue || "Có thể cập nhật sau";
   if (!endValue || endValue === "Có thể cập nhật sau") return startValue;
   return `${startValue} - ${endValue}`;
-}
-
-function sentenceCase(text: string) {
-  if (!text) return "";
-  const trimmed = text.trim();
-  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }
 
 function slugify(text: string) {
@@ -863,30 +856,6 @@ export default function JobDetailPage() {
             generalRequirements={requirements}
             total={recruitmentTotal}
           />
-        )}
-
-        {/* Brand Sponsorships */}
-        {job.sponsorships && job.sponsorships.length > 0 && (
-          <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-b from-[#0e1322] to-[#080a12] p-5 space-y-3">
-            <h4 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-300 uppercase tracking-wider">
-              <Gift className="h-4 w-4 text-amber-400" /> Cam kết tài trợ từ Nhà tuyển dụng
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {job.sponsorships.map((spons: any, idx: number) => (
-                <div key={idx} className="bg-[#080a12] border border-amber-400/20 rounded-xl p-3.5 space-y-1.5 hover:border-amber-400/40 transition-colors">
-                  <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-400">
-                    <span>🎁</span>
-                    <span>{spons.category}</span>
-                  </div>
-                  {spons.details && (
-                    <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
-                      {sentenceCase(spons.details)}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
         )}
 
         {eventSchedules.length > 0 && <EventInformationSection events={eventSchedules} />}
