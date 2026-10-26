@@ -25,14 +25,16 @@ $profiles = @(foreach ($row in $sampleRows) {
     $folder = Join-Path $imageRoot ([string]$sequence)
     if (-not (Test-Path -LiteralPath $folder -PathType Container)) { continue }
     $images = @(Get-ChildItem -LiteralPath $folder -File | Where-Object {
-        $_.Name -match '^(avatar\.(jpg|png)|cover\.jpg|lookbook_\d+\.jpg)$'
+        $_.Extension -match '^\.(jpg|jpeg|png|webp)$'
     } | Sort-Object Name)
     if (-not ($images | Where-Object { $_.BaseName -eq 'avatar' })) { continue }
 
     $profile = [ordered]@{}
     foreach ($field in $fields) {
         if ($field -in $arrayFields) {
-            $profile[$field] = @(if ($row.$field) { ConvertFrom-Json $row.$field })
+            $items = if ($row.$field) { ConvertFrom-Json -InputObject $row.$field } else { @() }
+            # Enumerate explicitly: Windows PowerShell otherwise serializes array wrappers as {value, Count}.
+            $profile[$field] = @($items | ForEach-Object { [string]$_ })
         } else {
             $profile[$field] = $row.$field
         }
@@ -40,7 +42,7 @@ $profiles = @(foreach ($row in $sampleRows) {
     $profile['photos'] = @($images | ForEach-Object {
         $category = if ($_.BaseName -eq 'avatar') { 'avatar' } elseif ($_.BaseName -eq 'cover') { 'cover' } else { 'lookbook' }
         [ordered]@{
-            url = "/mock_data/Talent_Image/$sequence/$($_.Name)"
+            url = "/mock_data/Talent_Image/$sequence/$([uri]::EscapeDataString($_.Name))"
             category = $category
             is_primary = ($category -eq 'avatar')
         }

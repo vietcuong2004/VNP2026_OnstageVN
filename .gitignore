@@ -63,3 +63,7 @@ ngrok.exe
 !/public/mock_data/Talent_Image/[0-9]*/avatar.png
 !/public/mock_data/Talent_Image/[0-9]*/cover.jpg
 !/public/mock_data/Talent_Image/[0-9]*/lookbook_*.jpg
+!/public/mock_data/Talent_Image/[0-9]*/*.jpg
+!/public/mock_data/Talent_Image/[0-9]*/*.jpeg
+!/public/mock_data/Talent_Image/[0-9]*/*.png
+!/public/mock_data/Talent_Image/[0-9]*/*.webp

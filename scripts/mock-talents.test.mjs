@@ -13,6 +13,11 @@ test('sample catalogue has unique IDs and existing local images without account 
   for (const profile of profiles) {
     assert.ok(!Object.keys(profile).some((key) => forbidden.test(key)));
     assert.ok(profile.photos.some((photo) => photo.category === 'avatar'));
+    assert.ok(profile.photos.some((photo) => photo.category === 'lookbook'), `Missing gallery: ${profile.id}`);
+    for (const field of ['talent_types', 'skills', 'languages']) {
+      assert.ok(Array.isArray(profile[field]));
+      assert.ok(profile[field].every((value) => typeof value === 'string'), `Invalid labels: ${profile.id}.${field}`);
+    }
     for (const photo of profile.photos) {
       assert.ok(photo.url.startsWith('/mock_data/Talent_Image/'));
       assert.ok(existsSync(fileURLToPath(new URL(`../public${photo.url}`, import.meta.url))));
@@ -20,6 +25,16 @@ test('sample catalogue has unique IDs and existing local images without account 
   }
   assert.equal(profiles[0].photos[0].url.split('/')[3], '1');
   assert.equal(profiles.at(-1).photos[0].url.split('/')[3], '100');
+});
+
+test('sample labels remain strings and original photos appear without generated lookbooks', () => {
+  assert.deepEqual(profiles[0].talent_types, ['MC']);
+  assert.deepEqual(profiles[0].skills, ['acting', 'catwalk', 'livestream', 'dancing']);
+  assert.deepEqual(profiles[0].languages, ['Korean']);
+  const profile = profiles.find((item) => item.id === '638');
+  assert.ok(profile.photos.some((photo) => photo.url === '/mock_data/Talent_Image/6/6_1.jpg'
+    && photo.category === 'lookbook'));
+  assert.ok(selectMockProfiles(profiles, { type: 'mc', q: 'duong tuyet lan' }).data.length > 0);
 });
 
 test('pagination returns distinct pages and terminates after the last page', () => {
