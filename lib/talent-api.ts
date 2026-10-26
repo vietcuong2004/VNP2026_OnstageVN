@@ -5,6 +5,9 @@
 import { apiForm, apiJson, getAuthToken, getStoredAuthUser, storeAuthUser } from "@/lib/api-client";
 import { avatarFallbackForUser, createInitialAvatarDataUrl, isUsableAvatarUrl, normalizeBackendAssetUrl } from "@/lib/avatar";
 import { busyDatesFromEvents, normalizeAvailabilityCalendar, normalizeBusyDates } from "@/lib/talent-calendar";
+import { campaigns as sampleCampaigns } from "@/lib/brand-mvp-data";
+import { usesMockProfiles } from "@/lib/mock-talents";
+import { buildMockCampaigns, selectMockCampaigns } from "@/lib/mock-campaigns";
 
 const PROFILE_STORAGE_KEY = "vnp_talent_profile";
 export const TALENT_PROFILE_UPDATED_EVENT = "vnp_talent_profile_updated";
@@ -753,6 +756,7 @@ export async function deleteTalentCalendarEvent(eventId: number | string) {
 }
 
 export async function loadTalentCampaigns() {
+  if (usesMockProfiles()) return buildMockCampaigns(sampleCampaigns);
   try {
     const path = getAuthToken() ? "/talent/campaigns" : "/public/talent-campaigns";
     const response = await apiJson<{ data: any[] }>(path);
@@ -764,6 +768,10 @@ export async function loadTalentCampaigns() {
 }
 
 export async function loadTalentCampaignDetail(idOrSlug: string | number) {
+  if (usesMockProfiles()) {
+    const campaign = buildMockCampaigns(sampleCampaigns).find((item) => item.id === String(idOrSlug) || item.slug === String(idOrSlug));
+    return campaign ? mapCampaignToTalentJob(campaign) : null;
+  }
   try {
     const path = getAuthToken()
       ? `/talent/campaigns/${idOrSlug}`
@@ -806,7 +814,8 @@ export async function loadTalentCampaignsPage(options: {
   nearCity?: string;
   selectedCity?: string;
   stage?: "executing" | "recruiting" | "pending" | "completed";
-} = {}) {
+} = {}): Promise<{ data: any[]; meta: TalentCampaignPaginationMeta }> {
+  if (usesMockProfiles()) return selectMockCampaigns(buildMockCampaigns(sampleCampaigns), options);
   try {
     const params = new URLSearchParams();
     params.set("page", String(options.page ?? 1));

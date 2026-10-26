@@ -9,6 +9,11 @@ List pagination, search, filters and profile detail use this file. Images are
 served directly from `/mock_data/Talent_Image/`. Account creation, login and
 booking writes still require the backend.
 
+The talent jobs list and detail also use published sample campaigns from
+`lib/brand-mvp-data.ts` in mock mode. Demo recruitment dates are relative to the
+current date so the recruiting tab stays populated. Job filters, pagination and
+detail use the same sample catalogue; private application history is not mocked.
+
 To rebuild the catalogue locally from the supplied CSV templates:
 
 ```powershell
