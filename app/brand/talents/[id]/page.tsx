@@ -59,6 +59,7 @@ import {
   Copy,
 } from "lucide-react";
 import BookingFlow from "@/app/brand/talents/[id]/booking-talent/BookingFlow";
+import ProfileSocialSummary from "@/components/talents/ProfileSocialSummary";
 import { findTalentById } from "@/lib/brand-mvp-data";
 import { cn, formatOrGenerateViews, getSocialHandle, getVideoThumbnail } from "@/lib/utils";
 import RadarChart from "@/components/ui/RadarChart";
@@ -1674,27 +1675,6 @@ export default function BrandTalentProfilePage() {
   const mobileHeroTotal = Math.max(mobileHeroPhotos.length, 1);
   const mobileHeroImage = mobileHeroPhotos[mobileHeroIndex] || normalizeBackendAssetUrl(talent.cover || talent.avatar || "") || "/brand_cover_default.png";
   const mobileSocialAccounts = Array.isArray(profile.socialAccounts) ? profile.socialAccounts : [];
-  const mobileDisplayStats = [
-    { platform: "TikTok", match: /tiktok/i, label: "Followers" },
-    { platform: "Instagram", match: /instagram|insta/i, label: "Followers" },
-    { platform: "YouTube", match: /youtube|youtu\.be|yt/i, label: "Subscribers" },
-    { platform: "Facebook", match: /facebook|fb\.com/i, label: "Followers" },
-  ].map((config) => {
-    const account = mobileSocialAccounts.find((item: any) => {
-      const haystack = `${item?.platform || ""} ${item?.name || ""} ${item?.url || ""}`.toLowerCase();
-      return config.match.test(haystack);
-    });
-    const rawUrl = String(account?.url || "").trim();
-    const href = rawUrl ? (rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`) : "";
-
-    return {
-      platform: config.platform,
-      href,
-      value: account?.followers_count ? formatShortCount(Number(account.followers_count)) : href ? (talent.followers || "0") : "0",
-      label: href ? config.label : "Chưa cập nhật",
-      disabled: !href,
-    };
-  });
   const mobileReviewItems = (profile.reviews && profile.reviews.length > 0 ? profile.reviews : [
     { brand: "L'Oréal Paris Vietnam", rating: 5, date: "15/05/2026", comment: `${talent.name} làm việc vô cùng chuyên nghiệp, đúng giờ và hoàn thành tốt KPI chiến dịch truyền thông của nhãn hàng. Rất mong tiếp tục hợp tác.` },
     { brand: "Gucci Beauty Event", rating: 5, date: "29/04/2026", comment: "Thần thái xuất sắc, hình ảnh high-fashion phù hợp tiêu chuẩn quốc tế. Cảm ơn vì sự hỗ trợ nhiệt tình." },
@@ -2006,47 +1986,7 @@ export default function BrandTalentProfilePage() {
           </div>
 
           <div className="relative z-20 -mt-6 rounded-t-[28px] bg-white px-4 pb-6 pt-5 shadow-[0_-12px_28px_rgba(16,18,47,0.08)]">
-            <div className="grid grid-cols-4 divide-x divide-slate-200 rounded-3xl bg-white py-2 shadow-sm">
-              {mobileDisplayStats.map((item: { platform: string; href: string; value: string; label: string; disabled: boolean }) => {
-                const info = getSocialPlatformInfo(item.platform, "");
-                const content = (
-                  <>
-                    <div className="mb-1 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full">
-                      {info.icon}
-                    </div>
-                    <strong className="text-sm font-black leading-tight text-[#10122f]">{item.value}</strong>
-                    <span className="text-[10px] font-semibold leading-tight text-[#888aa5]">{item.label}</span>
-                  </>
-                );
-
-                if (item.disabled) {
-                  return (
-                    <button
-                      key={item.platform}
-                      type="button"
-                      disabled
-                      className="flex min-w-0 flex-col items-center justify-center px-1 text-center opacity-35 grayscale"
-                      title={`${item.platform} chưa cập nhật`}
-                    >
-                      {content}
-                    </button>
-                  );
-                }
-
-                return (
-                  <a
-                    key={item.platform}
-                    href={item.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex min-w-0 flex-col items-center justify-center px-1 text-center transition active:scale-95"
-                    title={`Mở ${item.platform}`}
-                  >
-                    {content}
-                  </a>
-                );
-              })}
-            </div>
+            <ProfileSocialSummary accounts={mobileSocialAccounts} />
 
             <div className="mt-3 flex items-center justify-between gap-2 text-sm">
               <div className="flex min-w-0 items-center gap-1.5 whitespace-nowrap font-bold text-xs sm:text-sm text-[#10122f] dark:text-white">
