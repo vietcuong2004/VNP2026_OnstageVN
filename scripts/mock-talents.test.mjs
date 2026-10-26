@@ -37,6 +37,43 @@ test('sample labels remain strings and original photos appear without generated 
   assert.ok(selectMockProfiles(profiles, { type: 'mc', q: 'duong tuyet lan' }).data.length > 0);
 });
 
+test('all 100 profiles have two TikTok channels, Facebook, Instagram and optional YouTube', () => {
+  const accountIds = new Set();
+  const accountUrls = new Set();
+  const youtubeCounts = new Set();
+  const hosts = {
+    TikTok: 'www.tiktok.com', Facebook: 'www.facebook.com',
+    Instagram: 'www.instagram.com', YouTube: 'www.youtube.com',
+  };
+  for (const profile of profiles) {
+    const accounts = profile.social_accounts;
+    assert.ok(Array.isArray(accounts), `Missing social accounts: ${profile.id}`);
+    const count = (platform) => accounts.filter((account) => account.platform === platform).length;
+    assert.equal(count('TikTok'), 2);
+    assert.equal(count('Facebook'), 1);
+    assert.equal(count('Instagram'), 1);
+    assert.ok(count('YouTube') <= 1);
+    assert.equal(accounts.length, 4 + count('YouTube'));
+    youtubeCounts.add(count('YouTube'));
+    for (const account of accounts) {
+      assert.ok(!accountIds.has(account.id), `Duplicate account ID: ${account.id}`);
+      assert.ok(!accountUrls.has(account.url), `Duplicate account URL: ${account.url}`);
+      accountIds.add(account.id);
+      accountUrls.add(account.url);
+      const url = new URL(account.url);
+      assert.equal(url.protocol, 'https:');
+      assert.equal(url.hostname, hosts[account.platform]);
+      assert.ok(account.handle.includes('demo'));
+      assert.ok(url.pathname.includes(account.handle));
+      assert.ok(Number.isInteger(account.followers_count) && account.followers_count > 0);
+      assert.ok(account.likes_count > 0);
+      assert.ok(account.engagement_rate > 0 && account.engagement_rate < 100);
+      assert.ok(account.metrics.avg_views && account.metrics.interaction);
+    }
+  }
+  assert.deepEqual([...youtubeCounts].sort(), [0, 1]);
+});
+
 test('pagination returns distinct pages and terminates after the last page', () => {
   const first = selectMockProfiles(profiles, { page: 1, perPage: 24 });
   const second = selectMockProfiles(profiles, { page: 2, perPage: 24 });
